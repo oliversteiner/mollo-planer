@@ -2,9 +2,46 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectRole;
+use Database\Factories\ProjectFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+#[Fillable(['name', 'description', 'locale'])]
 class Project extends Model
 {
-    //
+    /** @use HasFactory<ProjectFactory> */
+    use HasFactory;
+
+    /**
+     * Members of the project with their role (pivot attribute "membership").
+     *
+     * @return BelongsToMany<User, $this, ProjectMember, 'membership'>
+     */
+    public function members(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->using(ProjectMember::class)
+            ->as('membership')
+            ->withPivot('id', 'role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Role of the user in this project, null if not a member.
+     *
+     * Uses the loaded members relation if present, otherwise one query.
+     * This only looks up the role; what it allows is decided by
+     * App\Support\ProjectPermissions.
+     */
+    public function roleOf(User $user): ?ProjectRole
+    {
+        $member = $this->relationLoaded('members')
+            ? $this->members->firstWhere('id', $user->getKey())
+            : $this->members()->whereKey($user->getKey())->first();
+
+        return $member?->membership->role;
+    }
 }

@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -27,6 +28,22 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'notify_by_email' => 'boolean',
         ];
+    }
+
+    /**
+     * Projects this user is a member of, with the role (pivot attribute "membership").
+     *
+     * @return BelongsToMany<Project, $this, ProjectMember, 'membership'>
+     */
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class)
+            ->using(ProjectMember::class)
+            ->as('membership')
+            ->withPivot('id', 'role')
+            ->withTimestamps();
     }
 }
