@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Comment;
+use App\Models\Task;
+use App\Models\User;
+use App\Notifications\TaskAssigned;
+use App\Notifications\TaskCommented;
+use App\Support\ProjectPermissions;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
+
+/**
+ * Decides who gets a mail about a task:
+ * - new task or new assignment: the assignee
+ * - new comment: the assignee and everyone who commented on the task before
+ *
+ * Never the actor, never someone with mails turned off, never someone who
+ * can no longer see the project.
+ */
+class TaskNotifier
+{
+    public function assigned(Task $task, User $actor): void
+    {
+        $recipients = $this->filter(collect([$task->assignee]), $task, $actor);
+
+        Notification::send($recipients, new TaskAssigned($task, $actor->name));
+    }
+
+    public function commented(Comment $comment, User $actor): void
+    {
+        $task = $comment->task;
+
+        $commenters = User::query()
+            ->whereIn('id', $task->comments()->reorder()->whereKeyNot($comment->getKey())->select('user_id'))
+            ->get();
+
+        $recipients = $this->filter($commenters->prepend($task->assignee), $task, $actor);
+
+        Notification::send($recipients, new TaskCommented($task, $actor->name));
+    }
+
+    /**
+     * @param  Collection<int, User|null>  $users
+     * @return Collection<int, User>
+     */
+    private function filter(Collection $users, Task $task, User $actor): Collection
+    {
+        $project = $task->owningProject();
+
+        return $users
+            ->filter()
+            ->unique(fn (User $user) => $user->getKey())
+            ->reject(fn (User $user) => $user->is($actor))
+            ->filter(fn (User $user) => $user->notify_by_email && ProjectPermissions::canView($user, $project))
+            ->values();
+    }
+}

@@ -39,6 +39,13 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
   - Erste Einrichtung: Nach der Einladung genügt das Passwort, um den ersten Faktor einzurichten. Die Einladung per E-Mail ist dabei der Nachweis.
   - Antwort bei gesperrter Sitzung: `SECOND_FACTOR_SETUP_REQUIRED` (zur Einrichtung) oder `STRONG_AUTHENTICATION_REQUIRED` (mit Passkey bestätigen über `/passkeys/confirm` oder neu anmelden).
 
+## Mail-Benachrichtigungen (Umsetzung Schritt 10)
+- `App\Services\TaskNotifier` wählt die Empfänger: bei neuem Task mit Zuweisung und bei `assignTask` die zugewiesene Person, bei `addComment` die zugewiesene Person und alle, die den Task schon kommentiert haben. Nie die handelnde Person, nie wer Mails abgeschaltet hat, nie wer das Projekt nicht sehen darf (`ProjectPermissions::canView`, also auch Admins ohne Mitgliedschaft, wenn sie kommentiert haben). Aufheben der Zuweisung schickt keine Mail.
+- `TaskAssigned` und `TaskCommented` erben von `TaskNotification`: `ShouldQueue`, `afterCommit`, Sprache = `project->locale`. `shouldSend()` prüft beim Versand aus der Queue nochmals Mail-Einstellung und Sichtbarkeit. Ist der Task inzwischen gelöscht, wird der Job verworfen (`deleteWhenMissingModels`).
+- Der Name der handelnden Person wird als Text mitgegeben, nicht als Model.
+- Link in der Mail: `FRONTEND_URL/projects/{id}/kanban?task={id}`. Die Route ist nur in `TaskNotification::taskUrl()` definiert und beim Bau des Frontends dort anzupassen.
+- `Markdown::withSecuredEncoding()` (AppServiceProvider): Titel wie `[Klick](https://…)` erscheinen in Mails als Text, nicht als Link.
+
 ## Reihenfolge beim Bauen
 1. Migrationen: `tasks.due_date`, `tasks.description` (json), `milestones.description` und `todos.description` auf json, `icon` bei `milestones`/`todos`/`tasks`, Tabelle `comments`, `users.notify_by_email`, `projects.locale`.
 2. Enum `ProjectAbility`, zentrale Rechte-Tabelle `ProjectPermissions`.

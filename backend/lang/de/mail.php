@@ -16,4 +16,20 @@ return [
         'expiry' => 'Der Link ist :minutes Minuten gültig.',
         'ignore' => 'Falls du kein neues Passwort angefordert hast, musst du nichts tun.',
     ],
+    'date_format' => 'd.m.Y',
+    'settings_hint' => 'Du kannst E-Mail-Benachrichtigungen in deinem Profil abschalten.',
+    'task' => [
+        'location' => 'Projekt: :project, ToDo: :todo',
+        'due' => 'Fällig am :date.',
+        'action' => 'Task öffnen',
+    ],
+    'task_assigned' => [
+        'subject' => '[:project] Task zugewiesen: :task',
+        'intro' => ':actor hat dir den Task «:task» zugewiesen.',
+    ],
+    'task_commented' => [
+        'subject' => '[:project] Neuer Kommentar: :task',
+        'intro' => ':actor hat den Task «:task» kommentiert.',
+        'action' => 'Kommentar lesen',
+    ],
 ];

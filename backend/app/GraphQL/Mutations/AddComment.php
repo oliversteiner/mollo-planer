@@ -5,6 +5,7 @@ namespace App\GraphQL\Mutations;
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Comment;
 use App\Models\Task;
+use App\Services\TaskNotifier;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -14,6 +15,8 @@ class AddComment
 {
     use ResolvesViewer;
 
+    public function __construct(private readonly TaskNotifier $notifier) {}
+
     /**
      * @param  array{task_id: int|string, body: array<string, mixed>}  $args
      */
@@ -21,8 +24,10 @@ class AddComment
     {
         $comment = new Comment(['body' => $args['body']]);
         $comment->task()->associate(Task::findOrFail($args['task_id']));
-        $comment->author()->associate($this->viewer($context));
+        $comment->author()->associate($viewer = $this->viewer($context));
         $comment->save();
+
+        $this->notifier->commented($comment, $viewer);
 
         return $comment;
     }
