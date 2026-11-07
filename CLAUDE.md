@@ -23,6 +23,12 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - `php artisan migrate`
 - `php artisan lighthouse:validate-schema` (Schema prüfen)
 - `./vendor/bin/pint` (Code-Stil)
+- `php artisan boost:update --no-discover` (Boost-Guidelines und -Skills neu erzeugen, läuft auch nach `composer update`)
+
+## Laravel Boost
+- Boost liefert `backend/CLAUDE.md` (allgemeine Laravel-Regeln), Skills in `backend/.claude/skills/` und den MCP-Server `laravel-boost` (`.mcp.json` im Projektordner: Doku-Suche `search-docs`, Datenbankschema, Logs).
+- `backend/CLAUDE.md` und die Skills werden von Boost erzeugt, **nicht von Hand ändern**. Auswahl in `backend/boost.json`, Ausschlüsse in `backend/config/boost.php` (Laravel Cloud und Tailwind sind ausgeschlossen).
+- Bei Widersprüchen gilt diese Datei und `docs/backend-plan.md` vor den Boost-Regeln. Insbesondere: API nur über GraphQL (Lighthouse), keine Eloquent API Resources oder REST-Versionierung. Den Abschnitt „Stand“ und `docs/backend-plan.md` nachführen, auch wenn Boost sagt, Dokumentation nur auf Anfrage.
 
 ## Regeln
 - **Code** (Klassen, Methoden, Variablen, Kommentare im Code) auf Englisch. **UI-Texte und Mails** in Deutsch und Englisch über `lang/de` und `lang/en`, nie hart codiert.
