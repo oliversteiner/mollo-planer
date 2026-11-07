@@ -81,6 +81,19 @@ class Task extends Model implements BelongsToProject
     }
 
     /**
+     * All tasks of a project (through todo and milestone).
+     *
+     * @param  Builder<static>  $query
+     */
+    public function scopeInProject(Builder $query, int|string $projectId): void
+    {
+        $query->whereIn('todo_id', Todo::query()
+            ->select('todos.id')
+            ->join('milestones', 'milestones.id', '=', 'todos.milestone_id')
+            ->where('milestones.project_id', $projectId));
+    }
+
+    /**
      * Only tasks assigned to the logged-in user (myTasks). Combine with
      * visibleToViewer so tasks in projects the user left stay hidden.
      *

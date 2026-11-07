@@ -60,6 +60,14 @@ class Project extends Model
     }
 
     /**
+     * Number of members with the given role.
+     */
+    public function countMembersWithRole(ProjectRole $role): int
+    {
+        return $this->members()->wherePivot('role', $role->value)->count();
+    }
+
+    /**
      * Role of the user in this project, null if not a member.
      *
      * Uses the loaded members relation if present, otherwise one query.

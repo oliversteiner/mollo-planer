@@ -49,6 +49,41 @@ final class ProjectPermissions
     ];
 
     /**
+     * Roles that may grant the owner role or change or remove an owner, on
+     * top of "members.manage". Without this, a manager could make
+     * themselves owner. Admins may always.
+     *
+     * @var list<ProjectRole>
+     */
+    private const OWNER_MANAGERS = [self::OWNER];
+
+    /**
+     * May the actor change a membership from $currentRole to $newRole?
+     * Null means "not a member" (add) or "remove".
+     */
+    public static function canChangeMembership(User $actor, Project $project, ?ProjectRole $currentRole, ?ProjectRole $newRole): bool
+    {
+        if (! self::allows($actor, $project, ProjectAbility::MEMBERS_MANAGE)) {
+            return false;
+        }
+
+        $touchesOwner = $currentRole === self::OWNER || $newRole === self::OWNER;
+
+        return ! $touchesOwner
+            || $actor->is_admin
+            || in_array($project->roleOf($actor), self::OWNER_MANAGERS, true);
+    }
+
+    /**
+     * May the actor leave a project without any owner (remove or demote
+     * the last owner)? Only admins, for example when staff changes.
+     */
+    public static function canRemoveLastOwner(User $actor): bool
+    {
+        return $actor->is_admin;
+    }
+
+    /**
      * Does this role have the ability? A missing role (no member) has none.
      */
     public static function roleAllows(?ProjectRole $role, ProjectAbility $ability): bool

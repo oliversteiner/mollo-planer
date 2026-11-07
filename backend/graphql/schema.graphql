@@ -256,7 +256,7 @@ type KanbanColumn {
 "Alles für die Startseite in einem Aufruf"
 type Dashboard {
   "Offene ToDos, nach Fälligkeit sortiert"
-  upcomingTodos(limit: Int = 5 @rules(apply: ["min:1", "max:50"])): [Todo!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@upcomingTodos")
+  upcomingTodos(limit: Int = 5 @rules(apply: ["integer", "min:1", "max:50"])): [Todo!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@upcomingTodos")
   "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
   myOpenTasks: [Task!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@myOpenTasks")
   projects: [Project!]! @all(scopes: ["visibleToViewer"])
@@ -308,14 +308,16 @@ type Mutation @guard {
   createUser(input: CreateUserInput! @spread): User!
     @can(ability: "create", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\CreateUser")
+  "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
   updateUser(id: ID!, input: UpdateUserInput! @spread): User!
-    @can(ability: "update", find: "id")
+    @can(ability: "update", find: "id", injectArgs: true)
+    @validator
     @update
   "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
   resetUserTwoFactor(id: ID!): User!
     @can(ability: "update", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\ResetUserTwoFactor")
-  deleteUser(id: ID!): User!
+  deleteUser(id: ID! @whereKey): User!
     @can(ability: "delete", find: "id")
     @delete
   "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
@@ -329,7 +331,7 @@ type Mutation @guard {
   updateProject(id: ID!, input: UpdateProjectInput! @spread): Project!
     @can(ability: "update", find: "id")
     @update
-  deleteProject(id: ID!): Project!
+  deleteProject(id: ID! @whereKey): Project!
     @can(ability: "delete", find: "id")
     @delete
   "Fügt eine Person hinzu oder ändert ihre Rolle"
@@ -343,28 +345,28 @@ type Mutation @guard {
   # Milestones, ToDos, Tasks: Wer was darf, steht in der Rechte-Tabelle.
   # Die Ability-Namen sind die Methoden der Policies.
   createMilestone(input: CreateMilestoneInput! @spread): Milestone!
-    @can(ability: "createMilestone", find: "input.projectId", model: "App\\Models\\Project")
+    @can(ability: "createMilestone", find: "project_id", model: "App\\Models\\Project")
     @create
   updateMilestone(id: ID!, input: UpdateMilestoneInput! @spread): Milestone!
     @can(ability: "update", find: "id")
     @update
-  deleteMilestone(id: ID!): Milestone!
+  deleteMilestone(id: ID! @whereKey): Milestone!
     @can(ability: "delete", find: "id")
     @delete
 
   createTodo(input: CreateTodoInput! @spread): Todo!
-    @can(ability: "createTodo", find: "input.milestoneId", model: "App\\Models\\Milestone")
+    @can(ability: "createTodo", find: "milestone_id", model: "App\\Models\\Milestone")
     @create
   updateTodo(id: ID!, input: UpdateTodoInput! @spread): Todo!
     @can(ability: "update", find: "id")
     @update
-  deleteTodo(id: ID!): Todo!
+  deleteTodo(id: ID! @whereKey): Todo!
     @can(ability: "delete", find: "id")
     @delete
 
   "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
   createTask(input: CreateTaskInput! @spread): Task!
-    @can(ability: "createTask", find: "input.todoId", model: "App\\Models\\Todo")
+    @can(ability: "createTask", find: "todo_id", model: "App\\Models\\Todo")
     @field(resolver: "App\\GraphQL\\Mutations\\CreateTask")
   updateTask(id: ID!, input: UpdateTaskInput! @spread): Task!
     @can(ability: "update", find: "id")
@@ -374,22 +376,22 @@ type Mutation @guard {
     @can(ability: "assign", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\AssignTask")
   "Verschiebt einen Task im Kanban"
-  moveTask(id: ID!, status: TaskStatus!, position: Int! @rules(apply: ["min:0"])): Task!
+  moveTask(id: ID!, status: TaskStatus!, position: Int! @rules(apply: ["integer", "min:0"])): Task!
     @can(ability: "move", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\MoveTask")
-  deleteTask(id: ID!): Task!
+  deleteTask(id: ID! @whereKey): Task!
     @can(ability: "delete", find: "id")
     @delete
 
   # Kommentare: Alle Mitglieder dürfen kommentieren. Die Autorin oder der
   # Autor wird aus dem Login gesetzt, nicht aus der Eingabe.
   addComment(input: AddCommentInput! @spread): Comment!
-    @can(ability: "createComment", find: "input.taskId", model: "App\\Models\\Task")
+    @can(ability: "createComment", find: "task_id", model: "App\\Models\\Task")
     @field(resolver: "App\\GraphQL\\Mutations\\AddComment")
   updateComment(id: ID!, input: UpdateCommentInput! @spread): Comment!
     @can(ability: "update", find: "id")
     @update
-  deleteComment(id: ID!): Comment!
+  deleteComment(id: ID! @whereKey): Comment!
     @can(ability: "delete", find: "id")
     @delete
 }
