@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\RichTextCast;
 use App\Enums\TaskStatus;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
@@ -41,7 +42,7 @@ class Task extends Model implements BelongsToProject
     protected function casts(): array
     {
         return [
-            'description' => 'array',
+            'description' => RichTextCast::class,
             'status' => TaskStatus::class,
             'due_date' => 'date',
             'position' => 'integer',

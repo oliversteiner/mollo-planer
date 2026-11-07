@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\RichTextCast;
 use App\Models\Contracts\BelongsToProject;
 use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -24,7 +25,7 @@ class Comment extends Model implements BelongsToProject
     protected function casts(): array
     {
         return [
-            'body' => 'array',
+            'body' => RichTextCast::class,
         ];
     }
 

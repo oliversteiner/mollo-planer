@@ -43,7 +43,7 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - [x] 4. Scopes und Builder
 - [x] 5. Status-Observer
 - [x] 6. Schema einbinden, Lighthouse konfigurieren
-- [ ] 7. Skalar `RichText`, Regeln
+- [x] 7. Skalar `RichText`, Regeln
 - [ ] 8. Resolver und Mutationen
 - [ ] 9. Authentifizierung (Fortify, Passkeys, 2FA-Sperre)
 - [ ] 10. Notifications

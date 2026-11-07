@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
@@ -36,7 +37,7 @@ class Milestone extends Model implements BelongsToProject
     protected function casts(): array
     {
         return [
-            'description' => 'array',
+            'description' => RichTextCast::class,
             'status' => ItemStatus::class,
             'due_date' => 'date',
         ];
