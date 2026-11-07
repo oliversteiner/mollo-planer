@@ -21,21 +21,21 @@ class ProjectPolicy
 
     public function update(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::ProjectUpdate);
+        return $this->allows($user, $project, ProjectAbility::PROJECT_UPDATE);
     }
 
     public function delete(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::ProjectDelete);
+        return $this->allows($user, $project, ProjectAbility::PROJECT_DELETE);
     }
 
     public function manageMembers(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::MembersManage);
+        return $this->allows($user, $project, ProjectAbility::MEMBERS_MANAGE);
     }
 
     public function createMilestone(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::MilestoneCreate);
+        return $this->allows($user, $project, ProjectAbility::MILESTONE_CREATE);
     }
 }

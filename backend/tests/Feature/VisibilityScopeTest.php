@@ -30,7 +30,7 @@ class VisibilityScopeTest extends TestCase
         parent::setUp();
 
         $this->member = User::factory()->create();
-        $this->mine = $this->projectTree(Project::factory()->withMember($this->member, ProjectRole::Member)->create());
+        $this->mine = $this->projectTree(Project::factory()->withMember($this->member, ProjectRole::MEMBER)->create());
         $this->other = $this->projectTree(Project::factory()->create());
     }
 

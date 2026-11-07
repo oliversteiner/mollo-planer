@@ -11,6 +11,7 @@ Stand: 2026-11-07. Ergänzt `graphql-kontext.md`. Wo beide sich widersprechen, g
 6. **Benutzerliste** (`users`): Admins und alle, die in mindestens einem Projekt „Mitglieder verwalten“ dürfen (heute Owner und Manager). Geprüft über `ProjectPermissions`. Benutzer anlegen, ändern und löschen bleibt nur für Admins.
 7. **Selbstschutz der Admins:** Ein Admin kann sich nicht selbst löschen und sich die Admin-Rolle nicht selbst entziehen. Für Letzteres bekommt `updateUser` in Schritt 8 `@can(..., injectArgs: true)`, damit die Policy die Eingabe sieht.
 8. **Kommentare nach Entfernen aus dem Projekt:** „Eigene Kommentare darf der Autor immer ändern und löschen“ gilt nur, solange er das Projekt sehen darf. Wer entfernt wurde, kann seine Kommentare nicht mehr ändern oder löschen. Owner, Manager und Admins können sie weiterhin löschen.
+9. **Enum-Anbindung:** Die PHP-Enums (`App\Enums`) heissen in ihren Cases genau wie die GraphQL-Werte (`TaskStatus::IN_PROGRESS = 'in_progress'`), weil graphql-php ein PHP-Enum unter seinem Case-Namen ausgibt. Die Models casten Status, Rolle und Sprache auf diese Enums. Das Schema bleibt unverändert. `tests/Unit/GraphqlEnumBindingTest.php` prüft Namen und Werte gegen das Schema.
 
 Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP-Version per SSH, SMTP-Zugangsdaten, Cron, Deployment). Das kommt später.
 

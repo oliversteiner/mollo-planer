@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TaskStatus;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TaskObserver;
@@ -41,6 +42,7 @@ class Task extends Model implements BelongsToProject
     {
         return [
             'description' => 'array',
+            'status' => TaskStatus::class,
             'due_date' => 'date',
             'position' => 'integer',
         ];

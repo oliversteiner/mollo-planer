@@ -29,10 +29,10 @@ class ItemStatusSync
             return;
         }
 
-        $status = $this->derive($todo->tasks(), TaskStatus::Done->value);
+        $status = $this->derive($todo->tasks(), TaskStatus::DONE->value);
 
         if ($todo->getRawOriginal('status') !== $status->value) {
-            $todo->status = $status->value;
+            $todo->status = $status;
             // Quietly: the todo observer reacts to structural changes only.
             $todo->saveQuietly();
             $this->syncMilestone($todo->milestone_id);
@@ -50,10 +50,10 @@ class ItemStatusSync
             return;
         }
 
-        $status = $this->derive($milestone->todos(), ItemStatus::Done->value);
+        $status = $this->derive($milestone->todos(), ItemStatus::DONE->value);
 
         if ($milestone->getRawOriginal('status') !== $status->value) {
-            $milestone->status = $status->value;
+            $milestone->status = $status;
             $milestone->saveQuietly();
         }
     }
@@ -68,6 +68,6 @@ class ItemStatusSync
         $hasChildren = $children->clone()->exists();
         $hasUnfinished = $children->clone()->where('status', '!=', $doneValue)->exists();
 
-        return $hasChildren && ! $hasUnfinished ? ItemStatus::Done : ItemStatus::Open;
+        return $hasChildren && ! $hasUnfinished ? ItemStatus::DONE : ItemStatus::OPEN;
     }
 }

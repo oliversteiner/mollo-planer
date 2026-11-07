@@ -29,7 +29,7 @@ class ProjectFactory extends Factory
     /**
      * Add a user to the project with the given role.
      */
-    public function withMember(User $user, ProjectRole $role = ProjectRole::Member): static
+    public function withMember(User $user, ProjectRole $role = ProjectRole::MEMBER): static
     {
         return $this->hasAttached($user, ['role' => $role->value], 'members');
     }

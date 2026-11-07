@@ -15,7 +15,7 @@ class UserPolicy
 {
     public function viewAny(User $user): bool
     {
-        return ProjectPermissions::allowsInAnyProject($user, ProjectAbility::MembersManage);
+        return ProjectPermissions::allowsInAnyProject($user, ProjectAbility::MEMBERS_MANAGE);
     }
 
     public function create(User $user): bool

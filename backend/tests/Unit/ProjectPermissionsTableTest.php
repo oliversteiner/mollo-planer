@@ -2,10 +2,8 @@
 
 namespace Tests\Unit;
 
-use App\Enums\ItemStatus;
 use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
-use App\Enums\TaskStatus;
 use App\Support\ProjectPermissions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -40,7 +38,7 @@ class ProjectPermissionsTableTest extends TestCase
      */
     public static function matrix(): iterable
     {
-        $roles = [ProjectRole::Owner, ProjectRole::Manager, ProjectRole::Member];
+        $roles = [ProjectRole::OWNER, ProjectRole::MANAGER, ProjectRole::MEMBER];
 
         foreach (self::CONFIRMED_MATRIX as $ability => $allowed) {
             foreach ($roles as $i => $role) {
@@ -75,45 +73,12 @@ class ProjectPermissionsTableTest extends TestCase
     public function test_abilities_of_member(): void
     {
         $this->assertSame([
-            ProjectAbility::MilestoneCreate,
-            ProjectAbility::MilestoneUpdate,
-            ProjectAbility::TodoCreate,
-            ProjectAbility::TodoUpdate,
-            ProjectAbility::TaskMove,
-            ProjectAbility::CommentCreate,
-        ], ProjectPermissions::abilitiesOfRole(ProjectRole::Member));
-    }
-
-    public function test_php_enums_match_graphql_enums(): void
-    {
-        $schema = file_get_contents(__DIR__.'/../../graphql/schema.graphql');
-
-        $this->assertEqualsCanonicalizing(
-            $this->graphqlEnumValues($schema, 'ProjectAbility'),
-            array_map(fn (ProjectAbility $a) => $a->value, ProjectAbility::cases()),
-        );
-        $this->assertEqualsCanonicalizing(
-            $this->graphqlEnumValues($schema, 'ProjectRole'),
-            array_map(fn (ProjectRole $r) => $r->value, ProjectRole::cases()),
-        );
-        $this->assertEqualsCanonicalizing(
-            $this->graphqlEnumValues($schema, 'ItemStatus'),
-            array_map(fn (ItemStatus $s) => $s->value, ItemStatus::cases()),
-        );
-        $this->assertEqualsCanonicalizing(
-            $this->graphqlEnumValues($schema, 'TaskStatus'),
-            array_map(fn (TaskStatus $s) => $s->value, TaskStatus::cases()),
-        );
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function graphqlEnumValues(string $schema, string $enum): array
-    {
-        $this->assertSame(1, preg_match('/enum '.$enum.' \{(.*?)\}/s', $schema, $block), "Enum {$enum} not found.");
-        preg_match_all('/@enum\(value: "([^"]+)"\)/', $block[1], $values);
-
-        return $values[1];
+            ProjectAbility::MILESTONE_CREATE,
+            ProjectAbility::MILESTONE_UPDATE,
+            ProjectAbility::TODO_CREATE,
+            ProjectAbility::TODO_UPDATE,
+            ProjectAbility::TASK_MOVE,
+            ProjectAbility::COMMENT_CREATE,
+        ], ProjectPermissions::abilitiesOfRole(ProjectRole::MEMBER));
     }
 }

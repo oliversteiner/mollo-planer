@@ -7,8 +7,8 @@ namespace App\Enums;
  */
 enum TaskStatus: string
 {
-    case Open = 'open';
-    case InProgress = 'in_progress';
-    case Review = 'review';
-    case Done = 'done';
+    case OPEN = 'open';
+    case IN_PROGRESS = 'in_progress';
+    case REVIEW = 'review';
+    case DONE = 'done';
 }

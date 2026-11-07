@@ -20,32 +20,32 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class ProjectPermissions
 {
-    private const OWNER = ProjectRole::Owner;
+    private const OWNER = ProjectRole::OWNER;
 
-    private const MANAGER = ProjectRole::Manager;
+    private const MANAGER = ProjectRole::MANAGER;
 
-    private const MEMBER = ProjectRole::Member;
+    private const MEMBER = ProjectRole::MEMBER;
 
     /**
      * @var array<string, list<ProjectRole>>
      */
     private const ROLES_BY_ABILITY = [
-        ProjectAbility::ProjectUpdate->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::ProjectDelete->value => [self::OWNER],
-        ProjectAbility::MembersManage->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::MilestoneCreate->value => [self::OWNER, self::MANAGER, self::MEMBER],
-        ProjectAbility::MilestoneUpdate->value => [self::OWNER, self::MANAGER, self::MEMBER],
-        ProjectAbility::MilestoneDelete->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::TodoCreate->value => [self::OWNER, self::MANAGER, self::MEMBER],
-        ProjectAbility::TodoUpdate->value => [self::OWNER, self::MANAGER, self::MEMBER],
-        ProjectAbility::TodoDelete->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::TaskCreate->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::TaskUpdate->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::TaskAssign->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::TaskMove->value => [self::OWNER, self::MANAGER, self::MEMBER],
-        ProjectAbility::TaskDelete->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::CommentCreate->value => [self::OWNER, self::MANAGER, self::MEMBER],
-        ProjectAbility::CommentModerate->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::PROJECT_UPDATE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::PROJECT_DELETE->value => [self::OWNER],
+        ProjectAbility::MEMBERS_MANAGE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::MILESTONE_CREATE->value => [self::OWNER, self::MANAGER, self::MEMBER],
+        ProjectAbility::MILESTONE_UPDATE->value => [self::OWNER, self::MANAGER, self::MEMBER],
+        ProjectAbility::MILESTONE_DELETE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::TODO_CREATE->value => [self::OWNER, self::MANAGER, self::MEMBER],
+        ProjectAbility::TODO_UPDATE->value => [self::OWNER, self::MANAGER, self::MEMBER],
+        ProjectAbility::TODO_DELETE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::TASK_CREATE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::TASK_UPDATE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::TASK_ASSIGN->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::TASK_MOVE->value => [self::OWNER, self::MANAGER, self::MEMBER],
+        ProjectAbility::TASK_DELETE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::COMMENT_CREATE->value => [self::OWNER, self::MANAGER, self::MEMBER],
+        ProjectAbility::COMMENT_MODERATE->value => [self::OWNER, self::MANAGER],
     ];
 
     /**

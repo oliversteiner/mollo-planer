@@ -8,6 +8,6 @@ namespace App\Enums;
  */
 enum ItemStatus: string
 {
-    case Open = 'open';
-    case Done = 'done';
+    case OPEN = 'open';
+    case DONE = 'done';
 }

@@ -23,24 +23,24 @@ class ProjectPermissionsTest extends TestCase
         $stranger = User::factory()->create();
 
         $project = Project::factory()
-            ->withMember($owner, ProjectRole::Owner)
-            ->withMember($manager, ProjectRole::Manager)
+            ->withMember($owner, ProjectRole::OWNER)
+            ->withMember($manager, ProjectRole::MANAGER)
             ->withMember($member)
             ->create();
 
-        $this->assertSame(ProjectRole::Owner, $project->roleOf($owner));
-        $this->assertSame(ProjectRole::Manager, $project->roleOf($manager));
-        $this->assertSame(ProjectRole::Member, $project->roleOf($member));
+        $this->assertSame(ProjectRole::OWNER, $project->roleOf($owner));
+        $this->assertSame(ProjectRole::MANAGER, $project->roleOf($manager));
+        $this->assertSame(ProjectRole::MEMBER, $project->roleOf($member));
         $this->assertNull($project->roleOf($stranger));
     }
 
     public function test_role_in_one_project_grants_nothing_in_another(): void
     {
         $owner = User::factory()->create();
-        Project::factory()->withMember($owner, ProjectRole::Owner)->create();
+        Project::factory()->withMember($owner, ProjectRole::OWNER)->create();
         $other = Project::factory()->create();
 
-        $this->assertFalse(ProjectPermissions::allows($owner, $other, ProjectAbility::MilestoneCreate));
+        $this->assertFalse(ProjectPermissions::allows($owner, $other, ProjectAbility::MILESTONE_CREATE));
         $this->assertSame([], ProjectPermissions::abilities($owner, $other));
     }
 
@@ -49,16 +49,16 @@ class ProjectPermissionsTest extends TestCase
         $manager = User::factory()->create();
         $member = User::factory()->create();
         $project = Project::factory()
-            ->withMember($manager, ProjectRole::Manager)
+            ->withMember($manager, ProjectRole::MANAGER)
             ->withMember($member)
             ->create();
 
-        $this->assertTrue(ProjectPermissions::allows($member, $project, ProjectAbility::TaskMove));
-        $this->assertFalse(ProjectPermissions::allows($member, $project, ProjectAbility::TaskCreate));
-        $this->assertTrue(ProjectPermissions::allows($manager, $project, ProjectAbility::TaskCreate));
-        $this->assertFalse(ProjectPermissions::allows($manager, $project, ProjectAbility::ProjectDelete));
+        $this->assertTrue(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_MOVE));
+        $this->assertFalse(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_CREATE));
+        $this->assertTrue(ProjectPermissions::allows($manager, $project, ProjectAbility::TASK_CREATE));
+        $this->assertFalse(ProjectPermissions::allows($manager, $project, ProjectAbility::PROJECT_DELETE));
         $this->assertSame(
-            ProjectPermissions::abilitiesOfRole(ProjectRole::Manager),
+            ProjectPermissions::abilitiesOfRole(ProjectRole::MANAGER),
             ProjectPermissions::abilities($manager, $project),
         );
     }

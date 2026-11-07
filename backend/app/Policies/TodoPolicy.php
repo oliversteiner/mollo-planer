@@ -13,16 +13,16 @@ class TodoPolicy
 
     public function update(User $user, Todo $todo): bool
     {
-        return $this->allows($user, $todo, ProjectAbility::TodoUpdate);
+        return $this->allows($user, $todo, ProjectAbility::TODO_UPDATE);
     }
 
     public function delete(User $user, Todo $todo): bool
     {
-        return $this->allows($user, $todo, ProjectAbility::TodoDelete);
+        return $this->allows($user, $todo, ProjectAbility::TODO_DELETE);
     }
 
     public function createTask(User $user, Todo $todo): bool
     {
-        return $this->allows($user, $todo, ProjectAbility::TaskCreate);
+        return $this->allows($user, $todo, ProjectAbility::TASK_CREATE);
     }
 }

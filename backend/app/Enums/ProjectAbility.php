@@ -9,21 +9,21 @@ namespace App\Enums;
  */
 enum ProjectAbility: string
 {
-    case ProjectUpdate = 'project.update';
-    case ProjectDelete = 'project.delete';
-    case MembersManage = 'members.manage';
-    case MilestoneCreate = 'milestone.create';
-    case MilestoneUpdate = 'milestone.update';
-    case MilestoneDelete = 'milestone.delete';
-    case TodoCreate = 'todo.create';
-    case TodoUpdate = 'todo.update';
-    case TodoDelete = 'todo.delete';
-    case TaskCreate = 'task.create';
-    case TaskUpdate = 'task.update';
-    case TaskAssign = 'task.assign';
-    case TaskMove = 'task.move';
-    case TaskDelete = 'task.delete';
-    case CommentCreate = 'comment.create';
+    case PROJECT_UPDATE = 'project.update';
+    case PROJECT_DELETE = 'project.delete';
+    case MEMBERS_MANAGE = 'members.manage';
+    case MILESTONE_CREATE = 'milestone.create';
+    case MILESTONE_UPDATE = 'milestone.update';
+    case MILESTONE_DELETE = 'milestone.delete';
+    case TODO_CREATE = 'todo.create';
+    case TODO_UPDATE = 'todo.update';
+    case TODO_DELETE = 'todo.delete';
+    case TASK_CREATE = 'task.create';
+    case TASK_UPDATE = 'task.update';
+    case TASK_ASSIGN = 'task.assign';
+    case TASK_MOVE = 'task.move';
+    case TASK_DELETE = 'task.delete';
+    case COMMENT_CREATE = 'comment.create';
     /** Delete comments written by someone else. Editing them is never allowed. */
-    case CommentModerate = 'comment.moderate';
+    case COMMENT_MODERATE = 'comment.moderate';
 }

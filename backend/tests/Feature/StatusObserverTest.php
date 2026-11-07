@@ -171,6 +171,6 @@ class StatusObserverTest extends TestCase
 
     private function assertStatus(string $expected, Todo|Milestone $item): void
     {
-        $this->assertSame($expected, $item->fresh()->status, class_basename($item)." {$item->id}");
+        $this->assertSame($expected, $item->fresh()->status->value, class_basename($item)." {$item->id}");
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ItemStatus;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use Database\Factories\MilestoneFactory;
@@ -36,6 +37,7 @@ class Milestone extends Model implements BelongsToProject
     {
         return [
             'description' => 'array',
+            'status' => ItemStatus::class,
             'due_date' => 'date',
         ];
     }

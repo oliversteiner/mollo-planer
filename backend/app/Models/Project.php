@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Locale;
 use App\Enums\ProjectRole;
 use App\Models\Concerns\VisibleToViewer;
 use Database\Factories\ProjectFactory;
@@ -16,6 +17,25 @@ class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
     use HasFactory, VisibleToViewer;
+
+    /**
+     * Same default as the database.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'locale' => 'de',
+    ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'locale' => Locale::class,
+        ];
+    }
 
     /**
      * Members of the project with their role (pivot attribute "membership").

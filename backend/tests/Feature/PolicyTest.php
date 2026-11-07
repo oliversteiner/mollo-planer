@@ -44,9 +44,9 @@ class PolicyTest extends TestCase
         ];
 
         $this->project = Project::factory()
-            ->withMember($this->users['owner'], ProjectRole::Owner)
-            ->withMember($this->users['manager'], ProjectRole::Manager)
-            ->withMember($this->users['member'], ProjectRole::Member)
+            ->withMember($this->users['owner'], ProjectRole::OWNER)
+            ->withMember($this->users['manager'], ProjectRole::MANAGER)
+            ->withMember($this->users['member'], ProjectRole::MEMBER)
             ->create();
         $this->milestone = Milestone::factory()->for($this->project)->create();
         $this->todo = Todo::factory()->for($this->milestone)->create();
@@ -61,21 +61,21 @@ class PolicyTest extends TestCase
     public static function policyAbilities(): array
     {
         return [
-            'project update' => ['update', 'project', ProjectAbility::ProjectUpdate],
-            'project delete' => ['delete', 'project', ProjectAbility::ProjectDelete],
-            'project manageMembers' => ['manageMembers', 'project', ProjectAbility::MembersManage],
-            'project createMilestone' => ['createMilestone', 'project', ProjectAbility::MilestoneCreate],
-            'milestone update' => ['update', 'milestone', ProjectAbility::MilestoneUpdate],
-            'milestone delete' => ['delete', 'milestone', ProjectAbility::MilestoneDelete],
-            'milestone createTodo' => ['createTodo', 'milestone', ProjectAbility::TodoCreate],
-            'todo update' => ['update', 'todo', ProjectAbility::TodoUpdate],
-            'todo delete' => ['delete', 'todo', ProjectAbility::TodoDelete],
-            'todo createTask' => ['createTask', 'todo', ProjectAbility::TaskCreate],
-            'task update' => ['update', 'task', ProjectAbility::TaskUpdate],
-            'task assign' => ['assign', 'task', ProjectAbility::TaskAssign],
-            'task move' => ['move', 'task', ProjectAbility::TaskMove],
-            'task delete' => ['delete', 'task', ProjectAbility::TaskDelete],
-            'task createComment' => ['createComment', 'task', ProjectAbility::CommentCreate],
+            'project update' => ['update', 'project', ProjectAbility::PROJECT_UPDATE],
+            'project delete' => ['delete', 'project', ProjectAbility::PROJECT_DELETE],
+            'project manageMembers' => ['manageMembers', 'project', ProjectAbility::MEMBERS_MANAGE],
+            'project createMilestone' => ['createMilestone', 'project', ProjectAbility::MILESTONE_CREATE],
+            'milestone update' => ['update', 'milestone', ProjectAbility::MILESTONE_UPDATE],
+            'milestone delete' => ['delete', 'milestone', ProjectAbility::MILESTONE_DELETE],
+            'milestone createTodo' => ['createTodo', 'milestone', ProjectAbility::TODO_CREATE],
+            'todo update' => ['update', 'todo', ProjectAbility::TODO_UPDATE],
+            'todo delete' => ['delete', 'todo', ProjectAbility::TODO_DELETE],
+            'todo createTask' => ['createTask', 'todo', ProjectAbility::TASK_CREATE],
+            'task update' => ['update', 'task', ProjectAbility::TASK_UPDATE],
+            'task assign' => ['assign', 'task', ProjectAbility::TASK_ASSIGN],
+            'task move' => ['move', 'task', ProjectAbility::TASK_MOVE],
+            'task delete' => ['delete', 'task', ProjectAbility::TASK_DELETE],
+            'task createComment' => ['createComment', 'task', ProjectAbility::COMMENT_CREATE],
         ];
     }
 

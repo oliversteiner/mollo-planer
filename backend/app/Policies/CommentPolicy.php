@@ -28,7 +28,7 @@ class CommentPolicy
     public function delete(User $user, Comment $comment): bool
     {
         return $this->isAuthorWithAccess($user, $comment)
-            || $this->allows($user, $comment, ProjectAbility::CommentModerate);
+            || $this->allows($user, $comment, ProjectAbility::COMMENT_MODERATE);
     }
 
     private function isAuthorWithAccess(User $user, Comment $comment): bool
