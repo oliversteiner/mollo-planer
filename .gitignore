@@ -1,2 +1,5 @@
 # PhpStorm
 .idea/
+
+# Windows download marker (copied into WSL)
+*:Zone.Identifier
