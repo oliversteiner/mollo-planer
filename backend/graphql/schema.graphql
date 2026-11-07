@@ -1,0 +1,476 @@
+# ═══════════════════════════════════════════════════════════════
+#  Projektverwaltung · GraphQL-Schema für Laravel Lighthouse
+#  Ablage im Projekt: backend/graphql/schema.graphql
+# ═══════════════════════════════════════════════════════════════
+#
+#  Namen      camelCase in GraphQL, snake_case in der Datenbank (@rename)
+#  Lesen      Der Scope `visibleToViewer` filtert. Was du nicht sehen
+#             darfst, kommt als null bzw. leere Liste zurück.
+#  Schreiben  Eine Policy prüft per @can. Ohne Recht gibt es den Fehler
+#             "This action is unauthorized."
+#
+#  Rechte     Eine zentrale Rechte-Tabelle (App\Support\ProjectPermissions)
+#             legt fest, welche Projektrolle welche Fähigkeit hat. Alle
+#             Policies fragen nur diese Tabelle. Eine neue Einschränkung
+#             ändert dort eine Zeile, nicht das Schema. Admins
+#             (users.is_admin) dürfen immer alles.
+#
+#                                 Owner  Manager  Mitglied
+#             Projekt ändern        ja     ja       nein
+#             Projekt löschen       ja     nein     nein
+#             Mitglieder verwalten  ja     ja       nein
+#             Milestone anlegen     ja     ja       ja
+#             Milestone ändern      ja     ja       ja
+#             Milestone löschen     ja     ja       nein
+#             ToDo anlegen          ja     ja       ja
+#             ToDo ändern           ja     ja       ja
+#             ToDo löschen          ja     ja       nein
+#             Task anlegen          ja     ja       nein
+#             Task ändern           ja     ja       nein
+#             Task zuweisen         ja     ja       nein
+#             Task verschieben      ja     ja       ja
+#             Task löschen          ja     ja       nein
+#             Kommentieren          ja     ja       ja
+#             Fremde Kommentare
+#             löschen               ja     ja       nein
+#
+#             Eigene Kommentare ändern und löschen darf jede Person immer.
+#             Fremde Kommentare ändert niemand, auch kein Admin.
+#             Projekte anlegen und Benutzer verwalten dürfen nur Admins.
+#  Login      läuft nicht über GraphQL, sondern über Fortify (REST):
+#             Login, Logout, Passwort-Reset, 2FA-Einrichtung
+#  2FA-Pflicht  Eine Middleware in config/lighthouse.php (route.middleware)
+#             sperrt die ganze GraphQL-Route, bis die 2FA bestätigt ist.
+#  Status     ToDo und Milestone leiten ihren Status automatisch aus den
+#             Tasks bzw. ToDos ab (Observer). Darum gibt es dafür kein
+#             Eingabefeld.
+#  Mails      Der Server schickt E-Mails (über die Queue, nie im Request):
+#             - Neuer Task oder neue Zuweisung: an die zugewiesene Person
+#             - Neuer Kommentar: an die zugewiesene Person und alle, die den
+#               Task schon kommentiert haben
+#             Die Person, die gerade handelt, bekommt nie eine Mail. Wer das
+#             Projekt nicht mehr sehen darf, auch nicht. Jede Person kann
+#             Mails mit User.notifyByEmail abschalten. Die Sprache der Mails
+#             ist die Sprache des Projekts (Project.locale), nicht die der
+#             Empfängerin.
+#  Beschreibung  Milestone, ToDo und Task haben eine formatierte Beschreibung
+#             (Skalar RichText = TipTap-JSON). Das Frontend zeigt sie mit
+#             TipTap an, nie mit v-html. So kann kein HTML eingeschleust
+#             werden. Kommentare (Comment.body) funktionieren genauso.
+#  Icon       Milestone, ToDo und Task haben ein optionales Icon aus Font
+#             Awesome Pro, gespeichert nur als Name (rocket). Der Stil ist
+#             für die ganze App fest "Duotone Light" und steht im Frontend,
+#             nicht in der Datenbank. Der Server prüft nur das Format des
+#             Namens, nicht ob das Icon existiert. Die Auswahl übernimmt der
+#             Icon-Picker im Frontend.
+#  Offen      Die Anbindung der Enums an die PHP-Enums klären wir beim
+#             Einbau.
+
+"Datum ohne Uhrzeit, Format YYYY-MM-DD"
+scalar Date @scalar(class: "Date")
+
+"Zeitpunkt, Format ISO 8601"
+scalar DateTime @scalar(class: "DateTime")
+
+"""
+Formatierter Text als TipTap-Dokument (JSON-Objekt mit type "doc"). Der Server
+speichert nie HTML, sondern prüft das Dokument gegen eine Whitelist:
+Absatz, Überschrift (Ebene 2 und 3), Aufzählung, nummerierte Liste,
+Zeilenumbruch, Zitat sowie fett, kursiv und Links (http, https, mailto).
+Maximal 20000 Zeichen. Ein Dokument ohne Text wird als null gespeichert.
+"""
+scalar RichText @scalar(class: "App\\GraphQL\\Scalars\\RichText")
+
+# ─── Enums ──────────────────────────────────────────────────────
+
+"Rolle einer Person innerhalb eines Projekts"
+enum ProjectRole {
+  OWNER @enum(value: "owner")
+  MANAGER @enum(value: "manager")
+  MEMBER @enum(value: "member")
+}
+
+"Sprache eines Projekts. Bestimmt die Sprache der Mails."
+enum Locale {
+  DE @enum(value: "de")
+  EN @enum(value: "en")
+}
+
+"Status von Milestone und ToDo (wird automatisch berechnet)"
+enum ItemStatus {
+  OPEN @enum(value: "open")
+  DONE @enum(value: "done")
+}
+
+"Fähigkeiten innerhalb eines Projekts. Welche Rolle sie hat, steht in der Rechte-Tabelle."
+enum ProjectAbility {
+  PROJECT_UPDATE @enum(value: "project.update")
+  PROJECT_DELETE @enum(value: "project.delete")
+  MEMBERS_MANAGE @enum(value: "members.manage")
+  MILESTONE_CREATE @enum(value: "milestone.create")
+  MILESTONE_UPDATE @enum(value: "milestone.update")
+  MILESTONE_DELETE @enum(value: "milestone.delete")
+  TODO_CREATE @enum(value: "todo.create")
+  TODO_UPDATE @enum(value: "todo.update")
+  TODO_DELETE @enum(value: "todo.delete")
+  TASK_CREATE @enum(value: "task.create")
+  TASK_UPDATE @enum(value: "task.update")
+  TASK_ASSIGN @enum(value: "task.assign")
+  TASK_MOVE @enum(value: "task.move")
+  TASK_DELETE @enum(value: "task.delete")
+  COMMENT_CREATE @enum(value: "comment.create")
+  COMMENT_MODERATE @enum(value: "comment.moderate")
+}
+
+"Spalten im Kanban-Board"
+enum TaskStatus {
+  OPEN @enum(value: "open")
+  IN_PROGRESS @enum(value: "in_progress")
+  REVIEW @enum(value: "review")
+  DONE @enum(value: "done")
+}
+
+# ─── Typen ──────────────────────────────────────────────────────
+
+"Eine Person mit Zugang. Anlegen und Löschen nur durch Admins."
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  "Globale Admin-Rolle, unabhängig von Projekten"
+  isAdmin: Boolean! @rename(attribute: "is_admin")
+  "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
+  notifyByEmail: Boolean! @rename(attribute: "notify_by_email")
+  "Projekte dieser Person, soweit du sie sehen darfst"
+  projects: [Project!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserProjects")
+  "Zugewiesene Tasks, soweit du sie sehen darfst"
+  assignedTasks: [Task!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserTasks")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Ein Projekt mit Mitgliedern und Milestones"
+type Project {
+  id: ID!
+  name: String!
+  description: String
+  "Sprache der Benachrichtigungsmails dieses Projekts"
+  locale: Locale!
+  members: [ProjectMember!]! @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
+  milestones: [Milestone!]! @hasMany
+  "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
+  progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
+  "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
+  viewerRole: ProjectRole @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
+  "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
+  viewerAbilities: [ProjectAbility!]! @field(resolver: "App\\GraphQL\\Resolvers\\ViewerAbilities")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Mitgliedschaft einer Person in einem Projekt"
+type ProjectMember {
+  user: User!
+  role: ProjectRole!
+}
+
+"Ein Meilenstein mit Zieldatum. Er enthält ToDos."
+type Milestone {
+  id: ID!
+  project: Project! @belongsTo
+  title: String!
+  description: RichText
+  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+  icon: String
+  dueDate: Date @rename(attribute: "due_date")
+  "DONE, sobald alle ToDos erledigt sind"
+  status: ItemStatus!
+  todos: [Todo!]! @hasMany
+  progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@milestone")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
+type Todo {
+  id: ID!
+  milestone: Milestone! @belongsTo
+  title: String!
+  description: RichText
+  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+  icon: String
+  dueDate: Date @rename(attribute: "due_date")
+  "DONE, sobald alle Tasks erledigt sind"
+  status: ItemStatus!
+  tasks: [Task!]! @hasMany
+  progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@todo")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
+type Task {
+  id: ID!
+  todo: Todo! @belongsTo
+  title: String!
+  description: RichText
+  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+  icon: String
+  status: TaskStatus!
+  "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
+  position: Int!
+  dueDate: Date @rename(attribute: "due_date")
+  assignee: User @belongsTo(relation: "assignee")
+  "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
+  comments: [Comment!]! @hasMany
+  commentCount: Int! @count(relation: "comments")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
+type Comment {
+  id: ID!
+  task: Task! @belongsTo
+  "null, wenn die Person inzwischen gelöscht wurde"
+  author: User @belongsTo(relation: "author")
+  "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
+  body: RichText!
+  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
+  viewerCanEdit: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
+  "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
+  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
+  createdAt: DateTime! @rename(attribute: "created_at")
+  updatedAt: DateTime! @rename(attribute: "updated_at")
+}
+
+"Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
+type Progress {
+  total: Int!
+  done: Int!
+  "Prozentwert von 0 bis 100, gerundet"
+  percent: Int!
+}
+
+"Eine Spalte im Kanban-Board mit ihren Tasks"
+type KanbanColumn {
+  status: TaskStatus!
+  tasks: [Task!]!
+}
+
+"Alles für die Startseite in einem Aufruf"
+type Dashboard {
+  "Offene ToDos, nach Fälligkeit sortiert"
+  upcomingTodos(limit: Int = 5 @rules(apply: ["min:1", "max:50"])): [Todo!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@upcomingTodos")
+  "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
+  myOpenTasks: [Task!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@myOpenTasks")
+  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+}
+
+# ─── Abfragen ───────────────────────────────────────────────────
+
+type Query @guard {
+  "Der angemeldete Benutzer"
+  me: User! @auth
+
+  "Alle Benutzer. Nur für Admins und Projektleiter."
+  users: [User!]! @can(ability: "viewAny", model: "App\\Models\\User") @all
+
+  "Deine Projekte. Admins sehen alle."
+  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+  project(id: ID! @eq): Project @find(scopes: ["visibleToViewer"])
+
+  "Milestones eines Projekts (Seite Milestones)"
+  milestones(projectId: ID! @eq(key: "project_id")): [Milestone!]! @all(scopes: ["visibleToViewer"])
+  milestone(id: ID! @eq): Milestone @find(scopes: ["visibleToViewer"])
+
+  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
+  todos(
+    projectId: ID! @builder(method: "App\\GraphQL\\Builders\\TodoBuilder@inProject")
+    milestoneId: ID @eq(key: "milestone_id")
+    status: ItemStatus @eq
+  ): [Todo!]! @all(scopes: ["visibleToViewer"])
+  todo(id: ID! @eq): Todo @find(scopes: ["visibleToViewer"])
+
+  "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
+  task(id: ID! @eq): Task @find(scopes: ["visibleToViewer"])
+
+  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
+  kanban(projectId: ID!): [KanbanColumn!]! @field(resolver: "App\\GraphQL\\Queries\\Kanban")
+
+  "Tasks, die dir zugewiesen sind"
+  myTasks(status: TaskStatus @eq): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer"])
+
+  "Startseite"
+  dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")
+}
+
+# ─── Änderungen ─────────────────────────────────────────────────
+
+type Mutation @guard {
+  # Benutzer: nur Admins. Neue Benutzer bekommen eine Einladungsmail
+  # mit Link zum Setzen des Passworts.
+  createUser(input: CreateUserInput! @spread): User!
+    @can(ability: "create", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateUser")
+  updateUser(id: ID!, input: UpdateUserInput! @spread): User!
+    @can(ability: "update", find: "id")
+    @update
+  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
+  resetUserTwoFactor(id: ID!): User!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\ResetUserTwoFactor")
+  deleteUser(id: ID!): User!
+    @can(ability: "delete", find: "id")
+    @delete
+  "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
+  updateMyNotifications(emailEnabled: Boolean!): User!
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateMyNotifications")
+
+  # Projekte: Anlegen nur durch Admins, Löschen durch Admin oder Owner.
+  createProject(input: CreateProjectInput! @spread): Project!
+    @can(ability: "create", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateProject")
+  updateProject(id: ID!, input: UpdateProjectInput! @spread): Project!
+    @can(ability: "update", find: "id")
+    @update
+  deleteProject(id: ID!): Project!
+    @can(ability: "delete", find: "id")
+    @delete
+  "Fügt eine Person hinzu oder ändert ihre Rolle"
+  setProjectMember(projectId: ID!, userId: ID!, role: ProjectRole!): Project!
+    @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectMember")
+  removeProjectMember(projectId: ID!, userId: ID!): Project!
+    @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\RemoveProjectMember")
+
+  # Milestones, ToDos, Tasks: Wer was darf, steht in der Rechte-Tabelle.
+  # Die Ability-Namen sind die Methoden der Policies.
+  createMilestone(input: CreateMilestoneInput! @spread): Milestone!
+    @can(ability: "createMilestone", find: "input.projectId", model: "App\\Models\\Project")
+    @create
+  updateMilestone(id: ID!, input: UpdateMilestoneInput! @spread): Milestone!
+    @can(ability: "update", find: "id")
+    @update
+  deleteMilestone(id: ID!): Milestone!
+    @can(ability: "delete", find: "id")
+    @delete
+
+  createTodo(input: CreateTodoInput! @spread): Todo!
+    @can(ability: "createTodo", find: "input.milestoneId", model: "App\\Models\\Milestone")
+    @create
+  updateTodo(id: ID!, input: UpdateTodoInput! @spread): Todo!
+    @can(ability: "update", find: "id")
+    @update
+  deleteTodo(id: ID!): Todo!
+    @can(ability: "delete", find: "id")
+    @delete
+
+  "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
+  createTask(input: CreateTaskInput! @spread): Task!
+    @can(ability: "createTask", find: "input.todoId", model: "App\\Models\\Todo")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateTask")
+  updateTask(id: ID!, input: UpdateTaskInput! @spread): Task!
+    @can(ability: "update", find: "id")
+    @update
+  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
+  assignTask(id: ID!, assigneeId: ID): Task!
+    @can(ability: "assign", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\AssignTask")
+  "Verschiebt einen Task im Kanban"
+  moveTask(id: ID!, status: TaskStatus!, position: Int! @rules(apply: ["min:0"])): Task!
+    @can(ability: "move", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveTask")
+  deleteTask(id: ID!): Task!
+    @can(ability: "delete", find: "id")
+    @delete
+
+  # Kommentare: Alle Mitglieder dürfen kommentieren. Die Autorin oder der
+  # Autor wird aus dem Login gesetzt, nicht aus der Eingabe.
+  addComment(input: AddCommentInput! @spread): Comment!
+    @can(ability: "createComment", find: "input.taskId", model: "App\\Models\\Task")
+    @field(resolver: "App\\GraphQL\\Mutations\\AddComment")
+  updateComment(id: ID!, input: UpdateCommentInput! @spread): Comment!
+    @can(ability: "update", find: "id")
+    @update
+  deleteComment(id: ID!): Comment!
+    @can(ability: "delete", find: "id")
+    @delete
+}
+
+# ─── Eingaben ───────────────────────────────────────────────────
+
+input CreateUserInput {
+  name: String! @rules(apply: ["min:2", "max:120"])
+  email: String! @rules(apply: ["email", "unique:users,email"])
+  isAdmin: Boolean = false @rename(attribute: "is_admin")
+}
+
+input UpdateUserInput {
+  name: String @rules(apply: ["min:2", "max:120"])
+  email: String @rules(apply: ["email"])
+  isAdmin: Boolean @rename(attribute: "is_admin")
+}
+
+input CreateProjectInput {
+  name: String! @rules(apply: ["min:2", "max:120"])
+  description: String
+  locale: Locale = DE
+}
+
+input UpdateProjectInput {
+  name: String @rules(apply: ["min:2", "max:120"])
+  description: String
+  locale: Locale
+}
+
+input CreateMilestoneInput {
+  projectId: ID! @rename(attribute: "project_id")
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input UpdateMilestoneInput {
+  title: String @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input CreateTodoInput {
+  milestoneId: ID! @rename(attribute: "milestone_id")
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input UpdateTodoInput {
+  title: String @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input CreateTaskInput {
+  todoId: ID! @rename(attribute: "todo_id")
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  assigneeId: ID @rename(attribute: "assigned_user_id")
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input UpdateTaskInput {
+  title: String @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input AddCommentInput {
+  taskId: ID! @rename(attribute: "task_id")
+  body: RichText! @rules(apply: ["App\\Rules\\RichTextRule", "required"])
+}
+
+input UpdateCommentInput {
+  body: RichText! @rules(apply: ["App\\Rules\\RichTextRule", "required"])
+}
