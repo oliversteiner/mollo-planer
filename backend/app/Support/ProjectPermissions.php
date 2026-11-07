@@ -85,6 +85,29 @@ final class ProjectPermissions
     }
 
     /**
+     * May this user see the project at all? Admins and members can.
+     */
+    public static function canView(User $user, Project $project): bool
+    {
+        return $user->is_admin || $project->roleOf($user) !== null;
+    }
+
+    /**
+     * Does the user have this ability in at least one project?
+     * Used for things outside a single project, such as the user list.
+     */
+    public static function allowsInAnyProject(User $user, ProjectAbility $ability): bool
+    {
+        if ($user->is_admin) {
+            return true;
+        }
+
+        return $user->projects()
+            ->pluck('project_user.role')
+            ->contains(fn (string $role) => self::roleAllows(ProjectRole::tryFrom($role), $ability));
+    }
+
+    /**
      * Everything this user may do in this project (Project.viewerAbilities).
      *
      * @return list<ProjectAbility>

@@ -19,6 +19,16 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Same defaults as the database, so new instances never hold null.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_admin' => false,
+        'notify_by_email' => true,
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
