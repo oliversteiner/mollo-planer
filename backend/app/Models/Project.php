@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProjectRole;
+use App\Models\Concerns\VisibleToViewer;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
-    use HasFactory;
+    use HasFactory, VisibleToViewer;
 
     /**
      * Members of the project with their role (pivot attribute "membership").
@@ -52,5 +53,10 @@ class Project extends Model
             : $this->members()->whereKey($user->getKey())->first();
 
         return $member?->membership->role;
+    }
+
+    protected static function projectPath(): ?string
+    {
+        return null;
     }
 }

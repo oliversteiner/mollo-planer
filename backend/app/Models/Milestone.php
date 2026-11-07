@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use Database\Factories\MilestoneFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +18,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Milestone extends Model implements BelongsToProject
 {
     /** @use HasFactory<MilestoneFactory> */
-    use HasFactory;
+    use HasFactory, VisibleToViewer;
+
+    /**
+     * Same default as the database.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => 'open',
+    ];
 
     /**
      * @return array<string, string>
@@ -49,5 +59,10 @@ class Milestone extends Model implements BelongsToProject
     public function owningProject(): Project
     {
         return $this->project;
+    }
+
+    protected static function projectPath(): ?string
+    {
+        return 'project';
     }
 }

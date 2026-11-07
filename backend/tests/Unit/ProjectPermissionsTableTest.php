@@ -2,8 +2,10 @@
 
 namespace Tests\Unit;
 
+use App\Enums\ItemStatus;
 use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\TaskStatus;
 use App\Support\ProjectPermissions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -93,6 +95,14 @@ class ProjectPermissionsTableTest extends TestCase
         $this->assertEqualsCanonicalizing(
             $this->graphqlEnumValues($schema, 'ProjectRole'),
             array_map(fn (ProjectRole $r) => $r->value, ProjectRole::cases()),
+        );
+        $this->assertEqualsCanonicalizing(
+            $this->graphqlEnumValues($schema, 'ItemStatus'),
+            array_map(fn (ItemStatus $s) => $s->value, ItemStatus::cases()),
+        );
+        $this->assertEqualsCanonicalizing(
+            $this->graphqlEnumValues($schema, 'TaskStatus'),
+            array_map(fn (TaskStatus $s) => $s->value, TaskStatus::cases()),
         );
     }
 

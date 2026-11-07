@@ -6,6 +6,7 @@ use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * The single source of truth for project permissions.
@@ -90,6 +91,27 @@ final class ProjectPermissions
     public static function canView(User $user, Project $project): bool
     {
         return $user->is_admin || $project->roleOf($user) !== null;
+    }
+
+    /**
+     * The query version of canView(): restrict a project query to the
+     * projects the user may see. Guests see nothing, admins everything.
+     *
+     * @param  Builder<Project>  $projects
+     */
+    public static function constrainToVisibleProjects(Builder $projects, ?User $user): void
+    {
+        if ($user === null) {
+            $projects->whereRaw('1 = 0');
+
+            return;
+        }
+
+        if ($user->is_admin) {
+            return;
+        }
+
+        $projects->whereHas('members', fn (Builder $members) => $members->whereKey($user->getKey()));
     }
 
     /**

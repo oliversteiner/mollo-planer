@@ -40,8 +40,8 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - [x] 1. Migrationen
 - [x] 2. Enum `ProjectAbility`, `ProjectPermissions`
 - [x] 3. Policies
-- [ ] 4. Scopes und Builder
-- [ ] 5. Status-Observer
+- [x] 4. Scopes und Builder
+- [x] 5. Status-Observer
 - [ ] 6. Schema einbinden, Lighthouse konfigurieren
 - [ ] 7. Skalar `RichText`, Regeln
 - [ ] 8. Resolver und Mutationen
