@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -59,5 +60,16 @@ class User extends Authenticatable implements PasskeyUser
             ->as('membership')
             ->withPivot('id', 'role')
             ->withTimestamps();
+    }
+
+    /**
+     * "Forgot password" (Fortify): queued mail with a link to the frontend,
+     * in the language of the current request.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify((new ResetPasswordNotification($token))->locale(app()->getLocale()));
     }
 }

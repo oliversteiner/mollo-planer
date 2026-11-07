@@ -62,7 +62,7 @@ abstract class GraphQLTestCase extends TestCase
     protected function as(string $name): static
     {
         return $this->actingAs($this->users[$name])
-            ->withSession([StrongAuthentication::SESSION_KEY => true])
+            ->withSession([StrongAuthentication::SESSION_KEY => (string) $this->users[$name]->id])
             ->withHeader('Referer', 'http://localhost');
     }
 

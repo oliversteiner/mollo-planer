@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+/*
+ * No REST API routes: data goes through GraphQL (/graphql), login and
+ * account security through Fortify (routes/web.php group "web").
+ * A route here would bypass the strong-authentication lock of /graphql.
+ */

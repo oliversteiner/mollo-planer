@@ -79,10 +79,22 @@ class StrongAuthenticationTest extends TestCase
 
     public function test_strongly_authenticated_session_passes(): void
     {
-        $this->actingAs(User::factory()->create(['two_factor_confirmed_at' => now()]))
-            ->withSession([StrongAuthentication::SESSION_KEY => true])
+        $user = User::factory()->create(['two_factor_confirmed_at' => now()]);
+
+        $this->actingAs($user)
+            ->withSession([StrongAuthentication::SESSION_KEY => (string) $user->id])
             ->get('/_test/strong')
             ->assertOk();
+    }
+
+    public function test_mark_only_counts_for_the_user_it_was_set_for(): void
+    {
+        $other = User::factory()->create();
+
+        $this->actingAs(User::factory()->create(['two_factor_confirmed_at' => now()]))
+            ->withSession([StrongAuthentication::SESSION_KEY => (string) $other->id])
+            ->get('/_test/strong')
+            ->assertForbidden();
     }
 
     public function test_session_without_mark_is_blocked(): void

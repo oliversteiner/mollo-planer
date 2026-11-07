@@ -64,6 +64,9 @@ return [
             // middleware, this delegates auth and permission checks to the field level.
             AttemptAuthentication::class,
 
+            // Requests per minute and user (AppServiceProvider, limiter "graphql").
+            'throttle:graphql',
+
             // Blocks the whole API until the session is strongly authenticated:
             // password plus confirmed 2FA, or a passkey login.
             EnsureStrongAuthentication::class,
@@ -92,6 +95,9 @@ return [
     */
 
     'guards' => ['sanctum'],
+
+    // Used by the "graphql" rate limiter (AppServiceProvider).
+    'rate_limit_per_minute' => (int) env('LIGHTHOUSE_RATE_LIMIT_PER_MINUTE', 120),
 
     /*
     |--------------------------------------------------------------------------

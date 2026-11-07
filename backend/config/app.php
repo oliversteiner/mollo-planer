@@ -55,6 +55,12 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+     * The single-page frontend (Nuxt). Links in mails point there, CORS and
+     * passkeys allow this origin.
+     */
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

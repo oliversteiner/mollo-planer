@@ -1,0 +1,21 @@
+{
+    "Invalid credential format.": "Ungültiges Format der Anmeldedaten.",
+    "Passkey registration session expired. Please try again.": "Die Passkey-Einrichtung ist abgelaufen. Bitte versuche es erneut.",
+    "Passkey verification session expired. Please try again.": "Die Passkey-Prüfung ist abgelaufen. Bitte versuche es erneut.",
+    "Passkey not recognized. It may have been removed from your account.": "Dieser Passkey ist unbekannt. Möglicherweise wurde er aus deinem Konto entfernt.",
+    "Unable to register passkey. Please try again.": "Der Passkey konnte nicht eingerichtet werden. Bitte versuche es erneut.",
+    "Unable to register this passkey.": "Dieser Passkey kann nicht eingerichtet werden.",
+    "Unable to sign in with this account.": "Mit diesem Konto ist keine Anmeldung möglich.",
+    "Unable to verify passkey. Please try again.": "Der Passkey konnte nicht geprüft werden. Bitte versuche es erneut.",
+    "The :attribute must be at least :length characters.": "Das Feld :attribute muss mindestens :length Zeichen haben.",
+    "The :attribute must be at least :length characters and contain at least one number.": "Das Feld :attribute muss mindestens :length Zeichen haben und mindestens eine Ziffer enthalten.",
+    "The :attribute must be at least :length characters and contain at least one special character.": "Das Feld :attribute muss mindestens :length Zeichen haben und mindestens ein Sonderzeichen enthalten.",
+    "The :attribute must be at least :length characters and contain at least one special character and one number.": "Das Feld :attribute muss mindestens :length Zeichen haben und mindestens ein Sonderzeichen und eine Ziffer enthalten.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character.": "Das Feld :attribute muss mindestens :length Zeichen haben und mindestens einen Grossbuchstaben enthalten.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character and one number.": "Das Feld :attribute muss mindestens :length Zeichen haben und mindestens einen Grossbuchstaben und eine Ziffer enthalten.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character and one special character.": "Das Feld :attribute muss mindestens :length Zeichen haben und mindestens einen Grossbuchstaben und ein Sonderzeichen enthalten.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character, one number, and one special character.": "Das Feld :attribute muss mindestens :length Zeichen haben und mindestens einen Grossbuchstaben, eine Ziffer und ein Sonderzeichen enthalten.",
+    "The provided password was incorrect.": "Das Passwort ist falsch.",
+    "The provided two factor authentication code was invalid.": "Der Code für die Zwei-Faktor-Anmeldung ist ungültig.",
+    "The provided two factor recovery code was invalid.": "Der Wiederherstellungscode ist ungültig."
+}

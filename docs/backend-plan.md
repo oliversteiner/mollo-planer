@@ -16,6 +16,9 @@ Stand: 2026-11-07. Ergänzt `graphql-kontext.md`. Wo beide sich widersprechen, g
 11. **Letzter Owner:** Der letzte Owner eines Projekts kann nicht entfernt oder herabgestuft werden, ausser durch einen Admin. Projekte, die ein Admin ohne Owner anlegt, bleiben erlaubt. Wer ein Projekt anlegt (Admin), wird nicht automatisch Mitglied.
 12. **Mitglied entfernen:** Die Tasks der Person in diesem Projekt werden unzugewiesen.
 13. **Korrekturen am Schema** (Schritt 8, nötig, damit Lighthouse es ausführt): `@whereKey` an `id` bei allen `delete…`-Mutationen; `@can(find: …)` bei den Create-Mutationen nutzt die Namen nach `@spread`/`@rename` (`project_id`, `milestone_id`, `todo_id`, `task_id`); `integer` vor `min`/`max` bei `Dashboard.upcomingTodos(limit)` und `moveTask(position)`, sonst prüft Laravel die Textlänge; `updateUser` hat `injectArgs: true` und `@validator` (E-Mail eindeutig).
+14. **Einladung:** `createUser` schickt eine Mail mit Link zum Frontend (`/invitation?token=…&email=…`), gültig 7 Tage (eigener Broker `invitations`), einmal verwendbar. Das Frontend schickt Token und Passwort an `POST /invitation`. Sprache der Einladung = Sprache der Anfrage des Admins.
+15. **Sprache der API:** Header `Accept-Language` (de oder en), sonst `APP_LOCALE` (in `.env.example` jetzt `de`). Mails zu einem Projekt nutzen weiterhin die Projektsprache.
+16. **Weitere Absicherung:** Keine Selbstregistrierung, keine REST-Route `/api/user` (sie hätte die Sperre umgangen), CORS nur für `FRONTEND_URL` mit Cookies, GraphQL höchstens 120 Anfragen pro Minute und Person.
 
 Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP-Version per SSH, SMTP-Zugangsdaten, Cron, Deployment). Das kommt später.
 
@@ -29,7 +32,12 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - Die Sperr-Middleware prüft nicht „TOTP bestätigt“, sondern „Sitzung ist stark authentifiziert“: entweder Passwort und bestätigte 2FA, oder Passkey-Login. Dafür beim Login das Merkmal in der Sitzung setzen.
 - Wer Passkeys nutzt, soll mindestens zwei haben oder zusätzlich die 2FA-App einrichten (Hinweis bei Geräteverlust). Wiederherstellungscodes der 2FA bleiben bestehen.
 - `resetUserTwoFactor` (Admin) entfernt **TOTP und alle Passkeys** der Person, zum Beispiel bei verlorenem Gerät. Beim nächsten Login wird ein neuer zweiter Faktor oder Passkey eingerichtet.
-- Noch zu prüfen im vorhandenen Code: Wie die von `fortify:install` angelegte Tabelle `passkeys` und die zugehörigen Routen im installierten Fortify genau funktionieren und wie sich das Merkmal „starke Anmeldung“ beim Passkey-Login setzen lässt.
+- Umsetzung (Schritt 9, geprüft am installierten Fortify 1.41 und `laravel/passkeys` 0.2):
+  - Die Passkey-Routen registriert Fortify (`/passkeys/login`, `/passkeys/confirm`, `/user/passkeys`). Registrierungs- und Login-Optionen verlangen `userVerification: required`, die Prüfung der Antwort läuft gegen diese Optionen.
+  - Das Merkmal „starke Anmeldung“ (`App\Support\StrongAuthentication`) speichert die User-ID in der Sitzung und gilt nur für diese Person. Gesetzt wird es bei einem gültigen 2FA-Code oder Wiederherstellungscode, bei einem geprüften Passkey (Login oder `/passkeys/confirm`) und bei der Einrichtung des **ersten** Faktors. Logout löscht die Sitzung, das Entfernen des letzten Faktors entfernt das Merkmal.
+  - Wer schon einen Faktor hat, kann ohne starke Sitzung keine Faktoren hinzufügen oder entfernen und weder Passwort noch Profil ändern (`ProtectAccountSecurityRoutes`). Sonst könnte jemand mit dem Passwort eines Passkey-Kontos eine eigene 2FA-App hinzufügen.
+  - Erste Einrichtung: Nach der Einladung genügt das Passwort, um den ersten Faktor einzurichten. Die Einladung per E-Mail ist dabei der Nachweis.
+  - Antwort bei gesperrter Sitzung: `SECOND_FACTOR_SETUP_REQUIRED` (zur Einrichtung) oder `STRONG_AUTHENTICATION_REQUIRED` (mit Passkey bestätigen über `/passkeys/confirm` oder neu anmelden).
 
 ## Reihenfolge beim Bauen
 1. Migrationen: `tasks.due_date`, `tasks.description` (json), `milestones.description` und `todos.description` auf json, `icon` bei `milestones`/`todos`/`tasks`, Tabelle `comments`, `users.notify_by_email`, `projects.locale`.

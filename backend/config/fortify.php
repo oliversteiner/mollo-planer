@@ -73,7 +73,8 @@ return [
     |
     */
 
-    'home' => '/home',
+    // Headless API: the SPA handles navigation, Fortify answers with JSON.
+    'home' => '/',
 
     /*
     |--------------------------------------------------------------------------
@@ -131,7 +132,7 @@ return [
     |
     */
 
-    'views' => true,
+    'views' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -145,8 +146,10 @@ return [
     */
 
     'passkeys' => [
-        'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
-        'allowed_origins' => [config('app.url')],
+        // The WebAuthn ceremony runs in the frontend, so the relying party and
+        // the allowed origin are the frontend's, not the API's.
+        'relying_party_id' => env('PASSKEYS_RELYING_PARTY_ID', parse_url((string) env('FRONTEND_URL', 'http://localhost:3000'), PHP_URL_HOST)),
+        'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
         'timeout' => 60000,
     ],
 
@@ -162,7 +165,8 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // No self-registration: admins create users (GraphQL createUser),
+        // who get an invitation link to set their password.
         Features::resetPasswords(),
         // Features::emailVerification(),
         Features::updateProfileInformation(),
