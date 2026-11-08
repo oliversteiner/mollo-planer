@@ -245,7 +245,8 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "moveTo": "Move to “{column}”",
-    "comments": "comments"
+    "comments": "comments",
+    "doubleClickToEdit": "Double-click to edit"
   },
   "task": {
     "create": "New task",

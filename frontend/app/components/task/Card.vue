@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-/** A task on the Kanban board. The menu offers moving without dragging. */
+/**
+ * A task on the Kanban board. Click on the title: details; double-click
+ * on the card: edit. The menu offers the same without a mouse.
+ */
 defineProps<{
   task: {
     id: string
@@ -13,18 +16,47 @@ defineProps<{
     assignee?: { id: string, name: string, avatarUrl?: string | null } | null
     todo: { title: string }
   }
-  moveItems: DropdownMenuItem[]
+  menuItems: DropdownMenuItem[]
+  /** May the viewer edit it (double-click)? */
+  editable?: boolean
 }>()
 
-const emit = defineEmits<{ open: [] }>()
+const emit = defineEmits<{ open: [], edit: [] }>()
 
 const { t } = useI18n()
+
+/**
+ * A double-click starts with two clicks. The details open only when no
+ * second click follows, so a double-click shows the edit dialog alone.
+ * Keyboard activation (detail 0) opens the details at once.
+ */
+const DOUBLE_CLICK_MS = 250
+let clickTimer: ReturnType<typeof setTimeout> | undefined
+
+function onTitleClick(event: MouseEvent): void {
+  clearTimeout(clickTimer)
+
+  if (event.detail === 0) {
+    emit('open')
+  } else if (event.detail === 1) {
+    clickTimer = setTimeout(() => emit('open'), DOUBLE_CLICK_MS)
+  }
+}
+
+function onDoubleClick(): void {
+  clearTimeout(clickTimer)
+  emit('edit')
+}
+
+onBeforeUnmount(() => clearTimeout(clickTimer))
 </script>
 
 <template>
   <article
     class="group flex cursor-grab flex-col gap-2 rounded-md border border-default bg-default p-3 shadow-xs hover:border-primary active:cursor-grabbing"
     :data-id="task.id"
+    :title="editable ? t('kanban.doubleClickToEdit') : undefined"
+    @dblclick="onDoubleClick"
   >
     <div class="flex items-start gap-2">
       <ItemIcon
@@ -35,13 +67,13 @@ const { t } = useI18n()
       <button
         type="button"
         class="min-w-0 flex-1 text-start font-medium text-highlighted hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
-        @click="emit('open')"
+        @click="onTitleClick"
       >
         {{ task.title }}
       </button>
       <UDropdownMenu
-        v-if="moveItems.length"
-        :items="moveItems"
+        v-if="menuItems.length"
+        :items="menuItems"
       >
         <UButton
           icon="i-fadl-ellipsis"

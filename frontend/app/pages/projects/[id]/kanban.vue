@@ -6,7 +6,7 @@ import type { SortableEvent } from 'sortablejs'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
 import type { KanbanQuery } from '~/graphql/generated/graphql'
 import { projectTodosQuery } from '~/graphql/project'
-import { kanbanQuery, moveTaskMutation, projectMembersQuery, TASK_STATUSES } from '~/graphql/task'
+import { kanbanQuery, moveTaskMutation, projectMembersQuery, TASK_STATUSES, taskQuery } from '~/graphql/task'
 import { locate, moveInColumns } from '~/utils/kanban'
 
 type Column = KanbanQuery['kanban'][number]
@@ -63,6 +63,15 @@ function onDrop(event: SortableEvent): void {
   void move(taskId, status, event.newIndex)
 }
 
+/** Card menu: edit (if allowed), then moving without dragging. */
+function menuItems(task: Task): DropdownMenuItem[] {
+  const edit: DropdownMenuItem[] = can('TASK_UPDATE')
+    ? [{ label: t('common.edit'), icon: 'i-fadl-pen', onSelect: () => editTask(task.id) }]
+    : []
+
+  return [...edit, ...moveItems(task)]
+}
+
 function moveItems(task: Task): DropdownMenuItem[] {
   if (!can('TASK_MOVE')) {
     return []
@@ -87,9 +96,18 @@ function moveItems(task: Task): DropdownMenuItem[] {
 }
 
 /** ?task=… opens the details (link in the mails). */
+const editing = ref<TaskFormTarget | null>(null)
+
 const openTaskId = computed(() => (typeof route.query.task === 'string' ? route.query.task : null))
 
+/**
+ * Only one overlay at a time: the details (side panel) or the edit
+ * dialog. Editing from the details closes them and returns afterwards.
+ */
+const returnToTaskId = ref<string | null>(null)
+
 function openTask(taskId: string): void {
+  editing.value = null
   void router.replace({ query: { ...route.query, task: taskId } })
 }
 
@@ -98,14 +116,52 @@ function closeTask(): void {
   void router.replace({ query })
 }
 
-const editing = ref<TaskFormTarget | null>(null)
-
 function startCreating(): void {
+  closeTask()
   editing.value = {}
 }
 
 function startEditing(task: NonNullable<TaskFormTarget['task']>): void {
   editing.value = { task }
+}
+
+/** "Edit" in the details: close them, edit, then show them again. */
+function editFromDetails(task: NonNullable<TaskFormTarget['task']>): void {
+  returnToTaskId.value = task.id
+  closeTask()
+  startEditing(task)
+}
+
+function closeEditing(): void {
+  editing.value = null
+
+  if (returnToTaskId.value) {
+    openTask(returnToTaskId.value)
+    returnToTaskId.value = null
+  }
+}
+
+const { $apollo } = useNuxtApp()
+
+/**
+ * Double-click or menu: edit the task. The board does not load the
+ * description, so the task is fetched first. Without the right to edit,
+ * the details open instead.
+ */
+async function editTask(taskId: string): Promise<void> {
+  if (!can('TASK_UPDATE')) {
+    openTask(taskId)
+
+    return
+  }
+  if (openTaskId.value) {
+    closeTask()
+  }
+  const { data } = await $apollo.query({ query: taskQuery, variables: { id: taskId }, fetchPolicy: 'network-only' })
+
+  if (data.task) {
+    startEditing(data.task)
+  }
 }
 
 const abilities = computed(() => ({
@@ -172,8 +228,10 @@ const abilities = computed(() => ({
             v-for="task in column.tasks"
             :key="task.id"
             :task="task"
-            :move-items="moveItems(task)"
+            :menu-items="menuItems(task)"
+            :editable="can('TASK_UPDATE')"
             @open="openTask(task.id)"
+            @edit="editTask(task.id)"
           />
         </VueDraggable>
       </section>
@@ -184,13 +242,13 @@ const abilities = computed(() => ({
       :members="members"
       :can="abilities"
       @close="closeTask"
-      @edit="startEditing"
+      @edit="editFromDetails"
     />
     <TaskFormModal
       :target="editing"
       :todos="todos"
       :members="members"
-      @close="editing = null"
+      @close="closeEditing"
     />
   </div>
 </template>

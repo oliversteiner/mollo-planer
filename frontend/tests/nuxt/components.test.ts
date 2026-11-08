@@ -1,8 +1,9 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import DueDate from '~/components/DueDate.vue'
 import ItemIcon from '~/components/ItemIcon.vue'
 import StatusBadge from '~/components/StatusBadge.vue'
+import TaskCard from '~/components/task/Card.vue'
 
 // The test browser reports English; the texts below are checked in German.
 beforeAll(async () => {
@@ -53,5 +54,56 @@ describe('StatusBadge', () => {
   it('shows the translated status', async () => {
     expect((await mountSuspended(StatusBadge, { props: { status: 'IN_PROGRESS' } })).text()).toBe('In Arbeit')
     expect((await mountSuspended(StatusBadge, { props: { status: 'DONE' } })).text()).toBe('Erledigt')
+  })
+})
+
+describe('TaskCard', () => {
+  const task = {
+    id: '7',
+    title: 'Hosting bestellen',
+    icon: null,
+    status: 'OPEN' as const,
+    dueDate: null,
+    commentCount: 0,
+    assignee: null,
+    todo: { title: 'Server und Domain vorbereiten' }
+  }
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  async function mountCard() {
+    vi.useFakeTimers()
+
+    return mountSuspended(TaskCard, { props: { task, menuItems: [], editable: true } })
+  }
+
+  it('opens the details after a single click, once no second click follows', async () => {
+    const card = await mountCard()
+    await card.find('button').trigger('click', { detail: 1 })
+
+    expect(card.emitted('open')).toBeUndefined()
+    vi.advanceTimersByTime(300)
+    expect(card.emitted('open')).toHaveLength(1)
+  })
+
+  it('opens only the edit dialog on a double-click, never the details', async () => {
+    const card = await mountCard()
+    const title = card.find('button')
+    await title.trigger('click', { detail: 1 })
+    await title.trigger('click', { detail: 2 })
+    await card.find('article').trigger('dblclick')
+    vi.advanceTimersByTime(300)
+
+    expect(card.emitted('edit')).toHaveLength(1)
+    expect(card.emitted('open')).toBeUndefined()
+  })
+
+  it('opens the details at once from the keyboard', async () => {
+    const card = await mountCard()
+    await card.find('button').trigger('click', { detail: 0 })
+
+    expect(card.emitted('open')).toHaveLength(1)
   })
 })

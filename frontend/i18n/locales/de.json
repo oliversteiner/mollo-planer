@@ -245,7 +245,8 @@
     "moveUp": "Nach oben",
     "moveDown": "Nach unten",
     "moveTo": "Verschieben nach «{column}»",
-    "comments": "Kommentare"
+    "comments": "Kommentare",
+    "doubleClickToEdit": "Doppelklick zum Bearbeiten"
   },
   "task": {
     "create": "Task anlegen",
