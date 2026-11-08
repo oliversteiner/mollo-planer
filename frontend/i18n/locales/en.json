@@ -403,5 +403,27 @@
       "notSwitchable": "On the production server 2FA is always required and cannot be switched off.",
       "offWarning": "2FA is switched off. This is meant for testing only."
     }
+  },
+  "claude": {
+    "title": "Access for Claude",
+    "intro": "With a personal access token, Claude (for example Claude Code) can read projects and fill them with milestones, todos and tasks, with your permissions. Claude cannot delete anything. A token is valid for 90 days.",
+    "name": "Name",
+    "nameHint": "To recognise it, for example “Claude laptop”",
+    "create": "Create access",
+    "showOnce": "Copy the token now. It is shown only this once.",
+    "token": "Access token",
+    "copyToken": "Copy token",
+    "command": "Command for Claude Code",
+    "commandHint": "Run it in a terminal; afterwards Claude Code knows the server “projektverwaltung”.",
+    "copyCommand": "Copy command",
+    "copied": "Copied.",
+    "lastUsed": "Last used: {date}",
+    "neverUsed": "Never used yet",
+    "expires": "Expires: {date}",
+    "revoke": "Revoke access “{name}”",
+    "revokeTitle": "Revoke access “{name}”?",
+    "revokeDescription": "Claude can no longer use this token afterwards.",
+    "revokeConfirm": "Revoke",
+    "revoked": "Access revoked."
   }
 }

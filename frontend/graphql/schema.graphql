@@ -2,6 +2,15 @@ input AddCommentInput {
  body: RichText!
  taskId: ID!
 }
+"Ein persönlicher Zugang für Claude (MCP-Server unter /mcp). Er handelt mit deinen Rechten."
+type ApiToken {
+ createdAt: DateTime!
+ expiresAt: DateTime
+ id: ID!
+ "null, solange er noch nie benutzt wurde"
+ lastUsedAt: DateTime
+ name: String!
+}
 "Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
 type AppSettings {
  "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."
@@ -102,12 +111,16 @@ type Mutation {
  addComment(input: AddCommentInput!): Comment!
  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
  assignTask(assigneeId: ID, id: ID!): Task!
+ "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
+ createApiToken(name: String!): NewApiToken!
  createMilestone(input: CreateMilestoneInput!): Milestone!
  createProject(input: CreateProjectInput!): Project!
  "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
  createTask(input: CreateTaskInput!): Task!
  createTodo(input: CreateTodoInput!): Todo!
  createUser(input: CreateUserInput!): User!
+ "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
+ deleteApiToken(id: ID!): ApiToken
  deleteComment(id: ID!): Comment!
  deleteMilestone(id: ID!): Milestone!
  deleteProject(id: ID!): Project!
@@ -136,6 +149,11 @@ type Mutation {
  updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
  "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
  updateUser(id: ID!, input: UpdateUserInput!): User!
+}
+"Ein neu erzeugter Zugang. Den Klartext gibt es nur in dieser Antwort."
+type NewApiToken {
+ plainTextToken: String!
+ token: ApiToken!
 }
 "Allows ordering a list of records."
 input OrderByClause {
@@ -348,6 +366,8 @@ input UpdateUserInput {
 scalar Upload
 "Eine Person mit Zugang. Anlegen und Löschen nur durch Admins."
 type User {
+ "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
+ apiTokens: [ApiToken!]
  "Zugewiesene Tasks, soweit du sie sehen darfst"
  assignedTasks: [Task!]!
  "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."

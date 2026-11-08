@@ -69,3 +69,17 @@ Ablauf von Hand (ohne Collection), Header `Origin: http://localhost:3000` bei je
 2. `POST /login` mit `email` und `password`
 3. `POST /two-factor-challenge` mit `code` (aus der App) oder `recovery_code`
 4. `POST /graphql` mit der Abfrage, zum Beispiel `{ "query": "{ me { name } projects { name viewerRole } }" }`
+
+## Claude anbinden (Inhalte per natürlicher Sprache)
+
+Das Backend bietet einen MCP-Server unter `http://localhost:8000/mcp` (später auf dem API-Server). Claude handelt dort mit deinen Rechten: Projekte lesen, Projekte anlegen (Admins), Mitglieder setzen und ganze Projektpläne mit Milestones, ToDos und Tasks anlegen und zuweisen. Löschen kann Claude nichts.
+
+1. In der App unter **Profil → Zugang für Claude** einen Zugang erzeugen und kopieren (wird nur einmal angezeigt, gilt 90 Tage).
+2. **Claude Code in diesem Projekt:** Den Server kennt die `.mcp.json` schon. Den Zugang als Umgebungsvariable setzen und Claude Code neu starten:
+   ```bash
+   export PROJEKTVERWALTUNG_TOKEN="<Zugang>"
+   ```
+   **Woanders:** den in der App angezeigten Befehl ausführen (`claude mcp add --transport http projektverwaltung http://localhost:8000/mcp --header "Authorization: Bearer <Zugang>"`).
+3. Dann einfach schreiben, zum Beispiel: „Erstelle ein Projekt für einen Podcast mit Milestones, ToDos und Tasks; Oliver macht Technik und Schnitt, Lindita moderiert.“
+
+Die Personen müssen in der App schon ein Konto haben (Verwaltung → Benutzer). Zuweisungsmails gehen nur auf Wunsch raus.

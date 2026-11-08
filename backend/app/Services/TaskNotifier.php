@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\TaskAssigned;
 use App\Notifications\TaskCommented;
 use App\Support\ProjectPermissions;
+use Closure;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 
@@ -21,8 +22,39 @@ use Illuminate\Support\Facades\Notification;
  */
 class TaskNotifier
 {
+    /**
+     * Assignment mails are held back while true (bulk import by an MCP
+     * tool that asks for it). Comments always notify.
+     */
+    private bool $assignmentMailsMuted = false;
+
+    /**
+     * Runs the callback without assignment mails, for example when an AI
+     * client creates a whole project plan at once.
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $callback
+     * @return T
+     */
+    public function withoutAssignmentMails(Closure $callback): mixed
+    {
+        $previous = $this->assignmentMailsMuted;
+        $this->assignmentMailsMuted = true;
+
+        try {
+            return $callback();
+        } finally {
+            $this->assignmentMailsMuted = $previous;
+        }
+    }
+
     public function assigned(Task $task, User $actor): void
     {
+        if ($this->assignmentMailsMuted) {
+            return;
+        }
+
         $recipients = $this->filter(collect([$task->assignee]), $task, $actor);
 
         Notification::send($recipients, new TaskAssigned($task, $actor->name));

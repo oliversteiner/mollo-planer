@@ -3,13 +3,14 @@
 namespace App\GraphQL\Mutations;
 
 use App\Models\User;
+use App\Support\McpTokens;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
  * Removes the authenticator app and all passkeys of a user (lost device),
- * ends their sessions and "remember me" logins, so the next login sets up
- * a new factor.
+ * ends their sessions, "remember me" logins and Claude access tokens, so
+ * the next login sets up a new factor.
  */
 class ResetUserTwoFactor
 {
@@ -31,6 +32,8 @@ class ResetUserTwoFactor
             ])->save();
 
             $user->passkeys()->delete();
+            // Also the access tokens for Claude, for example on a lost laptop.
+            McpTokens::revokeAll($user);
 
             if (config('session.driver') === 'database') {
                 DB::connection(config('session.connection'))

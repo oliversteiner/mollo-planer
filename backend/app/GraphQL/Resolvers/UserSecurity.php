@@ -4,12 +4,14 @@ namespace App\GraphQL\Resolvers;
 
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\User;
+use App\Support\McpTokens;
 use Illuminate\Database\Eloquent\Collection;
 use Laravel\Passkeys\Passkey;
+use Laravel\Sanctum\PersonalAccessToken;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
- * User.twoFactorConfirmed, hasPasskey and passkeys: how an account is
+ * User.twoFactorConfirmed, hasPasskey, passkeys and apiTokens: how an account is
  * secured. The person and admins see the flags (UserPolicy::viewSecurity),
  * only the person sees the list of passkeys; for everyone else null.
  */
@@ -46,6 +48,19 @@ class UserSecurity
     {
         return $this->viewer($context)->is($user)
             ? $user->passkeys()->latest('id')->get()
+            : null;
+    }
+
+    /**
+     * Only the tokens made for Claude (ability "mcp").
+     *
+     * @param  array<string, mixed>  $args
+     * @return Collection<int, PersonalAccessToken>|null
+     */
+    public function apiTokens(User $user, array $args, GraphQLContext $context): ?Collection
+    {
+        return $this->viewer($context)->is($user)
+            ? $user->tokens()->whereJsonContains('abilities', McpTokens::ABILITY)->latest('id')->get()
             : null;
     }
 }

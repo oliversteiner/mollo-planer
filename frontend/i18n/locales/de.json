@@ -403,5 +403,27 @@
       "notSwitchable": "Auf dem Produktivserver ist die 2FA immer Pflicht und lässt sich nicht ausschalten.",
       "offWarning": "Die 2FA ist ausgeschaltet. Das ist nur für Tests gedacht."
     }
+  },
+  "claude": {
+    "title": "Zugang für Claude",
+    "intro": "Mit einem persönlichen Zugang kann Claude (zum Beispiel Claude Code) Projekte lesen und mit Milestones, ToDos und Tasks füllen, mit deinen Rechten. Löschen kann Claude nichts. Ein Zugang gilt 90 Tage.",
+    "name": "Name",
+    "nameHint": "Zum Wiedererkennen, zum Beispiel «Claude Laptop»",
+    "create": "Zugang erzeugen",
+    "showOnce": "Kopiere den Zugang jetzt. Er wird nur dieses eine Mal angezeigt.",
+    "token": "Zugang (Token)",
+    "copyToken": "Zugang kopieren",
+    "command": "Befehl für Claude Code",
+    "commandHint": "Im Terminal ausführen; danach kennt Claude Code den Server «projektverwaltung».",
+    "copyCommand": "Befehl kopieren",
+    "copied": "Kopiert.",
+    "lastUsed": "Zuletzt benutzt: {date}",
+    "neverUsed": "Noch nie benutzt",
+    "expires": "Läuft ab: {date}",
+    "revoke": "Zugang «{name}» widerrufen",
+    "revokeTitle": "Zugang «{name}» widerrufen?",
+    "revokeDescription": "Claude kann diesen Zugang danach nicht mehr benutzen.",
+    "revokeConfirm": "Widerrufen",
+    "revoked": "Zugang widerrufen."
   }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\TaskNotifier;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -16,7 +17,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One instance per request, so withoutAssignmentMails() reaches the
+        // notifier the GraphQL mutations use.
+        $this->app->scoped(TaskNotifier::class);
     }
 
     /**
@@ -31,6 +34,10 @@ class AppServiceProvider extends ServiceProvider
         // Escape Markdown links and HTML in values echoed into mails, so a
         // task title like "[Click](https://evil.example)" stays plain text.
         Markdown::withSecuredEncoding();
+
+        // MCP requests (Claude) per minute and token owner; a project plan is
+        // one request, reading a project another.
+        RateLimiter::for('mcp', fn (Request $request) => Limit::perMinute(60)->by('mcp:'.$request->user()?->getAuthIdentifier()));
 
         // GraphQL requests per minute, per user (or per IP for guests).
         RateLimiter::for('graphql', function (Request $request) {

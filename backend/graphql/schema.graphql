@@ -160,6 +160,8 @@ type User {
   hasPasskey: Boolean @with(relation: "passkeys") @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@hasPasskey")
   "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
   passkeys: [Passkey!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@passkeys")
+  "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
+  apiTokens: [ApiToken!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@apiTokens")
   "Projekte dieser Person, soweit du sie sehen darfst"
   projects: [Project!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserProjects")
   "Zugewiesene Tasks, soweit du sie sehen darfst"
@@ -174,6 +176,22 @@ type Passkey {
   createdAt: DateTime! @rename(attribute: "created_at")
   "null, solange der Passkey noch nie benutzt wurde"
   lastUsedAt: DateTime @rename(attribute: "last_used_at")
+}
+
+"Ein persönlicher Zugang für Claude (MCP-Server unter /mcp). Er handelt mit deinen Rechten."
+type ApiToken {
+  id: ID!
+  name: String!
+  createdAt: DateTime! @rename(attribute: "created_at")
+  "null, solange er noch nie benutzt wurde"
+  lastUsedAt: DateTime @rename(attribute: "last_used_at")
+  expiresAt: DateTime @rename(attribute: "expires_at")
+}
+
+"Ein neu erzeugter Zugang. Den Klartext gibt es nur in dieser Antwort."
+type NewApiToken {
+  token: ApiToken!
+  plainTextToken: String!
 }
 
 "Ein Projekt mit Mitgliedern und Milestones"
@@ -370,6 +388,13 @@ type Mutation @guard {
   deleteUserAvatar(id: ID!): User!
     @can(ability: "deleteAvatar", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteUserAvatar")
+
+  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
+  createApiToken(name: String! @rules(apply: ["min:2", "max:60"])): NewApiToken!
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateApiToken")
+  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
+  deleteApiToken(id: ID!): ApiToken
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteApiToken")
 
   # Einstellungen der App: nur Admins.
   "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
