@@ -32,7 +32,7 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 
 Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm von PhpStorm):
 - `npm run dev` (http://localhost:3000)
-- `npm run lint`, `npm run typecheck`, `npm test` (Vitest)
+- `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)
 - `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
 - `npm run build` (statische Dateien in `.output/public`)
 
@@ -80,4 +80,4 @@ Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm 
 - [x] 10. Sicherheit im Profil (2FA, Passkeys)
 - [x] 11. Projekteinstellungen und Mitglieder
 - [x] 12. Admin
-- [ ] 13. Tests und Feinschliff
+- [x] 13. Tests und Feinschliff

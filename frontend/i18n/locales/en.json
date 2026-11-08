@@ -9,7 +9,8 @@
     "myTasks": "My tasks",
     "admin": "Administration",
     "users": "Users",
-    "appSettings": "App settings"
+    "appSettings": "App settings",
+    "skipToContent": "Skip to content"
   },
   "settings": {
     "language": "Language",

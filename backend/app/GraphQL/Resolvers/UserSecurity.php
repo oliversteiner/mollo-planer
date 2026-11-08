@@ -32,8 +32,9 @@ class UserSecurity
      */
     public function hasPasskey(User $user, array $args, GraphQLContext $context): ?bool
     {
+        // Loaded for the whole list by @with, so a user list makes one query.
         return $this->viewer($context)->can('viewSecurity', $user)
-            ? $user->hasPasskeysEnabled()
+            ? $user->passkeys->isNotEmpty()
             : null;
     }
 

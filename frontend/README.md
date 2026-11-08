@@ -19,7 +19,7 @@ Die zweite Zeile beginnt mit `//`. In GitHub steht der Token als Secret `FONTAWE
 - `npm run dev`: Entwicklungsserver auf `http://localhost:3000` (das Backend läuft auf `http://localhost:8000`, änderbar mit `NUXT_PUBLIC_API_BASE`)
 - `npm run lint`: ESLint
 - `npm run typecheck`: TypeScript
-- `npm test`: Unit-Tests (Vitest)
+- `npm test`: Tests (Vitest): `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware in einer Nuxt-Umgebung
 - `npm run codegen`: GraphQL-Typen neu erzeugen (nach `composer schema:frontend` im Backend oder einer neuen Abfrage). Während der Entwicklung am besten `npm run codegen -- --watch` in einem zweiten Terminal: Eine neue oder geänderte `graphql(...)`-Abfrage ohne Codegen führt im Browser zum Apollo-Fehler 115 („Expecting a parsed GraphQL document“).
 - `npm run build`: statische Dateien in `.output/public`
 

@@ -10,6 +10,7 @@ use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class QueryTest extends GraphQLTestCase
@@ -135,6 +136,23 @@ class QueryTest extends GraphQLTestCase
         $queriesAfter = $this->countQueries(fn () => $this->as('member')->gql($query)->assertJsonMissingPath('errors'));
 
         $this->assertSame($queriesBefore, $queriesAfter);
+    }
+
+    public function test_user_list_with_security_flags_does_not_grow_with_the_number_of_users(): void
+    {
+        $query = '{ users { id twoFactorConfirmed hasPasskey } }';
+        $queriesBefore = $this->countQueries(fn () => $this->as('admin')->gql($query)->assertJsonMissingPath('errors'));
+
+        User::factory()->count(3)->create()->each(fn (User $user) => $user->passkeys()->forceCreate([
+            'user_id' => $user->id, 'name' => 'Laptop', 'credential_id' => 'c'.$user->id, 'credential' => [],
+        ]));
+        $response = null;
+        $queriesAfter = $this->countQueries(function () use ($query, &$response) {
+            $response = $this->as('admin')->gql($query)->assertJsonMissingPath('errors');
+        });
+
+        $this->assertSame($queriesBefore, $queriesAfter);
+        $this->assertSame(3, collect($response->json('data.users'))->where('hasPasskey', true)->count());
     }
 
     private function addProjectWithTaskForMember(): void

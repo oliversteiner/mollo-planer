@@ -31,7 +31,7 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt. Ergänzt `backend-plan.md` und `
 - **RichText (umgesetzt in Schritt 7):** `UEditor` und `UEditorToolbar` von Nuxt UI (TipTap 3) mit `starterKit: false`; die erlaubten Bausteine kommen allein aus `app/utils/rich-text.ts` (gleiche Liste wie `RichTextDocument.php`). Grund: Mit eingeschaltetem StarterKit hängt `UEditor` immer Code und Trennlinie an, die der Server ablehnt. Ein Test baut den Editor und prüft, dass sein Schema genau die Whitelist hat und eingefügtes HTML (Code, Trennlinie, Bild, Durchgestrichen, `javascript:`-Links, Überschrift 1 und 4) nichts Unerlaubtes erzeugt. Links nur http, https, mailto, eigenes Eingabefeld statt `prompt()`. `RichTextEditor` (Prop `compact` für Kommentare) und `RichTextView` (nur lesen, TipTap rendert, kein `v-html`). Ein Dokument ohne Text wird als `null` gesendet.
 - **Icon-Picker (umgesetzt in Schritt 7):** `scripts/icon-catalog.ts` baut aus den Metadaten des Pro-Pakets (115 MB) einmal pro Paketversion einen Katalog aller Duotone-Light-Icons (Name, Bezeichnung, Suchbegriffe, rund 540 KB, gezippt 155 KB), ausgeliefert als `/icons/catalog.json` und erst beim Öffnen des Pickers geladen. Ohne Suchbegriff Vorschläge für Projekte; die Suchbegriffe von Font Awesome sind englisch.
 - **Kanban (umgesetzt in Schritt 8):** `vue-draggable-plus` (SortableJS). Nach dem Ablegen `moveTask(id, status, position)`; die Position zählt wie im Backend ohne den Task selbst (`utils/kanban.ts`, getestet). Der Zug ist sofort sichtbar und wird danach durch die Antwort des Servers ersetzt; schlägt er fehl, lädt das Board neu. Ohne Ziehen: Menü auf jeder Karte mit „Nach oben/unten“ und „Verschieben nach …“. Task-Details im Seitenpanel über `?task=` (auch aus den Mails), mit Status, Zuweisung, Bearbeiten, Löschen und Kommentaren.
-- **Tests:** Vitest mit `@nuxt/test-utils` für Composables und Komponenten (Rechte-Anzeige, RichText-Whitelist, Fehlerbehandlung der Sperre). Ende-zu-Ende-Tests (Playwright) gegen das Backend mit Demo-Daten später.
+- **Tests (umgesetzt in Schritt 13):** Vitest mit zwei Projekten (`vitest.config.ts`): `unit` für reine Funktionen (Fehler-Einordnung, Weiterleitungsschutz, Datum, RichText-Whitelist mit echtem Editor, Icon-Suche, Kanban-Reihenfolge, Avatar-Prüfung) und `nuxt` mit `@nuxt/test-utils` für Route-Middleware (Login, Sperre, Einrichtung, Backend weg, Admin) und Bausteine (`ItemIcon`, `DueDate`, `StatusBadge`). Die Testumgebung meldet sich als englischer Browser; Tests mit deutschen Texten setzen die Sprache selbst. Ende-zu-Ende-Tests (Playwright) gegen das Backend mit Demo-Daten später.
 - **Qualität:** `npm run lint` (ESLint, Stil aus dem Template), `npm run typecheck`, beides im CI.
 
 ## Anmeldung (umgesetzt in Schritt 4)
@@ -88,6 +88,8 @@ Task-Details (Seitenpanel): Titel, Beschreibung (TipTap), Icon, Fälligkeit, Sta
 11. **Projekteinstellungen und Mitglieder.**
 12. **Admin:** Benutzer und App-Einstellungen.
 13. **Tests und Feinschliff:** Vitest, Barrierefreiheit (Tastatur, Fokus, Kontrast), leere Zustände, Fehlerseiten.
+
+Feinschliff (Schritt 13): Link „Zum Inhalt springen“ für die Tastatur; ein Prüflauf fand keine Icon-Knöpfe ohne zugänglichen Namen; die Benutzerliste der Admins lädt die Passkeys gebündelt (`@with`, Test gegen N+1 im Backend).
 
 Nicht Teil dieses Plans: Hosting bei Hostpoint (Build-Pipeline, Rewrite, Domains, Cookies über Subdomains), Ende-zu-Ende-Tests.
 

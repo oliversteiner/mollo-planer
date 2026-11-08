@@ -25,6 +25,16 @@ const items = computed<NavigationMenuItem[][]>(() => [[
 
 const locales = [uiLocales.de, uiLocales.en]
 
+/** Keyboard users jump past the sidebar to the content of the page. */
+function skipToContent(): void {
+  const body = document.querySelector<HTMLElement>('[data-slot="body"]')
+
+  if (body) {
+    body.tabIndex = -1
+    body.focus()
+  }
+}
+
 const currentLocale = computed({
   get: () => locale.value,
   set: (code: string) => setLocale(code as 'de' | 'en')
@@ -33,6 +43,11 @@ const currentLocale = computed({
 
 <template>
   <UDashboardGroup>
+    <a
+      href="#"
+      class="sr-only z-50 rounded-md bg-primary px-3 py-2 text-inverted focus:not-sr-only focus:fixed focus:start-2 focus:top-2"
+      @click.prevent="skipToContent"
+    >{{ t('nav.skipToContent') }}</a>
     <UDashboardSidebar
       collapsible
       resizable
