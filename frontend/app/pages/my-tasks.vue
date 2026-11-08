@@ -2,6 +2,7 @@
 import { useQuery } from '@vue/apollo-composable'
 import { myTasksQuery } from '~/graphql/profile'
 import { TASK_STATUSES } from '~/graphql/task'
+import { withoutNulls } from '~/utils/api'
 
 const { t } = useI18n()
 
@@ -15,7 +16,7 @@ const filterItems = computed(() => [
   ...TASK_STATUSES.map(status => ({ label: t(`status.${status}`), value: status }))
 ])
 
-const { result, loading } = useQuery(myTasksQuery, () => ({
+const { result, loading } = useQuery(myTasksQuery, () => withoutNulls({
   status: filter.value === 'open' || filter.value === 'all' ? null : filter.value
 }), { fetchPolicy: 'cache-and-network' })
 

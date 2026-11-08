@@ -148,3 +148,12 @@ export function safeRedirect(target: unknown, fallback = '/'): string {
 
   return target
 }
+
+/**
+ * Leaves out filter arguments that are null. Lighthouse applies @eq also
+ * to an explicit null ("column IS NULL"), so { status: null } would find
+ * nothing; an argument that is left out means "no filter".
+ */
+export function withoutNulls<T extends Record<string, unknown>>(variables: T): { [K in keyof T]?: Exclude<T[K], null> } {
+  return Object.fromEntries(Object.entries(variables).filter(([, value]) => value !== null)) as { [K in keyof T]?: Exclude<T[K], null> }
+}

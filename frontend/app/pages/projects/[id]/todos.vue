@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { deleteTodoMutation, projectContentQueries, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
+import { withoutNulls } from '~/utils/api'
 
 const { t } = useI18n()
 const { projectId, can } = useProject()
@@ -13,8 +14,10 @@ const statusFilter = ref<'all' | 'OPEN' | 'DONE'>('all')
 
 const { result, loading } = useQuery(projectTodosQuery, () => ({
   projectId: projectId.value,
-  milestoneId: milestoneFilter.value === 'all' ? null : milestoneFilter.value,
-  status: statusFilter.value === 'all' ? null : statusFilter.value
+  ...withoutNulls({
+    milestoneId: milestoneFilter.value === 'all' ? null : milestoneFilter.value,
+    status: statusFilter.value === 'all' ? null : statusFilter.value
+  })
 }), { fetchPolicy: 'cache-and-network' })
 
 const { result: overview } = useQuery(projectOverviewQuery, () => ({ id: projectId.value }))

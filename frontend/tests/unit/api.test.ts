@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyApiError, classifyApolloError, classifyRestError, readCookie, safeRedirect, SETUP_REQUIRED, STRONG_AUTH_REQUIRED } from '../../app/utils/api'
+import { classifyApiError, classifyApolloError, classifyRestError, readCookie, safeRedirect, SETUP_REQUIRED, STRONG_AUTH_REQUIRED, withoutNulls } from '../../app/utils/api'
 
 describe('readCookie', () => {
   it('returns the URL-decoded value, as Laravel expects it in X-XSRF-TOKEN', () => {
@@ -79,5 +79,12 @@ describe('safeRedirect', () => {
     for (const target of ['https://evil.example', '//evil.example', '/\\evil.example', 'projects', undefined, ['/a']]) {
       expect(safeRedirect(target)).toBe('/')
     }
+  })
+})
+
+describe('withoutNulls', () => {
+  it('drops null filters so the backend applies no filter for them', () => {
+    expect(withoutNulls({ projectId: '1', milestoneId: null, status: null })).toEqual({ projectId: '1' })
+    expect(withoutNulls({ status: 'DONE' })).toEqual({ status: 'DONE' })
   })
 })

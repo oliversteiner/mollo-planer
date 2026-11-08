@@ -10,7 +10,5 @@ body:
         myTasks(status: $status) { id title status dueDate todo { title milestone { project { name } } } }
       }
     variables: |-
-      {
-        "status": null
-      }
+      {}
 order: 8000
