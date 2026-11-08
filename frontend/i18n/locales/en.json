@@ -4,7 +4,8 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "main": "Main navigation"
+    "main": "Main navigation",
+    "projects": "Projects"
   },
   "settings": {
     "language": "Language",
@@ -12,7 +13,13 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "comingSoon": "Your upcoming todos, open tasks and projects will appear here soon."
+    "greeting": "Hello {name}",
+    "myOpenTasks": "My open tasks",
+    "noOpenTasks": "You have no open tasks.",
+    "upcomingTodos": "Upcoming todos",
+    "noUpcomingTodos": "No open todos.",
+    "projects": "Projects",
+    "allProjects": "All projects"
   },
   "error": {
     "notFound": "This page does not exist.",
@@ -77,5 +84,48 @@
       "description": "Before you start, set up a second factor: an authenticator app or a passkey.",
       "comingSoon": "Setting it up in the frontend follows in a later step."
     }
+  },
+  "projects": {
+    "title": "Projects",
+    "none": "No projects yet",
+    "noneAdmin": "Create the first project.",
+    "noneMember": "As soon as someone adds you to a project, it appears here.",
+    "progress": "{done} of {total} tasks done",
+    "notFound": "This project does not exist, or you have no access.",
+    "comingSoon": "Milestones and todos follow in the next step.",
+    "create": {
+      "open": "New project",
+      "title": "New project",
+      "submit": "Create",
+      "done": "Project “{name}” created."
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "locale": "Language of the emails",
+      "localeHint": "Notifications about this project are sent in this language."
+    }
+  },
+  "status": {
+    "OPEN": "Open",
+    "IN_PROGRESS": "In progress",
+    "REVIEW": "Review",
+    "DONE": "Done"
+  },
+  "role": {
+    "OWNER": "Owner",
+    "MANAGER": "Manager",
+    "MEMBER": "Member"
+  },
+  "locale": {
+    "DE": "German",
+    "EN": "English"
+  },
+  "due": {
+    "overdue": "overdue"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save"
   }
 }

@@ -4,7 +4,8 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "main": "Hauptnavigation"
+    "main": "Hauptnavigation",
+    "projects": "Projekte"
   },
   "settings": {
     "language": "Sprache",
@@ -12,7 +13,13 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "comingSoon": "Hier erscheinen bald deine anstehenden ToDos, offenen Tasks und Projekte."
+    "greeting": "Hallo {name}",
+    "myOpenTasks": "Meine offenen Tasks",
+    "noOpenTasks": "Du hast keine offenen Tasks.",
+    "upcomingTodos": "Anstehende ToDos",
+    "noUpcomingTodos": "Keine offenen ToDos.",
+    "projects": "Projekte",
+    "allProjects": "Alle Projekte"
   },
   "error": {
     "notFound": "Diese Seite gibt es nicht.",
@@ -77,5 +84,48 @@
       "description": "Bevor du loslegen kannst, richtest du einen zweiten Faktor ein: eine Authenticator-App oder einen Passkey.",
       "comingSoon": "Die Einrichtung im Frontend folgt in einem späteren Schritt."
     }
+  },
+  "projects": {
+    "title": "Projekte",
+    "none": "Noch keine Projekte",
+    "noneAdmin": "Lege das erste Projekt an.",
+    "noneMember": "Sobald dich jemand zu einem Projekt hinzufügt, erscheint es hier.",
+    "progress": "{done} von {total} Tasks erledigt",
+    "notFound": "Dieses Projekt gibt es nicht, oder du hast keinen Zugriff.",
+    "comingSoon": "Milestones und ToDos folgen im nächsten Schritt.",
+    "create": {
+      "open": "Projekt anlegen",
+      "title": "Neues Projekt",
+      "submit": "Anlegen",
+      "done": "Projekt «{name}» angelegt."
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Beschreibung",
+      "locale": "Sprache der Mails",
+      "localeHint": "Benachrichtigungen zu diesem Projekt kommen in dieser Sprache."
+    }
+  },
+  "status": {
+    "OPEN": "Offen",
+    "IN_PROGRESS": "In Arbeit",
+    "REVIEW": "Review",
+    "DONE": "Erledigt"
+  },
+  "role": {
+    "OWNER": "Owner",
+    "MANAGER": "Manager",
+    "MEMBER": "Mitglied"
+  },
+  "locale": {
+    "DE": "Deutsch",
+    "EN": "Englisch"
+  },
+  "due": {
+    "overdue": "überfällig"
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "save": "Speichern"
   }
 }

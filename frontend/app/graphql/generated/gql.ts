@@ -14,9 +14,17 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n": typeof types.DashboardDocument,
+    "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
+    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": typeof types.ProjectHeaderDocument,
+    "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
     "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
+    "\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n": types.DashboardDocument,
+    "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
+    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": types.ProjectHeaderDocument,
+    "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
     "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n": types.ViewerDocument,
 };
 
@@ -34,6 +42,22 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n"): (typeof documents)["\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

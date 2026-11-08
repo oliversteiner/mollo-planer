@@ -20,7 +20,7 @@ Die zweite Zeile beginnt mit `//`. In GitHub steht der Token als Secret `FONTAWE
 - `npm run lint`: ESLint
 - `npm run typecheck`: TypeScript
 - `npm test`: Unit-Tests (Vitest)
-- `npm run codegen`: GraphQL-Typen neu erzeugen (nach `composer schema:frontend` im Backend oder einer neuen Abfrage)
+- `npm run codegen`: GraphQL-Typen neu erzeugen (nach `composer schema:frontend` im Backend oder einer neuen Abfrage). Während der Entwicklung am besten `npm run codegen -- --watch` in einem zweiten Terminal: Eine neue oder geänderte `graphql(...)`-Abfrage ohne Codegen führt im Browser zum Apollo-Fehler 115 („Expecting a parsed GraphQL document“).
 - `npm run build`: statische Dateien in `.output/public`
 
 `npm` muss das Linux-npm aus nvm sein, nicht das Windows-npm von PhpStorm (Fehler „UNC-Pfade werden nicht unterstützt“). Prüfen mit `which npm`.

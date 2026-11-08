@@ -11,7 +11,8 @@ const userMenu = computed<DropdownMenuItem[][]>(() => [
 ])
 
 const items = computed<NavigationMenuItem[]>(() => [
-  { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/' }
+  { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/', exact: true },
+  { label: t('nav.projects'), icon: 'i-fadl-folder-open', to: '/projects' }
 ])
 
 const locales = [uiLocales.de, uiLocales.en]

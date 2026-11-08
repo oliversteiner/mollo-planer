@@ -72,7 +72,7 @@ Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm 
 - [x] 2. Font Awesome
 - [x] 3. API-Anbindung (Apollo, Codegen)
 - [x] 4. Anmeldung
-- [ ] 5. Dashboard und Projektliste
+- [x] 5. Dashboard und Projektliste
 - [ ] 6. Projekt: Milestones und ToDos
 - [ ] 7. RichText und Icon-Picker
 - [ ] 8. Kanban und Task-Details
