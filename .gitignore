@@ -3,3 +3,6 @@
 
 # Windows download marker (copied into WSL)
 *:Zone.Identifier
+
+# Postman environments may hold passwords or tokens: keep them local
+/docs/postman/postman/environments/
