@@ -5,7 +5,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "main": "Hauptnavigation",
-    "projects": "Projekte"
+    "projects": "Projekte",
+    "myTasks": "Meine Tasks"
   },
   "settings": {
     "language": "Sprache",
@@ -233,5 +234,40 @@
     "add": "Kommentieren",
     "deleteTitle": "Kommentar löschen?",
     "deleteDescription": "Der Kommentar wird endgültig gelöscht."
+  },
+  "myTasks": {
+    "title": "Meine Tasks",
+    "notDone": "Nicht erledigt",
+    "none": "Keine Tasks."
+  },
+  "profile": {
+    "title": "Profil",
+    "settings": "Einstellungen",
+    "avatar": {
+      "title": "Avatarbild",
+      "upload": "Bild hochladen",
+      "change": "Bild ändern",
+      "remove": "Entfernen",
+      "hint": "JPG oder PNG, höchstens 5 MB. Das Bild wird quadratisch zugeschnitten.",
+      "type": "Nur JPG- oder PNG-Bilder sind möglich.",
+      "size": "Das Bild ist grösser als 5 MB.",
+      "saved": "Avatarbild gespeichert."
+    },
+    "details": {
+      "title": "Name und E-Mail",
+      "saved": "Gespeichert."
+    },
+    "password": {
+      "title": "Passwort ändern",
+      "current": "Aktuelles Passwort",
+      "submit": "Passwort ändern",
+      "saved": "Dein Passwort ist geändert."
+    },
+    "notifications": {
+      "label": "E-Mail-Benachrichtigungen",
+      "description": "Mails bei neuen Zuweisungen und Kommentaren zu deinen Tasks.",
+      "on": "Benachrichtigungen eingeschaltet.",
+      "off": "Benachrichtigungen ausgeschaltet."
+    }
   }
 }

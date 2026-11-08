@@ -7,12 +7,14 @@ const { viewer, logout } = useViewer()
 
 const userMenu = computed<DropdownMenuItem[][]>(() => [
   [{ label: viewer.value?.email ?? '', type: 'label' }],
+  [{ label: t('profile.title'), icon: 'i-fadl-user-gear', to: '/profile' }],
   [{ label: t('auth.logout'), icon: 'i-fadl-right-from-bracket', onSelect: () => logout() }]
 ])
 
 const items = computed<NavigationMenuItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/', exact: true },
-  { label: t('nav.projects'), icon: 'i-fadl-folder-open', to: '/projects' }
+  { label: t('nav.projects'), icon: 'i-fadl-folder-open', to: '/projects' },
+  { label: t('nav.myTasks'), icon: 'i-fadl-square-check', to: '/my-tasks' }
 ])
 
 const locales = [uiLocales.de, uiLocales.en]

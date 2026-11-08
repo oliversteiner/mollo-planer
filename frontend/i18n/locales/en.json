@@ -5,7 +5,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "main": "Main navigation",
-    "projects": "Projects"
+    "projects": "Projects",
+    "myTasks": "My tasks"
   },
   "settings": {
     "language": "Language",
@@ -233,5 +234,40 @@
     "add": "Comment",
     "deleteTitle": "Delete comment?",
     "deleteDescription": "The comment is deleted for good."
+  },
+  "myTasks": {
+    "title": "My tasks",
+    "notDone": "Not done",
+    "none": "No tasks."
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "avatar": {
+      "title": "Avatar",
+      "upload": "Upload picture",
+      "change": "Change picture",
+      "remove": "Remove",
+      "hint": "JPG or PNG, at most 5 MB. The picture is cropped to a square.",
+      "type": "Only JPG or PNG pictures are possible.",
+      "size": "The picture is larger than 5 MB.",
+      "saved": "Avatar saved."
+    },
+    "details": {
+      "title": "Name and email",
+      "saved": "Saved."
+    },
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "submit": "Change password",
+      "saved": "Your password has been changed."
+    },
+    "notifications": {
+      "label": "Email notifications",
+      "description": "Emails about new assignments and comments on your tasks.",
+      "on": "Notifications switched on.",
+      "off": "Notifications switched off."
+    }
   }
 }

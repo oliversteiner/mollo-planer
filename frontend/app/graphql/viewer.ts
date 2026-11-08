@@ -9,6 +9,7 @@ export const viewerQuery = graphql(`
       email
       isAdmin
       avatarUrl
+      notifyByEmail
     }
     appSettings {
       twoFactorEnabled
