@@ -10,7 +10,9 @@
     "admin": "Verwaltung",
     "users": "Benutzer",
     "appSettings": "App-Einstellungen",
-    "skipToContent": "Zum Inhalt springen"
+    "skipToContent": "Zum Inhalt springen",
+    "searchProject": "Projekt suchen",
+    "chooseProject": "Projekt wählen"
   },
   "settings": {
     "language": "Sprache",

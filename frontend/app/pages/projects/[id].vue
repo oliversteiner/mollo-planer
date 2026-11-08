@@ -1,37 +1,29 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
-
 /**
- * Frame of every project page: name, tabs and the page of the tab. The
- * tabs follow the frontend plan (Kanban, settings in later steps).
+ * Frame of every project page: name, role and the page. The pages of a
+ * project are linked in the sidebar (category "Projects").
  */
 const { t } = useI18n()
-const { projectId, project, loaded } = useProject()
+const route = useRoute()
+const { project, loaded } = useProject()
 
-useHead({ title: () => project.value?.name ?? t('projects.title') })
+/** Name of the page within the project, shown next to the project name. */
+const pageName = computed(() => {
+  const page = route.path.split('/')[3] ?? ''
+  const keys: Record<string, string> = { '': 'overview', 'todos': 'todos', 'kanban': 'kanban', 'settings': 'settings' }
 
-const tabs = computed<NavigationMenuItem[]>(() => [
-  { label: t('project.tabs.overview'), icon: 'i-fadl-flag-checkered', to: `/projects/${projectId.value}`, exact: true },
-  { label: t('project.tabs.todos'), icon: 'i-fadl-list-check', to: `/projects/${projectId.value}/todos` },
-  { label: t('project.tabs.kanban'), icon: 'i-fadl-table-columns', to: `/projects/${projectId.value}/kanban` },
-  // Everyone sees the members there; owners/managers also change things.
-  { label: t('project.tabs.settings'), icon: 'i-fadl-gear', to: `/projects/${projectId.value}/settings` }
-])
+  return t(`project.tabs.${keys[page] ?? 'overview'}`)
+})
+
+const title = computed(() => (project.value ? `${project.value.name} · ${pageName.value}` : ''))
+
+useHead({ title: () => (project.value ? title.value : t('projects.title')) })
 </script>
 
 <template>
   <UDashboardPanel id="project">
     <template #header>
-      <UDashboardNavbar :title="project?.name ?? ''">
-        <template #leading>
-          <UButton
-            to="/projects"
-            icon="i-fadl-arrow-left"
-            color="neutral"
-            variant="ghost"
-            :aria-label="t('projects.title')"
-          />
-        </template>
+      <UDashboardNavbar :title="title">
         <template #right>
           <UBadge
             v-if="project?.viewerRole"
@@ -42,14 +34,6 @@ const tabs = computed<NavigationMenuItem[]>(() => [
           </UBadge>
         </template>
       </UDashboardNavbar>
-
-      <UDashboardToolbar v-if="project">
-        <UNavigationMenu
-          :items="tabs"
-          highlight
-          class="-mx-1 flex-1"
-        />
-      </UDashboardToolbar>
     </template>
 
     <template #body>

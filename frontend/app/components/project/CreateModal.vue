@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useMutation } from '@vue/apollo-composable'
 import type { Locale } from '~/graphql/generated/graphql'
-import { createProjectMutation, projectsQuery } from '~/graphql/projects'
-import { dashboardQuery } from '~/graphql/dashboard'
+import { createProjectMutation } from '~/graphql/projects'
 
 /** New project (admins only; the backend checks it again). */
 const open = defineModel<boolean>('open', { default: false })
@@ -17,9 +16,8 @@ const locales = computed(() => [
   { label: t('locale.EN'), value: 'EN' }
 ])
 
-const { mutate } = useMutation(createProjectMutation, {
-  refetchQueries: [{ query: projectsQuery }, { query: dashboardQuery }]
-})
+// 'active' includes the project choice in the sidebar.
+const { mutate } = useMutation(createProjectMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
 
 async function submit(): Promise<void> {
   const result = await run(() => mutate({

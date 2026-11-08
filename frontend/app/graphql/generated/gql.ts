@@ -37,6 +37,7 @@ type Documents = {
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": typeof types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
+    "\n  query SidebarProjects {\n    projects { id name }\n  }\n": typeof types.SidebarProjectsDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": typeof types.SecurityDocument,
     "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectSettingsDocument,
     "\n  query Users {\n    users { id name email avatarUrl }\n  }\n": typeof types.UsersDocument,
@@ -81,6 +82,7 @@ const documents: Documents = {
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
+    "\n  query SidebarProjects {\n    projects { id name }\n  }\n": types.SidebarProjectsDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": types.SecurityDocument,
     "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": types.ProjectSettingsDocument,
     "\n  query Users {\n    users { id name email avatarUrl }\n  }\n": types.UsersDocument,
@@ -208,6 +210,10 @@ export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    projec
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query SidebarProjects {\n    projects { id name }\n  }\n"): (typeof documents)["\n  query SidebarProjects {\n    projects { id name }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -10,7 +10,8 @@ const { result } = useQuery(projectSettingsQuery, () => ({ id: projectId.value }
 const project = computed(() => result.value?.project ?? null)
 
 const deleting = ref(false)
-const { mutate: deleteProject } = useMutation(deleteProjectMutation)
+// 'active' includes the project choice in the sidebar.
+const { mutate: deleteProject } = useMutation(deleteProjectMutation, { refetchQueries: 'active' })
 
 async function confirmDelete(): Promise<void> {
   await deleteProject({ id: projectId.value })

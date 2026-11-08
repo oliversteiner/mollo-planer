@@ -36,3 +36,10 @@ export const createProjectMutation = graphql(`
     }
   }
 `)
+
+/** Projects for the choice in the sidebar. */
+export const sidebarProjectsQuery = graphql(`
+  query SidebarProjects {
+    projects { id name }
+  }
+`)

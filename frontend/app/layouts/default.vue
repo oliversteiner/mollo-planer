@@ -10,17 +10,18 @@ const userMenu = computed<DropdownMenuItem[][]>(() => [
   [{ label: t('auth.logout'), icon: 'i-fadl-right-from-bracket', onSelect: () => logout() }]
 ])
 
-const items = computed<NavigationMenuItem[][]>(() => [[
+const mainItems = computed<NavigationMenuItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/', exact: true },
-  { label: t('nav.projects'), icon: 'i-fadl-folder-open', to: '/projects' },
   { label: t('nav.myTasks'), icon: 'i-fadl-square-check', to: '/my-tasks' }
-], viewer.value?.isAdmin
+])
+
+const adminItems = computed<NavigationMenuItem[]>(() => (viewer.value?.isAdmin
   ? [
       { label: t('nav.admin'), type: 'label' },
       { label: t('nav.users'), icon: 'i-fadl-users', to: '/admin/users' },
       { label: t('nav.appSettings'), icon: 'i-fadl-sliders', to: '/admin/settings' }
     ]
-  : []])
+  : []))
 
 /** Keyboard users jump past the sidebar to the content of the page. */
 function skipToContent(): void {
@@ -55,9 +56,17 @@ function skipToContent(): void {
 
       <template #default="{ collapsed }">
         <UNavigationMenu
-          :items="items"
+          :items="mainItems"
           :collapsed="collapsed"
           :aria-label="t('nav.main')"
+          orientation="vertical"
+        />
+        <SidebarProjects :collapsed="collapsed" />
+        <UNavigationMenu
+          v-if="adminItems.length"
+          :items="adminItems"
+          :collapsed="collapsed"
+          :aria-label="t('nav.admin')"
           orientation="vertical"
         />
       </template>

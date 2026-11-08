@@ -41,6 +41,10 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt. Ergänzt `backend-plan.md` und `
 - Fehlermeldungen des Servers erscheinen am Feld (`useServerForm()`); andere Fehler meldet das Plugin.
 - `/setup-security` ist bis Schritt 10 ein Platzhalter mit Abmelden.
 
+## Navigation (Anpassung 2026-11-08)
+- Seitenleiste: Dashboard und Meine Tasks; darunter die Kategorie „Projekte“ mit einer Projektauswahl und den Links Übersicht, ToDos, Kanban und Einstellungen für das gewählte Projekt (`SidebarProjects`); für Admins „Verwaltung“. Gewählt ist das Projekt der aktuellen Seite, sonst das zuletzt gewählte (im Browser gemerkt), sonst das erste. Ein Wechsel behält die Unterseite (Kanban → Kanban).
+- Die Reiter im Projektkopf entfallen; der Kopf zeigt „Projekt · Unterseite“. Die Projektliste (`/projects`, mit „Projekt anlegen“ für Admins) ist nur noch über „Alle Projekte“ auf dem Dashboard erreichbar.
+
 ## Seiten
 | Route | Inhalt |
 |---|---|
