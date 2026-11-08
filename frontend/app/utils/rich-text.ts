@@ -1,0 +1,66 @@
+import Blockquote from '@tiptap/extension-blockquote'
+import Bold from '@tiptap/extension-bold'
+import Heading from '@tiptap/extension-heading'
+import Italic from '@tiptap/extension-italic'
+import Link from '@tiptap/extension-link'
+import { BulletList, ListItem, ListKeymap, OrderedList } from '@tiptap/extension-list'
+import { Dropcursor, Gapcursor } from '@tiptap/extensions'
+import type { AnyExtension } from '@tiptap/core'
+
+/**
+ * The whitelist of rich text (descriptions and comments). It must match
+ * the server: backend/app/Support/RichTextDocument.php. Anything else is
+ * not in the editor schema, so pasted HTML loses it on the way in.
+ */
+export const RICH_TEXT_NODES = ['doc', 'paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'text', 'hardBreak'] as const
+export const RICH_TEXT_MARKS = ['bold', 'italic', 'link'] as const
+export const HEADING_LEVELS = [2, 3] as const
+
+/** Same limit as RichTextDocument::MAX_TEXT_LENGTH. */
+export const RICH_TEXT_MAX_LENGTH = 20000
+
+/** Links only to web pages and e-mail addresses (server: LINK_SCHEMES). */
+export function isAllowedLink(url: string): boolean {
+  return /^(https?:\/\/[^\s]+|mailto:[^\s]+)$/i.test(url.trim())
+}
+
+/**
+ * Extensions on top of what Nuxt UI's UEditor keeps with starterKit: false
+ * (document, paragraph, text, hard break, undo/redo).
+ */
+export function richTextExtensions(): AnyExtension[] {
+  return [
+    Blockquote,
+    Bold,
+    Italic,
+    Heading.configure({ levels: [...HEADING_LEVELS] }),
+    BulletList,
+    OrderedList,
+    ListItem,
+    ListKeymap,
+    Link.configure({
+      openOnClick: false,
+      autolink: true,
+      linkOnPaste: true,
+      defaultProtocol: 'https',
+      HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' },
+      isAllowedUri: url => isAllowedLink(url)
+    }),
+    Dropcursor.configure({ color: 'var(--ui-primary)', width: 2 }),
+    Gapcursor
+  ]
+}
+
+/** A document is empty when it has no text (the server then stores null). */
+export function isEmptyDocument(document: Record<string, unknown> | null | undefined): boolean {
+  const hasText = (node: unknown): boolean => {
+    if (!node || typeof node !== 'object') {
+      return false
+    }
+    const { text, content } = node as { text?: string, content?: unknown[] }
+
+    return Boolean(text?.trim()) || (Array.isArray(content) && content.some(hasText))
+  }
+
+  return !hasText(document)
+}

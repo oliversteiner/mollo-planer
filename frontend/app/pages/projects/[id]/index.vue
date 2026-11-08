@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectOverviewQuery } from '~/graphql/project'
+import { isEmptyDocument } from '~/utils/rich-text'
 
 const { t } = useI18n()
 const { projectId, project, can } = useProject()
@@ -13,7 +14,7 @@ const { result, loading } = useQuery(projectOverviewQuery, () => ({ id: projectI
 const milestones = computed(() => [...(result.value?.project?.milestones ?? [])]
   .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || Number(a.id) - Number(b.id)))
 
-type Item = { id: string, title: string, dueDate?: string | null }
+type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
 const deleting = ref<{ kind: 'milestone' | 'todo', item: Item } | null>(null)
@@ -123,6 +124,11 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
         </div>
       </template>
 
+      <RichTextView
+        :content="milestone.description"
+        class="mb-4 text-sm"
+      />
+
       <ul
         v-if="milestone.todos.length"
         class="divide-y divide-default"
@@ -138,6 +144,16 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
             class="text-lg text-primary"
           />
           <span class="min-w-0 flex-1 truncate">{{ todo.title }}</span>
+          <UTooltip
+            v-if="!isEmptyDocument(todo.description)"
+            :text="t('project.hasDescription')"
+          >
+            <UIcon
+              name="i-fadl-align-left"
+              class="size-4 text-muted"
+              :aria-label="t('project.hasDescription')"
+            />
+          </UTooltip>
           <span class="text-sm text-muted">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
           <StatusBadge :status="todo.status" />
           <DueDate

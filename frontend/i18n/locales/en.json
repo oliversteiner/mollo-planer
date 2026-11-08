@@ -138,7 +138,8 @@
     "noMilestones": "No milestones yet",
     "noMilestonesHint": "Create the first milestone, for example “Design approved”.",
     "noTodos": "No todos yet.",
-    "taskCount": "{done}/{total} tasks"
+    "taskCount": "{done}/{total} tasks",
+    "hasDescription": "Has a description"
   },
   "todos": {
     "milestone": "Milestone",
@@ -150,7 +151,10 @@
   "item": {
     "fields": {
       "title": "Title",
-      "dueDate": "Due on"
+      "dueDate": "Due on",
+      "icon": "Icon",
+      "description": "Description",
+      "descriptionPlaceholder": "What does it involve? Lists, links and emphasis are possible."
     },
     "milestone": {
       "create": "New milestone",
@@ -167,5 +171,33 @@
       "deleteTitle": "Delete todo?",
       "deleteDescription": "“{title}” is deleted with all its tasks and comments. This cannot be undone."
     }
+  },
+  "richText": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "bulletList": "Bullet list",
+    "orderedList": "Numbered list",
+    "blockquote": "Quote",
+    "heading2": "Heading",
+    "heading3": "Subheading",
+    "undo": "Undo",
+    "redo": "Redo",
+    "link": {
+      "button": "Link",
+      "url": "Address",
+      "apply": "Apply",
+      "remove": "Remove link",
+      "invalid": "Only links with http://, https:// or mailto: are possible."
+    }
+  },
+  "icons": {
+    "choose": "Choose icon",
+    "default": "Default",
+    "remove": "Remove icon",
+    "title": "Choose icon",
+    "search": "Search, for example rocket, calendar",
+    "results": "{count} results (at most 120)",
+    "suggestions": "Suggestions – or search above",
+    "noResults": "No icon found."
   }
 }

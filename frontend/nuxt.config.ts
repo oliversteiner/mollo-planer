@@ -1,8 +1,14 @@
 import { fileURLToPath } from 'node:url'
 import { uiIcons } from './app/ui-icons'
+import { ensureIconCatalog } from './scripts/icon-catalog'
 
 // Font Awesome Pro, style "Duotone Light", fixed-width SVGs (640 grid).
-const duotoneLight = fileURLToPath(new URL('./node_modules/@fortawesome/fontawesome-pro/svgs-full/duotone-light', import.meta.url))
+const fontAwesome = fileURLToPath(new URL('./node_modules/@fortawesome/fontawesome-pro', import.meta.url))
+const duotoneLight = `${fontAwesome}/svgs-full/duotone-light`
+
+// Search catalogue for the icon picker (/icons/catalog.json).
+const iconCatalog = fileURLToPath(new URL('./node_modules/.cache/icon-catalog', import.meta.url))
+ensureIconCatalog(fontAwesome, iconCatalog)
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -46,6 +52,10 @@ export default defineNuxtConfig({
         dir: duotoneLight,
         baseURL: '/icons/duotone-light',
         maxAge: 60 * 60 * 24 * 30
+      },
+      {
+        dir: iconCatalog,
+        baseURL: '/icons'
       }
     ]
   },

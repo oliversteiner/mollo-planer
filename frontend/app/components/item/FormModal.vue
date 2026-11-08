@@ -7,19 +7,23 @@ import {
   updateMilestoneMutation,
   updateTodoMutation
 } from '~/graphql/project'
+import { isEmptyDocument } from '~/utils/rich-text'
 
 export interface ItemFormTarget {
   kind: 'milestone' | 'todo'
   /** Existing item to change; without it a new one is created. */
-  item?: { id: string, title: string, dueDate?: string | null }
+  item?: {
+    id: string
+    title: string
+    dueDate?: string | null
+    icon?: string | null
+    description?: Record<string, unknown> | null
+  }
   /** Project (new milestone) or milestone (new todo) the item belongs to. */
   parentId?: string
 }
 
-/**
- * Create or change a milestone or todo: title and due date. Description
- * and icon follow with the editor in step 7.
- */
+/** Create or change a milestone or todo: title, description, icon, due date. */
 const props = defineProps<{
   target: ItemFormTarget | null
   /** Choice of milestone for a new todo without parentId. */
@@ -41,12 +45,20 @@ const open = computed({
   }
 })
 
-const state = reactive({ title: '', dueDate: '', milestoneId: '' })
+const state = reactive<{
+  title: string
+  dueDate: string
+  milestoneId: string
+  icon: string | null
+  description: Record<string, unknown> | null
+}>({ title: '', dueDate: '', milestoneId: '', icon: null, description: null })
 
 watch(() => props.target, (target) => {
   errors.value = {}
   state.title = target?.item?.title ?? ''
   state.dueDate = target?.item?.dueDate ?? ''
+  state.icon = target?.item?.icon ?? null
+  state.description = target?.item?.description ?? null
   state.milestoneId = target?.parentId ?? props.milestones?.[0]?.id ?? ''
 }, { immediate: true })
 
@@ -69,7 +81,12 @@ async function submit(): Promise<void> {
     return
   }
 
-  const fields = { title: state.title.trim(), dueDate: state.dueDate || null }
+  const fields = {
+    title: state.title.trim(),
+    dueDate: state.dueDate || null,
+    icon: state.icon,
+    description: isEmptyDocument(state.description) ? null : state.description
+  }
   const result = await run<unknown>(() => {
     if (target.item) {
       return target.kind === 'milestone'
@@ -93,6 +110,7 @@ async function submit(): Promise<void> {
   <UModal
     v-model:open="open"
     :title="title"
+    :ui="{ content: 'sm:max-w-2xl' }"
   >
     <template #body>
       <UForm
@@ -129,15 +147,38 @@ async function submit(): Promise<void> {
           />
         </UFormField>
 
+        <div class="flex flex-wrap gap-4">
+          <UFormField
+            :label="t('item.fields.icon')"
+            name="icon"
+            :error="errors.icon"
+          >
+            <IconPicker
+              v-model="state.icon"
+              :fallback="kind === 'milestone' ? 'flag-checkered' : 'list-check'"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('item.fields.dueDate')"
+            name="dueDate"
+            :error="errors.dueDate"
+          >
+            <UInput
+              v-model="state.dueDate"
+              type="date"
+            />
+          </UFormField>
+        </div>
+
         <UFormField
-          :label="t('item.fields.dueDate')"
-          name="dueDate"
-          :error="errors.dueDate"
+          :label="t('item.fields.description')"
+          name="description"
+          :error="errors.description"
         >
-          <UInput
-            v-model="state.dueDate"
-            type="date"
-            class="w-full"
+          <RichTextEditor
+            v-model="state.description"
+            :placeholder="t('item.fields.descriptionPlaceholder')"
           />
         </UFormField>
       </UForm>

@@ -34,7 +34,7 @@ const statusItems = computed(() => [
 const todos = computed(() => [...(result.value?.todos ?? [])]
   .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || Number(a.id) - Number(b.id)))
 
-type Item = { id: string, title: string, dueDate?: string | null }
+type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
 const deleting = ref<Item | null>(null)

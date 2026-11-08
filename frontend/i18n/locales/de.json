@@ -138,7 +138,8 @@
     "noMilestones": "Noch keine Milestones",
     "noMilestonesHint": "Lege den ersten Milestone an, zum Beispiel «Design freigegeben».",
     "noTodos": "Noch keine ToDos.",
-    "taskCount": "{done}/{total} Tasks"
+    "taskCount": "{done}/{total} Tasks",
+    "hasDescription": "Hat eine Beschreibung"
   },
   "todos": {
     "milestone": "Milestone",
@@ -150,7 +151,10 @@
   "item": {
     "fields": {
       "title": "Titel",
-      "dueDate": "Fällig am"
+      "dueDate": "Fällig am",
+      "icon": "Icon",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Was gehört dazu? Listen, Links und Hervorhebungen sind möglich."
     },
     "milestone": {
       "create": "Milestone anlegen",
@@ -167,5 +171,33 @@
       "deleteTitle": "ToDo löschen?",
       "deleteDescription": "«{title}» wird mit allen Tasks und Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
     }
+  },
+  "richText": {
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "bulletList": "Aufzählung",
+    "orderedList": "Nummerierte Liste",
+    "blockquote": "Zitat",
+    "heading2": "Überschrift",
+    "heading3": "Unterüberschrift",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "link": {
+      "button": "Link",
+      "url": "Adresse",
+      "apply": "Übernehmen",
+      "remove": "Link entfernen",
+      "invalid": "Nur Links mit http://, https:// oder mailto: sind möglich."
+    }
+  },
+  "icons": {
+    "choose": "Icon wählen",
+    "default": "Standard",
+    "remove": "Icon entfernen",
+    "title": "Icon wählen",
+    "search": "Suchen (englische Begriffe, z. B. rocket, calendar)",
+    "results": "{count} Treffer (höchstens 120)",
+    "suggestions": "Vorschläge – oder oben suchen",
+    "noResults": "Kein Icon gefunden."
   }
 }

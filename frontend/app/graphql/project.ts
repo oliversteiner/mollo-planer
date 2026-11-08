@@ -7,6 +7,7 @@ export const projectOverviewQuery = graphql(`
       milestones {
         id
         title
+        description
         icon
         dueDate
         status
@@ -14,6 +15,7 @@ export const projectOverviewQuery = graphql(`
         todos {
           id
           title
+          description
           icon
           dueDate
           status
@@ -29,6 +31,7 @@ export const projectTodosQuery = graphql(`
     todos(projectId: $projectId, milestoneId: $milestoneId, status: $status) {
       id
       title
+      description
       icon
       dueDate
       status
@@ -46,7 +49,7 @@ export const createMilestoneMutation = graphql(`
 
 export const updateMilestoneMutation = graphql(`
   mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {
-    updateMilestone(id: $id, input: $input) { id title dueDate }
+    updateMilestone(id: $id, input: $input) { id title description icon dueDate }
   }
 `)
 
@@ -64,7 +67,7 @@ export const createTodoMutation = graphql(`
 
 export const updateTodoMutation = graphql(`
   mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {
-    updateTodo(id: $id, input: $input) { id title dueDate }
+    updateTodo(id: $id, input: $input) { id title description icon dueDate }
   }
 `)
 
@@ -74,5 +77,9 @@ export const deleteTodoMutation = graphql(`
   }
 `)
 
-/** Lists that show milestones or todos and must reload after a change. */
-export const projectContentQueries = ['ProjectOverview', 'ProjectTodos', 'Dashboard', 'Projects']
+/**
+ * After a change, reload every query on screen ('active'): statuses and
+ * progress are derived by the backend. Queries not on screen use
+ * cache-and-network and fetch fresh data when they are shown again.
+ */
+export const projectContentQueries = 'active' as const
