@@ -8,7 +8,7 @@ description: |-
   3. In den Collection-Variablen `email` und `password` als **Current value** eintragen (bleibt lokal, wird nicht geteilt). Die IDs passen zu frisch eingespielten Demo-Daten.
 
   **Anmelden (Ordner 1)**
-  CSRF-Cookie holen → Login → 2FA-Code (Variable `totpCode` aus der Authenticator-App) oder Wiederherstellungscode (`recoveryCode`). Danach funktionieren alle GraphQL-Anfragen, bis zum Logout.
+  CSRF-Cookie holen → Login. Die Demo-Daten starten mit ausgeschalteter 2FA, das Passwort genügt. Ist die 2FA eingeschaltet (Ordner 4), danach 2FA-Code (Variable `totpCode` aus der Authenticator-App) oder Wiederherstellungscode (`recoveryCode`). Danach funktionieren alle GraphQL-Anfragen, bis zum Logout.
 
   Die Skripte der Collection setzen `Origin`, `Referer`, `Accept` und `X-XSRF-TOKEN` automatisch. Bei Fehler 419 (CSRF) nochmals „CSRF-Cookie holen“ ausführen. Bei `SECOND_FACTOR_SETUP_REQUIRED` oder `STRONG_AUTHENTICATION_REQUIRED` fehlt der 2FA-Schritt.
 

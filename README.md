@@ -46,9 +46,9 @@ Am Ende zeigt der Befehl einmalig an (danach nirgends mehr gespeichert, also gle
 - je Person das 2FA-Secret und eine `otpauth://`-Adresse, zum Eintragen in eine Authenticator-App
 - je Person 8 Wiederherstellungscodes, jeder nur einmal gültig
 
-Die Anmeldung braucht Passwort **und** 2FA-Code (oder einen Wiederherstellungscode), sonst sperrt das Backend die GraphQL-API.
+**Die Demo-Daten starten mit ausgeschalteter 2FA:** Für die Anmeldung genügt das Passwort, auch in Postman.
 
-**2FA für lokale Tests ausschalten:** Als Admin (Anna Keller) einmal mit Code anmelden und in Postman „4 Admin / 2FA ein- oder ausschalten“ mit `false` ausführen. Danach genügt für alle Demo-Personen das Passwort. Mit `true` wieder einschalten. Das geht nur ausserhalb Produktion; auf dem Produktivserver ist die 2FA immer Pflicht. `migrate:fresh` setzt die Einstellung zurück (2FA wieder an).
+**2FA wieder einschalten** (zum Beispiel um den Login mit Code zu testen): als Admin (Anna Keller) in Postman „4 Admin / 2FA ein- oder ausschalten“ mit `true` ausführen. Dann braucht die Anmeldung Passwort **und** 2FA-Code (oder einen Wiederherstellungscode), mit den oben ausgegebenen 2FA-Secrets. Mit `false` wieder ausschalten. Das geht nur ausserhalb Produktion; auf dem Produktivserver ist die 2FA immer Pflicht.
 
 ### Postman-Collection
 
@@ -58,7 +58,7 @@ Sie enthält die Anmeldung und Beispiel-Anfragen für alle wichtigen Abfragen un
 
 1. Backend starten: `php artisan serve` (Adresse `http://localhost:8000`, Variable `baseUrl`)
 2. In den Collection-Variablen `password` (und bei Bedarf `email`, Standard Ben Müller) als **Current value** eintragen, nie als Initial value
-3. Im Ordner „1 Anmelden“ nacheinander: „CSRF-Cookie holen“, „Login (Passwort)“, dann den aktuellen Code aus der Authenticator-App in `totpCode` eintragen und „2FA-Code bestätigen“
+3. Im Ordner „1 Anmelden“ nacheinander: „CSRF-Cookie holen“, „Login (Passwort)“. Nur wenn die 2FA eingeschaltet ist: den aktuellen Code aus der Authenticator-App in `totpCode` eintragen und „2FA-Code bestätigen“
 4. Danach laufen alle Anfragen in „2 Abfragen“ und „3 Änderungen“
 
 Die Collection setzt `Origin`, `Referer` und `X-XSRF-TOKEN` selbst und meldet GraphQL-Fehler als fehlgeschlagenen Test. Ein Test im Backend (`PostmanCollectionTest`) prüft, dass alle Anfragen zum aktuellen Schema passen.

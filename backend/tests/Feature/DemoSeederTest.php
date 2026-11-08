@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Support\AppSettings;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Fortify\Fortify;
@@ -45,11 +46,27 @@ class DemoSeederTest extends TestCase
         $this->assertSame('bulletList', Todo::where('title', 'Styleguide erstellen')->firstOrFail()->description['content'][1]['type']);
     }
 
-    public function test_demo_user_logs_in_with_the_entered_password_and_a_totp_code(): void
+    public function test_demo_data_starts_with_two_factor_off_so_the_password_is_enough(): void
+    {
+        $this->seedDemo();
+        $ben = User::where('email', 'ben.mueller@example.ch')->firstOrFail();
+        $this->withHeader('Origin', 'http://localhost:3000');
+
+        $this->assertFalse(AppSettings::twoFactorEnabled());
+        $this->postJson('/login', ['email' => $ben->email, 'password' => self::PASSWORD])
+            ->assertOk()->assertJsonPath('two_factor', false);
+
+        $this->postJson('/graphql', ['query' => '{ projects { name viewerRole } }'])
+            ->assertOk()
+            ->assertJsonPath('data.projects', [['name' => 'Website-Relaunch', 'viewerRole' => 'OWNER']]);
+    }
+
+    public function test_after_switching_two_factor_on_the_seeded_totp_code_works(): void
     {
         $this->seedDemo();
         $ben = User::where('email', 'ben.mueller@example.ch')->firstOrFail();
         $secret = Fortify::currentEncrypter()->decrypt($ben->two_factor_secret);
+        AppSettings::setTwoFactorEnabled(true, $ben);
         $this->withHeader('Origin', 'http://localhost:3000');
 
         $this->postJson('/login', ['email' => $ben->email, 'password' => self::PASSWORD])
@@ -57,15 +74,16 @@ class DemoSeederTest extends TestCase
         $this->postJson('/two-factor-challenge', ['code' => app(Google2FA::class)->getCurrentOtp($secret)])
             ->assertNoContent();
 
-        $this->postJson('/graphql', ['query' => '{ projects { name viewerRole } }'])
+        $this->postJson('/graphql', ['query' => '{ me { email } }'])
             ->assertOk()
-            ->assertJsonPath('data.projects', [['name' => 'Website-Relaunch', 'viewerRole' => 'OWNER']]);
+            ->assertJsonPath('data.me.email', 'ben.mueller@example.ch');
     }
 
     public function test_without_a_terminal_a_password_is_generated_and_shown(): void
     {
         $this->artisan('db:seed', ['--class' => DemoSeeder::class, '--no-interaction' => true])
             ->expectsOutputToContain('Password for all demo users: ')
+            ->expectsOutputToContain('Two-factor authentication is OFF')
             ->expectsOutputToContain('2FA secret:')
             ->assertSuccessful();
 

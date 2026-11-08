@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Support\AppSettings;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -35,6 +36,11 @@ use RuntimeException;
  * user a confirmed authenticator app. It prints the password, the 2FA
  * secrets and recovery codes once; nothing of it is in the repository.
  * Statuses of todos and milestones are computed by the observers.
+ *
+ * Two-factor authentication starts switched off (App\Support\AppSettings),
+ * so the password is enough for trying the API. The authenticator apps
+ * are set up anyway: after updateAppSettings(twoFactorEnabled: true) the
+ * login with code works at once.
  */
 class DemoSeeder extends Seeder
 {
@@ -69,6 +75,7 @@ class DemoSeeder extends Seeder
             $credentials = $this->createUsers($password);
             $this->createWebsiteRelaunch();
             $this->createSummerParty();
+            AppSettings::setTwoFactorEnabled(false, $this->users['anna']);
 
             return $credentials;
         });
@@ -260,6 +267,7 @@ class DemoSeeder extends Seeder
         $this->command->newLine();
         $this->command->info('Demo data created. Shown only now, not stored anywhere else:');
         $this->command->line('Password for all demo users: '.$password);
+        $this->command->warn('Two-factor authentication is OFF: the password is enough. Switch it on with updateAppSettings(twoFactorEnabled: true); then use the 2FA secrets below.');
 
         foreach ($credentials as $email => $credential) {
             $this->command->newLine();

@@ -89,6 +89,7 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 ## Demo-Daten (2026-11-08)
 - `Database\Seeders\DemoSeeder` enthält die Daten der GraphQL-Demo: Anna Keller (Admin), Ben Müller, Chiara Rossi, David Frei (`…@example.ch`), die Projekte „Website-Relaunch“ und „Sommerfest 2027“ mit Milestones, ToDos, Tasks (mit Icons, Beschreibungen, Kanban-Positionen) und Kommentaren. Status von ToDo und Milestone berechnen die Observer.
 - Läuft nur ausserhalb der Produktion und nur in eine leere Datenbank. Kein Passwort im Code: Der Seeder fragt ein gemeinsames Passwort ab (ohne Terminal wird eines erzeugt) und richtet für alle eine bestätigte 2FA-App ein. Passwort, 2FA-Secrets (mit `otpauth://`-Adresse für die Authenticator-App) und Wiederherstellungscodes werden einmal ausgegeben.
+- Die 2FA ist nach dem Einspielen ausgeschaltet (`AppSettings`, nur ausserhalb Produktion möglich), damit sich die API mit dem Passwort allein testen lässt. Die 2FA-Apps sind trotzdem eingerichtet: Nach `updateAppSettings(twoFactorEnabled: true)` funktioniert der Login mit Code sofort.
 - `DatabaseSeeder` legt bewusst nichts an, damit `migrate --seed` nie einen Benutzer mit bekanntem Passwort erzeugt. Er verweist auf `app:create-admin` und `DemoSeeder`.
 
 ## Reihenfolge beim Bauen
