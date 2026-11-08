@@ -82,7 +82,7 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 ## Demo-Daten (2026-11-08)
 - `Database\Seeders\DemoSeeder` enthält die Daten der GraphQL-Demo: Anna Keller (Admin), Ben Müller, Chiara Rossi, David Frei (`…@example.ch`), die Projekte „Website-Relaunch“ und „Sommerfest 2027“ mit Milestones, ToDos, Tasks (mit Icons, Beschreibungen, Kanban-Positionen) und Kommentaren. Status von ToDo und Milestone berechnen die Observer.
 - Läuft nur ausserhalb der Produktion und nur in eine leere Datenbank. Kein Passwort im Code: Der Seeder fragt ein gemeinsames Passwort ab (ohne Terminal wird eines erzeugt) und richtet für alle eine bestätigte 2FA-App ein. Passwort, 2FA-Secrets (mit `otpauth://`-Adresse für die Authenticator-App) und Wiederherstellungscodes werden einmal ausgegeben.
-- Der Laravel-Standard `DatabaseSeeder` ist unverändert und wird für die Demo nicht gebraucht.
+- `DatabaseSeeder` legt bewusst nichts an, damit `migrate --seed` nie einen Benutzer mit bekanntem Passwort erzeugt. Er verweist auf `app:create-admin` und `DemoSeeder`.
 
 ## Reihenfolge beim Bauen
 1. Migrationen: `tasks.due_date`, `tasks.description` (json), `milestones.description` und `todos.description` auf json, `icon` bei `milestones`/`todos`/`tasks`, Tabelle `comments`, `users.notify_by_email`, `projects.locale`.
