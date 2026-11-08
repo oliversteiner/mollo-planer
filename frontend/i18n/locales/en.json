@@ -133,7 +133,8 @@
   "project": {
     "tabs": {
       "overview": "Overview",
-      "todos": "Todos"
+      "todos": "Todos",
+      "kanban": "Kanban"
     },
     "noMilestones": "No milestones yet",
     "noMilestonesHint": "Create the first milestone, for example “Design approved”.",
@@ -199,5 +200,38 @@
     "results": "{count} results (at most 120)",
     "suggestions": "Suggestions – or search above",
     "noResults": "No icon found."
+  },
+  "kanban": {
+    "moveMenu": "Actions for “{title}”",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "moveTo": "Move to “{column}”",
+    "comments": "comments"
+  },
+  "task": {
+    "create": "New task",
+    "edit": "Edit task",
+    "saved": "Task saved.",
+    "todo": "Todo",
+    "assignee": "Assigned to",
+    "nobody": "Nobody",
+    "status": "Status",
+    "loading": "Task",
+    "notFound": "This task does not exist, or you have no access.",
+    "noDescription": "No description.",
+    "assigned": "Assigned.",
+    "assignedMail": "They get an email if they receive notifications.",
+    "deleteTitle": "Delete task?",
+    "deleteDescription": "“{title}” is deleted with all its comments. This cannot be undone."
+  },
+  "comments": {
+    "title": "Comments ({count})",
+    "none": "No comments yet.",
+    "deletedAuthor": "Deleted person",
+    "edited": "edited",
+    "placeholder": "Write a comment …",
+    "add": "Comment",
+    "deleteTitle": "Delete comment?",
+    "deleteDescription": "The comment is deleted for good."
   }
 }

@@ -26,6 +26,17 @@ type Documents = {
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": typeof types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
+    "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n": typeof types.KanbanDocument,
+    "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectMembersDocument,
+    "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.TaskDetailDocument,
+    "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) { id }\n  }\n": typeof types.CreateTaskDocument,
+    "\n  mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) { id title description icon dueDate }\n  }\n": typeof types.UpdateTaskDocument,
+    "\n  mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {\n    moveTask(id: $id, status: $status, position: $position) { id status position }\n  }\n": typeof types.MoveTaskDocument,
+    "\n  mutation AssignTask($id: ID!, $assigneeId: ID) {\n    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl } }\n  }\n": typeof types.AssignTaskDocument,
+    "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n": typeof types.DeleteTaskDocument,
+    "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": typeof types.AddCommentDocument,
+    "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": typeof types.UpdateCommentDocument,
+    "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": typeof types.DeleteCommentDocument,
     "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
@@ -41,6 +52,17 @@ const documents: Documents = {
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
+    "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n": types.KanbanDocument,
+    "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectMembersDocument,
+    "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": types.TaskDetailDocument,
+    "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) { id }\n  }\n": types.CreateTaskDocument,
+    "\n  mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) { id title description icon dueDate }\n  }\n": types.UpdateTaskDocument,
+    "\n  mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {\n    moveTask(id: $id, status: $status, position: $position) { id status position }\n  }\n": types.MoveTaskDocument,
+    "\n  mutation AssignTask($id: ID!, $assigneeId: ID) {\n    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl } }\n  }\n": types.AssignTaskDocument,
+    "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n": types.DeleteTaskDocument,
+    "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": types.AddCommentDocument,
+    "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": types.UpdateCommentDocument,
+    "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": types.DeleteCommentDocument,
     "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n": types.ViewerDocument,
 };
 
@@ -106,6 +128,50 @@ export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    projec
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n"): (typeof documents)["\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n"): (typeof documents)["\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) { id }\n  }\n"): (typeof documents)["\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) { id }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) { id title description icon dueDate }\n  }\n"): (typeof documents)["\n  mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) { id title description icon dueDate }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {\n    moveTask(id: $id, status: $status, position: $position) { id status position }\n  }\n"): (typeof documents)["\n  mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {\n    moveTask(id: $id, status: $status, position: $position) { id status position }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AssignTask($id: ID!, $assigneeId: ID) {\n    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl } }\n  }\n"): (typeof documents)["\n  mutation AssignTask($id: ID!, $assigneeId: ID) {\n    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n"): (typeof documents)["\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n"): (typeof documents)["\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

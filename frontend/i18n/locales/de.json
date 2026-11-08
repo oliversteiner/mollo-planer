@@ -133,7 +133,8 @@
   "project": {
     "tabs": {
       "overview": "Übersicht",
-      "todos": "ToDos"
+      "todos": "ToDos",
+      "kanban": "Kanban"
     },
     "noMilestones": "Noch keine Milestones",
     "noMilestonesHint": "Lege den ersten Milestone an, zum Beispiel «Design freigegeben».",
@@ -199,5 +200,38 @@
     "results": "{count} Treffer (höchstens 120)",
     "suggestions": "Vorschläge – oder oben suchen",
     "noResults": "Kein Icon gefunden."
+  },
+  "kanban": {
+    "moveMenu": "Aktionen für «{title}»",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "moveTo": "Verschieben nach «{column}»",
+    "comments": "Kommentare"
+  },
+  "task": {
+    "create": "Task anlegen",
+    "edit": "Task ändern",
+    "saved": "Task gespeichert.",
+    "todo": "ToDo",
+    "assignee": "Zugewiesen an",
+    "nobody": "Niemand",
+    "status": "Status",
+    "loading": "Task",
+    "notFound": "Diesen Task gibt es nicht, oder du hast keinen Zugriff.",
+    "noDescription": "Keine Beschreibung.",
+    "assigned": "Zugewiesen.",
+    "assignedMail": "Die Person bekommt eine E-Mail, falls sie Benachrichtigungen erhält.",
+    "deleteTitle": "Task löschen?",
+    "deleteDescription": "«{title}» wird mit allen Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+  },
+  "comments": {
+    "title": "Kommentare ({count})",
+    "none": "Noch keine Kommentare.",
+    "deletedAuthor": "Gelöschte Person",
+    "edited": "bearbeitet",
+    "placeholder": "Kommentar schreiben …",
+    "add": "Kommentieren",
+    "deleteTitle": "Kommentar löschen?",
+    "deleteDescription": "Der Kommentar wird endgültig gelöscht."
   }
 }

@@ -23,3 +23,8 @@ export function formatDate(dueDate: string, language: string): string {
   return new Intl.DateTimeFormat(language, { day: '2-digit', month: '2-digit', year: 'numeric' })
     .format(new Date(year, month - 1, day))
 }
+
+/** Point in time (ISO 8601 from the API) with date and time, local zone. */
+export function formatDateTime(value: string, language: string): string {
+  return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+}

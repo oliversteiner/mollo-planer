@@ -50,7 +50,7 @@ const dashboard = computed(() => result.value?.dashboard)
               :key="task.id"
             >
               <NuxtLink
-                :to="`/projects/${task.todo.milestone.project.id}`"
+                :to="`/projects/${task.todo.milestone.project.id}/kanban?task=${task.id}`"
                 class="flex items-start gap-3 py-2 hover:text-primary"
               >
                 <ItemIcon

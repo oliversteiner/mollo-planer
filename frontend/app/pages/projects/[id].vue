@@ -12,7 +12,8 @@ useHead({ title: () => project.value?.name ?? t('projects.title') })
 
 const tabs = computed<NavigationMenuItem[]>(() => [
   { label: t('project.tabs.overview'), icon: 'i-fadl-flag-checkered', to: `/projects/${projectId.value}`, exact: true },
-  { label: t('project.tabs.todos'), icon: 'i-fadl-list-check', to: `/projects/${projectId.value}/todos` }
+  { label: t('project.tabs.todos'), icon: 'i-fadl-list-check', to: `/projects/${projectId.value}/todos` },
+  { label: t('project.tabs.kanban'), icon: 'i-fadl-table-columns', to: `/projects/${projectId.value}/kanban` }
 ])
 </script>
 
