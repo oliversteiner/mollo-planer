@@ -31,6 +31,12 @@ type Documents = {
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": typeof types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": typeof types.SecurityDocument,
+    "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectSettingsDocument,
+    "\n  query Users {\n    users { id name email avatarUrl }\n  }\n": typeof types.UsersDocument,
+    "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description locale }\n  }\n": typeof types.UpdateProjectDocument,
+    "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": typeof types.SetProjectMemberDocument,
+    "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": typeof types.RemoveProjectMemberDocument,
+    "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n": typeof types.DeleteProjectDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n": typeof types.KanbanDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectMembersDocument,
     "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.TaskDetailDocument,
@@ -62,6 +68,12 @@ const documents: Documents = {
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": types.SecurityDocument,
+    "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": types.ProjectSettingsDocument,
+    "\n  query Users {\n    users { id name email avatarUrl }\n  }\n": types.UsersDocument,
+    "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description locale }\n  }\n": types.UpdateProjectDocument,
+    "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": types.SetProjectMemberDocument,
+    "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": types.RemoveProjectMemberDocument,
+    "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n": types.DeleteProjectDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n": types.KanbanDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectMembersDocument,
     "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": types.TaskDetailDocument,
@@ -158,6 +170,30 @@ export function graphql(source: "\n  mutation CreateProject($input: CreateProjec
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n"): (typeof documents)["\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Users {\n    users { id name email avatarUrl }\n  }\n"): (typeof documents)["\n  query Users {\n    users { id name email avatarUrl }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description locale }\n  }\n"): (typeof documents)["\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description locale }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n"): (typeof documents)["\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

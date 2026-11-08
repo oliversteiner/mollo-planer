@@ -10,7 +10,37 @@
   },
   "settings": {
     "language": "Language",
-    "colorMode": "Light or dark"
+    "colorMode": "Light or dark",
+    "project": {
+      "title": "Project",
+      "saved": "Project saved."
+    },
+    "members": {
+      "title": "Members",
+      "intro": "Owners and managers manage members. Only owners and admins grant or take the owner role; the project always keeps at least one owner.",
+      "you": "you",
+      "roleOf": "Role of {name}",
+      "remove": "Remove {name}",
+      "person": "Person",
+      "choose": "Choose a person",
+      "search": "Search name or email",
+      "role": "Role",
+      "add": "Add",
+      "added": "Member added.",
+      "roleChanged": "Role changed.",
+      "removed": "Member removed.",
+      "removeTitle": "Remove {name} from the project?",
+      "removeDescription": "They will no longer see the project. Their tasks in this project are then assigned to nobody.",
+      "removeConfirm": "Remove"
+    },
+    "danger": {
+      "title": "Delete project",
+      "description": "Deletes the project with all milestones, todos, tasks and comments.",
+      "delete": "Delete project",
+      "confirmTitle": "Delete “{name}” for good?",
+      "confirmDescription": "All milestones, todos, tasks and comments of this project are deleted. This cannot be undone.",
+      "deleted": "Project “{name}” deleted."
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -138,7 +168,8 @@
     "tabs": {
       "overview": "Overview",
       "todos": "Todos",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "settings": "Settings"
     },
     "noMilestones": "No milestones yet",
     "noMilestonesHint": "Create the first milestone, for example “Design approved”.",

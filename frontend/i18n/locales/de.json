@@ -10,7 +10,37 @@
   },
   "settings": {
     "language": "Sprache",
-    "colorMode": "Hell oder dunkel"
+    "colorMode": "Hell oder dunkel",
+    "project": {
+      "title": "Projekt",
+      "saved": "Projekt gespeichert."
+    },
+    "members": {
+      "title": "Mitglieder",
+      "intro": "Owner und Manager verwalten Mitglieder. Die Owner-Rolle vergeben oder entziehen nur Owner und Admins; das Projekt behält immer mindestens einen Owner.",
+      "you": "du",
+      "roleOf": "Rolle von {name}",
+      "remove": "{name} entfernen",
+      "person": "Person",
+      "choose": "Person wählen",
+      "search": "Name oder E-Mail suchen",
+      "role": "Rolle",
+      "add": "Hinzufügen",
+      "added": "Mitglied hinzugefügt.",
+      "roleChanged": "Rolle geändert.",
+      "removed": "Mitglied entfernt.",
+      "removeTitle": "{name} aus dem Projekt entfernen?",
+      "removeDescription": "Die Person sieht das Projekt danach nicht mehr. Ihre Tasks in diesem Projekt sind dann niemandem mehr zugewiesen.",
+      "removeConfirm": "Entfernen"
+    },
+    "danger": {
+      "title": "Projekt löschen",
+      "description": "Löscht das Projekt mit allen Milestones, ToDos, Tasks und Kommentaren.",
+      "delete": "Projekt löschen",
+      "confirmTitle": "«{name}» endgültig löschen?",
+      "confirmDescription": "Alle Milestones, ToDos, Tasks und Kommentare dieses Projekts werden gelöscht. Das lässt sich nicht rückgängig machen.",
+      "deleted": "Projekt «{name}» gelöscht."
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -138,7 +168,8 @@
     "tabs": {
       "overview": "Übersicht",
       "todos": "ToDos",
-      "kanban": "Kanban"
+      "kanban": "Kanban",
+      "settings": "Einstellungen"
     },
     "noMilestones": "Noch keine Milestones",
     "noMilestonesHint": "Lege den ersten Milestone an, zum Beispiel «Design freigegeben».",
