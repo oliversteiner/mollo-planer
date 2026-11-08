@@ -46,6 +46,13 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - Link in der Mail: `FRONTEND_URL/projects/{id}/kanban?task={id}`. Die Route ist nur in `TaskNotification::taskUrl()` definiert und beim Bau des Frontends dort anzupassen.
 - `Markdown::withSecuredEncoding()` (AppServiceProvider): Titel wie `[Klick](https://…)` erscheinen in Mails als Text, nicht als Link.
 
+## Erster Admin (Umsetzung Schritt 11)
+- `php artisan app:create-admin "Name" mail@example.com` legt einen Admin an und schickt die Einladung (gleicher Weg wie `createUser`, gemeinsam in `App\Services\UserInvitation`). Fehlen Name oder E-Mail, fragt der Befehl danach.
+- `--password` fragt das Passwort verdeckt und zweimal ab (Regeln wie bei Fortify), es geht keine Mail raus. Ohne Terminal (`--no-interaction`) bricht der Befehl ab. Ein Passwort als Argument gibt es absichtlich nicht (Shell-History).
+- `--locale=de|en` bestimmt die Sprache der Einladung, sonst `APP_LOCALE`. Die Einladung läuft über die Queue, auf dem Server also erst, wenn der Cron-Worker läuft.
+- Name und E-Mail werden wie in `CreateUserInput` geprüft. Eine vergebene E-Mail bricht ab, ein bestehender Benutzer wird nicht zum Admin befördert (das geht über `updateUser`).
+- Auch der erste Admin richtet beim ersten Login einen zweiten Faktor oder Passkey ein. Texte des Befehls stehen in `lang/{de,en}/console.php`.
+
 ## Abfragen ohne N+1 (Prüfung mit Laravel Boost, 2026-11-08)
 - `Model::preventLazyLoading()` ist ausserhalb der Produktion aktiv: Wird eine Relation pro Zeile nachgeladen, ist das ein Fehler statt einer stillen Zusatz-Query. `Model::shouldBeStrict()` passt nicht, weil Felder wie `status` absichtlich nicht fillable sind und still verworfen werden.
 - Felder, die pro Objekt die Rechte prüfen, laden die nötigen Relationen gebündelt mit `@with`: `Project.members`, `viewerRole`, `viewerAbilities` (`members`) und `Comment.viewerCanEdit`/`viewerCanDelete` (`task.todo.milestone.project.members`). Nur Server-Direktiven, der Vertrag mit dem Frontend bleibt gleich.

@@ -53,5 +53,5 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - [x] 8. Resolver und Mutationen
 - [x] 9. Authentifizierung (Fortify, Passkeys, 2FA-Sperre)
 - [x] 10. Notifications
-- [ ] 11. Artisan-Befehl erster Admin
+- [x] 11. Artisan-Befehl erster Admin
 - [ ] 12. Tests
