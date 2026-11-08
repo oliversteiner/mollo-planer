@@ -125,6 +125,30 @@ class AuthenticationFlowTest extends TestCase
         $this->me()->assertJsonPath('errors.0.message', 'Unauthenticated.');
     }
 
+    public function test_a_session_without_second_factor_may_log_in_again(): void
+    {
+        // For example a session from before the admin switched 2FA on.
+        [$user, $secret] = $this->userWithTwoFactor();
+        $this->actingAs($user);
+        $this->me()->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_STRONG_AUTH_REQUIRED);
+
+        $this->login($user)->assertOk()->assertJsonPath('two_factor', true);
+        $this->postJson('/two-factor-challenge', ['code' => app(Google2FA::class)->getCurrentOtp($secret)])->assertNoContent();
+
+        $this->me()->assertOk()->assertJsonPath('data.me.id', (string) $user->id);
+    }
+
+    public function test_a_logged_in_session_gets_json_instead_of_a_redirect(): void
+    {
+        [$user] = $this->userWithTwoFactor();
+        $this->actingAs($user)->withSession([StrongAuthentication::SESSION_KEY => (string) $user->id]);
+
+        $this->login($user)->assertOk()
+            ->assertJsonPath('message', 'Already authenticated.')
+            ->assertJsonPath('two_factor', false);
+        $this->getJson('/passkeys/login/options')->assertOk()->assertJsonPath('message', 'Already authenticated.');
+    }
+
     // ─── Passkeys ────────────────────────────────────────────────
 
     public function test_verified_passkey_gives_a_strong_session(): void

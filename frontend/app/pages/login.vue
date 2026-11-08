@@ -23,6 +23,11 @@ const toast = useToast()
 const passkeysSupported = browserSupportsWebAuthn()
 const passkeyPending = ref(false)
 
+// The login page is public, so it is also reached with a session that is
+// still logged in (bookmark, reload after the backend was down). Laravel
+// then refuses a new login and redirects; go on with the session instead.
+onMounted(() => finish())
+
 /** One step: the browser asks for PIN or biometrics, no code needed. */
 async function submitPasskey(): Promise<void> {
   passkeyPending.value = true

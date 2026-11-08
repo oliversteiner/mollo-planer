@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ProtectAccountSecurityRoutes;
+use App\Http\Middleware\RedirectIfStronglyAuthenticated;
 use App\Http\Middleware\SetLocaleFromRequest;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SetLocaleFromRequest::class);
         $middleware->web(append: [ProtectAccountSecurityRoutes::class]);
+        // Login routes accept a session that still lacks the second factor.
+        $middleware->alias(['guest' => RedirectIfStronglyAuthenticated::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
