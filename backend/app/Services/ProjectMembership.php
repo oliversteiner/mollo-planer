@@ -17,6 +17,10 @@ use Illuminate\Validation\ValidationException;
  * - Only owners and admins grant the owner role or change/remove an owner.
  * - The last owner cannot be removed or demoted, except by an admin.
  * - Removing a member unassigns their tasks in this project.
+ *
+ * Call inside a transaction: changes lock the project row, so two changes
+ * to the same project (for example two owners demoting each other) run
+ * one after the other and the last-owner check stays correct.
  */
 class ProjectMembership
 {
@@ -26,6 +30,8 @@ class ProjectMembership
      */
     public function set(User $actor, Project $project, User $user, ProjectRole $role): void
     {
+        $this->lockProject($project);
+
         $current = $project->roleOf($user);
 
         $this->authorize($actor, $project, $current, $role);
@@ -49,6 +55,8 @@ class ProjectMembership
      */
     public function remove(User $actor, Project $project, User $user): void
     {
+        $this->lockProject($project);
+
         $current = $project->roleOf($user);
 
         if ($current === null) {
@@ -81,6 +89,11 @@ class ProjectMembership
         if ($user === null || $project->roleOf($user) === null) {
             throw ValidationException::withMessages([$field => __('projects.assignee_not_member')]);
         }
+    }
+
+    private function lockProject(Project $project): void
+    {
+        Project::query()->whereKey($project->getKey())->lockForUpdate()->first();
     }
 
     /**

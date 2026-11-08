@@ -9,6 +9,7 @@ use App\Models\Todo;
 use App\Services\KanbanOrdering;
 use App\Services\ProjectMembership;
 use App\Services\TaskNotifier;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -30,30 +31,34 @@ class CreateTask
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): Task
     {
-        $todo = Todo::findOrFail($args['todo_id']);
-        $project = $todo->owningProject();
-        $assigneeId = $args['assigned_user_id'] ?? null;
+        $viewer = $this->viewer($context);
 
-        if ($assigneeId !== null) {
-            $this->membership->ensureAssignable($project, $assigneeId, 'input.assigneeId');
-        }
+        return DB::transaction(function () use ($args, $viewer): Task {
+            $todo = Todo::findOrFail($args['todo_id']);
+            $project = $todo->owningProject();
+            $assigneeId = $args['assigned_user_id'] ?? null;
 
-        $task = new Task([
-            'title' => $args['title'],
-            'description' => $args['description'] ?? null,
-            'icon' => $args['icon'] ?? null,
-            'due_date' => $args['due_date'] ?? null,
-        ]);
-        $task->todo()->associate($todo);
-        $task->assigned_user_id = $assigneeId;
-        $task->status = TaskStatus::OPEN;
-        $task->position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
-        $task->save();
+            if ($assigneeId !== null) {
+                $this->membership->ensureAssignable($project, $assigneeId, 'input.assigneeId');
+            }
 
-        if ($assigneeId !== null) {
-            $this->notifier->assigned($task, $this->viewer($context));
-        }
+            $task = new Task([
+                'title' => $args['title'],
+                'description' => $args['description'] ?? null,
+                'icon' => $args['icon'] ?? null,
+                'due_date' => $args['due_date'] ?? null,
+            ]);
+            $task->todo()->associate($todo);
+            $task->assigned_user_id = $assigneeId;
+            $task->status = TaskStatus::OPEN;
+            $task->position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
+            $task->save();
 
-        return $task;
+            if ($assigneeId !== null) {
+                $this->notifier->assigned($task, $viewer);
+            }
+
+            return $task;
+        });
     }
 }

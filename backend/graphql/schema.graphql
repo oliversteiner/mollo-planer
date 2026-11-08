@@ -34,13 +34,15 @@
 #             Fremde Kommentare
 #             löschen               ja     ja       nein
 #
-#             Eigene Kommentare ändern und löschen darf jede Person immer.
+#             Eigene Kommentare ändern und löschen darf jede Person,
+#             solange sie das Projekt sehen darf.
 #             Fremde Kommentare ändert niemand, auch kein Admin.
 #             Projekte anlegen und Benutzer verwalten dürfen nur Admins.
 #  Login      läuft nicht über GraphQL, sondern über Fortify (REST):
-#             Login, Logout, Passwort-Reset, 2FA-Einrichtung
+#             Login, Logout, Passwort-Reset, 2FA und Passkeys
 #  2FA-Pflicht  Eine Middleware in config/lighthouse.php (route.middleware)
-#             sperrt die ganze GraphQL-Route, bis die 2FA bestätigt ist.
+#             sperrt die ganze GraphQL-Route, bis die Sitzung stark
+#             angemeldet ist: Passwort plus 2FA-Code oder Passkey-Login.
 #  Status     ToDo und Milestone leiten ihren Status automatisch aus den
 #             Tasks bzw. ToDos ab (Observer). Darum gibt es dafür kein
 #             Eingabefeld.
@@ -63,8 +65,8 @@
 #             nicht in der Datenbank. Der Server prüft nur das Format des
 #             Namens, nicht ob das Icon existiert. Die Auswahl übernimmt der
 #             Icon-Picker im Frontend.
-#  Offen      Die Anbindung der Enums an die PHP-Enums klären wir beim
-#             Einbau.
+#  Enums      Die Werte entsprechen den PHP-Enums in App\Enums (gleiche
+#             Case-Namen), geprüft von tests/Unit/GraphqlEnumBindingTest.php.
 
 "Datum ohne Uhrzeit, Format YYYY-MM-DD"
 scalar Date @scalar(class: "Date")

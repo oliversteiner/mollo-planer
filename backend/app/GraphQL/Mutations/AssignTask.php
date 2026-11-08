@@ -6,6 +6,7 @@ use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Task;
 use App\Services\ProjectMembership;
 use App\Services\TaskNotifier;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -27,24 +28,28 @@ class AssignTask
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): Task
     {
-        $task = Task::findOrFail($args['id']);
-        $assigneeId = $args['assigneeId'] ?? null;
+        $viewer = $this->viewer($context);
 
-        if ($assigneeId !== null) {
-            $this->membership->ensureAssignable($task->owningProject(), $assigneeId, 'assigneeId');
-        }
+        return DB::transaction(function () use ($args, $viewer): Task {
+            $task = Task::findOrFail($args['id']);
+            $assigneeId = $args['assigneeId'] ?? null;
 
-        if ((string) $task->assigned_user_id === (string) $assigneeId) {
+            if ($assigneeId !== null) {
+                $this->membership->ensureAssignable($task->owningProject(), $assigneeId, 'assigneeId');
+            }
+
+            if ((string) $task->assigned_user_id === (string) $assigneeId) {
+                return $task;
+            }
+
+            $task->assigned_user_id = $assigneeId;
+            $task->save();
+
+            if ($assigneeId !== null) {
+                $this->notifier->assigned($task, $viewer);
+            }
+
             return $task;
-        }
-
-        $task->assigned_user_id = $assigneeId;
-        $task->save();
-
-        if ($assigneeId !== null) {
-            $this->notifier->assigned($task, $this->viewer($context));
-        }
-
-        return $task;
+        });
     }
 }

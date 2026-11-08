@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Locale;
 use App\Models\User;
 use App\Notifications\UserInvited;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
@@ -21,12 +22,14 @@ class UserInvitation
      */
     public function invite(string $name, string $email, bool $isAdmin, Locale $locale): User
     {
-        $user = $this->create($name, $email, $isAdmin, Str::password(64));
+        return DB::transaction(function () use ($name, $email, $isAdmin, $locale): User {
+            $user = $this->create($name, $email, $isAdmin, Str::password(64));
 
-        $token = Password::broker('invitations')->createToken($user);
-        $user->notify((new UserInvited($token))->locale($locale->value));
+            $token = Password::broker('invitations')->createToken($user);
+            $user->notify((new UserInvited($token))->locale($locale->value));
 
-        return $user;
+            return $user;
+        });
     }
 
     /**

@@ -74,7 +74,4 @@ Admins dürfen immer alles (ausser fremde Kommentare ändern). Projekte anlegen 
 - Tasks lassen sich nur Personen zuweisen, die im Projekt Mitglied sind.
 
 ## Offen
-- Anbindung der GraphQL-Enums (`ProjectRole`, `ItemStatus`, `TaskStatus`, `ProjectAbility`, `Locale`) an PHP-Enums (Lighthouse-Enum-Binding oder Casts anpassen), beim Einbau klären.
-- Policies, `ProjectPermissions`, Scope `visibleToViewer`, Observer für den Status und die Resolver sind noch nicht geschrieben.
-- Migrationen fehlen noch: `tasks.due_date` (date, nullable), `tasks.description` (json, nullable), `milestones.description` und `todos.description` auf json ändern, `icon` (string 60, nullable) bei `milestones`, `todos` und `tasks`, Tabelle `comments` (id, task_id cascadeOnDelete, user_id nullable nullOnDelete, body json, timestamps), `users.notify_by_email` (boolean, Standard true) und `projects.locale` (string, Standard `de`).
-- Dazu: Model `Comment`, Relation `Task::comments()` mit `oldest('id')`, `CommentPolicy`, Resolver `CommentViewerCan`, `Mutations\AddComment`, `Mutations\UpdateMyNotifications`, Notifications `TaskAssigned` und `TaskCommented`, Skalar `Scalars\RichText`, Regeln `Rules\RichTextRule` und `Rules\FontAwesomeIconRule`. Die Enum `ProjectAbility` bekommt `comment.create` und `comment.moderate`.
+- Nichts mehr. Alles hier Beschriebene ist gebaut (Stand 2026-11-08). Die Enums sind an die PHP-Enums in `App\Enums` gebunden. Den Baufortschritt und weitere Entscheidungen führt `backend-plan.md`.

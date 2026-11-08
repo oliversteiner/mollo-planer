@@ -7,6 +7,7 @@ use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectMembership;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -24,12 +25,16 @@ class SetProjectMember
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): Project
     {
-        $project = Project::findOrFail($args['projectId']);
-        $user = User::find($args['userId'])
-            ?? throw ValidationException::withMessages(['userId' => __('validation.exists', ['attribute' => 'userId'])]);
+        $viewer = $this->viewer($context);
 
-        $this->membership->set($this->viewer($context), $project, $user, ProjectRole::from($args['role']));
+        return DB::transaction(function () use ($args, $viewer): Project {
+            $project = Project::findOrFail($args['projectId']);
+            $user = User::find($args['userId'])
+                ?? throw ValidationException::withMessages(['userId' => __('validation.exists', ['attribute' => 'userId'])]);
 
-        return $project->unsetRelation('members');
+            $this->membership->set($viewer, $project, $user, ProjectRole::from($args['role']));
+
+            return $project->unsetRelation('members');
+        });
     }
 }

@@ -4,10 +4,12 @@ namespace App\GraphQL\Mutations;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
- * Removes the authenticator app and all passkeys of a user (lost device)
- * and ends their sessions, so the next login sets up a new factor.
+ * Removes the authenticator app and all passkeys of a user (lost device),
+ * ends their sessions and "remember me" logins, so the next login sets up
+ * a new factor.
  */
 class ResetUserTwoFactor
 {
@@ -16,23 +18,28 @@ class ResetUserTwoFactor
      */
     public function __invoke(mixed $root, array $args): User
     {
-        $user = User::findOrFail($args['id']);
+        return DB::transaction(function () use ($args): User {
+            $user = User::findOrFail($args['id']);
 
-        $user->forceFill([
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-        ])->save();
+            // A new remember token also signs out "remember me" cookies,
+            // for example on the lost device.
+            $user->forceFill([
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+                'remember_token' => Str::random(60),
+            ])->save();
 
-        $user->passkeys()->delete();
+            $user->passkeys()->delete();
 
-        if (config('session.driver') === 'database') {
-            DB::connection(config('session.connection'))
-                ->table(config('session.table', 'sessions'))
-                ->where('user_id', $user->getKey())
-                ->delete();
-        }
+            if (config('session.driver') === 'database') {
+                DB::connection(config('session.connection'))
+                    ->table(config('session.table', 'sessions'))
+                    ->where('user_id', $user->getKey())
+                    ->delete();
+            }
 
-        return $user;
+            return $user;
+        });
     }
 }

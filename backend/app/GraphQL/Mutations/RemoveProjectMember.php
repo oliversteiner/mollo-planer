@@ -6,6 +6,7 @@ use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectMembership;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -22,13 +23,17 @@ class RemoveProjectMember
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): Project
     {
-        $project = Project::findOrFail($args['projectId']);
-        $user = User::find($args['userId']);
+        $viewer = $this->viewer($context);
 
-        if ($user !== null) {
-            $this->membership->remove($this->viewer($context), $project, $user);
-        }
+        return DB::transaction(function () use ($args, $viewer): Project {
+            $project = Project::findOrFail($args['projectId']);
+            $user = User::find($args['userId']);
 
-        return $project->unsetRelation('members');
+            if ($user !== null) {
+                $this->membership->remove($viewer, $project, $user);
+            }
+
+            return $project->unsetRelation('members');
+        });
     }
 }

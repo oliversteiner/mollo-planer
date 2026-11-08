@@ -38,6 +38,7 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
   - Wer schon einen Faktor hat, kann ohne starke Sitzung keine Faktoren hinzufügen oder entfernen und weder Passwort noch Profil ändern (`ProtectAccountSecurityRoutes`). Sonst könnte jemand mit dem Passwort eines Passkey-Kontos eine eigene 2FA-App hinzufügen.
   - Erste Einrichtung: Nach der Einladung genügt das Passwort, um den ersten Faktor einzurichten. Die Einladung per E-Mail ist dabei der Nachweis.
   - Antwort bei gesperrter Sitzung: `SECOND_FACTOR_SETUP_REQUIRED` (zur Einrichtung) oder `STRONG_AUTHENTICATION_REQUIRED` (mit Passkey bestätigen über `/passkeys/confirm` oder neu anmelden).
+  - `resetUserTwoFactor` beendet auch die Sitzungen und „angemeldet bleiben“ (neues `remember_token`), etwa auf dem verlorenen Gerät.
 
 ## Mail-Benachrichtigungen (Umsetzung Schritt 10)
 - `App\Services\TaskNotifier` wählt die Empfänger: bei neuem Task mit Zuweisung und bei `assignTask` die zugewiesene Person, bei `addComment` die zugewiesene Person und alle, die den Task schon kommentiert haben. Nie die handelnde Person, nie wer Mails abgeschaltet hat, nie wer das Projekt nicht sehen darf (`ProjectPermissions::canView`, also auch Admins ohne Mitgliedschaft, wenn sie kommentiert haben). Aufheben der Zuweisung schickt keine Mail.
@@ -52,6 +53,7 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - `--locale=de|en` bestimmt die Sprache der Einladung, sonst `APP_LOCALE`. Die Einladung läuft über die Queue, auf dem Server also erst, wenn der Cron-Worker läuft.
 - Name und E-Mail werden wie in `CreateUserInput` geprüft. Eine vergebene E-Mail bricht ab, ein bestehender Benutzer wird nicht zum Admin befördert (das geht über `updateUser`).
 - Auch der erste Admin richtet beim ersten Login einen zweiten Faktor oder Passkey ein. Texte des Befehls stehen in `lang/{de,en}/console.php`.
+- Abgelaufene Einladung: Es gibt bewusst keine Mutation zum erneuten Senden. Die Person setzt ihr Passwort über „Passwort vergessen“ (bestätigt 2026-11-08).
 
 ## Abfragen ohne N+1 (Prüfung mit Laravel Boost, 2026-11-08)
 - `Model::preventLazyLoading()` ist ausserhalb der Produktion aktiv: Wird eine Relation pro Zeile nachgeladen, ist das ein Fehler statt einer stillen Zusatz-Query. `Model::shouldBeStrict()` passt nicht, weil Felder wie `status` absichtlich nicht fillable sind und still verworfen werden.
@@ -59,6 +61,10 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - `progress` (Projekt, Milestone, ToDo) zählt alle Objekte einer Liste in einer gruppierten Query (`ProgressBatchLoader`).
 - `QueryTest::test_list_queries_do_not_grow_with_the_number_of_rows` stellt sicher, dass die Anzahl Queries nicht mit der Anzahl Projekte wächst.
 - Indizes (geprüft per `database-schema`): Alle Fremdschlüssel sind indiziert, dazu `tasks(todo_id, status)` und eindeutig `project_user(project_id, user_id)`. Kein weiterer Index nötig.
+
+## Transaktionen und Sperren (2026-11-08)
+- `transactional_mutations` von Lighthouse gilt nur für `@create`, `@update` und `@delete`. Jede Mutation mit eigenem Resolver (`App\GraphQL\Mutations`) packt ihre Arbeit deshalb selbst in `DB::transaction()`. Neue Resolver ebenso. `MutationTest::test_custom_mutations_write_inside_a_transaction` prüft das für jede dieser Mutationen; eine neue gehört in die Liste `customMutations()`.
+- `KanbanOrdering` (Verschieben, neue Position) und `ProjectMembership` (Mitglied setzen, entfernen) sperren zuerst die Projektzeile (`lockForUpdate`). So laufen gleichzeitige Änderungen am selben Projekt nacheinander: keine doppelten Positionen und kein Projekt ohne Owner, wenn sich zwei Owner gleichzeitig herabstufen. SQLite (Tests) kennt diese Sperre nicht, sie wirkt nur auf MariaDB.
 
 ## Reihenfolge beim Bauen
 1. Migrationen: `tasks.due_date`, `tasks.description` (json), `milestones.description` und `todos.description` auf json, `icon` bei `milestones`/`todos`/`tasks`, Tabelle `comments`, `users.notify_by_email`, `projects.locale`.

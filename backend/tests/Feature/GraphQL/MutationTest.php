@@ -9,7 +9,10 @@ use App\GraphQL\Mutations\ResetUserTwoFactor;
 use App\Models\Comment;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class MutationTest extends GraphQLTestCase
 {
@@ -299,7 +302,7 @@ class MutationTest extends GraphQLTestCase
     public function test_reset_two_factor_removes_factors_and_sessions(): void
     {
         $member = $this->users['member'];
-        $member->forceFill(['two_factor_secret' => 'secret', 'two_factor_confirmed_at' => now()])->save();
+        $member->forceFill(['two_factor_secret' => 'secret', 'two_factor_confirmed_at' => now(), 'remember_token' => 'lost-device'])->save();
         DB::table('passkeys')->insert(['user_id' => $member->id, 'name' => 'Phone', 'credential_id' => 'c1', 'credential' => '{}']);
 
         $this->as('admin')->gql('mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', ['id' => $member->id])
@@ -309,6 +312,7 @@ class MutationTest extends GraphQLTestCase
         $this->assertNull($member->two_factor_secret);
         $this->assertNull($member->two_factor_confirmed_at);
         $this->assertFalse($member->hasPasskeysEnabled());
+        $this->assertNotSame('lost-device', $member->remember_token);
 
         $this->assertUnauthorized($this->as('owner')->gql('mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', ['id' => $member->id]));
     }
@@ -324,5 +328,51 @@ class MutationTest extends GraphQLTestCase
         (new ResetUserTwoFactor)(null, ['id' => $member->id]);
 
         $this->assertSame(['s2'], DB::table('sessions')->pluck('id')->all());
+    }
+
+    // ─── Transactions ────────────────────────────────────────────
+
+    /**
+     * Lighthouse wraps only @create, @update and @delete in a transaction.
+     * Mutations with their own resolver must do it themselves, otherwise a
+     * failure leaves half the changes behind and row locks do nothing.
+     *
+     * @param  \Closure(self): array<string, mixed>  $variables
+     */
+    #[DataProvider('customMutations')]
+    public function test_custom_mutations_write_inside_a_transaction(string $actor, string $mutation, \Closure $variables): void
+    {
+        Notification::fake();
+        $variables = $variables($this);
+        $levelOutside = DB::transactionLevel();
+        $writesOutside = [];
+        DB::listen(function (QueryExecuted $query) use ($levelOutside, &$writesOutside): void {
+            if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) && $query->connection->transactionLevel() <= $levelOutside) {
+                $writesOutside[] = $query->sql;
+            }
+        });
+
+        $this->as($actor)->gql($mutation, $variables)->assertJsonMissingPath('errors');
+
+        $this->assertSame([], $writesOutside);
+    }
+
+    /**
+     * @return array<string, array{string, string, \Closure(self): array<string, mixed>}>
+     */
+    public static function customMutations(): array
+    {
+        return [
+            'createProject' => ['admin', 'mutation { createProject(input: {name: "Neu"}) { id } }', fn (self $test) => []],
+            'createUser' => ['admin', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
+            'resetUserTwoFactor' => ['admin', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', fn (self $test) => ['id' => $test->users['member']->id]],
+            'updateMyNotifications' => ['member', 'mutation { updateMyNotifications(emailEnabled: false) { id } }', fn (self $test) => []],
+            'setProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: MEMBER) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
+            'removeProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],
+            'createTask' => ['manager', 'mutation ($t: ID!, $u: ID!) { createTask(input: {todoId: $t, title: "Neu", assigneeId: $u}) { id } }', fn (self $test) => ['t' => $test->todo->id, 'u' => $test->users['member']->id]],
+            'assignTask' => ['manager', 'mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $test) => ['id' => $test->task->id, 'u' => $test->users['member']->id]],
+            'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
+            'addComment' => ['member', 'mutation ($t: ID!, $body: RichText!) { addComment(input: {taskId: $t, body: $body}) { id } }', fn (self $test) => ['t' => $test->task->id, 'body' => $test->doc('Hallo')]],
+        ];
     }
 }

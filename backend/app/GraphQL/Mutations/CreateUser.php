@@ -5,6 +5,7 @@ namespace App\GraphQL\Mutations;
 use App\Enums\Locale;
 use App\Models\User;
 use App\Services\UserInvitation;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Creates a user (admins only, checked by @can). The user gets an
@@ -20,11 +21,11 @@ class CreateUser
      */
     public function __invoke(mixed $root, array $args): User
     {
-        return $this->invitation->invite(
+        return DB::transaction(fn (): User => $this->invitation->invite(
             $args['name'],
             $args['email'],
             $args['is_admin'] ?? false,
             Locale::tryFrom(app()->getLocale()) ?? Locale::DE,
-        );
+        ));
     }
 }

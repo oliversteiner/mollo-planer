@@ -5,6 +5,7 @@ namespace App\GraphQL\Mutations;
 use App\Enums\TaskStatus;
 use App\Models\Task;
 use App\Services\KanbanOrdering;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Moves a task to another column and/or position in the Kanban board.
@@ -18,8 +19,10 @@ class MoveTask
      */
     public function __invoke(mixed $root, array $args): Task
     {
-        $task = Task::findOrFail($args['id']);
-
-        return $this->ordering->move($task, TaskStatus::from($args['status']), $args['position']);
+        return DB::transaction(fn (): Task => $this->ordering->move(
+            Task::findOrFail($args['id']),
+            TaskStatus::from($args['status']),
+            $args['position'],
+        ));
     }
 }

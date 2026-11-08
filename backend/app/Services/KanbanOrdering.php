@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\TaskStatus;
+use App\Models\Project;
 use App\Models\Task;
 
 /**
@@ -11,6 +12,9 @@ use App\Models\Task;
  * A column is "all tasks of one project with one status". Positions start
  * at 0 and have no gaps after a move. Deleting a task may leave a gap; the
  * order stays correct because columns are sorted by position.
+ *
+ * Call inside a transaction: changes lock the project row, so two moves
+ * or new tasks in the same project run one after the other.
  */
 class KanbanOrdering
 {
@@ -19,6 +23,8 @@ class KanbanOrdering
      */
     public function nextPosition(int|string $projectId, TaskStatus $status): int
     {
+        $this->lockProject($projectId);
+
         $max = Task::query()->inProject($projectId)->where('status', $status->value)->max('position');
 
         return $max === null ? 0 : (int) $max + 1;
@@ -26,12 +32,14 @@ class KanbanOrdering
 
     /**
      * Move a task to a column and position. Positions beyond the end place
-     * the task last. Runs inside the mutation transaction; the rows of both
-     * columns are locked to avoid two moves interleaving.
+     * the task last.
      */
     public function move(Task $task, TaskStatus $status, int $position): Task
     {
         $projectId = $task->owningProject()->getKey();
+        $this->lockProject($projectId);
+        // Read the status again: another move may have changed it before the lock.
+        $task->refresh();
         $oldStatus = $task->status;
 
         $target = Task::query()
@@ -40,7 +48,6 @@ class KanbanOrdering
             ->whereKeyNot($task->getKey())
             ->orderBy('position')
             ->orderBy('id')
-            ->lockForUpdate()
             ->get();
 
         $position = max(0, min($position, $target->count()));
@@ -56,13 +63,17 @@ class KanbanOrdering
                 ->where('status', $oldStatus->value)
                 ->orderBy('position')
                 ->orderBy('id')
-                ->lockForUpdate()
                 ->get();
 
             $this->renumber($source->all());
         }
 
         return $task;
+    }
+
+    private function lockProject(int|string $projectId): void
+    {
+        Project::query()->whereKey($projectId)->lockForUpdate()->first();
     }
 
     /**

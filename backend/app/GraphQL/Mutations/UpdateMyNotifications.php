@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -19,9 +20,12 @@ class UpdateMyNotifications
     public function __invoke(mixed $root, array $args, GraphQLContext $context): User
     {
         $viewer = $this->viewer($context);
-        $viewer->notify_by_email = $args['emailEnabled'];
-        $viewer->save();
 
-        return $viewer;
+        return DB::transaction(function () use ($args, $viewer): User {
+            $viewer->notify_by_email = $args['emailEnabled'];
+            $viewer->save();
+
+            return $viewer;
+        });
     }
 }

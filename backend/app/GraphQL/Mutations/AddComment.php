@@ -6,6 +6,7 @@ use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Comment;
 use App\Models\Task;
 use App\Services\TaskNotifier;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -22,13 +23,17 @@ class AddComment
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): Comment
     {
-        $comment = new Comment(['body' => $args['body']]);
-        $comment->task()->associate(Task::findOrFail($args['task_id']));
-        $comment->author()->associate($viewer = $this->viewer($context));
-        $comment->save();
+        $viewer = $this->viewer($context);
 
-        $this->notifier->commented($comment, $viewer);
+        return DB::transaction(function () use ($args, $viewer): Comment {
+            $comment = new Comment(['body' => $args['body']]);
+            $comment->task()->associate(Task::findOrFail($args['task_id']));
+            $comment->author()->associate($viewer);
+            $comment->save();
 
-        return $comment;
+            $this->notifier->commented($comment, $viewer);
+
+            return $comment;
+        });
     }
 }
