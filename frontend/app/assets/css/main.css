@@ -16,3 +16,43 @@
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
 }
+
+/*
+ * Appearance of a new draft in the AI assistant: the parts slide in one
+ * after another (--plan-step, 90 ms apart). Off for reduced motion.
+ */
+@keyframes plan-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility plan-in {
+  animation: plan-in 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--plan-step, 0) * 90ms);
+}
+
+/* Milestones of the timeline follow the header parts (steps 0 to 2). */
+@utility plan-timeline {
+  & > :nth-child(1) { --plan-step: 3; }
+  & > :nth-child(2) { --plan-step: 4; }
+  & > :nth-child(3) { --plan-step: 5; }
+  & > :nth-child(4) { --plan-step: 6; }
+  & > :nth-child(5) { --plan-step: 7; }
+  & > :nth-child(6) { --plan-step: 8; }
+  & > :nth-child(7) { --plan-step: 9; }
+  & > :nth-child(8) { --plan-step: 10; }
+  & > :nth-child(n+9) { --plan-step: 11; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-in {
+    animation: none !important;
+  }
+}

@@ -75,6 +75,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'updateComment' => ['stranger', 'mutation ($id: ID!, $b: RichText!) { updateComment(id: $id, input: {body: $b}) { id } }', fn (self $test) => ['id' => $test->comment->id, 'b' => $test->doc('Hack')]],
             'deleteComment' => ['stranger', 'mutation ($id: ID!) { deleteComment(id: $id) { id } }', $comment],
             'createProject' => ['owner', 'mutation { createProject(input: {name: "Eigenes"}) { id } }', fn (self $test) => []],
+            'draftProjectPlan' => ['owner', 'mutation { draftProjectPlan(messages: [{role: USER, content: "Ein Podcast"}]) { reply } }', fn (self $test) => []],
+            'importProjectPlan' => ['owner', 'mutation { importProjectPlan(plan: {name: "Eigenes", members: [], milestones: [{title: "Start", todos: []}]}) { id } }', fn (self $test) => []],
             'createUser' => ['owner', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
             'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {isAdmin: true}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],

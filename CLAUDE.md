@@ -13,6 +13,7 @@ Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code 
 
 ## Stack
 - **Backend:** Laravel 13 headless in `backend/`, Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
+- **KI-Assistent:** offizielles PHP-SDK `anthropic-ai/sdk` (Claude-API), Schlüssel `ANTHROPIC_API_KEY` nur in `.env`
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
 - **Frontend:** Nuxt 4 (Vue 3) mit Nuxt UI in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente)

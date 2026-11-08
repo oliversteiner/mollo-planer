@@ -12,7 +12,8 @@ const userMenu = computed<DropdownMenuItem[][]>(() => [
 
 const mainItems = computed<NavigationMenuItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/', exact: true },
-  { label: t('nav.myTasks'), icon: 'i-fadl-square-check', to: '/my-tasks' }
+  { label: t('nav.myTasks'), icon: 'i-fadl-square-check', to: '/my-tasks' },
+  ...(viewer.value?.isAdmin ? [{ label: t('nav.assistant'), icon: 'i-fadl-wand-magic-sparkles', to: '/assistant' }] : [])
 ])
 
 const adminItems = computed<NavigationMenuItem[]>(() => (viewer.value?.isAdmin

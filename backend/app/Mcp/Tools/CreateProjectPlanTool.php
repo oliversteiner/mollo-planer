@@ -2,12 +2,9 @@
 
 namespace App\Mcp\Tools;
 
-use App\Mcp\Support\GraphQLFailed;
-use App\Mcp\Support\PlainTextDocument;
-use App\Services\TaskNotifier;
+use App\Services\ProjectPlanImporter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
-use Illuminate\Support\Facades\DB;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -27,13 +24,7 @@ class CreateProjectPlanTool extends Tool
 {
     use RunsGraphQL;
 
-    private const MILESTONE = 'mutation ($input: CreateMilestoneInput!) { createMilestone(input: $input) { id } }';
-
-    private const TODO = 'mutation ($input: CreateTodoInput!) { createTodo(input: $input) { id } }';
-
-    private const TASK = 'mutation ($input: CreateTaskInput!) { createTask(input: $input) { id } }';
-
-    public function handle(Request $request, TaskNotifier $notifier): Response
+    public function handle(Request $request, ProjectPlanImporter $importer): Response
     {
         $title = ['required', 'string', 'min:2', 'max:160'];
         $text = ['nullable', 'string', 'max:5000'];
@@ -62,103 +53,10 @@ class CreateProjectPlanTool extends Tool
             'milestones.required' => 'Give at least one milestone.',
         ]);
 
-        $create = fn () => DB::transaction(fn () => $this->createPlan($validated));
-
-        return $this->respond(function () use ($validated, $notifier, $create) {
-            $counts = ($validated['notify_assignees'] ?? false) ? $create() : $notifier->withoutAssignmentMails($create);
-
-            return Response::json(['created' => $counts, 'project_id' => (string) $validated['project_id']]);
-        });
-    }
-
-    /**
-     * @param  array<string, mixed>  $plan
-     * @return array{milestones: int, todos: int, tasks: int, assigned: int}
-     *
-     * @throws GraphQLFailed
-     */
-    private function createPlan(array $plan): array
-    {
-        $projectId = (string) $plan['project_id'];
-        $members = $this->membersByEmail($projectId);
-        $counts = ['milestones' => 0, 'todos' => 0, 'tasks' => 0, 'assigned' => 0];
-
-        foreach ($plan['milestones'] as $milestone) {
-            $milestoneId = $this->create(self::MILESTONE, 'createMilestone', "Milestone \"{$milestone['title']}\"", [
-                'projectId' => $projectId,
-                ...$this->fields($milestone),
-            ]);
-            $counts['milestones']++;
-
-            foreach ($milestone['todos'] ?? [] as $todo) {
-                $todoId = $this->create(self::TODO, 'createTodo', "Todo \"{$todo['title']}\"", [
-                    'milestoneId' => $milestoneId,
-                    ...$this->fields($todo),
-                ]);
-                $counts['todos']++;
-
-                foreach ($todo['tasks'] ?? [] as $task) {
-                    $email = isset($task['assignee_email']) ? mb_strtolower(trim($task['assignee_email'])) : null;
-
-                    if ($email !== null && ! isset($members[$email])) {
-                        throw new GraphQLFailed("Task \"{$task['title']}\": {$task['assignee_email']} is not a member of this project. Add them with set_project_member first, or leave the task unassigned.");
-                    }
-
-                    $this->create(self::TASK, 'createTask', "Task \"{$task['title']}\"", [
-                        'todoId' => $todoId,
-                        'assigneeId' => $email === null ? null : $members[$email],
-                        ...$this->fields($task),
-                    ]);
-                    $counts['tasks']++;
-                    $counts['assigned'] += $email === null ? 0 : 1;
-                }
-            }
-        }
-
-        return $counts;
-    }
-
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws GraphQLFailed with the item that failed
-     */
-    private function create(string $mutation, string $field, string $item, array $input): string
-    {
-        try {
-            return $this->graphQL($mutation, ['input' => $input])[$field]['id'];
-        } catch (GraphQLFailed $failure) {
-            throw new GraphQLFailed("{$item}: {$failure->getMessage()}");
-        }
-    }
-
-    /**
-     * @param  array<string, mixed>  $item
-     * @return array{title: string, description: array<string, mixed>|null, dueDate: string|null}
-     */
-    private function fields(array $item): array
-    {
-        return [
-            'title' => $item['title'],
-            'description' => PlainTextDocument::from($item['description'] ?? null),
-            'dueDate' => $item['due_date'] ?? null,
-        ];
-    }
-
-    /**
-     * @return array<string, string> Member ids by lower-case e-mail
-     *
-     * @throws GraphQLFailed
-     */
-    private function membersByEmail(string $projectId): array
-    {
-        $project = $this->graphQL('query ($id: ID!) { project(id: $id) { members { user { id email } } } }', ['id' => $projectId])['project'] ?? null;
-
-        if ($project === null) {
-            throw new GraphQLFailed('This project does not exist, or you have no access to it.');
-        }
-
-        return collect($project['members'])->mapWithKeys(fn (array $member) => [mb_strtolower($member['user']['email']) => $member['user']['id']])->all();
+        return $this->respond(fn () => Response::json([
+            'created' => $importer->addPlan((string) $validated['project_id'], $validated['milestones'], $validated['notify_assignees'] ?? false),
+            'project_id' => (string) $validated['project_id'],
+        ]));
     }
 
     /**

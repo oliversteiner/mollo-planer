@@ -129,6 +129,14 @@ type Mutation {
  deleteUser(id: ID!): User!
  "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
  deleteUserAvatar(id: ID!): User!
+ "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
+ draftProjectPlan(
+ "Der Entwurf in der Vorschau, damit Claude ihn ändert statt neu beginnt"
+ currentPlan: ProjectPlanInput
+ messages: [PlanChatMessageInput!]!
+ ): ProjectPlanDraft!
+ "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
+ importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
  "Verschiebt einen Task im Kanban"
  moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
@@ -188,6 +196,14 @@ type Passkey {
  lastUsedAt: DateTime
  name: String!
 }
+input PlanChatMessageInput {
+ content: String!
+ role: PlanChatRole!
+}
+enum PlanChatRole {
+ ASSISTANT
+ USER
+}
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
 type Progress {
  done: Int!
@@ -235,6 +251,70 @@ enum ProjectAbility {
 type ProjectMember {
  role: ProjectRole!
  user: User!
+}
+type ProjectPlan {
+ description: String
+ locale: Locale!
+ members: [ProjectPlanMember!]!
+ milestones: [ProjectPlanMilestone!]!
+ name: String!
+}
+"Antwort des Assistenten: Text für den Chat und der ganze Plan (null, solange er noch Angaben braucht)"
+type ProjectPlanDraft {
+ plan: ProjectPlan
+ reply: String!
+}
+input ProjectPlanInput {
+ description: String
+ locale: Locale = DE
+ members: [ProjectPlanMemberInput!]!
+ milestones: [ProjectPlanMilestoneInput!]!
+ name: String!
+}
+type ProjectPlanMember {
+ email: String!
+ role: ProjectRole!
+}
+input ProjectPlanMemberInput {
+ email: String!
+ role: ProjectRole!
+}
+type ProjectPlanMilestone {
+ description: String
+ dueDate: Date
+ title: String!
+ todos: [ProjectPlanTodo!]!
+}
+input ProjectPlanMilestoneInput {
+ description: String
+ dueDate: Date
+ title: String!
+ todos: [ProjectPlanTodoInput!]!
+}
+type ProjectPlanTask {
+ "E-Mail eines Mitglieds aus members"
+ assigneeEmail: String
+ description: String
+ dueDate: Date
+ title: String!
+}
+input ProjectPlanTaskInput {
+ assigneeEmail: String
+ description: String
+ dueDate: Date
+ title: String!
+}
+type ProjectPlanTodo {
+ description: String
+ dueDate: Date
+ tasks: [ProjectPlanTask!]!
+ title: String!
+}
+input ProjectPlanTodoInput {
+ description: String
+ dueDate: Date
+ tasks: [ProjectPlanTaskInput!]!
+ title: String!
 }
 "Rolle einer Person innerhalb eines Projekts"
 enum ProjectRole {

@@ -83,3 +83,17 @@ Das Backend bietet einen MCP-Server unter `http://localhost:8000/mcp` (später a
 3. Dann einfach schreiben, zum Beispiel: „Erstelle ein Projekt für einen Podcast mit Milestones, ToDos und Tasks; Oliver macht Technik und Schnitt, Lindita moderiert.“
 
 Die Personen müssen in der App schon ein Konto haben (Verwaltung → Benutzer). Zuweisungsmails gehen nur auf Wunsch raus.
+
+## KI-Assistent (Projekt per Chat oder Sprache anlegen)
+
+Admins finden in der Seitenleiste **KI-Assistent**: links ein Chat (auch mit Spracheingabe per Mikrofon-Knopf in Chrome und Edge), rechts die Vorschau des Plans mit Name, Beschreibung und Timeline (Milestones, aufklappbare ToDos, Tasks mit Personen und Daten). Mit weiteren Nachrichten lässt sich der Entwurf ändern. Gespeichert wird erst mit **Jetzt eintragen**.
+
+Einrichten: einen API-Schlüssel unter https://console.anthropic.com erzeugen und in `backend/.env` eintragen (nie committen), danach das Backend neu starten:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+# optional, Standard claude-opus-5-5
+ANTHROPIC_MODEL=claude-opus-5-5
+```
+
+Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).

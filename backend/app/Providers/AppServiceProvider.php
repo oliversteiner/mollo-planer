@@ -37,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
 
         // MCP requests (Claude) per minute and token owner; a project plan is
         // one request, reading a project another.
+        // Every draft is a paid Claude request.
+        RateLimiter::for('plan-assistant', fn (Request $request) => Limit::perMinute(10)->by('plan:'.$request->user()?->getAuthIdentifier()));
+
         RateLimiter::for('mcp', fn (Request $request) => Limit::perMinute(60)->by('mcp:'.$request->user()?->getAuthIdentifier()));
 
         // GraphQL requests per minute, per user (or per IP for guests).

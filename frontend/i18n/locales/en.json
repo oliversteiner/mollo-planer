@@ -12,7 +12,8 @@
     "appSettings": "App settings",
     "skipToContent": "Skip to content",
     "searchProject": "Search project",
-    "chooseProject": "Choose project"
+    "chooseProject": "Choose project",
+    "assistant": "AI assistant"
   },
   "settings": {
     "language": "Language",
@@ -425,5 +426,55 @@
     "revokeDescription": "Claude can no longer use this token afterwards.",
     "revokeConfirm": "Revoke",
     "revoked": "Access revoked."
+  },
+  "assistant": {
+    "title": "AI assistant",
+    "imported": "Project “{name}” created.",
+    "chat": {
+      "title": "Chat",
+      "log": "Conversation with the assistant",
+      "you": "You",
+      "assistant": "Assistant",
+      "emptyTitle": "Describe your project",
+      "emptyDescription": "Who takes part, what should come out of it, by when? Claude drafts milestones, todos and tasks from it. Nothing is saved until “Create now”.",
+      "examples": "Examples",
+      "example1": "Create a new project for a podcast about people with a migration background. Two people: Oliver does the technical side and the editing, Lindita hosts and creates the content. The podcast has to be designed from scratch.",
+      "example2": "Plan a summer party for 200 guests at the end of June, with budget, catering, programme and helpers.",
+      "placeholder": "Message to the assistant (Enter sends, Shift+Enter new line)",
+      "listening": "Listening …",
+      "send": "Send",
+      "reset": "Start over",
+      "thinking": "Claude is drafting the plan … this can take a minute.",
+      "planReady": "The draft is in the preview.",
+      "voiceStart": "Start voice input",
+      "voiceStop": "Stop voice input",
+      "voiceHint": "Voice input: the browser sends the recording to its provider for recognition (Google in Chrome, Microsoft in Edge).",
+      "voiceError": "Voice input not possible ({error}). Is the microphone allowed?"
+    },
+    "preview": {
+      "title": "Preview",
+      "project": "Project",
+      "description": "Description",
+      "noDescription": "No description",
+      "members": "Members",
+      "timeline": "Timeline",
+      "noDate": "No date",
+      "milestoneCount": "No milestones | 1 milestone | {count} milestones",
+      "todoCount": "No todos | 1 todo | {count} todos",
+      "taskCount": "{count} tasks, {assigned} assigned",
+      "taskCountShort": "No tasks | 1 task | {count} tasks",
+      "mailLanguage": "Mails: {language}",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "toggleTodo": "Expand or collapse todo “{title}”",
+      "unassigned": "Not assigned",
+      "notify": "Send assignment mails",
+      "notifyHint": "Everyone gets one mail per assigned task.",
+      "discard": "Discard",
+      "import": "Create now",
+      "importFailed": "Not created",
+      "emptyTitle": "No draft yet",
+      "emptyDescription": "As soon as you describe your project in the chat, the plan appears here: name, description and the timeline with milestones, todos and tasks."
+    }
   }
 }

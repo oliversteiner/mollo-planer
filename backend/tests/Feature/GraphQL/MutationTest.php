@@ -364,6 +364,7 @@ class MutationTest extends GraphQLTestCase
     {
         return [
             'createProject' => ['admin', 'mutation { createProject(input: {name: "Neu"}) { id } }', fn (self $test) => []],
+            'importProjectPlan' => ['admin', 'mutation ($u: String!) { importProjectPlan(plan: {name: "Plan", members: [{email: $u, role: OWNER}], milestones: [{title: "Start", todos: [{title: "Vorbereiten", tasks: [{title: "Los", assigneeEmail: $u}]}]}]}) { id } }', fn (self $test) => ['u' => $test->users['member']->email]],
             'createUser' => ['admin', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
             'resetUserTwoFactor' => ['admin', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', fn (self $test) => ['id' => $test->users['member']->id]],
             'createApiToken' => ['member', 'mutation { createApiToken(name: "Claude") { plainTextToken } }', fn (self $test) => []],

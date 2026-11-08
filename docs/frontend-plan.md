@@ -60,12 +60,19 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt. Ergänzt `backend-plan.md` und `
 | `/projects/:id/settings` | Name, Beschreibung, Sprache der Mails, Mitglieder und Rollen, Projekt löschen |
 | `/my-tasks` | Meine Tasks, filterbar nach Status |
 | `/profile` | Name und E-Mail, Passwort, Avatarbild, Mail-Benachrichtigungen, 2FA-App, Passkeys, Sprache |
+| `/assistant` | KI-Assistent (nur Admins): links Chat mit Spracheingabe, rechts Vorschau des Entwurfs (Name, Beschreibung, Timeline mit Milestones, aufklappbaren ToDos und Tasks), „Jetzt eintragen“ |
 | `/admin/users` | Benutzer anlegen (Einladung), ändern, 2FA zurücksetzen, löschen (nur Admins) |
 | `/admin/settings` | App-Einstellungen: 2FA an/aus (nur Admins, nur ausserhalb Produktion) |
 
 Die Routen `/invitation`, `/reset-password` und `/projects/:id/kanban?task=` sind fest, weil das Backend sie in Mails verschickt (`UserInvited`, `ResetPasswordNotification`, `TaskNotification::taskUrl()`).
 
 Task-Details (Seitenpanel): Titel, Beschreibung (TipTap), Icon, Fälligkeit, Status, Zuweisung, Kommentare (TipTap mit kleinerer Werkzeugleiste, ändern und löschen nach `viewerCanEdit/viewerCanDelete`).
+
+## KI-Assistent (2026-11-08)
+- Seite `/assistant`, in der Seitenleiste unter „KI-Assistent“ (nur Admins). `USplitter` mit zwei Bereichen (Grösse im Browser gemerkt), ab `lg` nebeneinander, darunter übereinander.
+- **Chat** (`assistant/Chat.vue`): Enter sendet, Shift+Enter neue Zeile, Beispiele zum Antippen. **Spracheingabe** über die Web Speech API des Browsers (`useSpeechInput`, Sprache = UI-Sprache, ohne Zusatzpaket). Chrome und Edge schicken die Aufnahme zur Erkennung an Google bzw. Microsoft (Hinweis am Knopf); Firefox kennt sie nicht, dort fehlt der Knopf.
+- **Vorschau** (`assistant/PlanPreview.vue`): 1. Projektname mit Zahlen, 2. Beschreibung und Mitglieder (Name, Avatar, Rolle), 3. `UTimeline` der Milestones mit Fälligkeit und Beschreibung, darin die ToDos als `UCollapsible` (einzeln oder alle aufklappbar), darin die Tasks mit Beschreibung, Fälligkeit und zugewiesener Person. Beschreibungen sind Klartext und werden als Text gezeigt (`AssistantPlainText`), nie als HTML.
+- Jede Nachricht schickt den ganzen Chat und den aktuellen Entwurf (`draftProjectPlan`); Claude ändert den Entwurf, statt neu zu beginnen. „Jetzt eintragen“ (`importProjectPlan`, wahlweise mit Zuweisungsmails) legt alles an und öffnet das neue Projekt. Chat und Entwurf überstehen ein Neuladen (sessionStorage dieses Tabs).
 
 ## Sicherheit (umgesetzt in Schritt 10)
 - Profil: Authenticator-App einrichten (QR-Code als Bild, nicht als eingefügtes HTML; Schlüssel zum Abtippen; Bestätigung mit Code; Wiederherstellungscodes zum Kopieren oder Herunterladen), Codes anzeigen und neu erzeugen, App entfernen; Passkeys hinzufügen (Name, WebAuthn mit `@simplewebauthn/browser`) und entfernen. Vor jeder Änderung fragt `useSecurity()` den Bestätigungsstatus ab und bittet bei Bedarf um das Passwort (`PasswordPromptModal`), weil Fortify und die Passkey-Routen eine frische Passwort-Bestätigung verlangen. Beim Entfernen des letzten Faktors warnt die Rückfrage, solange die 2FA Pflicht ist.

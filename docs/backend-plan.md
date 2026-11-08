@@ -38,6 +38,7 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
   - Wer schon einen Faktor hat, kann ohne starke Sitzung keine Faktoren hinzufügen oder entfernen und weder Passwort noch Profil ändern (`ProtectAccountSecurityRoutes`). Sonst könnte jemand mit dem Passwort eines Passkey-Kontos eine eigene 2FA-App hinzufügen.
   - Erste Einrichtung: Nach der Einladung genügt das Passwort, um den ersten Faktor einzurichten. Die Einladung per E-Mail ist dabei der Nachweis.
   - Antwort bei gesperrter Sitzung: `SECOND_FACTOR_SETUP_REQUIRED` (zur Einrichtung) oder `STRONG_AUTHENTICATION_REQUIRED` (mit Passkey bestätigen über `/passkeys/confirm` oder neu anmelden).
+  - Die Login-Routen (`guest`, ersetzt durch `RedirectIfStronglyAuthenticated`) lassen eine angemeldete, aber nicht stark angemeldete Sitzung durch, damit „neu anmelden“ auch geht (sonst leitet Laravel um und der Login bleibt wirkungslos). Eine voll angemeldete Sitzung bekommt JSON (`Already authenticated.`) statt einer Umleitung auf `/`; die Login-Seite im Frontend prüft beim Öffnen ohnehin, ob schon jemand angemeldet ist.
   - `resetUserTwoFactor` beendet auch die Sitzungen und „angemeldet bleiben“ (neues `remember_token`), etwa auf dem verlorenen Gerät.
 
 ## 2FA ausschalten (bestätigt 2026-11-08, ergänzt Punkt 3)
@@ -80,6 +81,13 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - **Mails:** `create_project_plan` schickt standardmässig keine Zuweisungsmails (`notify_assignees: true` schaltet sie ein); `TaskNotifier::withoutAssignmentMails()`, der Notifier ist dafür pro Anfrage eine Instanz.
 - Beschreibungen kommen als reiner Text und werden zu TipTap-JSON (`PlainTextDocument`: Absätze, Zeilen mit „- “ als Aufzählung). Icons setzt Claude nicht (ungültige Namen würden leer angezeigt).
 - Personen ohne Konto lädt ein Admin in der App ein; Claude meldet das, statt etwas zu raten.
+
+## KI-Assistent in der App (2026-11-08)
+- Zwei Mutationen, nur für Admins (`@can create Project`): `draftProjectPlan(messages, currentPlan)` fragt Claude und **speichert nichts**; `importProjectPlan(plan, notifyAssignees = false)` legt Projekt, Mitglieder, Milestones, ToDos und Tasks an, alles oder nichts. Typen `ProjectPlan…` im Schema, Beschreibungen als Klartext.
+- **Claude-API** über das offizielle PHP-SDK `anthropic-ai/sdk` (`App\Services\ProjectPlanAssistant`): Modell `claude-opus-5-5` (`ANTHROPIC_MODEL`), adaptives Denken mit Aufwand `medium`, strukturierte Ausgabe (JSON-Schema: Antworttext + Plan oder `null`), serverseitiger Fallback bei Ablehnung (`fallbacks: default`). Der Schlüssel steht nur in `.env` (`ANTHROPIC_API_KEY`), nie im Repository; ohne ihn meldet die Mutation „nicht eingerichtet“. Jede Nachricht kostet; 10 Entwürfe pro Minute und Person (`@throttle`, Limiter `plan-assistant`).
+- Claude bekommt die Konten (Name, E-Mail), die anfragende Person und das heutige Datum. Die Antwort wird bereinigt: unbekannte Personen fallen weg, zugewiesene Personen werden Mitglied, ungültige Daten werden leer, Längen wie im Schema.
+- **Eintragen** über `App\Services\ProjectPlanImporter`, denselben Code wie die MCP-Werkzeuge `create_project_plan`: Er führt die GraphQL-Mutationen des Schemas als die Person aus (gleiche Rechte, Prüfungen, Status-Automatik, Mails) in einer Transaktion. Fehler nennen das Element (`ProjectPlanFailed`, für die App übersetzt als Validierungsfehler `plan`). Ohne Häkchen keine Zuweisungsmails.
+- Tests: `ProjectPlanAssistantTest` (Claude-Aufruf gemockt), dazu die Listen in `MutationTest` und `OutsiderAccessTest`.
 
 ## Optionale Filter (2026-11-08)
 - `todos(milestoneId, status)` und `myTasks(status)` nutzen `@filter` (`App\GraphQL\Directives\FilterDirective`) statt `@eq`: Ein ausdrücklich übergebenes `null` bedeutet „kein Filter“. Lighthouses `@eq` macht daraus `IS NULL` und findet nichts; so waren im Frontend die ToDo-Liste und „Meine Tasks“ leer, solange „Alle“ gewählt war. Neue optionale Filter bekommen `@filter`. Getestet in `QueryTest::test_null_filters_apply_no_filter`.
