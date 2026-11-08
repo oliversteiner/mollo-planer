@@ -24,6 +24,7 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - `composer test:mariadb` (dieselben Tests gegen MariaDB, Datenbank `projektverwaltung_test`; vor Commits, die Abfragen, Sperren oder Migrationen ändern)
 - `php artisan migrate`
 - `php artisan lighthouse:validate-schema` (Schema prüfen)
+- `php artisan migrate:fresh --seed --seeder=DemoSeeder` (Demo-Daten wie in der GraphQL-Demo, nur lokal; **löscht alle Daten**. In eine leere Datenbank: `php artisan db:seed --class=DemoSeeder`)
 - `./vendor/bin/pint` (Code-Stil)
 - `php artisan boost:update --no-discover` (Boost-Guidelines und -Skills neu erzeugen, läuft auch nach `composer update`)
 
