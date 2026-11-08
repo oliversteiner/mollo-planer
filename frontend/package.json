@@ -1,9 +1,9 @@
 {
-  "name": "frontend",
+  "name": "projektverwaltung-frontend",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt generate",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.147",
-    "@iconify-json/simple-icons": "^1.2.100",
     "@nuxt/ui": "^4.12.0",
+    "@nuxtjs/i18n": "^10.6.0",
     "nuxt": "^4.6.3",
     "tailwindcss": "^4.3.3"
   },
@@ -23,6 +23,5 @@
     "eslint-plugin-better-tailwindcss": "^4.10.0",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.13"
-  },
-  "packageManager": "pnpm@12.15.0"
+  }
 }

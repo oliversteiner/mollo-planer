@@ -15,5 +15,11 @@ export default withNuxt(
         ]
       }
     }
+  },
+  {
+    rules: {
+      // RichText is TipTap JSON and is shown with TipTap only, never as HTML.
+      'vue/no-v-html': 'error'
+    }
   }
 )

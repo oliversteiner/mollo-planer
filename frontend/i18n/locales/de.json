@@ -1,0 +1,22 @@
+{
+  "app": {
+    "name": "Projektverwaltung"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "main": "Hauptnavigation"
+  },
+  "settings": {
+    "language": "Sprache",
+    "colorMode": "Hell oder dunkel"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "comingSoon": "Hier erscheinen bald deine anstehenden ToDos, offenen Tasks und Projekte."
+  },
+  "error": {
+    "notFound": "Diese Seite gibt es nicht.",
+    "generic": "Etwas ist schiefgelaufen.",
+    "backHome": "Zum Dashboard"
+  }
+}

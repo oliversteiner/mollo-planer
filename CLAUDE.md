@@ -29,6 +29,11 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - `./vendor/bin/pint` (Code-Stil)
 - `php artisan boost:update --no-discover` (Boost-Guidelines und -Skills neu erzeugen, läuft auch nach `composer update`)
 
+Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm von PhpStorm):
+- `npm run dev` (http://localhost:3000)
+- `npm run lint`, `npm run typecheck`
+- `npm run build` (statische Dateien in `.output/public`)
+
 ## Laravel Boost
 - Boost liefert `backend/CLAUDE.md` (allgemeine Laravel-Regeln), Skills in `backend/.claude/skills/` und den MCP-Server `laravel-boost` (`.mcp.json` im Projektordner: Doku-Suche `search-docs`, Datenbankschema, Logs).
 - `backend/CLAUDE.md` und die Skills werden von Boost erzeugt, **nicht von Hand ändern**. Auswahl in `backend/boost.json`, Ausschlüsse in `backend/config/boost.php` (Laravel Cloud und Tailwind sind ausgeschlossen).
@@ -61,7 +66,7 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - [x] 12. Tests
 
 ## Stand Frontend
-- [ ] 1. Einrichtung (npm, Template aufräumen, SPA, i18n, Layout, CI)
+- [x] 1. Einrichtung (npm, Template aufräumen, SPA, i18n, Layout, CI)
 - [ ] 2. Font Awesome
 - [ ] 3. API-Anbindung (Apollo, Codegen)
 - [ ] 4. Anmeldung
