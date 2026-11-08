@@ -6,7 +6,10 @@
     "dashboard": "Dashboard",
     "main": "Hauptnavigation",
     "projects": "Projekte",
-    "myTasks": "Meine Tasks"
+    "myTasks": "Meine Tasks",
+    "admin": "Verwaltung",
+    "users": "Benutzer",
+    "appSettings": "App-Einstellungen"
   },
   "settings": {
     "language": "Sprache",
@@ -355,6 +358,46 @@
       "remove": "Passkey «{name}» entfernen",
       "removeTitle": "Passkey «{name}» entfernen?",
       "secondHint": "Tipp: Richte einen zweiten Passkey oder die Authenticator-App ein, falls dieses Gerät verloren geht."
+    }
+  },
+  "admin": {
+    "users": {
+      "title": "Benutzer",
+      "invite": "Person einladen",
+      "inviteHint": "Die Person bekommt eine E-Mail mit einem Link, um ihr Passwort zu setzen (7 Tage gültig). Danach richtet sie einen zweiten Faktor ein.",
+      "edit": "Person ändern",
+      "sendInvite": "Einladung schicken",
+      "invited": "Einladung an {email} geschickt.",
+      "saved": "Gespeichert.",
+      "isAdmin": "Admin",
+      "isAdminHint": "Admins sehen alle Projekte und verwalten Benutzer.",
+      "ownAdmin": "Die eigene Admin-Rolle kannst du dir nicht selbst entziehen.",
+      "admin": "Admin",
+      "actions": "Aktionen für {name}",
+      "factorApp": "2FA-App",
+      "factorPasskey": "Passkey",
+      "factorBoth": "2FA-App und Passkey",
+      "factorNone": "Kein zweiter Faktor",
+      "resetTwoFactor": "2FA zurücksetzen",
+      "resetTitle": "2FA von {name} zurücksetzen?",
+      "resetDescription": "Entfernt die Authenticator-App und alle Passkeys und meldet die Person überall ab, zum Beispiel bei verlorenem Gerät. Beim nächsten Login richtet sie einen neuen zweiten Faktor ein.",
+      "resetDone": "2FA von {name} zurückgesetzt.",
+      "removeAvatar": "Avatarbild entfernen",
+      "avatarTitle": "Avatarbild von {name} entfernen?",
+      "avatarDescription": "Zum Beispiel bei einem unpassenden Bild. Die Person kann danach ein neues hochladen.",
+      "deleteTitle": "{name} löschen?",
+      "deleteDescription": "Das Konto wird gelöscht. Kommentare bleiben ohne Namen erhalten, zugewiesene Tasks sind danach niemandem mehr zugewiesen.",
+      "deleted": "{name} gelöscht."
+    },
+    "settings": {
+      "title": "App-Einstellungen",
+      "twoFactorTitle": "Zwei-Faktor-Authentifizierung",
+      "twoFactorLabel": "Zweiten Faktor verlangen",
+      "twoFactorDescription": "Eingeschaltet braucht jede Anmeldung zusätzlich eine Authenticator-App oder einen Passkey. Ausgeschaltet genügt das Passwort.",
+      "twoFactorOn": "2FA ist eingeschaltet.",
+      "twoFactorOff": "2FA ist ausgeschaltet: Das Passwort genügt.",
+      "notSwitchable": "Auf dem Produktivserver ist die 2FA immer Pflicht und lässt sich nicht ausschalten.",
+      "offWarning": "Die 2FA ist ausgeschaltet. Das ist nur für Tests gedacht."
     }
   }
 }

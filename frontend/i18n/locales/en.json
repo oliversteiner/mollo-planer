@@ -6,7 +6,10 @@
     "dashboard": "Dashboard",
     "main": "Main navigation",
     "projects": "Projects",
-    "myTasks": "My tasks"
+    "myTasks": "My tasks",
+    "admin": "Administration",
+    "users": "Users",
+    "appSettings": "App settings"
   },
   "settings": {
     "language": "Language",
@@ -355,6 +358,46 @@
       "remove": "Remove passkey “{name}”",
       "removeTitle": "Remove passkey “{name}”?",
       "secondHint": "Tip: set up a second passkey or the authenticator app in case this device gets lost."
+    }
+  },
+  "admin": {
+    "users": {
+      "title": "Users",
+      "invite": "Invite person",
+      "inviteHint": "They get an email with a link to set their password (valid 7 days). Afterwards they set up a second factor.",
+      "edit": "Edit person",
+      "sendInvite": "Send invitation",
+      "invited": "Invitation sent to {email}.",
+      "saved": "Saved.",
+      "isAdmin": "Admin",
+      "isAdminHint": "Admins see all projects and manage users.",
+      "ownAdmin": "You cannot remove your own admin role.",
+      "admin": "Admin",
+      "actions": "Actions for {name}",
+      "factorApp": "2FA app",
+      "factorPasskey": "Passkey",
+      "factorBoth": "2FA app and passkey",
+      "factorNone": "No second factor",
+      "resetTwoFactor": "Reset 2FA",
+      "resetTitle": "Reset 2FA of {name}?",
+      "resetDescription": "Removes the authenticator app and all passkeys and signs them out everywhere, for example after a lost device. At the next sign-in they set up a new second factor.",
+      "resetDone": "2FA of {name} reset.",
+      "removeAvatar": "Remove avatar",
+      "avatarTitle": "Remove the avatar of {name}?",
+      "avatarDescription": "For example an unsuitable picture. They can upload a new one afterwards.",
+      "deleteTitle": "Delete {name}?",
+      "deleteDescription": "The account is deleted. Comments stay without a name, assigned tasks are then assigned to nobody.",
+      "deleted": "{name} deleted."
+    },
+    "settings": {
+      "title": "App settings",
+      "twoFactorTitle": "Two-factor authentication",
+      "twoFactorLabel": "Require a second factor",
+      "twoFactorDescription": "When on, every sign-in also needs an authenticator app or a passkey. When off, the password is enough.",
+      "twoFactorOn": "2FA is on.",
+      "twoFactorOff": "2FA is off: the password is enough.",
+      "notSwitchable": "On the production server 2FA is always required and cannot be switched off.",
+      "offWarning": "2FA is switched off. This is meant for testing only."
     }
   }
 }

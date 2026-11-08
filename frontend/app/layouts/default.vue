@@ -11,11 +11,17 @@ const userMenu = computed<DropdownMenuItem[][]>(() => [
   [{ label: t('auth.logout'), icon: 'i-fadl-right-from-bracket', onSelect: () => logout() }]
 ])
 
-const items = computed<NavigationMenuItem[]>(() => [
+const items = computed<NavigationMenuItem[][]>(() => [[
   { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/', exact: true },
   { label: t('nav.projects'), icon: 'i-fadl-folder-open', to: '/projects' },
   { label: t('nav.myTasks'), icon: 'i-fadl-square-check', to: '/my-tasks' }
-])
+], viewer.value?.isAdmin
+  ? [
+      { label: t('nav.admin'), type: 'label' },
+      { label: t('nav.users'), icon: 'i-fadl-users', to: '/admin/users' },
+      { label: t('nav.appSettings'), icon: 'i-fadl-sliders', to: '/admin/settings' }
+    ]
+  : []])
 
 const locales = [uiLocales.de, uiLocales.en]
 

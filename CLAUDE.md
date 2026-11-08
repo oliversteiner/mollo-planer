@@ -79,5 +79,5 @@ Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm 
 - [x] 9. Meine Tasks, Profil
 - [x] 10. Sicherheit im Profil (2FA, Passkeys)
 - [x] 11. Projekteinstellungen und Mitglieder
-- [ ] 12. Admin
+- [x] 12. Admin
 - [ ] 13. Tests und Feinschliff
