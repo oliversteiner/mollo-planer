@@ -7,6 +7,7 @@ Produktiv-Domain später: `project.fcadb.ch` (Frontend und API als getrennte Sub
 - `docs/backend-plan.md`: bestätigte Entscheidungen und die **Reihenfolge beim Bauen**. Gilt vor allem anderen.
 - `docs/graphql-kontext.md`: alle Entscheidungen im Detail (Rechte, Status-Automatik, Mails, RichText, Icons, Kommentare).
 - `backend/graphql/schema.graphql`: das GraphQL-Schema (Lighthouse). Ist der Vertrag zwischen Backend und Frontend.
+- `docs/frontend-plan.md`: Entscheidungen und Bau-Reihenfolge für das Frontend.
 
 Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code vom Schema ab, nicht stillschweigend das Schema ändern, sondern nachfragen.
 
@@ -14,7 +15,7 @@ Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code 
 - **Backend:** Laravel 13 headless in `backend/`, Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
-- **Frontend (später):** Nuxt (Vue 3) in `frontend/`, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“)
+- **Frontend:** Nuxt 4 (Vue 3) mit Nuxt UI in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente)
 - **Hosting:** Hostpoint (Schweiz), nur PHP und MySQL/MariaDB, Queue per Cron. Hosting-Themen erst später, nicht jetzt bearbeiten.
 - **Entwicklung:** Windows 11 mit WSL, PhpStorm, GitHub
 
@@ -58,3 +59,18 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - [x] 10. Notifications
 - [x] 11. Artisan-Befehl erster Admin
 - [x] 12. Tests
+
+## Stand Frontend
+- [ ] 1. Einrichtung (npm, Template aufräumen, SPA, i18n, Layout, CI)
+- [ ] 2. Font Awesome
+- [ ] 3. API-Anbindung (Apollo, Codegen)
+- [ ] 4. Anmeldung
+- [ ] 5. Dashboard und Projektliste
+- [ ] 6. Projekt: Milestones und ToDos
+- [ ] 7. RichText und Icon-Picker
+- [ ] 8. Kanban und Task-Details
+- [ ] 9. Meine Tasks, Profil
+- [ ] 10. Sicherheit im Profil (2FA, Passkeys)
+- [ ] 11. Projekteinstellungen und Mitglieder
+- [ ] 12. Admin
+- [ ] 13. Tests und Feinschliff
