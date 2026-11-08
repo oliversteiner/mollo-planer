@@ -43,6 +43,8 @@
 #  2FA-Pflicht  Eine Middleware in config/lighthouse.php (route.middleware)
 #             sperrt die ganze GraphQL-Route, bis die Sitzung stark
 #             angemeldet ist: Passwort plus 2FA-Code oder Passkey-Login.
+#             Ausserhalb Produktion kann ein Admin die 2FA für alle
+#             ausschalten (updateAppSettings), produktiv nie.
 #  Status     ToDo und Milestone leiten ihren Status automatisch aus den
 #             Tasks bzw. ToDos ab (Observer). Darum gibt es dafür kein
 #             Eingabefeld.
@@ -250,6 +252,14 @@ type Comment {
   updatedAt: DateTime! @rename(attribute: "updated_at")
 }
 
+"Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
+type AppSettings {
+  "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."
+  twoFactorEnabled: Boolean!
+  "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
+  twoFactorSwitchable: Boolean!
+}
+
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
 type Progress {
   total: Int!
@@ -309,6 +319,8 @@ type Query @guard {
 
   "Startseite"
   dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")
+  "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
+  appSettings: AppSettings! @field(resolver: "App\\GraphQL\\Queries\\AppSettings")
 }
 
 # ─── Änderungen ─────────────────────────────────────────────────
@@ -343,6 +355,12 @@ type Mutation @guard {
   deleteUserAvatar(id: ID!): User!
     @can(ability: "deleteAvatar", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteUserAvatar")
+
+  # Einstellungen der App: nur Admins.
+  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
+  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
+    @can(ability: "updateAppSettings", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateAppSettings")
 
   # Projekte: Anlegen nur durch Admins, Löschen durch Admin oder Owner.
   createProject(input: CreateProjectInput! @spread): Project!

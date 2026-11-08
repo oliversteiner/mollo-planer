@@ -16,7 +16,7 @@ class OutsiderAccessTest extends GraphQLTestCase
     /**
      * Tables a refused mutation must leave unchanged.
      */
-    private const TABLES = ['users', 'projects', 'project_user', 'milestones', 'todos', 'tasks', 'comments'];
+    private const TABLES = ['users', 'projects', 'project_user', 'milestones', 'todos', 'tasks', 'comments', 'app_settings'];
 
     private Comment $comment;
 
@@ -79,6 +79,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {isAdmin: true}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],
+            'updateAppSettings (2FA off)' => ['owner', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],
             'deleteUserAvatar (someone else)' => ['owner', 'mutation ($id: ID!) { deleteUserAvatar(id: $id) { id } }', $member],
         ];
     }

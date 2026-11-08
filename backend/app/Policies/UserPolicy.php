@@ -52,6 +52,15 @@ class UserPolicy
     }
 
     /**
+     * Settings of the whole application (for example two-factor
+     * authentication) are for admins only.
+     */
+    public function updateAppSettings(User $user): bool
+    {
+        return $user->is_admin;
+    }
+
+    /**
      * An admin cannot delete their own account.
      */
     public function delete(User $user, User $target): bool

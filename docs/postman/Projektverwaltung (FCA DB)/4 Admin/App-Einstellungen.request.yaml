@@ -1,0 +1,14 @@
+$kind: http-request
+description: Ob die Anmeldung einen zweiten Faktor braucht und ob sich das hier ändern lässt (in Produktion nie).
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query AppSettings {
+        appSettings { twoFactorEnabled twoFactorSwitchable }
+      }
+    variables: |-
+      {}
+order: 1000

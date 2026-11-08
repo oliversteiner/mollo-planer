@@ -46,7 +46,9 @@ Am Ende zeigt der Befehl einmalig an (danach nirgends mehr gespeichert, also gle
 - je Person das 2FA-Secret und eine `otpauth://`-Adresse, zum Eintragen in eine Authenticator-App
 - je Person 8 Wiederherstellungscodes, jeder nur einmal gültig
 
-Die Anmeldung braucht immer Passwort **und** 2FA-Code (oder einen Wiederherstellungscode), sonst sperrt das Backend die GraphQL-API.
+Die Anmeldung braucht Passwort **und** 2FA-Code (oder einen Wiederherstellungscode), sonst sperrt das Backend die GraphQL-API.
+
+**2FA für lokale Tests ausschalten:** Als Admin (Anna Keller) einmal mit Code anmelden und in Postman „4 Admin / 2FA ein- oder ausschalten“ mit `false` ausführen. Danach genügt für alle Demo-Personen das Passwort. Mit `true` wieder einschalten. Das geht nur ausserhalb Produktion; auf dem Produktivserver ist die 2FA immer Pflicht. `migrate:fresh` setzt die Einstellung zurück (2FA wieder an).
 
 ### Postman-Collection
 

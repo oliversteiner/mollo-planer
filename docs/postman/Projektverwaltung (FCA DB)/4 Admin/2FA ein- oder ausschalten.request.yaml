@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Nur Admins (Demo: Anna Keller), nur ausserhalb Produktion. `false` schaltet die 2FA für alle aus: Login mit Passwort genügt, kein Code. `true` schaltet sie wieder ein; wer nur mit Passwort angemeldet ist, muss sich dann neu mit Code anmelden.
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation UpdateAppSettings($twoFactorEnabled: Boolean!) {
+        updateAppSettings(twoFactorEnabled: $twoFactorEnabled) { twoFactorEnabled twoFactorSwitchable }
+      }
+    variables: |-
+      {
+        "twoFactorEnabled": false
+      }
+order: 2000

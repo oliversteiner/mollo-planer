@@ -40,6 +40,13 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
   - Antwort bei gesperrter Sitzung: `SECOND_FACTOR_SETUP_REQUIRED` (zur Einrichtung) oder `STRONG_AUTHENTICATION_REQUIRED` (mit Passkey bestätigen über `/passkeys/confirm` oder neu anmelden).
   - `resetUserTwoFactor` beendet auch die Sitzungen und „angemeldet bleiben“ (neues `remember_token`), etwa auf dem verlorenen Gerät.
 
+## 2FA ausschalten (bestätigt 2026-11-08, ergänzt Punkt 3)
+- Ein Admin kann die 2FA für alle **komplett** ausschalten: `updateAppSettings(twoFactorEnabled: false)`. Dann fragt der Login nicht nach dem Code (auch wer eine 2FA-App hat), die GraphQL-Sperre und `ProtectAccountSecurityRoutes` lassen Sitzungen mit Passwort allein durch. Lesen mit `appSettings` (alle Angemeldeten, das Frontend richtet sich danach).
+- **Nur ausserhalb Produktion.** In Produktion ist die 2FA immer Pflicht, unabhängig vom gespeicherten Wert, und die Mutation antwortet mit einem Validierungsfehler (`twoFactorSwitchable: false`). So kann ein übernommenes Admin-Konto den Schutz produktiv nicht abschalten.
+- Gespeichert in der Tabelle `app_settings` (Schlüssel `two_factor_enabled`, fehlt = an), gelesen nur über `App\Support\AppSettings`. Jede Änderung wird mit Admin-ID ins Log geschrieben.
+- Wieder einschalten: Sitzungen, die nur das Passwort benutzt haben, sind sofort gesperrt (`STRONG_AUTHENTICATION_REQUIRED`) und melden sich neu mit Code an.
+- Ersetzt den zuerst gewünschten Schalter in der `.env`; es gibt keinen.
+
 ## Mail-Benachrichtigungen (Umsetzung Schritt 10)
 - `App\Services\TaskNotifier` wählt die Empfänger: bei neuem Task mit Zuweisung und bei `assignTask` die zugewiesene Person, bei `addComment` die zugewiesene Person und alle, die den Task schon kommentiert haben. Nie die handelnde Person, nie wer Mails abgeschaltet hat, nie wer das Projekt nicht sehen darf (`ProjectPermissions::canView`, also auch Admins ohne Mitgliedschaft, wenn sie kommentiert haben). Aufheben der Zuweisung schickt keine Mail.
 - `TaskAssigned` und `TaskCommented` erben von `TaskNotification`: `ShouldQueue`, `afterCommit`, Sprache = `project->locale`. `shouldSend()` prüft beim Versand aus der Queue nochmals Mail-Einstellung und Sichtbarkeit. Ist der Task inzwischen gelöscht, wird der Job verworfen (`deleteWhenMissingModels`).

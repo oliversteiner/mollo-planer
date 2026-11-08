@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Support\AppSettings;
 use App\Support\StrongAuthentication;
 use Closure;
 use Illuminate\Http\Request;
@@ -11,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Locks the GraphQL route for logged-in users whose session is not strongly
  * authenticated. Guests pass through; @guard rejects them per field.
+ * Without lock while an admin has switched two-factor authentication off
+ * (App\Support\AppSettings, never in production).
  *
  * The response is a GraphQL error with extensions.code:
  * - SECOND_FACTOR_SETUP_REQUIRED: no 2FA app and no passkey yet, the
@@ -28,7 +31,7 @@ class EnsureStrongAuthentication
     {
         $user = $request->user();
 
-        if (! $user instanceof User || StrongAuthentication::isStrong($request)) {
+        if (! $user instanceof User || StrongAuthentication::isStrong($request) || ! AppSettings::twoFactorEnabled()) {
             return $next($request);
         }
 

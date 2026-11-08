@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Support\AppSettings;
 use App\Support\StrongAuthentication;
 use Closure;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
  * - Setup routes: allowed while the user has no factor yet (first setup
  *   after the invitation) or in a strongly authenticated session.
  * - Change routes: only in a strongly authenticated session.
+ * - Both open while an admin has switched two-factor authentication off.
  */
 class ProtectAccountSecurityRoutes
 {
@@ -45,7 +47,7 @@ class ProtectAccountSecurityRoutes
         $route = $request->route();
         $user = $request->user();
 
-        if ($route === null || ! $user instanceof User || StrongAuthentication::isStrong($request)) {
+        if ($route === null || ! $user instanceof User || StrongAuthentication::isStrong($request) || ! AppSettings::twoFactorEnabled()) {
             return $next($request);
         }
 
