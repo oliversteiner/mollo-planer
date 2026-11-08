@@ -14,7 +14,7 @@
   },
   "settings": {
     "language": "Language",
-    "colorMode": "Light or dark",
+    "colorMode": "Appearance",
     "project": {
       "title": "Project",
       "saved": "Project saved."

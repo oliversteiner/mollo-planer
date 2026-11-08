@@ -47,13 +47,18 @@ const currentLocale = computed({
               :loading="savingNotifications"
               @update:model-value="setNotifications"
             />
-            <UFormField :label="t('settings.language')">
-              <ULocaleSelect
-                v-model="currentLocale"
-                :locales="[uiLocales.de, uiLocales.en]"
-                class="w-48"
-              />
-            </UFormField>
+            <div class="flex flex-wrap gap-4">
+              <UFormField :label="t('settings.language')">
+                <ULocaleSelect
+                  v-model="currentLocale"
+                  :locales="[uiLocales.de, uiLocales.en]"
+                  class="w-48"
+                />
+              </UFormField>
+              <UFormField :label="t('settings.colorMode')">
+                <UColorModeSelect class="w-48" />
+              </UFormField>
+            </div>
           </div>
         </UCard>
 

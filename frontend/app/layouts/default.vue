@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
-import * as uiLocales from '@nuxt/ui/locale'
 
-const { t, locale, setLocale } = useI18n()
+const { t } = useI18n()
 const { viewer, logout } = useViewer()
 
 const userMenu = computed<DropdownMenuItem[][]>(() => [
@@ -23,8 +22,6 @@ const items = computed<NavigationMenuItem[][]>(() => [[
     ]
   : []])
 
-const locales = [uiLocales.de, uiLocales.en]
-
 /** Keyboard users jump past the sidebar to the content of the page. */
 function skipToContent(): void {
   const body = document.querySelector<HTMLElement>('[data-slot="body"]')
@@ -34,11 +31,6 @@ function skipToContent(): void {
     body.focus()
   }
 }
-
-const currentLocale = computed({
-  get: () => locale.value,
-  set: (code: string) => setLocale(code as 'de' | 'en')
-})
 </script>
 
 <template>
@@ -71,7 +63,7 @@ const currentLocale = computed({
       </template>
 
       <template #footer="{ collapsed }">
-        <div class="flex w-full flex-col gap-2">
+        <div class="w-full">
           <UDropdownMenu
             v-if="viewer"
             :items="userMenu"
@@ -95,23 +87,6 @@ const currentLocale = computed({
               >{{ viewer.name }}</span>
             </UButton>
           </UDropdownMenu>
-
-          <div
-            v-if="!collapsed"
-            class="flex w-full items-center gap-2"
-          >
-            <ULocaleSelect
-              v-model="currentLocale"
-              :locales="locales"
-              :aria-label="t('settings.language')"
-              class="flex-1"
-            />
-            <UColorModeButton :aria-label="t('settings.colorMode')" />
-          </div>
-          <UColorModeButton
-            v-else
-            :aria-label="t('settings.colorMode')"
-          />
         </div>
       </template>
     </UDashboardSidebar>
