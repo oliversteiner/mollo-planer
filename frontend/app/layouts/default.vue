@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
 import * as uiLocales from '@nuxt/ui/locale'
 
 const { t, locale, setLocale } = useI18n()
+const { viewer, logout } = useViewer()
+
+const userMenu = computed<DropdownMenuItem[][]>(() => [
+  [{ label: viewer.value?.email ?? '', type: 'label' }],
+  [{ label: t('auth.logout'), icon: 'i-fadl-right-from-bracket', onSelect: () => logout() }]
+])
 
 const items = computed<NavigationMenuItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/' }
@@ -41,22 +47,48 @@ const currentLocale = computed({
       </template>
 
       <template #footer="{ collapsed }">
-        <div
-          v-if="!collapsed"
-          class="flex w-full items-center gap-2"
-        >
-          <ULocaleSelect
-            v-model="currentLocale"
-            :locales="locales"
-            :aria-label="t('settings.language')"
-            class="flex-1"
+        <div class="flex w-full flex-col gap-2">
+          <UDropdownMenu
+            v-if="viewer"
+            :items="userMenu"
+            :content="{ align: 'start', side: 'top' }"
+          >
+            <UButton
+              color="neutral"
+              variant="ghost"
+              :aria-label="t('auth.userMenu')"
+              class="w-full"
+              :square="collapsed"
+            >
+              <UAvatar
+                :src="viewer.avatarUrl ?? undefined"
+                :alt="viewer.name"
+                size="xs"
+              />
+              <span
+                v-if="!collapsed"
+                class="truncate"
+              >{{ viewer.name }}</span>
+            </UButton>
+          </UDropdownMenu>
+
+          <div
+            v-if="!collapsed"
+            class="flex w-full items-center gap-2"
+          >
+            <ULocaleSelect
+              v-model="currentLocale"
+              :locales="locales"
+              :aria-label="t('settings.language')"
+              class="flex-1"
+            />
+            <UColorModeButton :aria-label="t('settings.colorMode')" />
+          </div>
+          <UColorModeButton
+            v-else
+            :aria-label="t('settings.colorMode')"
           />
-          <UColorModeButton :aria-label="t('settings.colorMode')" />
         </div>
-        <UColorModeButton
-          v-else
-          :aria-label="t('settings.colorMode')"
-        />
       </template>
     </UDashboardSidebar>
 

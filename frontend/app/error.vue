@@ -4,7 +4,13 @@ import type { NuxtError } from '#app'
 const props = defineProps<{ error: NuxtError }>()
 const { t } = useI18n()
 
-const message = computed(() => (props.error.statusCode === 404 ? t('error.notFound') : t('error.generic')))
+const message = computed(() => {
+  if (props.error.statusCode === 404) {
+    return t('error.notFound')
+  }
+
+  return props.error.statusCode === 503 ? t('error.unavailable') : t('error.generic')
+})
 </script>
 
 <template>

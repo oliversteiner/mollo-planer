@@ -17,12 +17,65 @@
   "error": {
     "notFound": "This page does not exist.",
     "generic": "Something went wrong.",
-    "backHome": "Back to the dashboard"
+    "backHome": "Back to the dashboard",
+    "unavailable": "The server cannot be reached right now."
   },
   "apiError": {
     "unauthorized": "You are not allowed to do this.",
     "csrf": "Your session had expired. Please try again.",
     "network": "The server cannot be reached.",
     "unknown": "The request failed."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "logout": "Sign out",
+    "userMenu": "User menu",
+    "backToLogin": "Back to sign in",
+    "login": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "forgot": "Forgot your password?"
+    },
+    "challenge": {
+      "title": "Second factor",
+      "codeHint": "Enter the 6-digit code from your authenticator app.",
+      "recoveryHint": "Enter one of your recovery codes. Each works only once.",
+      "code": "Code",
+      "recoveryCode": "Recovery code",
+      "submit": "Confirm",
+      "useRecovery": "Use a recovery code",
+      "useCode": "Use the code from the app",
+      "back": "Back"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "description": "We will send you a link to set a new password.",
+      "submit": "Send link",
+      "sent": "If we know this address, the link is on its way. It is valid for 60 minutes."
+    },
+    "setPassword": {
+      "password": "New password",
+      "confirmation": "Repeat password",
+      "rules": "At least 8 characters",
+      "invalidLink": "The link is incomplete. Please open it again from the email."
+    },
+    "reset": {
+      "title": "Set a new password",
+      "description": "Choose a new password for your account.",
+      "submit": "Save password",
+      "done": "Your password has been changed. Sign in with it now."
+    },
+    "invitation": {
+      "title": "Accept invitation",
+      "description": "Welcome! Choose a password for your account.",
+      "submit": "Activate account",
+      "done": "Your account is ready. Sign in now."
+    },
+    "setup": {
+      "title": "Secure your account",
+      "description": "Before you start, set up a second factor: an authenticator app or a passkey.",
+      "comingSoon": "Setting it up in the frontend follows in a later step."
+    }
   }
 }

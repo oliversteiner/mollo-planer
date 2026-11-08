@@ -116,3 +116,35 @@ export function classifyRestError(status: number | null, body: unknown): ApiErro
     extensions: { code: rest.code, validation: rest.errors }
   }])
 }
+
+interface ApolloErrorLike {
+  graphQLErrors?: readonly GraphQLErrorLike[]
+  networkError?: (Error & { statusCode?: number, result?: unknown }) | null
+}
+
+/**
+ * Same sorting for an Apollo error (from a query, a mutation or the error
+ * link). The lock answers with HTTP 403 and GraphQL errors in the body.
+ */
+export function classifyApolloError(error: ApolloErrorLike): ApiError {
+  const network = error.networkError ?? null
+  const status = network ? (network.statusCode ?? 0) : null
+  const result = network?.result
+  const bodyErrors = result && typeof result === 'object' && 'errors' in result && Array.isArray(result.errors)
+    ? result.errors as GraphQLErrorLike[]
+    : []
+
+  return classifyApiError(status, error.graphQLErrors?.length ? [...error.graphQLErrors] : bodyErrors)
+}
+
+/**
+ * Only paths inside this app are allowed as target after the login, so a
+ * link like /login?redirect=https://evil.example cannot send people away.
+ */
+export function safeRedirect(target: unknown, fallback = '/'): string {
+  if (typeof target !== 'string' || !target.startsWith('/') || target.startsWith('//') || target.startsWith('/\\')) {
+    return fallback
+  }
+
+  return target
+}

@@ -5,7 +5,7 @@ import { onError } from '@apollo/client/link/error'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import createUploadLink from 'apollo-upload-client/createUploadLink.mjs'
 import type { ApiError } from '~/utils/api'
-import { classifyApiError, readCookie } from '~/utils/api'
+import { classifyApolloError, classifyRestError, readCookie } from '~/utils/api'
 
 /**
  * Connection to the backend (separate origin, cookie session via Sanctum):
@@ -52,6 +52,8 @@ export default defineNuxtPlugin({
       }
     }
 
+    // Validation errors (422) stay with the form that sent the request;
+    // everything else goes to $apiErrors.
     const backend = $fetch.create({
       baseURL: apiBase,
       credentials: 'include',
@@ -59,6 +61,13 @@ export default defineNuxtPlugin({
         await ensureCsrfCookie()
         for (const [key, value] of Object.entries(headers())) {
           options.headers.set(key, value)
+        }
+      },
+      onResponseError({ response }) {
+        const error = classifyRestError(response.status, response._data)
+
+        if (error.kind !== 'validation') {
+          apiErrors.trigger(error)
         }
       }
     })
@@ -69,12 +78,13 @@ export default defineNuxtPlugin({
       return { headers: { ...current, ...headers() } }
     })
 
-    const errorLink = onError(({ graphQLErrors, networkError }) => {
-      const status = networkError && 'statusCode' in networkError ? networkError.statusCode : (networkError ? 0 : null)
-      const body = networkError && 'result' in networkError ? networkError.result : null
-      const bodyErrors = body && typeof body === 'object' && 'errors' in body && Array.isArray(body.errors) ? body.errors : []
-
-      apiErrors.trigger(classifyApiError(status, graphQLErrors?.length ? [...graphQLErrors] : bodyErrors))
+    // Queries that handle their errors themselves pass
+    // context: { silentErrors: true } (for example the viewer check of the
+    // route middleware).
+    const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+      if (!operation.getContext().silentErrors) {
+        apiErrors.trigger(classifyApolloError({ graphQLErrors, networkError }))
+      }
     })
 
     const uploadLink = createUploadLink({

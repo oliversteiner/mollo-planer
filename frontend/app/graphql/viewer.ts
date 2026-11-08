@@ -1,7 +1,7 @@
 import { graphql } from '~/graphql/generated'
 
 /** The logged-in user and the app settings the shell needs. */
-export const ViewerQuery = graphql(`
+export const viewerQuery = graphql(`
   query Viewer {
     me {
       id

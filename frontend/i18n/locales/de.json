@@ -17,12 +17,65 @@
   "error": {
     "notFound": "Diese Seite gibt es nicht.",
     "generic": "Etwas ist schiefgelaufen.",
-    "backHome": "Zum Dashboard"
+    "backHome": "Zum Dashboard",
+    "unavailable": "Der Server ist gerade nicht erreichbar."
   },
   "apiError": {
     "unauthorized": "Dafür fehlt dir die Berechtigung.",
     "csrf": "Die Sitzung war abgelaufen. Bitte versuche es nochmals.",
     "network": "Der Server ist nicht erreichbar.",
     "unknown": "Die Anfrage ist fehlgeschlagen."
+  },
+  "auth": {
+    "email": "E-Mail",
+    "password": "Passwort",
+    "logout": "Abmelden",
+    "userMenu": "Benutzermenü",
+    "backToLogin": "Zurück zur Anmeldung",
+    "login": {
+      "title": "Anmelden",
+      "submit": "Anmelden",
+      "forgot": "Passwort vergessen?"
+    },
+    "challenge": {
+      "title": "Zweiter Faktor",
+      "codeHint": "Gib den 6-stelligen Code aus deiner Authenticator-App ein.",
+      "recoveryHint": "Gib einen deiner Wiederherstellungscodes ein. Jeder gilt nur einmal.",
+      "code": "Code",
+      "recoveryCode": "Wiederherstellungscode",
+      "submit": "Bestätigen",
+      "useRecovery": "Wiederherstellungscode verwenden",
+      "useCode": "Code aus der App verwenden",
+      "back": "Zurück"
+    },
+    "forgot": {
+      "title": "Passwort vergessen",
+      "description": "Wir schicken dir einen Link, mit dem du ein neues Passwort setzen kannst.",
+      "submit": "Link schicken",
+      "sent": "Wenn die Adresse bei uns bekannt ist, ist der Link unterwegs. Er gilt 60 Minuten."
+    },
+    "setPassword": {
+      "password": "Neues Passwort",
+      "confirmation": "Passwort wiederholen",
+      "rules": "Mindestens 8 Zeichen",
+      "invalidLink": "Der Link ist unvollständig. Bitte öffne ihn nochmals aus der E-Mail."
+    },
+    "reset": {
+      "title": "Neues Passwort setzen",
+      "description": "Wähle ein neues Passwort für dein Konto.",
+      "submit": "Passwort speichern",
+      "done": "Dein Passwort ist geändert. Melde dich jetzt damit an."
+    },
+    "invitation": {
+      "title": "Einladung annehmen",
+      "description": "Willkommen! Wähle ein Passwort für dein Konto.",
+      "submit": "Konto aktivieren",
+      "done": "Dein Konto ist bereit. Melde dich jetzt an."
+    },
+    "setup": {
+      "title": "Konto absichern",
+      "description": "Bevor du loslegen kannst, richtest du einen zweiten Faktor ein: eine Authenticator-App oder einen Passkey.",
+      "comingSoon": "Die Einrichtung im Frontend folgt in einem späteren Schritt."
+    }
   }
 }

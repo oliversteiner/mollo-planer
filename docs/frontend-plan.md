@@ -33,6 +33,13 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt. Ergänzt `backend-plan.md` und `
 - **Tests:** Vitest mit `@nuxt/test-utils` für Composables und Komponenten (Rechte-Anzeige, RichText-Whitelist, Fehlerbehandlung der Sperre). Ende-zu-Ende-Tests (Playwright) gegen das Backend mit Demo-Daten später.
 - **Qualität:** `npm run lint` (ESLint, Stil aus dem Template), `npm run typecheck`, beides im CI.
 
+## Anmeldung (umgesetzt in Schritt 4)
+- Öffentliche Seiten tragen `definePageMeta({ public: true })` (Layout `auth`): `/login`, `/forgot-password`, `/reset-password`, `/invitation`. Alle anderen schützt `middleware/auth.global.ts`: Sie fragt einmal `viewerQuery` (`me`, `appSettings.twoFactorEnabled`) und leitet sonst um (nicht angemeldet → `/login?redirect=…`, kein zweiter Faktor → `/setup-security`, Backend weg → Fehlerseite 503).
+- `useViewer()` hält die angemeldete Person für die ganze App, `logout()` beendet die Sitzung und leert den Apollo-Cache.
+- Login: E-Mail und Passwort (`POST /login`); antwortet das Backend mit `two_factor: true`, folgt der 6-stellige Code (`UPinInput` mit `otp`) oder ein Wiederherstellungscode (`POST /two-factor-challenge`). Danach zurück zur gewünschten Seite; `safeRedirect()` lässt nur Pfade dieser App zu.
+- Fehlermeldungen des Servers erscheinen am Feld (`useServerForm()`); andere Fehler meldet das Plugin.
+- `/setup-security` ist bis Schritt 10 ein Platzhalter mit Abmelden.
+
 ## Seiten
 | Route | Inhalt |
 |---|---|

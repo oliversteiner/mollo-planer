@@ -71,7 +71,7 @@ Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm 
 - [x] 1. Einrichtung (npm, Template aufräumen, SPA, i18n, Layout, CI)
 - [x] 2. Font Awesome
 - [x] 3. API-Anbindung (Apollo, Codegen)
-- [ ] 4. Anmeldung
+- [x] 4. Anmeldung
 - [ ] 5. Dashboard und Projektliste
 - [ ] 6. Projekt: Milestones und ToDos
 - [ ] 7. RichText und Icon-Picker

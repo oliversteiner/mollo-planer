@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyApiError, classifyRestError, readCookie, SETUP_REQUIRED, STRONG_AUTH_REQUIRED } from '../../app/utils/api'
+import { classifyApiError, classifyApolloError, classifyRestError, readCookie, safeRedirect, SETUP_REQUIRED, STRONG_AUTH_REQUIRED } from '../../app/utils/api'
 
 describe('readCookie', () => {
   it('returns the URL-decoded value, as Laravel expects it in X-XSRF-TOKEN', () => {
@@ -51,5 +51,33 @@ describe('classifyRestError', () => {
   it('copes with an empty or non-JSON body', () => {
     expect(classifyRestError(401, null).kind).toBe('unauthenticated')
     expect(classifyRestError(500, 'Server Error').kind).toBe('unknown')
+  })
+})
+
+describe('classifyApolloError', () => {
+  it('reads the lock from the body of an HTTP 403 network error', () => {
+    const networkError = Object.assign(new Error('Response not successful'), {
+      statusCode: 403,
+      result: { errors: [{ message: 'Bitte richte zuerst einen zweiten Faktor ein.', extensions: { code: SETUP_REQUIRED } }] }
+    })
+
+    expect(classifyApolloError({ networkError }).kind).toBe('setup-required')
+  })
+
+  it('prefers GraphQL errors and treats a network error without status as offline', () => {
+    expect(classifyApolloError({ graphQLErrors: [{ message: 'Unauthenticated.' }] }).kind).toBe('unauthenticated')
+    expect(classifyApolloError({ networkError: new Error('Failed to fetch') }).kind).toBe('network')
+  })
+})
+
+describe('safeRedirect', () => {
+  it('keeps paths inside the app', () => {
+    expect(safeRedirect('/projects/1/kanban?task=2')).toBe('/projects/1/kanban?task=2')
+  })
+
+  it('refuses external or odd targets', () => {
+    for (const target of ['https://evil.example', '//evil.example', '/\\evil.example', 'projects', undefined, ['/a']]) {
+      expect(safeRedirect(target)).toBe('/')
+    }
   })
 })
