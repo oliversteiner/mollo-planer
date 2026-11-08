@@ -2,6 +2,7 @@ import type { ApolloLink } from '@apollo/client/core'
 import { ApolloClient, InMemoryCache, from } from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
+import { fromPromise } from '@apollo/client/link/utils'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import createUploadLink from 'apollo-upload-client/createUploadLink.mjs'
 import type { ApiError } from '~/utils/api'
@@ -54,16 +55,30 @@ export default defineNuxtPlugin({
 
     // Validation errors (422) stay with the form that sent the request;
     // everything else goes to $apiErrors.
+    //
+    // 419 (CSRF token mismatch) happens when the XSRF-TOKEN cookie in the
+    // browser belongs to a session that no longer exists (expired, or ended
+    // by a logout elsewhere). Then a fresh cookie is fetched and the request
+    // is sent once more; only if that fails too, the user sees a message.
     const backend = $fetch.create({
       baseURL: apiBase,
       credentials: 'include',
+      retry: 1,
+      retryDelay: 0,
+      retryStatusCodes: [419],
       async onRequest({ options }) {
         await ensureCsrfCookie()
         for (const [key, value] of Object.entries(headers())) {
           options.headers.set(key, value)
         }
       },
-      onResponseError({ response }) {
+      async onResponseError({ response, options }) {
+        if (response.status === 419 && Number(options.retry ?? 0) > 0) {
+          await ensureCsrfCookie(true)
+
+          return
+        }
+
         const error = classifyRestError(response.status, response._data)
 
         if (error.kind !== 'validation') {
@@ -81,7 +96,16 @@ export default defineNuxtPlugin({
     // Queries that handle their errors themselves pass
     // context: { silentErrors: true } (for example the viewer check of the
     // route middleware).
-    const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+    const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+      const status = networkError && 'statusCode' in networkError ? networkError.statusCode : null
+
+      // Same as for REST: a stale CSRF cookie gets replaced, then one retry.
+      if (status === 419 && !operation.getContext().csrfRetried) {
+        operation.setContext({ csrfRetried: true })
+
+        return fromPromise(ensureCsrfCookie(true)).flatMap(() => forward(operation))
+      }
+
       if (!operation.getContext().silentErrors) {
         apiErrors.trigger(classifyApolloError({ graphQLErrors, networkError }))
       }
