@@ -5,7 +5,7 @@ import * as uiLocales from '@nuxt/ui/locale'
 const { t, locale, setLocale } = useI18n()
 
 const items = computed<NavigationMenuItem[]>(() => [
-  { label: t('nav.dashboard'), icon: 'i-lucide-layout-dashboard', to: '/' }
+  { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/' }
 ])
 
 const locales = [uiLocales.de, uiLocales.en]

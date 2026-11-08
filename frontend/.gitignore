@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# Font Awesome Pro token (local only)
+.npmrc

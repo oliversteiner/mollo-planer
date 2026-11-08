@@ -29,6 +29,15 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      # Font Awesome Pro comes from a private registry; the token is the
+      # repository secret FONTAWESOME_NPM_AUTH_TOKEN, never a file in git.
+      - name: Font Awesome registry
+        run: |
+          echo "@fortawesome:registry=https://npm.fontawesome.com/" > .npmrc
+          echo "//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" >> .npmrc
+        env:
+          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
       - name: Install dependencies
         run: npm ci
 
