@@ -21,6 +21,7 @@ Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code 
 ## Befehle
 Alle Befehle in WSL im Ordner `backend/` ausführen:
 - `php artisan test` (Tests)
+- `composer test:mariadb` (dieselben Tests gegen MariaDB, Datenbank `projektverwaltung_test`; vor Commits, die Abfragen, Sperren oder Migrationen ändern)
 - `php artisan migrate`
 - `php artisan lighthouse:validate-schema` (Schema prüfen)
 - `./vendor/bin/pint` (Code-Stil)
@@ -55,4 +56,4 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - [x] 9. Authentifizierung (Fortify, Passkeys, 2FA-Sperre)
 - [x] 10. Notifications
 - [x] 11. Artisan-Befehl erster Admin
-- [ ] 12. Tests
+- [x] 12. Tests

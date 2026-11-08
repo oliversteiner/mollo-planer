@@ -8,6 +8,7 @@ use App\Notifications\TaskAssigned;
 use App\Notifications\TaskCommented;
 use App\Services\ProjectMembership;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Who gets which mail, in which language, and that it is queued after commit.
@@ -173,6 +174,36 @@ class TaskNotificationTest extends GraphQLTestCase
 
         $this->assertStringNotContainsString('href="https://evil.example"', $html);
         $this->assertStringContainsString('[Klick](https://evil.example)', $html);
+    }
+
+    /**
+     * Every free-text value in a task mail is escaped: project, milestone,
+     * todo and task titles, the actor and the recipient.
+     */
+    #[DataProvider('taskNotifications')]
+    public function test_html_in_titles_and_names_is_escaped(string $notification): void
+    {
+        $script = '<script>alert("x")</script>';
+        $this->project->update(['name' => 'Projekt '.$script]);
+        $this->milestone->update(['title' => 'Milestone '.$script]);
+        $this->todo->update(['title' => 'ToDo '.$script]);
+        $this->task->update(['title' => 'Task '.$script]);
+        $this->users['member']->update(['name' => 'David '.$script]);
+
+        $html = (string) (new $notification($this->task->fresh(), 'Ben '.$script))
+            ->toMail($this->users['member']->fresh())
+            ->render();
+
+        $this->assertStringNotContainsString('<script>', $html);
+        $this->assertStringContainsString('&lt;script&gt;', $html);
+    }
+
+    /**
+     * @return array<string, array{class-string}>
+     */
+    public static function taskNotifications(): array
+    {
+        return ['assigned' => [TaskAssigned::class], 'commented' => [TaskCommented::class]];
     }
 
     public function test_should_send_checks_again_when_the_queue_runs(): void

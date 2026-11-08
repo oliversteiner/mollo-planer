@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Locale;
 use App\Http\Middleware\EnsureStrongAuthentication;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\UserInvited;
+use App\Services\UserInvitation;
 use App\Support\StrongAuthentication;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\Notification as MailNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
@@ -20,6 +23,7 @@ use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Events\PasskeyRegistered;
 use Laravel\Passkeys\Events\PasskeyVerified;
 use Laravel\Passkeys\Passkey;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
@@ -300,6 +304,56 @@ class AuthenticationFlowTest extends TestCase
             return $notification instanceof ShouldQueue
                 && str_starts_with($notification->toMail($user)->actionUrl, self::FRONTEND.'/reset-password?token=');
         });
+    }
+
+    /**
+     * There is no "resend invitation": after the 7 days the invited person
+     * sets the password with "forgot password".
+     */
+    public function test_after_an_expired_invitation_forgot_password_sets_the_password(): void
+    {
+        Notification::fake();
+        $user = app(UserInvitation::class)->invite('Fritz', 'fritz@example.com', false, Locale::DE);
+        $this->travel(8)->days();
+
+        $this->postJson('/forgot-password', ['email' => $user->email])->assertOk();
+        $token = null;
+        Notification::assertSentTo($user, ResetPasswordNotification::class, function (ResetPasswordNotification $notification) use (&$token) {
+            $token = $notification->token;
+
+            return true;
+        });
+
+        $this->postJson('/reset-password', [
+            'token' => $token, 'email' => $user->email, 'password' => self::PASSWORD, 'password_confirmation' => self::PASSWORD,
+        ])->assertOk();
+
+        $this->login($user)->assertOk()->assertJsonPath('two_factor', false);
+    }
+
+    /**
+     * @param  \Closure(): MailNotification  $notification
+     */
+    #[DataProvider('accountMails')]
+    public function test_html_in_the_name_is_escaped_in_account_mails(\Closure $notification): void
+    {
+        $user = $this->user(['name' => 'Fritz <script>alert("x")</script>']);
+
+        $html = (string) $notification()->toMail($user)->render();
+
+        $this->assertStringNotContainsString('<script>', $html);
+        $this->assertStringContainsString('&lt;script&gt;', $html);
+    }
+
+    /**
+     * @return array<string, array{\Closure(): MailNotification}>
+     */
+    public static function accountMails(): array
+    {
+        return [
+            'invitation' => [fn () => new UserInvited('token')],
+            'password reset' => [fn () => new ResetPasswordNotification('token')],
+        ];
     }
 
     // ─── Language, CORS, limits ──────────────────────────────────

@@ -19,7 +19,7 @@ class DatabaseSchemaTest extends TestCase
     public static function expectedColumns(): array
     {
         return [
-            'users' => ['users', ['is_admin', 'notify_by_email', 'two_factor_secret', 'two_factor_confirmed_at']],
+            'users' => ['users', ['is_admin', 'notify_by_email', 'avatar_path', 'two_factor_secret', 'two_factor_confirmed_at']],
             'projects' => ['projects', ['name', 'description', 'locale']],
             'project_user' => ['project_user', ['project_id', 'user_id', 'role']],
             'milestones' => ['milestones', ['project_id', 'title', 'description', 'icon', 'due_date', 'status']],
@@ -54,7 +54,7 @@ class DatabaseSchemaTest extends TestCase
 
     public function test_comments_are_deleted_with_task_and_kept_without_author(): void
     {
-        DB::statement('PRAGMA foreign_keys = ON');
+        Schema::enableForeignKeyConstraints();
 
         $userId = DB::table('users')->insertGetId(['name' => 'A', 'email' => 'a@example.com', 'password' => 'x']);
         $projectId = DB::table('projects')->insertGetId(['name' => 'P']);

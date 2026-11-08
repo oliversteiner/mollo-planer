@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Nuwave\Lighthouse\Http\Middleware\AttemptAuthentication;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class StrongAuthenticationTest extends TestCase
@@ -41,6 +42,30 @@ class StrongAuthenticationTest extends TestCase
     {
         $this->assertGreaterThan(0, config('lighthouse.security.max_query_depth'));
         $this->assertGreaterThan(0, config('lighthouse.security.max_query_complexity'));
+    }
+
+    /**
+     * Introspection (the whole schema) is off in production unless
+     * LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION says otherwise.
+     */
+    #[TestWith(['production', true])]
+    #[TestWith(['local', false])]
+    public function test_introspection_is_disabled_only_in_production(string $environment, bool $disabled): void
+    {
+        $original = $_SERVER['APP_ENV'] ?? null;
+        $_SERVER['APP_ENV'] = $environment;
+
+        try {
+            $config = require config_path('lighthouse.php');
+        } finally {
+            if ($original === null) {
+                unset($_SERVER['APP_ENV']);
+            } else {
+                $_SERVER['APP_ENV'] = $original;
+            }
+        }
+
+        $this->assertSame($disabled, (bool) $config['security']['disable_introspection']);
     }
 
     public function test_user_without_any_factor_is_sent_to_setup(): void
