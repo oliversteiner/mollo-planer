@@ -30,6 +30,7 @@ type Documents = {
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": typeof types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
+    "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": typeof types.SecurityDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n": typeof types.KanbanDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectMembersDocument,
     "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.TaskDetailDocument,
@@ -60,6 +61,7 @@ const documents: Documents = {
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      viewerRole\n      viewerAbilities\n    }\n  }\n": types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
+    "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": types.SecurityDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        position\n        dueDate\n        commentCount\n        assignee { id name avatarUrl }\n        todo { id title }\n      }\n    }\n  }\n": types.KanbanDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectMembersDocument,
     "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      position\n      dueDate\n      assignee { id name avatarUrl }\n      todo {\n        id\n        title\n        milestone { id title }\n      }\n      comments {\n        id\n        body\n        createdAt\n        updatedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": types.TaskDetailDocument,
@@ -152,6 +154,10 @@ export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    projec
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"): (typeof documents)["\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

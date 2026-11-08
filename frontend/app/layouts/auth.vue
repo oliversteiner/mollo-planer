@@ -29,5 +29,6 @@ const currentLocale = computed({
         <slot />
       </div>
     </main>
+    <PasswordPromptModal />
   </div>
 </template>

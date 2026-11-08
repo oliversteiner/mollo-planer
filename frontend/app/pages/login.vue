@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { safeRedirect } from '~/utils/api'
 
 definePageMeta({ layout: 'auth', public: true })
@@ -16,6 +17,26 @@ const credentials = reactive({ email: '', password: '' })
 const code = ref<string[]>([])
 const recoveryCode = ref('')
 const useRecoveryCode = ref(false)
+
+const { loginWithPasskey } = useSecurity()
+const toast = useToast()
+const passkeysSupported = browserSupportsWebAuthn()
+const passkeyPending = ref(false)
+
+/** One step: the browser asks for PIN or biometrics, no code needed. */
+async function submitPasskey(): Promise<void> {
+  passkeyPending.value = true
+  try {
+    await loginWithPasskey()
+    await finish()
+  } catch (error) {
+    if (error instanceof Error && ['NotAllowedError', 'AbortError'].includes(error.name)) {
+      toast.add({ title: t('security.passkeys.cancelled'), color: 'warning' })
+    }
+  } finally {
+    passkeyPending.value = false
+  }
+}
 
 /** After a successful login: check the session and go where the user wanted. */
 async function finish(): Promise<void> {
@@ -105,6 +126,19 @@ function backToCredentials(): void {
         :loading="pending"
         block
       />
+
+      <template v-if="passkeysSupported">
+        <USeparator :label="t('auth.login.or')" />
+        <UButton
+          icon="i-fadl-fingerprint"
+          :label="t('auth.login.passkey')"
+          color="neutral"
+          variant="outline"
+          :loading="passkeyPending"
+          block
+          @click="submitPasskey"
+        />
+      </template>
 
       <div class="text-center text-sm">
         <ULink

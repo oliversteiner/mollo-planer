@@ -18,6 +18,15 @@ class UserPolicy
         return ProjectPermissions::allowsInAnyProject($user, ProjectAbility::MEMBERS_MANAGE);
     }
 
+    /**
+     * Whether someone has a second factor (2FA app, passkey): the person
+     * themselves and admins (for resetting it). Others must not learn it.
+     */
+    public function viewSecurity(User $user, User $target): bool
+    {
+        return $user->is($target) || $user->is_admin;
+    }
+
     public function create(User $user): bool
     {
         return $user->is_admin;

@@ -162,6 +162,14 @@ enum OrderByRelationWithColumnAggregateFunction {
  "Sum."
  SUM
 }
+"Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"
+type Passkey {
+ createdAt: DateTime!
+ id: ID!
+ "null, solange der Passkey noch nie benutzt wurde"
+ lastUsedAt: DateTime
+ name: String!
+}
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
 type Progress {
  done: Int!
@@ -346,13 +354,19 @@ type User {
  avatarUrl: String
  createdAt: DateTime!
  email: String!
+ "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
+ hasPasskey: Boolean
  id: ID!
  "Globale Admin-Rolle, unabhängig von Projekten"
  isAdmin: Boolean!
  name: String!
  "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
  notifyByEmail: Boolean!
+ "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
+ passkeys: [Passkey!]
  "Projekte dieser Person, soweit du sie sehen darfst"
  projects: [Project!]!
+ "Hat die Person eine bestätigte 2FA-App? Nur für dich selbst und für Admins, sonst null."
+ twoFactorConfirmed: Boolean
 }
 

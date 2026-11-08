@@ -154,11 +154,26 @@ type User {
   notifyByEmail: Boolean! @rename(attribute: "notify_by_email")
   "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
   avatarUrl: String @rename(attribute: "avatar_url")
+  "Hat die Person eine bestätigte 2FA-App? Nur für dich selbst und für Admins, sonst null."
+  twoFactorConfirmed: Boolean @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@twoFactorConfirmed")
+  "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
+  hasPasskey: Boolean @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@hasPasskey")
+  "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
+  passkeys: [Passkey!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@passkeys")
   "Projekte dieser Person, soweit du sie sehen darfst"
   projects: [Project!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserProjects")
   "Zugewiesene Tasks, soweit du sie sehen darfst"
   assignedTasks: [Task!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserTasks")
   createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"
+type Passkey {
+  id: ID!
+  name: String!
+  createdAt: DateTime! @rename(attribute: "created_at")
+  "null, solange der Passkey noch nie benutzt wurde"
+  lastUsedAt: DateTime @rename(attribute: "last_used_at")
 }
 
 "Ein Projekt mit Mitgliedern und Milestones"

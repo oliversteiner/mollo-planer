@@ -43,7 +43,9 @@
     "login": {
       "title": "Sign in",
       "submit": "Sign in",
-      "forgot": "Forgot your password?"
+      "forgot": "Forgot your password?",
+      "or": "or",
+      "passkey": "Sign in with a passkey"
     },
     "challenge": {
       "title": "Second factor",
@@ -82,8 +84,9 @@
     },
     "setup": {
       "title": "Secure your account",
-      "description": "Before you start, set up a second factor: an authenticator app or a passkey.",
-      "comingSoon": "Setting it up in the frontend follows in a later step."
+      "description": "Before you start, secure your account with a second factor.",
+      "passkey": "Set up a passkey (recommended)",
+      "app": "Set up an authenticator app"
     }
   },
   "projects": {
@@ -268,6 +271,59 @@
       "description": "Emails about new assignments and comments on your tasks.",
       "on": "Notifications switched on.",
       "off": "Notifications switched off."
+    }
+  },
+  "security": {
+    "title": "Security",
+    "required": "To sign in you need a second factor besides your password: an authenticator app or a passkey.",
+    "optional": "Two-factor authentication is currently switched off for this app. You can still set up a second factor.",
+    "active": "Set up",
+    "inactive": "Not set up",
+    "done": "Done",
+    "removed": "Removed.",
+    "removeDescription": "This cannot be undone.",
+    "lastFactor": "It is your last second factor: you will have to set up a new one right away.",
+    "confirmPassword": {
+      "title": "Confirm password",
+      "description": "Please confirm your password before changing the security of your account.",
+      "submit": "Confirm"
+    },
+    "twoFactor": {
+      "title": "Authenticator app",
+      "intro": "With an app such as Google Authenticator, Microsoft Authenticator or 1Password you create a 6-digit code at every sign-in.",
+      "start": "Set up an authenticator app",
+      "scan": "Scan the QR code with your app, then enter the code it shows.",
+      "qrAlt": "QR code for the authenticator app",
+      "manual": "Without a camera: enter this key in the app:",
+      "confirm": "Confirm",
+      "enabled": "The authenticator app is set up.",
+      "remove": "Remove app",
+      "removeTitle": "Remove the authenticator app?"
+    },
+    "recovery": {
+      "keepSafe": "Keep these recovery codes safe. Each replaces the code from the app once, for example when the phone is lost.",
+      "copy": "Copy",
+      "copied": "Codes copied.",
+      "download": "Download",
+      "show": "Show recovery codes",
+      "regenerate": "Create new codes"
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "intro": "With a passkey you sign in without a code, using your device's fingerprint, face recognition or PIN. Best set up two, for example on laptop and phone.",
+      "name": "Name",
+      "nameHint": "To recognise it, for example “Laptop”",
+      "defaultName": "Passkey",
+      "add": "Add passkey",
+      "added": "Passkey added.",
+      "cancelled": "Cancelled.",
+      "exists": "This device already has a passkey for your account.",
+      "unsupported": "This browser does not support passkeys.",
+      "lastUsed": "Last used: {date}",
+      "neverUsed": "Never used yet",
+      "remove": "Remove passkey “{name}”",
+      "removeTitle": "Remove passkey “{name}”?",
+      "secondHint": "Tip: set up a second passkey or the authenticator app in case this device gets lost."
     }
   }
 }

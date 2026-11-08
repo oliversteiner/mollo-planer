@@ -43,7 +43,9 @@
     "login": {
       "title": "Anmelden",
       "submit": "Anmelden",
-      "forgot": "Passwort vergessen?"
+      "forgot": "Passwort vergessen?",
+      "or": "oder",
+      "passkey": "Mit Passkey anmelden"
     },
     "challenge": {
       "title": "Zweiter Faktor",
@@ -82,8 +84,9 @@
     },
     "setup": {
       "title": "Konto absichern",
-      "description": "Bevor du loslegen kannst, richtest du einen zweiten Faktor ein: eine Authenticator-App oder einen Passkey.",
-      "comingSoon": "Die Einrichtung im Frontend folgt in einem späteren Schritt."
+      "description": "Bevor du loslegen kannst, sicherst du dein Konto mit einem zweiten Faktor ab.",
+      "passkey": "Passkey einrichten (empfohlen)",
+      "app": "Authenticator-App einrichten"
     }
   },
   "projects": {
@@ -268,6 +271,59 @@
       "description": "Mails bei neuen Zuweisungen und Kommentaren zu deinen Tasks.",
       "on": "Benachrichtigungen eingeschaltet.",
       "off": "Benachrichtigungen ausgeschaltet."
+    }
+  },
+  "security": {
+    "title": "Sicherheit",
+    "required": "Zum Anmelden brauchst du neben dem Passwort einen zweiten Faktor: eine Authenticator-App oder einen Passkey.",
+    "optional": "Die 2FA ist für diese App gerade ausgeschaltet. Du kannst trotzdem einen zweiten Faktor einrichten.",
+    "active": "Eingerichtet",
+    "inactive": "Nicht eingerichtet",
+    "done": "Fertig",
+    "removed": "Entfernt.",
+    "removeDescription": "Das lässt sich nicht rückgängig machen.",
+    "lastFactor": "Es ist dein letzter zweiter Faktor: Danach musst du sofort einen neuen einrichten.",
+    "confirmPassword": {
+      "title": "Passwort bestätigen",
+      "description": "Bitte bestätige dein Passwort, bevor du die Sicherheit deines Kontos änderst.",
+      "submit": "Bestätigen"
+    },
+    "twoFactor": {
+      "title": "Authenticator-App",
+      "intro": "Mit einer App wie Google Authenticator, Microsoft Authenticator oder 1Password erzeugst du bei jeder Anmeldung einen 6-stelligen Code.",
+      "start": "Authenticator-App einrichten",
+      "scan": "Scanne den QR-Code mit deiner App und gib dann den angezeigten Code ein.",
+      "qrAlt": "QR-Code für die Authenticator-App",
+      "manual": "Ohne Kamera: Gib in der App diesen Schlüssel ein:",
+      "confirm": "Bestätigen",
+      "enabled": "Die Authenticator-App ist eingerichtet.",
+      "remove": "App entfernen",
+      "removeTitle": "Authenticator-App entfernen?"
+    },
+    "recovery": {
+      "keepSafe": "Bewahre diese Wiederherstellungscodes sicher auf. Jeder ersetzt einmal den Code aus der App, zum Beispiel wenn das Telefon verloren geht.",
+      "copy": "Kopieren",
+      "copied": "Codes kopiert.",
+      "download": "Herunterladen",
+      "show": "Wiederherstellungscodes anzeigen",
+      "regenerate": "Neue Codes erzeugen"
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "intro": "Mit einem Passkey meldest du dich ohne Code an, mit Fingerabdruck, Gesichtserkennung oder PIN deines Geräts. Richte am besten zwei ein, zum Beispiel auf Laptop und Telefon.",
+      "name": "Name",
+      "nameHint": "Zum Wiedererkennen, zum Beispiel «Laptop»",
+      "defaultName": "Passkey",
+      "add": "Passkey hinzufügen",
+      "added": "Passkey hinzugefügt.",
+      "cancelled": "Abgebrochen.",
+      "exists": "Auf diesem Gerät gibt es schon einen Passkey für dein Konto.",
+      "unsupported": "Dieser Browser unterstützt keine Passkeys.",
+      "lastUsed": "Zuletzt benutzt: {date}",
+      "neverUsed": "Noch nie benutzt",
+      "remove": "Passkey «{name}» entfernen",
+      "removeTitle": "Passkey «{name}» entfernen?",
+      "secondHint": "Tipp: Richte einen zweiten Passkey oder die Authenticator-App ein, falls dieses Gerät verloren geht."
     }
   }
 }

@@ -96,5 +96,6 @@ const currentLocale = computed({
     </UDashboardSidebar>
 
     <slot />
+    <PasswordPromptModal />
   </UDashboardGroup>
 </template>

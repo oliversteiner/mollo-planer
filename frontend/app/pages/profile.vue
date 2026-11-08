@@ -57,6 +57,7 @@ const currentLocale = computed({
           </div>
         </UCard>
 
+        <ProfileSecurityCard />
         <ProfileDetailsForm />
         <ProfilePasswordForm />
       </div>

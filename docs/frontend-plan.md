@@ -63,10 +63,16 @@ Die Routen `/invitation`, `/reset-password` und `/projects/:id/kanban?task=` sin
 
 Task-Details (Seitenpanel): Titel, Beschreibung (TipTap), Icon, Fälligkeit, Status, Zuweisung, Kommentare (TipTap mit kleinerer Werkzeugleiste, ändern und löschen nach `viewerCanEdit/viewerCanDelete`).
 
+## Sicherheit (umgesetzt in Schritt 10)
+- Profil: Authenticator-App einrichten (QR-Code als Bild, nicht als eingefügtes HTML; Schlüssel zum Abtippen; Bestätigung mit Code; Wiederherstellungscodes zum Kopieren oder Herunterladen), Codes anzeigen und neu erzeugen, App entfernen; Passkeys hinzufügen (Name, WebAuthn mit `@simplewebauthn/browser`) und entfernen. Vor jeder Änderung fragt `useSecurity()` den Bestätigungsstatus ab und bittet bei Bedarf um das Passwort (`PasswordPromptModal`), weil Fortify und die Passkey-Routen eine frische Passwort-Bestätigung verlangen. Beim Entfernen des letzten Faktors warnt die Rückfrage, solange die 2FA Pflicht ist.
+- `/setup-security`: erste Einrichtung (Passkey empfohlen oder App); danach öffnet sich die App, weil der erste Faktor die Sitzung als stark markiert (Backend).
+- Login: „Mit Passkey anmelden“ (ein Schritt, kein Code), wenn der Browser WebAuthn kann.
+- Passkeys verlangen, dass die App unter `http://localhost:3000` läuft (Relying-Party-ID `localhost`, erlaubter Ursprung im Backend), nicht unter `127.0.0.1`.
+
 ## Backend-Ergänzungen (bestätigt, ändern das Schema)
-- `User.passkeys: [Passkey!]` (id, name, createdAt, lastUsedAt), nur für die Person selbst: Die Profilseite muss die eigenen Passkeys anzeigen; heute gibt es nur das Löschen (`DELETE /user/passkeys/{id}`).
-- `User.twoFactorConfirmed: Boolean!`, nur für die Person selbst und Admins: Profil und Einrichtung müssen wissen, ob eine 2FA-App bestätigt ist.
-- Befehl bzw. Test, der `frontend/graphql/schema.graphql` aus `lighthouse:print-schema` erzeugt und prüft, dass es aktuell ist.
+- `User.passkeys: [Passkey!]` (id, name, createdAt, lastUsedAt), nur für die Person selbst, sonst null (umgesetzt in Schritt 10).
+- `User.twoFactorConfirmed: Boolean` und `User.hasPasskey: Boolean`, nur für die Person selbst und Admins, sonst null (deshalb nullbar statt `Boolean!`; `hasPasskey` zusätzlich für die Benutzerverwaltung der Admins). Geregelt in `UserPolicy::viewSecurity` (umgesetzt in Schritt 10).
+- Befehl bzw. Test, der `frontend/graphql/schema.graphql` aus `lighthouse:print-schema` erzeugt und prüft, dass es aktuell ist (umgesetzt in Schritt 3).
 
 ## Reihenfolge beim Bauen
 1. **Einrichtung:** npm statt pnpm, Template aufräumen (Demo-Inhalte, GitHub-Links), SPA-Modus, i18n de/en, Layout mit Seitenleiste (Nuxt UI Dashboard), Farb-Modus, `v-html`-Verbot, CI auf npm.
