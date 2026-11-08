@@ -2,61 +2,69 @@
 
 namespace App\GraphQL\Resolvers;
 
-use App\Enums\TaskStatus;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
+use GraphQL\Deferred;
+use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Database\Eloquent\Builder;
+use Nuwave\Lighthouse\Execution\BatchLoader\BatchLoaderRegistry;
+use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
  * Progress of a project, milestone or todo: done tasks out of all tasks.
- * Computed on request, never stored.
+ * Computed on request, never stored. All objects of one list are counted
+ * together in one grouped query (ProgressBatchLoader), not one each.
  */
 class Progress
 {
     /**
-     * @return array{total: int, done: int, percent: int}
+     * @param  array<string, mixed>  $args
      */
-    public function project(Project $project): array
+    public function project(Project $project, array $args, GraphQLContext $context, ResolveInfo $resolveInfo): Deferred
     {
-        return $this->count(Task::query()->inProject($project->getKey()));
+        return $this->loader($resolveInfo, 'milestones.project_id', fn (array $projectIds) => Task::query()
+            ->join('todos', 'todos.id', '=', 'tasks.todo_id')
+            ->join('milestones', 'milestones.id', '=', 'todos.milestone_id')
+            ->whereIn('milestones.project_id', $projectIds)
+            ->select('milestones.project_id as group_key'),
+        )->load($project->getKey());
     }
 
     /**
-     * @return array{total: int, done: int, percent: int}
+     * @param  array<string, mixed>  $args
      */
-    public function milestone(Milestone $milestone): array
+    public function milestone(Milestone $milestone, array $args, GraphQLContext $context, ResolveInfo $resolveInfo): Deferred
     {
-        return $this->count(Task::query()->whereIn('todo_id', $milestone->todos()->select('id')));
+        return $this->loader($resolveInfo, 'todos.milestone_id', fn (array $milestoneIds) => Task::query()
+            ->join('todos', 'todos.id', '=', 'tasks.todo_id')
+            ->whereIn('todos.milestone_id', $milestoneIds)
+            ->select('todos.milestone_id as group_key'),
+        )->load($milestone->getKey());
     }
 
     /**
-     * @return array{total: int, done: int, percent: int}
+     * @param  array<string, mixed>  $args
      */
-    public function todo(Todo $todo): array
+    public function todo(Todo $todo, array $args, GraphQLContext $context, ResolveInfo $resolveInfo): Deferred
     {
-        return $this->count(Task::query()->where('todo_id', $todo->getKey()));
+        return $this->loader($resolveInfo, 'tasks.todo_id', fn (array $todoIds) => Task::query()
+            ->whereIn('tasks.todo_id', $todoIds)
+            ->select('tasks.todo_id as group_key'),
+        )->load($todo->getKey());
     }
 
     /**
-     * @param  Builder<Task>  $tasks
-     * @return array{total: int, done: int, percent: int}
+     * One loader per field path, so every todo in a list shares it.
+     *
+     * @param  \Closure(list<int|string>): Builder<Task>  $tasksByKey
      */
-    private function count(Builder $tasks): array
+    private function loader(ResolveInfo $resolveInfo, string $groupColumn, \Closure $tasksByKey): ProgressBatchLoader
     {
-        $row = $tasks->toBase()
-            ->selectRaw('count(*) as total')
-            ->selectRaw('sum(case when status = ? then 1 else 0 end) as done', [TaskStatus::DONE->value])
-            ->first();
-
-        $total = (int) ($row->total ?? 0);
-        $done = (int) ($row->done ?? 0);
-
-        return [
-            'total' => $total,
-            'done' => $done,
-            'percent' => $total === 0 ? 0 : (int) round($done * 100 / $total),
-        ];
+        return BatchLoaderRegistry::instance(
+            $resolveInfo->path,
+            fn (): ProgressBatchLoader => new ProgressBatchLoader($tasksByKey, $groupColumn),
+        );
     }
 }

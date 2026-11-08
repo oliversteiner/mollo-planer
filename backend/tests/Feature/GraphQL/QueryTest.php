@@ -3,11 +3,14 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Enums\ProjectAbility;
+use App\Enums\ProjectRole;
 use App\Enums\TaskStatus;
 use App\Models\Comment;
+use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
+use Illuminate\Support\Facades\DB;
 
 class QueryTest extends GraphQLTestCase
 {
@@ -83,6 +86,77 @@ class QueryTest extends GraphQLTestCase
             ->assertJsonPath('data.project.milestones.0.status', 'OPEN')
             ->assertJsonPath('data.project.milestones.0.progress.percent', 67)
             ->assertJsonPath('data.project.milestones.0.todos.0.progress.done', 2);
+    }
+
+    public function test_progress_in_lists_is_counted_per_object(): void
+    {
+        $emptyTodo = Todo::factory()->for($this->milestone)->create();
+        $doneTodo = Todo::factory()->for(Milestone::factory()->for($this->project))->create();
+        Task::factory()->for($doneTodo)->create(['status' => TaskStatus::DONE]);
+        $otherProject = Project::factory()->withMember($this->users['member'], ProjectRole::MEMBER)->create(['name' => 'Other']);
+        Task::factory()->for(Todo::factory()->for(Milestone::factory()->for($otherProject)))->count(2)->create();
+
+        $response = $this->as('member')->gql('{
+            projects { name progress { total done } milestones { progress { total done } todos { id progress { total done percent } } } }
+        }');
+
+        $projects = collect($response->json('data.projects'))->keyBy('name');
+        $this->assertSame(['total' => 2, 'done' => 1], $projects['FCA DB']['progress']);
+        $this->assertSame(['total' => 2, 'done' => 0], $projects['Other']['progress']);
+        $this->assertSame(
+            [['total' => 1, 'done' => 0], ['total' => 1, 'done' => 1]],
+            collect($projects['FCA DB']['milestones'])->pluck('progress')->all(),
+        );
+
+        $todos = collect($projects['FCA DB']['milestones'])->pluck('todos')->flatten(1)->keyBy('id');
+        $this->assertSame(['total' => 1, 'done' => 0, 'percent' => 0], $todos[$this->todo->id]['progress']);
+        $this->assertSame(['total' => 0, 'done' => 0, 'percent' => 0], $todos[$emptyTodo->id]['progress']);
+        $this->assertSame(['total' => 1, 'done' => 1, 'percent' => 100], $todos[$doneTodo->id]['progress']);
+    }
+
+    /**
+     * Lists must not load per row (N+1): the number of queries stays the
+     * same with more projects, and lazy loading (off in production,
+     * an error otherwise) never happens.
+     */
+    public function test_list_queries_do_not_grow_with_the_number_of_rows(): void
+    {
+        $query = '{
+            projects { members { user { name } role } viewerRole viewerAbilities progress { percent } milestones { progress { done } todos { progress { done } } } }
+            dashboard { upcomingTodos(limit: 50) { progress { done } } myOpenTasks { todo { milestone { project { viewerRole } } } } }
+            myTasks { comments { author { name } viewerCanEdit viewerCanDelete } }
+        }';
+
+        $this->addProjectWithTaskForMember();
+        $queriesBefore = $this->countQueries(fn () => $this->as('member')->gql($query)->assertJsonMissingPath('errors'));
+
+        $this->addProjectWithTaskForMember();
+        $this->addProjectWithTaskForMember();
+        $queriesAfter = $this->countQueries(fn () => $this->as('member')->gql($query)->assertJsonMissingPath('errors'));
+
+        $this->assertSame($queriesBefore, $queriesAfter);
+    }
+
+    private function addProjectWithTaskForMember(): void
+    {
+        $project = Project::factory()
+            ->withMember($this->users['member'], ProjectRole::MEMBER)
+            ->withMember($this->users['owner'], ProjectRole::OWNER)
+            ->create();
+        $task = Task::factory()
+            ->for(Todo::factory()->for(Milestone::factory()->for($project)))
+            ->create(['assigned_user_id' => $this->users['member']->id]);
+        Comment::factory()->for($task)->for($this->users['owner'], 'author')->create();
+    }
+
+    private function countQueries(callable $request): int
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $request();
+        DB::disableQueryLog();
+
+        return count(DB::getQueryLog());
     }
 
     public function test_todo_list_filters_by_project_and_status(): void

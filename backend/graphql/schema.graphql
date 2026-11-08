@@ -155,14 +155,14 @@ type Project {
   description: String
   "Sprache der Benachrichtigungsmails dieses Projekts"
   locale: Locale!
-  members: [ProjectMember!]! @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
+  members: [ProjectMember!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
   milestones: [Milestone!]! @hasMany
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
   progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
-  viewerRole: ProjectRole @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
+  viewerRole: ProjectRole @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
   "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
-  viewerAbilities: [ProjectAbility!]! @field(resolver: "App\\GraphQL\\Resolvers\\ViewerAbilities")
+  viewerAbilities: [ProjectAbility!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerAbilities")
   createdAt: DateTime! @rename(attribute: "created_at")
 }
 
@@ -232,9 +232,9 @@ type Comment {
   "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
   body: RichText!
   "Darfst du den Text ändern? Nur die Autorin oder der Autor."
-  viewerCanEdit: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
+  viewerCanEdit: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
   "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
-  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
+  viewerCanDelete: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
   createdAt: DateTime! @rename(attribute: "created_at")
   updatedAt: DateTime! @rename(attribute: "updated_at")
 }

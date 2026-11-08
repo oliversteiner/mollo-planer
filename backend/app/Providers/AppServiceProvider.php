@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
 use Illuminate\Support\Facades\RateLimiter;
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Outside production, loading a relation per row (N+1) is an error.
+        // GraphQL lists batch-load instead (@with, ProgressBatchLoader).
+        Model::preventLazyLoading(! $this->app->isProduction());
+
         // Escape Markdown links and HTML in values echoed into mails, so a
         // task title like "[Click](https://evil.example)" stays plain text.
         Markdown::withSecuredEncoding();

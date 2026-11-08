@@ -46,6 +46,13 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - Link in der Mail: `FRONTEND_URL/projects/{id}/kanban?task={id}`. Die Route ist nur in `TaskNotification::taskUrl()` definiert und beim Bau des Frontends dort anzupassen.
 - `Markdown::withSecuredEncoding()` (AppServiceProvider): Titel wie `[Klick](https://…)` erscheinen in Mails als Text, nicht als Link.
 
+## Abfragen ohne N+1 (Prüfung mit Laravel Boost, 2026-11-08)
+- `Model::preventLazyLoading()` ist ausserhalb der Produktion aktiv: Wird eine Relation pro Zeile nachgeladen, ist das ein Fehler statt einer stillen Zusatz-Query. `Model::shouldBeStrict()` passt nicht, weil Felder wie `status` absichtlich nicht fillable sind und still verworfen werden.
+- Felder, die pro Objekt die Rechte prüfen, laden die nötigen Relationen gebündelt mit `@with`: `Project.members`, `viewerRole`, `viewerAbilities` (`members`) und `Comment.viewerCanEdit`/`viewerCanDelete` (`task.todo.milestone.project.members`). Nur Server-Direktiven, der Vertrag mit dem Frontend bleibt gleich.
+- `progress` (Projekt, Milestone, ToDo) zählt alle Objekte einer Liste in einer gruppierten Query (`ProgressBatchLoader`).
+- `QueryTest::test_list_queries_do_not_grow_with_the_number_of_rows` stellt sicher, dass die Anzahl Queries nicht mit der Anzahl Projekte wächst.
+- Indizes (geprüft per `database-schema`): Alle Fremdschlüssel sind indiziert, dazu `tasks(todo_id, status)` und eindeutig `project_user(project_id, user_id)`. Kein weiterer Index nötig.
+
 ## Reihenfolge beim Bauen
 1. Migrationen: `tasks.due_date`, `tasks.description` (json), `milestones.description` und `todos.description` auf json, `icon` bei `milestones`/`todos`/`tasks`, Tabelle `comments`, `users.notify_by_email`, `projects.locale`.
 2. Enum `ProjectAbility`, zentrale Rechte-Tabelle `ProjectPermissions`.
