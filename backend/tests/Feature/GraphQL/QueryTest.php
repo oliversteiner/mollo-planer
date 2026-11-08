@@ -234,6 +234,28 @@ class QueryTest extends GraphQLTestCase
             ->assertJsonPath('data.kanban', []);
     }
 
+    /**
+     * Optional filters (@filter): an explicit null, as clients send it for
+     * "all", applies no filter. With @eq it would mean "IS NULL" and find nothing.
+     */
+    public function test_null_filters_apply_no_filter(): void
+    {
+        $doneTodo = Todo::factory()->for($this->milestone)->create();
+        Task::factory()->for($doneTodo)->create(['status' => TaskStatus::DONE, 'assigned_user_id' => $this->users['member']->id]);
+        $this->task->forceFill(['assigned_user_id' => $this->users['member']->id])->save();
+        $todos = 'query ($p: ID!, $m: ID, $s: ItemStatus) { todos(projectId: $p, milestoneId: $m, status: $s) { id } }';
+
+        $this->as('member')->gql($todos, ['p' => $this->project->id, 'm' => null, 's' => null])
+            ->assertJsonCount(2, 'data.todos');
+        $this->as('member')->gql($todos, ['p' => $this->project->id, 'm' => $this->milestone->id, 's' => 'DONE'])
+            ->assertJsonPath('data.todos', [['id' => (string) $doneTodo->id]]);
+
+        $this->as('member')->gql('query ($s: TaskStatus) { myTasks(status: $s) { id } }', ['s' => null])
+            ->assertJsonCount(2, 'data.myTasks');
+        $this->as('member')->gql('query ($s: TaskStatus) { myTasks(status: $s) { id } }', ['s' => 'DONE'])
+            ->assertJsonCount(1, 'data.myTasks');
+    }
+
     public function test_my_tasks_and_dashboard(): void
     {
         $this->task->forceFill(['assigned_user_id' => $this->users['member']->id, 'due_date' => '2026-12-01'])->save();

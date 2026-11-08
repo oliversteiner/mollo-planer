@@ -318,8 +318,8 @@ type Query @guard {
   "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
   todos(
     projectId: ID! @builder(method: "App\\GraphQL\\Builders\\TodoBuilder@inProject")
-    milestoneId: ID @eq(key: "milestone_id")
-    status: ItemStatus @eq
+    milestoneId: ID @filter(key: "milestone_id")
+    status: ItemStatus @filter
   ): [Todo!]! @all(scopes: ["visibleToViewer"])
   todo(id: ID! @eq): Todo @find(scopes: ["visibleToViewer"])
 
@@ -330,7 +330,7 @@ type Query @guard {
   kanban(projectId: ID!): [KanbanColumn!]! @field(resolver: "App\\GraphQL\\Queries\\Kanban")
 
   "Tasks, die dir zugewiesen sind"
-  myTasks(status: TaskStatus @eq): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer"])
+  myTasks(status: TaskStatus @filter): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer"])
 
   "Startseite"
   dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")

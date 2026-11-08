@@ -72,6 +72,9 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - Ablage auf der Disk `public` unter `avatars/<40 zufällige Zeichen>.webp`, nicht erratbar. Die alte Datei wird erst nach dem Commit gelöscht, die neue bei einem Rollback wieder entfernt. Wird eine Person gelöscht, löscht `UserObserver` ihr Bild.
 - Für später (Hosting): `php artisan storage:link` auf dem Server, GD muss aktiv sein, `upload_max_filesize` und `post_max_size` mindestens 6M (PHP-Standard ist 2M bzw. 8M).
 
+## Optionale Filter (2026-11-08)
+- `todos(milestoneId, status)` und `myTasks(status)` nutzen `@filter` (`App\GraphQL\Directives\FilterDirective`) statt `@eq`: Ein ausdrücklich übergebenes `null` bedeutet „kein Filter“. Lighthouses `@eq` macht daraus `IS NULL` und findet nichts; so waren im Frontend die ToDo-Liste und „Meine Tasks“ leer, solange „Alle“ gewählt war. Neue optionale Filter bekommen `@filter`. Getestet in `QueryTest::test_null_filters_apply_no_filter`.
+
 ## Abfragen ohne N+1 (Prüfung mit Laravel Boost, 2026-11-08)
 - `Model::preventLazyLoading()` ist ausserhalb der Produktion aktiv: Wird eine Relation pro Zeile nachgeladen, ist das ein Fehler statt einer stillen Zusatz-Query. `Model::shouldBeStrict()` passt nicht, weil Felder wie `status` absichtlich nicht fillable sind und still verworfen werden.
 - Felder, die pro Objekt die Rechte prüfen, laden die nötigen Relationen gebündelt mit `@with`: `Project.members`, `viewerRole`, `viewerAbilities` (`members`) und `Comment.viewerCanEdit`/`viewerCanDelete` (`task.todo.milestone.project.members`). Nur Server-Direktiven, der Vertrag mit dem Frontend bleibt gleich.
