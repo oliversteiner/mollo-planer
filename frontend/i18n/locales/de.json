@@ -18,5 +18,11 @@
     "notFound": "Diese Seite gibt es nicht.",
     "generic": "Etwas ist schiefgelaufen.",
     "backHome": "Zum Dashboard"
+  },
+  "apiError": {
+    "unauthorized": "Dafür fehlt dir die Berechtigung.",
+    "csrf": "Die Sitzung war abgelaufen. Bitte versuche es nochmals.",
+    "network": "Der Server ist nicht erreichbar.",
+    "unknown": "Die Anfrage ist fehlgeschlagen."
   }
 }

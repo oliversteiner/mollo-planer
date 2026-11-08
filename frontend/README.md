@@ -16,9 +16,11 @@ Die zweite Zeile beginnt mit `//`. In GitHub steht der Token als Secret `FONTAWE
 ## Befehle (in WSL im Ordner `frontend/`)
 
 - `npm install`: Abhängigkeiten installieren
-- `npm run dev`: Entwicklungsserver auf `http://localhost:3000` (das Backend läuft auf `http://localhost:8000`)
+- `npm run dev`: Entwicklungsserver auf `http://localhost:3000` (das Backend läuft auf `http://localhost:8000`, änderbar mit `NUXT_PUBLIC_API_BASE`)
 - `npm run lint`: ESLint
 - `npm run typecheck`: TypeScript
+- `npm test`: Unit-Tests (Vitest)
+- `npm run codegen`: GraphQL-Typen neu erzeugen (nach `composer schema:frontend` im Backend oder einer neuen Abfrage)
 - `npm run build`: statische Dateien in `.output/public`
 
 `npm` muss das Linux-npm aus nvm sein, nicht das Windows-npm von PhpStorm (Fehler „UNC-Pfade werden nicht unterstützt“). Prüfen mit `which npm`.

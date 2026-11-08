@@ -22,6 +22,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    public: {
+      // Address of the Laravel backend; override with NUXT_PUBLIC_API_BASE.
+      apiBase: 'http://localhost:8000'
+    }
+  },
+
   // Dev server only on this machine (WSL forwards localhost to Windows),
   // not reachable from the network.
   devServer: {

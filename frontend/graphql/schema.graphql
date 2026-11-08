@@ -1,0 +1,358 @@
+input AddCommentInput {
+ body: RichText!
+ taskId: ID!
+}
+"Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
+type AppSettings {
+ "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."
+ twoFactorEnabled: Boolean!
+ "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
+ twoFactorSwitchable: Boolean!
+}
+"Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
+type Comment {
+ "null, wenn die Person inzwischen gelöscht wurde"
+ author: User
+ "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
+ body: RichText!
+ createdAt: DateTime!
+ id: ID!
+ task: Task!
+ updatedAt: DateTime!
+ "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
+ viewerCanDelete: Boolean!
+ "Darfst du den Text ändern? Nur die Autorin oder der Autor."
+ viewerCanEdit: Boolean!
+}
+input CreateMilestoneInput {
+ description: RichText
+ dueDate: Date
+ icon: String
+ projectId: ID!
+ title: String!
+}
+input CreateProjectInput {
+ description: String
+ locale: Locale = DE
+ name: String!
+}
+input CreateTaskInput {
+ assigneeId: ID
+ description: RichText
+ dueDate: Date
+ icon: String
+ title: String!
+ todoId: ID!
+}
+input CreateTodoInput {
+ description: RichText
+ dueDate: Date
+ icon: String
+ milestoneId: ID!
+ title: String!
+}
+input CreateUserInput {
+ email: String!
+ isAdmin: Boolean = false
+ name: String!
+}
+"Alles für die Startseite in einem Aufruf"
+type Dashboard {
+ "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
+ myOpenTasks: [Task!]!
+ projects: [Project!]!
+ "Offene ToDos, nach Fälligkeit sortiert"
+ upcomingTodos(limit: Int = 5): [Todo!]!
+}
+"Datum ohne Uhrzeit, Format YYYY-MM-DD"
+scalar Date
+"Zeitpunkt, Format ISO 8601"
+scalar DateTime
+"Status von Milestone und ToDo (wird automatisch berechnet)"
+enum ItemStatus {
+ DONE
+ OPEN
+}
+"Eine Spalte im Kanban-Board mit ihren Tasks"
+type KanbanColumn {
+ status: TaskStatus!
+ tasks: [Task!]!
+}
+"Sprache eines Projekts. Bestimmt die Sprache der Mails."
+enum Locale {
+ DE
+ EN
+}
+"Ein Meilenstein mit Zieldatum. Er enthält ToDos."
+type Milestone {
+ createdAt: DateTime!
+ description: RichText
+ dueDate: Date
+ "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+ icon: String
+ id: ID!
+ progress: Progress!
+ project: Project!
+ "DONE, sobald alle ToDos erledigt sind"
+ status: ItemStatus!
+ title: String!
+ todos: [Todo!]!
+}
+type Mutation {
+ addComment(input: AddCommentInput!): Comment!
+ "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
+ assignTask(assigneeId: ID, id: ID!): Task!
+ createMilestone(input: CreateMilestoneInput!): Milestone!
+ createProject(input: CreateProjectInput!): Project!
+ "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
+ createTask(input: CreateTaskInput!): Task!
+ createTodo(input: CreateTodoInput!): Todo!
+ createUser(input: CreateUserInput!): User!
+ deleteComment(id: ID!): Comment!
+ deleteMilestone(id: ID!): Milestone!
+ deleteProject(id: ID!): Project!
+ deleteTask(id: ID!): Task!
+ deleteTodo(id: ID!): Todo!
+ deleteUser(id: ID!): User!
+ "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
+ deleteUserAvatar(id: ID!): User!
+ "Verschiebt einen Task im Kanban"
+ moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
+ removeProjectMember(projectId: ID!, userId: ID!): Project!
+ "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
+ resetUserTwoFactor(id: ID!): User!
+ "Fügt eine Person hinzu oder ändert ihre Rolle"
+ setProjectMember(projectId: ID!, role: ProjectRole!, userId: ID!): Project!
+ "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
+ updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
+ updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
+ "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
+ updateMyAvatar(avatar: Upload!): User!
+ "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
+ updateMyNotifications(emailEnabled: Boolean!): User!
+ updateProject(id: ID!, input: UpdateProjectInput!): Project!
+ updateTask(id: ID!, input: UpdateTaskInput!): Task!
+ updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
+ "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
+ updateUser(id: ID!, input: UpdateUserInput!): User!
+}
+"Allows ordering a list of records."
+input OrderByClause {
+ "The column that is used for ordering."
+ column: String!
+ "The direction that is used for ordering."
+ order: SortOrder!
+}
+"Aggregate functions when ordering by a relation without specifying a column."
+enum OrderByRelationAggregateFunction {
+ "Amount of items."
+ COUNT
+}
+"Aggregate functions when ordering by a relation that may specify a column."
+enum OrderByRelationWithColumnAggregateFunction {
+ "Average."
+ AVG
+ "Amount of items."
+ COUNT
+ "Maximum."
+ MAX
+ "Minimum."
+ MIN
+ "Sum."
+ SUM
+}
+"Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
+type Progress {
+ done: Int!
+ "Prozentwert von 0 bis 100, gerundet"
+ percent: Int!
+ total: Int!
+}
+"Ein Projekt mit Mitgliedern und Milestones"
+type Project {
+ createdAt: DateTime!
+ description: String
+ id: ID!
+ "Sprache der Benachrichtigungsmails dieses Projekts"
+ locale: Locale!
+ members: [ProjectMember!]!
+ milestones: [Milestone!]!
+ name: String!
+ "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
+ progress: Progress!
+ "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
+ viewerAbilities: [ProjectAbility!]!
+ "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
+ viewerRole: ProjectRole
+}
+"Fähigkeiten innerhalb eines Projekts. Welche Rolle sie hat, steht in der Rechte-Tabelle."
+enum ProjectAbility {
+ COMMENT_CREATE
+ COMMENT_MODERATE
+ MEMBERS_MANAGE
+ MILESTONE_CREATE
+ MILESTONE_DELETE
+ MILESTONE_UPDATE
+ PROJECT_DELETE
+ PROJECT_UPDATE
+ TASK_ASSIGN
+ TASK_CREATE
+ TASK_DELETE
+ TASK_MOVE
+ TASK_UPDATE
+ TODO_CREATE
+ TODO_DELETE
+ TODO_UPDATE
+}
+"Mitgliedschaft einer Person in einem Projekt"
+type ProjectMember {
+ role: ProjectRole!
+ user: User!
+}
+"Rolle einer Person innerhalb eines Projekts"
+enum ProjectRole {
+ MANAGER
+ MEMBER
+ OWNER
+}
+type Query {
+ "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
+ appSettings: AppSettings!
+ "Startseite"
+ dashboard: Dashboard!
+ "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
+ kanban(projectId: ID!): [KanbanColumn!]!
+ "Der angemeldete Benutzer"
+ me: User!
+ milestone(id: ID!): Milestone
+ "Milestones eines Projekts (Seite Milestones)"
+ milestones(projectId: ID!): [Milestone!]!
+ "Tasks, die dir zugewiesen sind"
+ myTasks(status: TaskStatus): [Task!]!
+ project(id: ID!): Project
+ "Deine Projekte. Admins sehen alle."
+ projects: [Project!]!
+ "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
+ task(id: ID!): Task
+ todo(id: ID!): Todo
+ "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
+ todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
+ "Alle Benutzer. Nur für Admins und Projektleiter."
+ users: [User!]!
+}
+"""
+Formatierter Text als TipTap-Dokument (JSON-Objekt mit type "doc"). Der Server
+speichert nie HTML, sondern prüft das Dokument gegen eine Whitelist:
+Absatz, Überschrift (Ebene 2 und 3), Aufzählung, nummerierte Liste,
+Zeilenumbruch, Zitat sowie fett, kursiv und Links (http, https, mailto).
+Maximal 20000 Zeichen. Ein Dokument ohne Text wird als null gespeichert.
+"""
+scalar RichText
+"Directions for ordering a list of records."
+enum SortOrder {
+ "Sort records in ascending order."
+ ASC
+ "Sort records in descending order."
+ DESC
+}
+"Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
+type Task {
+ assignee: User
+ commentCount: Int!
+ "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
+ comments: [Comment!]!
+ createdAt: DateTime!
+ description: RichText
+ dueDate: Date
+ "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+ icon: String
+ id: ID!
+ "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
+ position: Int!
+ status: TaskStatus!
+ title: String!
+ todo: Todo!
+}
+"Spalten im Kanban-Board"
+enum TaskStatus {
+ DONE
+ IN_PROGRESS
+ OPEN
+ REVIEW
+}
+"Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
+type Todo {
+ createdAt: DateTime!
+ description: RichText
+ dueDate: Date
+ "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+ icon: String
+ id: ID!
+ milestone: Milestone!
+ progress: Progress!
+ "DONE, sobald alle Tasks erledigt sind"
+ status: ItemStatus!
+ tasks: [Task!]!
+ title: String!
+}
+"Specify if you want to include or exclude trashed results from a query."
+enum Trashed {
+ "Only return trashed results."
+ ONLY
+ "Return both trashed and non-trashed results."
+ WITH
+ "Only return non-trashed results."
+ WITHOUT
+}
+input UpdateCommentInput {
+ body: RichText!
+}
+input UpdateMilestoneInput {
+ description: RichText
+ dueDate: Date
+ icon: String
+ title: String
+}
+input UpdateProjectInput {
+ description: String
+ locale: Locale
+ name: String
+}
+input UpdateTaskInput {
+ description: RichText
+ dueDate: Date
+ icon: String
+ title: String
+}
+input UpdateTodoInput {
+ description: RichText
+ dueDate: Date
+ icon: String
+ title: String
+}
+input UpdateUserInput {
+ email: String
+ isAdmin: Boolean
+ name: String
+}
+"Datei-Upload (GraphQL multipart request), zum Beispiel mit apollo-upload-client"
+scalar Upload
+"Eine Person mit Zugang. Anlegen und Löschen nur durch Admins."
+type User {
+ "Zugewiesene Tasks, soweit du sie sehen darfst"
+ assignedTasks: [Task!]!
+ "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
+ avatarUrl: String
+ createdAt: DateTime!
+ email: String!
+ id: ID!
+ "Globale Admin-Rolle, unabhängig von Projekten"
+ isAdmin: Boolean!
+ name: String!
+ "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
+ notifyByEmail: Boolean!
+ "Projekte dieser Person, soweit du sie sehen darfst"
+ projects: [Project!]!
+}
+

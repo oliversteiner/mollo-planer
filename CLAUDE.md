@@ -27,11 +27,13 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - `php artisan lighthouse:validate-schema` (Schema prüfen)
 - `php artisan migrate:fresh --seed --seeder=DemoSeeder` (Demo-Daten wie in der GraphQL-Demo, nur lokal; **löscht alle Daten**. In eine leere Datenbank: `php artisan db:seed --class=DemoSeeder`)
 - `./vendor/bin/pint` (Code-Stil)
+- `composer schema:frontend` (nach jeder Schemaänderung: schreibt `frontend/graphql/schema.graphql`, danach im Frontend `npm run codegen`)
 - `php artisan boost:update --no-discover` (Boost-Guidelines und -Skills neu erzeugen, läuft auch nach `composer update`)
 
 Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm von PhpStorm):
 - `npm run dev` (http://localhost:3000)
-- `npm run lint`, `npm run typecheck`
+- `npm run lint`, `npm run typecheck`, `npm test` (Vitest)
+- `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
 - `npm run build` (statische Dateien in `.output/public`)
 
 ## Laravel Boost
@@ -68,7 +70,7 @@ Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm 
 ## Stand Frontend
 - [x] 1. Einrichtung (npm, Template aufräumen, SPA, i18n, Layout, CI)
 - [x] 2. Font Awesome
-- [ ] 3. API-Anbindung (Apollo, Codegen)
+- [x] 3. API-Anbindung (Apollo, Codegen)
 - [ ] 4. Anmeldung
 - [ ] 5. Dashboard und Projektliste
 - [ ] 6. Projekt: Milestones und ToDos

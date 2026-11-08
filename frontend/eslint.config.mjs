@@ -4,6 +4,10 @@ import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import { getDefaultAttributes } from 'eslint-plugin-better-tailwindcss/api/defaults'
 
 export default withNuxt(
+  {
+    // Written by GraphQL Code Generator ("npm run codegen"), not by hand.
+    ignores: ['app/graphql/generated/**']
+  },
   betterTailwindcss.configs['correctness-error'],
   {
     settings: {

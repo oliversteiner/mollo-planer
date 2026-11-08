@@ -18,5 +18,11 @@
     "notFound": "This page does not exist.",
     "generic": "Something went wrong.",
     "backHome": "Back to the dashboard"
+  },
+  "apiError": {
+    "unauthorized": "You are not allowed to do this.",
+    "csrf": "Your session had expired. Please try again.",
+    "network": "The server cannot be reached.",
+    "unknown": "The request failed."
   }
 }

@@ -54,6 +54,9 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
+        "schema:frontend": [
+            "@php artisan lighthouse:print-schema --sort > ../frontend/graphql/schema.graphql"
+        ],
         "test:mariadb": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@putenv DB_CONNECTION=mariadb",
