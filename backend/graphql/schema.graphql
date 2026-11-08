@@ -59,6 +59,10 @@
 #             (Skalar RichText = TipTap-JSON). Das Frontend zeigt sie mit
 #             TipTap an, nie mit v-html. So kann kein HTML eingeschleust
 #             werden. Kommentare (Comment.body) funktionieren genauso.
+#  Avatar     Jede Person kann ein eigenes Avatarbild hochladen (JPG oder
+#             PNG, höchstens 5 MB). Der Server schneidet es quadratisch auf
+#             500 x 500 Pixel zu und speichert es als WebP ohne Metadaten.
+#             Entfernen: die Person selbst oder ein Admin.
 #  Icon       Milestone, ToDo und Task haben ein optionales Icon aus Font
 #             Awesome Pro, gespeichert nur als Name (rocket). Der Stil ist
 #             für die ganze App fest "Duotone Light" und steht im Frontend,
@@ -82,6 +86,9 @@ Zeilenumbruch, Zitat sowie fett, kursiv und Links (http, https, mailto).
 Maximal 20000 Zeichen. Ein Dokument ohne Text wird als null gespeichert.
 """
 scalar RichText @scalar(class: "App\\GraphQL\\Scalars\\RichText")
+
+"Datei-Upload (GraphQL multipart request), zum Beispiel mit apollo-upload-client"
+scalar Upload @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Upload")
 
 # ─── Enums ──────────────────────────────────────────────────────
 
@@ -143,6 +150,8 @@ type User {
   isAdmin: Boolean! @rename(attribute: "is_admin")
   "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
   notifyByEmail: Boolean! @rename(attribute: "notify_by_email")
+  "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
+  avatarUrl: String @rename(attribute: "avatar_url")
   "Projekte dieser Person, soweit du sie sehen darfst"
   projects: [Project!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserProjects")
   "Zugewiesene Tasks, soweit du sie sehen darfst"
@@ -325,6 +334,15 @@ type Mutation @guard {
   "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
   updateMyNotifications(emailEnabled: Boolean!): User!
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateMyNotifications")
+
+  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
+  updateMyAvatar(avatar: Upload!): User!
+    @validator
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateMyAvatar")
+  "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
+  deleteUserAvatar(id: ID!): User!
+    @can(ability: "deleteAvatar", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteUserAvatar")
 
   # Projekte: Anlegen nur durch Admins, Löschen durch Admin oder Owner.
   createProject(input: CreateProjectInput! @spread): Project!

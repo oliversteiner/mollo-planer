@@ -55,6 +55,13 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - Auch der erste Admin richtet beim ersten Login einen zweiten Faktor oder Passkey ein. Texte des Befehls stehen in `lang/{de,en}/console.php`.
 - Abgelaufene Einladung: Es gibt bewusst keine Mutation zum erneuten Senden. Die Person setzt ihr Passwort über „Passwort vergessen“ (bestätigt 2026-11-08).
 
+## Avatarbild (bestätigt 2026-11-08)
+- Jede Person lädt ihr eigenes Bild hoch: `updateMyAvatar(avatar: Upload!)` (GraphQL multipart request, im Frontend zum Beispiel `apollo-upload-client`). Entfernen mit `deleteUserAvatar(id)`: die Person selbst oder ein Admin (`UserPolicy::deleteAvatar`). Admins laden kein Bild für andere hoch. Anzeige über `User.avatarUrl`, null ohne Bild.
+- Erlaubt: JPG, JPEG, PNG (Inhalt und Dateiendung geprüft), höchstens 5 MB, höchstens 6000 x 6000 Pixel (Schutz vor Bildern, die beim Entpacken den Speicher sprengen). Regeln in `UpdateMyAvatarValidator`, Grenzen als Konstanten in `App\Services\UserAvatar`.
+- Verarbeitung mit der Bild-API von Laravel (`intervention/image` ^4, Treiber GD): nach EXIF aufrichten, mittig quadratisch auf 500 x 500 Pixel zuschneiden, als WebP (Qualität 85) speichern. Das neue Kodieren entfernt alle Metadaten (etwa die GPS-Position eines Handyfotos).
+- Ablage auf der Disk `public` unter `avatars/<40 zufällige Zeichen>.webp`, nicht erratbar. Die alte Datei wird erst nach dem Commit gelöscht, die neue bei einem Rollback wieder entfernt. Wird eine Person gelöscht, löscht `UserObserver` ihr Bild.
+- Für später (Hosting): `php artisan storage:link` auf dem Server, GD muss aktiv sein, `upload_max_filesize` und `post_max_size` mindestens 6M (PHP-Standard ist 2M bzw. 8M).
+
 ## Abfragen ohne N+1 (Prüfung mit Laravel Boost, 2026-11-08)
 - `Model::preventLazyLoading()` ist ausserhalb der Produktion aktiv: Wird eine Relation pro Zeile nachgeladen, ist das ein Fehler statt einer stillen Zusatz-Query. `Model::shouldBeStrict()` passt nicht, weil Felder wie `status` absichtlich nicht fillable sind und still verworfen werden.
 - Felder, die pro Objekt die Rechte prüfen, laden die nötigen Relationen gebündelt mit `@with`: `Project.members`, `viewerRole`, `viewerAbilities` (`members`) und `Comment.viewerCanEdit`/`viewerCanDelete` (`task.todo.milestone.project.members`). Nur Server-Direktiven, der Vertrag mit dem Frontend bleibt gleich.

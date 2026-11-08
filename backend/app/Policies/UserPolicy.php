@@ -43,6 +43,15 @@ class UserPolicy
     }
 
     /**
+     * Everyone removes their own avatar; admins also remove someone else's
+     * (for example an unsuitable picture). Uploading is only for oneself.
+     */
+    public function deleteAvatar(User $user, User $target): bool
+    {
+        return $user->is($target) || $user->is_admin;
+    }
+
+    /**
      * An admin cannot delete their own account.
      */
     public function delete(User $user, User $target): bool
