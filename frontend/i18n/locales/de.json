@@ -92,7 +92,6 @@
     "noneMember": "Sobald dich jemand zu einem Projekt hinzufügt, erscheint es hier.",
     "progress": "{done} von {total} Tasks erledigt",
     "notFound": "Dieses Projekt gibt es nicht, oder du hast keinen Zugriff.",
-    "comingSoon": "Milestones und ToDos folgen im nächsten Schritt.",
     "create": {
       "open": "Projekt anlegen",
       "title": "Neues Projekt",
@@ -126,6 +125,47 @@
   },
   "common": {
     "cancel": "Abbrechen",
-    "save": "Speichern"
+    "save": "Speichern",
+    "edit": "Ändern",
+    "delete": "Löschen",
+    "actions": "Aktionen"
+  },
+  "project": {
+    "tabs": {
+      "overview": "Übersicht",
+      "todos": "ToDos"
+    },
+    "noMilestones": "Noch keine Milestones",
+    "noMilestonesHint": "Lege den ersten Milestone an, zum Beispiel «Design freigegeben».",
+    "noTodos": "Noch keine ToDos.",
+    "taskCount": "{done}/{total} Tasks"
+  },
+  "todos": {
+    "milestone": "Milestone",
+    "status": "Status",
+    "allMilestones": "Alle Milestones",
+    "allStatuses": "Alle",
+    "none": "Keine ToDos gefunden."
+  },
+  "item": {
+    "fields": {
+      "title": "Titel",
+      "dueDate": "Fällig am"
+    },
+    "milestone": {
+      "create": "Milestone anlegen",
+      "edit": "Milestone ändern",
+      "saved": "Milestone gespeichert.",
+      "deleteTitle": "Milestone löschen?",
+      "deleteDescription": "«{title}» wird mit allen ToDos, Tasks und Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+    },
+    "todo": {
+      "create": "ToDo anlegen",
+      "edit": "ToDo ändern",
+      "saved": "ToDo gespeichert.",
+      "milestone": "Milestone",
+      "deleteTitle": "ToDo löschen?",
+      "deleteDescription": "«{title}» wird mit allen Tasks und Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+    }
   }
 }

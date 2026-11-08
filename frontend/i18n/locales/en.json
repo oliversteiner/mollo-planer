@@ -92,7 +92,6 @@
     "noneMember": "As soon as someone adds you to a project, it appears here.",
     "progress": "{done} of {total} tasks done",
     "notFound": "This project does not exist, or you have no access.",
-    "comingSoon": "Milestones and todos follow in the next step.",
     "create": {
       "open": "New project",
       "title": "New project",
@@ -126,6 +125,47 @@
   },
   "common": {
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions"
+  },
+  "project": {
+    "tabs": {
+      "overview": "Overview",
+      "todos": "Todos"
+    },
+    "noMilestones": "No milestones yet",
+    "noMilestonesHint": "Create the first milestone, for example “Design approved”.",
+    "noTodos": "No todos yet.",
+    "taskCount": "{done}/{total} tasks"
+  },
+  "todos": {
+    "milestone": "Milestone",
+    "status": "Status",
+    "allMilestones": "All milestones",
+    "allStatuses": "All",
+    "none": "No todos found."
+  },
+  "item": {
+    "fields": {
+      "title": "Title",
+      "dueDate": "Due on"
+    },
+    "milestone": {
+      "create": "New milestone",
+      "edit": "Edit milestone",
+      "saved": "Milestone saved.",
+      "deleteTitle": "Delete milestone?",
+      "deleteDescription": "“{title}” is deleted with all its todos, tasks and comments. This cannot be undone."
+    },
+    "todo": {
+      "create": "New todo",
+      "edit": "Edit todo",
+      "saved": "Todo saved.",
+      "milestone": "Milestone",
+      "deleteTitle": "Delete todo?",
+      "deleteDescription": "“{title}” is deleted with all its tasks and comments. This cannot be undone."
+    }
   }
 }
