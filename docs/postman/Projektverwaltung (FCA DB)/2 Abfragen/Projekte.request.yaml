@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Projects {
+        projects {
+          id name locale viewerRole viewerAbilities
+          progress { done total percent }
+          members { role user { name } }
+        }
+      }
+    variables: "{}"
+order: 3000

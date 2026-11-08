@@ -1,0 +1,18 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {
+        setProjectMember(projectId: $projectId, userId: $userId, role: $role) { members { role user { name } } }
+      }
+    variables: |-
+      {
+        "projectId": "{{projectId}}",
+        "userId": "1",
+        "role": "MEMBER"
+      }
+order: 7000

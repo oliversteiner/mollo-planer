@@ -1,0 +1,35 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation CreateMilestone($input: CreateMilestoneInput!) {
+        createMilestone(input: $input) { id title icon dueDate status description }
+      }
+    variables: |-
+      {
+        "input": {
+          "projectId": "{{projectId}}",
+          "title": "Testphase",
+          "icon": "flask",
+          "dueDate": "2027-01-22",
+          "description": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Alle Seiten auf Desktop und Mobil testen."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+order: 1000

@@ -1,0 +1,18 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {
+        moveTask(id: $id, status: $status, position: $position) { id status position todo { status } }
+      }
+    variables: |-
+      {
+        "id": "{{taskId}}",
+        "status": "REVIEW",
+        "position": 0
+      }
+order: 4000

@@ -1,0 +1,16 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query MyTasks($status: TaskStatus) {
+        myTasks(status: $status) { id title status dueDate todo { title milestone { project { name } } } }
+      }
+    variables: |-
+      {
+        "status": null
+      }
+order: 8000

@@ -1,0 +1,5 @@
+$kind: http-request
+description: Setzt die Cookies XSRF-TOKEN und Session. Immer zuerst ausführen.
+url: "{{baseUrl}}/sanctum/csrf-cookie"
+method: GET
+order: 1000

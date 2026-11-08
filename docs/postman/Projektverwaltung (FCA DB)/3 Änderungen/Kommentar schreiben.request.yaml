@@ -1,0 +1,32 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation AddComment($input: AddCommentInput!) {
+        addComment(input: $input) { id body author { name } }
+      }
+    variables: |-
+      {
+        "input": {
+          "taskId": "{{taskId}}",
+          "body": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Kommentar aus Postman."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+order: 6000

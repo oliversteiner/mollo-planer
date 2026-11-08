@@ -1,0 +1,63 @@
+$kind: collection
+description: |-
+  Projektverwaltung (FCA DB): Login über Fortify (Cookie-Session wie die SPA) und die GraphQL-API.
+
+  **Vorbereitung**
+  1. Backend starten: `php artisan serve` im Ordner `backend/` (Adresse in `baseUrl`).
+  2. Demo-Daten einspielen: `php artisan db:seed --class=DemoSeeder` (siehe README).
+  3. In den Collection-Variablen `email` und `password` als **Current value** eintragen (bleibt lokal, wird nicht geteilt). Die IDs passen zu frisch eingespielten Demo-Daten.
+
+  **Anmelden (Ordner 1)**
+  CSRF-Cookie holen → Login → 2FA-Code (Variable `totpCode` aus der Authenticator-App) oder Wiederherstellungscode (`recoveryCode`). Danach funktionieren alle GraphQL-Anfragen, bis zum Logout.
+
+  Die Skripte der Collection setzen `Origin`, `Referer`, `Accept` und `X-XSRF-TOKEN` automatisch. Bei Fehler 419 (CSRF) nochmals „CSRF-Cookie holen“ ausführen. Bei `SECOND_FACTOR_SETUP_REQUIRED` oder `STRONG_AUTHENTICATION_REQUIRED` fehlt der 2FA-Schritt.
+
+  **Rechte ausprobieren**
+  Mit Logout und neuem Login als andere Demo-Person sieht man, wie sich `viewerRole`, `viewerAbilities` und die Fehler „This action is unauthorized.“ ändern: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Managerin bzw. Owner Sommerfest), David (Mitglied).
+variables:
+  baseUrl: http://localhost:8000
+  frontendOrigin: http://localhost:3000
+  email: ben.mueller@example.ch
+  password: ""
+  totpCode: ""
+  recoveryCode: ""
+  xsrfToken: ""
+  userId: "2"
+  projectId: "1"
+  milestoneId: "1"
+  todoId: "1"
+  taskId: "2"
+  assigneeId: "4"
+scripts:
+  - type: http:beforeRequest
+    code: |-
+      // Runs before every request of this collection.
+      // The backend treats a request as coming from the SPA (cookie session,
+      // CSRF check) only when Origin/Referer match the frontend.
+      const origin = pm.collectionVariables.get('frontendOrigin');
+      pm.request.headers.upsert({ key: 'Origin', value: origin });
+      pm.request.headers.upsert({ key: 'Referer', value: origin + '/' });
+      pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });
+
+      const xsrf = pm.collectionVariables.get('xsrfToken');
+      if (xsrf) {
+          pm.request.headers.upsert({ key: 'X-XSRF-TOKEN', value: xsrf });
+      }
+    language: text/javascript
+  - type: http:afterResponse
+    code: |-
+      // Runs after every request: Laravel renews the XSRF-TOKEN cookie on each
+      // response. Keep its URL-decoded value for the X-XSRF-TOKEN header.
+      const cookie = pm.cookies.get('XSRF-TOKEN');
+      if (cookie) {
+          pm.collectionVariables.set('xsrfToken', decodeURIComponent(cookie));
+      }
+
+      // Show GraphQL errors (HTTP 200 with "errors") as a failed test.
+      if (pm.request.url.getPath().endsWith('/graphql')) {
+          pm.test('GraphQL without errors', function () {
+              const body = pm.response.json();
+              pm.expect(body.errors, JSON.stringify(body.errors, null, 2)).to.be.undefined;
+          });
+      }
+    language: text/javascript

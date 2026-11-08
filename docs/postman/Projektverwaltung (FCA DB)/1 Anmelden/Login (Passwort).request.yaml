@@ -1,0 +1,14 @@
+$kind: http-request
+description: 'Antwort `{"two_factor": true}`: weiter mit dem 2FA-Code.'
+url: "{{baseUrl}}/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{email}}",
+      "password": "{{password}}"
+    }
+order: 2000

@@ -1,0 +1,13 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Me {
+        me { id name email isAdmin notifyByEmail avatarUrl }
+      }
+    variables: "{}"
+order: 1000

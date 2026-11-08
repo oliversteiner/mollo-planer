@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Todos($projectId: ID!, $status: ItemStatus) {
+        todos(projectId: $projectId, status: $status) { id title status dueDate milestone { title } }
+      }
+    variables: |-
+      {
+        "projectId": "{{projectId}}",
+        "status": null
+      }
+order: 5000

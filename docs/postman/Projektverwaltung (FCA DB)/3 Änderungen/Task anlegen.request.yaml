@@ -1,0 +1,21 @@
+$kind: http-request
+description: Nur Owner, Manager und Admins. Die zugewiesene Person bekommt eine Mail (Queue).
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation CreateTask($input: CreateTaskInput!) {
+        createTask(input: $input) { id title status position assignee { name } }
+      }
+    variables: |-
+      {
+        "input": {
+          "todoId": "{{todoId}}",
+          "title": "Bildgrössen prüfen",
+          "assigneeId": "{{assigneeId}}",
+          "dueDate": "2026-11-30"
+        }
+      }
+order: 3000

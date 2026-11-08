@@ -1,0 +1,19 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Kanban($projectId: ID!) {
+        kanban(projectId: $projectId) {
+          status
+          tasks { id title position dueDate icon assignee { name } commentCount }
+        }
+      }
+    variables: |-
+      {
+        "projectId": "{{projectId}}"
+      }
+order: 6000

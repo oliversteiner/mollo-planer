@@ -1,0 +1,13 @@
+$kind: http-request
+description: Alternative zum Code; jeder Wiederherstellungscode gilt nur einmal.
+url: "{{baseUrl}}/two-factor-challenge"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "recovery_code": "{{recoveryCode}}"
+    }
+order: 4000

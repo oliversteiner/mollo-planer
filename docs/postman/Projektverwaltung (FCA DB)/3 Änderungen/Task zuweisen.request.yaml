@@ -1,0 +1,17 @@
+$kind: http-request
+description: "`assigneeId: null` hebt die Zuweisung auf."
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation AssignTask($id: ID!, $assigneeId: ID) {
+        assignTask(id: $id, assigneeId: $assigneeId) { id assignee { name } }
+      }
+    variables: |-
+      {
+        "id": "{{taskId}}",
+        "assigneeId": "{{assigneeId}}"
+      }
+order: 5000

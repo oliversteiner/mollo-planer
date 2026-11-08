@@ -1,0 +1,21 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Task($id: ID!) {
+        task(id: $id) {
+          id title status description icon dueDate
+          todo { title milestone { title } }
+          assignee { name avatarUrl }
+          comments { id body author { name } viewerCanEdit viewerCanDelete createdAt }
+        }
+      }
+    variables: |-
+      {
+        "id": "{{taskId}}"
+      }
+order: 7000

@@ -1,0 +1,13 @@
+$kind: http-request
+description: Schickt die Mail zum Zurücksetzen (lokal je nach MAIL_MAILER im Log).
+url: "{{baseUrl}}/forgot-password"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{email}}"
+    }
+order: 6000

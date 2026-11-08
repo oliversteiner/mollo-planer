@@ -1,0 +1,17 @@
+$kind: http-request
+description: GraphQL multipart request. Beim Feld `0` eine JPG- oder PNG-Datei (höchstens 5 MB) auswählen. Postman setzt Content-Type selbst.
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: operations
+      value: '{"query": "mutation ($file: Upload!) { updateMyAvatar(avatar: $file) { avatarUrl } }", "variables": {"file": null}}'
+    - type: text
+      key: map
+      value: '{"0": ["variables.file"]}'
+    - type: file
+      key: "0"
+      src: []
+order: 9000

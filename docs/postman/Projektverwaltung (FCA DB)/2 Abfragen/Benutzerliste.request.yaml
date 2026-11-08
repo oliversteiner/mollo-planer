@@ -1,0 +1,13 @@
+$kind: http-request
+description: Nur für Admins und Personen, die in einem Projekt Mitglieder verwalten dürfen.
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Users {
+        users { id name email isAdmin avatarUrl }
+      }
+    variables: "{}"
+order: 9000

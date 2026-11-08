@@ -1,0 +1,19 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation CreateTodo($input: CreateTodoInput!) {
+        createTodo(input: $input) { id title status milestone { title status } }
+      }
+    variables: |-
+      {
+        "input": {
+          "milestoneId": "{{milestoneId}}",
+          "title": "Bilder optimieren"
+        }
+      }
+order: 2000

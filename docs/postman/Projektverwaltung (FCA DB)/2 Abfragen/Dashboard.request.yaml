@@ -1,0 +1,20 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Dashboard($limit: Int) {
+        dashboard {
+          upcomingTodos(limit: $limit) { id title dueDate milestone { title project { name } } }
+          myOpenTasks { id title status dueDate todo { title } }
+          projects { id name progress { done total percent } }
+        }
+      }
+    variables: |-
+      {
+        "limit": 5
+      }
+order: 2000

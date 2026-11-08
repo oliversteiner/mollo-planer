@@ -1,0 +1,16 @@
+$kind: http-request
+description: Das eigene Bild, als Admin auch das einer anderen Person.
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      mutation DeleteUserAvatar($id: ID!) {
+        deleteUserAvatar(id: $id) { id avatarUrl }
+      }
+    variables: |-
+      {
+        "id": "{{userId}}"
+      }
+order: 10000

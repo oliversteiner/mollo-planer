@@ -1,0 +1,5 @@
+$kind: http-request
+description: Beendet die Sitzung. Danach wieder mit „CSRF-Cookie holen“ beginnen.
+url: "{{baseUrl}}/logout"
+method: POST
+order: 5000

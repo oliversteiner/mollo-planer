@@ -1,0 +1,13 @@
+$kind: http-request
+description: 6-stelliger Code aus der Authenticator-App in der Variable `totpCode`. Antwort 204.
+url: "{{baseUrl}}/two-factor-challenge"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "code": "{{totpCode}}"
+    }
+order: 3000

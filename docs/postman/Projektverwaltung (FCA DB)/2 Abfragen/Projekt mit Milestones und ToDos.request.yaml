@@ -1,0 +1,22 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/graphql"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Project($id: ID!) {
+        project(id: $id) {
+          name description
+          milestones {
+            id title icon dueDate status progress { percent }
+            todos { id title icon dueDate status progress { done total } }
+          }
+        }
+      }
+    variables: |-
+      {
+        "id": "{{projectId}}"
+      }
+order: 4000
