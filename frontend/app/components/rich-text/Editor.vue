@@ -17,6 +17,17 @@ const props = withDefaults(defineProps<{
 
 const model = defineModel<Record<string, unknown> | null>({ default: null })
 
+/**
+ * UEditor ignores null, so after "model = null" (for example a comment
+ * just sent) it would keep the old text. It gets an empty document then.
+ */
+const content = computed({
+  get: () => model.value ?? { type: 'doc', content: [{ type: 'paragraph' }] },
+  set: (value: Record<string, unknown> | null) => {
+    model.value = value
+  }
+})
+
 const { t } = useI18n()
 
 const extensions = richTextExtensions()
@@ -55,7 +66,7 @@ const items = computed<EditorToolbarItem[][]>(() => {
 <template>
   <UEditor
     v-slot="{ editor }"
-    v-model="model"
+    v-model="content"
     content-type="json"
     :starter-kit="false"
     :image="false"
