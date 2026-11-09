@@ -21,32 +21,35 @@ useHead({ title: () => (project.value ? title.value : t('projects.title')) })
 </script>
 
 <template>
-  <UDashboardPanel id="project">
-    <template #header>
-      <UDashboardNavbar :title="title">
-        <template #right>
-          <UBadge
-            v-if="project?.viewerRole"
-            color="neutral"
-            variant="outline"
-          >
-            {{ t(`role.${project.viewerRole}`) }}
-          </UBadge>
-        </template>
-      </UDashboardNavbar>
+  <PageFrame :title="title">
+    <template
+      v-if="project?.viewerRole"
+      #actions
+    >
+      <wa-badge
+        variant="neutral"
+        appearance="outlined"
+      >
+        {{ t(`role.${project.viewerRole}`) }}
+      </wa-badge>
     </template>
 
-    <template #body>
-      <USkeleton
-        v-if="!loaded"
-        class="h-32"
-      />
-      <UEmpty
-        v-else-if="!project"
-        icon="i-fadl-folder-open"
-        :title="t('projects.notFound')"
-      />
-      <NuxtPage v-else />
-    </template>
-  </UDashboardPanel>
+    <wa-skeleton
+      v-if="!loaded"
+      effect="sheen"
+      class="project-skeleton"
+    ></wa-skeleton>
+    <EmptyState
+      v-else-if="!project"
+      icon="folder-open"
+      :title="t('projects.notFound')"
+    />
+    <NuxtPage v-else />
+  </PageFrame>
 </template>
+
+<style scoped>
+.project-skeleton {
+  block-size: 8rem;
+}
+</style>

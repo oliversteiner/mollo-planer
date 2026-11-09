@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
 import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectTodosQuery } from '~/graphql/project'
@@ -109,15 +109,15 @@ function startDeleting(target: { kind: 'milestone' | 'todo', item: Item }): void
 }
 
 /** Menu "Ändern / Löschen" of a milestone or todo, by the viewer's rights. */
-function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
+function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
   const prefix = kind === 'milestone' ? 'MILESTONE' : 'TODO'
-  const items: DropdownMenuItem[] = []
+  const items: ActionMenuItem[] = []
 
   if (can(`${prefix}_UPDATE`)) {
-    items.push({ label: t('common.edit'), icon: 'i-fadl-pen', onSelect: () => startEditing({ kind, item }) })
+    items.push({ label: t('common.edit'), icon: 'pen', onSelect: () => startEditing({ kind, item }) })
   }
   if (can(`${prefix}_DELETE`)) {
-    items.push({ label: t('common.delete'), icon: 'i-fadl-trash', color: 'error', onSelect: () => startDeleting({ kind, item }) })
+    items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => startDeleting({ kind, item }) })
   }
 
   return items
@@ -125,21 +125,26 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-2">
+  <div class="wa-stack wa-gap-l">
+    <div class="wa-split wa-gap-s">
       <p
         v-if="project?.description"
-        class="max-w-prose text-muted"
+        class="project-description"
       >
         {{ project.description }}
       </p>
-      <UButton
+      <wa-button
         v-if="can('MILESTONE_CREATE')"
-        icon="i-fadl-plus"
-        :label="t('item.milestone.create')"
-        class="ms-auto"
+        variant="brand"
+        style="margin-inline-start: auto"
         @click="editing = { kind: 'milestone', parentId: projectId }"
-      />
+      >
+        <wa-icon
+          slot="start"
+          name="plus"
+        ></wa-icon>
+        {{ t('item.milestone.create') }}
+      </wa-button>
     </div>
 
     <ProjectTimeline
@@ -184,3 +189,11 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
     />
   </div>
 </template>
+
+<style scoped>
+.project-description {
+  margin: 0;
+  max-inline-size: 65ch;
+  color: var(--wa-color-text-quiet);
+}
+</style>

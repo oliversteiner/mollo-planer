@@ -106,7 +106,7 @@ describe('ProjectTimeline', () => {
         'onUpdate:milestonesOnly': (value: boolean) => timeline.setProps({ milestonesOnly: value })
       }
     })
-    const toggle = () => timeline.findAll('button').find(button => ['Nur Milestones anzeigen', 'Alles anzeigen'].includes(button.text()))!
+    const toggle = () => timeline.findAll('wa-button').find(button => ['Nur Milestones anzeigen', 'Alles anzeigen'].includes(button.text()))!
 
     expect(timeline.text()).toContain('Zielgruppe festlegen')
 
@@ -133,7 +133,7 @@ describe('ProjectTimeline', () => {
 
   it('offers a new todo per milestone only with the right to create one', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
-    const createButtons = () => timeline.findAll('button[aria-label^="Neues ToDo im Milestone"]')
+    const createButtons = () => timeline.findAll('wa-button[aria-label^="Neues ToDo im Milestone"]')
 
     expect(createButtons()).toHaveLength(0)
 
@@ -141,7 +141,7 @@ describe('ProjectTimeline', () => {
 
     expect(createButtons()).toHaveLength(2)
 
-    await timeline.find('button[aria-label="Neues ToDo im Milestone «Konzept steht» anlegen"]').trigger('click')
+    await timeline.find('wa-button[aria-label="Neues ToDo im Milestone «Konzept steht» anlegen"]').trigger('click')
 
     expect(timeline.emitted('createTodo')).toEqual([['1']])
   })
@@ -149,7 +149,7 @@ describe('ProjectTimeline', () => {
   it('offers a new task per todo only with the right to create one', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
     const todo = 'button[aria-label="ToDo «Zielgruppe festlegen» auf- oder zuklappen"]'
-    const create = 'button[aria-label="Neuen Task im ToDo «Zielgruppe festlegen» anlegen"]'
+    const create = 'wa-button[aria-label="Neuen Task im ToDo «Zielgruppe festlegen» anlegen"]'
 
     await timeline.find(todo).trigger('click')
 
@@ -163,7 +163,7 @@ describe('ProjectTimeline', () => {
 
   it('shows the actions menu of milestones and todos only with entries', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
-    const menus = () => timeline.findAll('button[aria-label^="Aktionen für"]').map(button => button.attributes('aria-label'))
+    const menus = () => timeline.findAll('wa-button[aria-label^="Aktionen für"]').map(button => button.attributes('aria-label'))
 
     expect(menus()).toEqual([])
 
@@ -204,7 +204,7 @@ describe('ProjectTimeline', () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
     const lists = () => timeline.findAllComponents({ name: 'VueDraggable' })
 
-    await timeline.findAll('button').find(button => button.text() === 'Alle aufklappen')!.trigger('click')
+    await timeline.findAll('wa-button').find(button => button.text() === 'Alle aufklappen')!.trigger('click')
 
     expect(lists()).toHaveLength(2)
     expect(lists().every(list => list.props('disabled'))).toBe(true)

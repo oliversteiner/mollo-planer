@@ -107,98 +107,88 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UModal
+  <AppDialog
     v-model:open="open"
-    :title="title"
-    :ui="{ content: 'sm:max-w-2xl' }"
+    :label="title"
+    class="item-dialog"
   >
-    <template #body>
-      <UForm
-        id="item-form"
-        :state="state"
-        class="space-y-4"
-        @submit="submit"
-      >
-        <UFormField
-          v-if="needsMilestoneChoice"
-          :label="t('item.todo.milestone')"
-          name="milestoneId"
-          :error="errors.milestoneId"
-          required
+    <form
+      id="item-form"
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submit"
+    >
+      <FormSelect
+        v-if="needsMilestoneChoice"
+        v-model="state.milestoneId"
+        name="milestoneId"
+        :items="milestoneItems"
+        :label="t('item.todo.milestone')"
+        :error="errors.milestoneId"
+        required
+      />
+
+      <FormInput
+        v-model="state.title"
+        name="title"
+        :label="t('item.fields.title')"
+        :error="errors.title"
+        autofocus
+        required
+      />
+
+      <div class="wa-cluster wa-gap-m wa-align-items-start">
+        <FormField
+          :label="t('item.fields.icon')"
+          :error="errors.icon"
         >
-          <USelect
-            v-model="state.milestoneId"
-            :items="milestoneItems"
-            class="w-full"
+          <IconPicker
+            v-model="state.icon"
+            :fallback="kind === 'milestone' ? 'flag-checkered' : 'list-check'"
           />
-        </UFormField>
+        </FormField>
 
-        <UFormField
-          :label="t('item.fields.title')"
-          name="title"
-          :error="errors.title"
-          required
-        >
-          <UInput
-            v-model="state.title"
-            class="w-full"
-            autofocus
-            required
-          />
-        </UFormField>
-
-        <div class="flex flex-wrap gap-4">
-          <UFormField
-            :label="t('item.fields.icon')"
-            name="icon"
-            :error="errors.icon"
-          >
-            <IconPicker
-              v-model="state.icon"
-              :fallback="kind === 'milestone' ? 'flag-checkered' : 'list-check'"
-            />
-          </UFormField>
-
-          <UFormField
-            :label="t('item.fields.dueDate')"
-            name="dueDate"
-            :error="errors.dueDate"
-          >
-            <UInput
-              v-model="state.dueDate"
-              type="date"
-            />
-          </UFormField>
-        </div>
-
-        <UFormField
-          :label="t('item.fields.description')"
-          name="description"
-          :error="errors.description"
-        >
-          <RichTextEditor
-            v-model="state.description"
-            :placeholder="t('item.fields.descriptionPlaceholder')"
-          />
-        </UFormField>
-      </UForm>
-    </template>
-
-    <template #footer>
-      <div class="flex w-full justify-end gap-2">
-        <UButton
-          :label="t('common.cancel')"
-          color="neutral"
-          variant="ghost"
-          @click="open = false"
-        />
-        <UButton
-          type="submit"
-          form="item-form"
-          :label="t('common.save')"
-          :loading="pending"
+        <FormInput
+          v-model="state.dueDate"
+          type="date"
+          name="dueDate"
+          :label="t('item.fields.dueDate')"
+          :error="errors.dueDate"
         />
       </div>
+
+      <FormField
+        :label="t('item.fields.description')"
+        :error="errors.description"
+      >
+        <RichTextEditor
+          v-model="state.description"
+          :placeholder="t('item.fields.descriptionPlaceholder')"
+        />
+      </FormField>
+    </form>
+
+    <template #footer>
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        @click="open = false"
+      >
+        {{ t('common.cancel') }}
+      </wa-button>
+      <wa-button
+        type="submit"
+        form="item-form"
+        variant="brand"
+        :loading="pending"
+      >
+        {{ t('common.save') }}
+      </wa-button>
     </template>
-  </UModal>
+  </AppDialog>
 </template>
+
+<style scoped>
+.item-dialog {
+  --width: 42rem;
+}
+</style>
