@@ -73,6 +73,7 @@ const tasks = computed(() => [...(result.value?.myTasks ?? [])]
             <span class="my-tasks-title">{{ task.title }}</span>
             <span class="my-tasks-sub">{{ task.todo.milestone.project.name }} · {{ task.todo.milestone.title }} · {{ task.todo.title }}</span>
           </span>
+          <TaskLabels :labels="task.labels" />
           <span
             v-if="task.commentCount"
             class="my-tasks-comments"

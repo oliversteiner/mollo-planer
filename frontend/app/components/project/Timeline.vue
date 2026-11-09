@@ -344,6 +344,7 @@ function toggleAll() {
                             />
                           </div>
                           <div class="task-meta">
+                            <TaskLabels :labels="task.labels" />
                             <StatusBadge :status="task.status" />
                             <DueDate
                               :date="task.dueDate"

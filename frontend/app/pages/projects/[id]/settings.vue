@@ -34,6 +34,11 @@ async function confirmDelete(): Promise<void> {
       v-if="can('PROJECT_UPDATE')"
       :project="project"
     />
+    <ProjectLabelSetCard
+      v-if="can('PROJECT_UPDATE')"
+      :project-id="project.id"
+      :label-set-id="header?.labelSet?.id ?? null"
+    />
 
     <wa-card
       v-if="can('PROJECT_DELETE')"

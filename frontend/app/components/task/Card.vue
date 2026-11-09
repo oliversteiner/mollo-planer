@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
+import type { TaskLabelItem } from '~/components/TaskLabels.vue'
 
 /**
  * A task on the Kanban board. Click on the title: details; double-click
@@ -15,6 +16,7 @@ defineProps<{
     commentCount: number
     assignee?: { id: string, name: string, avatarUrl?: string | null } | null
     todo: { title: string }
+    labels?: readonly TaskLabelItem[]
   }
   menuItems: ActionMenuItem[]
   /** May the viewer edit it (double-click)? */
@@ -82,6 +84,10 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
     <p class="task-card-todo">
       {{ task.todo.title }}
     </p>
+    <TaskLabels
+      v-if="task.labels?.length"
+      :labels="task.labels"
+    />
     <div class="task-card-foot">
       <DueDate
         :date="task.dueDate"

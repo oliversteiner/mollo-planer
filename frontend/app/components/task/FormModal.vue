@@ -49,7 +49,12 @@ const state = reactive<{
   dueDate: string
   icon: string | null
   description: Record<string, unknown> | null
-}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null })
+  labelIds: string[]
+}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null, labelIds: [] })
+
+/** Labels of the project's set, for a new task (an existing one gets its labels in the details). */
+const { project } = useProject()
+const setLabels = computed(() => project.value?.labelSet?.labels ?? [])
 
 watch(() => props.target, (target) => {
   errors.value = {}
@@ -59,6 +64,7 @@ watch(() => props.target, (target) => {
   state.dueDate = target?.task?.dueDate ?? ''
   state.icon = target?.task?.icon ?? null
   state.description = target?.task?.description ?? null
+  state.labelIds = []
 }, { immediate: true })
 
 const isNew = computed(() => !props.target?.task)
@@ -82,7 +88,7 @@ async function submit(): Promise<void> {
   const task = props.target?.task
   const result = await run<unknown>(() => task
     ? updateTask({ id: task.id, input: fields })
-    : createTask({ input: { ...fields, todoId: state.todoId, assigneeId: state.assigneeId === 'none' ? null : state.assigneeId } }))
+    : createTask({ input: { ...fields, todoId: state.todoId, assigneeId: state.assigneeId === 'none' ? null : state.assigneeId, labelIds: state.labelIds } }))
 
   if (result) {
     toast.add({ title: t('task.saved'), color: 'success' })
@@ -147,6 +153,20 @@ async function submit(): Promise<void> {
           :error="errors.assigneeId"
         />
       </div>
+
+      <LabelPicker
+        v-if="isNew && setLabels.length"
+        v-model="state.labelIds"
+        :labels="setLabels"
+        :label="t('labels.field')"
+      />
+      <p
+        v-if="errors.labelIds"
+        data-form-error
+        class="wa-body-s"
+      >
+        {{ errors.labelIds }}
+      </p>
 
       <FormField
         :label="t('item.fields.description')"

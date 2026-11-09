@@ -50,6 +50,7 @@ const project = {
           status: 'DONE',
           dueDate: null,
           commentCount: 3,
+          labels: [{ id: '4', name: 'Fehler', color: 'RED', position: 3 }],
           assignee: { id: '5', name: 'Lindita Aliu', avatarUrl: null }
         }]
       }]
@@ -96,6 +97,7 @@ describe('ProjectTimeline', () => {
     expect(timeline.text()).toContain('Hörerprofile schreiben')
     expect(timeline.text()).toContain('Lindita Aliu')
     expect(timeline.text()).toContain('3 Kommentare')
+    expect(timeline.find('.task-labels').text()).toBe('Fehler')
   })
 
   it('"Nur Milestones anzeigen" hides the todos and shows them again', async () => {

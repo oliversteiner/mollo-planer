@@ -12,6 +12,7 @@ export const kanbanQuery = graphql(`
         position
         dueDate
         commentCount
+        labels { id name color position }
         assignee { id name avatarUrl }
         todo { id title }
       }
@@ -48,10 +49,15 @@ export const taskQuery = graphql(`
       position
       dueDate
       assignee { id name avatarUrl }
+      labels { id name color position }
       todo {
         id
         title
-        milestone { id title }
+        milestone {
+          id
+          title
+          project { id labelSet { id labels { id name category color position } } }
+        }
       }
       comments {
         id

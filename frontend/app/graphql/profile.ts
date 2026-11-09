@@ -9,6 +9,7 @@ export const myTasksQuery = graphql(`
       status
       dueDate
       commentCount
+      labels { id name color position }
       todo {
         id
         title

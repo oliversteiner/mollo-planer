@@ -499,5 +499,19 @@
       "import": "Create now",
       "importFailed": "Not created"
     }
+  },
+  "labels": {
+    "ofTask": "Labels",
+    "outsideSet": "no longer in the project’s label set",
+    "none": "No labels",
+    "outsideSetGroup": "No longer in the set",
+    "field": "Labels",
+    "noSet": "No label set is chosen for this project.",
+    "noSetChoice": "No label set",
+    "setChosen": "Label set saved.",
+    "cardTitle": "Labels",
+    "cardIntro": "The label set decides which labels categorise the tasks of this project. When it changes, tasks keep the labels they have.",
+    "set": "Label set",
+    "manage": "Manage label sets"
   }
 }

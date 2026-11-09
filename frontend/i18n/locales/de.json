@@ -499,5 +499,19 @@
       "import": "Jetzt eintragen",
       "importFailed": "Nicht eingetragen"
     }
+  },
+  "labels": {
+    "ofTask": "Labels",
+    "outsideSet": "nicht mehr im Label-Set des Projekts",
+    "none": "Keine Labels",
+    "outsideSetGroup": "Nicht mehr im Set",
+    "field": "Labels",
+    "noSet": "Für dieses Projekt ist kein Label-Set gewählt.",
+    "noSetChoice": "Kein Label-Set",
+    "setChosen": "Label-Set gespeichert.",
+    "cardTitle": "Labels",
+    "cardIntro": "Das Label-Set bestimmt, mit welchen Labels die Tasks dieses Projekts kategorisiert werden. Bei einem Wechsel behalten Tasks ihre bisherigen Labels.",
+    "set": "Label-Set",
+    "manage": "Label-Sets verwalten"
   }
 }

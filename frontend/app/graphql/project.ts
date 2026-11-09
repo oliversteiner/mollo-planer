@@ -55,6 +55,7 @@ export const projectTimelineQuery = graphql(`
             status
             dueDate
             commentCount
+            labels { id name color position }
             assignee { id name avatarUrl }
           }
         }

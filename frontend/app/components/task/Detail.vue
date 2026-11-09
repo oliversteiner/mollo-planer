@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
+import { setTaskLabelsMutation } from '~/graphql/labels'
 import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES, taskQuery } from '~/graphql/task'
 
 /**
@@ -51,6 +52,18 @@ const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
 const { mutate: moveTask } = useMutation(moveTaskMutation, options)
 const { mutate: assignTask } = useMutation(assignTaskMutation, options)
 const { mutate: deleteTask } = useMutation(deleteTaskMutation, options)
+const { mutate: setTaskLabels } = useMutation(setTaskLabelsMutation, options)
+
+/** Labels of the project's set; the task's labels outside it can only be removed. */
+const setLabels = computed(() => task.value?.todo.milestone.project.labelSet?.labels ?? [])
+const setLabelIds = computed(() => setLabels.value.map(label => label.id))
+const extraLabels = computed(() => (task.value?.labels ?? []).filter(label => !setLabelIds.value.includes(label.id)))
+
+async function changeLabels(ids: string[]): Promise<void> {
+  if (task.value) {
+    await setTaskLabels({ taskId: task.value.id, labelIds: ids }).catch(() => null)
+  }
+}
 
 /** A new status puts the task at the end of that column. */
 async function changeStatus(status: (typeof TASK_STATUSES)[number]): Promise<void> {
@@ -166,6 +179,24 @@ async function confirmDelete(): Promise<void> {
           <span class="wa-body-s">{{ task.assignee?.name ?? t('task.nobody') }}</span>
         </FormField>
       </div>
+
+      <LabelPicker
+        v-if="can.update && (setLabels.length || extraLabels.length)"
+        :model-value="task.labels.map(label => label.id)"
+        :labels="setLabels"
+        :extra="extraLabels"
+        :label="t('labels.field')"
+        @update:model-value="changeLabels"
+      />
+      <FormField
+        v-else-if="task.labels.length"
+        :label="t('labels.field')"
+      >
+        <TaskLabels
+          :labels="task.labels"
+          :set-label-ids="setLabelIds"
+        />
+      </FormField>
 
       <section class="wa-stack wa-gap-xs">
         <h3 class="wa-heading-s">
