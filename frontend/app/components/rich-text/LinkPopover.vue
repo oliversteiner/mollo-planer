@@ -68,7 +68,7 @@ function onHide(event: Event): void {
     :id="anchorId"
     :appearance="active ? 'filled' : 'plain'"
     variant="neutral"
-    size="small"
+    size="s"
     :title="t('richText.link.button')"
     :aria-label="t('richText.link.button')"
     :aria-pressed="active"
@@ -100,7 +100,7 @@ function onHide(event: Event): void {
           v-if="active"
           appearance="plain"
           variant="neutral"
-          size="small"
+          size="s"
           @click="remove"
         >
           <wa-icon
@@ -112,7 +112,7 @@ function onHide(event: Event): void {
         <wa-button
           type="submit"
           variant="brand"
-          size="small"
+          size="s"
         >
           {{ t('richText.link.apply') }}
         </wa-button>

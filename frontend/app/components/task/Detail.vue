@@ -115,7 +115,7 @@ async function confirmDelete(): Promise<void> {
             v-if="can.update"
             appearance="outlined"
             variant="neutral"
-            size="small"
+            size="s"
             @click="emit('edit', task)"
           >
             <wa-icon
@@ -128,7 +128,7 @@ async function confirmDelete(): Promise<void> {
             v-if="can.delete"
             appearance="plain"
             variant="danger"
-            size="small"
+            size="s"
             :aria-label="t('common.delete')"
             @click="deleting = true"
           >

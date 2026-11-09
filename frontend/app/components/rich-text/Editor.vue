@@ -103,7 +103,7 @@ const groups = computed<Tool[][]>(() => {
           :key="tool.key"
           :appearance="tool.active ? 'filled' : 'plain'"
           variant="neutral"
-          size="small"
+          size="s"
           :title="tool.label"
           :aria-label="tool.label"
           :aria-pressed="tool.active === undefined ? undefined : tool.active"

@@ -164,7 +164,7 @@ async function confirmRevoke(): Promise<void> {
           <wa-button
             appearance="plain"
             variant="neutral"
-            size="small"
+            size="s"
             :aria-label="t('claude.revoke', { name: token.name })"
             @click="revoking = { id: token.id, name: token.name }"
           >

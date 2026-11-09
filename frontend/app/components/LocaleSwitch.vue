@@ -20,7 +20,7 @@ const items = computed(() => locales.value.map(entry => ({
     :items="items"
     :label="label"
     :aria-label="label ? undefined : t('settings.language')"
-    size="small"
+    size="s"
     @update:model-value="value => value && setLocale(value as 'de' | 'en')"
   />
 </template>

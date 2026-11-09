@@ -17,10 +17,10 @@ const props = withDefaults(defineProps<{
   items: readonly ActionMenuItem[] | ReadonlyArray<readonly ActionMenuItem[]>
   /** Name of the button for screen readers. */
   label: string
-  size?: 'small' | 'medium'
+  size?: 's' | 'm'
   placement?: 'bottom-start' | 'bottom-end'
 }>(), {
-  size: 'small',
+  size: 's',
   placement: 'bottom-end'
 })
 

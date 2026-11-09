@@ -180,7 +180,7 @@ function person(email: string | null) {
           v-if="allTodoKeys.length"
           appearance="plain"
           variant="neutral"
-          size="small"
+          size="s"
           @click="toggleAll"
         >
           <wa-icon

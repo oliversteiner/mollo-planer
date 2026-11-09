@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'node:url'
-import { uiIcons } from './app/ui-icons'
 import { ensureIconCatalog } from './scripts/icon-catalog'
 
 // Font Awesome Pro, style "Duotone Light", fixed-width SVGs (640 grid).
@@ -14,7 +13,7 @@ ensureIconCatalog(fontAwesome, iconCatalog)
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui',
+    '@nuxt/fonts',
     '@nuxtjs/i18n'
   ],
 
@@ -39,8 +38,8 @@ export default defineNuxtConfig({
     }
   },
 
-  // Web Awesome first, so its cascade layers come before the Tailwind ones.
-  css: ['~/assets/css/webawesome.css', '~/assets/css/main.css', '~/assets/css/rich-text.css'],
+  // Web Awesome (theme, native styles, utilities), then the own styles.
+  css: ['~/assets/css/webawesome.css', '~/assets/css/rich-text.css', '~/assets/css/animations.css'],
 
   // Web Awesome components are custom elements (wa-*), not Vue components.
   vue: {
@@ -82,21 +81,10 @@ export default defineNuxtConfig({
   },
 
   hooks: {
-    // The app has its own useToast (composables/useToast.ts, Web Awesome).
-    // It has the same name as the one of Nuxt UI, so it is registered with a
-    // higher priority and wins the auto import.
-    'imports:extend'(imports) {
-      imports.push({
-        name: 'useToast',
-        from: fileURLToPath(new URL('./app/composables/useToast.ts', import.meta.url)),
-        priority: 100
-      })
-    },
-
     // The theme "Matter" loads its fonts from fonts.bunny.net. The app makes
     // no requests to third parties, so that @import is dropped after
-    // postcss-import has inlined the theme (the body font is Public Sans,
-    // see assets/css/webawesome.css).
+    // postcss-import has inlined the theme; @nuxt/fonts serves the fonts
+    // instead (see "fonts" below).
     'vite:extendConfig'(config) {
       const plugins = (config.css as { postcss?: { plugins?: unknown } } | undefined)?.postcss?.plugins
       if (!Array.isArray(plugins)) {
@@ -146,26 +134,6 @@ export default defineNuxtConfig({
       useCookie: true,
       cookieKey: 'locale',
       fallbackLocale: 'de'
-    }
-  },
-
-  // Font Awesome Pro "Duotone Light" for every icon of the interface, as
-  // the collection "fadl" (i-fadl-rocket). Only icons used in the code go
-  // into the bundle; nothing is fetched from the Iconify API at runtime.
-  icon: {
-    customCollections: [
-      {
-        prefix: 'fadl',
-        dir: duotoneLight
-      }
-    ],
-    provider: 'none',
-    fallbackToApi: false,
-    clientBundle: {
-      scan: true,
-      // "i-fadl-check" -> "fadl:check"
-      icons: Object.values(uiIcons).map(icon => icon.replace(/^i-fadl-/, 'fadl:')),
-      includeCustomCollections: false
     }
   }
 })

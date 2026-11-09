@@ -5,6 +5,7 @@ import { onError } from '@apollo/client/link/error'
 import { fromPromise } from '@apollo/client/link/utils'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import createUploadLink from 'apollo-upload-client/createUploadLink.mjs'
+import type { $Fetch } from 'ofetch'
 import type { ApiError } from '~/utils/api'
 import { classifyApolloError, classifyRestError, readCookie } from '~/utils/api'
 
@@ -126,7 +127,10 @@ export default defineNuxtPlugin({
     return {
       provide: {
         apollo,
-        backend,
+        // Typed as plain ofetch: the backend is another origin, the routes of
+        // this app (Nitro's typed requests) do not apply, and inferring them
+        // is too deep for TypeScript.
+        backend: backend as $Fetch,
         ensureCsrfCookie,
         apiErrors
       }

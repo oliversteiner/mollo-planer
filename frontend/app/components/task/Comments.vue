@@ -111,7 +111,7 @@ async function confirmDelete(): Promise<void> {
                 v-if="comment.viewerCanEdit && editingId !== comment.id"
                 appearance="plain"
                 variant="neutral"
-                size="small"
+                size="s"
                 :aria-label="t('common.edit')"
                 @click="startEditing(comment)"
               >
@@ -121,7 +121,7 @@ async function confirmDelete(): Promise<void> {
                 v-if="comment.viewerCanDelete"
                 appearance="plain"
                 variant="neutral"
-                size="small"
+                size="s"
                 :aria-label="t('common.delete')"
                 @click="deletingId = comment.id"
               >
@@ -149,14 +149,14 @@ async function confirmDelete(): Promise<void> {
               <wa-button
                 appearance="plain"
                 variant="neutral"
-                size="small"
+                size="s"
                 @click="editingId = null"
               >
                 {{ t('common.cancel') }}
               </wa-button>
               <wa-button
                 variant="brand"
-                size="small"
+                size="s"
                 :loading="pending"
                 @click="saveEdit"
               >

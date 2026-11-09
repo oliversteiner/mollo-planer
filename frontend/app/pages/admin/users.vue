@@ -177,7 +177,7 @@ function factorLabel(user: User): string {
         <ActionMenu
           :items="actions(user)"
           :label="t('admin.users.actions', { name: user.name })"
-          size="medium"
+          size="m"
         />
       </li>
     </ul>

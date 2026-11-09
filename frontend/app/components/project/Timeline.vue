@@ -173,7 +173,7 @@ function toggleAll() {
         <wa-button
           appearance="plain"
           variant="neutral"
-          size="small"
+          size="s"
           :aria-pressed="milestonesOnly"
           @click="milestonesOnly = !milestonesOnly"
         >
@@ -187,7 +187,7 @@ function toggleAll() {
           v-if="allTodoIds.length && !milestonesOnly"
           appearance="plain"
           variant="neutral"
-          size="small"
+          size="s"
           @click="toggleAll"
         >
           <wa-icon
@@ -383,7 +383,7 @@ function toggleAll() {
                       <wa-button
                         appearance="plain"
                         variant="neutral"
-                        size="small"
+                        size="s"
                         :aria-label="t('project.timeline.createTask', { title: todo.title })"
                         @click="emit('createTask', todo.id)"
                       >
@@ -408,7 +408,7 @@ function toggleAll() {
                 <wa-button
                   appearance="plain"
                   variant="neutral"
-                  size="small"
+                  size="s"
                   :aria-label="t('project.timeline.createTodo', { title: item.milestone.title })"
                   @click="emit('createTodo', item.milestone.id)"
                 >

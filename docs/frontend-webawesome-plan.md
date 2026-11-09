@@ -155,6 +155,16 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **Icon-Picker** ist ein Dialog mit Suchfeld (`AppDialog`, `FormInput`) und einem Raster aus `wa-button`; jeder Eintrag hat ein `wa-tooltip`. Ein `wa-combobox` passt für ein Raster aus Icons nicht. Katalog und Suche (`utils/icon-search.ts`) sind unverändert.
 - **Zu prüfen im Browser:** Aussehen und Rahmen des Editors (Fokus, Mindesthöhe), Platzhalter, Link-Popover (Fokus, Schließen mit Escape), Raster des Icon-Pickers (viele Tooltips).
 
+## Hinweise zu Schritt 7 und 8 (Nuxt UI und Tailwind entfernt)
+- **Zusammengelegt:** Tailwind lief nur über das Modul von Nuxt UI. Nach Schritt 6 nutzte keine Vorlage mehr Tailwind-Klassen (geprüft per Skript: alle Klassen sind `wa-*` oder in eigenem CSS definiert); übrig waren `plan-in`/`plan-timeline` und das Preflight. Darum sind beide Schritte in einem Zug erledigt.
+- **Entfernt:** `@nuxt/ui`, `tailwindcss`, `eslint-plugin-better-tailwindcss` (samt Ausnahmeliste in `eslint.config.mjs`), `app.config.ts`, `app/ui-icons.ts`, `assets/css/main.css`, `UApp` in `app.vue`, die Icon-Sammlung `fadl` (Nuxt Icon) und der Hook, der `useToast` den Vorrang gab.
+- **Neu:** `@nuxt/fonts` als eigenes Modul (die Schriften von Matter, wie bisher selbst ausgeliefert). `assets/css/animations.css` mit `plan-in`/`plan-timeline` als normales CSS (`prefers-reduced-motion` bleibt). Statt Preflight lädt `webawesome.css` die **Native Styles** von Web Awesome (`native.css`, Ebene `wa-native`, also schwächer als jedes eigene CSS).
+- **Farbmodus ohne Nuxt UI:** `useColorScheme()` (System, Hell, Dunkel; gemerkt unter `color-mode`, die frühere Einstellung `nuxt-color-mode` wird einmal übernommen). Das Plugin setzt `wa-dark`/`wa-light`, ein kleines Skript im Kopf der Seite (`nuxt.config.ts`, `app.head.script`) schon vor dem Start, damit eine dunkle Seite nicht weiß aufblitzt. „System“ folgt einer Änderung am Gerät auch bei offener App.
+- **Typen:** `$backend` ist jetzt als einfaches `$Fetch` von ofetch getippt. Ohne Nuxt UI lief TypeScript bei der Ableitung der Nitro-Routen in einen Stapelüberlauf (TS2321); das Backend ist ohnehin ein anderer Ursprung.
+- **Größen:** `size="small|medium|large"` ist in Web Awesome 3.14 veraltet (Warnung im Dev-Server); überall auf `s|m|l` umgestellt.
+- **Tests:** Zeitlimit der Nuxt-Tests auf 15 s (der erste Mount startet Nuxt und die Komponenten; auf einem ausgelasteten Rechner, z. B. mit laufendem Dev-Server, dauert das über 5 s).
+- **Bundle:** `_nuxt` rund 2,1 MB statt 3,5 MB vorher.
+
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)
 - [x] 1. Einbindung (Hinweise dazu unten)
@@ -163,6 +173,6 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - [x] 4. Layout (Hinweise dazu unten)
 - [x] 5. Seiten (Hinweise dazu unten)
 - [x] 6. Rich-Text und Icon-Picker (Hinweise dazu unten)
-- [ ] 7. Nuxt UI entfernen
-- [ ] 8. Tailwind entfernen
+- [x] 7. Nuxt UI entfernen (zusammen mit 8, Hinweise unten)
+- [x] 8. Tailwind entfernen (zusammen mit 7)
 - [ ] 9. Abschluss

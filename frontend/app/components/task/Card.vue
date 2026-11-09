@@ -75,7 +75,7 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
         v-if="menuItems.length"
         :items="menuItems"
         :label="t('kanban.moveMenu', { title: task.title })"
-        size="small"
+        size="s"
       />
     </div>
     <p class="task-card-todo">

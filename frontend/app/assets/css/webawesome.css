@@ -1,13 +1,12 @@
 /*
  * Web Awesome Pro: cascade layers, theme "Matter" (palette "Mild", brand
- * purple, set as classes on <html> in app.vue) and the CSS utilities.
- * Imported before main.css so the Tailwind layers come after the Web
- * Awesome layers while both libraries run side by side (until phase B).
- * The native reset (native.css) is left out for now: Tailwind's preflight
- * already resets the elements.
+ * purple, set as classes on <html> in app.vue), the native styles (base
+ * look and reset of the HTML elements: page, headings, lists, links, ...)
+ * and the CSS utilities (wa-stack, wa-cluster, wa-heading-*, ...).
  */
 @import '@web.awesome.me/webawesome-pro/dist/styles/layers.css';
 @import '@web.awesome.me/webawesome-pro/dist/styles/themes/matter.css';
+@import '@web.awesome.me/webawesome-pro/dist/styles/native.css';
 @import '@web.awesome.me/webawesome-pro/dist/styles/utilities.css';
 
 /* Fields with a message from the server (FormInput, FormTextarea, FormSelect). */

@@ -45,7 +45,7 @@ async function done(): Promise<void> {
       >
         <wa-button
           variant="brand"
-          size="large"
+          size="l"
           style="width: 100%"
           @click="method = 'passkey'"
         >
@@ -58,7 +58,7 @@ async function done(): Promise<void> {
         <wa-button
           appearance="outlined"
           variant="neutral"
-          size="large"
+          size="l"
           style="width: 100%"
           @click="method = 'app'"
         >

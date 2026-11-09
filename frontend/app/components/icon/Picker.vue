@@ -64,7 +64,7 @@ function choose(name: string | null): void {
       v-if="model"
       appearance="plain"
       variant="neutral"
-      size="small"
+      size="s"
       :aria-label="t('icons.remove')"
       @click="choose(null)"
     >

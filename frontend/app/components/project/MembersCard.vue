@@ -138,7 +138,7 @@ async function confirmRemove(): Promise<void> {
           v-if="canManage"
           appearance="plain"
           variant="neutral"
-          size="small"
+          size="s"
           :disabled="pending"
           :aria-label="t('settings.members.remove', { name: member.user.name })"
           @click="removing = { id: member.user.id, name: member.user.name }"

@@ -38,7 +38,7 @@ function download(): void {
       <wa-button
         appearance="outlined"
         variant="neutral"
-        size="small"
+        size="s"
         @click="copy"
       >
         <wa-icon
@@ -50,7 +50,7 @@ function download(): void {
       <wa-button
         appearance="outlined"
         variant="neutral"
-        size="small"
+        size="s"
         @click="download"
       >
         <wa-icon

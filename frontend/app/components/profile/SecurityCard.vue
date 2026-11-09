@@ -110,7 +110,7 @@ async function onTwoFactorDone(): Promise<void> {
             <wa-button
               appearance="outlined"
               variant="neutral"
-              size="small"
+              size="s"
               @click="showCodes(false)"
             >
               <wa-icon
@@ -122,7 +122,7 @@ async function onTwoFactorDone(): Promise<void> {
             <wa-button
               appearance="outlined"
               variant="neutral"
-              size="small"
+              size="s"
               @click="showCodes(true)"
             >
               <wa-icon
@@ -134,7 +134,7 @@ async function onTwoFactorDone(): Promise<void> {
             <wa-button
               appearance="plain"
               variant="danger"
-              size="small"
+              size="s"
               @click="confirming = { kind: 'twoFactor' }"
             >
               <wa-icon
@@ -181,7 +181,7 @@ async function onTwoFactorDone(): Promise<void> {
             <wa-button
               appearance="plain"
               variant="neutral"
-              size="small"
+              size="s"
               :aria-label="t('security.passkeys.remove', { name: passkey.name })"
               @click="confirming = { kind: 'passkey', id: passkey.id, name: passkey.name }"
             >
