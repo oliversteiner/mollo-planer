@@ -8,6 +8,7 @@ Produktiv-Domain später: `project.fcadb.ch` (Frontend und API als getrennte Sub
 - `docs/graphql-kontext.md`: alle Entscheidungen im Detail (Rechte, Status-Automatik, Mails, RichText, Icons, Kommentare).
 - `backend/graphql/schema.graphql`: das GraphQL-Schema (Lighthouse). Ist der Vertrag zwischen Backend und Frontend.
 - `docs/frontend-plan.md`: Entscheidungen und Bau-Reihenfolge für das Frontend.
+- `docs/frontend-webawesome-plan.md`: Umstellung der Oberfläche auf Web Awesome Pro (Bausteine, Abweichungen, Stand). Für alles an der Oberfläche gilt dieses Dokument vor `frontend-plan.md`.
 
 Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code vom Schema ab, nicht stillschweigend das Schema ändern, sondern nachfragen.
 
@@ -16,7 +17,7 @@ Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code 
 - **KI-Assistent:** offizielles PHP-SDK `anthropic-ai/sdk` (Claude-API), Schlüssel `ANTHROPIC_API_KEY` nur in `.env`
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
-- **Frontend:** Nuxt 4 (Vue 3) mit Nuxt UI in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente)
+- **Frontend:** Nuxt 4 (Vue 3) mit **Web Awesome Pro** (Web Components `wa-*`, Theme „Matter“; nicht Nuxt UI, kein Tailwind) in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente, über `wa-icon`)
 - **Hosting:** Hostpoint (Schweiz), nur PHP und MySQL/MariaDB, Queue per Cron. Hosting-Themen erst später, nicht jetzt bearbeiten.
 - **Entwicklung:** macOS (Mac mini, Apple Silicon) mit Homebrew (PHP, Composer, MariaDB, Mailpit), Node 24 über nvm, PhpStorm, GitHub
 
@@ -50,7 +51,8 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - Status von ToDo und Milestone wird nur vom Observer berechnet, nie per Eingabe gesetzt.
 - RichText wird als TipTap-JSON gespeichert, **nie HTML**. Frontend zeigt es mit TipTap an, **nie mit `v-html`**.
 - Mails nur über Notifications mit `ShouldQueue` und `afterCommit`, Sprache = `project->locale`.
-- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. Das Font-Awesome-npm-Token gehört in `.npmrc` (lokal, nicht eingecheckt) bzw. in ein GitHub-Secret.
+- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. Das Font-Awesome-npm-Token gehört in `.npmrc` (lokal, nicht eingecheckt) bzw. in ein GitHub-Secret; das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
+- Oberfläche nur mit `wa-*`-Elementen von Web Awesome und den eigenen Bausteinen (`FormInput`, `AppDialog`, `ActionMenu` …), Layout mit den Hilfsklassen `wa-stack`/`wa-cluster`/… und `<style scoped>` mit Tokens (`--wa-*`). Kein Nuxt UI, kein Tailwind.
 - Zu jeder neuen Policy, Mutation oder Regel gehören Tests (siehe Punkt 12 im Backend-Plan).
 - Nach einem abgeschlossenen Schritt aus der Bau-Reihenfolge den Abschnitt „Stand“ unten aktualisieren.
 

@@ -165,6 +165,16 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **Tests:** Zeitlimit der Nuxt-Tests auf 15 s (der erste Mount startet Nuxt und die Komponenten; auf einem ausgelasteten Rechner, z. B. mit laufendem Dev-Server, dauert das über 5 s).
 - **Bundle:** `_nuxt` rund 2,1 MB statt 3,5 MB vorher.
 
+## Hinweise zu Schritt 9 (Abschluss)
+- **Erledigt:**
+  - Statische Prüfung aller Vorlagen: Jeder Knopf, der nur ein Icon zeigt, hat einen Namen (`aria-label`). Jedes Formularfeld hat eine echte Beschriftung; wo sie nicht zu sehen sein soll (Suche, Filter, Projektwahl, Chat, Token), ist sie nur optisch versteckt (`hideLabel`, Klasse `wa-visually-hidden-label`), statt `aria-label` am Host, das Web Awesome nicht sicher an das innere Feld weitergibt.
+  - Bilder haben `alt`, Icons ohne Beschriftung sind für Screenreader ausgeblendet (Standard von `wa-icon`).
+  - de/en: Beide Sprachdateien haben dieselben Schlüssel, jeder verwendete Schlüssel existiert. Zwei nicht mehr verwendete Texte sind entfernt.
+  - Dokumentation: `docs/frontend-plan.md`, `CLAUDE.md` (Stack, Regeln, Verweis auf diesen Plan) und `frontend/README.md` sind nachgeführt.
+  - Bundle: `_nuxt` rund 2,1 MB (vorher 3,5 MB), Schriften rund 800 KB in `/_fonts`.
+- **Offen (braucht den Browser):** Sichtprüfung jeder Seite in hell und dunkel und auf Deutsch und Englisch. Tastatur und Fokus (Reihenfolge, Fokusfalle in Dialog und Schublade, Rückkehr des Fokus). Kontrast im Theme Matter, vor allem `--wa-color-text-quiet` auf hellen Flächen. Die Punkte aus den Hinweisen zu Schritt 3 bis 7 (Linie der Zeitachse, Abstände neben Eingabefeldern, Dialog in der Schublade, Native Styles).
+- **Merge nach `dev`** erst nach Abnahme durch den Auftraggeber.
+
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)
 - [x] 1. Einbindung (Hinweise dazu unten)
@@ -175,4 +185,4 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - [x] 6. Rich-Text und Icon-Picker (Hinweise dazu unten)
 - [x] 7. Nuxt UI entfernen (zusammen mit 8, Hinweise unten)
 - [x] 8. Tailwind entfernen (zusammen mit 7)
-- [ ] 9. Abschluss
+- [ ] 9. Abschluss (erledigt bis auf die Prüfung im Browser und die Abnahme, siehe unten)
