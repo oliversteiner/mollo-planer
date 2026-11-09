@@ -69,6 +69,17 @@ export default defineNuxtConfig({
   },
 
   hooks: {
+    // The app has its own useToast (composables/useToast.ts, Web Awesome).
+    // It has the same name as the one of Nuxt UI, so it is registered with a
+    // higher priority and wins the auto import.
+    'imports:extend'(imports) {
+      imports.push({
+        name: 'useToast',
+        from: fileURLToPath(new URL('./app/composables/useToast.ts', import.meta.url)),
+        priority: 100
+      })
+    },
+
     // The theme "Matter" loads its fonts from fonts.bunny.net. The app makes
     // no requests to third parties, so that @import is dropped after
     // postcss-import has inlined the theme (the body font is Public Sans,
