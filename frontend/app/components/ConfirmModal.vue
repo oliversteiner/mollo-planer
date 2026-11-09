@@ -38,26 +38,26 @@ async function confirm(): Promise<void> {
 </script>
 
 <template>
-  <UModal
+  <AppDialog
     v-model:open="isOpen"
-    :title="title"
+    :label="title"
     :description="description"
   >
     <template #footer>
-      <div class="flex w-full justify-end gap-2">
-        <UButton
-          :label="t('common.cancel')"
-          color="neutral"
-          variant="ghost"
-          @click="isOpen = false"
-        />
-        <UButton
-          :label="confirmLabel"
-          color="error"
-          :loading="pending"
-          @click="confirm"
-        />
-      </div>
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        @click="isOpen = false"
+      >
+        {{ t('common.cancel') }}
+      </wa-button>
+      <wa-button
+        variant="danger"
+        :loading="pending"
+        @click="confirm"
+      >
+        {{ confirmLabel }}
+      </wa-button>
     </template>
-  </UModal>
+  </AppDialog>
 </template>

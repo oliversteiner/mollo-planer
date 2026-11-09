@@ -116,17 +116,24 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **ESLint:** `vue/html-self-closing` erlaubt für Komponenten beide Schreibweisen, weil `wa-*` ein schliessendes Tag braucht.
 - **Nicht in Schritt 2:** Die `UIcon`/`i-fadl-*`-Stellen und `app/ui-icons.ts` bleiben, solange Nuxt UI läuft (seine Komponenten brauchen sie). Jede Seite stellt ihre Icons auf `wa-icon` um, wenn sie in Schritt 3 bis 6 dran ist; `ui-icons.ts`, die Sammlung `fadl` und `app.config.ts` entfallen in Schritt 7.
 
-## Hinweise zur Timeline (Zwischenstand in Schritt 3)
+## Hinweise zu Schritt 3 (Bausteine)
 - **`app/components/StepTimeline.vue`** ersetzt `UTimeline` in `project/Timeline.vue` und `assistant/PlanPreview.vue`. Es gibt in Web Awesome keine Timeline; `wa-stepper` (vertikal, „experimental“ seit 3.14) liefert Marker, Verbindungslinie und Barrierefreiheit. Slots: `indicator` → Slot `icon` des Schritts, `title` → Label, `description` → Slot `description`. `clickable` bleibt aus, weil der Inhalt eigene Knöpfe hat. Der Dateiname ist nicht `Timeline.vue`, weil `<Timeline>` in `project/Timeline.vue` sonst die Komponente selbst meint.
 - **Verhalten wie vorher:** Der aktuelle Milestone ist `active`, die davor sind `completed`. In der Assistent-Vorschau gibt es keinen aktuellen Eintrag; `wa-stepper` hebt dann den ersten hervor (kleiner optischer Unterschied zu vorher).
 - **Noch nicht im Browser gesehen** (der Prototyp mit Headless-Chrome wurde in dieser Sitzung nicht freigegeben). Zu prüfen: wächst die Linie bei sehr hohen Schritten sauber mit (ToDos aufgeklappt, viele Tasks), Abstand `--gap`, Marker mit `ItemIcon`, Animation `plan-in` auf `wa-step`, schmale Breite, Dark Mode. Zeigt sich ein Problem, gilt der Fallback: eigene CSS-Timeline (vertikale Linie plus Marker) mit derselben Schnittstelle (`items`, `active`, Slots), die Verwender ändern sich dann nicht.
 - **ESLint:** `vue/no-deprecated-slot-attribute` ist aus (`wa-*` braucht das native `slot`-Attribut); eigene Klassen `timeline-*` sind für die Tailwind-Regel ausgenommen (bis Phase B).
 
+### Weitere Bausteine
+- **Formularfelder** (`app/components/form/`): `FormInput`, `FormTextarea`, `FormSelect` (Prop `items` mit `label`/`value`/`disabled`), `FormCheckbox`, `FormSwitch`, je mit `v-model`, `label`, `hint` und (außer Checkbox/Switch) `error`. Alle weiteren Attribute (`type`, `name`, `autocomplete`, `required`, `autofocus`, `rows` …) gehen an das `wa-*`-Element. **Abweichung vom Plan:** Der Serverfehler wird nicht per `setCustomValidity` gesetzt (das würde das erneute Absenden mit demselben Wert vom Browser blockieren lassen), sondern als Text unter dem Feld anstelle des Hinweises gezeigt (Slot `hint`, `data-form-error`), das Feld trägt `aria-invalid` und `data-invalid` (roter Rahmen, siehe `webawesome.css`). Der Text wird nie als HTML gesetzt (Test). `useServerForm` und `useGraphqlForm` bleiben unverändert: ihr `errors`-Objekt passt direkt auf `:error`.
+- **`useToast`** (`app/composables/useToast.ts`) hat dieselbe Aufruf-Form wie der von Nuxt UI (`toast.add({ title, description?, color, duration? })`), baut einen Stapel `wa-toast` mit `wa-toast-item` (Farben: success, error → danger, warning, info/primary → brand, neutral; Icons Duotone Light) und setzt die Texte als Text. Weil der Name mit dem von Nuxt UI kollidiert, trägt `nuxt.config.ts` ihn über den Hook `imports:extend` mit höherer Priorität ein; die 23 Aufrufstellen blieben unverändert. Der Toaster von Nuxt UI (`UApp`) bleibt leer und entfällt in Schritt 7.
+- **`AppDialog`** (`wa-dialog`, `v-model:open`, Props `label`, `description`, `lightDismiss`, Slot `footer` rechtsbündig) schließt über Kreuz, Escape und Klick daneben; Ereignisse aus Inhalten (z. B. `wa-hide` eines Selects) werden ignoriert. `ConfirmModal` und `PasswordPromptModal` sind darauf umgestellt (Schnittstelle unverändert, der Passwortdialog sendet mit Enter oder Knopf). Die übrigen Dialoge (`UModal`, `USlideover`) folgen mit ihren Seiten in Schritt 5; ein `AppDrawer` entsteht dann.
+- **`EmptyState`** (Icon als Font-Awesome-Name, `title`, `description`, `size` sm/md, `bare` ohne gestrichelten Rahmen, Slot für Aktionen), **`UserAvatar`** (`wa-avatar`: Bild, sonst Initialen aus `utils/names.ts`, sonst Personen-Icon; Größen 2xs bis 3xl) und **`UserLine`** (Avatar, Name, optionale zweite Zeile). Eine Avatar-Gruppe (Projektliste) kommt mit der Seite in Schritt 5.
+- **ESLint:** Klassen mit den Präfixen `timeline`, `empty-state`, `user-line` sind für die Tailwind-Regel ausgenommen.
+
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)
 - [x] 1. Einbindung (Hinweise dazu unten)
 - [x] 2. Icons (Hinweise dazu unten)
-- [ ] 3. Bausteine
+- [x] 3. Bausteine (Hinweise dazu unten)
 - [ ] 4. Layout
 - [ ] 5. Seiten
 - [ ] 6. Rich-Text und Icon-Picker

@@ -19,50 +19,43 @@ watch(open, () => {
 })
 
 function submit(): void {
-  answer(password.value)
+  if (password.value) {
+    answer(password.value)
+  }
 }
 </script>
 
 <template>
-  <UModal
+  <AppDialog
     v-model:open="isOpen"
-    :title="t('security.confirmPassword.title')"
+    :label="t('security.confirmPassword.title')"
     :description="t('security.confirmPassword.description')"
   >
-    <template #body>
-      <form
-        id="password-prompt"
-        @submit.prevent="submit"
-      >
-        <UFormField
-          :label="t('auth.password')"
-          :error="error || undefined"
-        >
-          <UInput
-            v-model="password"
-            type="password"
-            autocomplete="current-password"
-            class="w-full"
-            autofocus
-            required
-          />
-        </UFormField>
-      </form>
-    </template>
+    <FormInput
+      v-model="password"
+      type="password"
+      autocomplete="current-password"
+      :label="t('auth.password')"
+      :error="error || undefined"
+      autofocus
+      required
+      @keydown.enter.prevent="submit"
+    />
     <template #footer>
-      <div class="flex w-full justify-end gap-2">
-        <UButton
-          :label="t('common.cancel')"
-          color="neutral"
-          variant="ghost"
-          @click="isOpen = false"
-        />
-        <UButton
-          type="submit"
-          form="password-prompt"
-          :label="t('security.confirmPassword.submit')"
-        />
-      </div>
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        @click="isOpen = false"
+      >
+        {{ t('common.cancel') }}
+      </wa-button>
+      <wa-button
+        variant="brand"
+        :disabled="!password"
+        @click="submit"
+      >
+        {{ t('security.confirmPassword.submit') }}
+      </wa-button>
     </template>
-  </UModal>
+  </AppDialog>
 </template>
