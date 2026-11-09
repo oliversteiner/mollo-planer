@@ -2,7 +2,9 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  /* Fonts of the Web Awesome theme (Matter), also for Tailwind and Nuxt UI. */
+  --font-sans: var(--wa-font-family-body);
+  --font-mono: var(--wa-font-family-code);
 
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;

@@ -9,10 +9,3 @@
 @import '@web.awesome.me/webawesome-pro/dist/styles/layers.css';
 @import '@web.awesome.me/webawesome-pro/dist/styles/themes/matter.css';
 @import '@web.awesome.me/webawesome-pro/dist/styles/utilities.css';
-
-/* The app keeps Public Sans; the other font tokens stay as the theme sets them. */
-@layer wa-theme-overrides {
-  .wa-theme-matter {
-    --wa-font-family-body: 'Public Sans', sans-serif;
-  }
-}

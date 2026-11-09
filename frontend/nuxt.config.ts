@@ -98,6 +98,17 @@ export default defineNuxtConfig({
     }
   },
 
+  // Fonts of the Web Awesome theme Matter (see the font tokens in its CSS).
+  // @nuxt/fonts downloads them at build time and serves them from the app,
+  // so the browser makes no requests to a font provider.
+  fonts: {
+    families: [
+      { name: 'Wix Madefor Text', global: true, weights: [400, 500, 600, 700, 800], styles: ['normal', 'italic'] },
+      { name: 'Roboto Mono', global: true, weights: [400, 500, 700], styles: ['normal', 'italic'] },
+      { name: 'Roboto Serif', global: true, weights: [400, 700], styles: ['normal', 'italic'] }
+    ]
+  },
+
   i18n: {
     locales: [
       { code: 'de', language: 'de-CH', name: 'Deutsch', file: 'de.json' },
