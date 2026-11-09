@@ -82,10 +82,11 @@ function actions(todo: Item): ActionMenuItem[] {
         class="todos-filter-wide"
       />
       <FormSelect
-        v-model="statusFilter as string"
+        :model-value="statusFilter"
         :items="statusItems"
         :label="t('todos.status')"
         class="todos-filter"
+        @update:model-value="statusFilter = $event as typeof statusFilter"
       />
       <wa-button
         v-if="can('TODO_CREATE') && milestones.length"
