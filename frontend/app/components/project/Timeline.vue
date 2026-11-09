@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { DropdownMenuItem, TimelineItem } from '@nuxt/ui'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
+import type { TimelineEntry } from '~/components/StepTimeline.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { projectTimelineQuery } from '~/graphql/project'
 import { moveTaskToTodoMutation } from '~/graphql/task'
@@ -49,7 +50,7 @@ const language = computed(() => localeProperties.value.language ?? 'de-CH')
 const { result, loading, refetch } = useQuery(projectTimelineQuery, () => ({ id: props.projectId }), { fetchPolicy: 'cache-and-network' })
 
 type Milestone = NonNullable<ProjectTimelineQuery['project']>['milestones'][number]
-type MilestoneItem = TimelineItem & { milestone: Milestone, number: number }
+type MilestoneItem = TimelineEntry & { milestone: Milestone, number: number }
 type TimelineTask = Milestone['todos'][number]['tasks'][number]
 
 /** Click: details; double-click: edit dialog, with the right to change. */
@@ -65,17 +66,23 @@ function byDueDate<T extends { id: string, dueDate?: string | null }>(items: rea
 
 const milestones = computed(() => byDueDate(result.value?.project?.milestones ?? []))
 
-const timeline = computed<MilestoneItem[]>(() => milestones.value.map((milestone, index) => ({
-  value: milestone.id,
-  title: milestone.title,
-  date: milestone.dueDate ? formatDate(milestone.dueDate, language.value, true) : t('project.timeline.noDate'),
-  class: 'plan-in',
-  milestone,
-  number: index + 1
-})))
-
 /** The first milestone not done is the current one; all done: the last. */
 const current = computed(() => (milestones.value.find(milestone => milestone.status !== 'DONE') ?? milestones.value.at(-1))?.id)
+
+const timeline = computed<MilestoneItem[]>(() => {
+  const currentIndex = milestones.value.findIndex(milestone => milestone.id === current.value)
+
+  return milestones.value.map((milestone, index) => ({
+    value: milestone.id,
+    title: milestone.title,
+    date: milestone.dueDate ? formatDate(milestone.dueDate, language.value, true) : t('project.timeline.noDate'),
+    // Milestones before the current one are reached.
+    completed: index < currentIndex,
+    class: 'plan-in',
+    milestone,
+    number: index + 1
+  }))
+})
 
 /** Open todos by id. */
 const openTodos = ref(new Set<string>())
@@ -182,13 +189,11 @@ function toggleAll() {
         />
       </div>
 
-      <UTimeline
+      <StepTimeline
         :items="timeline"
-        :default-value="current"
-        color="primary"
-        size="sm"
+        :active="current"
+        :label="t('project.timeline.label')"
         class="plan-timeline"
-        :ui="{ wrapper: 'w-full min-w-0', description: 'w-full' }"
       >
         <template #indicator="{ item }">
           <ItemIcon
@@ -418,7 +423,7 @@ function toggleAll() {
             </template>
           </div>
         </template>
-      </UTimeline>
+      </StepTimeline>
     </template>
   </div>
 </template>

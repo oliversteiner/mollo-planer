@@ -69,7 +69,7 @@ TipTap (JSON, Whitelist, `utils/rich-text.ts`), `vue-draggable-plus`, Apollo/Gra
 | UProgress | `wa-progress-bar` / `wa-progress-ring` | |
 | USkeleton | `wa-skeleton` | |
 | UEmpty | eigene Komponente `EmptyState` | |
-| UTimeline | eigene Komponente `Timeline` | Drag-and-drop bleibt |
+| UTimeline | eigene Komponente `StepTimeline` auf `wa-stepper` (`orientation="vertical"`) und `wa-step`; Fallback: eigene CSS-Timeline | Drag-and-drop bleibt |
 | UEditor / UEditorToolbar | TipTap `EditorContent` + Toolbar aus `wa-button` | Whitelist unverändert |
 | UIcon / ItemIcon | `wa-icon` mit eigener Library | |
 | useToast | `wa-toast` + eigenes `useToast` | gleiche Aufruf-API wie bisher |
@@ -115,6 +115,12 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **Vue setzt bei `wa-*` Eigenschaften, keine Attribute.** Tests prüfen darum `element.name` statt `attributes('name')`.
 - **ESLint:** `vue/html-self-closing` erlaubt für Komponenten beide Schreibweisen, weil `wa-*` ein schliessendes Tag braucht.
 - **Nicht in Schritt 2:** Die `UIcon`/`i-fadl-*`-Stellen und `app/ui-icons.ts` bleiben, solange Nuxt UI läuft (seine Komponenten brauchen sie). Jede Seite stellt ihre Icons auf `wa-icon` um, wenn sie in Schritt 3 bis 6 dran ist; `ui-icons.ts`, die Sammlung `fadl` und `app.config.ts` entfallen in Schritt 7.
+
+## Hinweise zur Timeline (Zwischenstand in Schritt 3)
+- **`app/components/StepTimeline.vue`** ersetzt `UTimeline` in `project/Timeline.vue` und `assistant/PlanPreview.vue`. Es gibt in Web Awesome keine Timeline; `wa-stepper` (vertikal, „experimental“ seit 3.14) liefert Marker, Verbindungslinie und Barrierefreiheit. Slots: `indicator` → Slot `icon` des Schritts, `title` → Label, `description` → Slot `description`. `clickable` bleibt aus, weil der Inhalt eigene Knöpfe hat. Der Dateiname ist nicht `Timeline.vue`, weil `<Timeline>` in `project/Timeline.vue` sonst die Komponente selbst meint.
+- **Verhalten wie vorher:** Der aktuelle Milestone ist `active`, die davor sind `completed`. In der Assistent-Vorschau gibt es keinen aktuellen Eintrag; `wa-stepper` hebt dann den ersten hervor (kleiner optischer Unterschied zu vorher).
+- **Noch nicht im Browser gesehen** (der Prototyp mit Headless-Chrome wurde in dieser Sitzung nicht freigegeben). Zu prüfen: wächst die Linie bei sehr hohen Schritten sauber mit (ToDos aufgeklappt, viele Tasks), Abstand `--gap`, Marker mit `ItemIcon`, Animation `plan-in` auf `wa-step`, schmale Breite, Dark Mode. Zeigt sich ein Problem, gilt der Fallback: eigene CSS-Timeline (vertikale Linie plus Marker) mit derselben Schnittstelle (`items`, `active`, Slots), die Verwender ändern sich dann nicht.
+- **ESLint:** `vue/no-deprecated-slot-attribute` ist aus (`wa-*` braucht das native `slot`-Attribut); eigene Klassen `timeline-*` sind für die Tailwind-Regel ausgenommen (bis Phase B).
 
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)

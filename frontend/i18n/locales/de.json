@@ -183,6 +183,7 @@
     "noTodos": "Noch keine ToDos.",
     "taskCount": "{done}/{total} Tasks",
     "timeline": {
+      "label": "Milestones",
       "expandAll": "Alle aufklappen",
       "collapseAll": "Alle zuklappen",
       "noDate": "Ohne Datum",

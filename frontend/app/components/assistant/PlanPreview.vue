@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TimelineItem } from '@nuxt/ui'
+import type { TimelineEntry } from '~/components/StepTimeline.vue'
 import { formatDate } from '~/utils/dates'
 import { planCounts, type ProjectPlan } from '~/utils/plan'
 
@@ -27,14 +27,13 @@ const notifyAssignees = ref(false)
 const counts = computed(() => planCounts(props.plan))
 const language = computed(() => localeProperties.value.language ?? 'de-CH')
 
-type MilestoneItem = TimelineItem & { milestone: ProjectPlan['milestones'][number], index: number }
+type MilestoneItem = TimelineEntry & { milestone: ProjectPlan['milestones'][number], index: number }
 
 const timeline = computed<MilestoneItem[]>(() => props.plan.milestones.map((milestone, index) => ({
-  value: index,
+  value: String(index),
   index,
   title: milestone.title,
   date: milestone.dueDate ? formatDate(milestone.dueDate, language.value) : t('assistant.preview.noDate'),
-  icon: 'i-fadl-flag-checkered',
   class: 'plan-in',
   milestone
 })))
@@ -172,13 +171,18 @@ function person(email: string | null) {
         />
       </div>
 
-      <UTimeline
+      <StepTimeline
         :items="timeline"
-        color="primary"
-        size="sm"
+        :label="t('assistant.preview.timeline')"
         class="plan-timeline"
-        :ui="{ wrapper: 'w-full min-w-0', description: 'w-full' }"
       >
+        <template #indicator>
+          <ItemIcon
+            name="flag-checkered"
+            fallback="flag-checkered"
+          />
+        </template>
+
         <template #description="{ item }">
           <div class="space-y-3 pb-6">
             <AssistantPlainText :text="item.milestone.description" />
@@ -264,7 +268,7 @@ function person(email: string | null) {
             </ul>
           </div>
         </template>
-      </UTimeline>
+      </StepTimeline>
     </section>
 
     <!-- Save -->

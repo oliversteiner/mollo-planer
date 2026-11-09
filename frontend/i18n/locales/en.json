@@ -183,6 +183,7 @@
     "noTodos": "No todos yet.",
     "taskCount": "{done}/{total} tasks",
     "timeline": {
+      "label": "Milestones",
       "expandAll": "Expand all",
       "collapseAll": "Collapse all",
       "noDate": "No date",

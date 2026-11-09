@@ -72,17 +72,17 @@ describe('ProjectTimeline', () => {
   it('shows milestones by due date, the reached ones as completed', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
 
-    const items = timeline.findAll('.plan-timeline > [data-slot="item"]')
+    const stepper = timeline.find('wa-stepper').element as unknown as { active: string }
+    const steps = timeline.findAll('.plan-timeline > wa-step')
+    const reached = steps.map(step => (step.element as unknown as { completed: boolean }).completed)
+    const titles = steps.map(step => step.find('.timeline-title').text())
 
-    expect(items.map(item => item.find('[data-slot="title"]').text())).toEqual([
-      expect.stringContaining('Konzept steht'),
-      expect.stringContaining('Erste Folge online')
-    ])
-    expect(items.map(item => item.attributes('data-state'))).toEqual(['completed', 'active'])
-    expect(items.map(item => item.find('[data-slot="title"]').text())).toEqual([
+    expect(titles).toEqual([
       expect.stringMatching(/^M1\s*Konzept steht/),
       expect.stringMatching(/^M2\s*Erste Folge online/)
     ])
+    expect(reached).toEqual([true, false])
+    expect(stepper.active).toBe('2')
     expect(timeline.text()).toContain('31. Januar 2027')
   })
 
