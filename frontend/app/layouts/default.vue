@@ -17,6 +17,7 @@ const mainItems = computed<NavItem[]>(() => [
 const adminItems = computed<NavItem[]>(() => (viewer.value?.isAdmin
   ? [
       { label: t('nav.users'), icon: 'users', to: '/admin/users' },
+      { label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' },
       { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }
     ]
   : []))

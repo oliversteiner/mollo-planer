@@ -13,7 +13,8 @@
     "skipToContent": "Skip to content",
     "assistant": "AI assistant",
     "breadcrumb": "Breadcrumb",
-    "workspace": "Workspace"
+    "workspace": "Workspace",
+    "labelSets": "Label sets"
   },
   "settings": {
     "language": "Language",
@@ -512,6 +513,45 @@
     "cardTitle": "Labels",
     "cardIntro": "The label set decides which labels categorise the tasks of this project. When it changes, tasks keep the labels they have.",
     "set": "Label set",
-    "manage": "Manage label sets"
+    "manage": "Manage label sets",
+    "pageTitle": "Label sets",
+    "pageIntro": "Label sets apply to the whole app. Each project chooses a set in its settings. Built-in sets cannot be changed; duplicate them to adapt them.",
+    "create": "Create set",
+    "edit": "Edit set",
+    "duplicate": "Duplicate",
+    "builtin": "Built-in",
+    "usedBy": "In no project | In 1 project | In {count} projects",
+    "actionsOf": "Actions for the set “{name}”",
+    "empty": "No labels yet.",
+    "name": "Name",
+    "description": "Description",
+    "labelName": "Label",
+    "category": "Category",
+    "color": "Colour",
+    "addLabel": "Add label",
+    "moveUp": "Move “{name}” up",
+    "moveDown": "Move “{name}” down",
+    "removeLabel": "Remove “{name}”",
+    "saved": "Label set saved.",
+    "duplicated": "“{name}” created. You can adapt it now.",
+    "deleteTitle": "Delete the set “{name}”?",
+    "deleteDescription": "The set and its labels are deleted, also on all tasks. This cannot be undone.",
+    "deleted": "Label set deleted.",
+    "inUse": "Still used by projects",
+    "removeTitle": "Delete labels?",
+    "removeDescription": "No labels | 1 label is deleted and removed from all tasks. | {count} labels are deleted and removed from all tasks.",
+    "removeConfirm": "Save and delete",
+    "colors": {
+      "GRAY": "Grey",
+      "RED": "Red",
+      "ORANGE": "Orange",
+      "YELLOW": "Yellow",
+      "GREEN": "Green",
+      "CYAN": "Turquoise",
+      "BLUE": "Blue",
+      "INDIGO": "Indigo",
+      "PURPLE": "Purple",
+      "PINK": "Pink"
+    }
   }
 }

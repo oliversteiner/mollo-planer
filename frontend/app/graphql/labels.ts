@@ -3,6 +3,7 @@ import { graphql } from '~/graphql/generated'
 /** All label sets (built-in first), for the project settings and the management page. */
 export const labelSetsQuery = graphql(`
   query LabelSets {
+    viewerCanManageLabelSets
     labelSets {
       id
       name

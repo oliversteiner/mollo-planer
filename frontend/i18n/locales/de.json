@@ -13,7 +13,8 @@
     "skipToContent": "Zum Inhalt springen",
     "assistant": "KI-Assistent",
     "breadcrumb": "Pfad",
-    "workspace": "Arbeitsplatz"
+    "workspace": "Arbeitsplatz",
+    "labelSets": "Label-Sets"
   },
   "settings": {
     "language": "Sprache",
@@ -512,6 +513,45 @@
     "cardTitle": "Labels",
     "cardIntro": "Das Label-Set bestimmt, mit welchen Labels die Tasks dieses Projekts kategorisiert werden. Bei einem Wechsel behalten Tasks ihre bisherigen Labels.",
     "set": "Label-Set",
-    "manage": "Label-Sets verwalten"
+    "manage": "Label-Sets verwalten",
+    "pageTitle": "Label-Sets",
+    "pageIntro": "Label-Sets gelten für die ganze App. Jedes Projekt wählt in seinen Einstellungen ein Set. Mitgelieferte Sets lassen sich nicht ändern; dupliziere sie, um sie anzupassen.",
+    "create": "Set anlegen",
+    "edit": "Set bearbeiten",
+    "duplicate": "Duplizieren",
+    "builtin": "Mitgeliefert",
+    "usedBy": "In keinem Projekt | In 1 Projekt | In {count} Projekten",
+    "actionsOf": "Aktionen für das Set «{name}»",
+    "empty": "Noch keine Labels.",
+    "name": "Name",
+    "description": "Beschreibung",
+    "labelName": "Label",
+    "category": "Kategorie",
+    "color": "Farbe",
+    "addLabel": "Label hinzufügen",
+    "moveUp": "«{name}» nach oben",
+    "moveDown": "«{name}» nach unten",
+    "removeLabel": "«{name}» entfernen",
+    "saved": "Label-Set gespeichert.",
+    "duplicated": "«{name}» angelegt. Du kannst es jetzt anpassen.",
+    "deleteTitle": "Set «{name}» löschen?",
+    "deleteDescription": "Das Set und seine Labels werden gelöscht, auch an allen Tasks. Das lässt sich nicht rückgängig machen.",
+    "deleted": "Label-Set gelöscht.",
+    "inUse": "Wird noch von Projekten verwendet",
+    "removeTitle": "Labels löschen?",
+    "removeDescription": "Keine Labels | 1 Label wird gelöscht und von allen Tasks entfernt. | {count} Labels werden gelöscht und von allen Tasks entfernt.",
+    "removeConfirm": "Speichern und löschen",
+    "colors": {
+      "GRAY": "Grau",
+      "RED": "Rot",
+      "ORANGE": "Orange",
+      "YELLOW": "Gelb",
+      "GREEN": "Grün",
+      "CYAN": "Türkis",
+      "BLUE": "Blau",
+      "INDIGO": "Indigo",
+      "PURPLE": "Lila",
+      "PINK": "Pink"
+    }
   }
 }

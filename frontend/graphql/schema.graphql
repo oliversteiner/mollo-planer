@@ -422,6 +422,8 @@ type Query {
  todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
  "Alle Benutzer. Nur für Admins und Projektleiter."
  users: [User!]!
+ "Darfst du Label-Sets anlegen und duplizieren? (Admin oder Owner/Manager in irgendeinem Projekt)"
+ viewerCanManageLabelSets: Boolean!
 }
 """
 Formatierter Text als TipTap-Dokument (JSON-Objekt mit type "doc"). Der Server

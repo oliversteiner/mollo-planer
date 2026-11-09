@@ -451,6 +451,8 @@ type Query @guard {
   dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")
   "Alle Label-Sets (mitgelieferte zuerst, dann eigene nach Name)"
   labelSets: [LabelSet!]! @field(resolver: "App\\GraphQL\\Queries\\LabelSets")
+  "Darfst du Label-Sets anlegen und duplizieren? (Admin oder Owner/Manager in irgendeinem Projekt)"
+  viewerCanManageLabelSets: Boolean! @field(resolver: "App\\GraphQL\\Queries\\ViewerCanManageLabelSets")
   "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
   appSettings: AppSettings! @field(resolver: "App\\GraphQL\\Queries\\AppSettings")
 }

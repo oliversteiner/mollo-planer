@@ -74,6 +74,15 @@ class LabelSetTest extends GraphQLTestCase
         $this->assertSame($this->users['manager']->id, LabelSet::query()->where('name', 'Bau')->value('created_by'));
     }
 
+    public function test_the_viewer_learns_whether_they_may_manage_label_sets(): void
+    {
+        $query = 'query { viewerCanManageLabelSets }';
+
+        $this->as('manager')->gql($query)->assertJsonPath('data.viewerCanManageLabelSets', true);
+        $this->as('admin')->gql($query)->assertJsonPath('data.viewerCanManageLabelSets', true);
+        $this->as('member')->gql($query)->assertJsonPath('data.viewerCanManageLabelSets', false);
+    }
+
     public function test_duplicating_copies_a_set_as_own_set_in_the_language_of_the_request(): void
     {
         $mutation = 'mutation ($id: ID!) { duplicateLabelSet(id: $id) { name isBuiltin labels { name category color } } }';
