@@ -19,7 +19,7 @@ Zum Ausprobieren der API (zum Beispiel mit Postman) gibt es Demo-Daten wie in de
 
 Dazu zwei Projekte mit Milestones, ToDos, Tasks und Kommentaren.
 
-Die Demo-Daten laufen nur lokal, nie in Produktion. Alle Befehle in WSL im Ordner `backend/` ausführen.
+Die Demo-Daten laufen nur lokal, nie in Produktion. Alle Befehle im Terminal im Ordner `backend/` ausführen.
 
 ### Einspielen (leere Datenbank)
 

@@ -1,0 +1,130 @@
+name: backend
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  style:
+    name: Code style
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --no-suggest
+
+      - name: Code style (Pint)
+        run: vendor/bin/pint --test
+
+  tests-sqlite:
+    name: Tests (SQLite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --no-suggest
+
+      - name: Configure environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+
+      - name: Execute tests
+        run: composer test
+
+  tests-mariadb:
+    name: Tests (MariaDB)
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11.5
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: projektverwaltung_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mariadb-admin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --no-suggest
+
+      - name: Configure environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mariadb/' .env
+          sed -i 's/# DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/' .env
+          sed -i 's/# DB_PORT=3306/DB_PORT=3306/' .env
+          sed -i 's/# DB_DATABASE=laravel/DB_DATABASE=projektverwaltung_test/' .env
+          sed -i 's/# DB_USERNAME=root/DB_USERNAME=root/' .env
+          sed -i 's/# DB_PASSWORD=/DB_PASSWORD=root/' .env
+
+      - name: Execute tests
+        run: composer test:mariadb

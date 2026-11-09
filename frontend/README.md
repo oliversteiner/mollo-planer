@@ -13,7 +13,7 @@ Das Pro-Paket kommt aus dem privaten Register von Font Awesome. Dafür braucht `
 
 Die zweite Zeile beginnt mit `//`. In GitHub steht der Token als Secret `FONTAWESOME_NPM_AUTH_TOKEN`.
 
-## Befehle (in WSL im Ordner `frontend/`)
+## Befehle (im Ordner `frontend/`)
 
 - `npm install`: Abhängigkeiten installieren
 - `npm run dev`: Entwicklungsserver auf `http://localhost:3000` (das Backend läuft auf `http://localhost:8000`, änderbar mit `NUXT_PUBLIC_API_BASE`)
@@ -23,4 +23,4 @@ Die zweite Zeile beginnt mit `//`. In GitHub steht der Token als Secret `FONTAWE
 - `npm run codegen`: GraphQL-Typen neu erzeugen (nach `composer schema:frontend` im Backend oder einer neuen Abfrage). Während der Entwicklung am besten `npm run codegen -- --watch` in einem zweiten Terminal: Eine neue oder geänderte `graphql(...)`-Abfrage ohne Codegen führt im Browser zum Apollo-Fehler 115 („Expecting a parsed GraphQL document“).
 - `npm run build`: statische Dateien in `.output/public`
 
-`npm` muss das Linux-npm aus nvm sein, nicht das Windows-npm von PhpStorm (Fehler „UNC-Pfade werden nicht unterstützt“). Prüfen mit `which npm`.
+Node 24 aus nvm verwenden (`nvm use`, liest `.nvmrc`). Nuxt 4.6 läuft nicht auf Node 23. Prüfen mit `node -v`.

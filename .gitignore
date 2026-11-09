@@ -1,8 +1,8 @@
 # PhpStorm
 .idea/
 
-# Windows download marker (copied into WSL)
-*:Zone.Identifier
+# Local backups (database dumps with personal data): never commit
+/transfer/
 
 # Postman environments may hold passwords or tokens: keep them local
 /docs/postman/postman/environments/

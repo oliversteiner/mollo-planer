@@ -18,10 +18,10 @@ Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code 
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
 - **Frontend:** Nuxt 4 (Vue 3) mit Nuxt UI in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente)
 - **Hosting:** Hostpoint (Schweiz), nur PHP und MySQL/MariaDB, Queue per Cron. Hosting-Themen erst später, nicht jetzt bearbeiten.
-- **Entwicklung:** Windows 11 mit WSL, PhpStorm, GitHub
+- **Entwicklung:** macOS (Mac mini, Apple Silicon) mit Homebrew (PHP, Composer, MariaDB, Mailpit), Node 24 über nvm, PhpStorm, GitHub
 
 ## Befehle
-Alle Befehle in WSL im Ordner `backend/` ausführen:
+Alle Befehle im Terminal im Ordner `backend/` ausführen:
 - `php artisan test` (Tests)
 - `composer test:mariadb` (dieselben Tests gegen MariaDB, Datenbank `projektverwaltung_test`; vor Commits, die Abfragen, Sperren oder Migrationen ändern)
 - `php artisan migrate`
@@ -31,7 +31,7 @@ Alle Befehle in WSL im Ordner `backend/` ausführen:
 - `composer schema:frontend` (nach jeder Schemaänderung: schreibt `frontend/graphql/schema.graphql`, danach im Frontend `npm run codegen`)
 - `php artisan boost:update --no-discover` (Boost-Guidelines und -Skills neu erzeugen, läuft auch nach `composer update`)
 
-Frontend in WSL im Ordner `frontend/` (Linux-npm aus nvm, nicht das Windows-npm von PhpStorm):
+Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - `npm run dev` (http://localhost:3000)
 - `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)
 - `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
