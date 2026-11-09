@@ -11,8 +11,6 @@
     "users": "Users",
     "appSettings": "App settings",
     "skipToContent": "Skip to content",
-    "searchProject": "Search project",
-    "chooseProject": "Choose project",
     "assistant": "AI assistant"
   },
   "settings": {
@@ -146,6 +144,7 @@
     "fields": {
       "name": "Name",
       "description": "Description",
+      "iconHint": "Shown in the sidebar before the project name.",
       "locale": "Language of the emails",
       "localeHint": "Notifications about this project are sent in this language."
     }

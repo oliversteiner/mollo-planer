@@ -64,7 +64,7 @@ function skipToContent(): void {
         :items="mainItems"
         :label="t('nav.main')"
       />
-      <SidebarProjects />
+      <SidebarProjectList />
       <section
         v-if="adminItems.length"
         class="app-admin"
@@ -94,7 +94,8 @@ function skipToContent(): void {
           <UserLine
             :name="viewer.name"
             :src="viewer.avatarUrl"
-            size="xs"
+            :description="viewer.isAdmin ? t('admin.users.admin') : viewer.email"
+            size="sm"
           />
         </wa-button>
         <h3>{{ viewer.email }}</h3>
@@ -127,11 +128,28 @@ function skipToContent(): void {
 </template>
 
 <style scoped>
+/*
+ * The sidebar stands out: it keeps the surface of cards and panels, the
+ * content area behind the pages is one step lower.
+ */
 .app-shell {
   --menu-width: 16rem;
+
+  background-color: var(--wa-color-surface-lowered);
+}
+
+/* On small screens the navigation is a drawer: no column may stay reserved for it. */
+.app-shell[view='mobile'] {
+  --menu-width: auto;
+}
+
+.app-shell::part(menu) {
+  background-color: var(--wa-color-surface-default);
+  border-inline-end: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
 }
 
 .app-name {
+  font-size: var(--wa-font-size-l);
   font-weight: var(--wa-font-weight-bold);
   color: var(--wa-color-text-normal);
   text-decoration: none;
@@ -140,15 +158,17 @@ function skipToContent(): void {
 .app-navigation {
   display: flex;
   flex-direction: column;
-  gap: var(--wa-space-m);
+  gap: var(--wa-space-xl);
 }
 
 .app-heading {
   margin: 0;
-  padding: var(--wa-space-s) var(--wa-space-s) 0;
+  padding: 0 var(--wa-space-s);
   color: var(--wa-color-text-quiet);
   font-size: var(--wa-font-size-xs);
   font-weight: var(--wa-font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .app-admin {

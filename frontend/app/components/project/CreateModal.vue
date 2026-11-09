@@ -10,7 +10,7 @@ const { t } = useI18n()
 const toast = useToast()
 const { errors, pending, run } = useGraphqlForm()
 
-const state = reactive<{ name: string, description: string, locale: Locale }>({ name: '', description: '', locale: 'DE' })
+const state = reactive<{ name: string, description: string, icon: string | null, locale: Locale }>({ name: '', description: '', icon: null, locale: 'DE' })
 const locales = computed(() => [
   { label: t('locale.DE'), value: 'DE' },
   { label: t('locale.EN'), value: 'EN' }
@@ -21,7 +21,7 @@ const { mutate } = useMutation(createProjectMutation, { refetchQueries: 'active'
 
 async function submit(): Promise<void> {
   const result = await run(() => mutate({
-    input: { name: state.name.trim(), description: state.description.trim() || null, locale: state.locale }
+    input: { name: state.name.trim(), description: state.description.trim() || null, icon: state.icon, locale: state.locale }
   }))
   const project = result?.data?.createProject
 
@@ -34,7 +34,7 @@ async function submit(): Promise<void> {
 
 watch(open, (isOpen) => {
   if (isOpen) {
-    Object.assign(state, { name: '', description: '', locale: 'DE' })
+    Object.assign(state, { name: '', description: '', icon: null, locale: 'DE' })
     errors.value = {}
   }
 })
@@ -66,6 +66,17 @@ watch(open, (isOpen) => {
         :error="errors.description"
         :rows="3"
       />
+
+      <FormField
+        :label="t('item.fields.icon')"
+        :hint="t('projects.fields.iconHint')"
+        :error="errors.icon"
+      >
+        <IconPicker
+          v-model="state.icon"
+          fallback="folder"
+        />
+      </FormField>
 
       <FormSelect
         v-model="state.locale"

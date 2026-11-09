@@ -3,19 +3,19 @@ import { useMutation } from '@vue/apollo-composable'
 import type { Locale } from '~/graphql/generated/graphql'
 import { updateProjectMutation } from '~/graphql/settings'
 
-/** Name, description and mail language of the project. */
+/** Name, description, icon and mail language of the project. */
 const props = defineProps<{
-  project: { id: string, name: string, description?: string | null, locale: Locale }
+  project: { id: string, name: string, description?: string | null, icon?: string | null, locale: Locale }
 }>()
 
 const { t } = useI18n()
 const toast = useToast()
 const { errors, pending, run } = useGraphqlForm()
 
-const state = reactive<{ name: string, description: string, locale: Locale }>({ name: '', description: '', locale: 'DE' })
+const state = reactive<{ name: string, description: string, icon: string | null, locale: Locale }>({ name: '', description: '', icon: null, locale: 'DE' })
 
 watch(() => props.project, (project) => {
-  Object.assign(state, { name: project.name, description: project.description ?? '', locale: project.locale })
+  Object.assign(state, { name: project.name, description: project.description ?? '', icon: project.icon ?? null, locale: project.locale })
 }, { immediate: true })
 
 const locales = computed(() => [
@@ -28,7 +28,7 @@ const { mutate } = useMutation(updateProjectMutation, { refetchQueries: 'active'
 async function submit(): Promise<void> {
   const result = await run(() => mutate({
     id: props.project.id,
-    input: { name: state.name.trim(), description: state.description.trim() || null, locale: state.locale }
+    input: { name: state.name.trim(), description: state.description.trim() || null, icon: state.icon, locale: state.locale }
   }))
 
   if (result) {
@@ -64,6 +64,16 @@ async function submit(): Promise<void> {
         :error="errors.description"
         :rows="3"
       />
+      <FormField
+        :label="t('item.fields.icon')"
+        :hint="t('projects.fields.iconHint')"
+        :error="errors.icon"
+      >
+        <IconPicker
+          v-model="state.icon"
+          fallback="folder"
+        />
+      </FormField>
       <FormSelect
         v-model="state.locale"
         name="locale"

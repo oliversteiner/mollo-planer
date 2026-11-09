@@ -2,8 +2,10 @@
 /** Vertical list of links of the sidebar; the page you are on is marked (aria-current). */
 export interface NavItem {
   label: string
-  /** Font Awesome name, for example "gauge-high". */
-  icon: string
+  /** Font Awesome name, for example "gauge-high"; may come from the database. */
+  icon?: string | null
+  /** Shown when there is no (valid) icon. */
+  fallbackIcon?: string
   to: string
   /** Only this exact path counts as the current page (not its sub pages). */
   exact?: boolean
@@ -39,7 +41,11 @@ function isCurrent(item: NavItem): boolean {
           :class="{ 'nav-link-active': isCurrent(item) }"
           :aria-current="isCurrent(item) ? 'page' : undefined"
         >
-          <wa-icon :name="item.icon"></wa-icon>
+          <ItemIcon
+            :name="item.icon"
+            :fallback="item.fallbackIcon ?? item.icon ?? 'circle'"
+            class="nav-icon"
+          />
           <span>{{ item.label }}</span>
         </NuxtLink>
       </li>
@@ -61,14 +67,21 @@ ul {
   display: flex;
   align-items: center;
   gap: var(--wa-space-s);
+  min-block-size: 2.5rem;
   padding: var(--wa-space-xs) var(--wa-space-s);
   border-radius: var(--wa-border-radius-m);
-  color: var(--wa-color-text-normal);
+  color: var(--wa-color-text-quiet);
   text-decoration: none;
 }
 
 .nav-link:hover {
-  background-color: var(--wa-color-neutral-fill-quiet);
+  background-color: var(--wa-color-surface-lowered);
+  color: var(--wa-color-text-normal);
+}
+
+.nav-icon {
+  flex: none;
+  inline-size: 1.25em;
 }
 
 .nav-link:focus-visible {
@@ -76,8 +89,9 @@ ul {
   outline-offset: var(--wa-focus-ring-offset);
 }
 
-.nav-link-active {
-  background-color: var(--wa-color-brand-fill-quiet);
+.nav-link-active,
+.nav-link-active:hover {
+  background-color: var(--wa-color-surface-lowered);
   color: var(--wa-color-brand-on-quiet);
   font-weight: var(--wa-font-weight-semibold);
 }

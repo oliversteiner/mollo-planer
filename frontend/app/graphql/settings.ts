@@ -6,6 +6,7 @@ export const projectSettingsQuery = graphql(`
       id
       name
       description
+      icon
       locale
       members {
         role
@@ -24,7 +25,7 @@ export const usersQuery = graphql(`
 
 export const updateProjectMutation = graphql(`
   mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {
-    updateProject(id: $id, input: $input) { id name description locale }
+    updateProject(id: $id, input: $input) { id name description icon locale }
   }
 `)
 

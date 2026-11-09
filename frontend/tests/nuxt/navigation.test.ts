@@ -1,9 +1,17 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { ref } from 'vue'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import ColorModeSwitch from '~/components/ColorModeSwitch.vue'
 import FormSelect from '~/components/form/Select.vue'
 import LocaleSwitch from '~/components/LocaleSwitch.vue'
 import NavList from '~/components/NavList.vue'
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: ref({ projects: [{ id: '1', name: 'Website-Relaunch', icon: 'globe' }, { id: '2', name: 'Sommerfest', icon: null }] }),
+    loading: ref(false)
+  })
+}))
 
 beforeAll(async () => {
   await useNuxtApp().$i18n.setLocale('de')
@@ -94,5 +102,18 @@ describe('NavList on a sub page', () => {
     })
 
     expect(nav.findAll('a').map(link => link.attributes('aria-current'))).toEqual([undefined, 'page'])
+  })
+})
+
+describe('SidebarProjectList', () => {
+  it('lists the projects alphabetically with their icon, a folder without one', async () => {
+    const { default: SidebarProjectList } = await import('~/components/SidebarProjectList.vue')
+    const list = await mountSuspended(SidebarProjectList)
+    const links = list.findAll('a')
+
+    expect(links.map(link => link.text())).toEqual(['Sommerfest', 'Website-Relaunch'])
+    expect(links.map(link => link.attributes('href'))).toEqual(['/projects/2', '/projects/1'])
+    expect((links[0]!.find('wa-icon').element as unknown as { name: string }).name).toBe('folder')
+    expect((links[1]!.find('wa-icon').element as unknown as { name: string }).name).toBe('globe')
   })
 })

@@ -22,6 +22,7 @@ export const projectHeaderQuery = graphql(`
       id
       name
       description
+      icon
       viewerRole
       viewerAbilities
     }
@@ -37,9 +38,9 @@ export const createProjectMutation = graphql(`
   }
 `)
 
-/** Projects for the choice in the sidebar. */
+/** Projects listed in the sidebar. */
 export const sidebarProjectsQuery = graphql(`
   query SidebarProjects {
-    projects { id name }
+    projects { id name icon }
   }
 `)

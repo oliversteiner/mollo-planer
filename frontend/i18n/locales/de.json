@@ -11,8 +11,6 @@
     "users": "Benutzer",
     "appSettings": "App-Einstellungen",
     "skipToContent": "Zum Inhalt springen",
-    "searchProject": "Projekt suchen",
-    "chooseProject": "Projekt wählen",
     "assistant": "KI-Assistent"
   },
   "settings": {
@@ -146,6 +144,7 @@
     "fields": {
       "name": "Name",
       "description": "Beschreibung",
+      "iconHint": "Erscheint in der Seitenleiste vor dem Projektnamen.",
       "locale": "Sprache der Mails",
       "localeHint": "Benachrichtigungen zu diesem Projekt kommen in dieser Sprache."
     }
