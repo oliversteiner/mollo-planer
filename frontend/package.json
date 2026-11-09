@@ -33,6 +33,7 @@
     "@tiptap/pm": "^3.33.0",
     "@tiptap/vue-3": "^3.33.0",
     "@vue/apollo-composable": "^4.2.2",
+    "@web.awesome.me/webawesome-pro": "3.14.0",
     "apollo-upload-client": "^18.0.1",
     "graphql": "^16.15.0",
     "nuxt": "^4.6.3",

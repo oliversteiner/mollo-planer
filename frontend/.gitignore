@@ -23,5 +23,5 @@ logs
 .env.*
 !.env.example
 
-# Font Awesome Pro token (local only)
-.npmrc
+# Registry tokens (local only), also backups like .npmrc.bak
+.npmrc*

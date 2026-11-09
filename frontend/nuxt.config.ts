@@ -26,7 +26,15 @@ export default defineNuxtConfig({
     enabled: true
   },
 
-  css: ['~/assets/css/main.css'],
+  // Web Awesome first, so its cascade layers come before the Tailwind ones.
+  css: ['~/assets/css/webawesome.css', '~/assets/css/main.css'],
+
+  // Web Awesome components are custom elements (wa-*), not Vue components.
+  vue: {
+    compilerOptions: {
+      isCustomElement: tag => tag.startsWith('wa-')
+    }
+  },
 
   runtimeConfig: {
     public: {
@@ -58,6 +66,27 @@ export default defineNuxtConfig({
         baseURL: '/icons'
       }
     ]
+  },
+
+  hooks: {
+    // The theme "Matter" loads its fonts from fonts.bunny.net. The app makes
+    // no requests to third parties, so that @import is dropped after
+    // postcss-import has inlined the theme (the body font is Public Sans,
+    // see assets/css/webawesome.css).
+    'vite:extendConfig'(config) {
+      const plugins = (config.css as { postcss?: { plugins?: unknown } } | undefined)?.postcss?.plugins
+      if (!Array.isArray(plugins)) {
+        throw new TypeError('Unexpected PostCSS config: cannot drop the external font import of the Web Awesome theme.')
+      }
+      plugins.push({
+        postcssPlugin: 'webawesome-no-external-fonts',
+        AtRule: {
+          import(node: { params: string, remove: () => void }) {
+            if (node.params.includes('fonts.bunny.net')) node.remove()
+          }
+        }
+      })
+    }
   },
 
   eslint: {

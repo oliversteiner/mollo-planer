@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "webawesome": {
+      "source": "./node_modules/@web.awesome.me/webawesome-pro/dist/skills/webawesome",
+      "sourceType": "local",
+      "computedHash": "3f6cc6ef377cc3ddaef655dc2be47de45a0b752f5030f4d0baf960b8eaefbf63",
+      "installMode": "copy"
+    },
+    "webawesome-design": {
+      "source": "./node_modules/@web.awesome.me/webawesome-pro/dist/skills/webawesome-design",
+      "sourceType": "local",
+      "computedHash": "2626a8bd7f21918d1ab0104c3abf0b060a8b2da2676fe14e499e3c36214af612",
+      "installMode": "copy"
+    }
+  }
+}
