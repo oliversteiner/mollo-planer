@@ -26,6 +26,42 @@ export const projectOverviewQuery = graphql(`
   }
 `)
 
+/** Milestones > todos > tasks of a project, for the timeline view. */
+export const projectTimelineQuery = graphql(`
+  query ProjectTimeline($id: ID!) {
+    project(id: $id) {
+      id
+      milestones {
+        id
+        title
+        description
+        icon
+        dueDate
+        status
+        progress { done total percent }
+        todos {
+          id
+          title
+          description
+          icon
+          dueDate
+          status
+          progress { done total percent }
+          tasks {
+            id
+            title
+            description
+            icon
+            status
+            dueDate
+            assignee { id name avatarUrl }
+          }
+        }
+      }
+    }
+  }
+`)
+
 export const projectTodosQuery = graphql(`
   query ProjectTodos($projectId: ID!, $milestoneId: ID, $status: ItemStatus) {
     todos(projectId: $projectId, milestoneId: $milestoneId, status: $status) {

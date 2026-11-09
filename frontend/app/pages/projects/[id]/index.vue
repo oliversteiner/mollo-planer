@@ -1,18 +1,54 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, TabsItem } from '@nuxt/ui'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
-import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectOverviewQuery } from '~/graphql/project'
+import type { TaskFormTarget } from '~/components/task/FormModal.vue'
+import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
+import { projectMembersQuery } from '~/graphql/task'
 import { isEmptyDocument } from '~/utils/rich-text'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const { projectId, project, can } = useProject()
 
-const { result, loading } = useQuery(projectOverviewQuery, () => ({ id: projectId.value }), { fetchPolicy: 'cache-and-network' })
+/** Views of the overview; the chosen one stays in the URL (?view=timeline). */
+const views = computed<TabsItem[]>(() => [
+  { label: t('project.views.list'), icon: 'i-fadl-list', value: 'list' },
+  { label: t('project.views.timeline'), icon: 'i-fadl-timeline', value: 'timeline' }
+])
+
+const view = computed({
+  get: () => (route.query.view === 'timeline' ? 'timeline' : 'list'),
+  set: (value: string | number) => {
+    router.replace({ query: { ...route.query, view: value === 'timeline' ? 'timeline' : undefined } })
+  }
+})
+
+/** Timeline with only the milestones (?milestones=only). */
+const milestonesOnly = computed({
+  get: () => route.query.milestones === 'only',
+  set: (value: boolean) => {
+    router.replace({ query: { ...route.query, milestones: value ? 'only' : undefined } })
+  }
+})
+
+const { result, loading } = useQuery(projectOverviewQuery, () => ({ id: projectId.value }), () => ({ fetchPolicy: 'cache-and-network', enabled: view.value === 'list' }))
 
 /** Milestones by due date (without date last), then in creation order. */
 const milestones = computed(() => [...(result.value?.project?.milestones ?? [])]
   .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || Number(a.id) - Number(b.id)))
+
+/** Todos and members for "Task anlegen" in the timeline, loaded only there. */
+const taskFormEnabled = computed(() => view.value === 'timeline' && can('TASK_CREATE'))
+const { result: todosResult } = useQuery(projectTodosQuery, () => ({ projectId: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
+const { result: membersResult } = useQuery(projectMembersQuery, () => ({ id: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
+const todos = computed(() => todosResult.value?.todos ?? [])
+const members = computed(() => (membersResult.value?.project?.members ?? [])
+  .map(member => member.user)
+  .sort((a, b) => a.name.localeCompare(b.name)))
+
+const creatingTask = ref<TaskFormTarget | null>(null)
 
 type Item = NonNullable<ItemFormTarget['item']>
 
@@ -56,6 +92,15 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
 
 <template>
   <div class="space-y-6">
+    <UTabs
+      v-model="view"
+      :items="views"
+      :content="false"
+      variant="link"
+      :aria-label="t('project.views.label')"
+      class="w-full"
+    />
+
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p
         v-if="project?.description"
@@ -72,133 +117,152 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
       />
     </div>
 
-    <USkeleton
-      v-if="loading && !result"
-      class="h-40"
-    />
-    <UEmpty
-      v-else-if="!milestones.length"
-      icon="i-fadl-flag-checkered"
-      :title="t('project.noMilestones')"
-      :description="can('MILESTONE_CREATE') ? t('project.noMilestonesHint') : undefined"
+    <ProjectTimeline
+      v-if="view === 'timeline'"
+      v-model:milestones-only="milestonesOnly"
+      :project-id="projectId"
+      :can-create-todo="can('TODO_CREATE')"
+      :can-create-task="can('TASK_CREATE')"
+      @create-todo="editing = { kind: 'todo', parentId: $event }"
+      @create-task="creatingTask = { todoId: $event }"
     />
 
-    <UCard
-      v-for="milestone in milestones"
-      :key="milestone.id"
-    >
-      <template #header>
-        <div class="flex flex-wrap items-center gap-3">
-          <ItemIcon
-            :name="milestone.icon"
-            fallback="flag-checkered"
-            class="text-xl text-primary"
-          />
-          <h2 class="min-w-0 flex-1 truncate font-semibold text-highlighted">
-            {{ milestone.title }}
-          </h2>
-          <StatusBadge :status="milestone.status" />
-          <DueDate
-            :date="milestone.dueDate"
-            :done="milestone.status === 'DONE'"
-          />
-          <UDropdownMenu
-            v-if="actions('milestone', milestone).length"
-            :items="actions('milestone', milestone)"
-          >
-            <UButton
-              icon="i-fadl-ellipsis"
-              color="neutral"
-              variant="ghost"
-              :aria-label="t('common.actions')"
-            />
-          </UDropdownMenu>
-        </div>
-        <div class="mt-3 flex items-center gap-3">
-          <UProgress
-            :model-value="milestone.progress.percent"
-            size="sm"
-            class="flex-1"
-          />
-          <span class="text-sm text-muted">{{ t('projects.progress', { done: milestone.progress.done, total: milestone.progress.total }) }}</span>
-        </div>
-      </template>
-
-      <RichTextView
-        :content="milestone.description"
-        class="mb-4 text-sm"
+    <template v-else>
+      <USkeleton
+        v-if="loading && !result"
+        class="h-40"
+      />
+      <UEmpty
+        v-else-if="!milestones.length"
+        icon="i-fadl-flag-checkered"
+        :title="t('project.noMilestones')"
+        :description="can('MILESTONE_CREATE') ? t('project.noMilestonesHint') : undefined"
       />
 
-      <ul
-        v-if="milestone.todos.length"
-        class="divide-y divide-default"
+      <UCard
+        v-for="(milestone, index) in milestones"
+        :key="milestone.id"
       >
-        <li
-          v-for="todo in milestone.todos"
-          :key="todo.id"
-          class="flex flex-wrap items-center gap-3 py-2"
-        >
-          <ItemIcon
-            :name="todo.icon"
-            fallback="list-check"
-            class="text-lg text-primary"
-          />
-          <span class="min-w-0 flex-1 truncate">{{ todo.title }}</span>
-          <UTooltip
-            v-if="!isEmptyDocument(todo.description)"
-            :text="t('project.hasDescription')"
-          >
-            <UIcon
-              name="i-fadl-align-left"
-              class="size-4 text-muted"
-              :aria-label="t('project.hasDescription')"
+        <template #header>
+          <div class="flex flex-wrap items-center gap-3">
+            <ItemIcon
+              :name="milestone.icon"
+              fallback="flag-checkered"
+              class="text-xl text-primary"
             />
-          </UTooltip>
-          <span class="text-sm text-muted">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
-          <StatusBadge :status="todo.status" />
-          <DueDate
-            :date="todo.dueDate"
-            :done="todo.status === 'DONE'"
-          />
-          <UDropdownMenu
-            v-if="actions('todo', todo).length"
-            :items="actions('todo', todo)"
-          >
-            <UButton
-              icon="i-fadl-ellipsis"
-              color="neutral"
-              variant="ghost"
+            <MilestoneNumber :number="index + 1" />
+            <h2 class="min-w-0 flex-1 truncate font-semibold text-highlighted">
+              {{ milestone.title }}
+            </h2>
+            <StatusBadge :status="milestone.status" />
+            <DueDate
+              :date="milestone.dueDate"
+              :done="milestone.status === 'DONE'"
+            />
+            <UDropdownMenu
+              v-if="actions('milestone', milestone).length"
+              :items="actions('milestone', milestone)"
+            >
+              <UButton
+                icon="i-fadl-ellipsis"
+                color="neutral"
+                variant="ghost"
+                :aria-label="t('common.actions')"
+              />
+            </UDropdownMenu>
+          </div>
+          <div class="mt-3 flex items-center gap-3">
+            <UProgress
+              :model-value="milestone.progress.percent"
               size="sm"
-              :aria-label="t('common.actions')"
+              class="flex-1"
             />
-          </UDropdownMenu>
-        </li>
-      </ul>
-      <p
-        v-else
-        class="text-sm text-muted"
-      >
-        {{ t('project.noTodos') }}
-      </p>
+            <span class="text-sm text-muted">{{ t('projects.progress', { done: milestone.progress.done, total: milestone.progress.total }) }}</span>
+          </div>
+        </template>
 
-      <template
-        v-if="can('TODO_CREATE')"
-        #footer
-      >
-        <UButton
-          icon="i-fadl-plus"
-          :label="t('item.todo.create')"
-          color="neutral"
-          variant="ghost"
-          size="sm"
-          @click="editing = { kind: 'todo', parentId: milestone.id }"
+        <RichTextView
+          :content="milestone.description"
+          class="mb-4 text-sm"
         />
-      </template>
-    </UCard>
+
+        <ul
+          v-if="milestone.todos.length"
+          class="divide-y divide-default"
+        >
+          <li
+            v-for="todo in milestone.todos"
+            :key="todo.id"
+            class="flex flex-wrap items-center gap-3 py-2"
+          >
+            <ItemIcon
+              :name="todo.icon"
+              fallback="list-check"
+              class="text-lg text-primary"
+            />
+            <span class="min-w-0 flex-1 truncate">{{ todo.title }}</span>
+            <UTooltip
+              v-if="!isEmptyDocument(todo.description)"
+              :text="t('project.hasDescription')"
+            >
+              <UIcon
+                name="i-fadl-align-left"
+                class="size-4 text-muted"
+                :aria-label="t('project.hasDescription')"
+              />
+            </UTooltip>
+            <span class="text-sm text-muted">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
+            <StatusBadge :status="todo.status" />
+            <DueDate
+              :date="todo.dueDate"
+              :done="todo.status === 'DONE'"
+            />
+            <UDropdownMenu
+              v-if="actions('todo', todo).length"
+              :items="actions('todo', todo)"
+            >
+              <UButton
+                icon="i-fadl-ellipsis"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                :aria-label="t('common.actions')"
+              />
+            </UDropdownMenu>
+          </li>
+        </ul>
+        <p
+          v-else
+          class="text-sm text-muted"
+        >
+          {{ t('project.noTodos') }}
+        </p>
+
+        <template
+          v-if="can('TODO_CREATE')"
+          #footer
+        >
+          <UButton
+            icon="i-fadl-plus"
+            :label="t('item.todo.create')"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            @click="editing = { kind: 'todo', parentId: milestone.id }"
+          />
+        </template>
+      </UCard>
+    </template>
 
     <ItemFormModal
       :target="editing"
       @close="editing = null"
+    />
+    <TaskFormModal
+      :target="creatingTask"
+      :todos="todos"
+      :members="members"
+      @close="creatingTask = null"
     />
     <ConfirmModal
       :open="deleting !== null"

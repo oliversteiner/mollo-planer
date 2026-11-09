@@ -18,5 +18,7 @@ describe('dates', () => {
   it('formats as a calendar day without shifting by the time zone', () => {
     expect(formatDate('2026-12-24', 'de-CH')).toBe('24.12.2026')
     expect(formatDate('2027-01-01', 'en-GB')).toBe('01/01/2027')
+    expect(formatDate('2026-12-24', 'de-CH', true)).toBe('24. Dezember 2026')
+    expect(formatDate('2027-01-01', 'en-GB', true)).toBe('1 January 2027')
   })
 })

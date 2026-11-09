@@ -5,6 +5,8 @@ import { createTaskMutation, updateTaskMutation } from '~/graphql/task'
 import { isEmptyDocument } from '~/utils/rich-text'
 
 export interface TaskFormTarget {
+  /** Todo preselected for a new task; without it the first one. */
+  todoId?: string
   /** Existing task to change; without it a new one is created. */
   task?: {
     id: string
@@ -51,7 +53,7 @@ const state = reactive<{
 
 watch(() => props.target, (target) => {
   errors.value = {}
-  state.todoId = props.todos[0]?.id ?? ''
+  state.todoId = target?.todoId ?? props.todos[0]?.id ?? ''
   state.assigneeId = 'none'
   state.title = target?.task?.title ?? ''
   state.dueDate = target?.task?.dueDate ?? ''

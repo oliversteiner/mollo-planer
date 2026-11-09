@@ -54,7 +54,7 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt. Ergänzt `backend-plan.md` und `
 | `/setup-security` | Erste Einrichtung: 2FA-App (QR-Code, Bestätigung, Wiederherstellungscodes) oder Passkey |
 | `/` | Dashboard: anstehende ToDos, meine offenen Tasks, Projekte mit Fortschritt |
 | `/projects` | Projektliste; Admins: Projekt anlegen |
-| `/projects/:id` | Übersicht: Milestones mit ToDos und Fortschritt (anlegen, ändern, löschen nach Rechten) |
+| `/projects/:id?view=&milestones=` | Übersicht mit Reitern: „Liste“ (Milestones mit ToDos und Fortschritt; anlegen, ändern, löschen nach Rechten) und „Zeitstrahl“ (`?view=timeline`, Milestones nach Fälligkeit, darin ToDos zum Aufklappen mit ihren Tasks, Darstellung wie die Vorschau des KI-Assistenten; „Nur Milestones anzeigen“ blendet Beschreibungen und ToDos aus, `&milestones=only`) |
 | `/projects/:id/todos` | ToDo-Liste mit Filtern (Milestone, Status) |
 | `/projects/:id/kanban?task=` | Kanban; `?task=` öffnet die Task-Details im Seitenpanel (Link aus den Mails) |
 | `/projects/:id/settings` | Name, Beschreibung, Sprache der Mails, Mitglieder und Rollen, Projekt löschen |

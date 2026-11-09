@@ -182,7 +182,26 @@
     "noMilestonesHint": "Lege den ersten Milestone an, zum Beispiel «Design freigegeben».",
     "noTodos": "Noch keine ToDos.",
     "taskCount": "{done}/{total} Tasks",
-    "hasDescription": "Hat eine Beschreibung"
+    "hasDescription": "Hat eine Beschreibung",
+    "views": {
+      "label": "Ansicht",
+      "list": "Liste",
+      "timeline": "Zeitstrahl"
+    },
+    "timeline": {
+      "expandAll": "Alle aufklappen",
+      "collapseAll": "Alle zuklappen",
+      "noDate": "Ohne Datum",
+      "toggleTodo": "ToDo «{title}» auf- oder zuklappen",
+      "unassigned": "Nicht zugewiesen",
+      "noTasks": "Noch keine Tasks.",
+      "milestonesOnly": "Nur Milestones anzeigen",
+      "showAll": "Alles anzeigen",
+      "createTodo": "Neues ToDo im Milestone «{title}» anlegen",
+      "createTask": "Neuen Task im ToDo «{title}» anlegen"
+    },
+    "milestoneNumber": "M{number}",
+    "milestoneNumberLabel": "Milestone {number}"
   },
   "todos": {
     "milestone": "Milestone",
