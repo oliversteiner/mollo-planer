@@ -106,13 +106,20 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **Dark Mode:** In Schritt 1 spiegelt das Plugin `webawesome.client.ts` den Farbmodus von Nuxt UI (`dark`) auf `wa-dark` / `wa-light`. In Schritt 4 durch den eigenen Umschalter ersetzen (Schritt 7: `useColorMode` entfällt mit Nuxt UI).
 - **Typen:** `app/types/webawesome.d.ts` bindet die Vue-Typen ein (die Paket-`exports` geben `dist/types` nicht frei, darum ein Pfad-Verweis). Wegen `isCustomElement` prüft `vue-tsc` Attribute von `wa-*` im Template **nicht**; es hilft nur die Editor-Vervollständigung. Tests und Sichtprüfung sind darum wichtiger.
 - **Native-Reset** (`native.css`) ist noch nicht eingebunden, solange Tailwind-Preflight läuft; in Phase B neu entscheiden.
-- **Icons/Assets:** `setBasePath` und die Icon-Libraries folgen in Schritt 2. Bis dahin laden Komponenten mit eingebauten Icons (z. B. Schliessen im Dialog, Pfeil im Select) ihre Icons noch nicht korrekt.
 - **Texte der Komponenten:** Deutsch und Englisch sind registriert (`translations/de.js`, `en.js`); die Sprache folgt `<html lang>`.
+
+## Hinweise aus Schritt 2
+- **Bibliotheken:** `app/utils/wa-icons.ts` ersetzt die Bibliotheken `default` (Icons der App) und `system` (Icons in den Komponenten: Pfeile, Haken, Schliessen …) durch Duotone Light von der eigenen Auslieferung (`/icons/duotone-light/<name>.svg`, Auflöser ohne Font-Awesome-CDN). `system` kennt zwei Namen anders: `indeterminate` → `minus`, `play-circle` → `circle-play`. Ungültige Namen zeigen `circle-question`. Geprüft per Test.
+- **Zweifarbigkeit:** Die Duotone-SVGs tragen `opacity=".4"` auf der zweiten Ebene. Der Mutator markiert beide Ebenen (`data-duotone-primary` / `-secondary`, wie Web Awesome selbst), dann färbt das Stylesheet von `wa-icon` sie im Shadow DOM über die Tokens `--primary-color`, `--secondary-color`, `--primary-opacity`, `--secondary-opacity` (Standard 1 und 0.4, also wie bisher) und `swap-opacity`. Damit sind nun **eigene Farben für die zweite Ebene möglich** (im alten Plan ausgeschlossen). Die Tokens erben nicht, sie müssen am Icon selbst stehen.
+- **`ItemIcon`** ist jetzt ein `wa-icon` (`canvas="auto"`, quadratisch wie vorher). Ist ein gewählter Name auf dem Server nicht vorhanden (`wa-error`), zeigt es das Standard-Icon.
+- **Vue setzt bei `wa-*` Eigenschaften, keine Attribute.** Tests prüfen darum `element.name` statt `attributes('name')`.
+- **ESLint:** `vue/html-self-closing` erlaubt für Komponenten beide Schreibweisen, weil `wa-*` ein schliessendes Tag braucht.
+- **Nicht in Schritt 2:** Die `UIcon`/`i-fadl-*`-Stellen und `app/ui-icons.ts` bleiben, solange Nuxt UI läuft (seine Komponenten brauchen sie). Jede Seite stellt ihre Icons auf `wa-icon` um, wenn sie in Schritt 3 bis 6 dran ist; `ui-icons.ts`, die Sammlung `fadl` und `app.config.ts` entfallen in Schritt 7.
 
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)
 - [x] 1. Einbindung (Hinweise dazu unten)
-- [ ] 2. Icons
+- [x] 2. Icons (Hinweise dazu unten)
 - [ ] 3. Bausteine
 - [ ] 4. Layout
 - [ ] 5. Seiten

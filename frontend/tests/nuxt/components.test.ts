@@ -10,27 +10,41 @@ beforeAll(async () => {
   await useNuxtApp().$i18n.setLocale('de')
 })
 
+/** Vue sets the properties of a custom element, not attributes. */
+function iconProps(wrapper: { element: Element }) {
+  return wrapper.element as unknown as { name: string, label?: string }
+}
+
 describe('ItemIcon', () => {
-  it('loads the chosen icon and hides it from screen readers without a label', async () => {
+  it('shows the chosen icon and hides it from screen readers without a label', async () => {
     const icon = await mountSuspended(ItemIcon, { props: { name: 'rocket', fallback: 'flag-checkered' } })
 
-    expect(icon.attributes('style')).toContain('icons/duotone-light/rocket.svg')
-    expect(icon.attributes('aria-hidden')).toBe('true')
+    expect(icon.element.tagName).toBe('WA-ICON')
+    expect(iconProps(icon).name).toBe('rocket')
+    expect(iconProps(icon).label || undefined).toBeUndefined()
   })
 
   it('uses the fallback for no name and for names outside the server format', async () => {
     for (const name of [null, '', '../../secret', 'Rocket', 'rocket.svg']) {
       const icon = await mountSuspended(ItemIcon, { props: { name, fallback: 'flag-checkered' } })
 
-      expect(icon.attributes('style')).toContain('icons/duotone-light/flag-checkered.svg')
+      expect(iconProps(icon).name).toBe('flag-checkered')
     }
   })
 
-  it('is an image with a name when it has a label', async () => {
+  it('uses the fallback when the server has no such icon', async () => {
+    const icon = await mountSuspended(ItemIcon, { props: { name: 'no-such-icon', fallback: 'flag-checkered' } })
+
+    icon.element.dispatchEvent(new Event('wa-error'))
+    await nextTick()
+
+    expect(iconProps(icon).name).toBe('flag-checkered')
+  })
+
+  it('has a name for screen readers when it has a label', async () => {
     const icon = await mountSuspended(ItemIcon, { props: { name: 'rocket', fallback: 'flag-checkered', label: 'Rakete' } })
 
-    expect(icon.attributes('role')).toBe('img')
-    expect(icon.attributes('aria-label')).toBe('Rakete')
+    expect(iconProps(icon).label).toBe('Rakete')
   })
 })
 

@@ -23,7 +23,14 @@ export default withNuxt(
   {
     rules: {
       // RichText is TipTap JSON and is shown with TipTap only, never as HTML.
-      'vue/no-v-html': 'error'
+      'vue/no-v-html': 'error',
+      // Web Awesome elements (wa-*) are custom elements and need a closing tag,
+      // so for components both forms are allowed.
+      'vue/html-self-closing': ['warn', {
+        html: { void: 'never', normal: 'always', component: 'any' },
+        svg: 'always',
+        math: 'always'
+      }]
     }
   }
 )

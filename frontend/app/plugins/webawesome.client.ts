@@ -1,6 +1,7 @@
 /**
  * Web Awesome Pro: registers the components (Web Components, Shadow DOM),
- * the German texts of the components and keeps the dark mode class in sync.
+ * the icon libraries, the German texts of the components and keeps the dark
+ * mode class in sync.
  * Only components that the app uses are imported; add new ones here.
  */
 import { registerTranslation } from '@web.awesome.me/webawesome-pro/dist/webawesome.js'
@@ -41,6 +42,9 @@ import '@web.awesome.me/webawesome-pro/dist/components/tooltip/tooltip.js'
 export default defineNuxtPlugin({
   name: 'webawesome',
   setup() {
+    // Icons of the app and of the components: Duotone Light from our server.
+    registerDuotoneLightIcons(useRuntimeConfig().app.baseURL)
+
     // The components read the language from <html lang> (set in app.vue).
     registerTranslation(de, en)
 
