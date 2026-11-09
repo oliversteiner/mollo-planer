@@ -47,7 +47,7 @@ describe('AssistantPlanPreview', () => {
   it('"Jetzt eintragen" asks for the import, without mails by default', async () => {
     const preview = await mountSuspended(PlanPreview, { props: { plan, people } })
 
-    await preview.findAll('button').find(button => button.text() === 'Jetzt eintragen')!.trigger('click')
+    await preview.findAll('wa-button').find(button => button.text() === 'Jetzt eintragen')!.trigger('click')
 
     expect(preview.emitted('import')).toEqual([[false]])
   })

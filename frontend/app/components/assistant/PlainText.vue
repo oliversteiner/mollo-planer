@@ -10,7 +10,7 @@ const blocks = computed(() => plainTextBlocks(props.text))
 <template>
   <div
     v-if="blocks.length"
-    class="space-y-1 text-sm text-muted"
+    class="plain-text wa-stack wa-gap-3xs"
   >
     <template
       v-for="(block, index) in blocks"
@@ -18,7 +18,7 @@ const blocks = computed(() => plainTextBlocks(props.text))
     >
       <ul
         v-if="block.kind === 'list'"
-        class="list-disc ps-5"
+        class="plain-text-list"
       >
         <li
           v-for="(item, itemIndex) in block.items"
@@ -33,3 +33,20 @@ const blocks = computed(() => plainTextBlocks(props.text))
     </template>
   </div>
 </template>
+
+<style scoped>
+.plain-text {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+
+.plain-text p {
+  margin: 0;
+}
+
+.plain-text-list {
+  margin: 0;
+  padding-inline-start: var(--wa-space-l);
+  list-style: disc;
+}
+</style>

@@ -4,11 +4,18 @@
  * content below. Replaces the dashboard panel and navbar of Nuxt UI; the
  * sidebar and the scrolling belong to <wa-page> (layouts/default.vue).
  */
-defineProps<{ title: string }>()
+defineProps<{
+  title: string
+  /** The page fills the screen height and its content does not scroll (for example a split view). */
+  fill?: boolean
+}>()
 </script>
 
 <template>
-  <div class="page-frame">
+  <div
+    class="page-frame"
+    :data-fill="fill ? '' : undefined"
+  >
     <header class="page-header">
       <h1 class="page-title">
         {{ title }}
@@ -27,6 +34,19 @@ defineProps<{ title: string }>()
 </template>
 
 <style scoped>
+.page-frame[data-fill] {
+  display: flex;
+  flex-direction: column;
+  block-size: 100dvh;
+}
+
+.page-frame[data-fill] .page-body {
+  flex: 1;
+  min-block-size: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 .page-header {
   display: flex;
   flex-wrap: wrap;

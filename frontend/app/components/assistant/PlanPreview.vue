@@ -73,52 +73,68 @@ function person(email: string | null) {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="wa-stack wa-gap-2xl">
     <!-- 1. Project name -->
     <section
-      class="plan-in space-y-3"
+      class="plan-in wa-stack wa-gap-s"
       style="--plan-step: 0"
     >
-      <p class="text-xs font-medium uppercase tracking-wide text-muted">
+      <p class="preview-eyebrow">
         {{ t('assistant.preview.project') }}
       </p>
-      <h2 class="text-2xl font-semibold text-highlighted">
+      <h2 class="preview-name">
         {{ plan.name }}
       </h2>
-      <div class="flex flex-wrap gap-2">
-        <UBadge
-          variant="subtle"
-          color="neutral"
-          icon="i-fadl-flag-checkered"
-          :label="t('assistant.preview.milestoneCount', counts.milestones)"
-        />
-        <UBadge
-          variant="subtle"
-          color="neutral"
-          icon="i-fadl-list-check"
-          :label="t('assistant.preview.todoCount', counts.todos)"
-        />
-        <UBadge
-          variant="subtle"
-          color="neutral"
-          icon="i-fadl-square-check"
-          :label="t('assistant.preview.taskCount', { count: counts.tasks, assigned: counts.assigned })"
-        />
-        <UBadge
-          variant="subtle"
-          color="neutral"
-          icon="i-fadl-envelope"
-          :label="t('assistant.preview.mailLanguage', { language: t(`locale.${plan.locale}`) })"
-        />
+      <div class="wa-cluster wa-gap-xs">
+        <wa-badge
+          variant="neutral"
+          appearance="filled"
+        >
+          <wa-icon
+            slot="start"
+            name="flag-checkered"
+          ></wa-icon>
+          {{ t('assistant.preview.milestoneCount', counts.milestones) }}
+        </wa-badge>
+        <wa-badge
+          variant="neutral"
+          appearance="filled"
+        >
+          <wa-icon
+            slot="start"
+            name="list-check"
+          ></wa-icon>
+          {{ t('assistant.preview.todoCount', counts.todos) }}
+        </wa-badge>
+        <wa-badge
+          variant="neutral"
+          appearance="filled"
+        >
+          <wa-icon
+            slot="start"
+            name="square-check"
+          ></wa-icon>
+          {{ t('assistant.preview.taskCount', { count: counts.tasks, assigned: counts.assigned }) }}
+        </wa-badge>
+        <wa-badge
+          variant="neutral"
+          appearance="filled"
+        >
+          <wa-icon
+            slot="start"
+            name="envelope"
+          ></wa-icon>
+          {{ t('assistant.preview.mailLanguage', { language: t(`locale.${plan.locale}`) }) }}
+        </wa-badge>
       </div>
     </section>
 
     <!-- 2. Description and team -->
     <section
-      class="plan-in space-y-3"
+      class="plan-in wa-stack wa-gap-s"
       style="--plan-step: 1"
     >
-      <h3 class="font-semibold text-highlighted">
+      <h3 class="wa-heading-xs">
         {{ t('assistant.preview.description') }}
       </h3>
       <AssistantPlainText
@@ -127,24 +143,24 @@ function person(email: string | null) {
       />
       <p
         v-else
-        class="text-sm text-dimmed"
+        class="preview-none"
       >
         {{ t('assistant.preview.noDescription') }}
       </p>
 
       <ul
         v-if="plan.members.length"
-        class="flex flex-wrap gap-x-6 gap-y-3 pt-2"
+        class="preview-members wa-list-plain"
         :aria-label="t('assistant.preview.members')"
       >
         <li
           v-for="member in plan.members"
           :key="member.email"
         >
-          <UUser
-            :name="person(member.email)?.name"
+          <UserLine
+            :name="person(member.email)?.name ?? member.email"
+            :src="person(member.email)?.avatarUrl"
             :description="t(`role.${member.role}`)"
-            :avatar="{ src: person(member.email)?.avatarUrl ?? undefined, alt: person(member.email)?.name, icon: 'i-fadl-user' }"
             size="sm"
           />
         </li>
@@ -152,23 +168,27 @@ function person(email: string | null) {
     </section>
 
     <!-- 3. Timeline: milestones > todos (collapsible) > tasks -->
-    <section class="space-y-4">
+    <section class="wa-stack wa-gap-m">
       <div
-        class="plan-in flex items-center justify-between gap-2"
+        class="plan-in wa-split wa-gap-s"
         style="--plan-step: 2"
       >
-        <h3 class="font-semibold text-highlighted">
+        <h3 class="wa-heading-xs">
           {{ t('assistant.preview.timeline') }}
         </h3>
-        <UButton
+        <wa-button
           v-if="allTodoKeys.length"
-          variant="ghost"
-          color="neutral"
-          size="sm"
-          :icon="allOpen ? 'i-fadl-chevrons-up' : 'i-fadl-chevrons-down'"
-          :label="allOpen ? t('assistant.preview.collapseAll') : t('assistant.preview.expandAll')"
+          appearance="plain"
+          variant="neutral"
+          size="small"
           @click="toggleAll"
-        />
+        >
+          <wa-icon
+            slot="start"
+            :name="allOpen ? 'chevrons-up' : 'chevrons-down'"
+          ></wa-icon>
+          {{ allOpen ? t('assistant.preview.collapseAll') : t('assistant.preview.expandAll') }}
+        </wa-button>
       </div>
 
       <StepTimeline
@@ -184,86 +204,82 @@ function person(email: string | null) {
         </template>
 
         <template #description="{ item }">
-          <div class="space-y-3 pb-6">
+          <div class="wa-stack wa-gap-s preview-milestone">
             <AssistantPlainText :text="item.milestone.description" />
 
-            <ul class="space-y-2">
+            <ul class="preview-todos wa-list-plain">
               <li
                 v-for="(todo, todoIndex) in item.milestone.todos"
                 :key="todoIndex"
-                class="rounded-lg border border-default"
+                class="preview-todo"
               >
-                <UCollapsible
-                  :open="openTodos.has(`${item.index}-${todoIndex}`)"
-                  @update:open="setOpen(`${item.index}-${todoIndex}`, $event)"
+                <button
+                  type="button"
+                  class="preview-todo-toggle"
+                  :aria-label="t('assistant.preview.toggleTodo', { title: todo.title })"
+                  :aria-expanded="openTodos.has(`${item.index}-${todoIndex}`)"
+                  @click="setOpen(`${item.index}-${todoIndex}`, !openTodos.has(`${item.index}-${todoIndex}`))"
                 >
-                  <UButton
-                    variant="ghost"
-                    color="neutral"
-                    block
-                    class="justify-start gap-2 text-start"
-                    :aria-label="t('assistant.preview.toggleTodo', { title: todo.title })"
+                  <wa-icon
+                    :name="openTodos.has(`${item.index}-${todoIndex}`) ? 'chevron-down' : 'chevron-right'"
+                    class="preview-quiet"
+                  ></wa-icon>
+                  <wa-icon
+                    name="list-check"
+                    class="preview-accent"
+                  ></wa-icon>
+                  <span class="preview-todo-title">{{ todo.title }}</span>
+                  <DueDate :date="todo.dueDate" />
+                  <wa-badge
+                    variant="neutral"
+                    appearance="filled"
+                    :aria-label="t('assistant.preview.taskCountShort', todo.tasks.length)"
                   >
-                    <UIcon
-                      :name="openTodos.has(`${item.index}-${todoIndex}`) ? 'i-fadl-chevron-down' : 'i-fadl-chevron-right'"
-                      class="size-4 shrink-0 text-muted"
-                    />
-                    <UIcon
-                      name="i-fadl-list-check"
-                      class="size-4 shrink-0 text-primary"
-                    />
-                    <span class="min-w-0 flex-1 truncate font-medium text-highlighted">{{ todo.title }}</span>
-                    <DueDate :date="todo.dueDate" />
-                    <UBadge
-                      variant="soft"
-                      color="neutral"
-                      size="sm"
-                      :label="String(todo.tasks.length)"
-                      :aria-label="t('assistant.preview.taskCountShort', todo.tasks.length)"
-                    />
-                  </UButton>
+                    {{ todo.tasks.length }}
+                  </wa-badge>
+                </button>
 
-                  <template #content>
-                    <div class="space-y-3 border-t border-default px-3 py-3">
-                      <AssistantPlainText :text="todo.description" />
+                <div
+                  v-if="openTodos.has(`${item.index}-${todoIndex}`)"
+                  class="preview-todo-content wa-stack wa-gap-s"
+                >
+                  <AssistantPlainText :text="todo.description" />
 
-                      <ul
-                        v-if="todo.tasks.length"
-                        class="divide-y divide-default rounded-md bg-elevated/50"
-                      >
-                        <li
-                          v-for="(task, taskIndex) in todo.tasks"
-                          :key="taskIndex"
-                          class="flex flex-col gap-2 px-3 py-2 sm:flex-row sm:items-start"
-                        >
-                          <UIcon
-                            name="i-fadl-square-check"
-                            class="mt-0.5 hidden size-4 shrink-0 text-muted sm:block"
-                          />
-                          <div class="min-w-0 flex-1 space-y-1">
-                            <p class="text-sm font-medium text-highlighted">
-                              {{ task.title }}
-                            </p>
-                            <AssistantPlainText :text="task.description" />
-                          </div>
-                          <div class="flex shrink-0 flex-wrap items-center gap-3">
-                            <DueDate :date="task.dueDate" />
-                            <UUser
-                              v-if="person(task.assigneeEmail)"
-                              :name="person(task.assigneeEmail)!.name"
-                              :avatar="{ src: person(task.assigneeEmail)!.avatarUrl ?? undefined, alt: person(task.assigneeEmail)!.name, icon: 'i-fadl-user' }"
-                              size="xs"
-                            />
-                            <span
-                              v-else
-                              class="text-xs text-dimmed"
-                            >{{ t('assistant.preview.unassigned') }}</span>
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                  </template>
-                </UCollapsible>
+                  <ul
+                    v-if="todo.tasks.length"
+                    class="preview-tasks wa-list-plain"
+                  >
+                    <li
+                      v-for="(task, taskIndex) in todo.tasks"
+                      :key="taskIndex"
+                      class="preview-task"
+                    >
+                      <wa-icon
+                        name="square-check"
+                        class="preview-quiet preview-task-icon"
+                      ></wa-icon>
+                      <div class="preview-task-text wa-stack wa-gap-3xs">
+                        <p class="preview-task-title">
+                          {{ task.title }}
+                        </p>
+                        <AssistantPlainText :text="task.description" />
+                      </div>
+                      <div class="preview-task-meta">
+                        <DueDate :date="task.dueDate" />
+                        <UserLine
+                          v-if="person(task.assigneeEmail)"
+                          :name="person(task.assigneeEmail)!.name"
+                          :src="person(task.assigneeEmail)!.avatarUrl"
+                          size="xs"
+                        />
+                        <span
+                          v-else
+                          class="preview-none"
+                        >{{ t('assistant.preview.unassigned') }}</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
               </li>
             </ul>
           </div>
@@ -274,39 +290,190 @@ function person(email: string | null) {
     <!-- Save -->
     <section
       style="--plan-step: 6"
-      class="plan-in sticky bottom-0 -mx-4 space-y-3 border-t border-default bg-default/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6"
+      class="plan-in preview-save wa-stack wa-gap-s"
     >
-      <UAlert
+      <AppCallout
         v-if="error"
-        color="error"
-        variant="subtle"
-        icon="i-fadl-circle-exclamation"
+        variant="danger"
         :title="t('assistant.preview.importFailed')"
         :description="error"
       />
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <UCheckbox
+      <div class="wa-split wa-gap-s">
+        <FormCheckbox
           v-model="notifyAssignees"
           :label="t('assistant.preview.notify')"
-          :description="t('assistant.preview.notifyHint')"
+          :hint="t('assistant.preview.notifyHint')"
         />
-        <div class="flex gap-2">
-          <UButton
-            variant="ghost"
-            color="neutral"
-            icon="i-fadl-trash-can"
-            :label="t('assistant.preview.discard')"
+        <div class="wa-cluster wa-gap-s">
+          <wa-button
+            appearance="plain"
+            variant="neutral"
             :disabled="importing"
             @click="emit('discard')"
-          />
-          <UButton
-            icon="i-fadl-floppy-disk-circle-arrow-right"
-            :label="t('assistant.preview.import')"
+          >
+            <wa-icon
+              slot="start"
+              name="trash-can"
+            ></wa-icon>
+            {{ t('assistant.preview.discard') }}
+          </wa-button>
+          <wa-button
+            variant="brand"
             :loading="importing"
             @click="emit('import', notifyAssignees)"
-          />
+          >
+            <wa-icon
+              slot="start"
+              name="floppy-disk-circle-arrow-right"
+            ></wa-icon>
+            {{ t('assistant.preview.import') }}
+          </wa-button>
         </div>
       </div>
     </section>
   </div>
 </template>
+
+<style scoped>
+.preview-eyebrow {
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+  font-weight: var(--wa-font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.preview-name {
+  margin: 0;
+  font-size: var(--wa-font-size-2xl);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.preview-none {
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+
+.preview-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wa-space-s) var(--wa-space-xl);
+  margin: 0;
+  padding: var(--wa-space-xs) 0 0;
+}
+
+.preview-milestone {
+  padding-block-end: var(--wa-space-l);
+}
+
+.preview-todos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-xs);
+  margin: 0;
+  padding: 0;
+}
+
+.preview-todo {
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-l);
+}
+
+.preview-todo-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-xs);
+  inline-size: 100%;
+  padding: var(--wa-space-xs) var(--wa-space-s);
+  border: none;
+  border-radius: var(--wa-border-radius-l);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.preview-todo-toggle:hover {
+  background-color: var(--wa-color-neutral-fill-quiet);
+}
+
+.preview-todo-toggle:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
+}
+
+.preview-todo-title {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  font-weight: var(--wa-font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-quiet {
+  color: var(--wa-color-text-quiet);
+}
+
+.preview-accent {
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.preview-todo-content {
+  padding: var(--wa-space-s);
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.preview-tasks {
+  margin: 0;
+  padding: 0;
+  border-radius: var(--wa-border-radius-m);
+  background-color: var(--wa-color-surface-raised);
+}
+
+.preview-task {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--wa-space-xs);
+  padding: var(--wa-space-xs) var(--wa-space-s);
+}
+
+.preview-task + .preview-task {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.preview-task-icon {
+  margin-block-start: var(--wa-space-3xs);
+}
+
+.preview-task-text {
+  flex: 1;
+  min-inline-size: 12rem;
+}
+
+.preview-task-title {
+  margin: 0;
+  font-size: var(--wa-font-size-s);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.preview-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-s);
+}
+
+.preview-save {
+  position: sticky;
+  inset-block-end: 0;
+  margin-inline: calc(var(--wa-space-l) * -1);
+  padding: var(--wa-space-m) var(--wa-space-l);
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  background-color: var(--wa-color-surface-default);
+}
+</style>

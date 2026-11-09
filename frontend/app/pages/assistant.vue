@@ -135,131 +135,160 @@ onMounted(() => {
   onBeforeUnmount(() => query.removeEventListener('change', update))
 })
 
-const panes = [
-  { id: 'chat', slot: 'chat', defaultSize: 40, minSize: 25 },
-  { id: 'preview', slot: 'preview', defaultSize: 60, minSize: 30, collapsible: true, collapsedSize: 5 }
-]
-
 /**
- * The preview stays collapsed to a narrow strip until there is a draft,
- * then opens (animated, except while the user drags the handle).
+ * Share of the chat in percent while a draft is shown, remembered in the
+ * browser. Without a draft the preview is a narrow strip (the chat gets
+ * almost everything); the first draft opens it.
  */
-type PanelHandle = { collapse(): void, expand(): void, resize(size: number): void, getSize(): number }
-const splitter = ref<{ panelsRef: PanelHandle[] } | null>(null)
-const dragging = ref(false)
-/** New key per draft, so its appearance is animated again. */
-const planVersion = ref(0)
+const SPLIT_KEY = 'assistant-splitter'
+const COLLAPSED_POSITION = 95
 
-function fitPreview() {
-  const preview = splitter.value?.panelsRef[1]
+function savedPosition(): number {
+  try {
+    const value = Number(localStorage.getItem(SPLIT_KEY))
 
-  if (!preview) {
-    return
+    return value >= 20 && value <= 80 ? value : 40
+  } catch {
+    return 40
   }
+}
 
-  if (!plan.value) {
-    preview.collapse()
-  } else if (preview.getSize() < 40) {
-    preview.expand()
-    if (preview.getSize() < 40) {
-      preview.resize(60)
+const chatShare = ref(40)
+const collapsed = computed(() => plan.value === null)
+const position = computed(() => (collapsed.value ? COLLAPSED_POSITION : chatShare.value))
+
+onMounted(() => {
+  chatShare.value = savedPosition()
+})
+
+function onReposition(event: Event): void {
+  const value = (event.target as HTMLElement & { position: number }).position
+
+  if (!collapsed.value && value >= 20 && value <= 80) {
+    chatShare.value = value
+
+    try {
+      localStorage.setItem(SPLIT_KEY, String(Math.round(value)))
+    } catch {
+      // Storage is a convenience only.
     }
   }
 }
 
-watch(() => plan.value !== null, () => nextTick(fitPreview))
+/** New key per draft, so its appearance is animated again. */
+const planVersion = ref(0)
+
 watch(plan, (current, previous) => {
   if (current && current !== previous) {
     planVersion.value++
   }
 })
-onMounted(() => nextTick(fitPreview))
 </script>
 
 <template>
-  <UDashboardPanel
-    id="assistant"
-    :ui="{ body: 'p-0 sm:p-0 overflow-hidden' }"
+  <PageFrame
+    :title="t('assistant.title')"
+    fill
   >
-    <template #header>
-      <UDashboardNavbar
-        :title="t('assistant.title')"
-        icon="i-fadl-wand-magic-sparkles"
-      />
-    </template>
-
-    <template #body>
-      <USplitter
-        id="assistant-splitter"
-        ref="splitter"
-        auto-save-id="assistant-splitter"
-        :orientation="wide ? 'horizontal' : 'vertical'"
-        :items="panes"
-        class="h-full"
-        :ui="{ panel: dragging ? '' : 'motion-safe:transition-[flex-grow] motion-safe:duration-500 motion-safe:ease-out' }"
-        @dragging="(_, value) => dragging = value"
+    <wa-split-panel
+      class="assistant-split"
+      :orientation="wide ? 'horizontal' : 'vertical'"
+      :position="position"
+      @wa-reposition="onReposition"
+    >
+      <section
+        slot="start"
+        class="assistant-pane"
+        :aria-label="t('assistant.chat.title')"
       >
-        <template #chat>
-          <section
-            class="h-full min-h-0"
-            :aria-label="t('assistant.chat.title')"
-          >
-            <AssistantChat
-              :messages="messages"
-              :pending="drafting"
-              @send="send"
-              @reset="reset"
-            />
-          </section>
-        </template>
+        <AssistantChat
+          :messages="messages"
+          :pending="drafting"
+          @send="send"
+          @reset="reset"
+        />
+      </section>
 
-        <template #preview="{ collapsed }">
-          <section
-            class="relative h-full w-full min-w-0"
-            :aria-label="t('assistant.preview.title')"
-          >
-            <!-- Collapsed: a narrow strip until the first draft -->
-            <div
-              v-if="collapsed"
-              class="flex h-full w-full items-center justify-center gap-2 border-default bg-elevated/40 text-muted"
-              :class="wide ? 'flex-col border-s' : 'border-t'"
-            >
-              <UIcon
-                name="i-fadl-timeline"
-                class="size-5"
-              />
-              <span
-                class="text-xs font-medium uppercase tracking-wide"
-                :class="wide ? '[writing-mode:vertical-rl]' : ''"
-              >{{ t('assistant.preview.title') }}</span>
-            </div>
+      <section
+        slot="end"
+        class="assistant-pane"
+        :aria-label="t('assistant.preview.title')"
+      >
+        <!-- Collapsed: a narrow strip until the first draft -->
+        <div
+          v-if="collapsed"
+          class="assistant-strip"
+          :data-wide="wide ? '' : undefined"
+        >
+          <wa-icon name="timeline"></wa-icon>
+          <span class="assistant-strip-title">{{ t('assistant.preview.title') }}</span>
+        </div>
 
-            <div
-              v-else
-              class="h-full overflow-y-auto px-4 pt-4 sm:px-6 sm:pt-6"
-            >
-              <AssistantPlanPreview
-                v-if="plan"
-                :key="planVersion"
-                :plan="plan"
-                :people="people"
-                :importing="importing"
-                :error="importError"
-                @import="save"
-                @discard="reset"
-              />
-              <UEmpty
-                v-else
-                icon="i-fadl-timeline"
-                :title="t('assistant.preview.emptyTitle')"
-                :description="t('assistant.preview.emptyDescription')"
-                variant="naked"
-                class="h-full"
-              />
-            </div>
-          </section>
-        </template>
-      </USplitter>
-    </template>
-  </UDashboardPanel>
+        <div
+          v-else
+          class="assistant-preview"
+        >
+          <AssistantPlanPreview
+            :key="planVersion"
+            :plan="plan!"
+            :people="people"
+            :importing="importing"
+            :error="importError"
+            @import="save"
+            @discard="reset"
+          />
+        </div>
+      </section>
+    </wa-split-panel>
+  </PageFrame>
 </template>
+
+<style scoped>
+.assistant-split {
+  block-size: 100%;
+  --min: 20%;
+  --max: 95%;
+}
+
+.assistant-pane {
+  block-size: 100%;
+  min-block-size: 0;
+  min-inline-size: 0;
+}
+
+.assistant-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--wa-space-xs);
+  block-size: 100%;
+  background-color: var(--wa-color-surface-raised);
+  color: var(--wa-color-text-quiet);
+}
+
+.assistant-strip[data-wide] {
+  flex-direction: column;
+  border-inline-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.assistant-strip:not([data-wide]) {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.assistant-strip-title {
+  font-size: var(--wa-font-size-xs);
+  font-weight: var(--wa-font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.assistant-strip[data-wide] .assistant-strip-title {
+  writing-mode: vertical-rl;
+}
+
+.assistant-preview {
+  block-size: 100%;
+  overflow-y: auto;
+  padding: var(--wa-space-l) var(--wa-space-l) 0;
+}
+</style>

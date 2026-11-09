@@ -24,6 +24,7 @@ const { t, localeProperties } = useI18n()
 
 const input = ref('')
 const list = ref<HTMLElement | null>(null)
+const voiceId = useId()
 
 const speech = useSpeechInput(
   () => localeProperties.value.language ?? 'de-CH',
@@ -66,118 +67,129 @@ watch(() => [props.messages.length, props.pending], async () => {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
+  <div class="chat">
     <div
       ref="list"
-      class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"
+      class="chat-log"
       role="log"
       aria-live="polite"
       :aria-label="t('assistant.chat.log')"
     >
-      <div class="mx-auto w-full max-w-3xl space-y-4">
-        <UEmpty
+      <div class="chat-column wa-stack wa-gap-m">
+        <EmptyState
           v-if="!messages.length"
-          icon="i-fadl-message-bot"
+          icon="message-bot"
           :title="t('assistant.chat.emptyTitle')"
           :description="t('assistant.chat.emptyDescription')"
-          variant="naked"
+          bare
         />
 
         <div
           v-for="(message, index) in messages"
           :key="index"
-          class="flex gap-3"
-          :class="message.role === 'USER' ? 'flex-row-reverse' : ''"
+          class="chat-message"
+          :data-user="message.role === 'USER' ? '' : undefined"
         >
-          <UAvatar
-            :icon="message.role === 'USER' ? 'i-fadl-user' : 'i-fadl-robot'"
-            size="sm"
-            class="shrink-0"
-            :alt="message.role === 'USER' ? t('assistant.chat.you') : t('assistant.chat.assistant')"
-          />
-          <div
-            class="max-w-[85%] whitespace-pre-line rounded-lg px-3 py-2 text-sm"
-            :class="message.failed
-              ? 'bg-error/10 text-error'
-              : message.role === 'USER' ? 'bg-primary/10 text-highlighted' : 'bg-elevated text-default'"
+          <wa-avatar
+            :label="message.role === 'USER' ? t('assistant.chat.you') : t('assistant.chat.assistant')"
+            style="--size: 2rem"
           >
-            <span class="sr-only">{{ message.role === 'USER' ? t('assistant.chat.you') : t('assistant.chat.assistant') }}:</span>
+            <wa-icon
+              slot="icon"
+              :name="message.role === 'USER' ? 'user' : 'robot'"
+            ></wa-icon>
+          </wa-avatar>
+          <div
+            class="chat-bubble"
+            :data-failed="message.failed ? '' : undefined"
+          >
+            <span class="wa-visually-hidden">{{ message.role === 'USER' ? t('assistant.chat.you') : t('assistant.chat.assistant') }}:</span>
             {{ message.content }}
           </div>
         </div>
 
         <div
           v-if="pending"
-          class="flex items-center gap-3 text-sm text-muted"
+          class="chat-thinking"
         >
-          <UAvatar
-            icon="i-fadl-robot"
-            size="sm"
-            :alt="t('assistant.chat.assistant')"
-          />
-          <UIcon
-            name="i-fadl-spinner-third"
-            class="size-4 animate-spin"
-          />
+          <wa-avatar
+            :label="t('assistant.chat.assistant')"
+            style="--size: 2rem"
+          >
+            <wa-icon
+              slot="icon"
+              name="robot"
+            ></wa-icon>
+          </wa-avatar>
+          <wa-spinner></wa-spinner>
           <span>{{ t('assistant.chat.thinking') }}</span>
         </div>
       </div>
     </div>
 
-    <div class="border-t border-default p-4">
+    <div class="chat-input">
       <form
-        class="mx-auto w-full max-w-3xl space-y-2"
+        class="chat-column wa-stack wa-gap-xs"
         @submit.prevent="send"
       >
-        <UTextarea
+        <FormTextarea
           v-model="shown"
           :placeholder="speech.listening.value ? t('assistant.chat.listening') : t('assistant.chat.placeholder')"
           :aria-label="t('assistant.chat.placeholder')"
           :rows="3"
-          autoresize
-          :maxrows="10"
+          resize="auto"
           :disabled="pending"
-          class="w-full"
           @keydown="onKeydown"
         />
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1">
-            <UTooltip
-              v-if="speech.supported.value"
-              :text="t('assistant.chat.voiceHint')"
-            >
-              <UButton
-                :icon="speech.listening.value ? 'i-fadl-microphone-slash' : 'i-fadl-microphone'"
-                :color="speech.listening.value ? 'error' : 'neutral'"
-                :variant="speech.listening.value ? 'soft' : 'ghost'"
+        <div class="wa-split wa-gap-s">
+          <div class="wa-cluster wa-gap-3xs">
+            <template v-if="speech.supported.value">
+              <wa-button
+                :id="voiceId"
+                :appearance="speech.listening.value ? 'filled' : 'plain'"
+                :variant="speech.listening.value ? 'danger' : 'neutral'"
                 :aria-label="speech.listening.value ? t('assistant.chat.voiceStop') : t('assistant.chat.voiceStart')"
                 :aria-pressed="speech.listening.value"
-                :class="speech.listening.value ? 'animate-pulse' : ''"
                 :disabled="pending"
                 @click="speech.toggle()"
-              />
-            </UTooltip>
-            <UButton
+              >
+                <wa-icon :name="speech.listening.value ? 'microphone-slash' : 'microphone'"></wa-icon>
+              </wa-button>
+              <wa-tooltip :for="voiceId">
+                {{ t('assistant.chat.voiceHint') }}
+              </wa-tooltip>
+            </template>
+            <wa-button
               v-if="messages.length"
-              icon="i-fadl-arrow-rotate-left"
-              variant="ghost"
-              color="neutral"
-              :label="t('assistant.chat.reset')"
+              appearance="plain"
+              variant="neutral"
               :disabled="pending"
               @click="emit('reset')"
-            />
+            >
+              <wa-icon
+                slot="start"
+                name="arrow-rotate-left"
+              ></wa-icon>
+              {{ t('assistant.chat.reset') }}
+            </wa-button>
           </div>
-          <UButton
+          <wa-button
             type="submit"
-            icon="i-fadl-paper-plane-top"
-            :label="t('assistant.chat.send')"
+            variant="brand"
             :disabled="!input.trim()"
             :loading="pending"
-          />
+          >
+            <wa-icon
+              slot="start"
+              name="paper-plane-top"
+            ></wa-icon>
+            {{ t('assistant.chat.send') }}
+          </wa-button>
         </div>
         <p
           v-if="speech.error.value"
-          class="text-xs text-error"
+          class="wa-caption-s"
+          data-form-error
         >
           {{ t('assistant.chat.voiceError', { error: speech.error.value }) }}
         </p>
@@ -185,3 +197,65 @@ watch(() => [props.messages.length, props.pending], async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.chat {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+.chat-log {
+  flex: 1;
+  min-block-size: 0;
+  padding: var(--wa-space-l);
+  overflow-y: auto;
+}
+
+.chat-column {
+  inline-size: 100%;
+  max-inline-size: 48rem;
+  margin-inline: auto;
+}
+
+.chat-message {
+  display: flex;
+  gap: var(--wa-space-s);
+}
+
+.chat-message[data-user] {
+  flex-direction: row-reverse;
+}
+
+.chat-bubble {
+  max-inline-size: 85%;
+  padding: var(--wa-space-xs) var(--wa-space-s);
+  border-radius: var(--wa-border-radius-l);
+  background-color: var(--wa-color-neutral-fill-quiet);
+  font-size: var(--wa-font-size-s);
+  white-space: pre-line;
+}
+
+.chat-message[data-user] .chat-bubble {
+  background-color: var(--wa-color-brand-fill-quiet);
+}
+
+.chat-bubble[data-failed] {
+  background-color: var(--wa-color-danger-fill-quiet);
+  color: var(--wa-color-danger-on-quiet);
+}
+
+.chat-thinking {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-s);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+
+.chat-input {
+  padding: var(--wa-space-m);
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+</style>
