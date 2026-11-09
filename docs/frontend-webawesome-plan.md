@@ -139,13 +139,22 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **Übergang:** Die Seiten stecken noch in `UDashboardPanel`/`UDashboardNavbar`. Deren Seitenleisten-Knopf ist in `app.config.ts` ausgeblendet (`dashboardNavbar.slots.toggle`), bis die Seiten in Schritt 5 umgestellt sind.
 - **Noch nicht im Browser gesehen** (nur Tests): Abstände, Hamburger-Knopf ohne Kopfzeile, Schublade, Benutzermenü, `wa-page` mit den noch bestehenden `UDashboardPanel`-Seiten.
 
+## Hinweise zu Schritt 5 (Seiten)
+- **Umgestellt** sind alle Seiten, die Zusammenstellung der Karten, Dialoge und Formulare sowie die Fehlerseite. In `app/` steht kein `U…`-Bauteil von Nuxt UI mehr außer `UApp` (`app.vue`), dem Rich-Text-Editor (`rich-text/Editor.vue`, `LinkPopover.vue`, `View.vue`) und dem Icon-Picker (`icon/Picker.vue`); diese folgen in Schritt 6.
+- **Neue Bausteine:** `PageFrame` (Titelzeile und Inhalt, Prop `fill` für Seiten mit voller Höhe), `ActionMenu` (`wa-dropdown` aus Daten, auch mit Gruppen), `AppDrawer` (`wa-drawer`), `AppCallout`, `UserAvatarGroup`, `ColorModeSelect`, `FormOtp` (`wa-otp-input`), `FormField` (Beschriftung, Hinweis und Meldung für Bedienelemente, die kein `wa-*`-Feld sind). `FormInput` hat einen Slot `start` für ein Icon.
+- **Abweichungen vom Plan:** (1) Der 2FA-Code nutzt `wa-otp-input` (steht in Web Awesome als eigenes Feld bereit) statt `wa-input` mit numerischer Eingabe; `autosubmit` ersetzt `@complete`. (2) Die aufklappbaren ToDos in der Zeitachse und in der Assistent-Vorschau sind eigene Auf-/Zuklapp-Knöpfe statt `wa-details`, weil das Aktionsmenü neben dem Knopf sitzt und kein Knopf in einem `summary` stecken darf. (3) Die Teilung im Assistenten (`wa-split-panel`) kennt kein „einklappbar“: ohne Entwurf steht die Position fest bei 95 % (schmaler Streifen für die Vorschau), mit Entwurf gilt der gemerkte Anteil des Chats (`localStorage`, Schlüssel `assistant-splitter`); der Übergang ist nicht animiert. (4) Die Fehlerseite setzt das Theme selbst, weil `app.vue` dort nicht gerendert wird.
+- **Seitenaufbau:** Layout über die Hilfsklassen `wa-stack`, `wa-cluster`, `wa-split`, `wa-gap-*`, `wa-heading-*`, `wa-body-*`, `wa-list-plain` und eigene `<style scoped>`-Blöcke mit Tokens. Das ESLint-Plugin für Tailwind kennt diese Klassen nicht; `eslint.config.mjs` führt dafür eine Ausnahmeliste (`^wa-` und die Präfixe der eigenen Klassen), die in Phase B mit dem Plugin entfällt.
+- **Tests:** Neue Tests für `ActionMenu`, `FormField`, `UserAvatarGroup`, `PageFrame`, die Anmelde-Formulare (mit nachgebildetem `$backend`) und angepasste Zeitachse. Merke: `wa-button` ist kein `<button>` (Tests suchen `wa-button`), und Vue setzt bei `wa-*` Eigenschaften, keine Attribute (`name`, `value`, `label` mit `element.name` prüfen).
+- **Lehre:** `npm run build` fängt Fehler, die Lint, Typecheck und Tests nicht sehen (`v-model="x as string"` ist kein gültiger Ausdruck). Vor jedem Commit alle vier laufen lassen.
+- **Noch nicht im Browser gesehen:** alle Seiten dieses Schritts. Besonders prüfen: Abstände und Höhen im `wa-page` (Kanban, Assistent), die geschachtelte Bestätigung in der Schublade der Task-Details, Karten mit Kopf- und Fußzeile, das Eingabefeld mit Knopf daneben (`margin-block-start: 1.6em` ist geschätzt), Formulare mit Pflichtfeldern, Dark Mode.
+
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)
 - [x] 1. Einbindung (Hinweise dazu unten)
 - [x] 2. Icons (Hinweise dazu unten)
 - [x] 3. Bausteine (Hinweise dazu unten)
 - [x] 4. Layout (Hinweise dazu unten)
-- [ ] 5. Seiten
+- [x] 5. Seiten (Hinweise dazu unten)
 - [ ] 6. Rich-Text und Icon-Picker
 - [ ] 7. Nuxt UI entfernen
 - [ ] 8. Tailwind entfernen
