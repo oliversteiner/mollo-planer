@@ -6,3 +6,6 @@
 
 # Postman environments may hold passwords or tokens: keep them local
 /docs/postman/postman/environments/
+
+# Local Codex settings (machine-specific)
+/.codex/
