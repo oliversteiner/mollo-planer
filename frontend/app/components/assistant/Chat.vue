@@ -71,6 +71,7 @@ watch(() => [props.messages.length, props.pending], async () => {
     <div
       ref="list"
       class="chat-log"
+      :data-empty="messages.length ? undefined : ''"
       role="log"
       aria-live="polite"
       :aria-label="t('assistant.chat.log')"
@@ -208,10 +209,17 @@ watch(() => [props.messages.length, props.pending], async () => {
 }
 
 .chat-log {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-block-size: 0;
   padding: var(--wa-space-l);
   overflow-y: auto;
+}
+
+/* Without messages the introduction sits right above the input field, not at the top. */
+.chat-log[data-empty] > .chat-column {
+  margin-block-start: auto;
 }
 
 .chat-column {
