@@ -162,6 +162,15 @@ function skipToContent(): void {
   justify-content: flex-start;
 }
 
+/*
+ * wa-page gives a slotted <main> a large padding (--wa-space-3xl). The pages
+ * bring their own spacing (PageFrame), and a page that fills the screen must
+ * not get taller than it, so the padding goes.
+ */
+main {
+  padding: 0;
+}
+
 main:focus {
   outline: none;
 }

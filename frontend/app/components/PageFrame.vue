@@ -37,7 +37,8 @@ defineProps<{
 .page-frame[data-fill] {
   display: flex;
   flex-direction: column;
-  block-size: 100dvh;
+  /* Screen height minus what wa-page shows above the content (on small screens the bar with the menu button). */
+  block-size: calc(100dvh - var(--banner-height, 0px) - var(--header-height, 0px) - var(--subheader-height, 0px));
 }
 
 .page-frame[data-fill] .page-body {
