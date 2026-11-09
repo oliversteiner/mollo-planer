@@ -41,7 +41,7 @@ async function submit(): Promise<void> {
   <wa-card>
     <h2
       slot="header"
-      class="wa-heading-xs"
+      class="wa-heading-m"
     >
       {{ t('settings.project.title') }}
     </h2>

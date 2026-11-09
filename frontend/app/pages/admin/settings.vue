@@ -31,7 +31,7 @@ async function setTwoFactor(enabled: boolean): Promise<void> {
     <wa-card class="admin-settings-card">
       <h2
         slot="header"
-        class="wa-heading-xs"
+        class="wa-heading-m"
       >
         {{ t('admin.settings.twoFactorTitle') }}
       </h2>

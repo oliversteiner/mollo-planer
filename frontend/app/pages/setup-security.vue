@@ -29,7 +29,7 @@ async function done(): Promise<void> {
   <wa-card>
     <h1
       slot="header"
-      class="wa-heading-m"
+      class="wa-heading-l"
     >
       {{ t('auth.setup.title') }}
     </h1>

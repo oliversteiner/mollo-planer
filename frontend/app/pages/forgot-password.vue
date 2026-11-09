@@ -19,7 +19,7 @@ async function submit(): Promise<void> {
   <wa-card>
     <h1
       slot="header"
-      class="wa-heading-m"
+      class="wa-heading-l"
     >
       {{ t('auth.forgot.title') }}
     </h1>

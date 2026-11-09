@@ -89,7 +89,7 @@ async function confirmRemove(): Promise<void> {
 <template>
   <wa-card>
     <div slot="header">
-      <h2 class="wa-heading-xs">
+      <h2 class="wa-heading-m">
         {{ t('settings.members.title') }}
       </h2>
       <p class="wa-body-s wa-color-text-quiet">

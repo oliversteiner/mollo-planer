@@ -119,6 +119,16 @@ defineSlots<{
   display: contents;
 }
 
+/* The content of a step uses the whole width of the column (todos, tasks). */
+wa-step::part(content) {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+wa-step::part(description) {
+  inline-size: 100%;
+}
+
 .timeline-description {
   inline-size: 100%;
   min-inline-size: 0;

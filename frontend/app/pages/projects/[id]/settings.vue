@@ -46,7 +46,7 @@ async function confirmDelete(): Promise<void> {
     >
       <h2
         slot="header"
-        class="wa-heading-xs settings-danger-title"
+        class="wa-heading-s settings-danger-title"
       >
         {{ t('settings.danger.title') }}
       </h2>

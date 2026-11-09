@@ -134,7 +134,7 @@ function person(email: string | null) {
       class="plan-in wa-stack wa-gap-s"
       style="--plan-step: 1"
     >
-      <h3 class="wa-heading-xs">
+      <h3 class="wa-heading-s">
         {{ t('assistant.preview.description') }}
       </h3>
       <AssistantPlainText
@@ -173,7 +173,7 @@ function person(email: string | null) {
         class="plan-in wa-split wa-gap-s"
         style="--plan-step: 2"
       >
-        <h3 class="wa-heading-xs">
+        <h3 class="wa-heading-s">
           {{ t('assistant.preview.timeline') }}
         </h3>
         <wa-button

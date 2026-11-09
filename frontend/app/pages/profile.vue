@@ -25,7 +25,7 @@ async function setNotifications(enabled: boolean): Promise<void> {
       <wa-card>
         <h2
           slot="header"
-          class="wa-heading-xs"
+          class="wa-heading-m"
         >
           {{ t('profile.settings') }}
         </h2>

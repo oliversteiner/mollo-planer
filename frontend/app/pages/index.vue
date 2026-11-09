@@ -22,7 +22,7 @@ const dashboard = computed(() => result.value?.dashboard)
       <wa-card>
         <h2
           slot="header"
-          class="wa-heading-xs"
+          class="wa-heading-m"
         >
           {{ t('dashboard.myOpenTasks') }}
         </h2>
@@ -72,7 +72,7 @@ const dashboard = computed(() => result.value?.dashboard)
       <wa-card>
         <h2
           slot="header"
-          class="wa-heading-xs"
+          class="wa-heading-m"
         >
           {{ t('dashboard.upcomingTodos') }}
         </h2>
@@ -122,7 +122,7 @@ const dashboard = computed(() => result.value?.dashboard)
         slot="header"
         class="wa-split wa-gap-s"
       >
-        <h2 class="wa-heading-xs">
+        <h2 class="wa-heading-m">
           {{ t('dashboard.projects') }}
         </h2>
         <wa-button

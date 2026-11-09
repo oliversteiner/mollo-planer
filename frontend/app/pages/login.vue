@@ -88,7 +88,7 @@ function backToCredentials(): void {
   <wa-card v-if="step === 'credentials'">
     <h1
       slot="header"
-      class="wa-heading-m"
+      class="wa-heading-l"
     >
       {{ t('auth.login.title') }}
     </h1>
@@ -165,7 +165,7 @@ function backToCredentials(): void {
   <wa-card v-else>
     <h1
       slot="header"
-      class="wa-heading-m"
+      class="wa-heading-l"
     >
       {{ t('auth.challenge.title') }}
     </h1>

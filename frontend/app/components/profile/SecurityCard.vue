@@ -67,7 +67,7 @@ async function onTwoFactorDone(): Promise<void> {
 <template>
   <wa-card>
     <div slot="header">
-      <h2 class="wa-heading-xs">
+      <h2 class="wa-heading-m">
         {{ t('security.title') }}
       </h2>
       <p class="wa-body-s wa-color-text-quiet">
@@ -78,7 +78,7 @@ async function onTwoFactorDone(): Promise<void> {
     <div class="wa-stack wa-gap-xl">
       <section class="wa-stack wa-gap-s">
         <div class="wa-split wa-gap-s">
-          <h3 class="wa-heading-xs">
+          <h3 class="wa-heading-s">
             {{ t('security.twoFactor.title') }}
           </h3>
           <wa-badge
@@ -152,7 +152,7 @@ async function onTwoFactorDone(): Promise<void> {
       </section>
 
       <section class="wa-stack wa-gap-s">
-        <h3 class="wa-heading-xs">
+        <h3 class="wa-heading-s">
           {{ t('security.passkeys.title') }}
         </h3>
         <p class="wa-body-s wa-color-text-quiet">

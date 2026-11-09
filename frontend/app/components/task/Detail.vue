@@ -168,7 +168,7 @@ async function confirmDelete(): Promise<void> {
       </div>
 
       <section class="wa-stack wa-gap-xs">
-        <h3 class="wa-heading-xs">
+        <h3 class="wa-heading-s">
           {{ t('item.fields.description') }}
         </h3>
         <RichTextView
