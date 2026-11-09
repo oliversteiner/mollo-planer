@@ -217,9 +217,9 @@ watch(() => [props.messages.length, props.pending], async () => {
   overflow-y: auto;
 }
 
-/* Without messages the introduction sits right above the input field, not at the top. */
+/* Without messages the introduction sits in the middle of the free space, not at the top. */
 .chat-log[data-empty] > .chat-column {
-  margin-block-start: auto;
+  margin-block: auto;
 }
 
 .chat-column {
