@@ -23,3 +23,11 @@
   justify-content: flex-start;
   cursor: pointer;
 }
+
+/*
+ * The native styles give some elements a display (for example the file
+ * input), which would beat the browser's rule for the hidden attribute.
+ */
+[hidden] {
+  display: none !important;
+}

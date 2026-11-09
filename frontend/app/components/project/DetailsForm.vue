@@ -71,7 +71,6 @@ async function submit(): Promise<void> {
         :label="t('projects.fields.locale')"
         :hint="t('projects.fields.localeHint')"
         :error="errors.locale"
-        class="details-locale"
       />
       <div>
         <wa-button
@@ -85,9 +84,3 @@ async function submit(): Promise<void> {
     </form>
   </wa-card>
 </template>
-
-<style scoped>
-.details-locale {
-  max-inline-size: 14rem;
-}
-</style>

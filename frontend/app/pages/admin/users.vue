@@ -121,6 +121,8 @@ function factorLabel(user: User): string {
     <FormInput
       v-model="query"
       :placeholder="t('settings.members.search')"
+      type="search"
+      autocomplete="off"
       :label="t('settings.members.search')"
       hide-label
       class="users-search"

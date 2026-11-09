@@ -50,7 +50,6 @@ async function add(): Promise<void> {
       class="passkey-name"
       :label="t('security.passkeys.name')"
       :hint="t('security.passkeys.nameHint')"
-      :placeholder="t('security.passkeys.defaultName')"
       maxlength="255"
     />
     <wa-button
@@ -78,10 +77,5 @@ async function add(): Promise<void> {
 .passkey-name {
   flex: 1;
   min-inline-size: 12rem;
-}
-
-/* The button sits next to the field, level with its input, not with its label. */
-.passkey-form > wa-button {
-  margin-block-start: 1.6em;
 }
 </style>

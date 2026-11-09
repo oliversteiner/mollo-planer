@@ -92,7 +92,6 @@ function onHide(event: Event): void {
         v-model="url"
         :label="t('richText.link.url')"
         :error="error"
-        placeholder="https://"
         autofocus
       />
       <div class="link-actions">

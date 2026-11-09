@@ -200,11 +200,6 @@ async function confirmRevoke(): Promise<void> {
   min-inline-size: 12rem;
 }
 
-/* The button sits next to the field, level with its input, not with its label. */
-.claude-form > wa-button {
-  margin-block-start: 1.6em;
-}
-
 .claude-copy {
   display: flex;
   align-items: center;

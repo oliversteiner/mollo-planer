@@ -160,7 +160,6 @@ async function confirmRemove(): Promise<void> {
         :items="candidates"
         searchable
         :label="t('settings.members.person')"
-        :placeholder="t('settings.members.choose')"
         class="members-person"
       />
       <FormSelect
@@ -255,10 +254,5 @@ async function confirmRemove(): Promise<void> {
 .members-person {
   flex: 1;
   min-inline-size: 14rem;
-}
-
-/* The button sits next to the fields, level with their inputs, not with their labels. */
-.members-add > wa-button {
-  margin-block-start: 1.6em;
 }
 </style>

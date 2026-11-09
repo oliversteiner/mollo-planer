@@ -79,6 +79,8 @@ function choose(name: string | null): void {
         <FormInput
           v-model="query"
           :placeholder="t('icons.search')"
+          type="search"
+          autocomplete="off"
           :label="t('icons.search')"
           hide-label
           autofocus
