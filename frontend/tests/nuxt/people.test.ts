@@ -106,3 +106,14 @@ describe('PageFrame', () => {
     expect(frame.find('#page-actions').exists()).toBe(true)
   })
 })
+
+describe('AppLogo', () => {
+  it('is an image named after the app, in the colour of the text', async () => {
+    const { default: AppLogo } = await import('~/components/AppLogo.vue')
+    const logo = await mountSuspended(AppLogo)
+
+    expect(logo.attributes('role')).toBe('img')
+    expect(logo.attributes('aria-label')).toBe(useNuxtApp().$i18n.t('app.name'))
+    expect(logo.find('path').attributes('fill')).toBe('currentColor')
+  })
+})

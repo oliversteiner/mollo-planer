@@ -1,6 +1,5 @@
 <script setup lang="ts">
 /** Frame of the pages without login (login, password, invitation): small header, one centred column. */
-const { t } = useI18n()
 </script>
 
 <template>
@@ -9,7 +8,7 @@ const { t } = useI18n()
       slot="header"
       class="auth-header"
     >
-      <span class="auth-name">{{ t('app.name') }}</span>
+      <AppLogo class="auth-logo" />
       <div class="auth-tools">
         <LocaleSwitch />
         <ColorModeSwitch />
@@ -35,8 +34,12 @@ const { t } = useI18n()
   padding: var(--wa-space-m);
 }
 
-.auth-name {
-  font-weight: var(--wa-font-weight-bold);
+.auth-logo {
+  color: #612692;
+}
+
+:root.wa-dark .auth-logo {
+  color: var(--wa-color-brand-on-quiet);
 }
 
 .auth-tools {

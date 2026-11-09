@@ -52,7 +52,7 @@ function skipToContent(): void {
         to="/"
         class="app-name"
       >
-        {{ t('app.name') }}
+        <AppLogo />
       </NuxtLink>
     </div>
 
@@ -151,11 +151,20 @@ function skipToContent(): void {
   border-inline-end: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
 }
 
+/* Logo in the colour of the brand: the colour of the SVG in light mode, a lighter shade in dark mode. */
 .app-name {
-  font-size: var(--wa-font-size-l);
-  font-weight: var(--wa-font-weight-bold);
-  color: var(--wa-color-text-normal);
+  display: inline-block;
+  color: #612692;
   text-decoration: none;
+}
+
+:root.wa-dark .app-name {
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.app-name:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
 }
 
 .app-navigation {
