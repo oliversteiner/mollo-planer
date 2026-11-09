@@ -10,12 +10,22 @@ describe('Web Awesome', () => {
   it('follows the colour mode with wa-dark / wa-light on <html>', async () => {
     const root = document.documentElement
 
-    const colorMode = useColorMode()
-    colorMode.preference = 'dark'
+    const { setPreference, systemDark } = useColorScheme()
+    setPreference('dark')
     await nextTick()
     expect(root.classList.contains('wa-dark')).toBe(true)
 
-    colorMode.preference = 'light'
+    setPreference('light')
+    await nextTick()
+    expect(root.classList.contains('wa-dark')).toBe(false)
+
+    // "System" follows the device.
+    setPreference('system')
+    systemDark.value = true
+    await nextTick()
+    expect(root.classList.contains('wa-dark')).toBe(true)
+
+    systemDark.value = false
     await nextTick()
     expect(root.classList.contains('wa-dark')).toBe(false)
     expect(root.classList.contains('wa-light')).toBe(true)

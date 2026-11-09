@@ -19,6 +19,9 @@ export default defineConfig({
         test: {
           name: 'nuxt',
           include: ['tests/nuxt/**/*.test.ts'],
+          // The first mount of a file starts Nuxt and the Web Awesome
+          // components; on a busy machine that takes longer than 5 s.
+          testTimeout: 15000,
           environment: 'nuxt',
           environmentOptions: {
             nuxt: { domEnvironment: 'happy-dom' }

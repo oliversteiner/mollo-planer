@@ -1,7 +1,7 @@
 /**
  * Web Awesome Pro: registers the components (Web Components, Shadow DOM),
  * the icon libraries, the German texts of the components and keeps the dark
- * mode class in sync.
+ * mode class on <html> in sync with the chosen appearance.
  * Only components that the app uses are imported; add new ones here.
  */
 import { registerTranslation } from '@web.awesome.me/webawesome-pro/dist/webawesome.js'
@@ -51,18 +51,19 @@ export default defineNuxtPlugin({
     // The components read the language from <html lang> (set in app.vue).
     registerTranslation(de, en)
 
-    // Nuxt UI (colour mode module) sets "dark" on <html> while both
-    // libraries run side by side; Web Awesome needs "wa-dark" / "wa-light".
-    // The own colour mode switch replaces this when Nuxt UI is removed.
-    const colorMode = useColorMode()
-    watch(
-      () => colorMode.value,
-      (mode) => {
-        const root = document.documentElement
-        root.classList.toggle('wa-dark', mode === 'dark')
-        root.classList.toggle('wa-light', mode !== 'dark')
-      },
-      { immediate: true }
-    )
+    // Light or dark: wa-dark / wa-light on <html> (composables/useColorScheme.ts).
+    const { dark, systemDark } = useColorScheme()
+    watch(dark, (isDark) => {
+      const root = document.documentElement
+      root.classList.toggle('wa-dark', isDark)
+      root.classList.toggle('wa-light', !isDark)
+    }, { immediate: true })
+
+    // "System" follows a change of the device setting while the app is open.
+    if (typeof window.matchMedia === 'function') {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+        systemDark.value = event.matches
+      })
+    }
   }
 })

@@ -71,17 +71,18 @@ describe('LocaleSwitch', () => {
 
 describe('ColorModeSwitch', () => {
   it('toggles between light and dark', async () => {
-    const colorMode = useColorMode()
-    colorMode.preference = 'light'
+    const { preference, setPreference } = useColorScheme()
+    setPreference('light')
     const button = await mountSuspended(ColorModeSwitch)
 
     await button.trigger('click')
 
-    expect(colorMode.preference).toBe('dark')
+    expect(preference.value).toBe('dark')
+    expect(localStorage.getItem('color-mode')).toBe('dark')
 
     await button.trigger('click')
 
-    expect(colorMode.preference).toBe('light')
+    expect(preference.value).toBe('light')
   })
 })
 

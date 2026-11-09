@@ -26,6 +26,19 @@ export default defineNuxtConfig({
     enabled: true
   },
 
+  app: {
+    head: {
+      script: [
+        {
+          // Dark or light before the app starts (same rule as
+          // composables/useColorScheme.ts), so a dark page does not flash white.
+          tagPosition: 'head',
+          innerHTML: `(function(){try{var p=localStorage.getItem('color-mode')||localStorage.getItem('nuxt-color-mode')||'system';var d=p==='dark'||(p!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.add(d?'wa-dark':'wa-light')}catch(e){}})()`
+        }
+      ]
+    }
+  },
+
   // Web Awesome first, so its cascade layers come before the Tailwind ones.
   css: ['~/assets/css/webawesome.css', '~/assets/css/main.css', '~/assets/css/rich-text.css'],
 
