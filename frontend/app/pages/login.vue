@@ -14,7 +14,7 @@ useHead({ title: () => t('auth.login.title') })
 
 const step = ref<'credentials' | 'challenge'>('credentials')
 const credentials = reactive({ email: '', password: '' })
-const code = ref<string[]>([])
+const code = ref('')
 const recoveryCode = ref('')
 const useRecoveryCode = ref(false)
 
@@ -70,7 +70,7 @@ async function submitChallenge(): Promise<void> {
   await run(async () => {
     await $backend('/two-factor-challenge', {
       method: 'POST',
-      body: useRecoveryCode.value ? { recovery_code: recoveryCode.value.trim() } : { code: code.value.join('') }
+      body: useRecoveryCode.value ? { recovery_code: recoveryCode.value.trim() } : { code: code.value }
     })
     await finish()
   })
@@ -78,143 +78,151 @@ async function submitChallenge(): Promise<void> {
 
 function backToCredentials(): void {
   step.value = 'credentials'
-  code.value = []
+  code.value = ''
   recoveryCode.value = ''
   errors.value = {}
 }
 </script>
 
 <template>
-  <UPageCard
-    v-if="step === 'credentials'"
-    :title="t('auth.login.title')"
-  >
-    <UForm
-      :state="credentials"
-      class="space-y-4"
-      @submit="submitCredentials"
+  <wa-card v-if="step === 'credentials'">
+    <h1
+      slot="header"
+      class="wa-heading-m"
     >
-      <UFormField
-        :label="t('auth.email')"
-        name="email"
-        :error="errors.email"
-        required
-      >
-        <UInput
-          v-model="credentials.email"
-          type="email"
-          autocomplete="username"
-          class="w-full"
-          autofocus
-          required
-        />
-      </UFormField>
+      {{ t('auth.login.title') }}
+    </h1>
 
-      <UFormField
-        :label="t('auth.password')"
+    <form
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submitCredentials"
+    >
+      <FormInput
+        v-model="credentials.email"
+        type="email"
+        name="email"
+        autocomplete="username"
+        :label="t('auth.email')"
+        :error="errors.email"
+        autofocus
+        required
+      />
+
+      <FormInput
+        v-model="credentials.password"
+        type="password"
         name="password"
+        autocomplete="current-password"
+        :label="t('auth.password')"
         :error="errors.password"
         required
-      >
-        <UInput
-          v-model="credentials.password"
-          type="password"
-          autocomplete="current-password"
-          class="w-full"
-          required
-        />
-      </UFormField>
-
-      <UButton
-        type="submit"
-        :label="t('auth.login.submit')"
-        :loading="pending"
-        block
       />
+
+      <wa-button
+        type="submit"
+        variant="brand"
+        :loading="pending"
+        style="width: 100%"
+      >
+        {{ t('auth.login.submit') }}
+      </wa-button>
 
       <template v-if="passkeysSupported">
-        <USeparator :label="t('auth.login.or')" />
-        <UButton
-          icon="i-fadl-fingerprint"
-          :label="t('auth.login.passkey')"
-          color="neutral"
-          variant="outline"
+        <div
+          class="wa-cluster wa-gap-s"
+          role="separator"
+        >
+          <wa-divider style="flex: 1"></wa-divider>
+          <span class="wa-caption-s wa-color-text-quiet">{{ t('auth.login.or') }}</span>
+          <wa-divider style="flex: 1"></wa-divider>
+        </div>
+        <wa-button
+          appearance="outlined"
+          variant="neutral"
           :loading="passkeyPending"
-          block
+          style="width: 100%"
           @click="submitPasskey"
-        />
+        >
+          <wa-icon
+            slot="start"
+            name="fingerprint"
+          ></wa-icon>
+          {{ t('auth.login.passkey') }}
+        </wa-button>
       </template>
 
-      <div class="text-center text-sm">
-        <ULink
+      <p class="wa-text-center wa-body-s">
+        <NuxtLink
           to="/forgot-password"
-          class="text-primary"
+          class="wa-link"
         >
           {{ t('auth.login.forgot') }}
-        </ULink>
-      </div>
-    </UForm>
-  </UPageCard>
+        </NuxtLink>
+      </p>
+    </form>
+  </wa-card>
 
-  <UPageCard
-    v-else
-    :title="t('auth.challenge.title')"
-    :description="useRecoveryCode ? t('auth.challenge.recoveryHint') : t('auth.challenge.codeHint')"
-  >
-    <UForm
-      :state="{ code, recoveryCode }"
-      class="space-y-4"
-      @submit="submitChallenge"
+  <wa-card v-else>
+    <h1
+      slot="header"
+      class="wa-heading-m"
     >
-      <UFormField
+      {{ t('auth.challenge.title') }}
+    </h1>
+
+    <form
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submitChallenge"
+    >
+      <p class="wa-body-s wa-color-text-quiet">
+        {{ useRecoveryCode ? t('auth.challenge.recoveryHint') : t('auth.challenge.codeHint') }}
+      </p>
+
+      <FormOtp
         v-if="!useRecoveryCode"
-        :label="t('auth.challenge.code')"
+        v-model="code"
         name="code"
+        :label="t('auth.challenge.code')"
         :error="errors.code"
-      >
-        <UPinInput
-          v-model="code"
-          :length="6"
-          otp
-          autofocus
-          @complete="submitChallenge"
-        />
-      </UFormField>
-
-      <UFormField
-        v-else
-        :label="t('auth.challenge.recoveryCode')"
-        name="recovery_code"
-        :error="errors.recovery_code"
-      >
-        <UInput
-          v-model="recoveryCode"
-          autocomplete="one-time-code"
-          class="w-full"
-          autofocus
-        />
-      </UFormField>
-
-      <UButton
-        type="submit"
-        :label="t('auth.challenge.submit')"
-        :loading="pending"
-        block
+        autofocus
+        autosubmit
       />
 
-      <div class="flex justify-between gap-2 text-sm">
-        <UButton
-          variant="link"
-          :label="useRecoveryCode ? t('auth.challenge.useCode') : t('auth.challenge.useRecovery')"
+      <FormInput
+        v-else
+        v-model="recoveryCode"
+        name="recovery_code"
+        autocomplete="one-time-code"
+        :label="t('auth.challenge.recoveryCode')"
+        :error="errors.recovery_code"
+        autofocus
+      />
+
+      <wa-button
+        type="submit"
+        variant="brand"
+        :loading="pending"
+        style="width: 100%"
+      >
+        {{ t('auth.challenge.submit') }}
+      </wa-button>
+
+      <div class="wa-split wa-gap-s">
+        <wa-button
+          appearance="plain"
+          variant="brand"
           @click="useRecoveryCode = !useRecoveryCode; errors = {}"
-        />
-        <UButton
-          variant="link"
-          color="neutral"
-          :label="t('auth.challenge.back')"
+        >
+          {{ useRecoveryCode ? t('auth.challenge.useCode') : t('auth.challenge.useRecovery') }}
+        </wa-button>
+        <wa-button
+          appearance="plain"
+          variant="neutral"
           @click="backToCredentials"
-        />
+        >
+          {{ t('auth.challenge.back') }}
+        </wa-button>
       </div>
-    </UForm>
-  </UPageCard>
+    </form>
+  </wa-card>
 </template>

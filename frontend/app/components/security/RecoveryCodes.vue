@@ -21,14 +21,12 @@ function download(): void {
 </script>
 
 <template>
-  <div class="space-y-3">
-    <UAlert
-      color="warning"
-      variant="subtle"
-      icon="i-fadl-triangle-exclamation"
+  <div class="wa-stack wa-gap-s">
+    <AppCallout
+      variant="warning"
       :title="t('security.recovery.keepSafe')"
     />
-    <ul class="grid grid-cols-2 gap-1 rounded-md bg-elevated p-3 font-mono text-sm">
+    <ul class="recovery-codes wa-list-plain">
       <li
         v-for="code in codes"
         :key="code"
@@ -36,23 +34,45 @@ function download(): void {
         {{ code }}
       </li>
     </ul>
-    <div class="flex gap-2">
-      <UButton
-        icon="i-fadl-copy"
-        :label="t('security.recovery.copy')"
-        color="neutral"
-        variant="outline"
-        size="sm"
+    <div class="wa-cluster wa-gap-s">
+      <wa-button
+        appearance="outlined"
+        variant="neutral"
+        size="small"
         @click="copy"
-      />
-      <UButton
-        icon="i-fadl-download"
-        :label="t('security.recovery.download')"
-        color="neutral"
-        variant="outline"
-        size="sm"
+      >
+        <wa-icon
+          slot="start"
+          name="copy"
+        ></wa-icon>
+        {{ t('security.recovery.copy') }}
+      </wa-button>
+      <wa-button
+        appearance="outlined"
+        variant="neutral"
+        size="small"
         @click="download"
-      />
+      >
+        <wa-icon
+          slot="start"
+          name="download"
+        ></wa-icon>
+        {{ t('security.recovery.download') }}
+      </wa-button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.recovery-codes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--wa-space-3xs);
+  margin: 0;
+  padding: var(--wa-space-s);
+  border-radius: var(--wa-border-radius-m);
+  background-color: var(--wa-color-surface-lowered);
+  font-family: var(--wa-font-family-code);
+  font-size: var(--wa-font-size-s);
+}
+</style>

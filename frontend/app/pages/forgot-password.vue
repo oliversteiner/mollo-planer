@@ -16,54 +16,59 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UPageCard
-    :title="t('auth.forgot.title')"
-    :description="t('auth.forgot.description')"
-  >
-    <UAlert
-      v-if="sent"
-      color="success"
-      variant="subtle"
-      :title="t('auth.forgot.sent')"
-    />
-
-    <UForm
-      v-else
-      :state="state"
-      class="space-y-4"
-      @submit="submit"
+  <wa-card>
+    <h1
+      slot="header"
+      class="wa-heading-m"
     >
-      <UFormField
-        :label="t('auth.email')"
-        name="email"
-        :error="errors.email"
-        required
+      {{ t('auth.forgot.title') }}
+    </h1>
+
+    <div class="wa-stack wa-gap-m">
+      <p class="wa-body-s wa-color-text-quiet">
+        {{ t('auth.forgot.description') }}
+      </p>
+
+      <AppCallout
+        v-if="sent"
+        variant="success"
+        :title="t('auth.forgot.sent')"
+      />
+
+      <form
+        v-else
+        class="wa-stack wa-gap-m"
+        @submit.prevent="submit"
       >
-        <UInput
+        <FormInput
           v-model="state.email"
           type="email"
+          name="email"
           autocomplete="username"
-          class="w-full"
+          :label="t('auth.email')"
+          :error="errors.email"
           autofocus
           required
         />
-      </UFormField>
 
-      <UButton
-        type="submit"
-        :label="t('auth.forgot.submit')"
-        :loading="pending"
-        block
-      />
-    </UForm>
+        <wa-button
+          type="submit"
+          variant="brand"
+          :loading="pending"
+          style="width: 100%"
+        >
+          {{ t('auth.forgot.submit') }}
+        </wa-button>
+      </form>
 
-    <div class="mt-4 text-center text-sm">
-      <ULink
-        to="/login"
-        class="text-primary"
-      >
-        {{ t('auth.backToLogin') }}
-      </ULink>
+      <p class="wa-text-center wa-body-s">
+        <NuxtLink
+          to="/login"
+          class="wa-link"
+        >
+          {{ t('auth.backToLogin') }}
+        </NuxtLink>
+      </p>
     </div>
-  </UPageCard>
+  </wa-card>
 </template>

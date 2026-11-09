@@ -24,6 +24,7 @@ import '@web.awesome.me/webawesome-pro/dist/components/dropdown-item/dropdown-it
 import '@web.awesome.me/webawesome-pro/dist/components/icon/icon.js'
 import '@web.awesome.me/webawesome-pro/dist/components/input/input.js'
 import '@web.awesome.me/webawesome-pro/dist/components/option/option.js'
+import '@web.awesome.me/webawesome-pro/dist/components/otp-input/otp-input.js'
 import '@web.awesome.me/webawesome-pro/dist/components/page/page.js'
 import '@web.awesome.me/webawesome-pro/dist/components/popover/popover.js'
 import '@web.awesome.me/webawesome-pro/dist/components/progress-bar/progress-bar.js'

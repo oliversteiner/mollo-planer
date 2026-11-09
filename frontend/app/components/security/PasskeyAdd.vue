@@ -35,34 +35,53 @@ async function add(): Promise<void> {
 </script>
 
 <template>
-  <UAlert
+  <AppCallout
     v-if="!supported"
-    color="warning"
-    variant="subtle"
+    variant="warning"
     :title="t('security.passkeys.unsupported')"
   />
   <form
     v-else
-    class="flex flex-wrap items-end gap-2"
+    class="passkey-form"
     @submit.prevent="add"
   >
-    <UFormField
+    <FormInput
+      v-model="name"
+      class="passkey-name"
       :label="t('security.passkeys.name')"
       :hint="t('security.passkeys.nameHint')"
-      class="min-w-48 flex-1"
-    >
-      <UInput
-        v-model="name"
-        :placeholder="t('security.passkeys.defaultName')"
-        maxlength="255"
-        class="w-full"
-      />
-    </UFormField>
-    <UButton
-      type="submit"
-      icon="i-fadl-fingerprint"
-      :label="t('security.passkeys.add')"
-      :loading="pending"
+      :placeholder="t('security.passkeys.defaultName')"
+      maxlength="255"
     />
+    <wa-button
+      type="submit"
+      variant="brand"
+      :loading="pending"
+    >
+      <wa-icon
+        slot="start"
+        name="fingerprint"
+      ></wa-icon>
+      {{ t('security.passkeys.add') }}
+    </wa-button>
   </form>
 </template>
+
+<style scoped>
+.passkey-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--wa-space-s);
+}
+
+.passkey-name {
+  flex: 1;
+  min-inline-size: 12rem;
+}
+
+/* The button sits next to the field, level with its input, not with its label. */
+.passkey-form > wa-button {
+  margin-block-start: 1.6em;
+}
+</style>

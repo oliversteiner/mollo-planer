@@ -26,56 +26,77 @@ async function done(): Promise<void> {
 </script>
 
 <template>
-  <UPageCard
-    :title="t('auth.setup.title')"
-    :description="t('auth.setup.description')"
-  >
-    <div
-      v-if="method === null"
-      class="grid gap-2"
+  <wa-card>
+    <h1
+      slot="header"
+      class="wa-heading-m"
     >
-      <UButton
-        icon="i-fadl-fingerprint"
-        :label="t('auth.setup.passkey')"
-        size="lg"
-        block
-        @click="method = 'passkey'"
-      />
-      <UButton
-        icon="i-fadl-mobile-screen"
-        :label="t('auth.setup.app')"
-        color="neutral"
-        variant="outline"
-        size="lg"
-        block
-        @click="method = 'app'"
-      />
-    </div>
+      {{ t('auth.setup.title') }}
+    </h1>
 
-    <SecurityPasskeyAdd
-      v-else-if="method === 'passkey'"
-      @added="done"
-    />
-    <SecurityTwoFactorSetup
-      v-else
-      @done="done"
-    />
+    <div class="wa-stack wa-gap-m">
+      <p class="wa-body-s wa-color-text-quiet">
+        {{ t('auth.setup.description') }}
+      </p>
 
-    <div class="mt-6 flex justify-between gap-2 text-sm">
-      <UButton
-        v-if="method !== null"
-        :label="t('auth.challenge.back')"
-        variant="link"
-        color="neutral"
-        @click="method = null"
+      <div
+        v-if="method === null"
+        class="wa-stack wa-gap-s"
+      >
+        <wa-button
+          variant="brand"
+          size="large"
+          style="width: 100%"
+          @click="method = 'passkey'"
+        >
+          <wa-icon
+            slot="start"
+            name="fingerprint"
+          ></wa-icon>
+          {{ t('auth.setup.passkey') }}
+        </wa-button>
+        <wa-button
+          appearance="outlined"
+          variant="neutral"
+          size="large"
+          style="width: 100%"
+          @click="method = 'app'"
+        >
+          <wa-icon
+            slot="start"
+            name="mobile-screen"
+          ></wa-icon>
+          {{ t('auth.setup.app') }}
+        </wa-button>
+      </div>
+
+      <SecurityPasskeyAdd
+        v-else-if="method === 'passkey'"
+        @added="done"
       />
-      <UButton
-        :label="t('auth.logout')"
-        variant="link"
-        color="neutral"
-        class="ms-auto"
-        @click="logout"
+      <SecurityTwoFactorSetup
+        v-else
+        @done="done"
       />
+
+      <div class="wa-split wa-gap-s">
+        <wa-button
+          v-if="method !== null"
+          appearance="plain"
+          variant="neutral"
+          @click="method = null"
+        >
+          {{ t('auth.challenge.back') }}
+        </wa-button>
+        <wa-button
+          appearance="plain"
+          variant="neutral"
+          style="margin-inline-start: auto"
+          @click="logout"
+        >
+          {{ t('auth.logout') }}
+        </wa-button>
+      </div>
     </div>
-  </UPageCard>
+  </wa-card>
 </template>

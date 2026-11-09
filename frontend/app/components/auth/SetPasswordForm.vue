@@ -35,90 +35,85 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UPageCard
-    :title="title"
-    :description="description"
-  >
-    <UAlert
-      v-if="!token || !email"
-      color="error"
-      variant="subtle"
-      :title="t('auth.setPassword.invalidLink')"
-    />
-
-    <UForm
-      v-else
-      :state="state"
-      class="space-y-4"
-      @submit="submit"
+  <wa-card>
+    <h1
+      slot="header"
+      class="wa-heading-m"
     >
-      <UAlert
-        v-if="errors.email"
-        color="error"
-        variant="subtle"
-        :title="errors.email"
+      {{ title }}
+    </h1>
+
+    <div class="wa-stack wa-gap-m">
+      <p class="wa-body-s wa-color-text-quiet">
+        {{ description }}
+      </p>
+
+      <AppCallout
+        v-if="!token || !email"
+        variant="danger"
+        :title="t('auth.setPassword.invalidLink')"
       />
 
-      <UFormField
-        :label="t('auth.email')"
-        name="email"
+      <form
+        v-else
+        class="wa-stack wa-gap-m"
+        @submit.prevent="submit"
       >
-        <UInput
+        <AppCallout
+          v-if="errors.email"
+          variant="danger"
+          :title="errors.email"
+        />
+
+        <FormInput
           :model-value="email"
           type="email"
+          name="email"
           autocomplete="username"
-          class="w-full"
+          :label="t('auth.email')"
           disabled
         />
-      </UFormField>
 
-      <UFormField
-        :label="t('auth.setPassword.password')"
-        :hint="t('auth.setPassword.rules')"
-        name="password"
-        :error="errors.password"
-        required
-      >
-        <UInput
+        <FormInput
           v-model="state.password"
           type="password"
+          name="password"
           autocomplete="new-password"
-          class="w-full"
+          :label="t('auth.setPassword.password')"
+          :hint="t('auth.setPassword.rules')"
+          :error="errors.password"
           autofocus
           required
         />
-      </UFormField>
 
-      <UFormField
-        :label="t('auth.setPassword.confirmation')"
-        name="password_confirmation"
-        :error="errors.password_confirmation"
-        required
-      >
-        <UInput
+        <FormInput
           v-model="state.password_confirmation"
           type="password"
+          name="password_confirmation"
           autocomplete="new-password"
-          class="w-full"
+          :label="t('auth.setPassword.confirmation')"
+          :error="errors.password_confirmation"
           required
         />
-      </UFormField>
 
-      <UButton
-        type="submit"
-        :label="submitLabel"
-        :loading="pending"
-        block
-      />
-    </UForm>
+        <wa-button
+          type="submit"
+          variant="brand"
+          :loading="pending"
+          style="width: 100%"
+        >
+          {{ submitLabel }}
+        </wa-button>
+      </form>
 
-    <div class="mt-4 text-center text-sm">
-      <ULink
-        to="/login"
-        class="text-primary"
-      >
-        {{ t('auth.backToLogin') }}
-      </ULink>
+      <p class="wa-text-center wa-body-s">
+        <NuxtLink
+          to="/login"
+          class="wa-link"
+        >
+          {{ t('auth.backToLogin') }}
+        </NuxtLink>
+      </p>
     </div>
-  </UPageCard>
+  </wa-card>
 </template>

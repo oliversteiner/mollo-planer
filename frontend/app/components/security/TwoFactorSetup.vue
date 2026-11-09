@@ -15,7 +15,7 @@ const step = ref<'start' | 'scan' | 'codes'>('start')
 const pending = ref(false)
 const qrCode = ref('')
 const secretKey = ref('')
-const code = ref<string[]>([])
+const code = ref('')
 const error = ref('')
 const codes = ref<string[]>([])
 
@@ -38,7 +38,7 @@ async function confirm(): Promise<void> {
   error.value = ''
   pending.value = true
   try {
-    await confirmTwoFactor(code.value.join(''))
+    await confirmTwoFactor(code.value)
     codes.value = await recoveryCodes() ?? []
     step.value = 'codes'
   } catch (failure) {
@@ -46,7 +46,7 @@ async function confirm(): Promise<void> {
       const apiError = classifyRestError(failure.status ?? 0, failure.data)
       error.value = apiError.fields.code?.[0] ?? ''
     }
-    code.value = []
+    code.value = ''
   } finally {
     pending.value = false
   }
@@ -54,65 +54,92 @@ async function confirm(): Promise<void> {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="wa-stack wa-gap-m">
     <template v-if="step === 'start'">
-      <p class="text-sm text-muted">
+      <p class="wa-body-s wa-color-text-quiet">
         {{ t('security.twoFactor.intro') }}
       </p>
-      <UButton
-        icon="i-fadl-mobile-screen"
-        :label="t('security.twoFactor.start')"
-        :loading="pending"
-        @click="start"
-      />
+      <div>
+        <wa-button
+          variant="brand"
+          :loading="pending"
+          @click="start"
+        >
+          <wa-icon
+            slot="start"
+            name="mobile-screen"
+          ></wa-icon>
+          {{ t('security.twoFactor.start') }}
+        </wa-button>
+      </div>
     </template>
 
     <form
       v-else-if="step === 'scan'"
-      class="space-y-4"
+      class="wa-stack wa-gap-m"
       @submit.prevent="confirm"
     >
-      <p class="text-sm">
+      <p class="wa-body-s">
         {{ t('security.twoFactor.scan') }}
       </p>
       <img
         :src="qrCode"
         :alt="t('security.twoFactor.qrAlt')"
-        class="size-48 rounded-md bg-white p-2"
+        class="two-factor-qr"
       >
-      <p class="text-sm text-muted">
+      <p class="wa-body-s wa-color-text-quiet">
         {{ t('security.twoFactor.manual') }}
-        <code class="break-all font-mono text-highlighted">{{ secretKey }}</code>
+        <code class="two-factor-key">{{ secretKey }}</code>
       </p>
-      <UFormField
+      <FormOtp
+        v-model="code"
+        name="code"
         :label="t('auth.challenge.code')"
         :error="error || undefined"
-      >
-        <UPinInput
-          v-model="code"
-          :length="6"
-          otp
-          @complete="confirm"
-        />
-      </UFormField>
-      <UButton
-        type="submit"
-        :label="t('security.twoFactor.confirm')"
-        :loading="pending"
+        autosubmit
       />
+      <div>
+        <wa-button
+          type="submit"
+          variant="brand"
+          :loading="pending"
+        >
+          {{ t('security.twoFactor.confirm') }}
+        </wa-button>
+      </div>
     </form>
 
     <template v-else>
-      <UAlert
-        color="success"
-        variant="subtle"
+      <AppCallout
+        variant="success"
         :title="t('security.twoFactor.enabled')"
       />
       <SecurityRecoveryCodes :codes="codes" />
-      <UButton
-        :label="t('security.done')"
-        @click="emit('done')"
-      />
+      <div>
+        <wa-button
+          variant="brand"
+          @click="emit('done')"
+        >
+          {{ t('security.done') }}
+        </wa-button>
+      </div>
     </template>
   </div>
 </template>
+
+<style scoped>
+/* The QR code stays dark on white, also in the dark mode, so it can be scanned. */
+.two-factor-qr {
+  inline-size: 12rem;
+  block-size: 12rem;
+  padding: var(--wa-space-xs);
+  border-radius: var(--wa-border-radius-m);
+  background-color: white;
+}
+
+.two-factor-key {
+  overflow-wrap: anywhere;
+  font-family: var(--wa-font-family-code);
+  color: var(--wa-color-text-normal);
+}
+</style>
