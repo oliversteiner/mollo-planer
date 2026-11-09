@@ -16,6 +16,7 @@ Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprach
 - Das Frontend fragt `Project.viewerAbilities` ab und zeigt danach Knöpfe an oder aus.
 
 ## Icons (Font Awesome Pro, fester Stil „Duotone Light“)
+- **Labels** (seit 2026-11-10, Plan `labels-plan.md`): app-weite Label-Sets (mitgelieferte unveränderlich und übersetzt, eigene mit Ersteller), jedes Projekt wählt ein Set (`setProjectLabelSet`, Recht „Projekt ändern“), Tasks bekommen mehrere Labels aus diesem Set (`setTaskLabels`, Recht „Task ändern“; nach einem Set-Wechsel bleiben alte Labels erlaubt). Farbe als Farbton `LabelColor` der Theme-Palette.
 - Projekt, Milestone, ToDo und Task haben `icon: String` (optional; beim Projekt seit 2026-11-09, für die Seitenleiste). Gespeichert wird **nur der Name**, zum Beispiel `rocket` oder `rocket-launch`. **Der Stil ist für die ganze App fest „Duotone Light“** und steht im Frontend, nicht in der Datenbank. Vorteil: einheitlicher Look, einfacherer Picker, und ein späterer Stilwechsel braucht keine Datenmigration.
 - Der Server prüft nur das Format des Namens (Kleinbuchstaben, Ziffern, Bindestriche; Regel `App\Rules\FontAwesomeIconRule`), nicht ob das Icon existiert. Der Katalog liegt im Frontend. `null` oder ein unbekannter Name zeigt dort das Standard-Icon je Ebene.
 - Wer das Objekt ändern darf, darf auch sein Icon ändern.
@@ -63,6 +64,7 @@ Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprach
 | Task löschen | ja | ja | nein |
 | Kommentieren | ja | ja | ja |
 | Fremde Kommentare löschen | ja | ja | nein |
+| Label-Sets anlegen / duplizieren (gilt in irgendeinem Projekt; eigene Sets ändert der Ersteller oder ein Admin) | ja | ja | nein |
 
 Admins dürfen immer alles (ausser fremde Kommentare ändern). Projekte anlegen und Benutzer verwalten dürfen nur Admins.
 

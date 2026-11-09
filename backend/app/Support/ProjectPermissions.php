@@ -46,6 +46,7 @@ final class ProjectPermissions
         ProjectAbility::TASK_DELETE->value => [self::OWNER, self::MANAGER],
         ProjectAbility::COMMENT_CREATE->value => [self::OWNER, self::MANAGER, self::MEMBER],
         ProjectAbility::COMMENT_MODERATE->value => [self::OWNER, self::MANAGER],
+        ProjectAbility::LABEL_SETS_MANAGE->value => [self::OWNER, self::MANAGER],
     ];
 
     /**

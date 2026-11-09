@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
@@ -55,6 +56,16 @@ class Task extends Model implements BelongsToProject
     public function todo(): BelongsTo
     {
         return $this->belongsTo(Todo::class);
+    }
+
+    /**
+     * Labels of the task, in the order of their set.
+     *
+     * @return BelongsToMany<Label, $this>
+     */
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(Label::class)->orderBy('labels.position')->orderBy('labels.id');
     }
 
     /**

@@ -51,6 +51,8 @@ input CreateTaskInput {
  description: RichText
  dueDate: Date
  icon: String
+ "Labels aus dem Set des Projekts"
+ labelIds: [ID!]
  title: String!
  todoId: ID!
 }
@@ -88,6 +90,57 @@ type KanbanColumn {
  status: TaskStatus!
  tasks: [Task!]!
 }
+type Label {
+ "Gruppe im Set, zum Beispiel Phase oder Typ"
+ category: String
+ color: LabelColor!
+ id: ID!
+ labelSet: LabelSet!
+ "Labels mitgelieferter Sets: übersetzt nach Accept-Language"
+ name: String!
+ "Reihenfolge im Set, beginnt bei 0"
+ position: Int!
+}
+"Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"
+enum LabelColor {
+ BLUE
+ CYAN
+ GRAY
+ GREEN
+ INDIGO
+ ORANGE
+ PINK
+ PURPLE
+ RED
+ YELLOW
+}
+input LabelInput {
+ category: String
+ color: LabelColor!
+ "Bestehendes Label dieses Sets; ohne id wird es neu angelegt"
+ id: ID
+ name: String!
+}
+"Eine Gruppe von Labels, app-weit. Jedes Projekt wählt ein Set."
+type LabelSet {
+ description: String
+ id: ID!
+ "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
+ isBuiltin: Boolean!
+ labels: [Label!]!
+ "Mitgelieferte Sets: übersetzt nach Accept-Language"
+ name: String!
+ "Wie viele Projekte das Set gewählt haben. Ein Set in Gebrauch lässt sich nicht löschen."
+ usedByProjects: Int!
+ viewerCanDelete: Boolean!
+ viewerCanUpdate: Boolean!
+}
+input LabelSetInput {
+ description: String
+ "Höchstens 30 Labels, Namen innerhalb des Sets eindeutig"
+ labels: [LabelInput!]!
+ name: String!
+}
 "Sprache eines Projekts. Bestimmt die Sprache der Mails."
 enum Locale {
  DE
@@ -114,6 +167,8 @@ type Mutation {
  assignTask(assigneeId: ID, id: ID!): Task!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
+ "Legt ein eigenes Label-Set an."
+ createLabelSet(input: LabelSetInput!): LabelSet!
  createMilestone(input: CreateMilestoneInput!): Milestone!
  createProject(input: CreateProjectInput!): Project!
  "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
@@ -123,6 +178,8 @@ type Mutation {
  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
  deleteApiToken(id: ID!): ApiToken
  deleteComment(id: ID!): Comment!
+ "Löscht ein eigenes Set, das kein Projekt mehr verwendet."
+ deleteLabelSet(id: ID!): LabelSet!
  deleteMilestone(id: ID!): Milestone!
  deleteProject(id: ID!): Project!
  deleteTask(id: ID!): Task!
@@ -136,6 +193,8 @@ type Mutation {
  currentPlan: ProjectPlanInput
  messages: [PlanChatMessageInput!]!
  ): ProjectPlanDraft!
+ "Kopiert ein Set (auch ein mitgeliefertes) als eigenes Set, um es anzupassen."
+ duplicateLabelSet(id: ID!): LabelSet!
  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
  importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
  "Verschiebt einen Task im Kanban"
@@ -145,11 +204,17 @@ type Mutation {
  removeProjectMember(projectId: ID!, userId: ID!): Project!
  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
  resetUserTwoFactor(id: ID!): User!
+ "Wählt das Label-Set eines Projekts (null: keins). Tasks behalten ihre bisherigen Labels."
+ setProjectLabelSet(labelSetId: ID, projectId: ID!): Project!
  "Fügt eine Person hinzu oder ändert ihre Rolle"
  setProjectMember(projectId: ID!, role: ProjectRole!, userId: ID!): Project!
+ "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
+ setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ "Ändert Name, Beschreibung und Labels in einem Zug. Labels mit id bleiben (und an ihren Tasks), ohne id kommen neu dazu, fehlende werden gelöscht (auch an den Tasks)."
+ updateLabelSet(id: ID!, input: LabelSetInput!): LabelSet!
  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
  updateMyAvatar(avatar: Upload!): User!
@@ -221,6 +286,8 @@ type Project {
  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
  icon: String
  id: ID!
+ "Label-Set der Tasks dieses Projekts. null = keins gewählt."
+ labelSet: LabelSet
  "Sprache der Benachrichtigungsmails dieses Projekts"
  locale: Locale!
  members: [ProjectMember!]!
@@ -237,6 +304,8 @@ type Project {
 enum ProjectAbility {
  COMMENT_CREATE
  COMMENT_MODERATE
+ "Eigene Label-Sets anlegen, duplizieren und ändern (gilt, wenn man es in irgendeinem Projekt darf)"
+ LABEL_SETS_MANAGE
  MEMBERS_MANAGE
  MILESTONE_CREATE
  MILESTONE_DELETE
@@ -334,6 +403,8 @@ type Query {
  dashboard: Dashboard!
  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
  kanban(projectId: ID!): [KanbanColumn!]!
+ "Alle Label-Sets (mitgelieferte zuerst, dann eigene nach Name)"
+ labelSets: [LabelSet!]!
  "Der angemeldete Benutzer"
  me: User!
  milestone(id: ID!): Milestone
@@ -379,6 +450,8 @@ type Task {
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
  icon: String
  id: ID!
+ "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
+ labels: [Label!]!
  "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
  position: Int!
  status: TaskStatus!

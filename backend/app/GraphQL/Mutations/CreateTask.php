@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\Todo;
 use App\Services\KanbanOrdering;
 use App\Services\ProjectMembership;
+use App\Services\TaskLabels;
 use App\Services\TaskNotifier;
 use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -24,10 +25,11 @@ class CreateTask
         private readonly ProjectMembership $membership,
         private readonly KanbanOrdering $ordering,
         private readonly TaskNotifier $notifier,
+        private readonly TaskLabels $labels,
     ) {}
 
     /**
-     * @param  array<string, mixed>  $args  todo_id, title, description, icon, due_date, assigned_user_id
+     * @param  array<string, mixed>  $args  todo_id, title, description, icon, due_date, assigned_user_id, label_ids
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): Task
     {
@@ -42,6 +44,8 @@ class CreateTask
                 $this->membership->ensureAssignable($project, $assigneeId, 'input.assigneeId');
             }
 
+            $labelIds = $this->labels->validated($project, $args['label_ids'] ?? [], null, 'input.labelIds');
+
             $task = new Task([
                 'title' => $args['title'],
                 'description' => $args['description'] ?? null,
@@ -53,6 +57,7 @@ class CreateTask
             $task->status = TaskStatus::OPEN;
             $task->position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
             $task->save();
+            $task->labels()->sync($labelIds);
 
             if ($assigneeId !== null) {
                 $this->notifier->assigned($task, $viewer);

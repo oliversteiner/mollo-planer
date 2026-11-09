@@ -33,6 +33,9 @@
 #             Kommentieren          ja     ja       ja
 #             Fremde Kommentare
 #             löschen               ja     ja       nein
+#             Label-Sets verwalten  ja     ja       nein   (in irgendeinem Projekt;
+#                                                         eigene Sets ändert der
+#                                                         Ersteller oder ein Admin)
 #
 #             Eigene Kommentare ändern und löschen darf jede Person,
 #             solange sie das Projekt sehen darf.
@@ -131,6 +134,22 @@ enum ProjectAbility {
   TASK_DELETE @enum(value: "task.delete")
   COMMENT_CREATE @enum(value: "comment.create")
   COMMENT_MODERATE @enum(value: "comment.moderate")
+  "Eigene Label-Sets anlegen, duplizieren und ändern (gilt, wenn man es in irgendeinem Projekt darf)"
+  LABEL_SETS_MANAGE @enum(value: "label_sets.manage")
+}
+
+"Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"
+enum LabelColor {
+  GRAY @enum(value: "gray")
+  RED @enum(value: "red")
+  ORANGE @enum(value: "orange")
+  YELLOW @enum(value: "yellow")
+  GREEN @enum(value: "green")
+  CYAN @enum(value: "cyan")
+  BLUE @enum(value: "blue")
+  INDIGO @enum(value: "indigo")
+  PURPLE @enum(value: "purple")
+  PINK @enum(value: "pink")
 }
 
 "Spalten im Kanban-Board"
@@ -203,6 +222,8 @@ type Project {
   icon: String
   "Sprache der Benachrichtigungsmails dieses Projekts"
   locale: Locale!
+  "Label-Set der Tasks dieses Projekts. null = keins gewählt."
+  labelSet: LabelSet @belongsTo
   members: [ProjectMember!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
   milestones: [Milestone!]! @hasMany
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
@@ -268,7 +289,36 @@ type Task {
   "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
   comments: [Comment!]! @hasMany
   commentCount: Int! @count(relation: "comments")
+  "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
+  labels: [Label!]! @belongsToMany
   createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Eine Gruppe von Labels, app-weit. Jedes Projekt wählt ein Set."
+type LabelSet {
+  id: ID!
+  "Mitgelieferte Sets: übersetzt nach Accept-Language"
+  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setName")
+  description: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setDescription")
+  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
+  isBuiltin: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@isBuiltin")
+  labels: [Label!]! @hasMany
+  "Wie viele Projekte das Set gewählt haben. Ein Set in Gebrauch lässt sich nicht löschen."
+  usedByProjects: Int! @count(relation: "projects")
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@update")
+  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@delete")
+}
+
+type Label {
+  id: ID!
+  "Labels mitgelieferter Sets: übersetzt nach Accept-Language"
+  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelName")
+  "Gruppe im Set, zum Beispiel Phase oder Typ"
+  category: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelCategory")
+  color: LabelColor!
+  "Reihenfolge im Set, beginnt bei 0"
+  position: Int!
+  labelSet: LabelSet! @belongsTo
 }
 
 "Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
@@ -399,6 +449,8 @@ type Query @guard {
 
   "Startseite"
   dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")
+  "Alle Label-Sets (mitgelieferte zuerst, dann eigene nach Name)"
+  labelSets: [LabelSet!]! @field(resolver: "App\\GraphQL\\Queries\\LabelSets")
   "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
   appSettings: AppSettings! @field(resolver: "App\\GraphQL\\Queries\\AppSettings")
 }
@@ -448,6 +500,34 @@ type Mutation @guard {
   updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
     @can(ability: "updateAppSettings", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateAppSettings")
+
+  # Label-Sets: app-weit. Verwalten mit LABEL_SETS_MANAGE in irgendeinem
+  # Projekt; eigene Sets ändert und löscht der Ersteller oder ein Admin,
+  # mitgelieferte niemand.
+  "Legt ein eigenes Label-Set an."
+  createLabelSet(input: LabelSetInput!): LabelSet!
+    @can(ability: "create", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@create")
+  "Kopiert ein Set (auch ein mitgeliefertes) als eigenes Set, um es anzupassen."
+  duplicateLabelSet(id: ID!): LabelSet!
+    @can(ability: "duplicate", find: "id", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\DuplicateLabelSet")
+  "Ändert Name, Beschreibung und Labels in einem Zug. Labels mit id bleiben (und an ihren Tasks), ohne id kommen neu dazu, fehlende werden gelöscht (auch an den Tasks)."
+  updateLabelSet(id: ID!, input: LabelSetInput!): LabelSet!
+    @can(ability: "update", find: "id", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@update")
+  "Löscht ein eigenes Set, das kein Projekt mehr verwendet."
+  deleteLabelSet(id: ID!): LabelSet!
+    @can(ability: "delete", find: "id", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteLabelSet")
+  "Wählt das Label-Set eines Projekts (null: keins). Tasks behalten ihre bisherigen Labels."
+  setProjectLabelSet(projectId: ID!, labelSetId: ID): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectLabelSet")
+  "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
+  setTaskLabels(taskId: ID!, labelIds: [ID!]!): Task!
+    @can(ability: "update", find: "taskId", model: "App\\Models\\Task")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetTaskLabels")
 
   # Projekte: Anlegen nur durch Admins, Löschen durch Admin oder Owner.
   createProject(input: CreateProjectInput! @spread): Project!
@@ -596,6 +676,21 @@ input UpdateTodoInput {
   dueDate: Date @rename(attribute: "due_date")
 }
 
+input LabelSetInput {
+  name: String! @rules(apply: ["min:2", "max:60"])
+  description: String @rules(apply: ["max:200"])
+  "Höchstens 30 Labels, Namen innerhalb des Sets eindeutig"
+  labels: [LabelInput!]! @rulesForArray(apply: ["max:30"])
+}
+
+input LabelInput {
+  "Bestehendes Label dieses Sets; ohne id wird es neu angelegt"
+  id: ID
+  name: String! @rules(apply: ["min:1", "max:40"])
+  category: String @rules(apply: ["max:40"])
+  color: LabelColor!
+}
+
 input CreateTaskInput {
   todoId: ID! @rename(attribute: "todo_id")
   title: String! @rules(apply: ["min:2", "max:160"])
@@ -603,6 +698,8 @@ input CreateTaskInput {
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   assigneeId: ID @rename(attribute: "assigned_user_id")
   dueDate: Date @rename(attribute: "due_date")
+  "Labels aus dem Set des Projekts"
+  labelIds: [ID!] @rename(attribute: "label_ids")
 }
 
 input UpdateTaskInput {

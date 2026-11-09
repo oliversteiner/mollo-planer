@@ -29,6 +29,8 @@ export type CreateTaskInput = {
   description?: Record<string, unknown> | null | undefined;
   dueDate?: string | null | undefined;
   icon?: string | null | undefined;
+  /** Labels aus dem Set des Projekts */
+  labelIds?: Array<string | number> | null | undefined;
   title: string;
   todoId: string | number;
 };
@@ -70,6 +72,8 @@ export type PlanChatRole =
 export type ProjectAbility =
   | 'COMMENT_CREATE'
   | 'COMMENT_MODERATE'
+  /** Eigene Label-Sets anlegen, duplizieren und ändern (gilt, wenn man es in irgendeinem Projekt darf) */
+  | 'LABEL_SETS_MANAGE'
   | 'MEMBERS_MANAGE'
   | 'MILESTONE_CREATE'
   | 'MILESTONE_DELETE'
