@@ -215,7 +215,7 @@ function person(email: string | null) {
               >
                 <button
                   type="button"
-                  class="preview-todo-toggle"
+                  class="preview-todo-toggle plain-button"
                   :aria-label="t('assistant.preview.toggleTodo', { title: todo.title })"
                   :aria-expanded="openTodos.has(`${item.index}-${todoIndex}`)"
                   @click="setOpen(`${item.index}-${todoIndex}`, !openTodos.has(`${item.index}-${todoIndex}`))"

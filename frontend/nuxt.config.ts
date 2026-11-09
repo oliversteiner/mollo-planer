@@ -39,7 +39,7 @@ export default defineNuxtConfig({
   },
 
   // Web Awesome (theme, native styles, utilities), then the own styles.
-  css: ['~/assets/css/webawesome.css', '~/assets/css/rich-text.css', '~/assets/css/animations.css'],
+  css: ['~/assets/css/webawesome.css', '~/assets/css/base.css', '~/assets/css/rich-text.css', '~/assets/css/animations.css'],
 
   // Web Awesome components are custom elements (wa-*), not Vue components.
   vue: {

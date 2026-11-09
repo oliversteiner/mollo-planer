@@ -93,6 +93,12 @@ describe('TaskCard', () => {
     return mountSuspended(TaskCard, { props: { task, menuItems: [], editable: true } })
   }
 
+  it('marks its status for the coloured left edge', async () => {
+    const card = await mountSuspended(TaskCard, { props: { task: { ...task, status: 'REVIEW' as const }, menuItems: [] } })
+
+    expect(card.find('article').attributes('data-status')).toBe('REVIEW')
+  })
+
   it('opens the details after a single click, once no second click follows', async () => {
     const card = await mountCard()
     await card.find('button').trigger('click', { detail: 1 })

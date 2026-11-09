@@ -1,0 +1,25 @@
+/*
+ * Own additions to the native styles of Web Awesome.
+ *
+ * .plain-button: a <button> that looks like text (titles on cards, rows
+ * that open and close). The native styles draw every <button> as a Web
+ * Awesome button (fixed height, centred, no wrapping, margins for button
+ * groups); this class takes that back. The components then set what they
+ * need (flex layout, padding, hover).
+ */
+.plain-button {
+  display: inline;
+  block-size: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: start;
+  white-space: normal;
+  justify-content: flex-start;
+  cursor: pointer;
+}

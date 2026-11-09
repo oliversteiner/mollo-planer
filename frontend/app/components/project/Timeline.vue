@@ -259,7 +259,7 @@ function toggleAll() {
                   >
                     <button
                       type="button"
-                      class="todo-toggle"
+                      class="todo-toggle plain-button"
                       :aria-label="t('project.timeline.toggleTodo', { title: todo.title })"
                       :aria-expanded="openTodos.has(todo.id)"
                       @click="setOpen(todo.id, !openTodos.has(todo.id))"
@@ -329,7 +329,7 @@ function toggleAll() {
                           <div class="task-text">
                             <button
                               type="button"
-                              class="task-title"
+                              class="task-title plain-button"
                               :data-done="task.status === 'DONE' ? '' : undefined"
                               :aria-label="t('project.timeline.openTask', { title: task.title })"
                               @click.stop="emit('openTask', task.id)"

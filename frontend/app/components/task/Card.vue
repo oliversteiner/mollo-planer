@@ -55,6 +55,7 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
   <article
     class="task-card"
     :data-id="task.id"
+    :data-status="task.status"
     :title="editable ? t('kanban.doubleClickToEdit') : undefined"
     @dblclick="onDoubleClick"
   >
@@ -66,7 +67,7 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
       />
       <button
         type="button"
-        class="task-card-title"
+        class="task-card-title plain-button"
         @click="onTitleClick"
       >
         {{ task.title }}
@@ -106,20 +107,37 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
 </template>
 
 <style scoped>
+/* The left edge shows the status: grey open, blue in progress, orange review, green done. */
 .task-card {
+  --status-color: var(--wa-color-gray-60);
+
   display: flex;
   flex-direction: column;
   gap: var(--wa-space-xs);
   padding: var(--wa-space-s);
   border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-inline-start: var(--wa-border-width-l) solid var(--status-color);
   border-radius: var(--wa-border-radius-m);
   background-color: var(--wa-color-surface-default);
   box-shadow: var(--wa-shadow-s);
   cursor: grab;
 }
 
+.task-card[data-status='IN_PROGRESS'] {
+  --status-color: var(--wa-color-blue-50);
+}
+
+.task-card[data-status='REVIEW'] {
+  --status-color: var(--wa-color-orange-60);
+}
+
+.task-card[data-status='DONE'] {
+  --status-color: var(--wa-color-green-60);
+}
+
 .task-card:hover {
   border-color: var(--wa-color-brand-border-loud);
+  border-inline-start-color: var(--status-color);
 }
 
 .task-card:active {
