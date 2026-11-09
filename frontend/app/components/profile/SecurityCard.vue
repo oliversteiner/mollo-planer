@@ -65,66 +65,84 @@ async function onTwoFactorDone(): Promise<void> {
 </script>
 
 <template>
-  <UCard class="lg:col-span-2">
-    <template #header>
-      <h2 class="font-semibold text-highlighted">
+  <wa-card>
+    <div slot="header">
+      <h2 class="wa-heading-xs">
         {{ t('security.title') }}
       </h2>
-      <p class="text-sm text-muted">
+      <p class="wa-body-s wa-color-text-quiet">
         {{ twoFactorEnabled ? t('security.required') : t('security.optional') }}
       </p>
-    </template>
+    </div>
 
-    <div class="space-y-8">
-      <section class="space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h3 class="font-medium text-highlighted">
+    <div class="wa-stack wa-gap-xl">
+      <section class="wa-stack wa-gap-s">
+        <div class="wa-split wa-gap-s">
+          <h3 class="wa-heading-xs">
             {{ t('security.twoFactor.title') }}
           </h3>
-          <UBadge
-            :color="me?.twoFactorConfirmed ? 'success' : 'neutral'"
-            variant="subtle"
+          <wa-badge
+            :variant="me?.twoFactorConfirmed ? 'success' : 'neutral'"
+            appearance="filled"
           >
             {{ me?.twoFactorConfirmed ? t('security.active') : t('security.inactive') }}
-          </UBadge>
+          </wa-badge>
         </div>
 
         <SecurityTwoFactorSetup
           v-if="settingUp"
           @done="onTwoFactorDone"
         />
-        <UButton
-          v-else-if="!me?.twoFactorConfirmed"
-          icon="i-fadl-mobile-screen"
-          :label="t('security.twoFactor.start')"
-          @click="settingUp = true"
-        />
+        <div v-else-if="!me?.twoFactorConfirmed">
+          <wa-button
+            variant="brand"
+            @click="settingUp = true"
+          >
+            <wa-icon
+              slot="start"
+              name="mobile-screen"
+            ></wa-icon>
+            {{ t('security.twoFactor.start') }}
+          </wa-button>
+        </div>
         <template v-else>
-          <div class="flex flex-wrap gap-2">
-            <UButton
-              icon="i-fadl-key"
-              :label="t('security.recovery.show')"
-              color="neutral"
-              variant="outline"
-              size="sm"
+          <div class="wa-cluster wa-gap-s">
+            <wa-button
+              appearance="outlined"
+              variant="neutral"
+              size="small"
               @click="showCodes(false)"
-            />
-            <UButton
-              icon="i-fadl-arrow-rotate-right"
-              :label="t('security.recovery.regenerate')"
-              color="neutral"
-              variant="outline"
-              size="sm"
+            >
+              <wa-icon
+                slot="start"
+                name="key"
+              ></wa-icon>
+              {{ t('security.recovery.show') }}
+            </wa-button>
+            <wa-button
+              appearance="outlined"
+              variant="neutral"
+              size="small"
               @click="showCodes(true)"
-            />
-            <UButton
-              icon="i-fadl-trash"
-              :label="t('security.twoFactor.remove')"
-              color="error"
-              variant="ghost"
-              size="sm"
+            >
+              <wa-icon
+                slot="start"
+                name="arrow-rotate-right"
+              ></wa-icon>
+              {{ t('security.recovery.regenerate') }}
+            </wa-button>
+            <wa-button
+              appearance="plain"
+              variant="danger"
+              size="small"
               @click="confirming = { kind: 'twoFactor' }"
-            />
+            >
+              <wa-icon
+                slot="start"
+                name="trash"
+              ></wa-icon>
+              {{ t('security.twoFactor.remove') }}
+            </wa-button>
           </div>
           <SecurityRecoveryCodes
             v-if="shownCodes"
@@ -133,47 +151,47 @@ async function onTwoFactorDone(): Promise<void> {
         </template>
       </section>
 
-      <section class="space-y-3">
-        <h3 class="font-medium text-highlighted">
+      <section class="wa-stack wa-gap-s">
+        <h3 class="wa-heading-xs">
           {{ t('security.passkeys.title') }}
         </h3>
-        <p class="text-sm text-muted">
+        <p class="wa-body-s wa-color-text-quiet">
           {{ t('security.passkeys.intro') }}
         </p>
 
         <ul
           v-if="passkeys.length"
-          class="divide-y divide-default rounded-md border border-default"
+          class="security-list wa-list-plain"
         >
           <li
             v-for="passkey in passkeys"
             :key="passkey.id"
-            class="flex flex-wrap items-center gap-3 px-3 py-2"
+            class="security-row"
           >
-            <UIcon
-              name="i-fadl-fingerprint"
-              class="size-5 text-primary"
-            />
-            <span class="min-w-0 flex-1">
-              <span class="block truncate font-medium">{{ passkey.name }}</span>
-              <span class="block text-xs text-muted">
+            <wa-icon
+              name="fingerprint"
+              class="security-icon"
+            ></wa-icon>
+            <span class="security-text">
+              <span class="security-title">{{ passkey.name }}</span>
+              <span class="security-sub">
                 {{ passkey.lastUsedAt ? t('security.passkeys.lastUsed', { date: formatDateTime(passkey.lastUsedAt, language) }) : t('security.passkeys.neverUsed') }}
               </span>
             </span>
-            <UButton
-              icon="i-fadl-trash"
-              color="neutral"
-              variant="ghost"
-              size="sm"
+            <wa-button
+              appearance="plain"
+              variant="neutral"
+              size="small"
               :aria-label="t('security.passkeys.remove', { name: passkey.name })"
               @click="confirming = { kind: 'passkey', id: passkey.id, name: passkey.name }"
-            />
+            >
+              <wa-icon name="trash"></wa-icon>
+            </wa-button>
           </li>
         </ul>
-        <UAlert
+        <AppCallout
           v-if="passkeys.length === 1 && !me?.twoFactorConfirmed"
-          color="info"
-          variant="subtle"
+          variant="brand"
           :title="t('security.passkeys.secondHint')"
         />
 
@@ -189,5 +207,50 @@ async function onTwoFactorDone(): Promise<void> {
       :action="confirmRemoval"
       @close="confirming = null"
     />
-  </UCard>
+  </wa-card>
 </template>
+
+<style scoped>
+.security-list {
+  margin: 0;
+  padding: 0;
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-m);
+}
+
+.security-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-xs) var(--wa-space-s);
+}
+
+.security-row + .security-row {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.security-icon {
+  font-size: var(--wa-font-size-l);
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.security-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.security-title {
+  overflow: hidden;
+  font-weight: var(--wa-font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.security-sub {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+}
+</style>

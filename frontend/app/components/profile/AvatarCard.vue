@@ -63,43 +63,54 @@ async function removeAvatar(): Promise<void> {
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <h2 class="font-semibold text-highlighted">
-        {{ t('profile.avatar.title') }}
-      </h2>
-    </template>
+  <wa-card>
+    <h2
+      slot="header"
+      class="wa-heading-xs"
+    >
+      {{ t('profile.avatar.title') }}
+    </h2>
 
-    <div class="flex flex-wrap items-center gap-4">
-      <UAvatar
-        :src="viewer?.avatarUrl ?? undefined"
-        :alt="viewer?.name"
+    <div class="wa-cluster wa-gap-m wa-align-items-center">
+      <UserAvatar
+        :name="viewer?.name"
+        :src="viewer?.avatarUrl"
         size="3xl"
       />
-      <div class="space-y-2">
-        <div class="flex flex-wrap gap-2">
-          <UButton
-            icon="i-fadl-upload"
-            :label="viewer?.avatarUrl ? t('profile.avatar.change') : t('profile.avatar.upload')"
+      <div class="wa-stack wa-gap-xs">
+        <div class="wa-cluster wa-gap-s">
+          <wa-button
+            variant="brand"
             :loading="pending"
             @click="input?.click()"
-          />
-          <UButton
+          >
+            <wa-icon
+              slot="start"
+              name="upload"
+            ></wa-icon>
+            {{ viewer?.avatarUrl ? t('profile.avatar.change') : t('profile.avatar.upload') }}
+          </wa-button>
+          <wa-button
             v-if="viewer?.avatarUrl"
-            icon="i-fadl-trash"
-            :label="t('profile.avatar.remove')"
-            color="neutral"
-            variant="ghost"
+            appearance="plain"
+            variant="neutral"
             :disabled="pending"
             @click="removeAvatar"
-          />
+          >
+            <wa-icon
+              slot="start"
+              name="trash"
+            ></wa-icon>
+            {{ t('profile.avatar.remove') }}
+          </wa-button>
         </div>
-        <p class="text-sm text-muted">
+        <p class="wa-body-s wa-color-text-quiet">
           {{ t('profile.avatar.hint') }}
         </p>
         <p
           v-if="error"
-          class="text-sm text-error"
+          class="wa-body-s"
+          data-form-error
           role="alert"
         >
           {{ error }}
@@ -109,9 +120,9 @@ async function removeAvatar(): Promise<void> {
         ref="input"
         type="file"
         accept="image/jpeg,image/png"
-        class="hidden"
+        hidden
         @change="onFile"
       >
     </div>
-  </UCard>
+  </wa-card>
 </template>

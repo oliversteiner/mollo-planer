@@ -19,50 +19,44 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <h2 class="font-semibold text-highlighted">
-        {{ t('profile.details.title') }}
-      </h2>
-    </template>
-
-    <UForm
-      :state="state"
-      class="space-y-4"
-      @submit="submit"
+  <wa-card>
+    <h2
+      slot="header"
+      class="wa-heading-xs"
     >
-      <UFormField
-        :label="t('projects.fields.name')"
+      {{ t('profile.details.title') }}
+    </h2>
+
+    <form
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submit"
+    >
+      <FormInput
+        v-model="state.name"
         name="name"
+        autocomplete="name"
+        :label="t('projects.fields.name')"
         :error="errors.name"
         required
-      >
-        <UInput
-          v-model="state.name"
-          autocomplete="name"
-          class="w-full"
-          required
-        />
-      </UFormField>
-      <UFormField
-        :label="t('auth.email')"
+      />
+      <FormInput
+        v-model="state.email"
+        type="email"
         name="email"
+        autocomplete="email"
+        :label="t('auth.email')"
         :error="errors.email"
         required
-      >
-        <UInput
-          v-model="state.email"
-          type="email"
-          autocomplete="email"
-          class="w-full"
-          required
-        />
-      </UFormField>
-      <UButton
-        type="submit"
-        :label="t('common.save')"
-        :loading="pending"
       />
-    </UForm>
-  </UCard>
+      <div>
+        <wa-button
+          type="submit"
+          variant="brand"
+          :loading="pending"
+        >
+          {{ t('common.save') }}
+        </wa-button>
+      </div>
+    </form>
+  </wa-card>
 </template>

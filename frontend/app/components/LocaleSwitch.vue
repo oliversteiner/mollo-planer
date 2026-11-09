@@ -1,5 +1,11 @@
 <script setup lang="ts">
-/** Choice of the interface language (remembered by the i18n module in a cookie). */
+/**
+ * Choice of the interface language (remembered by the i18n module in a
+ * cookie). With `label` the field shows it; without, it is named for screen
+ * readers only.
+ */
+defineProps<{ label?: string }>()
+
 const { t, locale, locales, setLocale } = useI18n()
 
 const items = computed(() => locales.value.map(entry => ({
@@ -12,7 +18,8 @@ const items = computed(() => locales.value.map(entry => ({
   <FormSelect
     :model-value="locale"
     :items="items"
-    :aria-label="t('settings.language')"
+    :label="label"
+    :aria-label="label ? undefined : t('settings.language')"
     size="small"
     @update:model-value="value => value && setLocale(value as 'de' | 'en')"
   />

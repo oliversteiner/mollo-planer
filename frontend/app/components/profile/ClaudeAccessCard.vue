@@ -53,117 +53,123 @@ async function confirmRevoke(): Promise<void> {
 </script>
 
 <template>
-  <UCard class="lg:col-span-2">
-    <template #header>
-      <h2 class="font-semibold text-highlighted">
+  <wa-card>
+    <div slot="header">
+      <h2 class="wa-heading-xs">
         {{ t('claude.title') }}
       </h2>
-      <p class="text-sm text-muted">
+      <p class="wa-body-s wa-color-text-quiet">
         {{ t('claude.intro') }}
       </p>
-    </template>
+    </div>
 
-    <div class="space-y-6">
+    <div class="wa-stack wa-gap-l">
       <div
         v-if="created"
-        class="space-y-3"
+        class="wa-stack wa-gap-s"
       >
-        <UAlert
-          color="warning"
-          variant="subtle"
-          icon="i-fadl-triangle-exclamation"
+        <AppCallout
+          variant="warning"
           :title="t('claude.showOnce')"
         />
-        <UFormField :label="t('claude.token')">
-          <div class="flex gap-2">
-            <UInput
+        <FormField :label="t('claude.token')">
+          <div class="claude-copy">
+            <FormInput
               :model-value="created.plainTextToken"
               readonly
-              class="flex-1 font-mono"
+              class="claude-code-field"
             />
-            <UButton
-              icon="i-fadl-copy"
-              color="neutral"
-              variant="outline"
+            <wa-button
+              appearance="outlined"
+              variant="neutral"
               :aria-label="t('claude.copyToken')"
               @click="copy(created.plainTextToken)"
-            />
+            >
+              <wa-icon name="copy"></wa-icon>
+            </wa-button>
           </div>
-        </UFormField>
-        <UFormField
+        </FormField>
+        <FormField
           :label="t('claude.command')"
           :hint="t('claude.commandHint')"
         >
-          <div class="flex gap-2">
-            <code class="flex-1 overflow-x-auto rounded-md bg-elevated p-2 font-mono text-xs whitespace-nowrap">{{ command }}</code>
-            <UButton
-              icon="i-fadl-copy"
-              color="neutral"
-              variant="outline"
+          <div class="claude-copy">
+            <code class="claude-command">{{ command }}</code>
+            <wa-button
+              appearance="outlined"
+              variant="neutral"
               :aria-label="t('claude.copyCommand')"
               @click="copy(command)"
-            />
+            >
+              <wa-icon name="copy"></wa-icon>
+            </wa-button>
           </div>
-        </UFormField>
-        <UButton
-          :label="t('security.done')"
-          @click="created = null"
-        />
+        </FormField>
+        <div>
+          <wa-button
+            variant="brand"
+            @click="created = null"
+          >
+            {{ t('security.done') }}
+          </wa-button>
+        </div>
       </div>
 
       <form
         v-else
-        class="flex flex-wrap items-end gap-2"
+        class="claude-form"
         @submit.prevent="create"
       >
-        <UFormField
+        <FormInput
+          v-model="name"
+          class="claude-name"
           :label="t('claude.name')"
           :hint="t('claude.nameHint')"
           :error="errors.name"
-          class="min-w-48 flex-1"
-        >
-          <UInput
-            v-model="name"
-            maxlength="60"
-            class="w-full"
-          />
-        </UFormField>
-        <UButton
-          type="submit"
-          icon="i-fadl-key"
-          :label="t('claude.create')"
-          :loading="pending"
+          maxlength="60"
         />
+        <wa-button
+          type="submit"
+          variant="brand"
+          :loading="pending"
+        >
+          <wa-icon
+            slot="start"
+            name="key"
+          ></wa-icon>
+          {{ t('claude.create') }}
+        </wa-button>
       </form>
 
       <ul
         v-if="tokens.length"
-        class="divide-y divide-default rounded-md border border-default"
+        class="claude-list wa-list-plain"
       >
         <li
           v-for="token in tokens"
           :key="token.id"
-          class="flex flex-wrap items-center gap-3 px-3 py-2"
+          class="claude-row"
         >
-          <UIcon
-            name="i-fadl-key"
-            class="size-5 text-primary"
-          />
-          <span class="min-w-0 flex-1">
-            <span class="block truncate font-medium">{{ token.name }}</span>
-            <span class="block text-xs text-muted">
+          <wa-icon
+            name="key"
+            class="claude-icon"
+          ></wa-icon>
+          <span class="claude-text">
+            <span class="claude-title">{{ token.name }}</span>
+            <span class="claude-sub">
               {{ token.lastUsedAt ? t('claude.lastUsed', { date: formatDateTime(token.lastUsedAt, language) }) : t('claude.neverUsed') }}
               <template v-if="token.expiresAt"> · {{ t('claude.expires', { date: formatDateTime(token.expiresAt, language) }) }}</template>
             </span>
           </span>
-          <UButton
-            icon="i-fadl-trash"
-            color="neutral"
-            variant="ghost"
-            size="sm"
+          <wa-button
+            appearance="plain"
+            variant="neutral"
+            size="small"
             :aria-label="t('claude.revoke', { name: token.name })"
             @click="revoking = { id: token.id, name: token.name }"
-          />
+          >
+            <wa-icon name="trash"></wa-icon>
+          </wa-button>
         </li>
       </ul>
     </div>
@@ -176,5 +182,90 @@ async function confirmRevoke(): Promise<void> {
       :action="confirmRevoke"
       @close="revoking = null"
     />
-  </UCard>
+  </wa-card>
 </template>
+
+<style scoped>
+.claude-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--wa-space-s);
+}
+
+.claude-name {
+  flex: 1;
+  min-inline-size: 12rem;
+}
+
+/* The button sits next to the field, level with its input, not with its label. */
+.claude-form > wa-button {
+  margin-block-start: 1.6em;
+}
+
+.claude-copy {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-s);
+  inline-size: 100%;
+}
+
+.claude-code-field {
+  flex: 1;
+  font-family: var(--wa-font-family-code);
+}
+
+.claude-command {
+  flex: 1;
+  overflow-x: auto;
+  padding: var(--wa-space-xs);
+  border-radius: var(--wa-border-radius-m);
+  background-color: var(--wa-color-surface-lowered);
+  font-family: var(--wa-font-family-code);
+  font-size: var(--wa-font-size-xs);
+  white-space: nowrap;
+}
+
+.claude-list {
+  margin: 0;
+  padding: 0;
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-m);
+}
+
+.claude-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-xs) var(--wa-space-s);
+}
+
+.claude-row + .claude-row {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.claude-icon {
+  font-size: var(--wa-font-size-l);
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.claude-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.claude-title {
+  overflow: hidden;
+  font-weight: var(--wa-font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.claude-sub {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+}
+</style>

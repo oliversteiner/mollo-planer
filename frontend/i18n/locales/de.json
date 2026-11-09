@@ -18,6 +18,11 @@
   "settings": {
     "language": "Sprache",
     "colorMode": "Darstellung",
+    "colorModes": {
+      "system": "System",
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
     "project": {
       "title": "Projekt",
       "saved": "Projekt gespeichert."

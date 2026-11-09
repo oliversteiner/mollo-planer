@@ -18,6 +18,11 @@
   "settings": {
     "language": "Language",
     "colorMode": "Appearance",
+    "colorModes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "project": {
       "title": "Project",
       "saved": "Project saved."

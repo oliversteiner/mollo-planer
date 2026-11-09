@@ -18,66 +18,55 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <h2 class="font-semibold text-highlighted">
-        {{ t('profile.password.title') }}
-      </h2>
-    </template>
-
-    <UForm
-      :state="state"
-      class="space-y-4"
-      @submit="submit"
+  <wa-card>
+    <h2
+      slot="header"
+      class="wa-heading-xs"
     >
-      <UFormField
-        :label="t('profile.password.current')"
+      {{ t('profile.password.title') }}
+    </h2>
+
+    <form
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submit"
+    >
+      <FormInput
+        v-model="state.current_password"
+        type="password"
         name="current_password"
+        autocomplete="current-password"
+        :label="t('profile.password.current')"
         :error="errors.current_password"
         required
-      >
-        <UInput
-          v-model="state.current_password"
-          type="password"
-          autocomplete="current-password"
-          class="w-full"
-          required
-        />
-      </UFormField>
-      <UFormField
+      />
+      <FormInput
+        v-model="state.password"
+        type="password"
+        name="password"
+        autocomplete="new-password"
         :label="t('auth.setPassword.password')"
         :hint="t('auth.setPassword.rules')"
-        name="password"
         :error="errors.password"
         required
-      >
-        <UInput
-          v-model="state.password"
-          type="password"
-          autocomplete="new-password"
-          class="w-full"
-          required
-        />
-      </UFormField>
-      <UFormField
-        :label="t('auth.setPassword.confirmation')"
+      />
+      <FormInput
+        v-model="state.password_confirmation"
+        type="password"
         name="password_confirmation"
+        autocomplete="new-password"
+        :label="t('auth.setPassword.confirmation')"
         :error="errors.password_confirmation"
         required
-      >
-        <UInput
-          v-model="state.password_confirmation"
-          type="password"
-          autocomplete="new-password"
-          class="w-full"
-          required
-        />
-      </UFormField>
-      <UButton
-        type="submit"
-        :label="t('profile.password.submit')"
-        :loading="pending"
       />
-    </UForm>
-  </UCard>
+      <div>
+        <wa-button
+          type="submit"
+          variant="brand"
+          :loading="pending"
+        >
+          {{ t('profile.password.submit') }}
+        </wa-button>
+      </div>
+    </form>
+  </wa-card>
 </template>

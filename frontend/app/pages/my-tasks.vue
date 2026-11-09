@@ -27,69 +27,132 @@ const tasks = computed(() => [...(result.value?.myTasks ?? [])]
 </script>
 
 <template>
-  <UDashboardPanel id="my-tasks">
-    <template #header>
-      <UDashboardNavbar :title="t('myTasks.title')">
-        <template #right>
-          <USelect
-            v-model="filter"
-            :items="filterItems"
-            :aria-label="t('todos.status')"
-            class="w-44"
-          />
-        </template>
-      </UDashboardNavbar>
+  <PageFrame :title="t('myTasks.title')">
+    <template #actions>
+      <FormSelect
+        :model-value="filter"
+        :items="filterItems"
+        :aria-label="t('todos.status')"
+        class="my-tasks-filter"
+        @update:model-value="filter = $event as typeof filter"
+      />
     </template>
 
-    <template #body>
-      <USkeleton
-        v-if="loading && !result"
-        class="h-40"
-      />
-      <UEmpty
-        v-else-if="!tasks.length"
-        icon="i-fadl-square-check"
-        :title="t('myTasks.none')"
-      />
-      <ul
-        v-else
-        class="divide-y divide-default rounded-lg border border-default"
+    <wa-skeleton
+      v-if="loading && !result"
+      effect="sheen"
+      class="my-tasks-skeleton"
+    ></wa-skeleton>
+    <EmptyState
+      v-else-if="!tasks.length"
+      icon="square-check"
+      :title="t('myTasks.none')"
+    />
+    <ul
+      v-else
+      class="my-tasks-list wa-list-plain"
+    >
+      <li
+        v-for="task in tasks"
+        :key="task.id"
       >
-        <li
-          v-for="task in tasks"
-          :key="task.id"
+        <NuxtLink
+          :to="`/projects/${task.todo.milestone.project.id}/kanban?task=${task.id}`"
+          class="my-tasks-row"
         >
-          <NuxtLink
-            :to="`/projects/${task.todo.milestone.project.id}/kanban?task=${task.id}`"
-            class="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-elevated/50"
+          <ItemIcon
+            :name="task.icon"
+            fallback="square-check"
+            class="my-tasks-icon"
+          />
+          <span class="my-tasks-text">
+            <span class="my-tasks-title">{{ task.title }}</span>
+            <span class="my-tasks-sub">{{ task.todo.milestone.project.name }} · {{ task.todo.milestone.title }} · {{ task.todo.title }}</span>
+          </span>
+          <span
+            v-if="task.commentCount"
+            class="my-tasks-comments"
           >
-            <ItemIcon
-              :name="task.icon"
-              fallback="square-check"
-              class="text-lg text-primary"
-            />
-            <span class="min-w-0 flex-1">
-              <span class="block truncate font-medium text-highlighted">{{ task.title }}</span>
-              <span class="block truncate text-sm text-muted">{{ task.todo.milestone.project.name }} · {{ task.todo.milestone.title }} · {{ task.todo.title }}</span>
-            </span>
-            <span
-              v-if="task.commentCount"
-              class="inline-flex items-center gap-1 text-sm text-muted"
-            >
-              <UIcon
-                name="i-fadl-comments"
-                class="size-4"
-              />
-              {{ task.commentCount }}
-            </span>
-            <StatusBadge :status="task.status" />
-            <DueDate
-              :date="task.dueDate"
-              :done="task.status === 'DONE'"
-            />
-          </NuxtLink>
-        </li>
-      </ul>
-    </template>
-  </UDashboardPanel>
+            <wa-icon name="comments"></wa-icon>
+            {{ task.commentCount }}
+          </span>
+          <StatusBadge :status="task.status" />
+          <DueDate
+            :date="task.dueDate"
+            :done="task.status === 'DONE'"
+          />
+        </NuxtLink>
+      </li>
+    </ul>
+  </PageFrame>
 </template>
+
+<style scoped>
+.my-tasks-filter {
+  inline-size: 12rem;
+}
+
+.my-tasks-skeleton {
+  block-size: 10rem;
+}
+
+.my-tasks-list {
+  margin: 0;
+  padding: 0;
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-l);
+}
+
+.my-tasks-list > li + li {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.my-tasks-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-s) var(--wa-space-m);
+  color: inherit;
+  text-decoration: none;
+}
+
+.my-tasks-row:hover {
+  background-color: var(--wa-color-neutral-fill-quiet);
+}
+
+.my-tasks-icon {
+  font-size: var(--wa-font-size-l);
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.my-tasks-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.my-tasks-title {
+  overflow: hidden;
+  font-weight: var(--wa-font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-tasks-sub {
+  overflow: hidden;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-tasks-comments {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wa-space-3xs);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+</style>

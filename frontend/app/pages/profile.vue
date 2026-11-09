@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useMutation } from '@vue/apollo-composable'
-import * as uiLocales from '@nuxt/ui/locale'
 import { updateMyNotificationsMutation } from '~/graphql/profile'
 
-const { t, locale, setLocale } = useI18n()
+const { t } = useI18n()
 const toast = useToast()
 const { viewer, load } = useViewer()
 
@@ -16,57 +15,62 @@ async function setNotifications(enabled: boolean): Promise<void> {
   await load()
   toast.add({ title: enabled ? t('profile.notifications.on') : t('profile.notifications.off'), color: 'success' })
 }
-
-const currentLocale = computed({
-  get: () => locale.value,
-  set: (code: string) => setLocale(code as 'de' | 'en')
-})
 </script>
 
 <template>
-  <UDashboardPanel id="profile">
-    <template #header>
-      <UDashboardNavbar :title="t('profile.title')" />
-    </template>
+  <PageFrame :title="t('profile.title')">
+    <div class="profile-grid">
+      <ProfileAvatarCard />
 
-    <template #body>
-      <div class="grid max-w-4xl gap-6 lg:grid-cols-2">
-        <ProfileAvatarCard />
-
-        <UCard>
-          <template #header>
-            <h2 class="font-semibold text-highlighted">
-              {{ t('profile.settings') }}
-            </h2>
-          </template>
-          <div class="space-y-6">
-            <USwitch
-              :model-value="viewer?.notifyByEmail ?? true"
-              :label="t('profile.notifications.label')"
-              :description="t('profile.notifications.description')"
-              :loading="savingNotifications"
-              @update:model-value="setNotifications"
+      <wa-card>
+        <h2
+          slot="header"
+          class="wa-heading-xs"
+        >
+          {{ t('profile.settings') }}
+        </h2>
+        <div class="wa-stack wa-gap-l">
+          <FormSwitch
+            :model-value="viewer?.notifyByEmail ?? true"
+            :label="t('profile.notifications.label')"
+            :hint="t('profile.notifications.description')"
+            :disabled="savingNotifications"
+            @update:model-value="setNotifications"
+          />
+          <div class="wa-cluster wa-gap-m wa-align-items-start">
+            <LocaleSwitch
+              :label="t('settings.language')"
+              class="profile-select"
             />
-            <div class="flex flex-wrap gap-4">
-              <UFormField :label="t('settings.language')">
-                <ULocaleSelect
-                  v-model="currentLocale"
-                  :locales="[uiLocales.de, uiLocales.en]"
-                  class="w-48"
-                />
-              </UFormField>
-              <UFormField :label="t('settings.colorMode')">
-                <UColorModeSelect class="w-48" />
-              </UFormField>
-            </div>
+            <ColorModeSelect
+              :label="t('settings.colorMode')"
+              class="profile-select"
+            />
           </div>
-        </UCard>
+        </div>
+      </wa-card>
 
-        <ProfileSecurityCard />
-        <ProfileClaudeAccessCard />
-        <ProfileDetailsForm />
-        <ProfilePasswordForm />
-      </div>
-    </template>
-  </UDashboardPanel>
+      <ProfileSecurityCard class="profile-wide" />
+      <ProfileClaudeAccessCard class="profile-wide" />
+      <ProfileDetailsForm />
+      <ProfilePasswordForm />
+    </div>
+  </PageFrame>
 </template>
+
+<style scoped>
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: var(--wa-space-l);
+  max-inline-size: 64rem;
+}
+
+.profile-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-select {
+  inline-size: 12rem;
+}
+</style>
