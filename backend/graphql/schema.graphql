@@ -199,6 +199,8 @@ type Project {
   id: ID!
   name: String!
   description: String
+  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
+  icon: String
   "Sprache der Benachrichtigungsmails dieses Projekts"
   locale: Locale!
   members: [ProjectMember!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
@@ -553,12 +555,14 @@ input UpdateUserInput {
 input CreateProjectInput {
   name: String! @rules(apply: ["min:2", "max:120"])
   description: String
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale = DE
 }
 
 input UpdateProjectInput {
   name: String @rules(apply: ["min:2", "max:120"])
   description: String
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale
 }
 

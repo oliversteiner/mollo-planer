@@ -20,7 +20,7 @@ class DatabaseSchemaTest extends TestCase
     {
         return [
             'users' => ['users', ['is_admin', 'notify_by_email', 'avatar_path', 'two_factor_secret', 'two_factor_confirmed_at']],
-            'projects' => ['projects', ['name', 'description', 'locale']],
+            'projects' => ['projects', ['name', 'description', 'icon', 'locale']],
             'project_user' => ['project_user', ['project_id', 'user_id', 'role']],
             'milestones' => ['milestones', ['project_id', 'title', 'description', 'icon', 'due_date', 'status']],
             'todos' => ['todos', ['milestone_id', 'title', 'description', 'icon', 'due_date', 'status']],

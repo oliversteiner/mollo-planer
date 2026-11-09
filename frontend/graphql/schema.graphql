@@ -42,6 +42,7 @@ input CreateMilestoneInput {
 }
 input CreateProjectInput {
  description: String
+ icon: String
  locale: Locale = DE
  name: String!
 }
@@ -217,6 +218,8 @@ type Progress {
 type Project {
  createdAt: DateTime!
  description: String
+ "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
+ icon: String
  id: ID!
  "Sprache der Benachrichtigungsmails dieses Projekts"
  locale: Locale!
@@ -424,6 +427,7 @@ input UpdateMilestoneInput {
 }
 input UpdateProjectInput {
  description: String
+ icon: String
  locale: Locale
  name: String
 }

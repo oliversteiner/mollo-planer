@@ -19,6 +19,7 @@ export type CreateMilestoneInput = {
 
 export type CreateProjectInput = {
   description?: string | null | undefined;
+  icon?: string | null | undefined;
   locale?: Locale | null | undefined;
   name: string;
 };
@@ -144,6 +145,7 @@ export type UpdateMilestoneInput = {
 
 export type UpdateProjectInput = {
   description?: string | null | undefined;
+  icon?: string | null | undefined;
   locale?: Locale | null | undefined;
   name?: string | null | undefined;
 };

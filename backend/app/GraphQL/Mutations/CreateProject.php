@@ -13,13 +13,14 @@ use Illuminate\Support\Facades\DB;
 class CreateProject
 {
     /**
-     * @param  array{name: string, description?: string|null, locale?: string|null}  $args
+     * @param  array{name: string, description?: string|null, icon?: string|null, locale?: string|null}  $args
      */
     public function __invoke(mixed $root, array $args): Project
     {
         return DB::transaction(fn (): Project => Project::create([
             'name' => $args['name'],
             'description' => $args['description'] ?? null,
+            'icon' => $args['icon'] ?? null,
             'locale' => $args['locale'] ?? Locale::DE->value,
         ]));
     }

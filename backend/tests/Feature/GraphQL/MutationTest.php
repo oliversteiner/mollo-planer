@@ -30,6 +30,21 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.createProject', ['name' => 'Neu', 'locale' => 'EN', 'viewerRole' => null]);
     }
 
+    public function test_project_has_an_icon_that_follows_the_icon_rule(): void
+    {
+        $this->as('admin')->gql('mutation { createProject(input: {name: "Podcast", icon: "microphone"}) { icon } }')
+            ->assertJsonPath('data.createProject.icon', 'microphone');
+
+        $this->as('manager')->gql('mutation ($id: ID!) { updateProject(id: $id, input: {icon: "globe"}) { icon } }', ['id' => $this->project->id])
+            ->assertJsonPath('data.updateProject.icon', 'globe');
+
+        $this->as('manager')->gql('mutation ($id: ID!) { updateProject(id: $id, input: {icon: "fa-solid fa-globe"}) { icon } }', ['id' => $this->project->id])
+            ->assertGraphQLValidationKeys(['input.icon']);
+
+        $this->as('manager')->gql('mutation ($id: ID!) { updateProject(id: $id, input: {icon: null}) { icon } }', ['id' => $this->project->id])
+            ->assertJsonPath('data.updateProject.icon', null);
+    }
+
     public function test_update_and_delete_project_follow_the_table(): void
     {
         $update = 'mutation ($id: ID!) { updateProject(id: $id, input: {locale: EN}) { locale } }';

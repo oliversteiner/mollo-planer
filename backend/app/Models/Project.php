@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'description', 'locale'])]
+#[Fillable(['name', 'description', 'icon', 'locale'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
