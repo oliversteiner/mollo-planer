@@ -492,9 +492,7 @@
       "notifyHint": "Jede Person bekommt pro zugewiesenem Task eine Mail.",
       "discard": "Verwerfen",
       "import": "Jetzt eintragen",
-      "importFailed": "Nicht eingetragen",
-      "emptyTitle": "Noch kein Entwurf",
-      "emptyDescription": "Sobald du im Chat dein Projekt beschreibst, erscheint hier der Plan: Name, Beschreibung und die Timeline mit Milestones, ToDos und Tasks."
+      "importFailed": "Nicht eingetragen"
     }
   }
 }

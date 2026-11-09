@@ -14,8 +14,8 @@ const items = computed(() => (['system', 'light', 'dark'] as const).map(mode => 
   <FormSelect
     :model-value="preference"
     :items="items"
-    :label="label"
-    :aria-label="label ? undefined : t('settings.colorMode')"
+    :label="label ?? t('settings.colorMode')"
+    :hide-label="!label"
     @update:model-value="value => value && setPreference(value as ColorPreference)"
   />
 </template>

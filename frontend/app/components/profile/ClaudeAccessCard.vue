@@ -76,6 +76,8 @@ async function confirmRevoke(): Promise<void> {
           <div class="claude-copy">
             <FormInput
               :model-value="created.plainTextToken"
+              :label="t('claude.token')"
+              hide-label
               readonly
               class="claude-code-field"
             />

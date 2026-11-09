@@ -91,7 +91,8 @@ const links = computed<NavItem[]>(() => {
       :items="projectItems"
       :searchable="projects.length > 5"
       :placeholder="t('nav.searchProject')"
-      :aria-label="t('nav.chooseProject')"
+      :label="t('nav.chooseProject')"
+      hide-label
       @update:model-value="value => value && choose(value)"
     />
     <p

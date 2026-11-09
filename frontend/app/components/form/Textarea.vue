@@ -2,6 +2,8 @@
 /** Multi-line field (wa-textarea) with v-model, label, hint and message; see FormInput. */
 defineProps<{
   label?: string
+  /** The label is for screen readers only (a field whose purpose is clear from where it stands). */
+  hideLabel?: boolean
   hint?: string
   error?: string
 }>()
@@ -17,6 +19,7 @@ function onInput(event: Event) {
   <wa-textarea
     :value="model"
     :label="label"
+    :class="{ 'wa-visually-hidden-label': hideLabel }"
     :hint="error ? undefined : hint"
     :aria-invalid="error ? 'true' : undefined"
     :data-invalid="error ? '' : undefined"

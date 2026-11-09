@@ -8,6 +8,8 @@
  */
 defineProps<{
   label?: string
+  /** The label is for screen readers only (a field whose purpose is clear from where it stands). */
+  hideLabel?: boolean
   hint?: string
   /** Validation message (for example from useServerForm). */
   error?: string
@@ -24,6 +26,7 @@ function onInput(event: Event) {
   <wa-input
     :value="model"
     :label="label"
+    :class="{ 'wa-visually-hidden-label': hideLabel }"
     :hint="error ? undefined : hint"
     :aria-invalid="error ? 'true' : undefined"
     :data-invalid="error ? '' : undefined"

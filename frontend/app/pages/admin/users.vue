@@ -121,7 +121,8 @@ function factorLabel(user: User): string {
     <FormInput
       v-model="query"
       :placeholder="t('settings.members.search')"
-      :aria-label="t('settings.members.search')"
+      :label="t('settings.members.search')"
+      hide-label
       class="users-search"
     >
       <template #start>

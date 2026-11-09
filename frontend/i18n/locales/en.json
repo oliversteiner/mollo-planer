@@ -492,9 +492,7 @@
       "notifyHint": "Everyone gets one mail per assigned task.",
       "discard": "Discard",
       "import": "Create now",
-      "importFailed": "Not created",
-      "emptyTitle": "No draft yet",
-      "emptyDescription": "As soon as you describe your project in the chat, the plan appears here: name, description and the timeline with milestones, todos and tasks."
+      "importFailed": "Not created"
     }
   }
 }

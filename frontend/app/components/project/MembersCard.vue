@@ -123,7 +123,8 @@ async function confirmRemove(): Promise<void> {
           :model-value="member.role"
           :items="roleItems"
           :disabled="pending"
-          :aria-label="t('settings.members.roleOf', { name: member.user.name })"
+          :label="t('settings.members.roleOf', { name: member.user.name })"
+          hide-label
           class="members-role"
           @update:model-value="role => role && setRole(member.user.id, role as ProjectRole)"
         />

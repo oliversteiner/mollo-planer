@@ -32,7 +32,8 @@ const tasks = computed(() => [...(result.value?.myTasks ?? [])]
       <FormSelect
         :model-value="filter"
         :items="filterItems"
-        :aria-label="t('todos.status')"
+        :label="t('todos.status')"
+        hide-label
         class="my-tasks-filter"
         @update:model-value="filter = $event as typeof filter"
       />

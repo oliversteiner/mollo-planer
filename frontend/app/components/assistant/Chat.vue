@@ -135,7 +135,8 @@ watch(() => [props.messages.length, props.pending], async () => {
         <FormTextarea
           v-model="shown"
           :placeholder="speech.listening.value ? t('assistant.chat.listening') : t('assistant.chat.placeholder')"
-          :aria-label="t('assistant.chat.placeholder')"
+          :label="t('assistant.chat.placeholder')"
+          hide-label
           :rows="3"
           resize="auto"
           :disabled="pending"

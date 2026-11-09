@@ -120,3 +120,15 @@ describe.each([
     expect(field(box).checked).toBe(true)
   })
 })
+
+describe('hidden label', () => {
+  it('keeps the label for screen readers and hides it from view', async () => {
+    const input = await mountSuspended(FormInput, { props: { modelValue: '', label: 'Suchen', hideLabel: true } })
+    const select = await mountSuspended(FormSelect, { props: { modelValue: null, items: [], label: 'Status', hideLabel: true } })
+
+    expect(field(input).label).toBe('Suchen')
+    expect(input.classes()).toContain('wa-visually-hidden-label')
+    expect(field(select).label).toBe('Status')
+    expect(select.classes()).toContain('wa-visually-hidden-label')
+  })
+})

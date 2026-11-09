@@ -18,8 +18,8 @@ const items = computed(() => locales.value.map(entry => ({
   <FormSelect
     :model-value="locale"
     :items="items"
-    :label="label"
-    :aria-label="label ? undefined : t('settings.language')"
+    :label="label ?? t('settings.language')"
+    :hide-label="!label"
     size="s"
     @update:model-value="value => value && setLocale(value as 'de' | 'en')"
   />

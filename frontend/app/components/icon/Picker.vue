@@ -79,7 +79,8 @@ function choose(name: string | null): void {
         <FormInput
           v-model="query"
           :placeholder="t('icons.search')"
-          :aria-label="t('icons.search')"
+          :label="t('icons.search')"
+          hide-label
           autofocus
         >
           <template #start>
