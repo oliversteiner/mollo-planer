@@ -39,6 +39,7 @@ const project = {
           icon: null,
           status: 'DONE',
           dueDate: null,
+          commentCount: 3,
           assignee: { id: '5', name: 'Lindita Aliu', avatarUrl: null }
         }]
       }]
@@ -81,6 +82,7 @@ describe('ProjectTimeline', () => {
 
     expect(timeline.text()).toContain('Hörerprofile schreiben')
     expect(timeline.text()).toContain('Lindita Aliu')
+    expect(timeline.text()).toContain('3 Kommentare')
   })
 
   it('"Nur Milestones anzeigen" hides the todos and shows them again', async () => {
@@ -144,5 +146,43 @@ describe('ProjectTimeline', () => {
     await timeline.find(create).trigger('click')
 
     expect(timeline.emitted('createTask')).toEqual([['10']])
+  })
+
+  it('shows the actions menu of milestones and todos only with entries', async () => {
+    const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+    const menus = () => timeline.findAll('button[aria-label^="Aktionen für"]').map(button => button.attributes('aria-label'))
+
+    expect(menus()).toEqual([])
+
+    await timeline.setProps({ actions: (kind: 'milestone' | 'todo') => (kind === 'todo' ? [{ label: 'Ändern' }] : []) })
+
+    expect(menus()).toEqual(['Aktionen für ToDo «Zielgruppe festlegen»'])
+
+    await timeline.setProps({ actions: () => [{ label: 'Ändern' }] })
+
+    expect(menus()).toEqual([
+      'Aktionen für Milestone «Konzept steht»',
+      'Aktionen für ToDo «Zielgruppe festlegen»',
+      'Aktionen für Milestone «Erste Folge online»'
+    ])
+  })
+
+  it('opens a task by click and edits it by double-click with the right to', async () => {
+    const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+    await timeline.find('button[aria-label="ToDo «Zielgruppe festlegen» auf- oder zuklappen"]').trigger('click')
+
+    const task = () => timeline.find('button[aria-label="Task «Hörerprofile schreiben» öffnen"]')
+
+    await task().trigger('click')
+    await task().trigger('dblclick')
+
+    expect(timeline.emitted('openTask')).toEqual([['100']])
+    expect(timeline.emitted('editTask')).toBeUndefined()
+
+    await timeline.setProps({ canUpdateTask: true })
+    await task().trigger('dblclick')
+
+    expect(timeline.emitted('editTask')).toEqual([[expect.objectContaining({ id: '100', title: 'Hörerprofile schreiben' })]])
   })
 })

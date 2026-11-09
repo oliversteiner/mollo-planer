@@ -1,31 +1,21 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { DropdownMenuItem, TabsItem } from '@nuxt/ui'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
-import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
+import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectTodosQuery } from '~/graphql/project'
 import { projectMembersQuery } from '~/graphql/task'
-import { isEmptyDocument } from '~/utils/rich-text'
 
+/**
+ * Overview of a project: the timeline of milestones, todos and tasks,
+ * with creating, changing and deleting by the rights of the viewer.
+ */
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { projectId, project, can } = useProject()
 
-/** Views of the overview; the chosen one stays in the URL (?view=timeline). */
-const views = computed<TabsItem[]>(() => [
-  { label: t('project.views.list'), icon: 'i-fadl-list', value: 'list' },
-  { label: t('project.views.timeline'), icon: 'i-fadl-timeline', value: 'timeline' }
-])
-
-const view = computed({
-  get: () => (route.query.view === 'timeline' ? 'timeline' : 'list'),
-  set: (value: string | number) => {
-    router.replace({ query: { ...route.query, view: value === 'timeline' ? 'timeline' : undefined } })
-  }
-})
-
-/** Timeline with only the milestones (?milestones=only). */
+/** Only the milestones (?milestones=only). */
 const milestonesOnly = computed({
   get: () => route.query.milestones === 'only',
   set: (value: boolean) => {
@@ -33,22 +23,65 @@ const milestonesOnly = computed({
   }
 })
 
-const { result, loading } = useQuery(projectOverviewQuery, () => ({ id: projectId.value }), () => ({ fetchPolicy: 'cache-and-network', enabled: view.value === 'list' }))
-
-/** Milestones by due date (without date last), then in creation order. */
-const milestones = computed(() => [...(result.value?.project?.milestones ?? [])]
-  .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || Number(a.id) - Number(b.id)))
-
-/** Todos and members for "Task anlegen" in the timeline, loaded only there. */
-const taskFormEnabled = computed(() => view.value === 'timeline' && can('TASK_CREATE'))
+/** Todos for the task dialog, members for it and the task details. */
+const taskFormEnabled = computed(() => can('TASK_CREATE') || can('TASK_UPDATE'))
 const { result: todosResult } = useQuery(projectTodosQuery, () => ({ projectId: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
-const { result: membersResult } = useQuery(projectMembersQuery, () => ({ id: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
+const { result: membersResult } = useQuery(projectMembersQuery, () => ({ id: projectId.value }))
 const todos = computed(() => todosResult.value?.todos ?? [])
 const members = computed(() => (membersResult.value?.project?.members ?? [])
   .map(member => member.user)
   .sort((a, b) => a.name.localeCompare(b.name)))
 
-const creatingTask = ref<TaskFormTarget | null>(null)
+/**
+ * Tasks as in the Kanban: ?task=… opens the details (side panel), the
+ * dialog creates or changes one. Only one overlay at a time: editing from
+ * the details closes them and returns afterwards.
+ */
+const taskForm = ref<TaskFormTarget | null>(null)
+const openTaskId = computed(() => (typeof route.query.task === 'string' ? route.query.task : null))
+const returnToTaskId = ref<string | null>(null)
+
+const taskAbilities = computed(() => ({
+  move: can('TASK_MOVE'),
+  assign: can('TASK_ASSIGN'),
+  update: can('TASK_UPDATE'),
+  delete: can('TASK_DELETE'),
+  comment: can('COMMENT_CREATE')
+}))
+
+function openTask(taskId: string): void {
+  taskForm.value = null
+  void router.replace({ query: { ...route.query, task: taskId } })
+}
+
+function closeTask(): void {
+  const { task: _task, ...query } = route.query
+  void router.replace({ query })
+}
+
+function createTask(todoId: string): void {
+  closeTask()
+  taskForm.value = { todoId }
+}
+
+function editTask(task: NonNullable<TaskFormTarget['task']>): void {
+  closeTask()
+  taskForm.value = { task }
+}
+
+function editFromDetails(task: NonNullable<TaskFormTarget['task']>): void {
+  returnToTaskId.value = task.id
+  editTask(task)
+}
+
+function closeTaskForm(): void {
+  taskForm.value = null
+
+  if (returnToTaskId.value) {
+    openTask(returnToTaskId.value)
+    returnToTaskId.value = null
+  }
+}
 
 type Item = NonNullable<ItemFormTarget['item']>
 
@@ -75,6 +108,7 @@ function startDeleting(target: { kind: 'milestone' | 'todo', item: Item }): void
   deleting.value = target
 }
 
+/** Menu "Ändern / Löschen" of a milestone or todo, by the viewer's rights. */
 function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
   const prefix = kind === 'milestone' ? 'MILESTONE' : 'TODO'
   const items: DropdownMenuItem[] = []
@@ -92,15 +126,6 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
 
 <template>
   <div class="space-y-6">
-    <UTabs
-      v-model="view"
-      :items="views"
-      :content="false"
-      variant="link"
-      :aria-label="t('project.views.label')"
-      class="w-full"
-    />
-
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p
         v-if="project?.description"
@@ -118,151 +143,35 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
     </div>
 
     <ProjectTimeline
-      v-if="view === 'timeline'"
       v-model:milestones-only="milestonesOnly"
       :project-id="projectId"
+      :actions="actions"
+      :empty-hint="can('MILESTONE_CREATE') ? t('project.noMilestonesHint') : undefined"
       :can-create-todo="can('TODO_CREATE')"
       :can-create-task="can('TASK_CREATE')"
+      :can-update-task="can('TASK_UPDATE')"
       @create-todo="editing = { kind: 'todo', parentId: $event }"
-      @create-task="creatingTask = { todoId: $event }"
+      @create-task="createTask"
+      @open-task="openTask"
+      @edit-task="editTask"
     />
-
-    <template v-else>
-      <USkeleton
-        v-if="loading && !result"
-        class="h-40"
-      />
-      <UEmpty
-        v-else-if="!milestones.length"
-        icon="i-fadl-flag-checkered"
-        :title="t('project.noMilestones')"
-        :description="can('MILESTONE_CREATE') ? t('project.noMilestonesHint') : undefined"
-      />
-
-      <UCard
-        v-for="(milestone, index) in milestones"
-        :key="milestone.id"
-      >
-        <template #header>
-          <div class="flex flex-wrap items-center gap-3">
-            <ItemIcon
-              :name="milestone.icon"
-              fallback="flag-checkered"
-              class="text-xl text-primary"
-            />
-            <MilestoneNumber :number="index + 1" />
-            <h2 class="min-w-0 flex-1 truncate font-semibold text-highlighted">
-              {{ milestone.title }}
-            </h2>
-            <StatusBadge :status="milestone.status" />
-            <DueDate
-              :date="milestone.dueDate"
-              :done="milestone.status === 'DONE'"
-            />
-            <UDropdownMenu
-              v-if="actions('milestone', milestone).length"
-              :items="actions('milestone', milestone)"
-            >
-              <UButton
-                icon="i-fadl-ellipsis"
-                color="neutral"
-                variant="ghost"
-                :aria-label="t('common.actions')"
-              />
-            </UDropdownMenu>
-          </div>
-          <div class="mt-3 flex items-center gap-3">
-            <UProgress
-              :model-value="milestone.progress.percent"
-              size="sm"
-              class="flex-1"
-            />
-            <span class="text-sm text-muted">{{ t('projects.progress', { done: milestone.progress.done, total: milestone.progress.total }) }}</span>
-          </div>
-        </template>
-
-        <RichTextView
-          :content="milestone.description"
-          class="mb-4 text-sm"
-        />
-
-        <ul
-          v-if="milestone.todos.length"
-          class="divide-y divide-default"
-        >
-          <li
-            v-for="todo in milestone.todos"
-            :key="todo.id"
-            class="flex flex-wrap items-center gap-3 py-2"
-          >
-            <ItemIcon
-              :name="todo.icon"
-              fallback="list-check"
-              class="text-lg text-primary"
-            />
-            <span class="min-w-0 flex-1 truncate">{{ todo.title }}</span>
-            <UTooltip
-              v-if="!isEmptyDocument(todo.description)"
-              :text="t('project.hasDescription')"
-            >
-              <UIcon
-                name="i-fadl-align-left"
-                class="size-4 text-muted"
-                :aria-label="t('project.hasDescription')"
-              />
-            </UTooltip>
-            <span class="text-sm text-muted">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
-            <StatusBadge :status="todo.status" />
-            <DueDate
-              :date="todo.dueDate"
-              :done="todo.status === 'DONE'"
-            />
-            <UDropdownMenu
-              v-if="actions('todo', todo).length"
-              :items="actions('todo', todo)"
-            >
-              <UButton
-                icon="i-fadl-ellipsis"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                :aria-label="t('common.actions')"
-              />
-            </UDropdownMenu>
-          </li>
-        </ul>
-        <p
-          v-else
-          class="text-sm text-muted"
-        >
-          {{ t('project.noTodos') }}
-        </p>
-
-        <template
-          v-if="can('TODO_CREATE')"
-          #footer
-        >
-          <UButton
-            icon="i-fadl-plus"
-            :label="t('item.todo.create')"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            @click="editing = { kind: 'todo', parentId: milestone.id }"
-          />
-        </template>
-      </UCard>
-    </template>
 
     <ItemFormModal
       :target="editing"
       @close="editing = null"
     />
+    <TaskDetail
+      :task-id="openTaskId"
+      :members="members"
+      :can="taskAbilities"
+      @close="closeTask"
+      @edit="editFromDetails"
+    />
     <TaskFormModal
-      :target="creatingTask"
+      :target="taskForm"
       :todos="todos"
       :members="members"
-      @close="creatingTask = null"
+      @close="closeTaskForm"
     />
     <ConfirmModal
       :open="deleting !== null"

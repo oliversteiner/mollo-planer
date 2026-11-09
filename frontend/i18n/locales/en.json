@@ -182,12 +182,6 @@
     "noMilestonesHint": "Create the first milestone, for example “Design approved”.",
     "noTodos": "No todos yet.",
     "taskCount": "{done}/{total} tasks",
-    "hasDescription": "Has a description",
-    "views": {
-      "label": "View",
-      "list": "List",
-      "timeline": "Timeline"
-    },
     "timeline": {
       "expandAll": "Expand all",
       "collapseAll": "Collapse all",
@@ -198,7 +192,10 @@
       "milestonesOnly": "Show milestones only",
       "showAll": "Show everything",
       "createTodo": "New todo in milestone “{title}”",
-      "createTask": "New task in todo “{title}”"
+      "createTask": "New task in todo “{title}”",
+      "milestoneActions": "Actions for milestone “{title}”",
+      "todoActions": "Actions for todo “{title}”",
+      "openTask": "Open task “{title}”"
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}"
