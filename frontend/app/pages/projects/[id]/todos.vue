@@ -88,10 +88,15 @@ function actions(todo: Item): ActionMenuItem[] {
         class="todos-filter"
         @update:model-value="statusFilter = $event as typeof statusFilter"
       />
+    </div>
+
+    <Teleport
+      v-if="can('TODO_CREATE') && milestones.length"
+      to="#page-actions"
+      defer
+    >
       <wa-button
-        v-if="can('TODO_CREATE') && milestones.length"
         variant="brand"
-        style="margin-inline-start: auto"
         @click="editing = { kind: 'todo' }"
       >
         <wa-icon
@@ -100,7 +105,7 @@ function actions(todo: Item): ActionMenuItem[] {
         ></wa-icon>
         {{ t('item.todo.create') }}
       </wa-button>
-    </div>
+    </Teleport>
 
     <wa-skeleton
       v-if="loading && !result"

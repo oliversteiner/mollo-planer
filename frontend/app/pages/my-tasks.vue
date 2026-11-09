@@ -27,7 +27,10 @@ const tasks = computed(() => [...(result.value?.myTasks ?? [])]
 </script>
 
 <template>
-  <PageFrame :title="t('myTasks.title')">
+  <PageFrame
+    :title="t('myTasks.title')"
+    :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('myTasks.title') }]"
+  >
     <template #actions>
       <FormSelect
         :model-value="filter"

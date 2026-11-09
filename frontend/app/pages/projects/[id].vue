@@ -1,30 +1,45 @@
 <script setup lang="ts">
+import type { Crumb } from '~/components/PageFrame.vue'
+
 /**
- * Frame of every project page: name, role and the page. The pages of a
- * project are linked in the sidebar (category "Projects").
+ * Frame of every project page: header (breadcrumb, project name, role,
+ * description, the actions of the page), the tabs of the project and the
+ * page. The pages put their buttons into the header with
+ * <Teleport to="#page-actions" defer>.
  */
 const { t } = useI18n()
 const route = useRoute()
-const { project, loaded } = useProject()
+const { project, loaded, can } = useProject()
 
-/** Name of the page within the project, shown next to the project name. */
+/** Name of the page within the project (the tab), for breadcrumb and window title. */
 const pageName = computed(() => {
   const page = route.path.split('/')[3] ?? ''
-  const keys: Record<string, string> = { '': 'overview', 'todos': 'todos', 'kanban': 'kanban', 'settings': 'settings' }
+  const keys: Record<string, string> = { '': 'milestones', 'todos': 'todos', 'kanban': 'tasks', 'members': 'members', 'settings': 'settings' }
 
-  return t(`project.tabs.${keys[page] ?? 'overview'}`)
+  return t(`project.tabs.${keys[page] ?? 'milestones'}`)
 })
 
-const title = computed(() => (project.value ? `${project.value.name} · ${pageName.value}` : ''))
+const breadcrumbs = computed<Crumb[]>(() => [
+  { label: t('projects.title'), to: '/projects' },
+  ...(project.value ? [{ label: project.value.name, to: `/projects/${project.value.id}` }] : []),
+  { label: pageName.value }
+])
 
-useHead({ title: () => (project.value ? title.value : t('projects.title')) })
+/** "Settings" only when there is something to set: changing or deleting the project. */
+const withSettings = computed(() => can('PROJECT_UPDATE') || can('PROJECT_DELETE'))
+
+useHead({ title: () => (project.value ? `${project.value.name} · ${pageName.value}` : t('projects.title')) })
 </script>
 
 <template>
-  <PageFrame :title="title">
+  <PageFrame
+    :title="project?.name ?? t('projects.title')"
+    :breadcrumbs="breadcrumbs"
+    :description="project?.description"
+  >
     <template
       v-if="project?.viewerRole"
-      #actions
+      #title-end
     >
       <wa-badge
         variant="neutral"
@@ -32,6 +47,16 @@ useHead({ title: () => (project.value ? title.value : t('projects.title')) })
       >
         {{ t(`role.${project.viewerRole}`) }}
       </wa-badge>
+    </template>
+
+    <template
+      v-if="project"
+      #nav
+    >
+      <ProjectTabs
+        :project-id="project.id"
+        :with-settings="withSettings"
+      />
     </template>
 
     <wa-skeleton

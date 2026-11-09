@@ -18,7 +18,10 @@ async function setNotifications(enabled: boolean): Promise<void> {
 </script>
 
 <template>
-  <PageFrame :title="t('profile.title')">
+  <PageFrame
+    :title="t('profile.title')"
+    :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('profile.title') }]"
+  >
     <div class="profile-grid">
       <ProfileAvatarCard />
 

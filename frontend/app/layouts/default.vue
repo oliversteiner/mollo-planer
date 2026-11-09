@@ -77,7 +77,10 @@ function skipToContent(): void {
       </section>
     </div>
 
-    <div slot="navigation-footer">
+    <div
+      slot="navigation-footer"
+      class="app-footer"
+    >
       <wa-dropdown
         v-if="viewer"
         placement="top-start"
@@ -177,9 +180,32 @@ function skipToContent(): void {
   gap: var(--wa-space-xs);
 }
 
+/* In the drawer (small screens) the footer is placed at the right; it takes the whole width. */
+.app-footer {
+  flex: 1;
+  inline-size: 100%;
+}
+
 .user-menu-button {
   inline-size: 100%;
+  text-align: start;
+}
+
+/* Avatar, name and second line from the left; the caret stays at the right. */
+.user-menu-button::part(base) {
   justify-content: flex-start;
+}
+
+.user-menu-button::part(label) {
+  display: flex;
+  flex: 1;
+  min-inline-size: 0;
+  text-align: start;
+}
+
+wa-dropdown:has(> .user-menu-button) {
+  display: block;
+  inline-size: 100%;
 }
 
 /*

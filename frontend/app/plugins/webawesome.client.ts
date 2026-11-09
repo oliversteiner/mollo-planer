@@ -10,6 +10,8 @@ import en from '@web.awesome.me/webawesome-pro/dist/translations/en.js'
 
 import '@web.awesome.me/webawesome-pro/dist/components/avatar/avatar.js'
 import '@web.awesome.me/webawesome-pro/dist/components/badge/badge.js'
+import '@web.awesome.me/webawesome-pro/dist/components/breadcrumb/breadcrumb.js'
+import '@web.awesome.me/webawesome-pro/dist/components/breadcrumb-item/breadcrumb-item.js'
 import '@web.awesome.me/webawesome-pro/dist/components/button/button.js'
 import '@web.awesome.me/webawesome-pro/dist/components/callout/callout.js'
 import '@web.awesome.me/webawesome-pro/dist/components/card/card.js'

@@ -11,7 +11,9 @@
     "users": "Benutzer",
     "appSettings": "App-Einstellungen",
     "skipToContent": "Zum Inhalt springen",
-    "assistant": "KI-Assistent"
+    "assistant": "KI-Assistent",
+    "breadcrumb": "Pfad",
+    "workspace": "Arbeitsplatz"
   },
   "settings": {
     "language": "Sprache",
@@ -44,20 +46,23 @@
     },
     "danger": {
       "title": "Projekt löschen",
-      "description": "Löscht das Projekt mit allen Milestones, ToDos, Tasks und Kommentaren.",
+      "description": "Löscht das Projekt mit allen Milestones, ToDo, Tasks und Kommentaren.",
       "delete": "Projekt löschen",
       "confirmTitle": "«{name}» endgültig löschen?",
-      "confirmDescription": "Alle Milestones, ToDos, Tasks und Kommentare dieses Projekts werden gelöscht. Das lässt sich nicht rückgängig machen.",
+      "confirmDescription": "Alle Milestones, ToDo, Tasks und Kommentare dieses Projekts werden gelöscht. Das lässt sich nicht rückgängig machen.",
       "deleted": "Projekt «{name}» gelöscht."
     }
   },
   "dashboard": {
     "title": "Dashboard",
-    "greeting": "Hallo {name}",
+    "greetingMorning": "Guten Morgen, {name}",
+    "greetingDay": "Guten Tag, {name}",
+    "greetingEvening": "Guten Abend, {name}",
+    "subtitle": "Hier siehst du, was dein Team heute voranbringt.",
     "myOpenTasks": "Meine offenen Tasks",
     "noOpenTasks": "Du hast keine offenen Tasks.",
-    "upcomingTodos": "Anstehende ToDos",
-    "noUpcomingTodos": "Keine offenen ToDos.",
+    "upcomingTodos": "Anstehende ToDo",
+    "noUpcomingTodos": "Keine offenen ToDo.",
     "projects": "Projekte",
     "allProjects": "Alle Projekte"
   },
@@ -176,14 +181,16 @@
   },
   "project": {
     "tabs": {
-      "overview": "Übersicht",
-      "todos": "ToDos",
-      "kanban": "Kanban",
+      "label": "Bereiche des Projekts",
+      "milestones": "Milestones",
+      "todos": "ToDo",
+      "tasks": "Tasks",
+      "members": "Mitglieder",
       "settings": "Einstellungen"
     },
     "noMilestones": "Noch keine Milestones",
     "noMilestonesHint": "Lege den ersten Milestone an, zum Beispiel «Design freigegeben».",
-    "noTodos": "Noch keine ToDos.",
+    "noTodos": "Noch keine ToDo.",
     "taskCount": "{done}/{total} Tasks",
     "timeline": {
       "label": "Milestones",
@@ -209,7 +216,7 @@
     "status": "Status",
     "allMilestones": "Alle Milestones",
     "allStatuses": "Alle",
-    "none": "Keine ToDos gefunden."
+    "none": "Keine ToDo gefunden."
   },
   "item": {
     "fields": {
@@ -224,7 +231,7 @@
       "edit": "Milestone ändern",
       "saved": "Milestone gespeichert.",
       "deleteTitle": "Milestone löschen?",
-      "deleteDescription": "«{title}» wird mit allen ToDos, Tasks und Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+      "deleteDescription": "«{title}» wird mit allen ToDo, Tasks und Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
     },
     "todo": {
       "create": "ToDo anlegen",
@@ -428,7 +435,7 @@
   },
   "claude": {
     "title": "Zugang für Claude",
-    "intro": "Mit einem persönlichen Zugang kann Claude (zum Beispiel Claude Code) Projekte lesen und mit Milestones, ToDos und Tasks füllen, mit deinen Rechten. Löschen kann Claude nichts. Ein Zugang gilt 90 Tage.",
+    "intro": "Mit einem persönlichen Zugang kann Claude (zum Beispiel Claude Code) Projekte lesen und mit Milestones, ToDo und Tasks füllen, mit deinen Rechten. Löschen kann Claude nichts. Ein Zugang gilt 90 Tage.",
     "name": "Name",
     "nameHint": "Zum Wiedererkennen, zum Beispiel «Claude Laptop»",
     "create": "Zugang erzeugen",
@@ -457,7 +464,7 @@
       "you": "Du",
       "assistant": "Assistent",
       "emptyTitle": "Beschreibe dein Projekt",
-      "emptyDescription": "Wer macht mit, was soll entstehen, bis wann? Claude entwirft daraus Milestones, ToDos und Tasks. Gespeichert wird erst mit «Jetzt eintragen».",
+      "emptyDescription": "Wer macht mit, was soll entstehen, bis wann? Claude entwirft daraus Milestones, ToDo und Tasks. Gespeichert wird erst mit «Jetzt eintragen».",
       "placeholder": "Nachricht an den Assistenten (Enter sendet, Shift+Enter neue Zeile)",
       "listening": "Ich höre zu …",
       "send": "Senden",
@@ -478,7 +485,7 @@
       "timeline": "Timeline",
       "noDate": "Ohne Datum",
       "milestoneCount": "Keine Milestones | 1 Milestone | {count} Milestones",
-      "todoCount": "Keine ToDos | 1 ToDo | {count} ToDos",
+      "todoCount": "Keine ToDo | 1 ToDo | {count} ToDo",
       "taskCount": "{count} Tasks, {assigned} zugewiesen",
       "taskCountShort": "Keine Tasks | 1 Task | {count} Tasks",
       "mailLanguage": "Mails: {language}",

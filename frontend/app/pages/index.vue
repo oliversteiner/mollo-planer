@@ -10,14 +10,23 @@ useHead({ title: () => t('dashboard.title') })
 const { result, loading } = useQuery(dashboardQuery, { limit: 8 }, { fetchPolicy: 'cache-and-network' })
 
 const dashboard = computed(() => result.value?.dashboard)
+
+/** "Guten Morgen, Anna": by the time of day, with the first name. */
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  const key = hour < 11 ? 'greetingMorning' : hour < 18 ? 'greetingDay' : 'greetingEvening'
+  const firstName = viewer.value?.name.trim().split(/\s+/)[0] ?? ''
+
+  return t(`dashboard.${key}`, { name: firstName })
+})
 </script>
 
 <template>
-  <PageFrame :title="t('dashboard.title')">
-    <p class="wa-heading-s">
-      {{ t('dashboard.greeting', { name: viewer?.name ?? '' }) }}
-    </p>
-
+  <PageFrame
+    :title="greeting"
+    :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('dashboard.title') }]"
+    :description="t('dashboard.subtitle')"
+  >
     <div class="dashboard-columns">
       <wa-card>
         <h2

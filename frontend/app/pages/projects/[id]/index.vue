@@ -13,7 +13,7 @@ import { projectMembersQuery } from '~/graphql/task'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const { projectId, project, can } = useProject()
+const { projectId, can } = useProject()
 
 /** Only the milestones (?milestones=only). */
 const milestonesOnly = computed({
@@ -126,17 +126,13 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
 
 <template>
   <div class="wa-stack wa-gap-l">
-    <div class="wa-split wa-gap-s">
-      <p
-        v-if="project?.description"
-        class="project-description"
-      >
-        {{ project.description }}
-      </p>
+    <Teleport
+      v-if="can('MILESTONE_CREATE')"
+      to="#page-actions"
+      defer
+    >
       <wa-button
-        v-if="can('MILESTONE_CREATE')"
         variant="brand"
-        style="margin-inline-start: auto"
         @click="editing = { kind: 'milestone', parentId: projectId }"
       >
         <wa-icon
@@ -145,7 +141,7 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
         ></wa-icon>
         {{ t('item.milestone.create') }}
       </wa-button>
-    </div>
+    </Teleport>
 
     <ProjectTimeline
       v-model:milestones-only="milestonesOnly"
@@ -189,11 +185,3 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
     />
   </div>
 </template>
-
-<style scoped>
-.project-description {
-  margin: 0;
-  max-inline-size: 65ch;
-  color: var(--wa-color-text-quiet);
-}
-</style>

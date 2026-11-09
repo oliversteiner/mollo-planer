@@ -27,7 +27,10 @@ async function setTwoFactor(enabled: boolean): Promise<void> {
 </script>
 
 <template>
-  <PageFrame :title="t('admin.settings.title')">
+  <PageFrame
+    :title="t('admin.settings.title')"
+    :breadcrumbs="[{ label: t('nav.admin') }, { label: t('admin.settings.title') }]"
+  >
     <wa-card class="admin-settings-card">
       <h2
         slot="header"

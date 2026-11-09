@@ -117,3 +117,21 @@ describe('SidebarProjectList', () => {
     expect((links[1]!.find('wa-icon').element as unknown as { name: string }).name).toBe('globe')
   })
 })
+
+describe('ProjectTabs', () => {
+  it('links the pages of the project, settings only when allowed', async () => {
+    const { default: ProjectTabs } = await import('~/components/ProjectTabs.vue')
+    const tabs = await mountSuspended(ProjectTabs, { props: { projectId: '7' } })
+
+    expect(tabs.findAll('a').map(link => [link.text(), link.attributes('href')])).toEqual([
+      ['Milestones', '/projects/7'],
+      ['ToDo', '/projects/7/todos'],
+      ['Tasks', '/projects/7/kanban'],
+      ['Mitglieder', '/projects/7/members']
+    ])
+
+    await tabs.setProps({ withSettings: true })
+
+    expect(tabs.findAll('a').at(-1)!.text()).toBe('Einstellungen')
+  })
+})

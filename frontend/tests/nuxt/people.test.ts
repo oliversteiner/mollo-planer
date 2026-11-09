@@ -85,10 +85,24 @@ describe('PageFrame', () => {
 
     expect(plain.find('h1').text()).toBe('Dashboard')
     expect(plain.find('.body').exists()).toBe(true)
-    expect(plain.find('.page-actions').exists()).toBe(false)
+    expect(plain.find('.page-actions').text()).toBe('')
+    expect(plain.find('wa-breadcrumb').exists()).toBe(false)
 
     const withActions = await mountSuspended(PageFrame, { props: { title: 'Projekte' }, slots: { actions: '<button class="act">Neu</button>' } })
 
     expect(withActions.find('.page-actions .act').exists()).toBe(true)
+  })
+
+  it('shows the breadcrumb with links up to the current page and the description', async () => {
+    const frame = await mountSuspended(PageFrame, {
+      props: { title: 'Website', description: 'Neue Website', breadcrumbs: [{ label: 'Projekte', to: '/projects' }, { label: 'Website', to: '/projects/1' }, { label: 'Tasks' }] }
+    })
+    const items = frame.findAll('wa-breadcrumb-item')
+
+    expect(items.map(item => item.text())).toEqual(['Projekte', 'Website', 'Tasks'])
+    expect(items.map(item => (item.element as unknown as { href?: string }).href)).toEqual(['/projects', '/projects/1', undefined])
+    expect(frame.find('.page-description').text()).toBe('Neue Website')
+    // Child pages put their buttons here with <Teleport to="#page-actions">.
+    expect(frame.find('#page-actions').exists()).toBe(true)
   })
 })

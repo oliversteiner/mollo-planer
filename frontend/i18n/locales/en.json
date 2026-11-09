@@ -11,7 +11,9 @@
     "users": "Users",
     "appSettings": "App settings",
     "skipToContent": "Skip to content",
-    "assistant": "AI assistant"
+    "assistant": "AI assistant",
+    "breadcrumb": "Breadcrumb",
+    "workspace": "Workspace"
   },
   "settings": {
     "language": "Language",
@@ -53,7 +55,10 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "greeting": "Hello {name}",
+    "greetingMorning": "Good morning, {name}",
+    "greetingDay": "Good afternoon, {name}",
+    "greetingEvening": "Good evening, {name}",
+    "subtitle": "Here is what your team moves forward today.",
     "myOpenTasks": "My open tasks",
     "noOpenTasks": "You have no open tasks.",
     "upcomingTodos": "Upcoming todos",
@@ -176,9 +181,11 @@
   },
   "project": {
     "tabs": {
-      "overview": "Overview",
+      "label": "Project sections",
+      "milestones": "Milestones",
       "todos": "Todos",
-      "kanban": "Kanban",
+      "tasks": "Tasks",
+      "members": "Members",
       "settings": "Settings"
     },
     "noMilestones": "No milestones yet",

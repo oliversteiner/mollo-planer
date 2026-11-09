@@ -175,9 +175,10 @@ const abilities = computed(() => ({
 
 <template>
   <div class="kanban">
-    <div
+    <Teleport
       v-if="can('TASK_CREATE')"
-      class="wa-cluster wa-justify-content-end"
+      to="#page-actions"
+      defer
     >
       <wa-button
         variant="brand"
@@ -190,7 +191,7 @@ const abilities = computed(() => ({
         ></wa-icon>
         {{ t('task.create') }}
       </wa-button>
-    </div>
+    </Teleport>
 
     <wa-skeleton
       v-if="loading && !result"

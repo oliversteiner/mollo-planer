@@ -188,6 +188,7 @@ watch(plan, (current, previous) => {
 <template>
   <PageFrame
     :title="t('assistant.title')"
+    :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('assistant.title') }]"
     fill
   >
     <wa-split-panel

@@ -41,9 +41,11 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf 
 - Fehlermeldungen des Servers erscheinen am Feld (`useServerForm()`); andere Fehler meldet das Plugin.
 - `/setup-security` ist bis Schritt 10 ein Platzhalter mit Abmelden.
 
-## Navigation (Anpassung 2026-11-08)
-- Seitenleiste: Dashboard und Meine Tasks; darunter die Kategorie „Projekte“ mit einer Projektauswahl und den Links Übersicht, ToDos, Kanban und Einstellungen für das gewählte Projekt (`SidebarProjects`); für Admins „Verwaltung“. Gewählt ist das Projekt der aktuellen Seite, sonst das zuletzt gewählte (im Browser gemerkt), sonst das erste. Ein Wechsel behält die Unterseite (Kanban → Kanban).
-- Die Reiter im Projektkopf entfallen; der Kopf zeigt „Projekt · Unterseite“. Die Projektliste (`/projects`, mit „Projekt anlegen“ für Admins) ist nur noch über „Alle Projekte“ auf dem Dashboard erreichbar.
+## Navigation (Anpassung 2026-11-10, nach Figma „13 Dashboard · Dark“)
+- **Seitenleiste:** App-Name; Dashboard, Meine Tasks, KI-Assistent (nur Admins); „Projekte“ mit allen Projekten der Person als Links, alphabetisch, jedes mit seinem Icon (Feld `Project.icon`, sonst Ordner); „Verwaltung“ für Admins; unten Avatar, Name und „Admin“ bzw. die E-Mail mit dem Menü Profil/Abmelden. Das Projekt der aktuellen Seite ist markiert. Die Seitenleiste hat die Fläche `--wa-color-surface-default`, der Inhalt `--wa-color-surface-lowered`.
+- **Seitenkopf** (`PageFrame`) auf jeder Seite: oben kleine Brotkrumen (`wa-breadcrumb`), darunter links der grosse Titel, rechts die Aktionsknöpfe, optional eine Zeile darunter. Projektseiten: „Projekte / Projekt / Reiter“, Titel = Projektname, Beschreibung des Projekts darunter, Rolle als Badge; die Knöpfe der Unterseiten kommen per `<Teleport to="#page-actions" defer>` in den Kopf. Dashboard: Titel ist die Begrüssung nach Tageszeit („Guten Morgen, Anna“).
+- **Reiter der Projektseiten** (`ProjectTabs`) unter dem Kopf: Milestones (`/projects/:id`, Zeitachse), ToDo (`/todos`), Tasks (`/kanban`, Adresse bleibt wegen der Mails), Mitglieder (`/members`, neu), Einstellungen (`/settings`, nur mit `PROJECT_UPDATE` oder `PROJECT_DELETE`).
+- **Schreibweise:** In deutschen Texten heisst es überall „ToDo“, auch in der Mehrzahl.
 
 ## Seiten
 | Route | Inhalt |
@@ -57,7 +59,8 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf 
 | `/projects/:id?milestones=&task=` | Übersicht als Zeitstrahl: Milestones nach Fälligkeit (Nummer M1, M2 …), darin ToDos zum Aufklappen mit ihren Tasks, Darstellung wie die Vorschau des KI-Assistenten. Anlegen, Ändern und Löschen von Milestones, ToDos und Tasks nach Rechten. Tasks wie im Kanban: Klick öffnet die Details im Seitenpanel (`?task=`), Doppelklick das Bearbeiten. Tasks per Drag & Drop in ein anderes ToDo ziehen (`moveTaskToTodo`, mit Recht „Task ändern“); ein zugeklapptes ToDo öffnet sich, wenn man einen Task darüber hält. Innerhalb eines ToDos bleibt die Reihenfolge nach Fälligkeit. „Nur Milestones anzeigen“ blendet Beschreibungen und ToDos aus (`?milestones=only`) |
 | `/projects/:id/todos` | ToDo-Liste mit Filtern (Milestone, Status) |
 | `/projects/:id/kanban?task=` | Kanban; `?task=` öffnet die Task-Details im Seitenpanel (Link aus den Mails) |
-| `/projects/:id/settings` | Name, Beschreibung, Sprache der Mails, Mitglieder und Rollen, Projekt löschen |
+| `/projects/:id/members` | Mitglieder und Rollen (lesen alle, ändern mit `MEMBERS_MANAGE`) |
+| `/projects/:id/settings` | Name, Beschreibung, Icon, Sprache der Mails, Projekt löschen |
 | `/my-tasks` | Meine Tasks, filterbar nach Status |
 | `/profile` | Name und E-Mail, Passwort, Avatarbild, Mail-Benachrichtigungen, 2FA-App, Passkeys, Sprache |
 | `/assistant` | KI-Assistent (nur Admins): links Chat mit Spracheingabe, rechts Vorschau des Entwurfs (Name, Beschreibung, Timeline mit Milestones, aufklappbaren ToDos und Tasks), „Jetzt eintragen“ |

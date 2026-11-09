@@ -14,7 +14,10 @@ const creating = ref(false)
 </script>
 
 <template>
-  <PageFrame :title="t('projects.title')">
+  <PageFrame
+    :title="t('projects.title')"
+    :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('projects.title') }]"
+  >
     <template
       v-if="viewer?.isAdmin"
       #actions

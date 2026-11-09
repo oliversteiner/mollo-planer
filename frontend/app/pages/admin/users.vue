@@ -104,7 +104,10 @@ function factorLabel(user: User): string {
 </script>
 
 <template>
-  <PageFrame :title="t('admin.users.title')">
+  <PageFrame
+    :title="t('admin.users.title')"
+    :breadcrumbs="[{ label: t('nav.admin') }, { label: t('admin.users.title') }]"
+  >
     <template #actions>
       <wa-button
         variant="brand"

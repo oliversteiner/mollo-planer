@@ -34,11 +34,6 @@ async function confirmDelete(): Promise<void> {
       v-if="can('PROJECT_UPDATE')"
       :project="project"
     />
-    <ProjectMembersCard
-      :project-id="project.id"
-      :members="project.members"
-      :can-manage="can('MEMBERS_MANAGE')"
-    />
 
     <wa-card
       v-if="can('PROJECT_DELETE')"
@@ -46,7 +41,7 @@ async function confirmDelete(): Promise<void> {
     >
       <h2
         slot="header"
-        class="wa-heading-s settings-danger-title"
+        class="wa-heading-m settings-danger-title"
       >
         {{ t('settings.danger.title') }}
       </h2>
@@ -84,10 +79,10 @@ async function confirmDelete(): Promise<void> {
 }
 
 .settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  display: flex;
+  flex-direction: column;
   gap: var(--wa-space-l);
-  max-inline-size: 72rem;
+  max-inline-size: 48rem;
 }
 
 .settings-danger {
