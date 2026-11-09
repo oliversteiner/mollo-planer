@@ -19,6 +19,7 @@ const baseURL = useRuntimeConfig().app.baseURL
 const catalog = useState<IconEntry[] | null>('iconCatalog', () => null)
 const open = ref(false)
 const query = ref('')
+const gridId = useId()
 const loading = ref(false)
 
 watch(open, async (isOpen) => {
@@ -44,80 +45,131 @@ function choose(name: string | null): void {
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
-    <UButton
-      color="neutral"
-      variant="outline"
+  <div class="icon-picker">
+    <wa-button
+      appearance="outlined"
+      variant="neutral"
       :aria-label="t('icons.choose')"
       @click="open = true"
     >
       <ItemIcon
+        slot="start"
         :name="model"
         :fallback="fallback"
-        class="text-xl text-primary"
+        class="icon-picker-current"
       />
-      <span>{{ model ?? t('icons.default') }}</span>
-    </UButton>
-    <UButton
+      {{ model ?? t('icons.default') }}
+    </wa-button>
+    <wa-button
       v-if="model"
-      icon="i-fadl-xmark"
-      color="neutral"
-      variant="ghost"
-      size="sm"
+      appearance="plain"
+      variant="neutral"
+      size="small"
       :aria-label="t('icons.remove')"
       @click="choose(null)"
-    />
-
-    <UModal
-      v-model:open="open"
-      :title="t('icons.title')"
     >
-      <template #body>
-        <UInput
+      <wa-icon name="xmark"></wa-icon>
+    </wa-button>
+
+    <AppDialog
+      v-model:open="open"
+      :label="t('icons.title')"
+    >
+      <div class="wa-stack wa-gap-s">
+        <FormInput
           v-model="query"
-          icon="i-fadl-magnifying-glass"
           :placeholder="t('icons.search')"
-          :loading="loading"
-          class="w-full"
+          :aria-label="t('icons.search')"
           autofocus
-        />
-        <p class="mt-2 text-xs text-muted">
+        >
+          <template #start>
+            <wa-icon
+              slot="start"
+              name="magnifying-glass"
+            ></wa-icon>
+          </template>
+        </FormInput>
+        <p class="icon-picker-count">
+          <wa-spinner v-if="loading"></wa-spinner>
           {{ query ? t('icons.results', { count: results.length }) : t('icons.suggestions') }}
         </p>
 
         <ul
-          class="mt-3 grid max-h-80 grid-cols-6 gap-1 overflow-y-auto sm:grid-cols-8"
+          class="icon-picker-grid wa-list-plain"
           :aria-label="t('icons.title')"
         >
           <li
             v-for="[name, label] in results"
             :key="name"
           >
-            <UTooltip :text="`${label} (${name})`">
-              <UButton
-                color="neutral"
-                :variant="model === name ? 'soft' : 'ghost'"
-                :aria-label="label"
-                :aria-pressed="model === name"
-                class="flex aspect-square w-full items-center justify-center"
-                @click="choose(name)"
-              >
-                <ItemIcon
-                  :name="name"
-                  :fallback="fallback"
-                  class="text-2xl"
-                />
-              </UButton>
-            </UTooltip>
+            <wa-button
+              :id="`${gridId}-${name}`"
+              :appearance="model === name ? 'filled' : 'plain'"
+              variant="neutral"
+              :aria-label="label"
+              :aria-pressed="model === name"
+              class="icon-picker-choice"
+              @click="choose(name)"
+            >
+              <ItemIcon
+                :name="name"
+                :fallback="fallback"
+                class="icon-picker-icon"
+              />
+            </wa-button>
+            <wa-tooltip :for="`${gridId}-${name}`">
+              {{ label }} ({{ name }})
+            </wa-tooltip>
           </li>
         </ul>
-        <UEmpty
+        <EmptyState
           v-if="!loading && query && !results.length"
-          icon="i-fadl-icons"
+          icon="icons"
           :description="t('icons.noResults')"
           size="sm"
+          bare
         />
-      </template>
-    </UModal>
+      </div>
+    </AppDialog>
   </div>
 </template>
+
+<style scoped>
+.icon-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-xs);
+}
+
+.icon-picker-current {
+  font-size: var(--wa-font-size-xl);
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.icon-picker-count {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-xs);
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+}
+
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3rem, 1fr));
+  gap: var(--wa-space-3xs);
+  max-block-size: 20rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.icon-picker-choice {
+  inline-size: 100%;
+}
+
+.icon-picker-icon {
+  font-size: var(--wa-font-size-2xl);
+}
+</style>

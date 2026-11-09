@@ -1,0 +1,72 @@
+/*
+ * Look of rich text (TipTap): the editor and the read-only view. Only the
+ * elements of the whitelist (utils/rich-text.ts) need styles.
+ */
+.rich-text .ProseMirror {
+  outline: none;
+}
+
+.rich-text .ProseMirror > :first-child {
+  margin-block-start: 0;
+}
+
+.rich-text .ProseMirror > :last-child {
+  margin-block-end: 0;
+}
+
+.rich-text .ProseMirror p {
+  margin-block: 0 var(--wa-space-xs);
+}
+
+.rich-text .ProseMirror h2,
+.rich-text .ProseMirror h3 {
+  margin-block: var(--wa-space-s) var(--wa-space-3xs);
+  font-weight: var(--wa-font-weight-semibold);
+  line-height: 1.25;
+}
+
+.rich-text .ProseMirror h2 {
+  font-size: var(--wa-font-size-l);
+}
+
+.rich-text .ProseMirror h3 {
+  font-size: var(--wa-font-size-m);
+}
+
+.rich-text .ProseMirror ul,
+.rich-text .ProseMirror ol {
+  margin-block: 0 var(--wa-space-xs);
+  padding-inline-start: var(--wa-space-l);
+}
+
+.rich-text .ProseMirror ul {
+  list-style: disc;
+}
+
+.rich-text .ProseMirror ol {
+  list-style: decimal;
+}
+
+.rich-text .ProseMirror li > p {
+  margin-block: 0;
+}
+
+.rich-text .ProseMirror blockquote {
+  margin-block: 0 var(--wa-space-xs);
+  padding-inline-start: var(--wa-space-s);
+  border-inline-start: var(--wa-border-width-m) var(--wa-border-style) var(--wa-color-surface-border);
+  color: var(--wa-color-text-quiet);
+}
+
+.rich-text .ProseMirror a {
+  color: var(--wa-color-text-link);
+  text-decoration: underline;
+}
+
+.rich-text .ProseMirror p.is-editor-empty:first-child::before {
+  float: inline-start;
+  block-size: 0;
+  color: var(--wa-form-control-placeholder-color);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}

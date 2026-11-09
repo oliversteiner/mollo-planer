@@ -6,6 +6,7 @@ import { isAllowedLink } from '~/utils/rich-text'
 const props = defineProps<{ editor: Editor }>()
 
 const { t } = useI18n()
+const anchorId = useId()
 const open = ref(false)
 const url = ref('')
 const error = ref('')
@@ -47,54 +48,90 @@ function remove(): void {
   props.editor.chain().focus().extendMarkRange('link').unsetLink().run()
   open.value = false
 }
+
+/** Events of the fields inside bubble up; only the popover's own count. */
+function onShow(event: Event): void {
+  if (event.target === event.currentTarget) {
+    open.value = true
+  }
+}
+
+function onHide(event: Event): void {
+  if (event.target === event.currentTarget) {
+    open.value = false
+  }
+}
 </script>
 
 <template>
-  <UPopover v-model:open="open">
-    <UTooltip :text="t('richText.link.button')">
-      <UButton
-        icon="i-fadl-link"
-        color="neutral"
-        :variant="active ? 'soft' : 'ghost'"
-        size="sm"
-        :aria-label="t('richText.link.button')"
-        :disabled="!active && editor.state.selection.empty"
-      />
-    </UTooltip>
+  <wa-button
+    :id="anchorId"
+    :appearance="active ? 'filled' : 'plain'"
+    variant="neutral"
+    size="small"
+    :title="t('richText.link.button')"
+    :aria-label="t('richText.link.button')"
+    :aria-pressed="active"
+    :disabled="!active && editor.state.selection.empty"
+  >
+    <wa-icon name="link"></wa-icon>
+  </wa-button>
 
-    <template #content>
-      <form
-        class="flex w-72 flex-col gap-2 p-3"
-        @submit.prevent="apply"
-      >
-        <UFormField
-          :label="t('richText.link.url')"
-          :error="error"
+  <wa-popover
+    :for="anchorId"
+    :open="open"
+    placement="bottom-start"
+    @wa-show="onShow"
+    @wa-hide="onHide"
+  >
+    <form
+      class="link-form"
+      @submit.prevent="apply"
+    >
+      <FormInput
+        v-model="url"
+        :label="t('richText.link.url')"
+        :error="error"
+        placeholder="https://"
+        autofocus
+      />
+      <div class="link-actions">
+        <wa-button
+          v-if="active"
+          appearance="plain"
+          variant="neutral"
+          size="small"
+          @click="remove"
         >
-          <UInput
-            v-model="url"
-            placeholder="https://"
-            class="w-full"
-            autofocus
-          />
-        </UFormField>
-        <div class="flex justify-end gap-2">
-          <UButton
-            v-if="active"
-            :label="t('richText.link.remove')"
-            icon="i-fadl-link-slash"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            @click="remove"
-          />
-          <UButton
-            type="submit"
-            :label="t('richText.link.apply')"
-            size="sm"
-          />
-        </div>
-      </form>
-    </template>
-  </UPopover>
+          <wa-icon
+            slot="start"
+            name="link-slash"
+          ></wa-icon>
+          {{ t('richText.link.remove') }}
+        </wa-button>
+        <wa-button
+          type="submit"
+          variant="brand"
+          size="small"
+        >
+          {{ t('richText.link.apply') }}
+        </wa-button>
+      </div>
+    </form>
+  </wa-popover>
 </template>
+
+<style scoped>
+.link-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-xs);
+  inline-size: 18rem;
+}
+
+.link-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--wa-space-xs);
+}
+</style>

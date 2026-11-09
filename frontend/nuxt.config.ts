@@ -27,7 +27,7 @@ export default defineNuxtConfig({
   },
 
   // Web Awesome first, so its cascade layers come before the Tailwind ones.
-  css: ['~/assets/css/webawesome.css', '~/assets/css/main.css'],
+  css: ['~/assets/css/webawesome.css', '~/assets/css/main.css', '~/assets/css/rich-text.css'],
 
   // Web Awesome components are custom elements (wa-*), not Vue components.
   vue: {

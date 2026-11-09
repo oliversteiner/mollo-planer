@@ -148,6 +148,13 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **Lehre:** `npm run build` fängt Fehler, die Lint, Typecheck und Tests nicht sehen (`v-model="x as string"` ist kein gültiger Ausdruck). Vor jedem Commit alle vier laufen lassen.
 - **Noch nicht im Browser gesehen:** alle Seiten dieses Schritts. Besonders prüfen: Abstände und Höhen im `wa-page` (Kanban, Assistent), die geschachtelte Bestätigung in der Schublade der Task-Details, Karten mit Kopf- und Fußzeile, das Eingabefeld mit Knopf daneben (`margin-block-start: 1.6em` ist geschätzt), Formulare mit Pflichtfeldern, Dark Mode.
 
+## Hinweise zu Schritt 6 (Rich-Text und Icon-Picker)
+- **Editor ohne `UEditor`:** `rich-text/Editor.vue` nutzt `useEditor` und `EditorContent` von `@tiptap/vue-3`. `richTextExtensions()` (`utils/rich-text.ts`) liefert jetzt alle Erweiterungen selbst (Dokument, Absatz, Text, Zeilenumbruch, Rückgängig/Wiederholen, dazu die erlaubten Elemente); die Whitelist-Tests bauen den Editor nur noch daraus. Der Platzhalter kommt aus `Placeholder` (`@tiptap/extensions`). Der Wert `null` leert den Editor (wie vorher nach dem Absenden eines Kommentars).
+- **Werkzeugleiste** aus `wa-button` (Gruppen: Rückgängig/Wiederholen, Überschriften, fett/kursiv, Listen/Zitat, Link; `compact` für Kommentare nur fett/kursiv, Listen, Link). Der Zustand `aria-pressed` kommt aus `editor.isActive(...)`; die Namen stehen als `aria-label` und `title`. `LinkPopover` ist ein `wa-popover` mit `FormInput`; Prüfung und Normalisierung der Adresse sind unverändert.
+- **`View.vue`** zeigt den Text mit einem nicht bearbeitbaren TipTap-Editor (kein `v-html`). Die Darstellung der erlaubten Elemente steht in `app/assets/css/rich-text.css` (Klasse `rich-text`, Tokens von Web Awesome); sie ersetzt die Prose-Stile von Nuxt UI.
+- **Icon-Picker** ist ein Dialog mit Suchfeld (`AppDialog`, `FormInput`) und einem Raster aus `wa-button`; jeder Eintrag hat ein `wa-tooltip`. Ein `wa-combobox` passt für ein Raster aus Icons nicht. Katalog und Suche (`utils/icon-search.ts`) sind unverändert.
+- **Zu prüfen im Browser:** Aussehen und Rahmen des Editors (Fokus, Mindesthöhe), Platzhalter, Link-Popover (Fokus, Schließen mit Escape), Raster des Icon-Pickers (viele Tooltips).
+
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)
 - [x] 1. Einbindung (Hinweise dazu unten)
@@ -155,7 +162,7 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - [x] 3. Bausteine (Hinweise dazu unten)
 - [x] 4. Layout (Hinweise dazu unten)
 - [x] 5. Seiten (Hinweise dazu unten)
-- [ ] 6. Rich-Text und Icon-Picker
+- [x] 6. Rich-Text und Icon-Picker (Hinweise dazu unten)
 - [ ] 7. Nuxt UI entfernen
 - [ ] 8. Tailwind entfernen
 - [ ] 9. Abschluss

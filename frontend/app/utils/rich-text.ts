@@ -1,10 +1,14 @@
 import Blockquote from '@tiptap/extension-blockquote'
 import Bold from '@tiptap/extension-bold'
+import Document from '@tiptap/extension-document'
+import HardBreak from '@tiptap/extension-hard-break'
 import Heading from '@tiptap/extension-heading'
 import Italic from '@tiptap/extension-italic'
 import Link from '@tiptap/extension-link'
 import { BulletList, ListItem, ListKeymap, OrderedList } from '@tiptap/extension-list'
-import { Dropcursor, Gapcursor } from '@tiptap/extensions'
+import Paragraph from '@tiptap/extension-paragraph'
+import Text from '@tiptap/extension-text'
+import { Dropcursor, Gapcursor, UndoRedo } from '@tiptap/extensions'
 import type { AnyExtension } from '@tiptap/core'
 
 /**
@@ -25,11 +29,18 @@ export function isAllowedLink(url: string): boolean {
 }
 
 /**
- * Extensions on top of what Nuxt UI's UEditor keeps with starterKit: false
- * (document, paragraph, text, hard break, undo/redo).
+ * All extensions of the editor and of the read-only view: document,
+ * paragraph, text, hard break and undo/redo, plus the allowed elements.
+ * No StarterKit, so nothing the server refuses (code, rule, strike, ...)
+ * ever gets into the schema.
  */
 export function richTextExtensions(): AnyExtension[] {
   return [
+    Document,
+    Paragraph,
+    Text,
+    HardBreak,
+    UndoRedo,
     Blockquote,
     Bold,
     Italic,
@@ -46,7 +57,7 @@ export function richTextExtensions(): AnyExtension[] {
       HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' },
       isAllowedUri: url => isAllowedLink(url)
     }),
-    Dropcursor.configure({ color: 'var(--ui-primary)', width: 2 }),
+    Dropcursor.configure({ color: 'var(--wa-color-brand-fill-loud)', width: 2 }),
     Gapcursor
   ]
 }

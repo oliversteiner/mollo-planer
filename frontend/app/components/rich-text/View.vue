@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { isEmptyDocument, richTextExtensions } from '~/utils/rich-text'
 
 /**
@@ -7,20 +8,25 @@ import { isEmptyDocument, richTextExtensions } from '~/utils/rich-text'
  */
 const props = defineProps<{ content?: Record<string, unknown> | null }>()
 
-const extensions = richTextExtensions()
 const empty = computed(() => isEmptyDocument(props.content))
+
+const editor = useEditor({
+  content: props.content ?? undefined,
+  extensions: richTextExtensions(),
+  editable: false
+})
+
+watch(() => props.content, (value) => {
+  if (editor.value && value) {
+    editor.value.commands.setContent(value, { emitUpdate: false })
+  }
+})
 </script>
 
 <template>
-  <UEditor
+  <EditorContent
     v-if="!empty"
-    :model-value="content ?? undefined"
-    content-type="json"
-    :editable="false"
-    :starter-kit="false"
-    :image="false"
-    :mention="false"
-    :extensions="extensions"
-    :ui="{ content: 'p-0' }"
+    :editor="editor"
+    class="rich-text"
   />
 </template>

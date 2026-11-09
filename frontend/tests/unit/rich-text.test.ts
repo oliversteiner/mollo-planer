@@ -1,16 +1,11 @@
 // @vitest-environment happy-dom
 import { Editor } from '@tiptap/core'
-import Document from '@tiptap/extension-document'
-import HardBreak from '@tiptap/extension-hard-break'
-import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
-import { UndoRedo } from '@tiptap/extensions'
 import { afterEach, describe, expect, it } from 'vitest'
 import { isAllowedLink, isEmptyDocument, RICH_TEXT_MARKS, RICH_TEXT_NODES, richTextExtensions } from '../../app/utils/rich-text'
 
-/** The editor as UEditor builds it with starterKit: false plus our extensions. */
+/** The editor with exactly the extensions of the app. */
 function makeEditor(content: string | Record<string, unknown> = ''): Editor {
-  return new Editor({ extensions: [Document, Paragraph, Text, HardBreak, UndoRedo, ...richTextExtensions()], content })
+  return new Editor({ extensions: richTextExtensions(), content })
 }
 
 let editor: Editor | null = null

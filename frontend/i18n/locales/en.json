@@ -238,6 +238,7 @@
     }
   },
   "richText": {
+    "toolbar": "Formatting",
     "bold": "Bold",
     "italic": "Italic",
     "bulletList": "Bullet list",
