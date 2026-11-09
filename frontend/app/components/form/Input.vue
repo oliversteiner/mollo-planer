@@ -4,7 +4,7 @@
  * the server. All other attributes (type, name, autocomplete, placeholder,
  * required, autofocus, ...) go to the wa-input. The message is shown under
  * the field in place of the hint; the field is marked as invalid for
- * screen readers.
+ * screen readers. The slot `start` takes an icon (`<wa-icon slot="start">`).
  */
 defineProps<{
   label?: string
@@ -29,6 +29,7 @@ function onInput(event: Event) {
     :data-invalid="error ? '' : undefined"
     @input="onInput"
   >
+    <slot name="start" />
     <span
       v-if="error"
       slot="hint"

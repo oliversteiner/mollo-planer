@@ -27,51 +27,52 @@ async function setTwoFactor(enabled: boolean): Promise<void> {
 </script>
 
 <template>
-  <UDashboardPanel id="admin-settings">
-    <template #header>
-      <UDashboardNavbar :title="t('admin.settings.title')" />
-    </template>
+  <PageFrame :title="t('admin.settings.title')">
+    <wa-card class="admin-settings-card">
+      <h2
+        slot="header"
+        class="wa-heading-xs"
+      >
+        {{ t('admin.settings.twoFactorTitle') }}
+      </h2>
 
-    <template #body>
-      <UCard class="max-w-2xl">
-        <template #header>
-          <h2 class="font-semibold text-highlighted">
-            {{ t('admin.settings.twoFactorTitle') }}
-          </h2>
-        </template>
-
-        <USkeleton
-          v-if="!settings"
-          class="h-12"
+      <wa-skeleton
+        v-if="!settings"
+        effect="sheen"
+        class="admin-settings-skeleton"
+      ></wa-skeleton>
+      <div
+        v-else
+        class="wa-stack wa-gap-m"
+      >
+        <FormSwitch
+          :model-value="settings.twoFactorEnabled"
+          :label="t('admin.settings.twoFactorLabel')"
+          :hint="t('admin.settings.twoFactorDescription')"
+          :disabled="!settings.twoFactorSwitchable || loading"
+          @update:model-value="setTwoFactor"
         />
-        <div
-          v-else
-          class="space-y-4"
-        >
-          <USwitch
-            :model-value="settings.twoFactorEnabled"
-            :label="t('admin.settings.twoFactorLabel')"
-            :description="t('admin.settings.twoFactorDescription')"
-            :disabled="!settings.twoFactorSwitchable"
-            :loading="loading"
-            @update:model-value="setTwoFactor"
-          />
-          <UAlert
-            v-if="!settings.twoFactorSwitchable"
-            color="info"
-            variant="subtle"
-            icon="i-fadl-lock"
-            :title="t('admin.settings.notSwitchable')"
-          />
-          <UAlert
-            v-else-if="!settings.twoFactorEnabled"
-            color="warning"
-            variant="subtle"
-            icon="i-fadl-triangle-exclamation"
-            :title="t('admin.settings.offWarning')"
-          />
-        </div>
-      </UCard>
-    </template>
-  </UDashboardPanel>
+        <AppCallout
+          v-if="!settings.twoFactorSwitchable"
+          variant="brand"
+          :title="t('admin.settings.notSwitchable')"
+        />
+        <AppCallout
+          v-else-if="!settings.twoFactorEnabled"
+          variant="warning"
+          :title="t('admin.settings.offWarning')"
+        />
+      </div>
+    </wa-card>
+  </PageFrame>
 </template>
+
+<style scoped>
+.admin-settings-card {
+  max-inline-size: 42rem;
+}
+
+.admin-settings-skeleton {
+  block-size: 3rem;
+}
+</style>

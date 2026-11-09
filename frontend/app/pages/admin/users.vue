@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { AdminUsersQuery } from '~/graphql/generated/graphql'
 import { adminUsersQuery, deleteUserMutation, resetUserTwoFactorMutation } from '~/graphql/admin'
 import { deleteUserAvatarMutation } from '~/graphql/profile'
@@ -41,21 +41,21 @@ function ask(kind: 'reset' | 'delete' | 'avatar', user: User): void {
   confirming.value = { kind, user }
 }
 
-function actions(user: User): DropdownMenuItem[][] {
+function actions(user: User): ActionMenuItem[][] {
   const isSelf = user.id === viewer.value?.id
-  const items: DropdownMenuItem[] = [
-    { label: t('common.edit'), icon: 'i-fadl-pen', onSelect: () => startEditing(user) },
-    { label: t('admin.users.resetTwoFactor'), icon: 'i-fadl-shield-halved', onSelect: () => ask('reset', user) }
+  const items: ActionMenuItem[] = [
+    { label: t('common.edit'), icon: 'pen', onSelect: () => startEditing(user) },
+    { label: t('admin.users.resetTwoFactor'), icon: 'shield-halved', onSelect: () => ask('reset', user) }
   ]
 
   if (user.avatarUrl) {
-    items.push({ label: t('admin.users.removeAvatar'), icon: 'i-fadl-image-slash', onSelect: () => ask('avatar', user) })
+    items.push({ label: t('admin.users.removeAvatar'), icon: 'image-slash', onSelect: () => ask('avatar', user) })
   }
 
   // The backend refuses deleting one's own account; do not offer it.
   return isSelf
     ? [items]
-    : [items, [{ label: t('common.delete'), icon: 'i-fadl-trash', color: 'error', onSelect: () => ask('delete', user) }]]
+    : [items, [{ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => ask('delete', user) }]]
 }
 
 async function confirm(): Promise<void> {
@@ -104,94 +104,158 @@ function factorLabel(user: User): string {
 </script>
 
 <template>
-  <UDashboardPanel id="admin-users">
-    <template #header>
-      <UDashboardNavbar :title="t('admin.users.title')">
-        <template #right>
-          <UButton
-            icon="i-fadl-user-plus"
-            :label="t('admin.users.invite')"
-            @click="startEditing()"
-          />
-        </template>
-      </UDashboardNavbar>
-    </template>
-
-    <template #body>
-      <UInput
-        v-model="query"
-        icon="i-fadl-magnifying-glass"
-        :placeholder="t('settings.members.search')"
-        :aria-label="t('settings.members.search')"
-        class="w-full max-w-sm"
-      />
-
-      <USkeleton
-        v-if="loading && !result"
-        class="h-40"
-      />
-      <ul
-        v-else
-        class="divide-y divide-default rounded-lg border border-default"
+  <PageFrame :title="t('admin.users.title')">
+    <template #actions>
+      <wa-button
+        variant="brand"
+        @click="startEditing()"
       >
-        <li
-          v-for="user in users"
-          :key="user.id"
-          class="flex flex-wrap items-center gap-3 px-4 py-3"
-        >
-          <UAvatar
-            :src="user.avatarUrl ?? undefined"
-            :alt="user.name"
-            size="md"
-          />
-          <span class="min-w-0 flex-1">
-            <span class="flex items-center gap-2 font-medium text-highlighted">
-              <span class="truncate">{{ user.name }}</span>
-              <UBadge
-                v-if="user.isAdmin"
-                color="primary"
-                variant="subtle"
-                size="sm"
-              >
-                {{ t('admin.users.admin') }}
-              </UBadge>
-              <span
-                v-if="user.id === viewer?.id"
-                class="text-sm font-normal text-muted"
-              >({{ t('settings.members.you') }})</span>
-            </span>
-            <span class="block truncate text-sm text-muted">{{ user.email }}</span>
-          </span>
-          <UBadge
-            :color="user.twoFactorConfirmed || user.hasPasskey ? 'success' : 'warning'"
-            variant="subtle"
-            size="sm"
-          >
-            {{ factorLabel(user) }}
-          </UBadge>
-          <UDropdownMenu :items="actions(user)">
-            <UButton
-              icon="i-fadl-ellipsis"
-              color="neutral"
-              variant="ghost"
-              :aria-label="t('admin.users.actions', { name: user.name })"
-            />
-          </UDropdownMenu>
-        </li>
-      </ul>
-
-      <AdminUserFormModal
-        :target="editing"
-        @close="editing = null"
-      />
-      <ConfirmModal
-        :open="confirming !== null"
-        :title="confirmTexts.title"
-        :description="confirmTexts.description"
-        :confirm-label="confirmTexts.label"
-        :action="confirm"
-        @close="confirming = null"
-      />
+        <wa-icon
+          slot="start"
+          name="user-plus"
+        ></wa-icon>
+        {{ t('admin.users.invite') }}
+      </wa-button>
     </template>
-  </UDashboardPanel>
+
+    <FormInput
+      v-model="query"
+      :placeholder="t('settings.members.search')"
+      :aria-label="t('settings.members.search')"
+      class="users-search"
+    >
+      <template #start>
+        <wa-icon
+          slot="start"
+          name="magnifying-glass"
+        ></wa-icon>
+      </template>
+    </FormInput>
+
+    <wa-skeleton
+      v-if="loading && !result"
+      effect="sheen"
+      class="users-skeleton"
+    ></wa-skeleton>
+    <ul
+      v-else
+      class="users-list wa-list-plain"
+    >
+      <li
+        v-for="user in users"
+        :key="user.id"
+        class="users-row"
+      >
+        <UserAvatar
+          :name="user.name"
+          :src="user.avatarUrl"
+          size="md"
+        />
+        <span class="users-text">
+          <span class="users-name">
+            <span class="users-name-text">{{ user.name }}</span>
+            <wa-badge
+              v-if="user.isAdmin"
+              variant="brand"
+              appearance="filled"
+            >
+              {{ t('admin.users.admin') }}
+            </wa-badge>
+            <span
+              v-if="user.id === viewer?.id"
+              class="users-you"
+            >({{ t('settings.members.you') }})</span>
+          </span>
+          <span class="users-email">{{ user.email }}</span>
+        </span>
+        <wa-badge
+          :variant="user.twoFactorConfirmed || user.hasPasskey ? 'success' : 'warning'"
+          appearance="filled"
+        >
+          {{ factorLabel(user) }}
+        </wa-badge>
+        <ActionMenu
+          :items="actions(user)"
+          :label="t('admin.users.actions', { name: user.name })"
+          size="medium"
+        />
+      </li>
+    </ul>
+
+    <AdminUserFormModal
+      :target="editing"
+      @close="editing = null"
+    />
+    <ConfirmModal
+      :open="confirming !== null"
+      :title="confirmTexts.title"
+      :description="confirmTexts.description"
+      :confirm-label="confirmTexts.label"
+      :action="confirm"
+      @close="confirming = null"
+    />
+  </PageFrame>
 </template>
+
+<style scoped>
+.users-search {
+  max-inline-size: 24rem;
+}
+
+.users-skeleton {
+  block-size: 10rem;
+}
+
+.users-list {
+  margin: 0;
+  padding: 0;
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-l);
+}
+
+.users-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-s) var(--wa-space-m);
+}
+
+.users-row + .users-row {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.users-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.users-name {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-xs);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.users-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-you {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+  font-weight: var(--wa-font-weight-normal);
+}
+
+.users-email {
+  overflow: hidden;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

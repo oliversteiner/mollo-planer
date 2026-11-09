@@ -87,103 +87,100 @@ async function confirmRemove(): Promise<void> {
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <h2 class="font-semibold text-highlighted">
+  <wa-card>
+    <div slot="header">
+      <h2 class="wa-heading-xs">
         {{ t('settings.members.title') }}
       </h2>
-      <p class="text-sm text-muted">
+      <p class="wa-body-s wa-color-text-quiet">
         {{ t('settings.members.intro') }}
       </p>
-    </template>
+    </div>
 
-    <ul class="divide-y divide-default">
+    <ul class="members-list wa-list-plain">
       <li
         v-for="member in sortedMembers"
         :key="member.user.id"
-        class="flex flex-wrap items-center gap-3 py-2"
+        class="members-row"
       >
-        <UAvatar
-          :src="member.user.avatarUrl ?? undefined"
-          :alt="member.user.name"
+        <UserAvatar
+          :name="member.user.name"
+          :src="member.user.avatarUrl"
           size="sm"
         />
-        <span class="min-w-0 flex-1">
-          <span class="block truncate font-medium">
+        <span class="members-text">
+          <span class="members-name">
             {{ member.user.name }}
             <span
               v-if="member.user.id === viewer?.id"
-              class="text-sm font-normal text-muted"
+              class="members-you"
             >({{ t('settings.members.you') }})</span>
           </span>
-          <span class="block truncate text-sm text-muted">{{ member.user.email }}</span>
+          <span class="members-email">{{ member.user.email }}</span>
         </span>
-        <USelect
+        <FormSelect
           v-if="canManage"
           :model-value="member.role"
           :items="roleItems"
           :disabled="pending"
           :aria-label="t('settings.members.roleOf', { name: member.user.name })"
-          class="w-36"
-          @update:model-value="role => setRole(member.user.id, role as ProjectRole)"
+          class="members-role"
+          @update:model-value="role => role && setRole(member.user.id, role as ProjectRole)"
         />
-        <UBadge
+        <wa-badge
           v-else
-          color="neutral"
-          variant="outline"
+          variant="neutral"
+          appearance="outlined"
         >
           {{ t(`role.${member.role}`) }}
-        </UBadge>
-        <UButton
+        </wa-badge>
+        <wa-button
           v-if="canManage"
-          icon="i-fadl-user-minus"
-          color="neutral"
-          variant="ghost"
-          size="sm"
+          appearance="plain"
+          variant="neutral"
+          size="small"
           :disabled="pending"
           :aria-label="t('settings.members.remove', { name: member.user.name })"
           @click="removing = { id: member.user.id, name: member.user.name }"
-        />
+        >
+          <wa-icon name="user-minus"></wa-icon>
+        </wa-button>
       </li>
     </ul>
 
-    <template
+    <form
       v-if="canManage"
-      #footer
+      slot="footer"
+      class="members-add"
+      @submit.prevent="add"
     >
-      <form
-        class="flex flex-wrap items-end gap-2"
-        @submit.prevent="add"
+      <FormSelect
+        v-model="newMember.userId"
+        :items="candidates"
+        searchable
+        :label="t('settings.members.person')"
+        :placeholder="t('settings.members.choose')"
+        class="members-person"
+      />
+      <FormSelect
+        v-model="newMember.role"
+        :items="roleItems"
+        :label="t('settings.members.role')"
+        class="members-role"
+      />
+      <wa-button
+        type="submit"
+        variant="brand"
+        :loading="pending"
+        :disabled="!newMember.userId"
       >
-        <UFormField
-          :label="t('settings.members.person')"
-          class="min-w-56 flex-1"
-        >
-          <USelectMenu
-            v-model="newMember.userId"
-            :items="candidates"
-            value-key="value"
-            :placeholder="t('settings.members.choose')"
-            :search-input="{ placeholder: t('settings.members.search') }"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField :label="t('settings.members.role')">
-          <USelect
-            v-model="newMember.role"
-            :items="roleItems"
-            class="w-36"
-          />
-        </UFormField>
-        <UButton
-          type="submit"
-          icon="i-fadl-user-plus"
-          :label="t('settings.members.add')"
-          :loading="pending"
-          :disabled="!newMember.userId"
-        />
-      </form>
-    </template>
+        <wa-icon
+          slot="start"
+          name="user-plus"
+        ></wa-icon>
+        {{ t('settings.members.add') }}
+      </wa-button>
+    </form>
 
     <ConfirmModal
       :open="removing !== null"
@@ -193,5 +190,74 @@ async function confirmRemove(): Promise<void> {
       :action="confirmRemove"
       @close="removing = null"
     />
-  </UCard>
+  </wa-card>
 </template>
+
+<style scoped>
+.members-list {
+  margin: 0;
+  padding: 0;
+}
+
+.members-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding-block: var(--wa-space-xs);
+}
+
+.members-row + .members-row {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.members-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.members-name {
+  overflow: hidden;
+  font-weight: var(--wa-font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.members-you {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+  font-weight: var(--wa-font-weight-normal);
+}
+
+.members-email {
+  overflow: hidden;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.members-role {
+  inline-size: 9rem;
+}
+
+.members-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--wa-space-s);
+  inline-size: 100%;
+}
+
+.members-person {
+  flex: 1;
+  min-inline-size: 14rem;
+}
+
+/* The button sits next to the fields, level with their inputs, not with their labels. */
+.members-add > wa-button {
+  margin-block-start: 1.6em;
+}
+</style>

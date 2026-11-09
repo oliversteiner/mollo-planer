@@ -21,13 +21,14 @@ async function confirmDelete(): Promise<void> {
 </script>
 
 <template>
-  <USkeleton
+  <wa-skeleton
     v-if="!project"
-    class="h-40"
-  />
+    effect="sheen"
+    class="settings-skeleton"
+  ></wa-skeleton>
   <div
     v-else
-    class="grid max-w-5xl gap-6 lg:grid-cols-2"
+    class="settings-grid"
   >
     <ProjectDetailsForm
       v-if="can('PROJECT_UPDATE')"
@@ -39,27 +40,32 @@ async function confirmDelete(): Promise<void> {
       :can-manage="can('MEMBERS_MANAGE')"
     />
 
-    <UCard
+    <wa-card
       v-if="can('PROJECT_DELETE')"
-      class="border-error/40 lg:col-span-2"
+      class="settings-danger"
     >
-      <template #header>
-        <h2 class="font-semibold text-error">
-          {{ t('settings.danger.title') }}
-        </h2>
-      </template>
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <p class="max-w-prose text-sm text-muted">
+      <h2
+        slot="header"
+        class="wa-heading-xs settings-danger-title"
+      >
+        {{ t('settings.danger.title') }}
+      </h2>
+      <div class="wa-split wa-gap-m">
+        <p class="settings-danger-text">
           {{ t('settings.danger.description') }}
         </p>
-        <UButton
-          icon="i-fadl-trash"
-          :label="t('settings.danger.delete')"
-          color="error"
+        <wa-button
+          variant="danger"
           @click="deleting = true"
-        />
+        >
+          <wa-icon
+            slot="start"
+            name="trash"
+          ></wa-icon>
+          {{ t('settings.danger.delete') }}
+        </wa-button>
       </div>
-    </UCard>
+    </wa-card>
 
     <ConfirmModal
       :open="deleting"
@@ -71,3 +77,32 @@ async function confirmDelete(): Promise<void> {
     />
   </div>
 </template>
+
+<style scoped>
+.settings-skeleton {
+  block-size: 10rem;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  gap: var(--wa-space-l);
+  max-inline-size: 72rem;
+}
+
+.settings-danger {
+  grid-column: 1 / -1;
+  --border-color: var(--wa-color-danger-border-normal);
+}
+
+.settings-danger-title {
+  color: var(--wa-color-danger-on-quiet);
+}
+
+.settings-danger-text {
+  margin: 0;
+  max-inline-size: 65ch;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+</style>

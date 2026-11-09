@@ -23,7 +23,7 @@ export default withNuxt(
   {
     rules: {
       // Classes of the own components (scoped CSS) are not Tailwind classes.
-      'better-tailwindcss/no-unknown-classes': ['error', { ignore: ['^(timeline|empty-state|user-line|nav|sidebar|app|auth|user-menu|skip|two-factor|passkey|recovery|page|due-date|dashboard|projects|avatar|form-field|project|item|todo|task|milestone|comment|kanban|todos|my-tasks|profile|security|claude)($|-)', '^wa-'] }],
+      'better-tailwindcss/no-unknown-classes': ['error', { ignore: ['^(timeline|empty-state|user-line|nav|sidebar|app|auth|user-menu|skip|two-factor|passkey|recovery|page|due-date|dashboard|projects|avatar|form-field|project|item|todo|task|milestone|comment|kanban|todos|my-tasks|profile|security|claude|settings|members|details|users|admin-settings)($|-)', '^wa-'] }],
       // wa-* elements use the native slot attribute (slot="icon").
       'vue/no-deprecated-slot-attribute': 'off',
       // RichText is TipTap JSON and is shown with TipTap only, never as HTML.

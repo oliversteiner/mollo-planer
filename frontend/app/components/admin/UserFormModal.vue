@@ -58,67 +58,56 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UModal
+  <AppDialog
     v-model:open="open"
-    :title="isNew ? t('admin.users.invite') : t('admin.users.edit')"
+    :label="isNew ? t('admin.users.invite') : t('admin.users.edit')"
     :description="isNew ? t('admin.users.inviteHint') : undefined"
   >
-    <template #body>
-      <UForm
-        id="user-form"
-        :state="state"
-        class="space-y-4"
-        @submit="submit"
-      >
-        <UFormField
-          :label="t('projects.fields.name')"
-          name="name"
-          :error="errors.name"
-          required
-        >
-          <UInput
-            v-model="state.name"
-            class="w-full"
-            autofocus
-            required
-          />
-        </UFormField>
-        <UFormField
-          :label="t('auth.email')"
-          name="email"
-          :error="errors.email"
-          required
-        >
-          <UInput
-            v-model="state.email"
-            type="email"
-            class="w-full"
-            required
-          />
-        </UFormField>
-        <UCheckbox
-          v-model="state.isAdmin"
-          :label="t('admin.users.isAdmin')"
-          :description="isSelf ? t('admin.users.ownAdmin') : t('admin.users.isAdminHint')"
-          :disabled="isSelf"
-        />
-      </UForm>
-    </template>
+    <form
+      id="user-form"
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submit"
+    >
+      <FormInput
+        v-model="state.name"
+        name="name"
+        :label="t('projects.fields.name')"
+        :error="errors.name"
+        autofocus
+        required
+      />
+      <FormInput
+        v-model="state.email"
+        type="email"
+        name="email"
+        :label="t('auth.email')"
+        :error="errors.email"
+        required
+      />
+      <FormCheckbox
+        v-model="state.isAdmin"
+        :label="t('admin.users.isAdmin')"
+        :hint="isSelf ? t('admin.users.ownAdmin') : t('admin.users.isAdminHint')"
+        :disabled="isSelf"
+      />
+    </form>
+
     <template #footer>
-      <div class="flex w-full justify-end gap-2">
-        <UButton
-          :label="t('common.cancel')"
-          color="neutral"
-          variant="ghost"
-          @click="open = false"
-        />
-        <UButton
-          type="submit"
-          form="user-form"
-          :label="isNew ? t('admin.users.sendInvite') : t('common.save')"
-          :loading="pending"
-        />
-      </div>
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        @click="open = false"
+      >
+        {{ t('common.cancel') }}
+      </wa-button>
+      <wa-button
+        type="submit"
+        form="user-form"
+        variant="brand"
+        :loading="pending"
+      >
+        {{ isNew ? t('admin.users.sendInvite') : t('common.save') }}
+      </wa-button>
     </template>
-  </UModal>
+  </AppDialog>
 </template>

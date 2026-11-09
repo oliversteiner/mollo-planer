@@ -38,58 +38,56 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <h2 class="font-semibold text-highlighted">
-        {{ t('settings.project.title') }}
-      </h2>
-    </template>
-
-    <UForm
-      :state="state"
-      class="space-y-4"
-      @submit="submit"
+  <wa-card>
+    <h2
+      slot="header"
+      class="wa-heading-xs"
     >
-      <UFormField
-        :label="t('projects.fields.name')"
+      {{ t('settings.project.title') }}
+    </h2>
+
+    <form
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submit"
+    >
+      <FormInput
+        v-model="state.name"
         name="name"
+        :label="t('projects.fields.name')"
         :error="errors.name"
         required
-      >
-        <UInput
-          v-model="state.name"
-          class="w-full"
-          required
-        />
-      </UFormField>
-      <UFormField
-        :label="t('projects.fields.description')"
+      />
+      <FormTextarea
+        v-model="state.description"
         name="description"
+        :label="t('projects.fields.description')"
         :error="errors.description"
-      >
-        <UTextarea
-          v-model="state.description"
-          :rows="3"
-          class="w-full"
-        />
-      </UFormField>
-      <UFormField
+        :rows="3"
+      />
+      <FormSelect
+        v-model="state.locale"
+        name="locale"
+        :items="locales"
         :label="t('projects.fields.locale')"
         :hint="t('projects.fields.localeHint')"
-        name="locale"
         :error="errors.locale"
-      >
-        <USelect
-          v-model="state.locale"
-          :items="locales"
-          class="w-48"
-        />
-      </UFormField>
-      <UButton
-        type="submit"
-        :label="t('common.save')"
-        :loading="pending"
+        class="details-locale"
       />
-    </UForm>
-  </UCard>
+      <div>
+        <wa-button
+          type="submit"
+          variant="brand"
+          :loading="pending"
+        >
+          {{ t('common.save') }}
+        </wa-button>
+      </div>
+    </form>
+  </wa-card>
 </template>
+
+<style scoped>
+.details-locale {
+  max-inline-size: 14rem;
+}
+</style>
