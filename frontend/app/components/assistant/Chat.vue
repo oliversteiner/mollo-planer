@@ -24,7 +24,6 @@ const { t, localeProperties } = useI18n()
 
 const input = ref('')
 const list = ref<HTMLElement | null>(null)
-const field = ref<{ textareaRef?: HTMLTextAreaElement } | null>(null)
 
 const speech = useSpeechInput(
   () => localeProperties.value.language ?? 'de-CH',
@@ -40,8 +39,6 @@ const shown = computed({
     input.value = value
   }
 })
-
-const examples = computed(() => [t('assistant.chat.example1'), t('assistant.chat.example2')])
 
 function send() {
   const text = input.value.trim()
@@ -62,11 +59,6 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-function useExample(text: string) {
-  input.value = text
-  field.value?.textareaRef?.focus()
-}
-
 watch(() => [props.messages.length, props.pending], async () => {
   await nextTick()
   list.value?.scrollTo({ top: list.value.scrollHeight, behavior: 'smooth' })
@@ -83,33 +75,13 @@ watch(() => [props.messages.length, props.pending], async () => {
       :aria-label="t('assistant.chat.log')"
     >
       <div class="mx-auto w-full max-w-3xl space-y-4">
-        <div
+        <UEmpty
           v-if="!messages.length"
-          class="space-y-4"
-        >
-          <UEmpty
-            icon="i-fadl-message-bot"
-            :title="t('assistant.chat.emptyTitle')"
-            :description="t('assistant.chat.emptyDescription')"
-            variant="naked"
-          />
-          <div class="space-y-2">
-            <p class="text-xs font-medium uppercase tracking-wide text-muted">
-              {{ t('assistant.chat.examples') }}
-            </p>
-            <UButton
-              v-for="example in examples"
-              :key="example"
-              variant="soft"
-              color="neutral"
-              block
-              class="justify-start whitespace-normal text-start"
-              icon="i-fadl-sparkles"
-              :label="example"
-              @click="useExample(example)"
-            />
-          </div>
-        </div>
+          icon="i-fadl-message-bot"
+          :title="t('assistant.chat.emptyTitle')"
+          :description="t('assistant.chat.emptyDescription')"
+          variant="naked"
+        />
 
         <div
           v-for="(message, index) in messages"
@@ -158,7 +130,6 @@ watch(() => [props.messages.length, props.pending], async () => {
         @submit.prevent="send"
       >
         <UTextarea
-          ref="field"
           v-model="shown"
           :placeholder="speech.listening.value ? t('assistant.chat.listening') : t('assistant.chat.placeholder')"
           :aria-label="t('assistant.chat.placeholder')"

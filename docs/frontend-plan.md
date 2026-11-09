@@ -70,7 +70,7 @@ Task-Details (Seitenpanel): Titel, Beschreibung (TipTap), Icon, Fälligkeit, Sta
 
 ## KI-Assistent (2026-11-08)
 - Seite `/assistant`, in der Seitenleiste unter „KI-Assistent“ (nur Admins). `USplitter` mit zwei Bereichen (Grösse im Browser gemerkt), ab `lg` nebeneinander, darunter übereinander.
-- **Chat** (`assistant/Chat.vue`): Enter sendet, Shift+Enter neue Zeile, Beispiele zum Antippen. **Spracheingabe** über die Web Speech API des Browsers (`useSpeechInput`, Sprache = UI-Sprache, ohne Zusatzpaket). Chrome und Edge schicken die Aufnahme zur Erkennung an Google bzw. Microsoft (Hinweis am Knopf); Firefox kennt sie nicht, dort fehlt der Knopf.
+- **Chat** (`assistant/Chat.vue`): Enter sendet, Shift+Enter neue Zeile. **Spracheingabe** über die Web Speech API des Browsers (`useSpeechInput`, Sprache = UI-Sprache, ohne Zusatzpaket). Chrome und Edge schicken die Aufnahme zur Erkennung an Google bzw. Microsoft (Hinweis am Knopf); Firefox kennt sie nicht, dort fehlt der Knopf.
 - **Vorschau** (`assistant/PlanPreview.vue`): 1. Projektname mit Zahlen, 2. Beschreibung und Mitglieder (Name, Avatar, Rolle), 3. `UTimeline` der Milestones mit Fälligkeit und Beschreibung, darin die ToDos als `UCollapsible` (einzeln oder alle aufklappbar), darin die Tasks mit Beschreibung, Fälligkeit und zugewiesener Person. Beschreibungen sind Klartext und werden als Text gezeigt (`AssistantPlainText`), nie als HTML.
 - Jede Nachricht schickt den ganzen Chat und den aktuellen Entwurf (`draftProjectPlan`); Claude ändert den Entwurf, statt neu zu beginnen. „Jetzt eintragen“ (`importProjectPlan`, wahlweise mit Zuweisungsmails) legt alles an und öffnet das neue Projekt. Chat und Entwurf überstehen ein Neuladen (sessionStorage dieses Tabs).
 
