@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { DropdownMenuItem } from '@nuxt/ui'
 import { VueDraggable } from 'vue-draggable-plus'
 import type { SortableEvent } from 'sortablejs'
+import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
 import type { KanbanQuery } from '~/graphql/generated/graphql'
 import { projectTodosQuery } from '~/graphql/project'
@@ -64,34 +64,34 @@ function onDrop(event: SortableEvent): void {
 }
 
 /** Card menu: edit (if allowed), then moving without dragging. */
-function menuItems(task: Task): DropdownMenuItem[] {
-  const edit: DropdownMenuItem[] = can('TASK_UPDATE')
-    ? [{ label: t('common.edit'), icon: 'i-fadl-pen', onSelect: () => editTask(task.id) }]
+function menuItems(task: Task): ActionMenuItem[] {
+  const edit: ActionMenuItem[] = can('TASK_UPDATE')
+    ? [{ label: t('common.edit'), icon: 'pen', onSelect: () => editTask(task.id) }]
     : []
 
   return [...edit, ...moveItems(task)]
 }
 
-function moveItems(task: Task): DropdownMenuItem[] {
+function moveItems(task: Task): ActionMenuItem[] {
   if (!can('TASK_MOVE')) {
     return []
   }
   const here = locate(columns.value, task.id)
   const columnLength = columns.value.find(column => column.status === here?.status)?.tasks.length ?? 0
-  const items: DropdownMenuItem[] = []
+  const items: ActionMenuItem[] = []
 
   if (here && here.position > 0) {
-    items.push({ label: t('kanban.moveUp'), icon: 'i-fadl-arrow-up', onSelect: () => move(task.id, here.status as Status, here.position - 1) })
+    items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => move(task.id, here.status as Status, here.position - 1) })
   }
   if (here && here.position < columnLength - 1) {
-    items.push({ label: t('kanban.moveDown'), icon: 'i-fadl-arrow-down', onSelect: () => move(task.id, here.status as Status, here.position + 1) })
+    items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => move(task.id, here.status as Status, here.position + 1) })
   }
 
   return [
     ...items,
     ...TASK_STATUSES
       .filter(status => status !== here?.status)
-      .map(status => ({ label: t('kanban.moveTo', { column: t(`status.${status}`) }), icon: 'i-fadl-arrow-right', onSelect: () => move(task.id, status, 100000) }))
+      .map(status => ({ label: t('kanban.moveTo', { column: t(`status.${status}`) }), icon: 'arrow-right', onSelect: () => move(task.id, status, 100000) }))
   ]
 }
 
@@ -174,44 +174,49 @@ const abilities = computed(() => ({
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4">
+  <div class="kanban">
     <div
       v-if="can('TASK_CREATE')"
-      class="flex justify-end"
+      class="wa-cluster wa-justify-content-end"
     >
-      <UButton
-        icon="i-fadl-plus"
-        :label="t('task.create')"
+      <wa-button
+        variant="brand"
         :disabled="!todos.length"
         @click="startCreating"
-      />
+      >
+        <wa-icon
+          slot="start"
+          name="plus"
+        ></wa-icon>
+        {{ t('task.create') }}
+      </wa-button>
     </div>
 
-    <USkeleton
+    <wa-skeleton
       v-if="loading && !result"
-      class="h-64"
-    />
+      effect="sheen"
+      class="kanban-skeleton"
+    ></wa-skeleton>
     <div
       v-else
-      class="grid min-h-0 flex-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+      class="kanban-board"
     >
       <section
         v-for="column in columns"
         :key="column.status"
-        class="flex min-h-48 flex-col rounded-lg bg-elevated/50 p-2"
+        class="kanban-column"
         :aria-label="t(`status.${column.status}`)"
       >
-        <header class="flex items-center justify-between px-1 pb-2">
-          <h2 class="font-semibold text-highlighted">
+        <header class="kanban-column-head">
+          <h2 class="kanban-column-title">
             {{ t(`status.${column.status}`) }}
           </h2>
-          <UBadge
-            color="neutral"
-            variant="subtle"
-            size="sm"
+          <wa-badge
+            variant="neutral"
+            appearance="filled"
           >
             {{ column.tasks.length }}
-          </UBadge>
+          </wa-badge>
         </header>
 
         <VueDraggable
@@ -219,9 +224,9 @@ const abilities = computed(() => ({
           group="kanban"
           :disabled="!can('TASK_MOVE')"
           :animation="150"
-          ghost-class="opacity-40"
+          ghost-class="kanban-ghost"
           :data-status="column.status"
-          class="flex min-h-16 flex-1 flex-col gap-2"
+          class="kanban-list"
           @end="onDrop"
         >
           <TaskCard
@@ -252,3 +257,58 @@ const abilities = computed(() => ({
     />
   </div>
 </template>
+
+<style scoped>
+.kanban {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-m);
+  block-size: 100%;
+}
+
+.kanban-skeleton {
+  block-size: 16rem;
+}
+
+.kanban-board {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--wa-space-m);
+  min-block-size: 0;
+}
+
+.kanban-column {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 12rem;
+  padding: var(--wa-space-xs);
+  border-radius: var(--wa-border-radius-l);
+  background-color: var(--wa-color-surface-raised);
+}
+
+.kanban-column-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--wa-space-3xs) var(--wa-space-xs);
+}
+
+.kanban-column-title {
+  margin: 0;
+  font-size: var(--wa-font-size-m);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.kanban-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--wa-space-xs);
+  min-block-size: 4rem;
+}
+
+.kanban-ghost {
+  opacity: 0.4;
+}
+</style>

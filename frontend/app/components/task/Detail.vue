@@ -80,120 +80,150 @@ async function confirmDelete(): Promise<void> {
 </script>
 
 <template>
-  <USlideover
+  <AppDrawer
     v-model:open="open"
-    :title="task?.title ?? t('task.loading')"
+    :label="task?.title ?? t('task.loading')"
     :description="task ? `${task.todo.milestone.title} · ${task.todo.title}` : undefined"
-    :ui="{ content: 'sm:max-w-xl' }"
+    class="task-drawer"
   >
-    <template #body>
-      <USkeleton
-        v-if="loading && !task"
-        class="h-40"
-      />
-      <UEmpty
-        v-else-if="!task"
-        icon="i-fadl-square-check"
-        :title="t('task.notFound')"
-      />
-      <div
-        v-else
-        class="space-y-6"
-      >
-        <div class="flex items-center gap-3">
-          <ItemIcon
-            :name="task.icon"
-            fallback="square-check"
-            class="text-3xl text-primary"
-          />
-          <DueDate
-            :date="task.dueDate"
-            :done="task.status === 'DONE'"
-          />
-          <div class="ms-auto flex gap-1">
-            <UButton
-              v-if="can.update"
-              icon="i-fadl-pen"
-              :label="t('common.edit')"
-              color="neutral"
-              variant="outline"
-              size="sm"
-              @click="emit('edit', task)"
-            />
-            <UButton
-              v-if="can.delete"
-              icon="i-fadl-trash"
-              color="error"
-              variant="ghost"
-              size="sm"
-              :aria-label="t('common.delete')"
-              @click="deleting = true"
-            />
-          </div>
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-          <UFormField :label="t('task.status')">
-            <USelect
-              v-if="can.move"
-              :model-value="task.status"
-              :items="statusItems"
-              class="w-full"
-              @update:model-value="changeStatus"
-            />
-            <StatusBadge
-              v-else
-              :status="task.status"
-            />
-          </UFormField>
-          <UFormField :label="t('task.assignee')">
-            <USelect
-              v-if="can.assign"
-              :model-value="task.assignee?.id ?? 'none'"
-              :items="memberItems"
-              class="w-full"
-              @update:model-value="changeAssignee"
-            />
-            <span
-              v-else
-              class="text-sm"
-            >{{ task.assignee?.name ?? t('task.nobody') }}</span>
-          </UFormField>
-        </div>
-
-        <section>
-          <h3 class="mb-2 font-semibold text-highlighted">
-            {{ t('item.fields.description') }}
-          </h3>
-          <RichTextView
-            :content="task.description"
-            class="text-sm"
-          />
-          <p
-            v-if="!task.description"
-            class="text-sm text-muted"
-          >
-            {{ t('task.noDescription') }}
-          </p>
-        </section>
-
-        <USeparator />
-
-        <TaskComments
-          :task-id="task.id"
-          :comments="task.comments"
-          :can-comment="can.comment"
+    <wa-skeleton
+      v-if="loading && !task"
+      effect="sheen"
+      class="task-skeleton"
+    ></wa-skeleton>
+    <EmptyState
+      v-else-if="!task"
+      icon="square-check"
+      :title="t('task.notFound')"
+    />
+    <div
+      v-else
+      class="wa-stack wa-gap-l"
+    >
+      <div class="wa-cluster wa-gap-s wa-align-items-center">
+        <ItemIcon
+          :name="task.icon"
+          fallback="square-check"
+          class="task-big-icon"
         />
+        <DueDate
+          :date="task.dueDate"
+          :done="task.status === 'DONE'"
+        />
+        <div class="wa-cluster wa-gap-3xs task-tools">
+          <wa-button
+            v-if="can.update"
+            appearance="outlined"
+            variant="neutral"
+            size="small"
+            @click="emit('edit', task)"
+          >
+            <wa-icon
+              slot="start"
+              name="pen"
+            ></wa-icon>
+            {{ t('common.edit') }}
+          </wa-button>
+          <wa-button
+            v-if="can.delete"
+            appearance="plain"
+            variant="danger"
+            size="small"
+            :aria-label="t('common.delete')"
+            @click="deleting = true"
+          >
+            <wa-icon name="trash"></wa-icon>
+          </wa-button>
+        </div>
       </div>
 
-      <ConfirmModal
-        :open="deleting"
-        :title="t('task.deleteTitle')"
-        :description="t('task.deleteDescription', { title: task?.title ?? '' })"
-        :confirm-label="t('common.delete')"
-        :action="confirmDelete"
-        @close="deleting = false"
+      <div class="task-fields">
+        <FormSelect
+          v-if="can.move"
+          :model-value="task.status"
+          :items="statusItems"
+          :label="t('task.status')"
+          @update:model-value="value => value && changeStatus(value as (typeof TASK_STATUSES)[number])"
+        />
+        <FormField
+          v-else
+          :label="t('task.status')"
+        >
+          <StatusBadge :status="task.status" />
+        </FormField>
+
+        <FormSelect
+          v-if="can.assign"
+          :model-value="task.assignee?.id ?? 'none'"
+          :items="memberItems"
+          :label="t('task.assignee')"
+          @update:model-value="value => value && changeAssignee(value)"
+        />
+        <FormField
+          v-else
+          :label="t('task.assignee')"
+        >
+          <span class="wa-body-s">{{ task.assignee?.name ?? t('task.nobody') }}</span>
+        </FormField>
+      </div>
+
+      <section class="wa-stack wa-gap-xs">
+        <h3 class="wa-heading-xs">
+          {{ t('item.fields.description') }}
+        </h3>
+        <RichTextView
+          :content="task.description"
+          class="wa-body-s"
+        />
+        <p
+          v-if="!task.description"
+          class="wa-body-s wa-color-text-quiet"
+        >
+          {{ t('task.noDescription') }}
+        </p>
+      </section>
+
+      <wa-divider></wa-divider>
+
+      <TaskComments
+        :task-id="task.id"
+        :comments="task.comments"
+        :can-comment="can.comment"
       />
-    </template>
-  </USlideover>
+    </div>
+
+    <ConfirmModal
+      :open="deleting"
+      :title="t('task.deleteTitle')"
+      :description="t('task.deleteDescription', { title: task?.title ?? '' })"
+      :confirm-label="t('common.delete')"
+      :action="confirmDelete"
+      @close="deleting = false"
+    />
+  </AppDrawer>
 </template>
+
+<style scoped>
+.task-drawer {
+  --size: 36rem;
+}
+
+.task-skeleton {
+  block-size: 10rem;
+}
+
+.task-big-icon {
+  font-size: var(--wa-font-size-2xl);
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.task-tools {
+  margin-inline-start: auto;
+}
+
+.task-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--wa-space-m);
+}
+</style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { deleteTodoMutation, projectContentQueries, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
 import { withoutNulls } from '~/utils/api'
@@ -58,14 +58,14 @@ async function confirmDelete(): Promise<void> {
   }
 }
 
-function actions(todo: Item): DropdownMenuItem[] {
-  const items: DropdownMenuItem[] = []
+function actions(todo: Item): ActionMenuItem[] {
+  const items: ActionMenuItem[] = []
 
   if (can('TODO_UPDATE')) {
-    items.push({ label: t('common.edit'), icon: 'i-fadl-pen', onSelect: () => startEditing(todo) })
+    items.push({ label: t('common.edit'), icon: 'pen', onSelect: () => startEditing(todo) })
   }
   if (can('TODO_DELETE')) {
-    items.push({ label: t('common.delete'), icon: 'i-fadl-trash', color: 'error', onSelect: () => startDeleting(todo) })
+    items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => startDeleting(todo) })
   }
 
   return items
@@ -73,76 +73,73 @@ function actions(todo: Item): DropdownMenuItem[] {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <div class="flex flex-wrap items-end gap-3">
-      <UFormField :label="t('todos.milestone')">
-        <USelect
-          v-model="milestoneFilter"
-          :items="milestoneItems"
-          class="w-56"
-        />
-      </UFormField>
-      <UFormField :label="t('todos.status')">
-        <USelect
-          v-model="statusFilter"
-          :items="statusItems"
-          class="w-40"
-        />
-      </UFormField>
-      <UButton
-        v-if="can('TODO_CREATE') && milestones.length"
-        icon="i-fadl-plus"
-        :label="t('item.todo.create')"
-        class="ms-auto"
-        @click="editing = { kind: 'todo' }"
+  <div class="wa-stack wa-gap-m">
+    <div class="wa-cluster wa-gap-s wa-align-items-end">
+      <FormSelect
+        v-model="milestoneFilter"
+        :items="milestoneItems"
+        :label="t('todos.milestone')"
+        class="todos-filter-wide"
       />
+      <FormSelect
+        v-model="statusFilter as string"
+        :items="statusItems"
+        :label="t('todos.status')"
+        class="todos-filter"
+      />
+      <wa-button
+        v-if="can('TODO_CREATE') && milestones.length"
+        variant="brand"
+        style="margin-inline-start: auto"
+        @click="editing = { kind: 'todo' }"
+      >
+        <wa-icon
+          slot="start"
+          name="plus"
+        ></wa-icon>
+        {{ t('item.todo.create') }}
+      </wa-button>
     </div>
 
-    <USkeleton
+    <wa-skeleton
       v-if="loading && !result"
-      class="h-40"
-    />
-    <UEmpty
+      effect="sheen"
+      class="todos-skeleton"
+    ></wa-skeleton>
+    <EmptyState
       v-else-if="!todos.length"
-      icon="i-fadl-list-check"
+      icon="list-check"
       :title="t('todos.none')"
     />
     <ul
       v-else
-      class="divide-y divide-default rounded-lg border border-default"
+      class="todos-list wa-list-plain"
     >
       <li
         v-for="todo in todos"
         :key="todo.id"
-        class="flex flex-wrap items-center gap-3 px-4 py-2"
+        class="todos-row"
       >
         <ItemIcon
           :name="todo.icon"
           fallback="list-check"
-          class="text-lg text-primary"
+          class="todos-icon"
         />
-        <span class="min-w-0 flex-1">
-          <span class="block truncate">{{ todo.title }}</span>
-          <span class="block truncate text-sm text-muted">{{ todo.milestone.title }}</span>
+        <span class="todos-text">
+          <span class="todos-title">{{ todo.title }}</span>
+          <span class="todos-sub">{{ todo.milestone.title }}</span>
         </span>
-        <span class="text-sm text-muted">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
+        <span class="todos-sub">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
         <StatusBadge :status="todo.status" />
         <DueDate
           :date="todo.dueDate"
           :done="todo.status === 'DONE'"
         />
-        <UDropdownMenu
+        <ActionMenu
           v-if="actions(todo).length"
           :items="actions(todo)"
-        >
-          <UButton
-            icon="i-fadl-ellipsis"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            :aria-label="t('common.actions')"
-          />
-        </UDropdownMenu>
+          :label="t('common.actions')"
+        />
       </li>
     </ul>
 
@@ -161,3 +158,62 @@ function actions(todo: Item): DropdownMenuItem[] {
     />
   </div>
 </template>
+
+<style scoped>
+.todos-filter-wide {
+  inline-size: 14rem;
+}
+
+.todos-filter {
+  inline-size: 10rem;
+}
+
+.todos-skeleton {
+  block-size: 10rem;
+}
+
+.todos-list {
+  margin: 0;
+  padding: 0;
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-l);
+}
+
+.todos-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-xs) var(--wa-space-m);
+}
+
+.todos-row + .todos-row {
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.todos-icon {
+  font-size: var(--wa-font-size-l);
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.todos-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.todos-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.todos-sub {
+  overflow: hidden;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

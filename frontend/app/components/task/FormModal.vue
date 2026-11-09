@@ -92,109 +92,95 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <UModal
+  <AppDialog
     v-model:open="open"
-    :title="isNew ? t('task.create') : t('task.edit')"
-    :ui="{ content: 'sm:max-w-2xl' }"
+    :label="isNew ? t('task.create') : t('task.edit')"
+    class="task-dialog"
   >
-    <template #body>
-      <UForm
-        id="task-form"
-        :state="state"
-        class="space-y-4"
-        @submit="submit"
-      >
-        <UFormField
-          v-if="isNew"
-          :label="t('task.todo')"
-          name="todoId"
-          :error="errors.todoId"
-          required
+    <form
+      id="task-form"
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submit"
+    >
+      <FormSelect
+        v-if="isNew"
+        v-model="state.todoId"
+        name="todoId"
+        :items="todoItems"
+        :label="t('task.todo')"
+        :error="errors.todoId"
+        required
+      />
+
+      <FormInput
+        v-model="state.title"
+        name="title"
+        :label="t('item.fields.title')"
+        :error="errors.title"
+        autofocus
+        required
+      />
+
+      <div class="wa-cluster wa-gap-m wa-align-items-start">
+        <FormField
+          :label="t('item.fields.icon')"
+          :error="errors.icon"
         >
-          <USelect
-            v-model="state.todoId"
-            :items="todoItems"
-            class="w-full"
+          <IconPicker
+            v-model="state.icon"
+            fallback="square-check"
           />
-        </UFormField>
-
-        <UFormField
-          :label="t('item.fields.title')"
-          name="title"
-          :error="errors.title"
-          required
-        >
-          <UInput
-            v-model="state.title"
-            class="w-full"
-            autofocus
-            required
-          />
-        </UFormField>
-
-        <div class="flex flex-wrap gap-4">
-          <UFormField
-            :label="t('item.fields.icon')"
-            name="icon"
-            :error="errors.icon"
-          >
-            <IconPicker
-              v-model="state.icon"
-              fallback="square-check"
-            />
-          </UFormField>
-          <UFormField
-            :label="t('item.fields.dueDate')"
-            name="dueDate"
-            :error="errors.dueDate"
-          >
-            <UInput
-              v-model="state.dueDate"
-              type="date"
-            />
-          </UFormField>
-          <UFormField
-            v-if="isNew"
-            :label="t('task.assignee')"
-            name="assigneeId"
-            :error="errors.assigneeId"
-          >
-            <USelect
-              v-model="state.assigneeId"
-              :items="memberItems"
-              class="w-48"
-            />
-          </UFormField>
-        </div>
-
-        <UFormField
-          :label="t('item.fields.description')"
-          name="description"
-          :error="errors.description"
-        >
-          <RichTextEditor
-            v-model="state.description"
-            :placeholder="t('item.fields.descriptionPlaceholder')"
-          />
-        </UFormField>
-      </UForm>
-    </template>
-
-    <template #footer>
-      <div class="flex w-full justify-end gap-2">
-        <UButton
-          :label="t('common.cancel')"
-          color="neutral"
-          variant="ghost"
-          @click="open = false"
+        </FormField>
+        <FormInput
+          v-model="state.dueDate"
+          type="date"
+          name="dueDate"
+          :label="t('item.fields.dueDate')"
+          :error="errors.dueDate"
         />
-        <UButton
-          type="submit"
-          form="task-form"
-          :label="t('common.save')"
-          :loading="pending"
+        <FormSelect
+          v-if="isNew"
+          v-model="state.assigneeId"
+          name="assigneeId"
+          :items="memberItems"
+          :label="t('task.assignee')"
+          :error="errors.assigneeId"
         />
       </div>
+
+      <FormField
+        :label="t('item.fields.description')"
+        :error="errors.description"
+      >
+        <RichTextEditor
+          v-model="state.description"
+          :placeholder="t('item.fields.descriptionPlaceholder')"
+        />
+      </FormField>
+    </form>
+
+    <template #footer>
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        @click="open = false"
+      >
+        {{ t('common.cancel') }}
+      </wa-button>
+      <wa-button
+        type="submit"
+        form="task-form"
+        variant="brand"
+        :loading="pending"
+      >
+        {{ t('common.save') }}
+      </wa-button>
     </template>
-  </UModal>
+  </AppDialog>
 </template>
+
+<style scoped>
+.task-dialog {
+  --width: 42rem;
+}
+</style>

@@ -72,65 +72,67 @@ async function confirmDelete(): Promise<void> {
 </script>
 
 <template>
-  <section class="space-y-4">
-    <h3 class="font-semibold text-highlighted">
+  <section class="wa-stack wa-gap-m">
+    <h3 class="wa-heading-xs">
       {{ t('comments.title', { count: comments.length }) }}
     </h3>
 
     <p
       v-if="!comments.length"
-      class="text-sm text-muted"
+      class="wa-body-s wa-color-text-quiet"
     >
       {{ t('comments.none') }}
     </p>
 
-    <ul class="space-y-4">
+    <ul class="wa-stack wa-gap-m wa-list-plain comment-list">
       <li
         v-for="comment in comments"
         :key="comment.id"
-        class="flex gap-3"
+        class="comment"
       >
-        <UAvatar
-          :src="comment.author?.avatarUrl ?? undefined"
-          :alt="comment.author?.name ?? t('comments.deletedAuthor')"
+        <UserAvatar
+          :name="comment.author?.name ?? t('comments.deletedAuthor')"
+          :src="comment.author?.avatarUrl"
           size="sm"
         />
-        <div class="min-w-0 flex-1">
-          <div class="flex flex-wrap items-baseline gap-x-2 text-sm">
-            <span class="font-medium text-highlighted">{{ comment.author?.name ?? t('comments.deletedAuthor') }}</span>
+        <div class="comment-main">
+          <div class="comment-head">
+            <span class="comment-author">{{ comment.author?.name ?? t('comments.deletedAuthor') }}</span>
             <time
               :datetime="comment.createdAt"
-              class="text-muted"
+              class="comment-quiet"
             >{{ formatDateTime(comment.createdAt, language) }}</time>
             <span
               v-if="comment.updatedAt !== comment.createdAt"
-              class="text-muted"
+              class="comment-quiet"
             >{{ t('comments.edited') }}</span>
-            <span class="ms-auto flex gap-1">
-              <UButton
+            <span class="comment-tools">
+              <wa-button
                 v-if="comment.viewerCanEdit && editingId !== comment.id"
-                icon="i-fadl-pen"
-                color="neutral"
-                variant="ghost"
-                size="xs"
+                appearance="plain"
+                variant="neutral"
+                size="small"
                 :aria-label="t('common.edit')"
                 @click="startEditing(comment)"
-              />
-              <UButton
+              >
+                <wa-icon name="pen"></wa-icon>
+              </wa-button>
+              <wa-button
                 v-if="comment.viewerCanDelete"
-                icon="i-fadl-trash"
-                color="neutral"
-                variant="ghost"
-                size="xs"
+                appearance="plain"
+                variant="neutral"
+                size="small"
                 :aria-label="t('common.delete')"
                 @click="deletingId = comment.id"
-              />
+              >
+                <wa-icon name="trash"></wa-icon>
+              </wa-button>
             </span>
           </div>
 
           <div
             v-if="editingId === comment.id"
-            class="mt-2 space-y-2"
+            class="wa-stack wa-gap-xs"
           >
             <RichTextEditor
               v-model="editDraft"
@@ -138,30 +140,34 @@ async function confirmDelete(): Promise<void> {
             />
             <p
               v-if="errors.body"
-              class="text-sm text-error"
+              data-form-error
+              class="wa-body-s"
             >
               {{ errors.body }}
             </p>
-            <div class="flex justify-end gap-2">
-              <UButton
-                :label="t('common.cancel')"
-                color="neutral"
-                variant="ghost"
-                size="sm"
+            <div class="wa-cluster wa-gap-s wa-justify-content-end">
+              <wa-button
+                appearance="plain"
+                variant="neutral"
+                size="small"
                 @click="editingId = null"
-              />
-              <UButton
-                :label="t('common.save')"
-                size="sm"
+              >
+                {{ t('common.cancel') }}
+              </wa-button>
+              <wa-button
+                variant="brand"
+                size="small"
                 :loading="pending"
                 @click="saveEdit"
-              />
+              >
+                {{ t('common.save') }}
+              </wa-button>
             </div>
           </div>
           <RichTextView
             v-else
             :content="comment.body"
-            class="mt-1 text-sm"
+            class="wa-body-s"
           />
         </div>
       </li>
@@ -169,7 +175,7 @@ async function confirmDelete(): Promise<void> {
 
     <form
       v-if="canComment"
-      class="space-y-2"
+      class="wa-stack wa-gap-xs"
       @submit.prevent="add"
     >
       <RichTextEditor
@@ -179,18 +185,24 @@ async function confirmDelete(): Promise<void> {
       />
       <p
         v-if="errors.body && !editingId"
-        class="text-sm text-error"
+        data-form-error
+        class="wa-body-s"
       >
         {{ errors.body }}
       </p>
-      <div class="flex justify-end">
-        <UButton
+      <div class="wa-cluster wa-justify-content-end">
+        <wa-button
           type="submit"
-          :label="t('comments.add')"
-          icon="i-fadl-paper-plane"
+          variant="brand"
           :loading="pending && !editingId"
           :disabled="isEmptyDocument(draft)"
-        />
+        >
+          <wa-icon
+            slot="start"
+            name="paper-plane"
+          ></wa-icon>
+          {{ t('comments.add') }}
+        </wa-button>
       </div>
     </form>
 
@@ -204,3 +216,45 @@ async function confirmDelete(): Promise<void> {
     />
   </section>
 </template>
+
+<style scoped>
+.comment-list {
+  margin: 0;
+  padding: 0;
+}
+
+.comment {
+  display: flex;
+  gap: var(--wa-space-s);
+}
+
+.comment-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--wa-space-3xs);
+  min-inline-size: 0;
+}
+
+.comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--wa-space-3xs) var(--wa-space-xs);
+  font-size: var(--wa-font-size-s);
+}
+
+.comment-author {
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.comment-quiet {
+  color: var(--wa-color-text-quiet);
+}
+
+.comment-tools {
+  display: flex;
+  gap: var(--wa-space-3xs);
+  margin-inline-start: auto;
+}
+</style>

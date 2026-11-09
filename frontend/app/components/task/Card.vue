@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 
 /**
  * A task on the Kanban board. Click on the title: details; double-click
@@ -16,7 +16,7 @@ defineProps<{
     assignee?: { id: string, name: string, avatarUrl?: string | null } | null
     todo: { title: string }
   }
-  menuItems: DropdownMenuItem[]
+  menuItems: ActionMenuItem[]
   /** May the viewer edit it (double-click)? */
   editable?: boolean
 }>()
@@ -53,63 +53,137 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
 
 <template>
   <article
-    class="group flex cursor-grab flex-col gap-2 rounded-md border border-default bg-default p-3 shadow-xs hover:border-primary active:cursor-grabbing"
+    class="task-card"
     :data-id="task.id"
     :title="editable ? t('kanban.doubleClickToEdit') : undefined"
     @dblclick="onDoubleClick"
   >
-    <div class="flex items-start gap-2">
+    <div class="task-card-head">
       <ItemIcon
         :name="task.icon"
         fallback="square-check"
-        class="mt-0.5 text-lg text-primary"
+        class="task-card-icon"
       />
       <button
         type="button"
-        class="min-w-0 flex-1 text-start font-medium text-highlighted hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+        class="task-card-title"
         @click="onTitleClick"
       >
         {{ task.title }}
       </button>
-      <UDropdownMenu
+      <ActionMenu
         v-if="menuItems.length"
         :items="menuItems"
-      >
-        <UButton
-          icon="i-fadl-ellipsis"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          :aria-label="t('kanban.moveMenu', { title: task.title })"
-        />
-      </UDropdownMenu>
+        :label="t('kanban.moveMenu', { title: task.title })"
+        size="small"
+      />
     </div>
-    <p class="truncate text-xs text-muted">
+    <p class="task-card-todo">
       {{ task.todo.title }}
     </p>
-    <div class="flex items-center gap-2">
+    <div class="task-card-foot">
       <DueDate
         :date="task.dueDate"
         :done="task.status === 'DONE'"
       />
       <span
         v-if="task.commentCount"
-        class="inline-flex items-center gap-1 text-xs text-muted"
+        class="task-card-comments"
       >
-        <UIcon
-          name="i-fadl-comments"
-          class="size-4"
-        />
+        <wa-icon name="comments"></wa-icon>
         {{ task.commentCount }}
-        <span class="sr-only">{{ t('kanban.comments') }}</span>
+        <span class="wa-visually-hidden">{{ t('kanban.comments') }}</span>
       </span>
-      <UAvatar
+      <UserAvatar
         v-if="task.assignee"
-        :src="task.assignee.avatarUrl ?? undefined"
-        :alt="task.assignee.name"
+        :name="task.assignee.name"
+        :src="task.assignee.avatarUrl"
         size="2xs"
-        class="ms-auto"
+        class="task-card-assignee"
       />
     </div>
   </article>
 </template>
+
+<style scoped>
+.task-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-xs);
+  padding: var(--wa-space-s);
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-m);
+  background-color: var(--wa-color-surface-default);
+  box-shadow: var(--wa-shadow-s);
+  cursor: grab;
+}
+
+.task-card:hover {
+  border-color: var(--wa-color-brand-border-loud);
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
+
+.task-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--wa-space-xs);
+}
+
+.task-card-icon {
+  margin-block-start: var(--wa-space-3xs);
+  font-size: var(--wa-font-size-l);
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.task-card-title {
+  flex: 1;
+  min-inline-size: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--wa-font-weight-semibold);
+  text-align: start;
+  cursor: inherit;
+}
+
+.task-card-title:hover {
+  color: var(--wa-color-brand-on-quiet);
+}
+
+.task-card-title:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
+}
+
+.task-card-todo {
+  overflow: hidden;
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-card-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-xs);
+}
+
+.task-card-comments {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wa-space-3xs);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+}
+
+.task-card-assignee {
+  margin-inline-start: auto;
+}
+</style>
