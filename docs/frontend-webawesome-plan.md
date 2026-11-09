@@ -129,12 +129,22 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
 - **`EmptyState`** (Icon als Font-Awesome-Name, `title`, `description`, `size` sm/md, `bare` ohne gestrichelten Rahmen, Slot für Aktionen), **`UserAvatar`** (`wa-avatar`: Bild, sonst Initialen aus `utils/names.ts`, sonst Personen-Icon; Größen 2xs bis 3xl) und **`UserLine`** (Avatar, Name, optionale zweite Zeile). Eine Avatar-Gruppe (Projektliste) kommt mit der Seite in Schritt 5.
 - **ESLint:** Klassen mit den Präfixen `timeline`, `empty-state`, `user-line` sind für die Tailwind-Regel ausgenommen.
 
+## Hinweise zu Schritt 4 (Layout)
+- **`layouts/default.vue`** ist ein `<wa-page mobile-breakpoint="1024px">` (wie vorher ab `lg`): Seitenleiste mit den Slots `navigation-header` (App-Name), `navigation` (Hauptlinks, Projekte, Verwaltung) und `navigation-footer` (Benutzermenü als `wa-dropdown` mit Profil und Abmelden); unter 1024 px wird sie zur Schublade mit dem eingebauten Hamburger-Knopf von `wa-page`. Der Inhalt steht in `<main id="main-content" tabindex="-1">`; der Link „Zum Inhalt springen“ sitzt im Slot `skip-to-content` und fokussiert dieses Element.
+- **Weggefallen:** die einklappbare und in der Breite verstellbare Seitenleiste von Nuxt UI (`collapsible`, `resizable`); `wa-page` kennt sie nicht, auf schmalen Schirmen ersetzt die Schublade das Einklappen. Breite fest `--menu-width: 16rem`.
+- **`NavList`** (Links mit Icon, aktive Seite: Klasse und `aria-current="page"`, bei `exact` nur der genaue Pfad) ersetzt `UNavigationMenu`. `NuxtLink` setzt `aria-current` nicht selbst, darum rechnet `NavList` es aus der Route.
+- **`SidebarProjects`** nutzt `FormSelect` (neu: Prop `searchable`, dann `wa-combobox` mit Suchfeld; wie vorher ab sechs Projekten) und `NavList`.
+- **`layouts/auth.vue`** ist ein `wa-page` ohne Navigation mit Kopf (App-Name, `LocaleSwitch`, `ColorModeSwitch`) und einer zentrierten Spalte (max. 24 rem).
+- **`LocaleSwitch`** (Auswahl der Sprache, `setLocale`) und **`ColorModeSwitch`** (Knopf hell/dunkel). Letzterer setzt vorerst die Einstellung des Farbmodus-Moduls von Nuxt UI; das Plugin spiegelt sie auf `wa-dark`/`wa-light`. Den eigenen Umschalter ohne Nuxt UI (gemerkte Einstellung, Systemvorgabe) baue ich in Schritt 7 und stelle dann auch die Profilseite (`UColorModeSelect`) um.
+- **Übergang:** Die Seiten stecken noch in `UDashboardPanel`/`UDashboardNavbar`. Deren Seitenleisten-Knopf ist in `app.config.ts` ausgeblendet (`dashboardNavbar.slots.toggle`), bis die Seiten in Schritt 5 umgestellt sind.
+- **Noch nicht im Browser gesehen** (nur Tests): Abstände, Hamburger-Knopf ohne Kopfzeile, Schublade, Benutzermenü, `wa-page` mit den noch bestehenden `UDashboardPanel`-Seiten.
+
 ## Stand
 - [x] Vorbereitung (Paket 3.14.0 installiert, Skills in `frontend/.claude/skills/`)
 - [x] 1. Einbindung (Hinweise dazu unten)
 - [x] 2. Icons (Hinweise dazu unten)
 - [x] 3. Bausteine (Hinweise dazu unten)
-- [ ] 4. Layout
+- [x] 4. Layout (Hinweise dazu unten)
 - [ ] 5. Seiten
 - [ ] 6. Rich-Text und Icon-Picker
 - [ ] 7. Nuxt UI entfernen

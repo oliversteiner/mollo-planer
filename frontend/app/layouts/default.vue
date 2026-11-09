@@ -1,107 +1,188 @@
 <script setup lang="ts">
-import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
+import type { NavItem } from '~/components/NavList.vue'
 
+/**
+ * App shell on <wa-page>: the navigation is a sidebar on wide screens and a
+ * drawer (with its own hamburger button) on narrow ones.
+ */
 const { t } = useI18n()
 const { viewer, logout } = useViewer()
 
-const userMenu = computed<DropdownMenuItem[][]>(() => [
-  [{ label: viewer.value?.email ?? '', type: 'label' }],
-  [{ label: t('profile.title'), icon: 'i-fadl-user-gear', to: '/profile' }],
-  [{ label: t('auth.logout'), icon: 'i-fadl-right-from-bracket', onSelect: () => logout() }]
+const mainItems = computed<NavItem[]>(() => [
+  { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
+  { label: t('nav.myTasks'), icon: 'square-check', to: '/my-tasks' },
+  ...(viewer.value?.isAdmin ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
 ])
 
-const mainItems = computed<NavigationMenuItem[]>(() => [
-  { label: t('nav.dashboard'), icon: 'i-fadl-gauge-high', to: '/', exact: true },
-  { label: t('nav.myTasks'), icon: 'i-fadl-square-check', to: '/my-tasks' },
-  ...(viewer.value?.isAdmin ? [{ label: t('nav.assistant'), icon: 'i-fadl-wand-magic-sparkles', to: '/assistant' }] : [])
-])
-
-const adminItems = computed<NavigationMenuItem[]>(() => (viewer.value?.isAdmin
+const adminItems = computed<NavItem[]>(() => (viewer.value?.isAdmin
   ? [
-      { label: t('nav.admin'), type: 'label' },
-      { label: t('nav.users'), icon: 'i-fadl-users', to: '/admin/users' },
-      { label: t('nav.appSettings'), icon: 'i-fadl-sliders', to: '/admin/settings' }
+      { label: t('nav.users'), icon: 'users', to: '/admin/users' },
+      { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }
     ]
   : []))
 
+function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
+  if (event.detail.item.value === 'profile') {
+    void navigateTo('/profile')
+  } else if (event.detail.item.value === 'logout') {
+    void logout()
+  }
+}
+
 /** Keyboard users jump past the sidebar to the content of the page. */
 function skipToContent(): void {
-  const body = document.querySelector<HTMLElement>('[data-slot="body"]')
-
-  if (body) {
-    body.tabIndex = -1
-    body.focus()
-  }
+  document.getElementById('main-content')?.focus()
 }
 </script>
 
 <template>
-  <UDashboardGroup>
+  <wa-page
+    mobile-breakpoint="1024px"
+    class="app-shell"
+  >
     <a
-      href="#"
-      class="sr-only z-50 rounded-md bg-primary px-3 py-2 text-inverted focus:not-sr-only focus:fixed focus:start-2 focus:top-2"
+      slot="skip-to-content"
+      href="#main-content"
+      class="skip-link"
       @click.prevent="skipToContent"
     >{{ t('nav.skipToContent') }}</a>
-    <UDashboardSidebar
-      collapsible
-      resizable
+
+    <div slot="navigation-header">
+      <NuxtLink
+        to="/"
+        class="app-name"
+      >
+        {{ t('app.name') }}
+      </NuxtLink>
+    </div>
+
+    <div
+      slot="navigation"
+      class="app-navigation"
     >
-      <template #header="{ collapsed }">
-        <NuxtLink
-          to="/"
-          class="truncate font-semibold text-highlighted"
+      <NavList
+        :items="mainItems"
+        :label="t('nav.main')"
+      />
+      <SidebarProjects />
+      <section
+        v-if="adminItems.length"
+        class="app-admin"
+        :aria-label="t('nav.admin')"
+      >
+        <h2 class="app-heading">
+          {{ t('nav.admin') }}
+        </h2>
+        <NavList :items="adminItems" />
+      </section>
+    </div>
+
+    <div slot="navigation-footer">
+      <wa-dropdown
+        v-if="viewer"
+        placement="top-start"
+        @wa-select="onUserMenu"
+      >
+        <wa-button
+          slot="trigger"
+          appearance="plain"
+          variant="neutral"
+          with-caret
+          class="user-menu-button"
+          :aria-label="t('auth.userMenu')"
         >
-          {{ collapsed ? t('app.name').charAt(0) : t('app.name') }}
-        </NuxtLink>
-      </template>
+          <UserLine
+            :name="viewer.name"
+            :src="viewer.avatarUrl"
+            size="xs"
+          />
+        </wa-button>
+        <h3>{{ viewer.email }}</h3>
+        <wa-dropdown-item value="profile">
+          <wa-icon
+            slot="icon"
+            name="user-gear"
+          ></wa-icon>
+          {{ t('profile.title') }}
+        </wa-dropdown-item>
+        <wa-dropdown-item value="logout">
+          <wa-icon
+            slot="icon"
+            name="right-from-bracket"
+          ></wa-icon>
+          {{ t('auth.logout') }}
+        </wa-dropdown-item>
+      </wa-dropdown>
+    </div>
 
-      <template #default="{ collapsed }">
-        <UNavigationMenu
-          :items="mainItems"
-          :collapsed="collapsed"
-          :aria-label="t('nav.main')"
-          orientation="vertical"
-        />
-        <SidebarProjects :collapsed="collapsed" />
-        <UNavigationMenu
-          v-if="adminItems.length"
-          :items="adminItems"
-          :collapsed="collapsed"
-          :aria-label="t('nav.admin')"
-          orientation="vertical"
-        />
-      </template>
+    <main
+      id="main-content"
+      tabindex="-1"
+    >
+      <slot />
+    </main>
 
-      <template #footer="{ collapsed }">
-        <div class="w-full">
-          <UDropdownMenu
-            v-if="viewer"
-            :items="userMenu"
-            :content="{ align: 'start', side: 'top' }"
-          >
-            <UButton
-              color="neutral"
-              variant="ghost"
-              :aria-label="t('auth.userMenu')"
-              class="w-full"
-              :square="collapsed"
-            >
-              <UAvatar
-                :src="viewer.avatarUrl ?? undefined"
-                :alt="viewer.name"
-                size="xs"
-              />
-              <span
-                v-if="!collapsed"
-                class="truncate"
-              >{{ viewer.name }}</span>
-            </UButton>
-          </UDropdownMenu>
-        </div>
-      </template>
-    </UDashboardSidebar>
-
-    <slot />
     <PasswordPromptModal />
-  </UDashboardGroup>
+  </wa-page>
 </template>
+
+<style scoped>
+.app-shell {
+  --menu-width: 16rem;
+}
+
+.app-name {
+  font-weight: var(--wa-font-weight-bold);
+  color: var(--wa-color-text-normal);
+  text-decoration: none;
+}
+
+.app-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-m);
+}
+
+.app-heading {
+  margin: 0;
+  padding: var(--wa-space-s) var(--wa-space-s) 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.app-admin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-xs);
+}
+
+.user-menu-button {
+  inline-size: 100%;
+  justify-content: flex-start;
+}
+
+main:focus {
+  outline: none;
+}
+
+.skip-link:not(:focus) {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link:focus {
+  position: fixed;
+  inset-block-start: var(--wa-space-xs);
+  inset-inline-start: var(--wa-space-xs);
+  z-index: 1000;
+  padding: var(--wa-space-xs) var(--wa-space-m);
+  border-radius: var(--wa-border-radius-m);
+  background-color: var(--wa-color-brand-fill-loud);
+  color: var(--wa-color-brand-on-loud);
+}
+</style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@vue/apollo-composable'
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type { NavItem } from '~/components/NavList.vue'
 import { sidebarProjectsQuery } from '~/graphql/projects'
 
 /**
@@ -8,8 +8,6 @@ import { sidebarProjectsQuery } from '~/graphql/projects'
  * project of the current page is chosen automatically; otherwise the last
  * one chosen (remembered in the browser), otherwise the first.
  */
-defineProps<{ collapsed?: boolean }>()
-
 const { t } = useI18n()
 const route = useRoute()
 
@@ -62,7 +60,7 @@ async function choose(id: string): Promise<void> {
   await navigateTo(`/projects/${id}${subPage}`)
 }
 
-const links = computed<NavigationMenuItem[]>(() => {
+const links = computed<NavItem[]>(() => {
   const id = projectId.value
 
   if (!id) {
@@ -70,47 +68,62 @@ const links = computed<NavigationMenuItem[]>(() => {
   }
 
   return [
-    { label: t('project.tabs.overview'), icon: 'i-fadl-flag-checkered', to: `/projects/${id}`, exact: true },
-    { label: t('project.tabs.todos'), icon: 'i-fadl-list-check', to: `/projects/${id}/todos` },
-    { label: t('project.tabs.kanban'), icon: 'i-fadl-table-columns', to: `/projects/${id}/kanban` },
-    { label: t('project.tabs.settings'), icon: 'i-fadl-gear', to: `/projects/${id}/settings` }
+    { label: t('project.tabs.overview'), icon: 'flag-checkered', to: `/projects/${id}`, exact: true },
+    { label: t('project.tabs.todos'), icon: 'list-check', to: `/projects/${id}/todos` },
+    { label: t('project.tabs.kanban'), icon: 'table-columns', to: `/projects/${id}/kanban` },
+    { label: t('project.tabs.settings'), icon: 'gear', to: `/projects/${id}/settings` }
   ]
 })
 </script>
 
 <template>
-  <nav
-    class="flex flex-col gap-1"
+  <section
+    class="sidebar-projects"
     :aria-label="t('nav.projects')"
   >
-    <span
-      v-if="!collapsed"
-      class="px-2.5 pt-2 text-xs font-semibold text-muted"
-    >{{ t('nav.projects') }}</span>
+    <h2 class="sidebar-heading">
+      {{ t('nav.projects') }}
+    </h2>
 
-    <USelectMenu
-      v-if="!collapsed && projects.length"
-      :model-value="projectId ?? undefined"
+    <FormSelect
+      v-if="projects.length"
+      :model-value="projectId"
       :items="projectItems"
-      value-key="value"
-      :search-input="projects.length > 5 ? { placeholder: t('nav.searchProject') } : false"
+      :searchable="projects.length > 5"
+      :placeholder="t('nav.searchProject')"
       :aria-label="t('nav.chooseProject')"
-      icon="i-fadl-folder-open"
-      class="w-full"
-      @update:model-value="choose"
+      @update:model-value="value => value && choose(value)"
     />
     <p
-      v-else-if="!collapsed"
-      class="px-2.5 text-sm text-muted"
+      v-else
+      class="sidebar-empty"
     >
       {{ t('projects.none') }}
     </p>
 
-    <UNavigationMenu
-      v-if="links.length"
-      :items="links"
-      :collapsed="collapsed"
-      orientation="vertical"
-    />
-  </nav>
+    <NavList :items="links" />
+  </section>
 </template>
+
+<style scoped>
+.sidebar-projects {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-xs);
+}
+
+.sidebar-heading {
+  margin: 0;
+  padding: var(--wa-space-s) var(--wa-space-s) 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.sidebar-empty {
+  margin: 0;
+  padding-inline: var(--wa-space-s);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+</style>

@@ -1,34 +1,58 @@
 <script setup lang="ts">
-import * as uiLocales from '@nuxt/ui/locale'
-
-const { t, locale, setLocale } = useI18n()
-
-const currentLocale = computed({
-  get: () => locale.value,
-  set: (code: string) => setLocale(code as 'de' | 'en')
-})
+/** Frame of the pages without login (login, password, invitation): small header, one centred column. */
+const { t } = useI18n()
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col">
-    <header class="flex items-center justify-between gap-2 p-4">
-      <span class="font-semibold text-highlighted">{{ t('app.name') }}</span>
-      <div class="flex items-center gap-2">
-        <ULocaleSelect
-          v-model="currentLocale"
-          :locales="[uiLocales.de, uiLocales.en]"
-          :aria-label="t('settings.language')"
-          class="w-36"
-        />
-        <UColorModeButton :aria-label="t('settings.colorMode')" />
+  <wa-page>
+    <header
+      slot="header"
+      class="auth-header"
+    >
+      <span class="auth-name">{{ t('app.name') }}</span>
+      <div class="auth-tools">
+        <LocaleSwitch />
+        <ColorModeSwitch />
       </div>
     </header>
 
-    <main class="flex flex-1 items-start justify-center px-4 py-8 sm:items-center">
-      <div class="w-full max-w-sm">
+    <main class="auth-main">
+      <div class="auth-column">
         <slot />
       </div>
     </main>
+
     <PasswordPromptModal />
-  </div>
+  </wa-page>
 </template>
+
+<style scoped>
+.auth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-m);
+}
+
+.auth-name {
+  font-weight: var(--wa-font-weight-bold);
+}
+
+.auth-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-s);
+}
+
+.auth-main {
+  display: flex;
+  justify-content: center;
+  padding: var(--wa-space-xl) var(--wa-space-m);
+}
+
+.auth-column {
+  inline-size: 100%;
+  max-inline-size: 24rem;
+}
+</style>

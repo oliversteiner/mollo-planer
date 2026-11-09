@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** Choice from a list (wa-select) with v-model, label, hint and message; see FormInput. */
+/** Choice from a list (wa-select, or wa-combobox with `searchable`) with v-model, label, hint and message; see FormInput. */
 export interface FormSelectItem {
   label: string
   value: string
@@ -11,6 +11,8 @@ defineProps<{
   label?: string
   hint?: string
   error?: string
+  /** With a search field for long lists (wa-combobox instead of wa-select). */
+  searchable?: boolean
 }>()
 
 const model = defineModel<string | null>({ default: null })
@@ -21,7 +23,8 @@ function onChange(event: Event) {
 </script>
 
 <template>
-  <wa-select
+  <component
+    :is="searchable ? 'wa-combobox' : 'wa-select'"
     :value="model ?? ''"
     :label="label"
     :hint="error ? undefined : hint"
@@ -42,5 +45,5 @@ function onChange(event: Event) {
       slot="hint"
       data-form-error
     >{{ error }}</span>
-  </wa-select>
+  </component>
 </template>
