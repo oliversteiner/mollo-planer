@@ -515,6 +515,10 @@ type Mutation @guard {
   moveTask(id: ID!, status: TaskStatus!, position: Int! @rules(apply: ["integer", "min:0"])): Task!
     @can(ability: "move", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\MoveTask")
+  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
+  moveTaskToTodo(id: ID!, todoId: ID!): Task!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveTaskToTodo")
   deleteTask(id: ID! @whereKey): Task!
     @can(ability: "delete", find: "id")
     @delete

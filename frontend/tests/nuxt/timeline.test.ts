@@ -1,4 +1,5 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { flushPromises } from '@vue/test-utils'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import Timeline from '~/components/project/Timeline.vue'
@@ -14,7 +15,16 @@ const project = {
       dueDate: '2027-03-31',
       status: 'OPEN',
       progress: { done: 0, total: 1, percent: 0 },
-      todos: []
+      todos: [{
+        id: '11',
+        title: 'Folge schneiden',
+        description: null,
+        icon: null,
+        dueDate: null,
+        status: 'OPEN',
+        progress: { done: 0, total: 0, percent: 0 },
+        tasks: []
+      }]
     },
     {
       id: '1',
@@ -47,8 +57,11 @@ const project = {
   ]
 }
 
+const { moveTaskToTodo } = vi.hoisted(() => ({ moveTaskToTodo: vi.fn() }))
+
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: () => ({ result: ref({ project }), loading: ref(false) })
+  useQuery: () => ({ result: ref({ project }), loading: ref(false), refetch: vi.fn() }),
+  useMutation: () => ({ mutate: moveTaskToTodo })
 }))
 
 beforeAll(async () => {
@@ -156,14 +169,15 @@ describe('ProjectTimeline', () => {
 
     await timeline.setProps({ actions: (kind: 'milestone' | 'todo') => (kind === 'todo' ? [{ label: 'Ändern' }] : []) })
 
-    expect(menus()).toEqual(['Aktionen für ToDo «Zielgruppe festlegen»'])
+    expect(menus()).toEqual(['Aktionen für ToDo «Zielgruppe festlegen»', 'Aktionen für ToDo «Folge schneiden»'])
 
     await timeline.setProps({ actions: () => [{ label: 'Ändern' }] })
 
     expect(menus()).toEqual([
       'Aktionen für Milestone «Konzept steht»',
       'Aktionen für ToDo «Zielgruppe festlegen»',
-      'Aktionen für Milestone «Erste Folge online»'
+      'Aktionen für Milestone «Erste Folge online»',
+      'Aktionen für ToDo «Folge schneiden»'
     ])
   })
 
@@ -184,5 +198,29 @@ describe('ProjectTimeline', () => {
     await task().trigger('dblclick')
 
     expect(timeline.emitted('editTask')).toEqual([[expect.objectContaining({ id: '100', title: 'Hörerprofile schreiben' })]])
+  })
+
+  it('moves a task dropped into another todo, only with the right to', async () => {
+    const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+    const lists = () => timeline.findAllComponents({ name: 'VueDraggable' })
+
+    await timeline.findAll('button').find(button => button.text() === 'Alle aufklappen')!.trigger('click')
+
+    expect(lists()).toHaveLength(2)
+    expect(lists().every(list => list.props('disabled'))).toBe(true)
+
+    await timeline.setProps({ canMoveTask: true })
+
+    const [from, to] = lists().map(list => list.element as HTMLElement)
+
+    expect(to!.dataset.todoId).toBe('11')
+
+    // SortableJS reports the drop; within the same todo nothing is saved.
+    lists()[0]!.vm.$emit('end', { item: { dataset: { id: '100' } }, from, to: from })
+    lists()[0]!.vm.$emit('end', { item: { dataset: { id: '100' } }, from, to })
+    await flushPromises()
+
+    expect(moveTaskToTodo).toHaveBeenCalledTimes(1)
+    expect(moveTaskToTodo).toHaveBeenCalledWith({ id: '100', todoId: '11' })
   })
 })

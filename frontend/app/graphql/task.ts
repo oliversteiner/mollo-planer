@@ -19,6 +19,12 @@ export const kanbanQuery = graphql(`
   }
 `)
 
+export const moveTaskToTodoMutation = graphql(`
+  mutation MoveTaskToTodo($id: ID!, $todoId: ID!) {
+    moveTaskToTodo(id: $id, todoId: $todoId) { id }
+  }
+`)
+
 export const projectMembersQuery = graphql(`
   query ProjectMembers($id: ID!) {
     project(id: $id) {

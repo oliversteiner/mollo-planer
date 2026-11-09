@@ -7,7 +7,9 @@ use App\Enums\ProjectRole;
 use App\Enums\TaskStatus;
 use App\GraphQL\Mutations\ResetUserTwoFactor;
 use App\Models\Comment;
+use App\Models\Milestone;
 use App\Models\Task;
+use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
@@ -212,6 +214,38 @@ class MutationTest extends GraphQLTestCase
         $this->assertUnauthorized($this->as('stranger')->gql($move, ['id' => $second->id, 's' => 'OPEN', 'p' => 0]));
     }
 
+    public function test_move_to_todo_keeps_the_task_in_its_project_and_updates_statuses(): void
+    {
+        $this->task->forceFill(['status' => TaskStatus::DONE])->save();
+        $open = Task::factory()->for($this->todo)->create(['position' => 1]);
+        $target = Todo::factory()->for(Milestone::factory()->for($this->project))->create();
+        $move = 'mutation ($id: ID!, $todo: ID!) { moveTaskToTodo(id: $id, todoId: $todo) { todo { id milestone { id } } status position } }';
+
+        $this->assertSame(ItemStatus::OPEN, $this->todo->fresh()->status);
+
+        // Like changing a task: managers yes, members no.
+        $this->assertUnauthorized($this->as('member')->gql($move, ['id' => $open->id, 'todo' => $target->id]));
+
+        $this->as('manager')->gql($move, ['id' => $open->id, 'todo' => $target->id])
+            ->assertJsonPath('data.moveTaskToTodo', [
+                'todo' => ['id' => (string) $target->id, 'milestone' => ['id' => (string) $target->milestone_id]],
+                'status' => 'OPEN',
+                'position' => 1,
+            ]);
+
+        // The old todo has only its done task left, the new one an open task.
+        $this->assertSame(ItemStatus::DONE, $this->todo->fresh()->status);
+        $this->assertSame(ItemStatus::OPEN, $target->fresh()->status);
+
+        // Not into a todo of another project, nor into one that does not exist.
+        $foreign = Todo::factory()->create();
+        $this->as('owner')->gql($move, ['id' => $open->id, 'todo' => $foreign->id])
+            ->assertGraphQLValidationKeys(['todoId']);
+        $this->as('owner')->gql($move, ['id' => $open->id, 'todo' => 999999])
+            ->assertGraphQLValidationKeys(['todoId']);
+        $this->assertSame($target->id, $open->fresh()->todo_id);
+    }
+
     public function test_member_cannot_update_or_delete_tasks(): void
     {
         $this->assertUnauthorized($this->as('member')->gql('mutation ($id: ID!) { updateTask(id: $id, input: {title: "Neu"}) { id } }', ['id' => $this->task->id]));
@@ -376,6 +410,7 @@ class MutationTest extends GraphQLTestCase
             'createTask' => ['manager', 'mutation ($t: ID!, $u: ID!) { createTask(input: {todoId: $t, title: "Neu", assigneeId: $u}) { id } }', fn (self $test) => ['t' => $test->todo->id, 'u' => $test->users['member']->id]],
             'assignTask' => ['manager', 'mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $test) => ['id' => $test->task->id, 'u' => $test->users['member']->id]],
             'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
+            'moveTaskToTodo' => ['manager', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => Todo::factory()->for($test->milestone)->create()->id]],
             'addComment' => ['member', 'mutation ($t: ID!, $body: RichText!) { addComment(input: {taskId: $t, body: $body}) { id } }', fn (self $test) => ['t' => $test->task->id, 'body' => $test->doc('Hallo')]],
         ];
     }

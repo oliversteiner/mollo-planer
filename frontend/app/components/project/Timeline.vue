@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { useQuery } from '@vue/apollo-composable'
+import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { DropdownMenuItem, TimelineItem } from '@nuxt/ui'
+import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { projectTimelineQuery } from '~/graphql/project'
+import { moveTaskToTodoMutation } from '~/graphql/task'
 import type { ProjectTimelineQuery } from '~/graphql/generated/graphql'
 import { formatDate } from '~/utils/dates'
 import { isEmptyDocument } from '~/utils/rich-text'
@@ -11,7 +13,8 @@ import { isEmptyDocument } from '~/utils/rich-text'
  * Project as a timeline, like the preview of the AI assistant: milestones
  * by due date, their todos (collapsible) and in them the tasks. Milestones
  * before the first open one are shown as reached. Creating, changing and
- * deleting is left to the page (events and the actions menu).
+ * deleting is left to the page (events and the actions menu); tasks are
+ * moved to another todo here, by drag and drop.
  */
 const props = defineProps<{
   projectId: string
@@ -25,6 +28,8 @@ const props = defineProps<{
   canCreateTask?: boolean
   /** A double-click on a task opens the edit dialog */
   canUpdateTask?: boolean
+  /** Tasks can be dragged into another todo */
+  canMoveTask?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -41,7 +46,7 @@ const emit = defineEmits<{
 const { t, localeProperties } = useI18n()
 const language = computed(() => localeProperties.value.language ?? 'de-CH')
 
-const { result, loading } = useQuery(projectTimelineQuery, () => ({ id: props.projectId }), { fetchPolicy: 'cache-and-network' })
+const { result, loading, refetch } = useQuery(projectTimelineQuery, () => ({ id: props.projectId }), { fetchPolicy: 'cache-and-network' })
 
 type Milestone = NonNullable<ProjectTimelineQuery['project']>['milestones'][number]
 type MilestoneItem = TimelineItem & { milestone: Milestone, number: number }
@@ -87,6 +92,47 @@ function setOpen(id: string, open: boolean) {
   }
 
   openTodos.value = next
+}
+
+/**
+ * Tasks per todo id, a local copy so a drop shows at once. Within a todo
+ * the order is by due date, so dragging only moves between todos; the
+ * server's answer replaces the copy after every move.
+ */
+const taskLists = ref<Record<string, TimelineTask[]>>({})
+const dragging = ref(false)
+
+function fillTaskLists() {
+  taskLists.value = Object.fromEntries(milestones.value.flatMap(milestone => milestone.todos.map(todo => [todo.id, byDueDate(todo.tasks)])))
+}
+
+watch(milestones, fillTaskLists, { immediate: true })
+
+const { mutate: moveTaskToTodo } = useMutation(moveTaskToTodoMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
+
+async function onDrop(event: SortableEvent) {
+  dragging.value = false
+
+  const taskId = (event.item as HTMLElement).dataset.id
+  const todoId = (event.to as HTMLElement).dataset.todoId
+
+  if (!taskId || !todoId || event.from === event.to) {
+    return
+  }
+
+  try {
+    await moveTaskToTodo({ id: taskId, todoId })
+  } finally {
+    await refetch()
+    fillTaskLists()
+  }
+}
+
+/** While dragging, a closed todo opens when the task is held over it. */
+function openWhileDragging(todoId: string) {
+  if (dragging.value && !openTodos.value.has(todoId)) {
+    setOpen(todoId, true)
+  }
 }
 
 /** Only the milestones: without descriptions and todos, as an outline. */
@@ -201,7 +247,10 @@ function toggleAll() {
                   :key="todo.id"
                   class="rounded-lg border border-default"
                 >
-                  <div class="flex items-center gap-1 pe-1">
+                  <div
+                    class="flex items-center gap-1 pe-1"
+                    @dragover="openWhileDragging(todo.id)"
+                  >
                     <UButton
                       variant="ghost"
                       color="neutral"
@@ -250,75 +299,89 @@ function toggleAll() {
                           class="text-sm"
                         />
 
-                        <ul
-                          v-if="todo.tasks.length"
-                          class="divide-y divide-default rounded-md bg-elevated/50"
-                        >
-                          <li
-                            v-for="task in byDueDate(todo.tasks)"
-                            :key="task.id"
-                            class="flex cursor-pointer flex-col gap-2 px-3 py-2 transition-colors first:rounded-t-md last:rounded-b-md hover:bg-accented/70 sm:flex-row sm:items-start"
-                            @click="emit('openTask', task.id)"
-                            @dblclick="editTask(task)"
+                        <div class="relative">
+                          <VueDraggable
+                            v-model="taskLists[todo.id]!"
+                            tag="ul"
+                            group="timeline-tasks"
+                            :sort="false"
+                            :disabled="!canMoveTask"
+                            :animation="150"
+                            ghost-class="opacity-40"
+                            :data-todo-id="todo.id"
+                            class="divide-y divide-default rounded-md"
+                            :class="taskLists[todo.id]?.length ? 'bg-elevated/50' : canMoveTask ? 'min-h-10 border border-dashed border-default' : ''"
+                            @start="dragging = true"
+                            @end="onDrop"
                           >
-                            <ItemIcon
-                              :name="task.icon"
-                              fallback="square-check"
-                              class="mt-0.5 hidden shrink-0 text-muted sm:block"
-                            />
-                            <div class="min-w-0 flex-1 space-y-1">
-                              <button
-                                type="button"
-                                class="block text-start text-sm font-medium focus-visible:underline focus-visible:outline-none"
-                                :class="task.status === 'DONE' ? 'text-muted line-through' : 'text-highlighted'"
-                                :aria-label="t('project.timeline.openTask', { title: task.title })"
-                                @click.stop="emit('openTask', task.id)"
-                                @dblclick.stop="editTask(task)"
-                              >
-                                {{ task.title }}
-                              </button>
-                              <RichTextView
-                                v-if="!isEmptyDocument(task.description)"
-                                :content="task.description"
-                                class="text-sm text-muted"
+                            <li
+                              v-for="task in taskLists[todo.id]"
+                              :key="task.id"
+                              :data-id="task.id"
+                              class="flex cursor-pointer flex-col gap-2 px-3 py-2 transition-colors first:rounded-t-md last:rounded-b-md hover:bg-accented/70 sm:flex-row sm:items-start"
+                              @click="emit('openTask', task.id)"
+                              @dblclick="editTask(task)"
+                            >
+                              <ItemIcon
+                                :name="task.icon"
+                                fallback="square-check"
+                                class="mt-0.5 hidden shrink-0 text-muted sm:block"
                               />
-                            </div>
-                            <div class="flex shrink-0 flex-wrap items-center gap-3">
-                              <StatusBadge :status="task.status" />
-                              <DueDate
-                                :date="task.dueDate"
-                                :done="task.status === 'DONE'"
-                              />
-                              <span
-                                v-if="task.commentCount"
-                                class="inline-flex items-center gap-1 text-xs text-muted"
-                              >
-                                <UIcon
-                                  name="i-fadl-comments"
-                                  class="size-4"
+                              <div class="min-w-0 flex-1 space-y-1">
+                                <button
+                                  type="button"
+                                  class="block text-start text-sm font-medium focus-visible:underline focus-visible:outline-none"
+                                  :class="task.status === 'DONE' ? 'text-muted line-through' : 'text-highlighted'"
+                                  :aria-label="t('project.timeline.openTask', { title: task.title })"
+                                  @click.stop="emit('openTask', task.id)"
+                                  @dblclick.stop="editTask(task)"
+                                >
+                                  {{ task.title }}
+                                </button>
+                                <RichTextView
+                                  v-if="!isEmptyDocument(task.description)"
+                                  :content="task.description"
+                                  class="text-sm text-muted"
                                 />
-                                {{ task.commentCount }}
-                                <span class="sr-only">{{ t('kanban.comments') }}</span>
-                              </span>
-                              <UUser
-                                v-if="task.assignee"
-                                :name="task.assignee.name"
-                                :avatar="{ src: task.assignee.avatarUrl ?? undefined, alt: task.assignee.name, icon: 'i-fadl-user' }"
-                                size="xs"
-                              />
-                              <span
-                                v-else
-                                class="text-xs text-dimmed"
-                              >{{ t('project.timeline.unassigned') }}</span>
-                            </div>
-                          </li>
-                        </ul>
-                        <p
-                          v-else
-                          class="text-sm text-muted"
-                        >
-                          {{ t('project.timeline.noTasks') }}
-                        </p>
+                              </div>
+                              <div class="flex shrink-0 flex-wrap items-center gap-3">
+                                <StatusBadge :status="task.status" />
+                                <DueDate
+                                  :date="task.dueDate"
+                                  :done="task.status === 'DONE'"
+                                />
+                                <span
+                                  v-if="task.commentCount"
+                                  class="inline-flex items-center gap-1 text-xs text-muted"
+                                >
+                                  <UIcon
+                                    name="i-fadl-comments"
+                                    class="size-4"
+                                  />
+                                  {{ task.commentCount }}
+                                  <span class="sr-only">{{ t('kanban.comments') }}</span>
+                                </span>
+                                <UUser
+                                  v-if="task.assignee"
+                                  :name="task.assignee.name"
+                                  :avatar="{ src: task.assignee.avatarUrl ?? undefined, alt: task.assignee.name, icon: 'i-fadl-user' }"
+                                  size="xs"
+                                />
+                                <span
+                                  v-else
+                                  class="text-xs text-dimmed"
+                                >{{ t('project.timeline.unassigned') }}</span>
+                              </div>
+                            </li>
+                          </VueDraggable>
+                          <p
+                            v-if="!taskLists[todo.id]?.length && !dragging"
+                            class="text-sm text-muted"
+                            :class="canMoveTask ? 'pointer-events-none absolute inset-0 flex items-center px-3' : ''"
+                          >
+                            {{ t('project.timeline.noTasks') }}
+                          </p>
+                        </div>
 
                         <UButton
                           v-if="canCreateTask"

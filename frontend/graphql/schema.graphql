@@ -139,6 +139,8 @@ type Mutation {
  importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
  "Verschiebt einen Task im Kanban"
  moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
+ "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
+ moveTaskToTodo(id: ID!, todoId: ID!): Task!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
  resetUserTwoFactor(id: ID!): User!

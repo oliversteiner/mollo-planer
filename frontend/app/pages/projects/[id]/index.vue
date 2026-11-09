@@ -150,6 +150,7 @@ function actions(kind: 'milestone' | 'todo', item: Item): DropdownMenuItem[] {
       :can-create-todo="can('TODO_CREATE')"
       :can-create-task="can('TASK_CREATE')"
       :can-update-task="can('TASK_UPDATE')"
+      :can-move-task="can('TASK_UPDATE')"
       @create-todo="editing = { kind: 'todo', parentId: $event }"
       @create-task="createTask"
       @open-task="openTask"

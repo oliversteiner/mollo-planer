@@ -70,6 +70,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'updateTask' => ['stranger', 'mutation ($id: ID!) { updateTask(id: $id, input: {title: "Hack"}) { id } }', $task],
             'assignTask' => ['stranger', 'mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $test) => ['id' => $test->task->id, 'u' => $test->users['member']->id]],
             'moveTask' => ['stranger', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', $task],
+            'moveTaskToTodo' => ['stranger', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => $test->todo->id]],
             'deleteTask' => ['stranger', 'mutation ($id: ID!) { deleteTask(id: $id) { id } }', $task],
             'addComment' => ['stranger', 'mutation ($t: ID!, $b: RichText!) { addComment(input: {taskId: $t, body: $b}) { id } }', fn (self $test) => ['t' => $test->task->id, 'b' => $test->doc('Hack')]],
             'updateComment' => ['stranger', 'mutation ($id: ID!, $b: RichText!) { updateComment(id: $id, input: {body: $b}) { id } }', fn (self $test) => ['id' => $test->comment->id, 'b' => $test->doc('Hack')]],

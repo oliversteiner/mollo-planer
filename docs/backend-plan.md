@@ -89,6 +89,10 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - **Eintragen** über `App\Services\ProjectPlanImporter`, denselben Code wie die MCP-Werkzeuge `create_project_plan`: Er führt die GraphQL-Mutationen des Schemas als die Person aus (gleiche Rechte, Prüfungen, Status-Automatik, Mails) in einer Transaktion. Fehler nennen das Element (`ProjectPlanFailed`, für die App übersetzt als Validierungsfehler `plan`). Ohne Häkchen keine Zuweisungsmails.
 - Tests: `ProjectPlanAssistantTest` (Claude-Aufruf gemockt), dazu die Listen in `MutationTest` und `OutsiderAccessTest`.
 
+## Task in ein anderes ToDo (bestätigt 2026-11-09)
+- Neue Mutation `moveTaskToTodo(id, todoId)` für Drag & Drop im Zeitstrahl. Recht wie „Task ändern“ (`@can update`, Owner und Manager), nicht wie das Verschieben im Kanban.
+- Das Ziel-ToDo muss im selben Projekt liegen, sonst ein Validierungsfehler auf `todoId`. Status und Kanban-Position des Tasks bleiben; der `TaskObserver` rechnet altes und neues ToDo samt Milestones nach.
+
 ## Optionale Filter (2026-11-08)
 - `todos(milestoneId, status)` und `myTasks(status)` nutzen `@filter` (`App\GraphQL\Directives\FilterDirective`) statt `@eq`: Ein ausdrücklich übergebenes `null` bedeutet „kein Filter“. Lighthouses `@eq` macht daraus `IS NULL` und findet nichts; so waren im Frontend die ToDo-Liste und „Meine Tasks“ leer, solange „Alle“ gewählt war. Neue optionale Filter bekommen `@filter`. Getestet in `QueryTest::test_null_filters_apply_no_filter`.
 

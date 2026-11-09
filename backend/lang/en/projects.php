@@ -3,6 +3,7 @@
 return [
     'last_owner' => 'The project needs at least one owner. Make someone else an owner first.',
     'assignee_not_member' => 'Tasks can only be assigned to members of the project.',
+    'todo_other_project' => 'A task can only be moved to a todo of the same project.',
     'plan' => [
         'not_configured' => 'The AI assistant is not set up yet. The backend .env lacks ANTHROPIC_API_KEY.',
         'invalid_key' => 'Claude refuses the API key. Check ANTHROPIC_API_KEY in the backend .env (it starts with sk-ant-).',
