@@ -9,3 +9,14 @@
 @import '@web.awesome.me/webawesome-pro/dist/styles/layers.css';
 @import '@web.awesome.me/webawesome-pro/dist/styles/themes/matter.css';
 @import '@web.awesome.me/webawesome-pro/dist/styles/utilities.css';
+
+/* Fields with a message from the server (FormInput, FormTextarea, FormSelect). */
+@layer wa-theme-overrides {
+  [data-invalid] {
+    --wa-form-control-border-color: var(--wa-color-danger-border-loud);
+  }
+
+  [data-form-error] {
+    color: var(--wa-color-danger-on-quiet);
+  }
+}
