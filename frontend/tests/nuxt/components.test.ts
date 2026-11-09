@@ -52,14 +52,14 @@ describe('DueDate', () => {
   it('marks a past date as overdue, in red and for screen readers', async () => {
     const date = await mountSuspended(DueDate, { props: { date: '2020-01-31' } })
 
-    expect(date.classes()).toContain('text-error')
+    expect(date.attributes('data-overdue')).toBe('')
     expect(date.text()).toContain('31.01.2020')
     expect(date.text()).toContain('überfällig')
   })
 
   it('does not mark done items or future dates, and shows nothing without a date', async () => {
-    expect((await mountSuspended(DueDate, { props: { date: '2020-01-31', done: true } })).classes()).not.toContain('text-error')
-    expect((await mountSuspended(DueDate, { props: { date: '2999-12-31' } })).classes()).not.toContain('text-error')
+    expect((await mountSuspended(DueDate, { props: { date: '2020-01-31', done: true } })).attributes('data-overdue')).toBeUndefined()
+    expect((await mountSuspended(DueDate, { props: { date: '2999-12-31' } })).attributes('data-overdue')).toBeUndefined()
     expect((await mountSuspended(DueDate, { props: { date: null } })).text()).toBe('')
   })
 })

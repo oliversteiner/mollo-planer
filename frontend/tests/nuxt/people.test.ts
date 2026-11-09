@@ -1,7 +1,9 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, expect, it } from 'vitest'
 import EmptyState from '~/components/EmptyState.vue'
+import PageFrame from '~/components/PageFrame.vue'
 import UserAvatar from '~/components/UserAvatar.vue'
+import UserAvatarGroup from '~/components/UserAvatarGroup.vue'
 import UserLine from '~/components/UserLine.vue'
 
 type Avatar = HTMLElement & { image: string, initials: string, label: string }
@@ -56,5 +58,37 @@ describe('EmptyState', () => {
     expect(empty.attributes('data-size')).toBe('sm')
     expect(empty.attributes('data-bare')).toBe('')
     expect(empty.find('wa-icon').exists()).toBe(false)
+  })
+})
+
+describe('UserAvatarGroup', () => {
+  const people = Array.from({ length: 7 }, (_, index) => ({ id: String(index), name: `Person ${index}`, avatarUrl: null }))
+
+  it('shows up to the maximum and counts the rest', async () => {
+    const group = await mountSuspended(UserAvatarGroup, { props: { people, max: 5 } })
+
+    expect(group.findAll('wa-avatar')).toHaveLength(5)
+    expect(group.text()).toBe('+2')
+  })
+
+  it('has no counter when everybody fits', async () => {
+    const group = await mountSuspended(UserAvatarGroup, { props: { people: people.slice(0, 3), max: 5 } })
+
+    expect(group.findAll('wa-avatar')).toHaveLength(3)
+    expect(group.text()).toBe('')
+  })
+})
+
+describe('PageFrame', () => {
+  it('shows the title as heading and the actions only when given', async () => {
+    const plain = await mountSuspended(PageFrame, { props: { title: 'Dashboard' }, slots: { default: '<p class="body">Inhalt</p>' } })
+
+    expect(plain.find('h1').text()).toBe('Dashboard')
+    expect(plain.find('.body').exists()).toBe(true)
+    expect(plain.find('.page-actions').exists()).toBe(false)
+
+    const withActions = await mountSuspended(PageFrame, { props: { title: 'Projekte' }, slots: { actions: '<button class="act">Neu</button>' } })
+
+    expect(withActions.find('.page-actions .act').exists()).toBe(true)
   })
 })

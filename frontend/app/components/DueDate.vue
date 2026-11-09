@@ -16,17 +16,29 @@ const label = computed(() => (props.date ? formatDate(props.date, localeProperti
 <template>
   <span
     v-if="date"
-    class="inline-flex items-center gap-1 text-sm"
-    :class="overdue ? 'text-error' : 'text-muted'"
+    class="due-date"
+    :data-overdue="overdue ? '' : undefined"
   >
-    <UIcon
-      :name="overdue ? 'i-fadl-calendar-exclamation' : 'i-fadl-calendar-day'"
-      class="size-4"
-    />
+    <wa-icon :name="overdue ? 'calendar-exclamation' : 'calendar-day'"></wa-icon>
     <span>{{ label }}</span>
     <span
       v-if="overdue"
-      class="sr-only"
+      class="wa-visually-hidden"
     >({{ t('due.overdue') }})</span>
   </span>
 </template>
+
+<style scoped>
+.due-date {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wa-space-3xs);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+  white-space: nowrap;
+}
+
+.due-date[data-overdue] {
+  color: var(--wa-color-danger-on-quiet);
+}
+</style>

@@ -41,73 +41,58 @@ watch(open, (isOpen) => {
 </script>
 
 <template>
-  <UModal
+  <AppDialog
     v-model:open="open"
-    :title="t('projects.create.title')"
+    :label="t('projects.create.title')"
   >
-    <template #body>
-      <UForm
-        id="create-project"
-        :state="state"
-        class="space-y-4"
-        @submit="submit"
-      >
-        <UFormField
-          :label="t('projects.fields.name')"
-          name="name"
-          :error="errors.name"
-          required
-        >
-          <UInput
-            v-model="state.name"
-            class="w-full"
-            autofocus
-            required
-          />
-        </UFormField>
+    <form
+      id="create-project"
+      class="wa-stack wa-gap-m"
+      @submit.prevent="submit"
+    >
+      <FormInput
+        v-model="state.name"
+        name="name"
+        :label="t('projects.fields.name')"
+        :error="errors.name"
+        autofocus
+        required
+      />
 
-        <UFormField
-          :label="t('projects.fields.description')"
-          name="description"
-          :error="errors.description"
-        >
-          <UTextarea
-            v-model="state.description"
-            :rows="3"
-            class="w-full"
-          />
-        </UFormField>
+      <FormTextarea
+        v-model="state.description"
+        name="description"
+        :label="t('projects.fields.description')"
+        :error="errors.description"
+        :rows="3"
+      />
 
-        <UFormField
-          :label="t('projects.fields.locale')"
-          :hint="t('projects.fields.localeHint')"
-          name="locale"
-          :error="errors.locale"
-        >
-          <USelect
-            v-model="state.locale"
-            :items="locales"
-            class="w-full"
-          />
-        </UFormField>
-      </UForm>
-    </template>
+      <FormSelect
+        v-model="state.locale"
+        name="locale"
+        :items="locales"
+        :label="t('projects.fields.locale')"
+        :hint="t('projects.fields.localeHint')"
+        :error="errors.locale"
+      />
+    </form>
 
     <template #footer>
-      <div class="flex w-full justify-end gap-2">
-        <UButton
-          :label="t('common.cancel')"
-          color="neutral"
-          variant="ghost"
-          @click="open = false"
-        />
-        <UButton
-          type="submit"
-          form="create-project"
-          :label="t('projects.create.submit')"
-          :loading="pending"
-        />
-      </div>
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        @click="open = false"
+      >
+        {{ t('common.cancel') }}
+      </wa-button>
+      <wa-button
+        type="submit"
+        form="create-project"
+        variant="brand"
+        :loading="pending"
+      >
+        {{ t('projects.create.submit') }}
+      </wa-button>
     </template>
-  </UModal>
+  </AppDialog>
 </template>

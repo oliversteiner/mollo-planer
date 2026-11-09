@@ -9,13 +9,11 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <UBadge
-    color="primary"
-    variant="soft"
-    size="sm"
-    class="shrink-0 font-semibold tabular-nums"
+  <wa-badge
+    variant="brand"
+    appearance="filled"
     :aria-label="t('project.milestoneNumberLabel', { number })"
   >
     {{ t('project.milestoneNumber', { number }) }}
-  </UBadge>
+  </wa-badge>
 </template>

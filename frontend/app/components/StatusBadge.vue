@@ -7,22 +7,21 @@ const props = defineProps<{ status: 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' }
 
 const { t } = useI18n()
 
-const colors = {
+const variants = {
   OPEN: 'neutral',
-  IN_PROGRESS: 'info',
+  IN_PROGRESS: 'brand',
   REVIEW: 'warning',
   DONE: 'success'
 } as const
 
-const color = computed(() => colors[props.status])
+const variant = computed(() => variants[props.status])
 </script>
 
 <template>
-  <UBadge
-    :color="color"
-    variant="subtle"
-    size="sm"
+  <wa-badge
+    :variant="variant"
+    appearance="filled"
   >
     {{ t(`status.${status}`) }}
-  </UBadge>
+  </wa-badge>
 </template>
