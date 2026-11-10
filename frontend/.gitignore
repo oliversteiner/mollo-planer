@@ -25,3 +25,6 @@ logs
 
 # Registry tokens (local only), also backups like .npmrc.bak
 .npmrc*
+
+# direnv: lokale Tokens, nicht einchecken
+.envrc
