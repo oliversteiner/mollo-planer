@@ -6,6 +6,7 @@ use App\Enums\Locale;
 use App\Enums\ProjectRole;
 use App\Enums\TaskStatus;
 use App\Models\Comment;
+use App\Models\LabelSet;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
@@ -126,6 +127,7 @@ class DemoSeeder extends Seeder
             'chiara' => ProjectRole::MANAGER,
             'david' => ProjectRole::MEMBER,
         ]);
+        $this->useLabelSet($project, 'software_dev');
 
         $design = $this->milestone($project, 'Design freigegeben', 'Styleguide und Entwürfe sind abgenommen.', 'palette', '2026-11-20');
         $content = $this->milestone($project, 'Inhalte migriert', 'Alle Seiten und Texte sind im neuen System.', 'file-import', '2026-12-18');
@@ -146,10 +148,15 @@ class DemoSeeder extends Seeder
             $this->bullets('Buttons und Formulare', 'Icons', 'Farben und Abstände'),
         ));
         $wireframes = $this->task($homepage, 'Wireframes zeichnen', TaskStatus::REVIEW, 0, 'chiara', '2026-11-12');
-        $this->task($homepage, 'Mockup Desktop', TaskStatus::OPEN, 0, 'david', '2026-11-17');
+        $mockup = $this->task($homepage, 'Mockup Desktop', TaskStatus::OPEN, 0, 'david', '2026-11-17');
         $this->task($inventory, 'Alle Seiten auflisten', TaskStatus::DONE, 1, 'david', '2026-11-20');
         $this->task($inventory, 'Veraltete Seiten markieren', TaskStatus::OPEN, 1, null, '2026-11-26');
-        $this->task($server, 'Hosting bestellen', TaskStatus::OPEN, 2, 'ben', '2027-01-08');
+        $hosting = $this->task($server, 'Hosting bestellen', TaskStatus::OPEN, 2, 'ben', '2027-01-08');
+
+        $this->label($components, 'design', 'feature');
+        $this->label($wireframes, 'research', 'design');
+        $this->label($mockup, 'design');
+        $this->label($hosting, 'blocked');
 
         $this->comment($components, 'ben', 'Bitte dokumentiere auch die Icons.', '2026-11-04 09:15');
         $this->comment($components, 'david', 'Mache ich. Morgen bin ich damit durch.', '2026-11-04 10:02');
@@ -162,13 +169,14 @@ class DemoSeeder extends Seeder
             'chiara' => ProjectRole::OWNER,
             'david' => ProjectRole::MEMBER,
         ]);
+        $this->useLabelSet($project, 'event');
 
         $budget = $this->milestone($project, 'Budget und Termin', 'Budget genehmigt, Datum und Ort fest.', 'coins', '2026-12-04');
         $this->milestone($project, 'Programm steht', 'Ablauf und Helferplan sind fertig.', 'calendar-days', '2027-03-12');
 
         $estimate = $this->todo($budget, 'Budget aufstellen', $this->plain('Kosten schätzen und Freigabe einholen.'), 'calculator', '2026-11-25');
 
-        $this->task($estimate, 'Kostenschätzung', TaskStatus::IN_PROGRESS, 0, 'chiara', '2026-11-24');
+        $this->label($this->task($estimate, 'Kostenschätzung', TaskStatus::IN_PROGRESS, 0, 'chiara', '2026-11-24'), 'location');
     }
 
     /**
@@ -232,6 +240,24 @@ class DemoSeeder extends Seeder
         $task->save();
 
         return $task;
+    }
+
+    /**
+     * The project uses one of the built-in label sets (created by the migration).
+     */
+    private function useLabelSet(Project $project, string $key): void
+    {
+        $project->labelSet()->associate(LabelSet::query()->where('key', $key)->firstOrFail())->save();
+    }
+
+    /**
+     * Labels of the project's set, by their key.
+     */
+    private function label(Task $task, string ...$keys): void
+    {
+        $set = $task->owningProject()->labelSet()->firstOrFail();
+
+        $task->labels()->attach($set->labels()->whereIn('key', $keys)->pluck('labels.id'));
     }
 
     private function comment(Task $task, string $author, string $text, string $createdAt): void

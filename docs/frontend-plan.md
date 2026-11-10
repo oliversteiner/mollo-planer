@@ -60,7 +60,8 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf 
 | `/projects/:id/todos` | ToDo-Liste mit Filtern (Milestone, Status) |
 | `/projects/:id/kanban?task=` | Kanban; `?task=` öffnet die Task-Details im Seitenpanel (Link aus den Mails) |
 | `/projects/:id/members` | Mitglieder und Rollen (lesen alle, ändern mit `MEMBERS_MANAGE`) |
-| `/projects/:id/settings` | Name, Beschreibung, Icon, Sprache der Mails, Projekt löschen |
+| `/projects/:id/settings` | Name, Beschreibung, Icon, Sprache der Mails, Label-Set, Projekt löschen |
+| `/label-sets` | Label-Sets der App: mitgelieferte und eigene; anlegen, duplizieren, bearbeiten, löschen (siehe `labels-plan.md`) |
 | `/my-tasks` | Meine Tasks, filterbar nach Status |
 | `/profile` | Name und E-Mail, Passwort, Avatarbild, Mail-Benachrichtigungen, 2FA-App, Passkeys, Sprache |
 | `/assistant` | KI-Assistent (nur Admins): links Chat mit Spracheingabe, rechts Vorschau des Entwurfs (Name, Beschreibung, Timeline mit Milestones, aufklappbaren ToDos und Tasks), „Jetzt eintragen“ |

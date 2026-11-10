@@ -44,6 +44,9 @@ class DemoSeederTest extends TestCase
         );
         $this->assertSame([ItemStatus::OPEN], Todo::pluck('status')->unique()->values()->all());
         $this->assertSame('bulletList', Todo::where('title', 'Styleguide erstellen')->firstOrFail()->description['content'][1]['type']);
+
+        $this->assertSame('software_dev', $relaunch->labelSet?->key);
+        $this->assertEqualsCanonicalizing(['design', 'feature'], Task::where('title', 'Komponenten dokumentieren')->firstOrFail()->labels->pluck('key')->all());
     }
 
     public function test_demo_data_starts_with_two_factor_off_so_the_password_is_enough(): void

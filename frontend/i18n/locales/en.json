@@ -552,6 +552,8 @@
       "INDIGO": "Indigo",
       "PURPLE": "Purple",
       "PINK": "Pink"
-    }
+    },
+    "allLabels": "All labels",
+    "filter": "Filter by label"
   }
 }

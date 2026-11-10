@@ -8,6 +8,7 @@ Produktiv-Domain später: `project.fcadb.ch` (Frontend und API als getrennte Sub
 - `docs/graphql-kontext.md`: alle Entscheidungen im Detail (Rechte, Status-Automatik, Mails, RichText, Icons, Kommentare).
 - `backend/graphql/schema.graphql`: das GraphQL-Schema (Lighthouse). Ist der Vertrag zwischen Backend und Frontend.
 - `docs/frontend-plan.md`: Entscheidungen und Bau-Reihenfolge für das Frontend.
+- `docs/labels-plan.md`: Labels für Tasks (Label-Sets): Entscheidungen, mitgelieferte Sets, Stand.
 - `docs/frontend-webawesome-plan.md`: Umstellung der Oberfläche auf Web Awesome Pro (Bausteine, Abweichungen, Stand). Für alles an der Oberfläche gilt dieses Dokument vor `frontend-plan.md`.
 
 Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code vom Schema ab, nicht stillschweigend das Schema ändern, sondern nachfragen.

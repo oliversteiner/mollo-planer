@@ -1,6 +1,6 @@
 # Labels für Tasks (Label-Sets)
 
-Stand: 2026-11-10, Entwurf zur Freigabe. Ergänzt `backend-plan.md`, `graphql-kontext.md` und `frontend-webawesome-plan.md`; das GraphQL-Schema bleibt der Vertrag.
+Stand: 2026-11-10, vom Auftraggeber freigegeben und umgesetzt (Branch `feature/labels`). Ergänzt `backend-plan.md`, `graphql-kontext.md` und `frontend-webawesome-plan.md`; das GraphQL-Schema bleibt der Vertrag.
 
 ## Ziel
 Tasks lassen sich mit Labels kategorisieren. Ein **Label-Set** ist eine benannte Gruppe von Labels; **jedes Projekt wählt ein Set**. Die App bringt Sets mit, eigene Sets lassen sich anlegen, auch als Kopie eines bestehenden Sets.
@@ -65,3 +65,15 @@ Branch `feature/labels`, abgezweigt von `feature/webawesome` (die Oberfläche ba
 3. Frontend: Labels setzen (Task-Details, Task-Dialog), Wahl des Sets in den Projekteinstellungen.
 4. Frontend: Seite `/label-sets` mit Anlegen, Duplizieren, Bearbeiten, Löschen.
 5. Kanban-Filter, Demo-Daten, Doku nachführen, Prüfung im Browser.
+
+## Stand
+- [x] 1. Backend (Migration mit den mitgelieferten Sets, Modelle, Schema, `LabelSetPolicy`, `LABEL_SETS_MANAGE`, Mutationen, Tests; zusätzlich `viewerCanManageLabelSets` für die Oberfläche)
+- [x] 2. `TaskLabels` an Kanban-Karten, Zeitachse und Meine Tasks
+- [x] 3. `LabelPicker` in den Task-Details und beim Anlegen eines Tasks; Karte „Labels“ in den Projekteinstellungen
+- [x] 4. Seite `/label-sets` (Anlegen, Duplizieren, Bearbeiten, Löschen; Rückfrage vor dem Löschen von Labels)
+- [x] 5. Filter nach Label im Kanban (Ziehen ist beim Filtern aus, das Kartenmenü verschiebt weiter), Demo-Daten, Doku
+
+## Hinweise aus der Umsetzung
+- **Reihenfolge der Labels eines Tasks:** Der Batch-Loader von Lighthouse liefert `Task.labels` nicht garantiert in der Reihenfolge des Sets. `Label.position` ist darum im Schema; das Frontend sortiert danach.
+- **Mitgelieferte Sets** legt die Migration an (`App\Support\BuiltinLabelSets::sync()`, abgeglichen über `key`). Neue mitgelieferte Sets oder Labels kommen per neuer Migration, die `sync()` erneut aufruft.
+- **Kopien mitgelieferter Sets** übernehmen Namen, Kategorien und Beschreibung in der Sprache der Anfrage; danach sind es gewöhnliche Texte.

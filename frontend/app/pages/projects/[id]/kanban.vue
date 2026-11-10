@@ -16,7 +16,24 @@ type Status = (typeof TASK_STATUSES)[number]
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const { projectId, can } = useProject()
+const { projectId, project, can } = useProject()
+
+/**
+ * Filter by label ("all": none). While filtering, cards cannot be dragged:
+ * hidden cards would make the positions wrong. The card menu still moves.
+ */
+const labelFilter = ref('all')
+const filterItems = computed(() => [
+  { label: t('labels.allLabels'), value: 'all' },
+  ...[...(project.value?.labelSet?.labels ?? [])]
+    .sort((a, b) => a.position - b.position)
+    .map(label => ({ label: label.name, value: label.id }))
+])
+const filtering = computed(() => labelFilter.value !== 'all')
+
+function shown(task: Task): boolean {
+  return !filtering.value || task.labels.some(label => label.id === labelFilter.value)
+}
 
 const { result, loading, refetch } = useQuery(kanbanQuery, () => ({ projectId: projectId.value }), { fetchPolicy: 'cache-and-network' })
 const { result: membersResult } = useQuery(projectMembersQuery, () => ({ id: projectId.value }))
@@ -193,6 +210,15 @@ const abilities = computed(() => ({
       </wa-button>
     </Teleport>
 
+    <FormSelect
+      v-if="filterItems.length > 1"
+      v-model="labelFilter"
+      :items="filterItems"
+      :label="t('labels.filter')"
+      hide-label
+      class="kanban-filter"
+    />
+
     <wa-skeleton
       v-if="loading && !result"
       effect="sheen"
@@ -216,14 +242,14 @@ const abilities = computed(() => ({
             variant="neutral"
             appearance="filled"
           >
-            {{ column.tasks.length }}
+            {{ filtering ? column.tasks.filter(shown).length : column.tasks.length }}
           </wa-badge>
         </header>
 
         <VueDraggable
           v-model="column.tasks"
           group="kanban"
-          :disabled="!can('TASK_MOVE')"
+          :disabled="!can('TASK_MOVE') || filtering"
           :animation="150"
           ghost-class="kanban-ghost"
           :data-status="column.status"
@@ -232,6 +258,7 @@ const abilities = computed(() => ({
         >
           <TaskCard
             v-for="task in column.tasks"
+            v-show="shown(task)"
             :key="task.id"
             :task="task"
             :menu-items="menuItems(task)"
@@ -265,6 +292,10 @@ const abilities = computed(() => ({
   flex-direction: column;
   gap: var(--wa-space-m);
   block-size: 100%;
+}
+
+.kanban-filter {
+  max-inline-size: 16rem;
 }
 
 .kanban-skeleton {
