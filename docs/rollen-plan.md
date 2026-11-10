@@ -125,7 +125,7 @@ Laut `CLAUDE.md` ändert sich das Schema nur nach Rückfrage. Vorgeschlagen:
 
 - Rechte-Tabelle: jede Rolle gegen jede Fähigkeit.
 - Policies: je Fähigkeit mindestens eine erlaubte und eine verbotene Rolle.
-- Migration: `is_admin = true` wird `admin`, andere `user`.
+- Migration: `is_admin = true` wird `admin`, andere `mitglied`.
 - GraphQL: Anlegen eines Projekts als `mitglied` schlägt fehl, als `projektleitung` klappt es.
 - Letzter Admin kann sich nicht selbst entmachten.
 - `lesend` darf keine Mutation ausführen, auch nicht als Owner in einem Projekt (Entscheidung 9).
