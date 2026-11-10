@@ -131,3 +131,15 @@ Laut `CLAUDE.md` ändert sich das Schema nur nach Rückfrage. Vorgeschlagen:
 - `lesend` darf keine Mutation ausführen, auch nicht als Owner in einem Projekt (Entscheidung 9).
 - `projektleitung` sieht die volle Benutzerliste nicht, auch nicht als Manager in einem Projekt (Entscheidung 10).
 - Frontend: Knöpfe und Seiten erscheinen nur bei passender Fähigkeit.
+
+## Stand
+
+- [x] Rollenkatalog und Funktionen übernommen (Berechtigungsrollen `admin`, `projektleitung`, `koordination`, `mitglied`, `lesend`)
+- [x] Entscheidungen 2, 3, 4 und Standardrolle geklärt
+- [ ] Entscheidung 1: eine Rolle pro Benutzer (Vorschlag übernehmen?)
+- [ ] Entscheidung 9: `lesend` begrenzt auch Projektrollen
+- [ ] Entscheidung 10: schmale Namenssuche für Mitgliederauswahl
+- [ ] Entscheidung 7: `SystemPermissions` als eigene Klasse
+- [ ] Entscheidung 8: Schema-Änderung (`isAdmin` → `role`, `function`, `systemAbilities`) bestätigt
+
+**Blocker:** Schritt 1 (Bau) braucht die Bestätigung der Punkte 1, 7, 8, 9 und 10. Schritt 2 (Enums und Rechte-Tabelle mit Tests) kann nach Punkt 1 und 7 beginnen, ohne Schema-Änderung.
