@@ -43,9 +43,8 @@ class UserSecurityTest extends GraphQLTestCase
 
     public function test_others_learn_nothing_about_the_security_of_an_account(): void
     {
-        $users = $this->as('owner')->gql(self::QUERY)->assertJsonMissingPath('errors')->json('data.users');
-
-        $this->assertSame(['twoFactorConfirmed' => null, 'hasPasskey' => null, 'passkeys' => null], $this->userRow($users, $this->users['member']));
+        // Only users who manage users see the user list, so others learn nothing at all.
+        $this->assertUnauthorized($this->as('owner')->gql(self::QUERY));
     }
 
     /**

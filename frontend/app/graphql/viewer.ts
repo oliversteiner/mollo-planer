@@ -7,12 +7,14 @@ export const viewerQuery = graphql(`
       id
       name
       email
-      isAdmin
+      role
+      jobFunction
       avatarUrl
       notifyByEmail
     }
     appSettings {
       twoFactorEnabled
     }
+    viewerSystemAbilities
   }
 `)

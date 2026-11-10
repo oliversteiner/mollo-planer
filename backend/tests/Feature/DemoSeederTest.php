@@ -31,7 +31,7 @@ class DemoSeederTest extends TestCase
         $this->seedDemo();
 
         $this->assertSame([4, 2, 5, 6, 8, 3], [User::count(), Project::count(), Milestone::count(), Todo::count(), Task::count(), Comment::count()]);
-        $this->assertSame(['anna.keller@example.ch'], User::where('is_admin', true)->pluck('email')->all());
+        $this->assertSame(['anna.keller@example.ch'], User::where('role', 'admin')->pluck('email')->all());
 
         $relaunch = Project::where('name', 'Website-Relaunch')->firstOrFail();
         $chiara = User::where('email', 'chiara.rossi@example.ch')->firstOrFail();

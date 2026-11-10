@@ -19,7 +19,7 @@ class DatabaseSchemaTest extends TestCase
     public static function expectedColumns(): array
     {
         return [
-            'users' => ['users', ['is_admin', 'notify_by_email', 'avatar_path', 'two_factor_secret', 'two_factor_confirmed_at']],
+            'users' => ['users', ['role', 'job_function', 'notify_by_email', 'avatar_path', 'two_factor_secret', 'two_factor_confirmed_at']],
             'projects' => ['projects', ['name', 'description', 'icon', 'locale']],
             'project_user' => ['project_user', ['project_id', 'user_id', 'role']],
             'milestones' => ['milestones', ['project_id', 'title', 'description', 'icon', 'due_date', 'status']],
@@ -46,7 +46,7 @@ class DatabaseSchemaTest extends TestCase
         $projectId = DB::table('projects')->insertGetId(['name' => 'Project']);
         DB::table('project_user')->insert(['project_id' => $projectId, 'user_id' => $userId]);
 
-        $this->assertSame(0, (int) DB::table('users')->value('is_admin'));
+        $this->assertSame('mitglied', DB::table('users')->value('role'));
         $this->assertSame(1, (int) DB::table('users')->value('notify_by_email'));
         $this->assertSame('de', DB::table('projects')->value('locale'));
         $this->assertSame('member', DB::table('project_user')->value('role'));

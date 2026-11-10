@@ -6,21 +6,19 @@ import type { NavItem } from '~/components/NavList.vue'
  * drawer (with its own hamburger button) on narrow ones.
  */
 const { t } = useI18n()
-const { viewer, logout } = useViewer()
+const { viewer, can, logout } = useViewer()
 
 const mainItems = computed<NavItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
   { label: t('nav.myTasks'), icon: 'square-check', to: '/my-tasks' },
-  ...(viewer.value?.isAdmin ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
+  ...(can('USERS_MANAGE') ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
 ])
 
-const adminItems = computed<NavItem[]>(() => (viewer.value?.isAdmin
-  ? [
-      { label: t('nav.users'), icon: 'users', to: '/admin/users' },
-      { label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' },
-      { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }
-    ]
-  : []))
+const adminItems = computed<NavItem[]>(() => [
+  ...(can('USERS_MANAGE') ? [{ label: t('nav.users'), icon: 'users', to: '/admin/users' }] : []),
+  ...(can('LABEL_SETS_MANAGE') ? [{ label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' }] : []),
+  ...(can('USERS_MANAGE') ? [{ label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }] : [])
+])
 
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   if (event.detail.item.value === 'profile') {
@@ -98,7 +96,7 @@ function skipToContent(): void {
           <UserLine
             :name="viewer.name"
             :src="viewer.avatarUrl"
-            :description="viewer.isAdmin ? t('admin.users.admin') : viewer.email"
+            :description="viewer.email"
             size="sm"
           />
         </wa-button>

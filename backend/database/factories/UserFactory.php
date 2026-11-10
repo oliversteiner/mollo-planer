@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -34,12 +35,20 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the user is a global admin.
+     * Indicate that the user has the global role admin.
      */
     public function admin(): static
     {
+        return $this->role(UserRole::ADMIN);
+    }
+
+    /**
+     * Indicate that the user has the given global role.
+     */
+    public function role(UserRole $role): static
+    {
         return $this->state(fn (array $attributes) => [
-            'is_admin' => true,
+            'role' => $role,
         ]);
     }
 

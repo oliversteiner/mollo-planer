@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use App\Notifications\UserInvited;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,7 +28,7 @@ class CreateAdminCommandTest extends TestCase
             ->assertSuccessful();
 
         $admin = User::where('email', self::EMAIL)->firstOrFail();
-        $this->assertTrue($admin->is_admin);
+        $this->assertSame(UserRole::ADMIN, $admin->role);
         $this->assertSame('Anna Admin', $admin->name);
         Notification::assertSentTo($admin, UserInvited::class, fn (UserInvited $notification) => $notification->locale === 'de'
             && Password::broker('invitations')->tokenExists($admin, $notification->token));
@@ -52,7 +53,7 @@ class CreateAdminCommandTest extends TestCase
             ->expectsQuestion(__('console.create_admin.email'), self::EMAIL)
             ->assertSuccessful();
 
-        $this->assertTrue(User::where('email', self::EMAIL)->firstOrFail()->is_admin);
+        $this->assertSame(UserRole::ADMIN, User::where('email', self::EMAIL)->firstOrFail()->role);
     }
 
     public function test_password_option_asks_for_the_password_and_sends_no_mail(): void
@@ -65,7 +66,7 @@ class CreateAdminCommandTest extends TestCase
             ->assertSuccessful();
 
         $admin = User::where('email', self::EMAIL)->firstOrFail();
-        $this->assertTrue($admin->is_admin);
+        $this->assertSame(UserRole::ADMIN, $admin->role);
         $this->assertTrue(Hash::check(self::PASSWORD, $admin->password));
         Notification::assertNothingSent();
     }
@@ -86,7 +87,7 @@ class CreateAdminCommandTest extends TestCase
         $this->artisan('app:create-admin', ['name' => 'Anna Admin', 'email' => self::EMAIL])
             ->assertFailed();
 
-        $this->assertFalse($existing->fresh()->is_admin);
+        $this->assertSame(UserRole::MITGLIED, $existing->fresh()->role);
         $this->assertSame(1, User::count());
         Notification::assertNothingSent();
     }

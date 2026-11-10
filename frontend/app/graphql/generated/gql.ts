@@ -14,9 +14,9 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n": typeof types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n": typeof types.AdminUsersDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": typeof types.CreateUserDocument,
-    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email isAdmin }\n  }\n": typeof types.UpdateUserDocument,
+    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n": typeof types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": typeof types.ResetUserTwoFactorDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": typeof types.DeleteUserDocument,
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n": typeof types.AppSettingsDocument,
@@ -25,7 +25,7 @@ type Documents = {
     "\n  mutation ImportProjectPlan($plan: ProjectPlanInput!, $notifyAssignees: Boolean) {\n    importProjectPlan(plan: $plan, notifyAssignees: $notifyAssignees) {\n      id\n      name\n    }\n  }\n": typeof types.ImportProjectPlanDocument,
     "\n  query AssistantPeople {\n    users { id name email avatarUrl }\n  }\n": typeof types.AssistantPeopleDocument,
     "\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n": typeof types.DashboardDocument,
-    "\n  query LabelSets {\n    viewerCanManageLabelSets\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": typeof types.LabelSetsDocument,
+    "\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": typeof types.LabelSetsDocument,
     "\n  mutation SetProjectLabelSet($projectId: ID!, $labelSetId: ID) {\n    setProjectLabelSet(projectId: $projectId, labelSetId: $labelSetId) {\n      id\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.SetProjectLabelSetDocument,
     "\n  mutation SetTaskLabels($taskId: ID!, $labelIds: [ID!]!) {\n    setTaskLabels(taskId: $taskId, labelIds: $labelIds) {\n      id\n      labels { id name color position }\n    }\n  }\n": typeof types.SetTaskLabelsDocument,
     "\n  mutation CreateLabelSet($input: LabelSetInput!) {\n    createLabelSet(input: $input) { id name }\n  }\n": typeof types.CreateLabelSetDocument,
@@ -54,7 +54,7 @@ type Documents = {
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": typeof types.CreateApiTokenDocument,
     "\n  mutation DeleteApiToken($id: ID!) {\n    deleteApiToken(id: $id) { id }\n  }\n": typeof types.DeleteApiTokenDocument,
     "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectSettingsDocument,
-    "\n  query Users {\n    users { id name email avatarUrl }\n  }\n": typeof types.UsersDocument,
+    "\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n": typeof types.UserSearchDocument,
     "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description icon locale }\n  }\n": typeof types.UpdateProjectDocument,
     "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": typeof types.SetProjectMemberDocument,
     "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": typeof types.RemoveProjectMemberDocument,
@@ -71,12 +71,12 @@ type Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": typeof types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": typeof types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": typeof types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n": typeof types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n": types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n": types.AdminUsersDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": types.CreateUserDocument,
-    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email isAdmin }\n  }\n": types.UpdateUserDocument,
+    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n": types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": types.ResetUserTwoFactorDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": types.DeleteUserDocument,
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n": types.AppSettingsDocument,
@@ -85,7 +85,7 @@ const documents: Documents = {
     "\n  mutation ImportProjectPlan($plan: ProjectPlanInput!, $notifyAssignees: Boolean) {\n    importProjectPlan(plan: $plan, notifyAssignees: $notifyAssignees) {\n      id\n      name\n    }\n  }\n": types.ImportProjectPlanDocument,
     "\n  query AssistantPeople {\n    users { id name email avatarUrl }\n  }\n": types.AssistantPeopleDocument,
     "\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n": types.DashboardDocument,
-    "\n  query LabelSets {\n    viewerCanManageLabelSets\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": types.LabelSetsDocument,
+    "\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": types.LabelSetsDocument,
     "\n  mutation SetProjectLabelSet($projectId: ID!, $labelSetId: ID) {\n    setProjectLabelSet(projectId: $projectId, labelSetId: $labelSetId) {\n      id\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.SetProjectLabelSetDocument,
     "\n  mutation SetTaskLabels($taskId: ID!, $labelIds: [ID!]!) {\n    setTaskLabels(taskId: $taskId, labelIds: $labelIds) {\n      id\n      labels { id name color position }\n    }\n  }\n": types.SetTaskLabelsDocument,
     "\n  mutation CreateLabelSet($input: LabelSetInput!) {\n    createLabelSet(input: $input) { id name }\n  }\n": types.CreateLabelSetDocument,
@@ -114,7 +114,7 @@ const documents: Documents = {
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": types.CreateApiTokenDocument,
     "\n  mutation DeleteApiToken($id: ID!) {\n    deleteApiToken(id: $id) { id }\n  }\n": types.DeleteApiTokenDocument,
     "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      locale\n      members {\n        role\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": types.ProjectSettingsDocument,
-    "\n  query Users {\n    users { id name email avatarUrl }\n  }\n": types.UsersDocument,
+    "\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n": types.UserSearchDocument,
     "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description icon locale }\n  }\n": types.UpdateProjectDocument,
     "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": types.SetProjectMemberDocument,
     "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role user { id name email avatarUrl } }\n    }\n  }\n": types.RemoveProjectMemberDocument,
@@ -131,7 +131,7 @@ const documents: Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n": types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": types.ViewerDocument,
 };
 
 /**
@@ -151,7 +151,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n"];
+export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -159,7 +159,7 @@ export function graphql(source: "\n  mutation CreateUser($input: CreateUserInput
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email isAdmin }\n  }\n"): (typeof documents)["\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email isAdmin }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n"): (typeof documents)["\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -195,7 +195,7 @@ export function graphql(source: "\n  query Dashboard($limit: Int) {\n    dashboa
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query LabelSets {\n    viewerCanManageLabelSets\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"): (typeof documents)["\n  query LabelSets {\n    viewerCanManageLabelSets\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"];
+export function graphql(source: "\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"): (typeof documents)["\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -311,7 +311,7 @@ export function graphql(source: "\n  query ProjectSettings($id: ID!) {\n    proj
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Users {\n    users { id name email avatarUrl }\n  }\n"): (typeof documents)["\n  query Users {\n    users { id name email avatarUrl }\n  }\n"];
+export function graphql(source: "\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n"): (typeof documents)["\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -379,7 +379,7 @@ export function graphql(source: "\n  mutation DeleteComment($id: ID!) {\n    del
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      isAdmin\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n  }\n"];
+export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

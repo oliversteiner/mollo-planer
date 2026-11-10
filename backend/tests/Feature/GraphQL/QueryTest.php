@@ -22,8 +22,8 @@ class QueryTest extends GraphQLTestCase
 
     public function test_me_with_enum_and_boolean_fields(): void
     {
-        $this->as('admin')->gql('{ me { name isAdmin notifyByEmail } }')
-            ->assertExactJson(['data' => ['me' => ['name' => 'Anna Admin', 'isAdmin' => true, 'notifyByEmail' => true]]]);
+        $this->as('admin')->gql('{ me { name role notifyByEmail } }')
+            ->assertExactJson(['data' => ['me' => ['name' => 'Anna Admin', 'role' => 'ADMIN', 'notifyByEmail' => true]]]);
     }
 
     public function test_projects_are_filtered_by_visibility(): void
@@ -281,9 +281,11 @@ class QueryTest extends GraphQLTestCase
             ->assertGraphQLValidationKeys(['limit']);
     }
 
-    public function test_user_list_only_for_admins_and_member_managers(): void
+    public function test_user_list_only_for_user_managers(): void
     {
-        $this->as('manager')->gql('{ users { name } }')->assertJsonCount(5, 'data.users');
+        $this->as('admin')->gql('{ users { name } }')->assertJsonCount(count($this->users), 'data.users');
+        $this->assertUnauthorized($this->as('manager')->gql('{ users { name } }'));
+        $this->assertUnauthorized($this->as('projektleitung')->gql('{ users { name } }'));
         $this->assertUnauthorized($this->as('member')->gql('{ users { name } }'));
     }
 

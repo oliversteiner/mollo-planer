@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\SystemAbility;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,9 +15,10 @@ use Illuminate\Database\Eloquent\Builder;
  * Policies ask only this class. No other code compares roles. To restrict
  * or extend an ability, change its line in ROLES_BY_ABILITY.
  *
- * Admins (users.is_admin) have every ability. Rules that are not project
- * abilities (for example: nobody, not even an admin, edits someone else's
- * comment) belong in the respective policy.
+ * Users with SystemAbility::PROJECTS_MANAGE_ANY (the admin role) have every
+ * ability. Read-only users (role "lesend") have none. Rules that are not
+ * project abilities (for example: nobody, not even an admin, edits someone
+ * else's comment) belong in the respective policy.
  */
 final class ProjectPermissions
 {
@@ -46,7 +48,6 @@ final class ProjectPermissions
         ProjectAbility::TASK_DELETE->value => [self::OWNER, self::MANAGER],
         ProjectAbility::COMMENT_CREATE->value => [self::OWNER, self::MANAGER, self::MEMBER],
         ProjectAbility::COMMENT_MODERATE->value => [self::OWNER, self::MANAGER],
-        ProjectAbility::LABEL_SETS_MANAGE->value => [self::OWNER, self::MANAGER],
     ];
 
     /**
@@ -71,17 +72,18 @@ final class ProjectPermissions
         $touchesOwner = $currentRole === self::OWNER || $newRole === self::OWNER;
 
         return ! $touchesOwner
-            || $actor->is_admin
+            || SystemPermissions::allows($actor, SystemAbility::PROJECTS_MANAGE_ANY)
             || in_array($project->roleOf($actor), self::OWNER_MANAGERS, true);
     }
 
     /**
      * May the actor leave a project without any owner (remove or demote
-     * the last owner)? Only admins, for example when staff changes.
+     * the last owner)? Only users who may manage any project, for example
+     * when staff changes.
      */
     public static function canRemoveLastOwner(User $actor): bool
     {
-        return $actor->is_admin;
+        return SystemPermissions::allows($actor, SystemAbility::PROJECTS_MANAGE_ANY);
     }
 
     /**
@@ -114,7 +116,11 @@ final class ProjectPermissions
      */
     public static function allows(User $user, Project $project, ProjectAbility $ability): bool
     {
-        if ($user->is_admin) {
+        if (SystemPermissions::isReadOnly($user)) {
+            return false;
+        }
+
+        if (SystemPermissions::allows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
             return true;
         }
 
@@ -122,11 +128,13 @@ final class ProjectPermissions
     }
 
     /**
-     * May this user see the project at all? Admins and members can.
+     * May this user see the project at all? Users who may view all projects
+     * and members can.
      */
     public static function canView(User $user, Project $project): bool
     {
-        return $user->is_admin || $project->roleOf($user) !== null;
+        return SystemPermissions::allows($user, SystemAbility::PROJECTS_VIEW_ALL)
+            || $project->roleOf($user) !== null;
     }
 
     /**
@@ -143,7 +151,7 @@ final class ProjectPermissions
             return;
         }
 
-        if ($user->is_admin) {
+        if (SystemPermissions::allows($user, SystemAbility::PROJECTS_VIEW_ALL)) {
             return;
         }
 
@@ -152,11 +160,15 @@ final class ProjectPermissions
 
     /**
      * Does the user have this ability in at least one project?
-     * Used for things outside a single project, such as the user list.
+     * Used for things outside a single project, such as the member search.
      */
     public static function allowsInAnyProject(User $user, ProjectAbility $ability): bool
     {
-        if ($user->is_admin) {
+        if (SystemPermissions::isReadOnly($user)) {
+            return false;
+        }
+
+        if (SystemPermissions::allows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
             return true;
         }
 
@@ -172,7 +184,11 @@ final class ProjectPermissions
      */
     public static function abilities(User $user, Project $project): array
     {
-        if ($user->is_admin) {
+        if (SystemPermissions::isReadOnly($user)) {
+            return [];
+        }
+
+        if (SystemPermissions::allows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
             return ProjectAbility::cases();
         }
 

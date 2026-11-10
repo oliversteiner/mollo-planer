@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Locale;
+use App\Enums\UserRole;
 use App\Http\Middleware\EnsureStrongAuthentication;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
@@ -297,7 +298,7 @@ class AuthenticationFlowTest extends TestCase
     public function test_create_user_sends_a_queued_invitation_in_the_admins_language(): void
     {
         Notification::fake();
-        $admin = $this->user(['is_admin' => true]);
+        $admin = $this->user(['role' => 'admin']);
         $this->actingAs($admin)->withSession([StrongAuthentication::SESSION_KEY => (string) $admin->id]);
 
         $this->withHeader('Accept-Language', 'de-CH,de;q=0.9')
@@ -337,7 +338,7 @@ class AuthenticationFlowTest extends TestCase
     public function test_after_an_expired_invitation_forgot_password_sets_the_password(): void
     {
         Notification::fake();
-        $user = app(UserInvitation::class)->invite('Fritz', 'fritz@example.com', false, Locale::DE);
+        $user = app(UserInvitation::class)->invite('Fritz', 'fritz@example.com', UserRole::MITGLIED, Locale::DE);
         $this->travel(8)->days();
 
         $this->postJson('/forgot-password', ['email' => $user->email])->assertOk();

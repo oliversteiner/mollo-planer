@@ -35,7 +35,7 @@
       "roleOf": "Role of {name}",
       "remove": "Remove {name}",
       "person": "Person",
-      "search": "Search name or email",
+      "search": "Search by name (at least 2 letters)",
       "role": "Role",
       "add": "Add",
       "added": "Member added.",
@@ -403,10 +403,7 @@
       "sendInvite": "Send invitation",
       "invited": "Invitation sent to {email}.",
       "saved": "Saved.",
-      "isAdmin": "Admin",
-      "isAdminHint": "Admins see all projects and manage users.",
       "ownAdmin": "You cannot remove your own admin role.",
-      "admin": "Admin",
       "actions": "Actions for {name}",
       "factorApp": "2FA app",
       "factorPasskey": "Passkey",
@@ -421,7 +418,12 @@
       "avatarDescription": "For example an unsuitable picture. They can upload a new one afterwards.",
       "deleteTitle": "Delete {name}?",
       "deleteDescription": "The account is deleted. Comments stay without a name, assigned tasks are then assigned to nobody.",
-      "deleted": "{name} deleted."
+      "deleted": "{name} deleted.",
+      "role": "Role",
+      "roleHint": "Decides what the person may do across the whole app.",
+      "jobFunction": "Function",
+      "jobFunctionHint": "Display only, no rights.",
+      "noFunction": "None"
     },
     "settings": {
       "title": "App settings",
@@ -555,5 +557,20 @@
     },
     "allLabels": "All labels",
     "filter": "Filter by label"
+  },
+  "userRole": {
+    "ADMIN": "Administration",
+    "PROJEKTLEITUNG": "Project lead",
+    "KOORDINATION": "Coordination",
+    "MITGLIED": "Member",
+    "LESEND": "Read only"
+  },
+  "jobFunction": {
+    "DESIGNER": "Designer",
+    "ENTWICKLUNG": "Development",
+    "TESTER": "Testing",
+    "CONTENT": "Content",
+    "TECHNIK": "Technology",
+    "VOLUNTEER": "Volunteers"
   }
 }

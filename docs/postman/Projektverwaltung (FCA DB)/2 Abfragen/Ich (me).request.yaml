@@ -7,7 +7,7 @@ body:
   content:
     query: |
       query Me {
-        me { id name email isAdmin notifyByEmail avatarUrl }
+        me { id name email role jobFunction notifyByEmail avatarUrl }
       }
     variables: "{}"
 order: 1000

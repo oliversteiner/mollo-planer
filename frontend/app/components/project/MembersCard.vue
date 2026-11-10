@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { ProjectRole } from '~/graphql/generated/graphql'
-import { removeProjectMemberMutation, setProjectMemberMutation, usersQuery } from '~/graphql/settings'
+import { removeProjectMemberMutation, setProjectMemberMutation, userSearchQuery } from '~/graphql/settings'
 import { classifyApolloError } from '~/utils/api'
 
 /**
@@ -23,14 +23,17 @@ const roleItems = computed(() => roles.map(role => ({ label: t(`role.${role}`), 
 
 const sortedMembers = computed(() => [...props.members].sort((a, b) => a.user.name.localeCompare(b.user.name)))
 
-const { result: usersResult } = useQuery(usersQuery, null, () => ({ enabled: props.canManage }))
+/** Names only, from the narrow search (no e-mail, no security status). Starts at two letters. */
+const search = ref('')
+const searchTerm = computed(() => search.value.trim())
+const { result: searchResult } = useQuery(userSearchQuery, () => ({ term: searchTerm.value }), () => ({ enabled: props.canManage && searchTerm.value.length >= 2 }))
 const candidates = computed(() => {
   const memberIds = new Set(props.members.map(member => member.user.id))
 
-  return (usersResult.value?.users ?? [])
+  return (searchResult.value?.userSearch ?? [])
     .filter(user => !memberIds.has(user.id))
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map(user => ({ label: `${user.name} (${user.email})`, value: user.id }))
+    .map(user => ({ label: user.name, value: user.id }))
 })
 
 const newMember = reactive<{ userId: string, role: ProjectRole }>({ userId: '', role: 'MEMBER' })
@@ -155,6 +158,13 @@ async function confirmRemove(): Promise<void> {
       class="members-add"
       @submit.prevent="add"
     >
+      <FormInput
+        v-model="search"
+        name="memberSearch"
+        type="search"
+        :label="t('settings.members.search')"
+        class="members-person"
+      />
       <FormSelect
         v-model="newMember.userId"
         :items="candidates"

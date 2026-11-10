@@ -65,8 +65,9 @@ input CreateTodoInput {
 }
 input CreateUserInput {
  email: String!
- isAdmin: Boolean = false
+ jobFunction: UserFunction
  name: String!
+ role: UserRole = MITGLIED
 }
 "Alles für die Startseite in einem Aufruf"
 type Dashboard {
@@ -145,6 +146,11 @@ input LabelSetInput {
 enum Locale {
  DE
  EN
+}
+"Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."
+type MemberCandidate {
+ id: ID!
+ name: String!
 }
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
@@ -304,8 +310,6 @@ type Project {
 enum ProjectAbility {
  COMMENT_CREATE
  COMMENT_MODERATE
- "Eigene Label-Sets anlegen, duplizieren und ändern (gilt, wenn man es in irgendeinem Projekt darf)"
- LABEL_SETS_MANAGE
  MEMBERS_MANAGE
  MILESTONE_CREATE
  MILESTONE_DELETE
@@ -420,10 +424,12 @@ type Query {
  todo(id: ID!): Todo
  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
  todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
- "Alle Benutzer. Nur für Admins und Projektleiter."
+ "Namen suchen, um Mitglieder in ein Projekt zu setzen. Ohne E-Mail und Sicherheitsstatus. Für alle, die in einem Projekt Mitglieder verwalten dürfen."
+ userSearch(term: String!): [MemberCandidate!]!
+ "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
  users: [User!]!
- "Darfst du Label-Sets anlegen und duplizieren? (Admin oder Owner/Manager in irgendeinem Projekt)"
- viewerCanManageLabelSets: Boolean!
+ "Welche Fähigkeiten über die ganze App du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
+ viewerSystemAbilities: [SystemAbility!]!
 }
 """
 Formatierter Text als TipTap-Dokument (JSON-Objekt mit type "doc"). Der Server
@@ -439,6 +445,15 @@ enum SortOrder {
  ASC
  "Sort records in descending order."
  DESC
+}
+"Fähigkeiten über die ganze App, gegeben durch die globale Rolle."
+enum SystemAbility {
+ LABEL_SETS_MANAGE
+ LABEL_SETS_MANAGE_ANY
+ PROJECTS_CREATE
+ PROJECTS_MANAGE_ANY
+ PROJECTS_VIEW_ALL
+ USERS_MANAGE
 }
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
 type Task {
@@ -520,8 +535,9 @@ input UpdateTodoInput {
 }
 input UpdateUserInput {
  email: String
- isAdmin: Boolean
+ jobFunction: UserFunction
  name: String
+ role: UserRole
 }
 "Datei-Upload (GraphQL multipart request), zum Beispiel mit apollo-upload-client"
 scalar Upload
@@ -538,8 +554,8 @@ type User {
  "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
  hasPasskey: Boolean
  id: ID!
- "Globale Admin-Rolle, unabhängig von Projekten"
- isAdmin: Boolean!
+ "Funktion, zum Beispiel Designer. Nur zur Anzeige."
+ jobFunction: UserFunction
  name: String!
  "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
  notifyByEmail: Boolean!
@@ -547,7 +563,26 @@ type User {
  passkeys: [Passkey!]
  "Projekte dieser Person, soweit du sie sehen darfst"
  projects: [Project!]!
+ "Globale Berechtigungsrolle, unabhängig von Projekten"
+ role: UserRole!
  "Hat die Person eine bestätigte 2FA-App? Nur für dich selbst und für Admins, sonst null."
  twoFactorConfirmed: Boolean
+}
+"Funktion eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
+enum UserFunction {
+ CONTENT
+ DESIGNER
+ ENTWICKLUNG
+ TECHNIK
+ TESTER
+ VOLUNTEER
+}
+"Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\SystemPermissions)."
+enum UserRole {
+ ADMIN
+ KOORDINATION
+ LESEND
+ MITGLIED
+ PROJEKTLEITUNG
 }
 

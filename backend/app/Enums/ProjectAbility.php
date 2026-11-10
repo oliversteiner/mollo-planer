@@ -26,9 +26,4 @@ enum ProjectAbility: string
     case COMMENT_CREATE = 'comment.create';
     /** Delete comments written by someone else. Editing them is never allowed. */
     case COMMENT_MODERATE = 'comment.moderate';
-    /**
-     * Create, duplicate and change own label sets. Label sets are app-wide:
-     * the ability counts if the user has it in any project.
-     */
-    case LABEL_SETS_MANAGE = 'label_sets.manage';
 }

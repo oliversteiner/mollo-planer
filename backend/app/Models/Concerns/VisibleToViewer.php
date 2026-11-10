@@ -2,8 +2,10 @@
 
 namespace App\Models\Concerns;
 
+use App\Enums\SystemAbility;
 use App\Models\User;
 use App\Support\ProjectPermissions;
+use App\Support\SystemPermissions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,7 +44,7 @@ trait VisibleToViewer
      */
     public function scopeVisibleTo(Builder $query, ?User $user): void
     {
-        if ($user?->is_admin) {
+        if (SystemPermissions::allows($user, SystemAbility::PROJECTS_VIEW_ALL)) {
             return;
         }
 

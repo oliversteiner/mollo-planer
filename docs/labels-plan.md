@@ -6,7 +6,7 @@ Stand: 2026-11-10, vom Auftraggeber freigegeben und umgesetzt (Branch `feature/l
 Tasks lassen sich mit Labels kategorisieren. Ein **Label-Set** ist eine benannte Gruppe von Labels; **jedes Projekt wählt ein Set**. Die App bringt Sets mit, eigene Sets lassen sich anlegen, auch als Kopie eines bestehenden Sets.
 
 ## Entscheidungen (vom Auftraggeber, 2026-11-10)
-1. **Sets gelten app-weit.** Anlegen, duplizieren und bearbeiten dürfen Admins sowie alle, die in mindestens einem Projekt Owner oder Manager sind. Ein Set für ein Projekt wählen darf, wer das Projekt ändern darf (`PROJECT_UPDATE`).
+1. **Sets gelten app-weit.** Anlegen und duplizieren dürfen die Rollen mit `labelSets.manage` (Admin, Projektleitung). Eigene Sets ändert der Ersteller mit dieser Fähigkeit, fremde nur mit `labelSets.manageAny` (Admin). Stand nach dem Rollen-Umbau, siehe `rollen-plan.md`. Ein Set für ein Projekt wählen darf, wer das Projekt ändern darf (`PROJECT_UPDATE`).
 2. **Mitgelieferte Sets sind unveränderlich**; anpassen nur über Duplizieren.
 3. **Set-Wechsel:** Tasks behalten ihre bisherigen Labels. Sie werden weiter angezeigt (als „nicht im Set“ erkennbar), sind aber nicht mehr wählbar, bis jemand sie entfernt.
 4. **Sprache:** Mitgelieferte Sets, Labels und Kategorien sind übersetzt (de/en). Eigene Sets heißen so, wie man sie anlegt.

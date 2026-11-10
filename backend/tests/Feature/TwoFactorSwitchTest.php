@@ -77,7 +77,7 @@ class TwoFactorSwitchTest extends TestCase
 
     public function test_in_production_the_login_still_asks_for_the_code_and_the_lock_holds(): void
     {
-        AppSettings::setTwoFactorEnabled(false, $this->user(['is_admin' => true]));
+        AppSettings::setTwoFactorEnabled(false, $this->user(['role' => 'admin']));
         $this->app['env'] = 'production';
         // Outside "testing" Laravel checks the CSRF token again.
         $this->withSession(['_token' => 'csrf-token'])->withHeader('X-CSRF-TOKEN', 'csrf-token');
@@ -91,7 +91,7 @@ class TwoFactorSwitchTest extends TestCase
 
     private function switchOff(): void
     {
-        AppSettings::setTwoFactorEnabled(false, $this->user(['is_admin' => true]));
+        AppSettings::setTwoFactorEnabled(false, $this->user(['role' => 'admin']));
     }
 
     /**

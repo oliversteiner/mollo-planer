@@ -156,11 +156,11 @@ class PolicyTest extends TestCase
         $this->assertFalse($this->users['owner']->can('update', $comment));
     }
 
-    public function test_user_list_is_for_admins_and_member_managers(): void
+    public function test_user_list_is_for_admins_only(): void
     {
         $this->assertTrue($this->users['admin']->can('viewAny', User::class));
-        $this->assertTrue($this->users['owner']->can('viewAny', User::class));
-        $this->assertTrue($this->users['manager']->can('viewAny', User::class));
+        $this->assertFalse($this->users['owner']->can('viewAny', User::class));
+        $this->assertFalse($this->users['manager']->can('viewAny', User::class));
         $this->assertFalse($this->users['member']->can('viewAny', User::class));
         $this->assertFalse($this->users['stranger']->can('viewAny', User::class));
     }
@@ -185,9 +185,9 @@ class PolicyTest extends TestCase
         $admin = $this->users['admin'];
 
         $this->assertFalse($admin->can('delete', $admin));
-        $this->assertFalse($admin->can('update', [$admin, ['is_admin' => false]]));
+        $this->assertFalse($admin->can('update', [$admin, ['role' => 'mitglied']]));
         $this->assertTrue($admin->can('update', [$admin, ['name' => 'New Name']]));
-        $this->assertTrue($admin->can('update', [$this->users['owner'], ['is_admin' => true]]));
+        $this->assertTrue($admin->can('update', [$this->users['owner'], ['role' => 'admin']]));
     }
 
     private function commentBy(User $author): Comment

@@ -3,7 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { projectsQuery } from '~/graphql/projects'
 
 const { t } = useI18n()
-const { viewer } = useViewer()
+const { can } = useViewer()
 
 useHead({ title: () => t('projects.title') })
 
@@ -19,7 +19,7 @@ const creating = ref(false)
     :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('projects.title') }]"
   >
     <template
-      v-if="viewer?.isAdmin"
+      v-if="can('PROJECTS_CREATE')"
       #actions
     >
       <wa-button
@@ -43,7 +43,7 @@ const creating = ref(false)
       v-else-if="!projects.length"
       icon="folder-open"
       :title="t('projects.none')"
-      :description="viewer?.isAdmin ? t('projects.noneAdmin') : t('projects.noneMember')"
+      :description="can('PROJECTS_CREATE') ? t('projects.noneAdmin') : t('projects.noneMember')"
     />
     <ul
       v-else

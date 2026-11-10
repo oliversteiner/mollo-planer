@@ -5,6 +5,7 @@ namespace Tests\Feature\GraphQL;
 use App\Enums\ItemStatus;
 use App\Enums\ProjectRole;
 use App\Enums\TaskStatus;
+use App\Enums\UserRole;
 use App\GraphQL\Mutations\ResetUserTwoFactor;
 use App\Models\Comment;
 use App\Models\Milestone;
@@ -313,20 +314,20 @@ class MutationTest extends GraphQLTestCase
 
     public function test_admin_creates_users(): void
     {
-        $create = 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { name isAdmin } }';
+        $create = 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { name role } }';
 
         $this->assertUnauthorized($this->as('owner')->gql($create));
-        $this->as('admin')->gql($create)->assertJsonPath('data.createUser', ['name' => 'Fritz', 'isAdmin' => false]);
+        $this->as('admin')->gql($create)->assertJsonPath('data.createUser', ['name' => 'Fritz', 'role' => 'MITGLIED']);
         $this->as('admin')->gql($create)->assertGraphQLValidationKeys(['input.email']);
     }
 
     public function test_update_user_rules(): void
     {
-        $update = 'mutation ($id: ID!, $in: UpdateUserInput!) { updateUser(id: $id, input: $in) { email isAdmin } }';
+        $update = 'mutation ($id: ID!, $in: UpdateUserInput!) { updateUser(id: $id, input: $in) { email role } }';
         $admin = $this->users['admin'];
 
-        $this->as('admin')->gql($update, ['id' => $this->users['member']->id, 'in' => ['isAdmin' => true]])
-            ->assertJsonPath('data.updateUser.isAdmin', true);
+        $this->as('admin')->gql($update, ['id' => $this->users['member']->id, 'in' => ['role' => 'ADMIN']])
+            ->assertJsonPath('data.updateUser.role', 'ADMIN');
 
         $this->as('admin')->gql($update, ['id' => $this->users['member']->id, 'in' => ['email' => $this->users['owner']->email]])
             ->assertGraphQLValidationKeys(['input.email']);
@@ -334,8 +335,8 @@ class MutationTest extends GraphQLTestCase
         $this->as('admin')->gql($update, ['id' => $admin->id, 'in' => ['email' => $admin->email]])
             ->assertJsonMissingPath('errors');
 
-        $this->assertUnauthorized($this->as('admin')->gql($update, ['id' => $admin->id, 'in' => ['isAdmin' => false]]));
-        $this->assertTrue($admin->fresh()->is_admin);
+        $this->assertUnauthorized($this->as('admin')->gql($update, ['id' => $admin->id, 'in' => ['role' => 'MITGLIED']]));
+        $this->assertSame(UserRole::ADMIN, $admin->fresh()->role);
 
         $this->assertUnauthorized($this->as('owner')->gql($update, ['id' => $this->users['member']->id, 'in' => ['name' => 'Xaver']]));
     }

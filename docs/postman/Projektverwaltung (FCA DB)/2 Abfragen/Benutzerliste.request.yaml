@@ -7,7 +7,7 @@ body:
   content:
     query: |
       query Users {
-        users { id name email isAdmin avatarUrl }
+        users { id name email role jobFunction avatarUrl }
       }
     variables: "{}"
 order: 9000

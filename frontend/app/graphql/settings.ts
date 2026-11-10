@@ -16,10 +16,10 @@ export const projectSettingsQuery = graphql(`
   }
 `)
 
-/** All users (for admins and people who manage members somewhere). */
-export const usersQuery = graphql(`
-  query Users {
-    users { id name email avatarUrl }
+/** Names of people to add as project members (narrow search, no e-mail). */
+export const userSearchQuery = graphql(`
+  query UserSearch($term: String!) {
+    userSearch(term: $term) { id name }
   }
 `)
 

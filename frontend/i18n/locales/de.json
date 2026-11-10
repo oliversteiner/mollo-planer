@@ -35,7 +35,7 @@
       "roleOf": "Rolle von {name}",
       "remove": "{name} entfernen",
       "person": "Person",
-      "search": "Name oder E-Mail suchen",
+      "search": "Name suchen (mindestens 2 Buchstaben)",
       "role": "Rolle",
       "add": "Hinzufügen",
       "added": "Mitglied hinzugefügt.",
@@ -403,10 +403,7 @@
       "sendInvite": "Einladung schicken",
       "invited": "Einladung an {email} geschickt.",
       "saved": "Gespeichert.",
-      "isAdmin": "Admin",
-      "isAdminHint": "Admins sehen alle Projekte und verwalten Benutzer.",
       "ownAdmin": "Die eigene Admin-Rolle kannst du dir nicht selbst entziehen.",
-      "admin": "Admin",
       "actions": "Aktionen für {name}",
       "factorApp": "2FA-App",
       "factorPasskey": "Passkey",
@@ -421,7 +418,12 @@
       "avatarDescription": "Zum Beispiel bei einem unpassenden Bild. Die Person kann danach ein neues hochladen.",
       "deleteTitle": "{name} löschen?",
       "deleteDescription": "Das Konto wird gelöscht. Kommentare bleiben ohne Namen erhalten, zugewiesene Tasks sind danach niemandem mehr zugewiesen.",
-      "deleted": "{name} gelöscht."
+      "deleted": "{name} gelöscht.",
+      "role": "Rolle",
+      "roleHint": "Bestimmt, was die Person in der ganzen App darf.",
+      "jobFunction": "Funktion",
+      "jobFunctionHint": "Nur zur Anzeige, ohne Rechte.",
+      "noFunction": "Keine"
     },
     "settings": {
       "title": "App-Einstellungen",
@@ -555,5 +557,20 @@
     },
     "allLabels": "Alle Labels",
     "filter": "Nach Label filtern"
+  },
+  "userRole": {
+    "ADMIN": "Administration",
+    "PROJEKTLEITUNG": "Projektleitung",
+    "KOORDINATION": "Koordination",
+    "MITGLIED": "Mitglied",
+    "LESEND": "Lesend"
+  },
+  "jobFunction": {
+    "DESIGNER": "Designer",
+    "ENTWICKLUNG": "Entwicklung",
+    "TESTER": "Tests",
+    "CONTENT": "Inhalte",
+    "TECHNIK": "Technik",
+    "VOLUNTEER": "Helfende"
   }
 }

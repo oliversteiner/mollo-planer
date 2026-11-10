@@ -12,7 +12,7 @@ Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprach
 - Ein ToDo hat mehrere Tasks. Es wird automatisch DONE, wenn alle seine Tasks erledigt sind, und geht wieder auf OPEN, wenn ein Task dazukommt oder zurückgesetzt wird. Milestones leiten ihren Status genauso aus den ToDos ab. Kein Eingabefeld dafür.
 - Tasks haben ein eigenes Fälligkeitsdatum (`dueDate`, optional). Neue Migration nötig: `tasks.due_date` (date, nullable).
 - Alle Projektmitglieder dürfen Milestones und ToDos anlegen und ändern und alle Tasks verschieben.
-- Ein klares Rollensystem bleibt trotzdem: Rollen Owner, Manager, Mitglied pro Projekt, dazu `users.is_admin` global. Eine zentrale Rechte-Tabelle (`App\Support\ProjectPermissions`) legt pro Fähigkeit fest, welche Rolle sie hat. Alle Policies fragen nur diese Tabelle. Einschränkungen später = eine Zeile ändern.
+- Ein klares Rollensystem bleibt trotzdem: Rollen Owner, Manager, Mitglied pro Projekt, dazu die globale Rolle `users.role` (siehe `rollen-plan.md`). Zwei zentrale Rechte-Tabellen (`App\Support\ProjectPermissions` und `App\Support\SystemPermissions`) legt pro Fähigkeit fest, welche Rolle sie hat. Alle Policies fragen nur diese Tabelle. Einschränkungen später = eine Zeile ändern.
 - Das Frontend fragt `Project.viewerAbilities` ab und zeigt danach Knöpfe an oder aus.
 
 ## Icons (Font Awesome Pro, fester Stil „Duotone Light“)
@@ -66,13 +66,13 @@ Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprach
 | Fremde Kommentare löschen | ja | ja | nein |
 | Label-Sets anlegen / duplizieren (gilt in irgendeinem Projekt; eigene Sets ändert der Ersteller oder ein Admin) | ja | ja | nein |
 
-Admins dürfen immer alles (ausser fremde Kommentare ändern). Projekte anlegen und Benutzer verwalten dürfen nur Admins.
+Admins (Rolle `admin`) dürfen immer alles (ausser fremde Kommentare ändern). Projekte anlegen dürfen Admin, Projektleitung und Koordination. Benutzer verwalten dürfen nur Admins.
 
 ## Weitere Entscheidungen im Schema
 - camelCase in GraphQL, snake_case in der Datenbank (`@rename`).
 - Lesen filtert der Scope `visibleToViewer` (Unsichtbares ist null oder leer). Schreiben prüft eine Policy per `@can`.
 - Login, Logout, Passwort-Reset und 2FA laufen über Fortify (REST), nicht über GraphQL. Die 2FA-Pflicht sperrt die ganze GraphQL-Route per Middleware in `config/lighthouse.php` (Details zu Passkeys siehe `backend-plan.md`).
-- Projekte anlegen nur Admins, löschen nach Rechte-Tabelle (Owner). Kein Archivieren.
+- Projekte anlegen nach der Systemrolle (`projects.create`), löschen nach Rechte-Tabelle (Owner). Wer ein Projekt anlegt und kein Admin ist, wird dessen Owner. Kein Archivieren.
 - Tasks lassen sich nur Personen zuweisen, die im Projekt Mitglied sind.
 
 ## Offen

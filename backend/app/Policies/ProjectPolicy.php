@@ -3,20 +3,22 @@
 namespace App\Policies;
 
 use App\Enums\ProjectAbility;
+use App\Enums\SystemAbility;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
+use App\Support\SystemPermissions;
 
 class ProjectPolicy
 {
     use ChecksProjectAbilities;
 
     /**
-     * Only admins create projects.
+     * Who may create projects is decided by the global role (projects.create).
      */
     public function create(User $user): bool
     {
-        return $user->is_admin;
+        return SystemPermissions::allows($user, SystemAbility::PROJECTS_CREATE);
     }
 
     public function update(User $user, Project $project): bool

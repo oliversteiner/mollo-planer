@@ -13,7 +13,7 @@
 #             legt fest, welche Projektrolle welche Fähigkeit hat. Alle
 #             Policies fragen nur diese Tabelle. Eine neue Einschränkung
 #             ändert dort eine Zeile, nicht das Schema. Admins
-#             (users.is_admin) dürfen immer alles.
+#             (Rolle admin, Fähigkeit projects.manageAny) dürfen immer alles.
 #
 #                                 Owner  Manager  Mitglied
 #             Projekt ändern        ja     ja       nein
@@ -134,8 +134,35 @@ enum ProjectAbility {
   TASK_DELETE @enum(value: "task.delete")
   COMMENT_CREATE @enum(value: "comment.create")
   COMMENT_MODERATE @enum(value: "comment.moderate")
-  "Eigene Label-Sets anlegen, duplizieren und ändern (gilt, wenn man es in irgendeinem Projekt darf)"
-  LABEL_SETS_MANAGE @enum(value: "label_sets.manage")
+}
+
+"Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\SystemPermissions)."
+enum UserRole {
+  ADMIN @enum(value: "admin")
+  PROJEKTLEITUNG @enum(value: "projektleitung")
+  KOORDINATION @enum(value: "koordination")
+  MITGLIED @enum(value: "mitglied")
+  LESEND @enum(value: "lesend")
+}
+
+"Funktion eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
+enum UserFunction {
+  DESIGNER @enum(value: "designer")
+  ENTWICKLUNG @enum(value: "entwicklung")
+  TESTER @enum(value: "tester")
+  CONTENT @enum(value: "content")
+  TECHNIK @enum(value: "technik")
+  VOLUNTEER @enum(value: "volunteer")
+}
+
+"Fähigkeiten über die ganze App, gegeben durch die globale Rolle."
+enum SystemAbility {
+  PROJECTS_CREATE @enum(value: "projects.create")
+  PROJECTS_VIEW_ALL @enum(value: "projects.viewAll")
+  PROJECTS_MANAGE_ANY @enum(value: "projects.manageAny")
+  USERS_MANAGE @enum(value: "users.manage")
+  LABEL_SETS_MANAGE @enum(value: "labelSets.manage")
+  LABEL_SETS_MANAGE_ANY @enum(value: "labelSets.manageAny")
 }
 
 "Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"
@@ -167,8 +194,10 @@ type User {
   id: ID!
   name: String!
   email: String!
-  "Globale Admin-Rolle, unabhängig von Projekten"
-  isAdmin: Boolean! @rename(attribute: "is_admin")
+  "Globale Berechtigungsrolle, unabhängig von Projekten"
+  role: UserRole!
+  "Funktion, zum Beispiel Designer. Nur zur Anzeige."
+  jobFunction: UserFunction @rename(attribute: "job_function")
   "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
   notifyByEmail: Boolean! @rename(attribute: "notify_by_email")
   "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
@@ -419,8 +448,10 @@ type Query @guard {
   "Der angemeldete Benutzer"
   me: User! @auth
 
-  "Alle Benutzer. Nur für Admins und Projektleiter."
+  "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
   users: [User!]! @can(ability: "viewAny", model: "App\\Models\\User") @all
+  "Namen suchen, um Mitglieder in ein Projekt zu setzen. Ohne E-Mail und Sicherheitsstatus. Für alle, die in einem Projekt Mitglieder verwalten dürfen."
+  userSearch(term: String!): [MemberCandidate!]! @field(resolver: "App\\GraphQL\\Queries\\UserSearch")
 
   "Deine Projekte. Admins sehen alle."
   projects: [Project!]! @all(scopes: ["visibleToViewer"])
@@ -451,8 +482,8 @@ type Query @guard {
   dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")
   "Alle Label-Sets (mitgelieferte zuerst, dann eigene nach Name)"
   labelSets: [LabelSet!]! @field(resolver: "App\\GraphQL\\Queries\\LabelSets")
-  "Darfst du Label-Sets anlegen und duplizieren? (Admin oder Owner/Manager in irgendeinem Projekt)"
-  viewerCanManageLabelSets: Boolean! @field(resolver: "App\\GraphQL\\Queries\\ViewerCanManageLabelSets")
+  "Welche Fähigkeiten über die ganze App du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
+  viewerSystemAbilities: [SystemAbility!]! @field(resolver: "App\\GraphQL\\Queries\\ViewerSystemAbilities")
   "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
   appSettings: AppSettings! @field(resolver: "App\\GraphQL\\Queries\\AppSettings")
 }
@@ -503,9 +534,9 @@ type Mutation @guard {
     @can(ability: "updateAppSettings", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateAppSettings")
 
-  # Label-Sets: app-weit. Verwalten mit LABEL_SETS_MANAGE in irgendeinem
-  # Projekt; eigene Sets ändert und löscht der Ersteller oder ein Admin,
-  # mitgelieferte niemand.
+  # Label-Sets: app-weit. Anlegen mit labelSets.manage (Rolle); eigene Sets
+  # ändert und löscht der Ersteller mit dieser Fähigkeit, fremde mit
+  # labelSets.manageAny (Admin), mitgelieferte niemand.
   "Legt ein eigenes Label-Set an."
   createLabelSet(input: LabelSetInput!): LabelSet!
     @can(ability: "create", model: "App\\Models\\LabelSet")
@@ -625,13 +656,21 @@ type Mutation @guard {
 input CreateUserInput {
   name: String! @rules(apply: ["min:2", "max:120"])
   email: String! @rules(apply: ["email", "unique:users,email"])
-  isAdmin: Boolean = false @rename(attribute: "is_admin")
+  role: UserRole = MITGLIED
+  jobFunction: UserFunction @rename(attribute: "job_function")
 }
 
 input UpdateUserInput {
   name: String @rules(apply: ["min:2", "max:120"])
   email: String @rules(apply: ["email"])
-  isAdmin: Boolean @rename(attribute: "is_admin")
+  role: UserRole
+  jobFunction: UserFunction @rename(attribute: "job_function")
+}
+
+"Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."
+type MemberCandidate {
+  id: ID!
+  name: String!
 }
 
 input CreateProjectInput {

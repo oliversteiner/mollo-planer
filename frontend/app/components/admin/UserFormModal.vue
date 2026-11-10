@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useMutation } from '@vue/apollo-composable'
 import { createUserMutation, updateUserMutation } from '~/graphql/admin'
+import type { UserFunction, UserRole } from '~/graphql/generated/graphql'
+
+const USER_ROLES: UserRole[] = ['ADMIN', 'PROJEKTLEITUNG', 'KOORDINATION', 'MITGLIED', 'LESEND']
+const USER_FUNCTIONS: UserFunction[] = ['DESIGNER', 'ENTWICKLUNG', 'TESTER', 'CONTENT', 'TECHNIK', 'VOLUNTEER']
 
 /**
  * Invite a new person (they get a mail to set their password, valid 7
@@ -8,7 +12,7 @@ import { createUserMutation, updateUserMutation } from '~/graphql/admin'
  */
 const props = defineProps<{
   /** null: closed; {}: new person; { user }: change this person. */
-  target: { user?: { id: string, name: string, email: string, isAdmin: boolean } } | null
+  target: { user?: { id: string, name: string, email: string, role: UserRole, jobFunction?: UserFunction | null } } | null
 }>()
 
 const emit = defineEmits<{ close: [] }>()
@@ -27,23 +31,33 @@ const open = computed({
   }
 })
 
-const state = reactive({ name: '', email: '', isAdmin: false })
+const state = reactive<{ name: string, email: string, role: UserRole, jobFunction: UserFunction | '' }>({ name: '', email: '', role: 'MITGLIED', jobFunction: '' })
 
 watch(() => props.target, (target) => {
   errors.value = {}
-  Object.assign(state, { name: target?.user?.name ?? '', email: target?.user?.email ?? '', isAdmin: target?.user?.isAdmin ?? false })
+  Object.assign(state, { name: target?.user?.name ?? '', email: target?.user?.email ?? '', role: target?.user?.role ?? 'MITGLIED', jobFunction: target?.user?.jobFunction ?? '' })
 }, { immediate: true })
 
 const isNew = computed(() => !props.target?.user)
 /** The backend refuses removing one's own admin role; do not offer it. */
 const isSelf = computed(() => props.target?.user?.id === viewer.value?.id)
+const roleItems = computed(() => USER_ROLES.map(role => ({ label: t(`userRole.${role}`), value: role })))
+const functionItems = computed(() => [
+  { label: t('admin.users.noFunction'), value: '' },
+  ...USER_FUNCTIONS.map(fn => ({ label: t(`jobFunction.${fn}`), value: fn }))
+])
 
 const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
 const { mutate: createUser } = useMutation(createUserMutation, options)
 const { mutate: updateUser } = useMutation(updateUserMutation, options)
 
 async function submit(): Promise<void> {
-  const input = { name: state.name.trim(), email: state.email.trim(), isAdmin: state.isAdmin }
+  const input = {
+    name: state.name.trim(),
+    email: state.email.trim(),
+    role: state.role,
+    jobFunction: state.jobFunction || null
+  }
   const user = props.target?.user
   const result = await run<unknown>(() => user ? updateUser({ id: user.id, input }) : createUser({ input }))
 
@@ -84,11 +98,16 @@ async function submit(): Promise<void> {
         :error="errors.email"
         required
       />
-      <FormCheckbox
-        v-model="state.isAdmin"
-        :label="t('admin.users.isAdmin')"
-        :hint="isSelf ? t('admin.users.ownAdmin') : t('admin.users.isAdminHint')"
+      <FormSelect
+        v-model="state.role"
+        :items="roleItems"
+        :label="t('admin.users.role')"
         :disabled="isSelf"
+      />
+      <FormSelect
+        v-model="state.jobFunction"
+        :items="functionItems"
+        :label="t('admin.users.jobFunction')"
       />
     </form>
 

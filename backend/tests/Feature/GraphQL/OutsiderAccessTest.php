@@ -79,7 +79,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'draftProjectPlan' => ['owner', 'mutation { draftProjectPlan(messages: [{role: USER, content: "Ein Podcast"}]) { reply } }', fn (self $test) => []],
             'importProjectPlan' => ['owner', 'mutation { importProjectPlan(plan: {name: "Eigenes", members: [], milestones: [{title: "Start", todos: []}]}) { id } }', fn (self $test) => []],
             'createUser' => ['owner', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
-            'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {isAdmin: true}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
+            'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {role: ADMIN}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],
             'updateAppSettings (2FA off)' => ['owner', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],

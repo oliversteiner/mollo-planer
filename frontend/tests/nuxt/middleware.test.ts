@@ -4,14 +4,15 @@ import type { RouteLocationNormalized } from 'vue-router'
 import adminMiddleware from '~/middleware/admin'
 import authMiddleware from '~/middleware/auth.global'
 
-const { viewerState, load, redirect, abort } = vi.hoisted(() => ({
-  viewerState: { value: null as null | { isAdmin: boolean } },
+const { viewerState, abilities, load, redirect, abort } = vi.hoisted(() => ({
+  viewerState: { value: null as null | { role: string } },
+  abilities: { value: [] as string[] },
   load: vi.fn(),
   redirect: vi.fn((to: unknown) => ({ redirectedTo: to })),
   abort: vi.fn((error: unknown) => ({ aborted: error }))
 }))
 
-mockNuxtImport('useViewer', () => () => ({ viewer: viewerState, load }))
+mockNuxtImport('useViewer', () => () => ({ viewer: viewerState, load, can: (ability: string) => abilities.value.includes(ability) }))
 mockNuxtImport('navigateTo', () => redirect)
 mockNuxtImport('abortNavigation', () => abort)
 
@@ -21,6 +22,7 @@ function route(path: string, meta: Record<string, unknown> = {}): RouteLocationN
 
 beforeEach(() => {
   viewerState.value = null
+  abilities.value = []
   vi.clearAllMocks()
 })
 
@@ -36,7 +38,7 @@ describe('auth middleware', () => {
     expect(await authMiddleware(route('/projects/1'), route('/'))).toBeUndefined()
     expect(load).toHaveBeenCalledOnce()
 
-    viewerState.value = { isAdmin: false }
+    viewerState.value = { role: 'MITGLIED' }
     load.mockClear()
     await authMiddleware(route('/projects/2'), route('/'))
     expect(load).not.toHaveBeenCalled()
@@ -72,10 +74,10 @@ describe('auth middleware', () => {
 
 describe('admin middleware', () => {
   it('lets admins in and sends everyone else to the dashboard', () => {
-    viewerState.value = { isAdmin: true }
+    abilities.value = ['USERS_MANAGE']
     expect(adminMiddleware(route('/admin/users'), route('/'))).toBeUndefined()
 
-    viewerState.value = { isAdmin: false }
+    abilities.value = ['PROJECTS_CREATE']
     expect(adminMiddleware(route('/admin/users'), route('/'))).toEqual({ redirectedTo: '/' })
   })
 })

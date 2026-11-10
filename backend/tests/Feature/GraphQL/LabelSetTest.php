@@ -4,6 +4,7 @@ namespace Tests\Feature\GraphQL;
 
 use App\Enums\LabelColor;
 use App\Enums\ProjectRole;
+use App\Enums\UserRole;
 use App\Models\Label;
 use App\Models\LabelSet;
 use App\Models\Project;
@@ -55,14 +56,17 @@ class LabelSetTest extends GraphQLTestCase
 
     // ─── Managing own sets ──────────────────────────────────────
 
-    public function test_owners_managers_and_admins_create_sets_members_do_not(): void
+    public function test_only_label_set_managers_create_sets(): void
     {
         $mutation = 'mutation { createLabelSet(input: {name: "Bau", labels: [{name: "Rohbau", category: "Phase", color: ORANGE}, {name: "Ausbau", color: BLUE}]}) { name isBuiltin viewerCanUpdate labels { name category color } } }';
 
+        $this->assertUnauthorized($this->as('owner')->gql($mutation));
+        $this->assertUnauthorized($this->as('manager')->gql($mutation));
         $this->assertUnauthorized($this->as('member')->gql($mutation));
+        $this->assertUnauthorized($this->as('lesend')->gql($mutation));
         $this->assertUnauthorized($this->as('stranger')->gql($mutation));
 
-        $this->as('manager')->gql($mutation)->assertJsonPath('data.createLabelSet', [
+        $this->as('projektleitung')->gql($mutation)->assertJsonPath('data.createLabelSet', [
             'name' => 'Bau',
             'isBuiltin' => false,
             'viewerCanUpdate' => true,
@@ -71,16 +75,17 @@ class LabelSetTest extends GraphQLTestCase
                 ['name' => 'Ausbau', 'category' => null, 'color' => 'BLUE'],
             ],
         ]);
-        $this->assertSame($this->users['manager']->id, LabelSet::query()->where('name', 'Bau')->value('created_by'));
+        $this->assertSame($this->users['projektleitung']->id, LabelSet::query()->where('name', 'Bau')->value('created_by'));
     }
 
-    public function test_the_viewer_learns_whether_they_may_manage_label_sets(): void
+    public function test_the_viewer_learns_their_system_abilities(): void
     {
-        $query = 'query { viewerCanManageLabelSets }';
+        $query = 'query { viewerSystemAbilities }';
 
-        $this->as('manager')->gql($query)->assertJsonPath('data.viewerCanManageLabelSets', true);
-        $this->as('admin')->gql($query)->assertJsonPath('data.viewerCanManageLabelSets', true);
-        $this->as('member')->gql($query)->assertJsonPath('data.viewerCanManageLabelSets', false);
+        $this->as('projektleitung')->gql($query)->assertJsonPath('data.viewerSystemAbilities', ['PROJECTS_CREATE', 'LABEL_SETS_MANAGE']);
+        $this->as('manager')->gql($query)->assertJsonPath('data.viewerSystemAbilities', []);
+        $this->as('lesend')->gql($query)->assertJsonPath('data.viewerSystemAbilities', []);
+        $this->as('admin')->gql($query)->assertJsonCount(6, 'data.viewerSystemAbilities');
     }
 
     public function test_duplicating_copies_a_set_as_own_set_in_the_language_of_the_request(): void
@@ -90,22 +95,22 @@ class LabelSetTest extends GraphQLTestCase
 
         $this->assertUnauthorized($this->as('member')->gql($mutation, $id));
 
-        $copy = $this->as('owner')->withHeader('Accept-Language', 'de')->gql($mutation, $id)->json('data.duplicateLabelSet');
+        $copy = $this->as('projektleitung')->withHeader('Accept-Language', 'de')->gql($mutation, $id)->json('data.duplicateLabelSet');
 
         $this->assertSame('Kopie von Softwareentwicklung', $copy['name']);
         $this->assertFalse($copy['isBuiltin']);
         $this->assertSame(['name' => 'Recherche', 'category' => 'Phase', 'color' => 'BLUE'], $copy['labels'][0]);
 
         // Stays in German, whatever language reads it later; a second copy gets a number.
-        $this->as('owner')->withHeader('Accept-Language', 'en')->gql($mutation, $id)
+        $this->as('projektleitung')->withHeader('Accept-Language', 'en')->gql($mutation, $id)
             ->assertJsonPath('data.duplicateLabelSet.name', 'Copy of Software development');
-        $this->as('owner')->withHeader('Accept-Language', 'de')->gql($mutation, $id)
+        $this->as('projektleitung')->withHeader('Accept-Language', 'de')->gql($mutation, $id)
             ->assertJsonPath('data.duplicateLabelSet.name', 'Kopie von Softwareentwicklung (2)');
     }
 
     public function test_only_the_creator_or_an_admin_changes_and_deletes_an_own_set(): void
     {
-        $set = $this->ownSet('manager');
+        $set = $this->ownSet('projektleitung');
         $update = 'mutation ($id: ID!) { updateLabelSet(id: $id, input: {name: "Umbenannt", labels: []}) { name } }';
         $delete = 'mutation ($id: ID!) { deleteLabelSet(id: $id) { id } }';
         $id = ['id' => $set->id];
@@ -113,7 +118,7 @@ class LabelSetTest extends GraphQLTestCase
         $this->assertUnauthorized($this->as('owner')->gql($update, $id));
         $this->assertUnauthorized($this->as('member')->gql($update, $id));
 
-        $this->as('manager')->gql($update, $id)->assertJsonPath('data.updateLabelSet.name', 'Umbenannt');
+        $this->as('projektleitung')->gql($update, $id)->assertJsonPath('data.updateLabelSet.name', 'Umbenannt');
         $this->as('admin')->gql('query { labelSets { name viewerCanUpdate viewerCanDelete } }')
             ->assertJsonPath('data.labelSets.3', ['name' => 'Umbenannt', 'viewerCanUpdate' => true, 'viewerCanDelete' => true]);
 
@@ -121,21 +126,21 @@ class LabelSetTest extends GraphQLTestCase
         $this->assertModelMissing($set);
     }
 
-    public function test_a_creator_who_is_no_owner_or_manager_any_more_cannot_change_the_set(): void
+    public function test_a_creator_who_loses_the_role_cannot_change_the_set(): void
     {
-        $set = $this->ownSet('manager');
-        $this->project->members()->updateExistingPivot($this->users['manager']->id, ['role' => ProjectRole::MEMBER->value]);
+        $set = $this->ownSet('projektleitung');
+        $this->users['projektleitung']->update(['role' => 'mitglied']);
 
-        $this->assertUnauthorized($this->as('manager')->gql('mutation ($id: ID!) { updateLabelSet(id: $id, input: {name: "X1", labels: []}) { id } }', ['id' => $set->id]));
+        $this->assertUnauthorized($this->as('projektleitung')->gql('mutation ($id: ID!) { updateLabelSet(id: $id, input: {name: "X1", labels: []}) { id } }', ['id' => $set->id]));
     }
 
     public function test_update_keeps_renames_adds_and_removes_labels_in_the_given_order(): void
     {
-        $set = $this->ownSet('owner', 3);
+        $set = $this->ownSet('projektleitung', 3);
         [$first, $second, $third] = $set->labels->all();
         $this->task->labels()->attach([$first->id, $third->id]);
 
-        $this->as('owner')->gql('mutation ($id: ID!, $in: LabelSetInput!) { updateLabelSet(id: $id, input: $in) { labels { id name color } } }', [
+        $this->as('projektleitung')->gql('mutation ($id: ID!, $in: LabelSetInput!) { updateLabelSet(id: $id, input: $in) { labels { id name color } } }', [
             'id' => $set->id,
             'in' => ['name' => 'Eigenes Set', 'labels' => [
                 // Swapped names must not hit the unique name per set.
@@ -155,32 +160,32 @@ class LabelSetTest extends GraphQLTestCase
 
     public function test_update_refuses_double_names_labels_of_another_set_and_more_than_30_labels(): void
     {
-        $set = $this->ownSet('owner');
+        $set = $this->ownSet('projektleitung');
         $foreign = Label::factory()->create();
         $mutation = 'mutation ($id: ID!, $in: LabelSetInput!) { updateLabelSet(id: $id, input: $in) { id } }';
 
-        $this->as('owner')->gql($mutation, ['id' => $set->id, 'in' => ['name' => 'Set', 'labels' => [
+        $this->as('projektleitung')->gql($mutation, ['id' => $set->id, 'in' => ['name' => 'Set', 'labels' => [
             ['name' => 'Bug', 'color' => 'RED'], ['name' => 'bug ', 'color' => 'RED'],
         ]]])->assertGraphQLValidationKeys(['input.labels']);
 
-        $this->as('owner')->gql($mutation, ['id' => $set->id, 'in' => ['name' => 'Set', 'labels' => [
+        $this->as('projektleitung')->gql($mutation, ['id' => $set->id, 'in' => ['name' => 'Set', 'labels' => [
             ['id' => (string) $foreign->id, 'name' => 'Fremd', 'color' => 'RED'],
         ]]])->assertGraphQLValidationKeys(['input.labels.0.id']);
 
         $many = array_map(fn (int $i) => ['name' => "L{$i}", 'color' => 'GRAY'], range(1, 31));
-        $this->as('owner')->gql($mutation, ['id' => $set->id, 'in' => ['name' => 'Set', 'labels' => $many]])
+        $this->as('projektleitung')->gql($mutation, ['id' => $set->id, 'in' => ['name' => 'Set', 'labels' => $many]])
             ->assertGraphQLValidationKeys(['input.labels']);
     }
 
     public function test_a_set_in_use_cannot_be_deleted(): void
     {
-        $set = $this->ownSet('owner');
+        $set = $this->ownSet('projektleitung');
         $this->project->labelSet()->associate($set)->save();
 
-        $this->as('owner')->gql('mutation ($id: ID!) { deleteLabelSet(id: $id) { id } }', ['id' => $set->id])
+        $this->as('projektleitung')->gql('mutation ($id: ID!) { deleteLabelSet(id: $id) { id } }', ['id' => $set->id])
             ->assertGraphQLValidationKeys(['id']);
         $this->assertModelExists($set);
-        $this->as('owner')->gql('query { labelSets { usedByProjects } }')->assertJsonPath('data.labelSets.3.usedByProjects', 1);
+        $this->as('projektleitung')->gql('query { labelSets { usedByProjects } }')->assertJsonPath('data.labelSets.3.usedByProjects', 1);
     }
 
     // ─── Project and task ───────────────────────────────────────
@@ -235,14 +240,17 @@ class LabelSetTest extends GraphQLTestCase
             ->assertGraphQLValidationKeys(['input.labelIds']);
     }
 
-    public function test_label_sets_need_a_login_and_admins_of_no_project_may_manage_them(): void
+    public function test_label_sets_need_a_login_and_only_some_global_roles_may_create_them(): void
     {
         $this->graphQL(self::SETS)->assertGraphQLErrorMessage('Unauthenticated.');
 
         $lonelyAdmin = User::factory()->admin()->create();
         $this->assertTrue($lonelyAdmin->can('create', LabelSet::class));
         $this->assertFalse(User::factory()->create()->can('create', LabelSet::class));
-        $this->assertTrue(Project::factory()->withMember($owner = User::factory()->create(), ProjectRole::OWNER)->create() instanceof Project && $owner->can('create', LabelSet::class));
+        $owner = User::factory()->create();
+        Project::factory()->withMember($owner, ProjectRole::OWNER)->create();
+        $this->assertFalse($owner->can('create', LabelSet::class));
+        $this->assertTrue(User::factory()->role(UserRole::PROJEKTLEITUNG)->create()->can('create', LabelSet::class));
         $this->assertSame(LabelColor::RED, $this->builtin('software_dev')->labels()->where('key', 'bug')->firstOrFail()->color);
     }
 }

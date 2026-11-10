@@ -47,7 +47,7 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 ## Regeln
 - **Code** (Klassen, Methoden, Variablen, Kommentare im Code) auf Englisch. **UI-Texte und Mails** in Deutsch und Englisch über `lang/de` und `lang/en`, nie hart codiert.
 - GraphQL in camelCase, Datenbank in snake_case (`@rename`).
-- **Rechte nur über `App\Support\ProjectPermissions`.** Policies fragen nur diese Tabelle. Keine Rollenprüfung (`role === 'owner'`) irgendwo sonst.
+- **Rechte nur über zwei Tabellen.** `App\Support\ProjectPermissions` für Projektrollen (Owner, Manager, Mitglied), `App\Support\SystemPermissions` für globale Rollen (admin, projektleitung, koordination, mitglied, lesend). Policies fragen nur diese Tabellen. Keine Rollenprüfung (`role === 'owner'`, `role === 'admin'`) irgendwo sonst, kein `is_admin`.
 - Lesen filtert der Scope `visibleToViewer`, Schreiben prüft eine Policy per `@can`.
 - Status von ToDo und Milestone wird nur vom Observer berechnet, nie per Eingabe gesetzt.
 - RichText wird als TipTap-JSON gespeichert, **nie HTML**. Frontend zeigt es mit TipTap an, **nie mit `v-html`**.

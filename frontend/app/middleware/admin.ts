@@ -4,9 +4,9 @@
  * checks every admin action again.
  */
 export default defineNuxtRouteMiddleware(() => {
-  const { viewer } = useViewer()
+  const { can } = useViewer()
 
-  if (!viewer.value?.isAdmin) {
+  if (!can('USERS_MANAGE')) {
     return navigateTo('/')
   }
 })

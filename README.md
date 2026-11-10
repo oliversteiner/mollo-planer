@@ -84,7 +84,7 @@ Ablauf von Hand (ohne Collection), Header `Origin: http://localhost:3000` bei je
 
 ## Claude anbinden (Inhalte per natürlicher Sprache)
 
-Das Backend bietet einen MCP-Server unter `http://localhost:8000/mcp` (später auf dem API-Server). Claude handelt dort mit deinen Rechten: Projekte lesen, Projekte anlegen (Admins), Mitglieder setzen und ganze Projektpläne mit Milestones, ToDos und Tasks anlegen und zuweisen. Löschen kann Claude nichts.
+Das Backend bietet einen MCP-Server unter `http://localhost:8000/mcp` (später auf dem API-Server). Claude handelt dort mit deinen Rechten: Projekte lesen, Projekte anlegen (Rollen mit `projects.create`: Admin, Projektleitung, Koordination), Mitglieder setzen und ganze Projektpläne mit Milestones, ToDos und Tasks anlegen und zuweisen. Löschen kann Claude nichts.
 
 1. In der App unter **Profil → Zugang für Claude** einen Zugang erzeugen und kopieren (wird nur einmal angezeigt, gilt 90 Tage).
 2. **Claude Code in diesem Projekt:** Den Server kennt die `.mcp.json` schon. Den Zugang als Umgebungsvariable setzen und Claude Code neu starten:

@@ -34,9 +34,15 @@ class ApiTokenTest extends GraphQLTestCase
         $this->users['owner']->createToken('Kein Claude-Token');
         McpTokens::create($this->users['owner'], 'Meins');
 
-        $this->as('owner')->gql('{ me { apiTokens { name } } users { id apiTokens { name } } }')
-            ->assertJsonPath('data.me.apiTokens', [['name' => 'Meins']])
-            ->assertJsonPath('data.users.1.apiTokens', null);
+        $this->as('owner')->gql('{ me { apiTokens { name } } }')
+            ->assertJsonPath('data.me.apiTokens', [['name' => 'Meins']]);
+
+        $users = $this->as('admin')->gql('{ users { id apiTokens { name } } }')->json('data.users');
+        foreach ($users as $user) {
+            if ($user['id'] !== (string) $this->users['admin']->id) {
+                $this->assertNull($user['apiTokens']);
+            }
+        }
     }
 
     public function test_someone_elses_token_cannot_be_revoked(): void

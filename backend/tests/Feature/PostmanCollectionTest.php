@@ -33,7 +33,7 @@ class PostmanCollectionTest extends TestCase
         Notification::fake();
         $this->artisan('db:seed', ['--class' => DemoSeeder::class, '--no-interaction' => true])->assertSuccessful();
         // As the admin, so the admin folder runs too. Permissions are tested elsewhere.
-        $user = User::where('is_admin', true)->firstOrFail();
+        $user = User::where('role', 'admin')->firstOrFail();
         $requests = self::graphqlRequests();
         $this->assertNotEmpty($requests);
 

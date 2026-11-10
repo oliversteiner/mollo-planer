@@ -3,12 +3,18 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\Locale;
+use App\Enums\ProjectRole;
+use App\Enums\SystemAbility;
 use App\Models\Project;
+use App\Models\User;
+use App\Support\SystemPermissions;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Creates a project (admins only, checked by @can). The admin does not
- * become a member; owners are added with setProjectMember.
+ * Creates a project (checked by @can: projects.create). Someone who may
+ * manage any project (admin) does not become a member. Everyone else who
+ * creates a project becomes its owner, otherwise they could not see it.
  */
 class CreateProject
 {
@@ -17,11 +23,21 @@ class CreateProject
      */
     public function __invoke(mixed $root, array $args): Project
     {
-        return DB::transaction(fn (): Project => Project::create([
-            'name' => $args['name'],
-            'description' => $args['description'] ?? null,
-            'icon' => $args['icon'] ?? null,
-            'locale' => $args['locale'] ?? Locale::DE->value,
-        ]));
+        $creator = Auth::user();
+
+        return DB::transaction(function () use ($args, $creator): Project {
+            $project = Project::create([
+                'name' => $args['name'],
+                'description' => $args['description'] ?? null,
+                'icon' => $args['icon'] ?? null,
+                'locale' => $args['locale'] ?? Locale::DE->value,
+            ]);
+
+            if ($creator instanceof User && ! SystemPermissions::allows($creator, SystemAbility::PROJECTS_MANAGE_ANY)) {
+                $project->members()->attach($creator->getKey(), ['role' => ProjectRole::OWNER->value]);
+            }
+
+            return $project;
+        });
     }
 }

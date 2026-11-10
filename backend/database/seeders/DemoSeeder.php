@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Enums\Locale;
 use App\Enums\ProjectRole;
 use App\Enums\TaskStatus;
+use App\Enums\UserFunction;
+use App\Enums\UserRole;
 use App\Models\Comment;
 use App\Models\LabelSet;
 use App\Models\Milestone;
@@ -46,13 +48,13 @@ use RuntimeException;
 class DemoSeeder extends Seeder
 {
     /**
-     * @var array<string, array{name: string, email: string, admin: bool}>
+     * @var array<string, array{name: string, email: string, role: UserRole, job_function: UserFunction|null}>
      */
     private const USERS = [
-        'anna' => ['name' => 'Anna Keller', 'email' => 'anna.keller@example.ch', 'admin' => true],
-        'ben' => ['name' => 'Ben Müller', 'email' => 'ben.mueller@example.ch', 'admin' => false],
-        'chiara' => ['name' => 'Chiara Rossi', 'email' => 'chiara.rossi@example.ch', 'admin' => false],
-        'david' => ['name' => 'David Frei', 'email' => 'david.frei@example.ch', 'admin' => false],
+        'anna' => ['name' => 'Anna Keller', 'email' => 'anna.keller@example.ch', 'role' => UserRole::ADMIN, 'job_function' => null],
+        'ben' => ['name' => 'Ben Müller', 'email' => 'ben.mueller@example.ch', 'role' => UserRole::MITGLIED, 'job_function' => UserFunction::ENTWICKLUNG],
+        'chiara' => ['name' => 'Chiara Rossi', 'email' => 'chiara.rossi@example.ch', 'role' => UserRole::PROJEKTLEITUNG, 'job_function' => null],
+        'david' => ['name' => 'David Frei', 'email' => 'david.frei@example.ch', 'role' => UserRole::MITGLIED, 'job_function' => UserFunction::DESIGNER],
     ];
 
     /** @var array<string, User> */
@@ -98,7 +100,8 @@ class DemoSeeder extends Seeder
             $recovery = Collection::times(8, fn () => RecoveryCode::generate())->all();
 
             $user = new User(['name' => $person['name'], 'email' => $email, 'password' => $password]);
-            $user->is_admin = $person['admin'];
+            $user->role = $person['role'];
+            $user->job_function = $person['job_function'];
             $user->forceFill([
                 'email_verified_at' => $createdAt,
                 'two_factor_secret' => Fortify::currentEncrypter()->encrypt($secret),

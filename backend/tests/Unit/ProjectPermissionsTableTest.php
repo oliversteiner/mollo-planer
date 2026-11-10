@@ -31,7 +31,6 @@ class ProjectPermissionsTableTest extends TestCase
         'task.delete' => [true, true, false],
         'comment.create' => [true, true, true],
         'comment.moderate' => [true, true, false],
-        'label_sets.manage' => [true, true, false],
     ];
 
     /**

@@ -161,11 +161,11 @@ function factorLabel(user: User): string {
           <span class="users-name">
             <span class="users-name-text">{{ user.name }}</span>
             <wa-badge
-              v-if="user.isAdmin"
+              v-if="user.role !== 'MITGLIED'"
               variant="brand"
               appearance="filled"
             >
-              {{ t('admin.users.admin') }}
+              {{ t(`userRole.${user.role}`) }}
             </wa-badge>
             <span
               v-if="user.id === viewer?.id"

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserFunction;
+use App\Enums\UserRole;
 use App\Notifications\ResetPasswordNotification;
 use App\Observers\UserObserver;
 use App\Services\UserAvatar;
@@ -21,7 +23,7 @@ use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'is_admin'])]
+#[Fillable(['name', 'email', 'password', 'role', 'job_function'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 #[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements PasskeyUser
@@ -35,7 +37,7 @@ class User extends Authenticatable implements PasskeyUser
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'is_admin' => false,
+        'role' => 'mitglied',
         'notify_by_email' => true,
     ];
 
@@ -50,7 +52,8 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
-            'is_admin' => 'boolean',
+            'role' => UserRole::class,
+            'job_function' => UserFunction::class,
             'notify_by_email' => 'boolean',
         ];
     }
