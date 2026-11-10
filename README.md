@@ -6,6 +6,18 @@ Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu e
 - `frontend/`: Nuxt (folgt)
 - `docs/`: Entscheidungen und Bauplan (`backend-plan.md`, `graphql-kontext.md`)
 
+## Ersten Admin anlegen
+
+Auf einer neuen Installation gibt es noch keinen Admin. Den ersten legt der Artisan-Befehl `app:create-admin` an. Ein Seeder dafür existiert bewusst nicht, damit nie ein Konto mit bekanntem Passwort entsteht. Im Ordner `backend/` ausführen:
+
+```bash
+php artisan app:create-admin "<Name>" <E-Mail> --password
+```
+
+Der Befehl fragt das Passwort zweimal im Terminal ab. Es wird nie als Parameter übergeben und nirgends gespeichert.
+
+Ohne `--password` verschickt der Befehl stattdessen eine Einladung per Mail mit Link zum Setzen des Passworts. Dafür muss der Mail-Versand in der `.env` eingerichtet sein. Mit `MAIL_MAILER=log` landet die Mail nur im Log, deshalb lokal `--password` verwenden.
+
 ## Demo-Daten
 
 Zum Ausprobieren der API (zum Beispiel mit Postman) gibt es Demo-Daten wie in der GraphQL-Demo:
