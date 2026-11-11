@@ -302,7 +302,7 @@ class AuthenticationFlowTest extends TestCase
         $this->actingAs($admin)->withSession([StrongAuthentication::SESSION_KEY => (string) $admin->id]);
 
         $this->withHeader('Accept-Language', 'de-CH,de;q=0.9')
-            ->postJson('/graphql', ['query' => 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }'])
+            ->postJson('/api', ['query' => 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }'])
             ->assertOk()->assertJsonMissingPath('errors');
 
         $invited = User::where('email', 'fritz@example.com')->firstOrFail();
@@ -400,7 +400,7 @@ class AuthenticationFlowTest extends TestCase
     {
         $preflight = fn (string $origin) => $this->withHeaders([
             'Origin' => $origin, 'Access-Control-Request-Method' => 'POST',
-        ])->options('/graphql');
+        ])->options('/api');
 
         $preflight(self::FRONTEND)
             ->assertHeader('Access-Control-Allow-Origin', self::FRONTEND)
@@ -458,7 +458,7 @@ class AuthenticationFlowTest extends TestCase
 
     private function me(): TestResponse
     {
-        return $this->postJson('/graphql', ['query' => '{ me { id } }']);
+        return $this->postJson('/api', ['query' => '{ me { id } }']);
     }
 
     private function invite(User $user): string

@@ -137,6 +137,7 @@ Laut `CLAUDE.md` ändert sich das Schema nur nach Rückfrage. Vorgeschlagen:
 - [x] Umsetzung Backend: Enums `UserRole`, `UserFunction`, `SystemAbility`, Klasse `SystemPermissions`, Migration (`is_admin` → `role`, Spalte `job_function`), Policies, Schema, Suche `userSearch`, `viewerSystemAbilities`. Tests grün, SQLite und MariaDB (448 Tests).
 - [x] Umsetzung Frontend: Viewer mit Fähigkeiten (`can`), Navigation, Benutzerformular mit Rolle und Funktion, Mitgliederauswahl per Namenssuche. Typecheck, Lint und 136 Tests grün.
 - [ ] Prüfung im Browser je Rolle
+- [x] Rechte-Tabelle für Admins unter `/system/rechte` (GraphQL `permissionMatrix`, aus `SystemPermissions` und `ProjectPermissions`, Tests grün)
 - [x] Entschieden bei der Umsetzung: Spalte heißt `job_function` (Schlüsselwort `function` vermeiden). Neue Fähigkeiten `projects.manageAny` (Admin, übersteuert alle Projektregeln) und `labelSets.manageAny` (fremde Sets ändern). Wer als Nicht-Admin ein Projekt anlegt, wird Owner. Der KI-Assistent bleibt für Admins (er nutzt die volle Benutzerliste).
 - [x] Rollenkatalog und Funktionen übernommen (Berechtigungsrollen `admin`, `projektleitung`, `koordination`, `mitglied`, `lesend`)
 - [x] Entscheidungen 2, 3, 4 und Standardrolle geklärt

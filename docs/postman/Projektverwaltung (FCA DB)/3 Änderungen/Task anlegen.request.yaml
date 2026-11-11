@@ -1,6 +1,6 @@
 $kind: http-request
 description: Nur Owner, Manager und Admins. Die zugewiesene Person bekommt eine Mail (Queue).
-url: "{{baseUrl}}/graphql"
+url: "{{baseUrl}}/api"
 method: POST
 body:
   type: graphql

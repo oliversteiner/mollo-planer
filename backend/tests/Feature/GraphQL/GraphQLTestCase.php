@@ -16,7 +16,7 @@ use Nuwave\Lighthouse\Testing\MakesGraphQLRequests;
 use Tests\TestCase;
 
 /**
- * Requests go through the real /graphql route with all middleware:
+ * Requests go through the real /api route with all middleware:
  * Sanctum (stateful via Referer), authentication and the strong-auth lock.
  */
 abstract class GraphQLTestCase extends TestCase

@@ -36,9 +36,9 @@ return [
 
     'route' => [
         /*
-         * The URI the endpoint responds to, e.g. mydomain.com/graphql.
+         * The URI the endpoint responds to, e.g. mydomain.com/api.
          */
-        'uri' => '/graphql',
+        'uri' => '/api',
 
         /*
          * Lighthouse creates a named route for convenient URL generation and redirects.

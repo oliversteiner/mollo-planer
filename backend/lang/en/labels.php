@@ -10,6 +10,7 @@ return [
         'research' => 'research',
         'design' => 'design',
         'feature' => 'feature',
+        'planning' => 'planning',
         'bug' => 'bug',
         'blocked' => 'blocked',
         'location' => 'location',

@@ -1,6 +1,6 @@
 $kind: http-request
 description: Das eigene Bild, als Admin auch das einer anderen Person.
-url: "{{baseUrl}}/graphql"
+url: "{{baseUrl}}/api"
 method: POST
 body:
   type: graphql

@@ -59,7 +59,7 @@ class DemoSeederTest extends TestCase
         $this->postJson('/login', ['email' => $ben->email, 'password' => self::PASSWORD])
             ->assertOk()->assertJsonPath('two_factor', false);
 
-        $this->postJson('/graphql', ['query' => '{ projects { name viewerRole } }'])
+        $this->postJson('/api', ['query' => '{ projects { name viewerRole } }'])
             ->assertOk()
             ->assertJsonPath('data.projects', [['name' => 'Website-Relaunch', 'viewerRole' => 'OWNER']]);
     }
@@ -77,7 +77,7 @@ class DemoSeederTest extends TestCase
         $this->postJson('/two-factor-challenge', ['code' => app(Google2FA::class)->getCurrentOtp($secret)])
             ->assertNoContent();
 
-        $this->postJson('/graphql', ['query' => '{ me { email } }'])
+        $this->postJson('/api', ['query' => '{ me { email } }'])
             ->assertOk()
             ->assertJsonPath('data.me.email', 'ben.mueller@example.ch');
     }

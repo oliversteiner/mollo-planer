@@ -49,6 +49,7 @@ type Documents = {
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerAbilities\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": typeof types.SidebarProjectsDocument,
+    "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n": typeof types.PermissionMatrixDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": typeof types.SecurityDocument,
     "\n  query ApiTokens {\n    me {\n      id\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n    }\n  }\n": typeof types.ApiTokensDocument,
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": typeof types.CreateApiTokenDocument,
@@ -109,6 +110,7 @@ const documents: Documents = {
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerAbilities\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": types.SidebarProjectsDocument,
+    "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n": types.PermissionMatrixDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": types.SecurityDocument,
     "\n  query ApiTokens {\n    me {\n      id\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n    }\n  }\n": types.ApiTokensDocument,
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": types.CreateApiTokenDocument,
@@ -288,6 +290,10 @@ export function graphql(source: "\n  mutation CreateProject($input: CreateProjec
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n"): (typeof documents)["\n  query SidebarProjects {\n    projects { id name icon }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n"): (typeof documents)["\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

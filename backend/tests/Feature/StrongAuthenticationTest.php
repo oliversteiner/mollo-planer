@@ -71,7 +71,7 @@ class StrongAuthenticationTest extends TestCase
     public function test_user_without_any_factor_is_sent_to_setup(): void
     {
         $this->actingAs(User::factory()->create(), 'sanctum')
-            ->postJson('/graphql', ['query' => '{ me { id } }'])
+            ->postJson('/api', ['query' => '{ me { id } }'])
             ->assertForbidden()
             ->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_SETUP_REQUIRED);
     }
@@ -81,7 +81,7 @@ class StrongAuthenticationTest extends TestCase
         $user = User::factory()->create(['two_factor_confirmed_at' => now()]);
 
         $this->actingAs($user, 'sanctum')
-            ->postJson('/graphql', ['query' => '{ me { id } }'])
+            ->postJson('/api', ['query' => '{ me { id } }'])
             ->assertForbidden()
             ->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_STRONG_AUTH_REQUIRED);
     }
@@ -97,7 +97,7 @@ class StrongAuthenticationTest extends TestCase
         ]);
 
         $this->actingAs($user, 'sanctum')
-            ->postJson('/graphql', ['query' => '{ me { id } }'])
+            ->postJson('/api', ['query' => '{ me { id } }'])
             ->assertForbidden()
             ->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_STRONG_AUTH_REQUIRED);
     }

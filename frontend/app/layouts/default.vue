@@ -14,7 +14,11 @@ const mainItems = computed<NavItem[]>(() => [
   ...(can('USERS_MANAGE') ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
 ])
 
+/** The section "System": the database documentation (admins), the status (everyone), then administration. */
 const adminItems = computed<NavItem[]>(() => [
+  ...(can('USERS_MANAGE') ? [{ label: t('nav.database'), icon: 'database', to: '/system/db' }] : []),
+  ...(can('USERS_MANAGE') ? [{ label: t('nav.rights'), icon: 'list-check', to: '/system/rechte' }] : []),
+  { label: t('nav.status'), icon: 'heart-pulse', to: '/system/status' },
   ...(can('USERS_MANAGE') ? [{ label: t('nav.users'), icon: 'users', to: '/admin/users' }] : []),
   ...(can('LABEL_SETS_MANAGE') ? [{ label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' }] : []),
   ...(can('USERS_MANAGE') ? [{ label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }] : [])

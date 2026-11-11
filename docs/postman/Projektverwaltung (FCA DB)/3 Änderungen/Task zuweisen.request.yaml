@@ -1,6 +1,6 @@
 $kind: http-request
 description: "`assigneeId: null` hebt die Zuweisung auf."
-url: "{{baseUrl}}/graphql"
+url: "{{baseUrl}}/api"
 method: POST
 body:
   type: graphql

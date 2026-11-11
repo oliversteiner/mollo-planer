@@ -80,7 +80,7 @@ Ablauf von Hand (ohne Collection), Header `Origin: http://localhost:3000` bei je
 1. `GET /sanctum/csrf-cookie`, danach bei jeder Anfrage den Header `X-XSRF-TOKEN` mit dem Wert des Cookies `XSRF-TOKEN` mitschicken (URL-dekodiert, also `%3D` als `=`; sonst antwortet Laravel mit 419)
 2. `POST /login` mit `email` und `password`
 3. `POST /two-factor-challenge` mit `code` (aus der App) oder `recovery_code`
-4. `POST /graphql` mit der Abfrage, zum Beispiel `{ "query": "{ me { name } projects { name viewerRole } }" }`
+4. `POST /api` mit der Abfrage, zum Beispiel `{ "query": "{ me { name } projects { name viewerRole } }" }`
 
 ## Claude anbinden (Inhalte per natürlicher Sprache)
 

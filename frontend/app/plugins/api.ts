@@ -113,7 +113,7 @@ export default defineNuxtPlugin({
     })
 
     const uploadLink = createUploadLink({
-      uri: `${apiBase}/graphql`,
+      uri: `${apiBase}/api`,
       credentials: 'include'
     }) as unknown as ApolloLink
 

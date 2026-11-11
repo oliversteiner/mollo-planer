@@ -270,6 +270,11 @@ type Passkey {
  lastUsedAt: DateTime
  name: String!
 }
+"Rechte-Tabelle (nur Admin): globale Fähigkeiten und Projektfähigkeiten, je mit den Rollen, die sie haben."
+type PermissionMatrix {
+ project: [ProjectAbilityRow!]!
+ system: [SystemAbilityRow!]!
+}
 input PlanChatMessageInput {
  content: String!
  role: PlanChatRole!
@@ -324,6 +329,11 @@ enum ProjectAbility {
  TODO_CREATE
  TODO_DELETE
  TODO_UPDATE
+}
+"Eine Projektfähigkeit und die Projektrollen, die sie haben. Admins dürfen alle Projektfähigkeiten, siehe Systemfähigkeit projects.manageAny."
+type ProjectAbilityRow {
+ ability: ProjectAbility!
+ roles: [ProjectRole!]!
 }
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
@@ -416,6 +426,8 @@ type Query {
  milestones(projectId: ID!): [Milestone!]!
  "Tasks, die dir zugewiesen sind"
  myTasks(status: TaskStatus): [Task!]!
+ "Die Rechte-Tabelle: welche Rolle welche Fähigkeit hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
+ permissionMatrix: PermissionMatrix!
  project(id: ID!): Project
  "Deine Projekte. Admins sehen alle."
  projects: [Project!]!
@@ -454,6 +466,11 @@ enum SystemAbility {
  PROJECTS_MANAGE_ANY
  PROJECTS_VIEW_ALL
  USERS_MANAGE
+}
+"Eine globale Fähigkeit und die Rollen, die sie haben."
+type SystemAbilityRow {
+ ability: SystemAbility!
+ roles: [UserRole!]!
 }
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
 type Task {

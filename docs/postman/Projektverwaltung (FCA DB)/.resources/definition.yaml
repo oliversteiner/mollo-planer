@@ -54,7 +54,7 @@ scripts:
       }
 
       // Show GraphQL errors (HTTP 200 with "errors") as a failed test.
-      if (pm.request.url.getPath().endsWith('/graphql')) {
+      if (pm.request.url.getPath().endsWith('/api')) {
           pm.test('GraphQL without errors', function () {
               const body = pm.response.json();
               pm.expect(body.errors, JSON.stringify(body.errors, null, 2)).to.be.undefined;

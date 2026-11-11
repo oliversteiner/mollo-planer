@@ -43,7 +43,7 @@ class PostmanCollectionTest extends TestCase
             $response = $this->actingAs($user)
                 ->withSession([StrongAuthentication::SESSION_KEY => (string) $user->id])
                 ->withHeader('Referer', 'http://localhost')
-                ->postJson('/graphql', ['query' => $graphql['query'], 'variables' => $variables]);
+                ->postJson('/api', ['query' => $graphql['query'], 'variables' => $variables]);
 
             $this->assertSame(200, $response->status(), $name);
             $this->assertNull($response->json('errors'), $name.': '.json_encode($response->json('errors'), JSON_UNESCAPED_UNICODE));

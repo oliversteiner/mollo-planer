@@ -7,14 +7,17 @@
     "main": "Main navigation",
     "projects": "Projects",
     "myTasks": "My tasks",
-    "admin": "Administration",
+    "admin": "System",
     "users": "Users",
     "appSettings": "App settings",
     "skipToContent": "Skip to content",
     "assistant": "AI assistant",
     "breadcrumb": "Breadcrumb",
     "workspace": "Workspace",
-    "labelSets": "Label sets"
+    "labelSets": "Label sets",
+    "database": "Database",
+    "status": "Status",
+    "rights": "Rights"
   },
   "settings": {
     "language": "Language",
@@ -572,5 +575,504 @@
     "CONTENT": "Content",
     "TECHNIK": "Technology",
     "VOLUNTEER": "Volunteers"
+  },
+  "systemStatus": {
+    "title": "System status",
+    "subtitle": "Are the backend, the database and the GraphQL API reachable?",
+    "backend": "Backend (Laravel)",
+    "database": "Database",
+    "graphql": "GraphQL API",
+    "ok": "Reachable",
+    "error": "Not reachable",
+    "checking": "Checking …",
+    "responseTime": "{ms} ms",
+    "lastChecked": "Last checked at {time}",
+    "recheck": "Check again"
+  },
+  "db": {
+    "nav": {
+      "label": "Tables"
+    },
+    "originalName": "Name in the database: {name}",
+    "headers": {
+      "field": "Field",
+      "type": "Type",
+      "properties": "Properties",
+      "description": "Description"
+    },
+    "flags": {
+      "primary": "Primary key",
+      "references": "points to {table}",
+      "nullable": "may be empty",
+      "default": "Default: {value}",
+      "values": "Values: {values}",
+      "private": "personal data"
+    },
+    "constraint": {
+      "unique": "Unique: {columns}",
+      "index": "Index: {columns}"
+    },
+    "tables": {
+      "users": {
+        "title": "Users",
+        "description": "People with access to the app. Only user management creates them."
+      },
+      "projects": {
+        "title": "Projects",
+        "description": "Projects with milestones, to-dos and tasks."
+      },
+      "project_user": {
+        "title": "Project members",
+        "description": "Which person works in which project, and with which role."
+      },
+      "milestones": {
+        "title": "Milestones",
+        "description": "Major stages of a project."
+      },
+      "todos": {
+        "title": "To-dos",
+        "description": "Work packages within a milestone."
+      },
+      "tasks": {
+        "title": "Tasks",
+        "description": "Single tasks within a to-do, visible on the kanban board."
+      },
+      "comments": {
+        "title": "Comments",
+        "description": "Comments on a task."
+      },
+      "label_sets": {
+        "title": "Label sets",
+        "description": "Collections of labels that a project chooses for its tasks."
+      },
+      "labels": {
+        "title": "Labels",
+        "description": "Single labels within a label set."
+      },
+      "label_task": {
+        "title": "Task labels",
+        "description": "Assignment: which labels are on a task."
+      },
+      "app_settings": {
+        "title": "App settings",
+        "description": "Settings of the whole app, for example whether 2FA is required."
+      }
+    },
+    "columns": {
+      "users": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "name": {
+          "label": "Name",
+          "description": "Anzeigename der Person."
+        },
+        "email": {
+          "label": "E-Mail",
+          "description": "Adresse zum Anmelden und für Benachrichtigungen."
+        },
+        "role": {
+          "label": "Rolle",
+          "description": "Globale Berechtigungsrolle. Bestimmt, was die Person in der ganzen App darf."
+        },
+        "job_function": {
+          "label": "Funktion",
+          "description": "Funktion der Person, zum Beispiel Designer. Nur zur Anzeige, ohne Rechte."
+        },
+        "notify_by_email": {
+          "label": "Benachrichtigung per E-Mail",
+          "description": "Ob die Person Benachrichtigungen per E-Mail bekommt."
+        },
+        "avatar_path": {
+          "label": "Profilbild",
+          "description": "Ablage des Bildes (500 × 500, WebP). Nur die App setzt den Wert."
+        },
+        "email_verified_at": {
+          "label": "E-Mail bestätigt am",
+          "description": "Zeitpunkt, an dem die Adresse bestätigt wurde."
+        },
+        "password": {
+          "label": "Passwort",
+          "description": "Gehashtes Passwort, nie im Klartext."
+        },
+        "two_factor_secret": {
+          "label": "2FA-Geheimnis",
+          "description": "Verschlüsseltes Geheimnis der Authenticator-App."
+        },
+        "two_factor_recovery_codes": {
+          "label": "2FA-Wiederherstellungscodes",
+          "description": "Verschlüsselte Einmalcodes für den Notfall."
+        },
+        "two_factor_confirmed_at": {
+          "label": "2FA bestätigt am",
+          "description": "Zeitpunkt, an dem die Person die Authenticator-App bestätigt hat."
+        },
+        "remember_token": {
+          "label": "Anmeldung merken",
+          "description": "Token für „angemeldet bleiben“."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "projects": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "name": {
+          "label": "Name",
+          "description": "Name des Projekts."
+        },
+        "description": {
+          "label": "Beschreibung",
+          "description": "Beschreibung als Rich-Text (TipTap-JSON), nie als HTML."
+        },
+        "icon": {
+          "label": "Icon",
+          "description": "Font-Awesome-Icon des Projekts."
+        },
+        "label_set_id": {
+          "label": "Label-Set",
+          "description": "Gewähltes Label-Set. Leer, wenn das Projekt keines gewählt hat."
+        },
+        "locale": {
+          "label": "Sprache",
+          "description": "Sprache der Mails zum Projekt: de oder en."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "project_user": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "project_id": {
+          "label": "Projekt",
+          "description": "Projekt der Mitgliedschaft."
+        },
+        "user_id": {
+          "label": "Person",
+          "description": "Mitglied des Projekts."
+        },
+        "role": {
+          "label": "Projektrolle",
+          "description": "Rolle im Projekt: Owner, Manager oder Mitglied."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "milestones": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "project_id": {
+          "label": "Projekt",
+          "description": "Projekt, zu dem der Milestone gehört."
+        },
+        "title": {
+          "label": "Titel",
+          "description": "Titel des Milestones."
+        },
+        "description": {
+          "label": "Beschreibung",
+          "description": "Beschreibung als Rich-Text (TipTap-JSON)."
+        },
+        "icon": {
+          "label": "Icon",
+          "description": "Font-Awesome-Icon des Milestones."
+        },
+        "due_date": {
+          "label": "Fälligkeit",
+          "description": "Datum, bis zu dem der Milestone erledigt sein soll."
+        },
+        "status": {
+          "label": "Status",
+          "description": "Offen oder erledigt. Der Status wird aus den ToDos berechnet, nie eingegeben."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "todos": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "milestone_id": {
+          "label": "Milestone",
+          "description": "Milestone, zu dem das ToDo gehört."
+        },
+        "title": {
+          "label": "Titel",
+          "description": "Titel des ToDos."
+        },
+        "description": {
+          "label": "Beschreibung",
+          "description": "Beschreibung als Rich-Text (TipTap-JSON)."
+        },
+        "icon": {
+          "label": "Icon",
+          "description": "Font-Awesome-Icon des ToDos."
+        },
+        "due_date": {
+          "label": "Fälligkeit",
+          "description": "Datum, bis zu dem das ToDo erledigt sein soll."
+        },
+        "status": {
+          "label": "Status",
+          "description": "Offen oder erledigt. Der Status wird aus den Tasks berechnet, nie eingegeben."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "tasks": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "todo_id": {
+          "label": "ToDo",
+          "description": "ToDo, zu dem der Task gehört."
+        },
+        "assigned_user_id": {
+          "label": "Zugewiesen an",
+          "description": "Zugewiesene Person. Leer, wenn niemand zugewiesen ist."
+        },
+        "title": {
+          "label": "Titel",
+          "description": "Titel des Tasks."
+        },
+        "description": {
+          "label": "Beschreibung",
+          "description": "Beschreibung als Rich-Text (TipTap-JSON)."
+        },
+        "icon": {
+          "label": "Icon",
+          "description": "Font-Awesome-Icon des Tasks."
+        },
+        "status": {
+          "label": "Status",
+          "description": "Offen, in Arbeit, Review oder erledigt."
+        },
+        "position": {
+          "label": "Position",
+          "description": "Reihenfolge innerhalb der Kanban-Spalte."
+        },
+        "due_date": {
+          "label": "Fälligkeit",
+          "description": "Datum, bis zu dem der Task erledigt sein soll."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "comments": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "task_id": {
+          "label": "Task",
+          "description": "Task, zu dem der Kommentar gehört."
+        },
+        "user_id": {
+          "label": "Autorin oder Autor",
+          "description": "Wer den Kommentar geschrieben hat. Leer, wenn die Person entfernt wurde."
+        },
+        "body": {
+          "label": "Text",
+          "description": "Kommentar als Rich-Text (TipTap-JSON)."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "label_sets": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "key": {
+          "label": "Schlüssel",
+          "description": "Kennung eines mitgelieferten Sets. Leer bei eigenen Sets."
+        },
+        "name": {
+          "label": "Name",
+          "description": "Name des Sets."
+        },
+        "description": {
+          "label": "Beschreibung",
+          "description": "Kurze Beschreibung des Sets."
+        },
+        "created_by": {
+          "label": "Angelegt von",
+          "description": "Ersteller eines eigenen Sets. Leer bei mitgelieferten Sets."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "labels": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "label_set_id": {
+          "label": "Label-Set",
+          "description": "Set, zu dem das Label gehört."
+        },
+        "key": {
+          "label": "Schlüssel",
+          "description": "Kennung eines mitgelieferten Labels. Leer bei eigenen Labels."
+        },
+        "name": {
+          "label": "Name",
+          "description": "Name des Labels."
+        },
+        "category": {
+          "label": "Kategorie",
+          "description": "Gruppe des Labels, zum Beispiel Typ oder Phase."
+        },
+        "color": {
+          "label": "Farbe",
+          "description": "Farbton aus der Palette des Themes."
+        },
+        "position": {
+          "label": "Reihenfolge",
+          "description": "Reihenfolge im Set."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "label_task": {
+        "label_id": {
+          "label": "Label",
+          "description": "Das zugeordnete Label."
+        },
+        "task_id": {
+          "label": "Task",
+          "description": "Der Task, an dem das Label hängt."
+        }
+      },
+      "app_settings": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "key": {
+          "label": "Schlüssel",
+          "description": "Name der Einstellung."
+        },
+        "value": {
+          "label": "Wert",
+          "description": "Wert der Einstellung als Text."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When the record was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "When the record last changed, set by Laravel."
+        }
+      }
+    }
+  },
+  "doc": {
+    "db": {
+      "title": "Database structure",
+      "subtitle": "Application tables of the project management · {count} tables"
+    }
+  },
+  "rights": {
+    "title": "Rights table",
+    "subtitle": "Which role may do what. The table is read from the rules of the app, so it always shows the truth.",
+    "system": "System abilities",
+    "systemHint": "Apply across the whole app, regardless of any project.",
+    "project": "Project abilities",
+    "projectHint": "Apply inside a project, depending on the project role.",
+    "yes": "yes",
+    "no": "no",
+    "readOnly": "The role “read only” may change nothing, not even as owner of a project.",
+    "admin": "The role “administration” may do everything, also in projects it is not a member of.",
+    "role": "Role",
+    "ability": "Ability",
+    "abilities": {
+      "PROJECTS_CREATE": "Create projects",
+      "PROJECTS_VIEW_ALL": "See all projects, even without membership",
+      "PROJECTS_MANAGE_ANY": "Manage any project, overriding all project rules",
+      "USERS_MANAGE": "Manage users, user list, app settings",
+      "LABEL_SETS_MANAGE": "Create and duplicate label sets",
+      "LABEL_SETS_MANAGE_ANY": "Change and delete label sets of others",
+      "PROJECT_UPDATE": "Change the project",
+      "PROJECT_DELETE": "Delete the project",
+      "MEMBERS_MANAGE": "Manage members",
+      "MILESTONE_CREATE": "Create milestones",
+      "MILESTONE_UPDATE": "Change milestones",
+      "MILESTONE_DELETE": "Delete milestones",
+      "TODO_CREATE": "Create to-dos",
+      "TODO_UPDATE": "Change to-dos",
+      "TODO_DELETE": "Delete to-dos",
+      "TASK_CREATE": "Create tasks",
+      "TASK_UPDATE": "Change tasks",
+      "TASK_ASSIGN": "Assign tasks",
+      "TASK_MOVE": "Move tasks",
+      "TASK_DELETE": "Delete tasks",
+      "COMMENT_CREATE": "Comment",
+      "COMMENT_MODERATE": "Delete comments of others"
+    }
   }
 }

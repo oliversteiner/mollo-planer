@@ -24,6 +24,7 @@ final class BuiltinLabelSets
             ['key' => 'design', 'name' => 'Design', 'category' => 'phase', 'color' => LabelColor::PINK],
             ['key' => 'feature', 'name' => 'Feature', 'category' => 'type', 'color' => LabelColor::GREEN],
             ['key' => 'bug', 'name' => 'Fehler', 'category' => 'type', 'color' => LabelColor::RED],
+            ['key' => 'planning', 'name' => 'Planung', 'category' => 'type', 'color' => LabelColor::INDIGO],
             ['key' => 'blocked', 'name' => 'Blockiert', 'category' => 'status', 'color' => LabelColor::YELLOW],
         ],
         'event' => [

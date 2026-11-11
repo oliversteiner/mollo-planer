@@ -84,7 +84,7 @@ class TwoFactorSwitchTest extends TestCase
         [$user] = $this->userWithTwoFactor();
 
         $this->login($user)->assertOk()->assertJsonPath('two_factor', true);
-        $this->actingAs($user)->postJson('/graphql', ['query' => '{ me { id } }'])
+        $this->actingAs($user)->postJson('/api', ['query' => '{ me { id } }'])
             ->assertForbidden()
             ->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_STRONG_AUTH_REQUIRED);
     }
@@ -125,6 +125,6 @@ class TwoFactorSwitchTest extends TestCase
 
     private function me(): TestResponse
     {
-        return $this->postJson('/graphql', ['query' => '{ me { id } }']);
+        return $this->postJson('/api', ['query' => '{ me { id } }']);
     }
 }
