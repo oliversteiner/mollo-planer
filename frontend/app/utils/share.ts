@@ -195,7 +195,7 @@ function foldIcalLine(line: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// iCal VEVENT (for Apple Calendar, Outlook)
+// iCal (VEVENT for calendar apps, VTODO for reminders)
 // ---------------------------------------------------------------------------
 
 /** Due date as a readable date in the given locale, e.g. "15.06.2024" for de. */
@@ -206,13 +206,23 @@ function formatDueDate(dateStr: string | null | undefined, locale: string): stri
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
 }
 
-/**
- * Generate an iCal VEVENT string for calendar apps.
- * Uses the task's dueDate as the event date.
- */
-export function generateIcsEvent(task: ShareTask, labels: ShareLabels): string {
-  const uid = generateUid(task.id)
-  const timestamp = nowTimestamp()
+/** One calendar file with the given components (VEVENT or VTODO lines). */
+function icsCalendar(components: string[][]): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Mollo Planer//DE',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...components.flat(),
+    'END:VCALENDAR'
+  ]
+
+  return lines.map(foldIcalLine).join('\r\n')
+}
+
+/** VEVENT lines of one task: the due date is the event date. */
+function eventComponent(task: ShareTask, labels: ShareLabels): string[] {
   const summary = escapeIcalText(task.title)
   const location = escapeIcalText(`${task.project.name} · ${task.milestone.title} · ${task.todo.title}`)
 
@@ -231,14 +241,9 @@ export function generateIcsEvent(task: ShareTask, labels: ShareLabels): string {
   const description = escapeIcalText(blocks.join('\n\n'))
 
   const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Mollo Planer//DE',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${timestamp}`,
+    `UID:${generateUid(task.id)}`,
+    `DTSTAMP:${nowTimestamp()}`,
     `SUMMARY:${summary}`,
     `DESCRIPTION:${description}`,
     `LOCATION:${location}`
@@ -250,22 +255,12 @@ export function generateIcsEvent(task: ShareTask, labels: ShareLabels): string {
   }
 
   lines.push('END:VEVENT')
-  lines.push('END:VCALENDAR')
 
-  return lines.map(foldIcalLine).join('\r\n')
+  return lines
 }
 
-// ---------------------------------------------------------------------------
-// iCal VTODO (for Apple Reminders)
-// ---------------------------------------------------------------------------
-
-/**
- * Generate an iCal VTODO string for reminder apps.
- * Apple Reminders imports VTODO components from .ics files.
- */
-export function generateIcsTodo(task: ShareTask, labels: ShareLabels): string {
-  const uid = generateUid(task.id)
-  const timestamp = nowTimestamp()
+/** VTODO lines of one task for reminder apps. */
+function todoComponent(task: ShareTask, labels: ShareLabels): string[] {
   const summary = escapeIcalText(task.title)
 
   // Build the text first, then escape it once: every line break becomes "\n".
@@ -281,20 +276,12 @@ export function generateIcsTodo(task: ShareTask, labels: ShareLabels): string {
   }
 
   const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Mollo Planer//DE',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
     'BEGIN:VTODO',
-    `UID:${uid}`,
-    `DTSTAMP:${timestamp}`,
-    `SUMMARY:${summary}`
+    `UID:${generateUid(task.id)}`,
+    `DTSTAMP:${nowTimestamp()}`,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:${description}`
   ]
-
-  if (description) {
-    lines.push(`DESCRIPTION:${description}`)
-  }
 
   const icalDate = toIcalDate(task.dueDate)
   if (icalDate) {
@@ -302,9 +289,26 @@ export function generateIcsTodo(task: ShareTask, labels: ShareLabels): string {
   }
 
   lines.push('END:VTODO')
-  lines.push('END:VCALENDAR')
 
-  return lines.map(foldIcalLine).join('\r\n')
+  return lines
+}
+
+/** One event per task in a calendar file (Apple Calendar, Outlook). */
+export function generateIcsEvents(tasks: ShareTask[], labels: ShareLabels): string {
+  return icsCalendar(tasks.map(task => eventComponent(task, labels)))
+}
+
+/** One reminder per task (Apple Reminders imports VTODO from .ics files). */
+export function generateIcsTodos(tasks: ShareTask[], labels: ShareLabels): string {
+  return icsCalendar(tasks.map(task => todoComponent(task, labels)))
+}
+
+export function generateIcsEvent(task: ShareTask, labels: ShareLabels): string {
+  return generateIcsEvents([task], labels)
+}
+
+export function generateIcsTodo(task: ShareTask, labels: ShareLabels): string {
+  return generateIcsTodos([task], labels)
 }
 
 // ---------------------------------------------------------------------------
@@ -343,6 +347,11 @@ export function generatePlainText(task: ShareTask, labels: ShareLabels): string 
   lines.push(`${labels.status}: ${task.status}`)
 
   return lines.join('\n')
+}
+
+/** Several tasks as plain text, one block after another. */
+export function generatePlainTextList(tasks: ShareTask[], labels: ShareLabels): string {
+  return tasks.map(task => generatePlainText(task, labels)).join('\n\n\n')
 }
 
 // ---------------------------------------------------------------------------
@@ -400,6 +409,25 @@ export function generateMarkdown(task: ShareTask, labels: ShareLabels): string {
   body.push(`**${labels.status}:** ${task.status}`)
 
   return [...frontmatterLines, '', ...body].join('\n')
+}
+
+/** Several tasks as one Markdown note: a checklist, one line per task. */
+export function generateMarkdownList(tasks: ShareTask[], labels: ShareLabels): string {
+  const items = tasks.map((task) => {
+    const parts = [`${task.project.name} · ${task.milestone.title} · ${task.todo.title}`]
+    const due = formatDueDate(task.dueDate, labels.locale)
+    if (due) {
+      parts.push(`${labels.due}: ${due}`)
+    }
+    if (task.assignee) {
+      parts.push(`${labels.assignee}: ${task.assignee.name}`)
+    }
+    const checked = task.status === 'DONE' ? 'x' : ' '
+
+    return `- [${checked}] ${task.title} (${parts.join(', ')})`
+  })
+
+  return items.join('\n')
 }
 
 // ---------------------------------------------------------------------------

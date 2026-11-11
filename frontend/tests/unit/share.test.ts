@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   extractPlainTextFromRichText,
   generateIcsEvent,
+  generateIcsEvents,
+  generateIcsTodos,
+  generateMarkdownList,
+  generatePlainTextList,
   generateIcsTodo,
   generateMarkdown,
   generatePlainText,
@@ -353,5 +357,45 @@ describe('iCal line handling', () => {
       expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75)
     }
     expect(unfold(ics)).toContain(`SUMMARY:${longTitle}`)
+  })
+})
+
+describe('list exports (several tasks)', () => {
+  const second: ShareTask = { ...sampleTask, id: '2', title: 'Zweiter Task', status: 'DONE', dueDate: null }
+
+  it('puts every task into one calendar file', () => {
+    const ics = unfold(generateIcsEvents([sampleTask, second], labels))
+
+    expect(ics.match(/BEGIN:VCALENDAR/g)).toHaveLength(1)
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2)
+    expect(ics).toContain('UID:task-2@mollo-planer')
+  })
+
+  it('puts every task into one reminder file', () => {
+    const ics = unfold(generateIcsTodos([sampleTask, second], labels))
+
+    expect(ics.match(/BEGIN:VTODO/g)).toHaveLength(2)
+    expect(ics).toContain('SUMMARY:Zweiter Task')
+  })
+
+  it('joins plain text blocks of all tasks', () => {
+    const text = generatePlainTextList([sampleTask, second], labels)
+
+    expect(text).toContain('Test Task')
+    expect(text).toContain('Zweiter Task')
+    expect(text.indexOf('Test Task')).toBeLessThan(text.indexOf('Zweiter Task'))
+  })
+
+  it('writes a Markdown checklist with one line per task, checked when done', () => {
+    const md = generateMarkdownList([sampleTask, second], labels)
+    const lines = md.split('\n')
+
+    expect(lines).toHaveLength(2)
+    expect(lines[0]).toMatch(/^- \[ \] Test Task \(Project Name · Milestone Title · Todo Title, Fällig: 15.06.2024/)
+    expect(lines[1]).toMatch(/^- \[x\] Zweiter Task/)
+  })
+
+  it('single-task functions still produce one calendar file', () => {
+    expect(unfold(generateIcsEvent(sampleTask, labels)).match(/BEGIN:VEVENT/g)).toHaveLength(1)
   })
 })

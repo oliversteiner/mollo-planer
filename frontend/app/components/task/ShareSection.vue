@@ -3,19 +3,24 @@ import type { ShareLabels, ShareTask } from '~/utils/share'
 import {
   copyToClipboard,
   downloadIcs,
-  generateIcsEvent,
-  generateIcsTodo,
+  generateIcsEvents,
+  generateIcsTodos,
   generateMarkdown,
-  generatePlainText
+  generateMarkdownList,
+  generatePlainText,
+  generatePlainTextList
 } from '~/utils/share'
 
 /**
- * Share section with 5 export buttons for external apps.
- * Placed in the task detail panel below the title.
+ * Share buttons for external apps: one task (detail panel) or the whole
+ * list currently shown (My Tasks, after filtering). `name` is the base of
+ * the file name for calendar exports.
  */
-const props = defineProps<{
-  task: ShareTask
-}>()
+const props = withDefaults(defineProps<{
+  tasks: ShareTask[]
+  name: string
+  heading?: boolean
+}>(), { heading: true })
 
 const { t, locale } = useI18n()
 const toast = useToast()
@@ -31,42 +36,58 @@ const labels = computed<ShareLabels>(() => ({
   due: t('task.share.labels.due')
 }))
 
+const hasTasks = computed(() => props.tasks.length > 0)
+
+/** Calendar file name, e.g. "Mockup-Desktop.ics". */
+const fileName = computed(() => `${sanitizeFilename(props.name)}.ics`)
+
+/** A single task keeps its own format (frontmatter for Obsidian); several tasks become a list. */
+function textFor(single: () => string, list: () => string): string {
+  return props.tasks.length === 1 ? single() : list()
+}
+
 async function shareAppleCalendar(): Promise<void> {
-  const content = generateIcsEvent(props.task, labels.value)
-  downloadIcs(content, `${sanitizeFilename(props.task.title)}.ics`)
+  downloadIcs(generateIcsEvents(props.tasks, labels.value), fileName.value)
 }
 
 async function shareAppleReminders(): Promise<void> {
-  const content = generateIcsTodo(props.task, labels.value)
-  downloadIcs(content, `${sanitizeFilename(props.task.title)}.ics`)
+  downloadIcs(generateIcsTodos(props.tasks, labels.value), fileName.value)
 }
 
 async function shareAppleNotes(): Promise<void> {
-  const content = generatePlainText(props.task, labels.value)
+  const content = textFor(
+    () => generatePlainText(props.tasks[0]!, labels.value),
+    () => generatePlainTextList(props.tasks, labels.value)
+  )
   await copyToClipboard(content)
   toast.add({ title: t('task.share.copied'), color: 'success' })
 }
 
 async function shareObsidian(): Promise<void> {
-  const content = generateMarkdown(props.task, labels.value)
+  const content = textFor(
+    () => generateMarkdown(props.tasks[0]!, labels.value),
+    () => generateMarkdownList(props.tasks, labels.value)
+  )
   await copyToClipboard(content)
   toast.add({ title: t('task.share.copied'), color: 'success' })
 }
 
 async function shareOutlook(): Promise<void> {
-  const content = generateIcsEvent(props.task, labels.value)
-  downloadIcs(content, `${sanitizeFilename(props.task.title)}.ics`)
+  downloadIcs(generateIcsEvents(props.tasks, labels.value), fileName.value)
 }
 
-/** Sanitize a title for use in a filename. */
-function sanitizeFilename(title: string): string {
-  return title.replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g, '').replace(/\s+/g, '-').slice(0, 50) || 'task'
+/** Sanitize a name for use in a filename. */
+function sanitizeFilename(name: string): string {
+  return name.replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g, '').replace(/\s+/g, '-').slice(0, 50) || 'tasks'
 }
 </script>
 
 <template>
   <section class="share-section wa-stack wa-gap-xs">
-    <h3 class="wa-heading-s share-title">
+    <h3
+      v-if="heading"
+      class="wa-heading-s share-title"
+    >
       {{ t('task.share.shareTitle') }}
     </h3>
     <div class="share-buttons">
@@ -74,6 +95,7 @@ function sanitizeFilename(title: string): string {
         appearance="outlined"
         variant="neutral"
         size="s"
+        :disabled="!hasTasks"
         @click="shareAppleCalendar"
       >
         <wa-tooltip
@@ -93,6 +115,7 @@ function sanitizeFilename(title: string): string {
         appearance="outlined"
         variant="neutral"
         size="s"
+        :disabled="!hasTasks"
         @click="shareAppleReminders"
       >
         <wa-tooltip
@@ -112,6 +135,7 @@ function sanitizeFilename(title: string): string {
         appearance="outlined"
         variant="neutral"
         size="s"
+        :disabled="!hasTasks"
         @click="shareAppleNotes"
       >
         <wa-tooltip
@@ -131,6 +155,7 @@ function sanitizeFilename(title: string): string {
         appearance="outlined"
         variant="neutral"
         size="s"
+        :disabled="!hasTasks"
         @click="shareObsidian"
       >
         <wa-tooltip
@@ -150,6 +175,7 @@ function sanitizeFilename(title: string): string {
         appearance="outlined"
         variant="neutral"
         size="s"
+        :disabled="!hasTasks"
         @click="shareOutlook"
       >
         <wa-tooltip
