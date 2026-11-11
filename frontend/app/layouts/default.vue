@@ -56,7 +56,10 @@ function skipToContent(): void {
       @click.prevent="skipToContent"
     >{{ t('nav.skipToContent') }}</a>
 
-    <div slot="navigation-header">
+    <div
+      slot="navigation-header"
+      class="app-header"
+    >
       <NuxtLink
         to="/"
         class="app-name"
@@ -74,16 +77,21 @@ function skipToContent(): void {
         :label="t('nav.main')"
       />
       <SidebarProjectList />
-      <section
+      <!-- Closed by default; the user opens it with the summary. -->
+      <wa-details
         v-if="adminItems.length"
         class="app-admin"
-        :aria-label="t('nav.admin')"
+        appearance="plain"
       >
-        <h2 class="app-heading">
-          {{ t('nav.admin') }}
-        </h2>
-        <NavList :items="adminItems" />
-      </section>
+        <span
+          slot="summary"
+          class="app-heading"
+        >{{ t('nav.admin') }}</span>
+        <NavList
+          :items="adminItems"
+          :label="t('nav.admin')"
+        />
+      </wa-details>
     </div>
 
     <div
@@ -169,6 +177,12 @@ function skipToContent(): void {
 .app-shell::part(menu) {
   background-color: var(--wa-color-surface-default);
   border-inline-end: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+/* The logo sits in the middle of the header of the sidebar. */
+.app-header {
+  display: flex;
+  justify-content: center;
 }
 
 /* Logo in the colour of the brand: the colour of the SVG in light mode, a lighter shade in dark mode. */

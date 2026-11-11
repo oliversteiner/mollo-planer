@@ -1,5 +1,6 @@
 /**
- * Short notifications at the top right (a <wa-toast> stack of Web Awesome).
+ * Short notifications at the bottom right (a <wa-toast> stack of Web Awesome).
+ * At the top they covered the action buttons of the pages.
  * Same call as the former Nuxt UI toast: `toast.add({ title, description?, color })`.
  * Texts are set as text, never as HTML.
  */
@@ -29,6 +30,7 @@ function stack(): HTMLElement {
 
   if (!element) {
     element = document.createElement('wa-toast')
+    element.setAttribute('placement', 'bottom-end')
     document.body.append(element)
   }
 
