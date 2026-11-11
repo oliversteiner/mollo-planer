@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import type { NavItem } from '~/components/NavList.vue'
+import versionData from '~/data/versions.json'
+import { currentVersion, type VersionFile } from '~/utils/versions'
 
 /**
  * App shell on <wa-page>: the navigation is a sidebar on wide screens and a
  * drawer (with its own hamburger button) on narrow ones.
  */
-const { t } = useI18n()
+const { t, localeProperties } = useI18n()
 const { viewer, can, logout } = useViewer()
+
+/** The current (highest released) version, shown under the user menu. */
+const appVersion = currentVersion((versionData as VersionFile).versions)
 
 const mainItems = computed<NavItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
@@ -14,11 +19,12 @@ const mainItems = computed<NavItem[]>(() => [
   ...(can('USERS_MANAGE') ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
 ])
 
-/** The section "System": the database documentation (admins), the status (everyone), then administration. */
+/** The section "System": the database documentation (admins), the status and the version (everyone), then administration. */
 const adminItems = computed<NavItem[]>(() => [
   ...(can('USERS_MANAGE') ? [{ label: t('nav.database'), icon: 'database', to: '/system/db' }] : []),
   ...(can('USERS_MANAGE') ? [{ label: t('nav.rights'), icon: 'list-check', to: '/system/rechte' }] : []),
   { label: t('nav.status'), icon: 'heart-pulse', to: '/system/status' },
+  { label: t('nav.version'), icon: 'code-branch', to: '/system/version' },
   ...(can('USERS_MANAGE') ? [{ label: t('nav.users'), icon: 'users', to: '/admin/users' }] : []),
   ...(can('LABEL_SETS_MANAGE') ? [{ label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' }] : []),
   ...(can('USERS_MANAGE') ? [{ label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }] : [])
@@ -120,6 +126,13 @@ function skipToContent(): void {
           {{ t('auth.logout') }}
         </wa-dropdown-item>
       </wa-dropdown>
+      <VersionBadge
+        v-if="appVersion"
+        :version="appVersion"
+        :locale="localeProperties.language ?? 'de-CH'"
+        :label="t('systemVersion.label')"
+        class="app-version"
+      />
     </div>
 
     <main
@@ -213,6 +226,13 @@ function skipToContent(): void {
   flex: 1;
   min-inline-size: 0;
   text-align: start;
+}
+
+/* Under the user menu, aligned with its text. */
+.app-version {
+  display: block;
+  margin-block-start: var(--wa-space-2xs);
+  padding-inline: var(--wa-space-s);
 }
 
 wa-dropdown:has(> .user-menu-button) {

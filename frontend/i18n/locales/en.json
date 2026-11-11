@@ -17,6 +17,7 @@
     "labelSets": "Label sets",
     "database": "Database",
     "status": "Status",
+    "version": "Version",
     "rights": "Rights"
   },
   "settings": {
@@ -615,6 +616,18 @@
     "access": "Access",
     "accessAs": "as {role}",
     "accessPublic": "public"
+  },
+  "systemVersion": {
+    "title": "Versions",
+    "subtitle": "Version history of the app. The current version is shown at the bottom of the sidebar.",
+    "label": "Version",
+    "empty": "No versions yet.",
+    "planned": "planned",
+    "kinds": {
+      "neu": "New",
+      "verbessert": "Improved",
+      "behoben": "Fixed"
+    }
   },
   "db": {
     "nav": {

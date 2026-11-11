@@ -17,6 +17,7 @@
     "labelSets": "Label-Sets",
     "database": "Datenbank",
     "status": "Status",
+    "version": "Version",
     "rights": "Rechte"
   },
   "settings": {
@@ -615,6 +616,18 @@
     "access": "Zugriff",
     "accessAs": "als {role}",
     "accessPublic": "öffentlich"
+  },
+  "systemVersion": {
+    "title": "Versionen",
+    "subtitle": "Versionshistorie der App. Die aktuelle Version steht unten in der Seitenleiste.",
+    "label": "Version",
+    "empty": "Noch keine Versionen.",
+    "planned": "geplant",
+    "kinds": {
+      "neu": "Neu",
+      "verbessert": "Verbessert",
+      "behoben": "Behoben"
+    }
   },
   "db": {
     "nav": {

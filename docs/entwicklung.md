@@ -14,6 +14,7 @@ Der Status von Milestones und ToDos wird nicht geschrieben. Er entsteht aus den 
 
 
 ## v0.1 Backend-Grundlage
+Status: veröffentlicht
 
 Laravel-Backend: Datenmodell, Rechte, GraphQL-API, Anmeldung, Demo-Daten und Betrieb.
 
@@ -102,6 +103,7 @@ Laravel-Backend: Datenmodell, Rechte, GraphQL-API, Anmeldung, Demo-Daten und Bet
 
 
 ## v0.2 Frontend-Grundlage
+Status: veröffentlicht
 
 Nuxt-Frontend: Einrichtung, Anbindung, Anmeldung, Dashboard, Projekte, Kanban, Profil, Verwaltung.
 
@@ -289,6 +291,7 @@ Umstellung der Oberfläche auf Web Awesome Pro (Theme Matter), Entfernen von Nux
 - [ ] [planning] Tastatur, Fokus und Kontrast im Theme Matter prüfen
 
 ## v0.4 Projektansicht, Timeline und KI-Assistent
+Status: veröffentlicht
 
 Zeitachse, Kanban-Verbesserungen, Projektnavigation in der Seitenleiste, KI-Assistent und MCP-Zugang.
 
@@ -335,6 +338,7 @@ Zeitachse, Kanban-Verbesserungen, Projektnavigation in der Seitenleiste, KI-Assi
 
 
 ## v0.5 Labels
+Status: veröffentlicht
 
 Labels für Tasks: Label-Sets, Anzeige, Auswahl, Verwaltungsseite und Filter.
 
@@ -395,6 +399,7 @@ Globale Rollen (admin, projektleitung, koordination, mitglied, lesend) und Funkt
 - [ ] [planning] Prüfung im Browser je Rolle (admin, projektleitung, mitglied)
 
 ## v0.7 System-Bereich und API
+Status: veröffentlicht
 
 Bereich System in der Seitenleiste, Status, Datenbank-Doku, Rechte-Tabelle und GraphQL unter /api.
 
