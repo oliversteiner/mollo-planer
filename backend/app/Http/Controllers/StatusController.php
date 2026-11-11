@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Health check for the status page: does the application and the database
- * answer. Says nothing else (no versions, no database name, no error details).
+ * answer, plus the versions of the API and the app (public, no secrets).
+ * No database name and no error details.
  */
 class StatusController extends Controller
 {
@@ -19,6 +20,9 @@ class StatusController extends Controller
             'backend' => 'ok',
             'database' => $database,
             'checkedAt' => now()->toIso8601String(),
+            'apiVersion' => (string) config('api.version'),
+            'appVersion' => (string) config('api.app_version'),
+            'siteName' => (string) config('api.site_name'),
         ], $database === 'ok' ? 200 : 503);
     }
 

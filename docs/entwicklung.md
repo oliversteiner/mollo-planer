@@ -406,8 +406,11 @@ Bereich System in der Seitenleiste, Status, Datenbank-Doku, Rechte-Tabelle und G
 - [x] [feature] Datenbank-Doku /system/db mit Test gegen die Migrationen
 - [x] [feature] Rechte-Tabelle /system/rechte nur für Admins, gelesen aus den Rechte-Klassen
 - [x] [feature] GraphQL-Endpunkt von /graphql nach /api umgestellt
-- [ ] [planning] Prüfung im Browser als Admin und als Mitglied
-- [ ] [planning] Commit und Merge von feature/system nach dev
+- [x] [feature] Versionen (API, App) und Zugriff auf der Statusseite wie in fcadb
+- [x] [bug] Statusseite zeigte „nicht erreichbar“: /status fehlte in der CORS-Liste
+- [x] [planning] Prüfung im Browser als Admin und als Mitglied
+- [x] [planning] Commit auf feature/system
+- [ ] [planning] Merge von feature/system nach dev
 
 ## v0.8 Desktop-App (Tauri)
 

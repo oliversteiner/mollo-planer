@@ -587,7 +587,12 @@
     "checking": "Prüfung läuft …",
     "responseTime": "{ms} ms",
     "lastChecked": "Zuletzt geprüft um {time}",
-    "recheck": "Erneut prüfen"
+    "recheck": "Erneut prüfen",
+    "apiVersion": "API-Version",
+    "appVersion": "App-Version",
+    "access": "Zugriff",
+    "accessAs": "als {role}",
+    "accessPublic": "öffentlich"
   },
   "db": {
     "nav": {

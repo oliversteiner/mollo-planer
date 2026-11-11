@@ -587,7 +587,12 @@
     "checking": "Checking …",
     "responseTime": "{ms} ms",
     "lastChecked": "Last checked at {time}",
-    "recheck": "Check again"
+    "recheck": "Check again",
+    "apiVersion": "API version",
+    "appVersion": "App version",
+    "access": "Access",
+    "accessAs": "as {role}",
+    "accessPublic": "public"
   },
   "db": {
     "nav": {

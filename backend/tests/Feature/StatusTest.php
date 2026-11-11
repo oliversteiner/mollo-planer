@@ -13,8 +13,16 @@ class StatusTest extends TestCase
             ->assertOk()
             ->assertJsonPath('backend', 'ok')
             ->assertJsonPath('database', 'ok')
-            ->assertJsonStructure(['backend', 'database', 'checkedAt'])
-            ->assertJsonCount(3);
+            ->assertJsonPath('apiVersion', 'v1')
+            ->assertJsonStructure(['backend', 'database', 'checkedAt', 'apiVersion', 'appVersion', 'siteName'])
+            ->assertJsonCount(6);
+    }
+
+    public function test_the_frontend_may_read_the_status_across_origins(): void
+    {
+        $this->getJson('/status', ['Origin' => 'http://localhost:3000'])
+            ->assertOk()
+            ->assertHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
     }
 
     public function test_status_needs_no_login(): void

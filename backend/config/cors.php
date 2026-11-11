@@ -18,6 +18,7 @@ return [
     // GraphQL, the Sanctum CSRF cookie and the Fortify/passkey/invitation routes.
     'paths' => [
         'api',
+        'status',
         'sanctum/csrf-cookie',
         'login',
         'logout',

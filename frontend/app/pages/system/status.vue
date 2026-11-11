@@ -5,6 +5,7 @@
  */
 const { t } = useI18n()
 const config = useRuntimeConfig()
+const { viewer } = useViewer()
 
 useHead({ title: () => t('systemStatus.title') })
 
@@ -15,6 +16,8 @@ const backend = reactive<Row>({ state: 'idle', ms: null })
 const database = reactive<Row>({ state: 'idle', ms: null })
 const graphql = reactive<Row>({ state: 'idle', ms: null })
 const lastChecked = ref<string | null>(null)
+/** Versions from the status endpoint, and how this session accesses the API. */
+const versions = reactive<{ apiVersion: string | null, appVersion: string | null }>({ apiVersion: null, appVersion: null })
 
 const apiBase = computed(() => config.public.apiBase.replace(/\/$/, ''))
 
@@ -25,12 +28,14 @@ async function checkBackendAndDatabase(): Promise<void> {
   const started = performance.now()
 
   try {
-    const body = await $fetch<{ backend: string, database: string }>(`${apiBase.value}/status`, {
+    const body = await $fetch<{ backend: string, database: string, apiVersion?: string, appVersion?: string }>(`${apiBase.value}/status`, {
       timeout: 8000,
       ignoreResponseError: true
     })
     backend.state = body.backend === 'ok' ? 'ok' : 'error'
     database.state = body.database === 'ok' ? 'ok' : 'error'
+    versions.apiVersion = body.apiVersion ?? null
+    versions.appVersion = body.appVersion ?? null
   } catch {
     backend.state = 'error'
     database.state = 'error'
@@ -76,10 +81,19 @@ function badge(state: Check): { variant: 'success' | 'danger' | 'neutral', text:
   return { variant: 'neutral', text: t('systemStatus.checking') }
 }
 
+/** The line under the GraphQL row: API version, app version and access, as in fcadb. */
+const graphqlDetail = computed(() => {
+  if (!versions.apiVersion) return ''
+  const access = viewer.value ? t('systemStatus.accessAs', { role: t(`userRole.${viewer.value.role}`) }) : t('systemStatus.accessPublic')
+  const app = versions.appVersion ? ` · ${t('systemStatus.appVersion')} ${versions.appVersion}` : ''
+
+  return `${t('systemStatus.apiVersion')} ${versions.apiVersion}${app} · ${t('systemStatus.access')}: ${access}`
+})
+
 const rows = computed(() => [
   { key: 'backend', label: t('systemStatus.backend'), url: `${apiBase.value}/status`, item: backend },
   { key: 'database', label: t('systemStatus.database'), url: '', item: database },
-  { key: 'graphql', label: t('systemStatus.graphql'), url: `${apiBase.value}/api`, item: graphql }
+  { key: 'graphql', label: t('systemStatus.graphql'), url: `${apiBase.value}/api`, item: graphql, detail: graphqlDetail.value }
 ])
 </script>
 
@@ -101,6 +115,12 @@ const rows = computed(() => [
               v-if="row.url"
               class="status-url"
             >{{ row.url }}</code>
+            <p
+              v-if="row.detail"
+              class="status-detail"
+            >
+              {{ row.detail }}
+            </p>
           </div>
           <div class="wa-cluster wa-gap-s wa-align-items-center">
             <span
@@ -141,6 +161,12 @@ const rows = computed(() => [
   color: var(--wa-color-text-quiet);
   font-size: var(--wa-font-size-s);
   overflow-wrap: anywhere;
+}
+
+.status-detail {
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
 }
 
 .status-ms {
