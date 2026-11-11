@@ -19,7 +19,7 @@ use Laravel\Mcp\Server\Attributes\Version;
  * acting as the owner of the personal access token with their permissions.
  * Deleting is not offered.
  */
-#[Name('Projektverwaltung')]
+#[Name('mollo-planer')]
 #[Version('1.0.0')]
 #[Instructions(<<<'TEXT'
 Project management app: projects contain milestones, milestones contain todos, todos contain tasks. Tasks are the work of one person and appear on a Kanban board (status open, in progress, review, done). Statuses of todos and milestones are derived automatically; progress is done tasks out of all tasks.
@@ -34,7 +34,7 @@ How to work:
 5. Write titles and descriptions in the language of the user; descriptions are plain text.
 Nothing can be deleted through this server; the user does that in the app.
 TEXT)]
-class ProjektverwaltungServer extends Server
+class MolloPlanerServer extends Server
 {
     protected array $tools = [
         ListProjectsTool::class,

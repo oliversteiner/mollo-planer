@@ -1,4 +1,4 @@
-# GraphQL-Schema und Entscheidungen: Kontext
+# Mollo Planer · GraphQL-Schema und Entscheidungen
 
 Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprache, formatiertem Text und Icons)
 

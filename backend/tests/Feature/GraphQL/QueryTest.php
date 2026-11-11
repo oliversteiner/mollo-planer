@@ -31,7 +31,7 @@ class QueryTest extends GraphQLTestCase
         Project::factory()->create(['name' => 'Other']);
 
         $this->as('member')->gql('{ projects { name } }')
-            ->assertJsonPath('data.projects', [['name' => 'FCA DB']]);
+            ->assertJsonPath('data.projects', [['name' => 'Mollo Planer']]);
 
         $this->as('admin')->gql('{ projects { name } }')
             ->assertJsonCount(2, 'data.projects');
@@ -102,14 +102,14 @@ class QueryTest extends GraphQLTestCase
         }');
 
         $projects = collect($response->json('data.projects'))->keyBy('name');
-        $this->assertSame(['total' => 2, 'done' => 1], $projects['FCA DB']['progress']);
+        $this->assertSame(['total' => 2, 'done' => 1], $projects['Mollo Planer']['progress']);
         $this->assertSame(['total' => 2, 'done' => 0], $projects['Other']['progress']);
         $this->assertSame(
             [['total' => 1, 'done' => 0], ['total' => 1, 'done' => 1]],
-            collect($projects['FCA DB']['milestones'])->pluck('progress')->all(),
+            collect($projects['Mollo Planer']['milestones'])->pluck('progress')->all(),
         );
 
-        $todos = collect($projects['FCA DB']['milestones'])->pluck('todos')->flatten(1)->keyBy('id');
+        $todos = collect($projects['Mollo Planer']['milestones'])->pluck('todos')->flatten(1)->keyBy('id');
         $this->assertSame(['total' => 1, 'done' => 0, 'percent' => 0], $todos[$this->todo->id]['progress']);
         $this->assertSame(['total' => 0, 'done' => 0, 'percent' => 0], $todos[$emptyTodo->id]['progress']);
         $this->assertSame(['total' => 1, 'done' => 1, 'percent' => 100], $todos[$doneTodo->id]['progress']);
@@ -272,7 +272,7 @@ class QueryTest extends GraphQLTestCase
         } }')
             ->assertJsonPath('data.dashboard.upcomingTodos', [['id' => (string) $this->todo->id, 'dueDate' => '2026-11-30']])
             ->assertJsonPath('data.dashboard.myOpenTasks', [['id' => (string) $this->task->id]])
-            ->assertJsonPath('data.dashboard.projects', [['name' => 'FCA DB']]);
+            ->assertJsonPath('data.dashboard.projects', [['name' => 'Mollo Planer']]);
     }
 
     public function test_dashboard_limit_is_validated(): void
@@ -294,6 +294,6 @@ class QueryTest extends GraphQLTestCase
         Project::factory()->withMember($this->users['owner'])->create(['name' => 'Secret']);
 
         $this->as('member')->gql('query ($id: ID!) { project(id: $id) { members { user { name projects { name } } } } }', ['id' => $this->project->id])
-            ->assertJsonPath('data.project.members.0.user.projects', [['name' => 'FCA DB']]);
+            ->assertJsonPath('data.project.members.0.user.projects', [['name' => 'Mollo Planer']]);
     }
 }

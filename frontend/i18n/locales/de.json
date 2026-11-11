@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Projektverwaltung"
+    "name": "Mollo Planer"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -449,7 +449,7 @@
     "token": "Zugang (Token)",
     "copyToken": "Zugang kopieren",
     "command": "Befehl für Claude Code",
-    "commandHint": "Im Terminal ausführen; danach kennt Claude Code den Server «projektverwaltung».",
+    "commandHint": "Im Terminal ausführen; danach kennt Claude Code den Server «mollo-planer».",
     "copyCommand": "Befehl kopieren",
     "copied": "Kopiert.",
     "lastUsed": "Zuletzt benutzt: {date}",
@@ -1039,7 +1039,7 @@
   "doc": {
     "db": {
       "title": "Datenbankstruktur",
-      "subtitle": "Fachtabellen der Projektverwaltung · {count} Tabellen"
+      "subtitle": "Fachtabellen von Mollo Planer · {count} Tabellen"
     }
   },
   "rights": {

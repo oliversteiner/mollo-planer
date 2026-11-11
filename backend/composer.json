@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "mollo/planer",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
@@ -62,7 +62,7 @@
         "test:mariadb": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@putenv DB_CONNECTION=mariadb",
-            "@putenv DB_DATABASE=projektverwaltung_test",
+            "@putenv DB_DATABASE=molloplaner_test",
             "@php artisan test"
         ],
         "post-autoload-dump": [
