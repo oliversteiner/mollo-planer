@@ -1,4 +1,4 @@
-# Projektverwaltung (FCA DB)
+# Mollo Planer
 
 Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu ein Dashboard.
 
@@ -64,7 +64,7 @@ Am Ende zeigt der Befehl einmalig an (danach nirgends mehr gespeichert, also gle
 
 ### Postman-Collection
 
-Die Collection liegt im Format Postman Collection v3 (YAML, eine Datei pro Anfrage) in `docs/postman/`, dem lokalen Ordner des Postman-Workspaces (`.postman/resources.yaml`). In Postman den Workspace mit diesem Ordner verbinden (Local View), dann erscheint die Collection „Projektverwaltung (FCA DB)“. Änderungen in Postman landen direkt in den YAML-Dateien und können committet werden.
+Die Collection liegt im Format Postman Collection v3 (YAML, eine Datei pro Anfrage) in `docs/postman/`, dem lokalen Ordner des Postman-Workspaces (`.postman/resources.yaml`). In Postman den Workspace mit diesem Ordner verbinden (Local View), dann erscheint die Collection „Mollo Planer“. Änderungen in Postman landen direkt in den YAML-Dateien und können committet werden.
 
 Sie enthält die Anmeldung und Beispiel-Anfragen für alle wichtigen Abfragen und Änderungen, vorbelegt mit den IDs frisch eingespielter Demo-Daten.
 
@@ -89,9 +89,9 @@ Das Backend bietet einen MCP-Server unter `http://localhost:8000/mcp` (später a
 1. In der App unter **Profil → Zugang für Claude** einen Zugang erzeugen und kopieren (wird nur einmal angezeigt, gilt 90 Tage).
 2. **Claude Code in diesem Projekt:** Den Server kennt die `.mcp.json` schon. Den Zugang als Umgebungsvariable setzen und Claude Code neu starten:
    ```bash
-   export PROJEKTVERWALTUNG_TOKEN="<Zugang>"
+   export MOLLOPLANER_TOKEN="<Zugang>"
    ```
-   **Woanders:** den in der App angezeigten Befehl ausführen (`claude mcp add --transport http projektverwaltung http://localhost:8000/mcp --header "Authorization: Bearer <Zugang>"`).
+   **Woanders:** den in der App angezeigten Befehl ausführen (`claude mcp add --transport http mollo-planer http://localhost:8000/mcp --header "Authorization: Bearer <Zugang>"`).
 3. Dann einfach schreiben, zum Beispiel: „Erstelle ein Projekt für einen Podcast mit Milestones, ToDos und Tasks; Oliver macht Technik und Schnitt, Lindita moderiert.“
 
 Die Personen müssen in der App schon ein Konto haben (Verwaltung → Benutzer). Zuweisungsmails gehen nur auf Wunsch raus.

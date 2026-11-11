@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Project management"
+    "name": "Mollo Planer"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -449,7 +449,7 @@
     "token": "Access token",
     "copyToken": "Copy token",
     "command": "Command for Claude Code",
-    "commandHint": "Run it in a terminal; afterwards Claude Code knows the server “projektverwaltung”.",
+    "commandHint": "Run it in a terminal; afterwards Claude Code knows the server “mollo-planer”.",
     "copyCommand": "Copy command",
     "copied": "Copied.",
     "lastUsed": "Last used: {date}",

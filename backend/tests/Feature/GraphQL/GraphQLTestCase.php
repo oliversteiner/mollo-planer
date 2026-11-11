@@ -54,7 +54,7 @@ abstract class GraphQLTestCase extends TestCase
             ->withMember($this->users['owner'], ProjectRole::OWNER)
             ->withMember($this->users['manager'], ProjectRole::MANAGER)
             ->withMember($this->users['member'], ProjectRole::MEMBER)
-            ->create(['name' => 'FCA DB']);
+            ->create(['name' => 'Mollo Planer']);
         $this->milestone = Milestone::factory()->for($this->project)->create();
         $this->todo = Todo::factory()->for($this->milestone)->create();
         $this->task = Task::factory()->for($this->todo)->create(['position' => 0]);

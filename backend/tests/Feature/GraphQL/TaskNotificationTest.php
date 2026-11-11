@@ -142,7 +142,7 @@ class TaskNotificationTest extends GraphQLTestCase
             return $channels === ['mail']
                 && $n->afterCommit === true
                 && $n->locale === 'en'
-                && str_starts_with($mail->subject, '[FCA DB] Task assigned:');
+                && str_starts_with($mail->subject, '[Mollo Planer] Task assigned:');
         });
     }
 

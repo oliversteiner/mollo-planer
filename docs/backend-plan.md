@@ -74,7 +74,7 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - Für später (Hosting): `php artisan storage:link` auf dem Server, GD muss aktiv sein, `upload_max_filesize` und `post_max_size` mindestens 6M (PHP-Standard ist 2M bzw. 8M).
 
 ## Claude als MCP-Client (bestätigt 2026-11-08)
-- Das Backend bietet einen MCP-Server „Projektverwaltung“ unter `POST /mcp` (`routes/ai.php`, `App\Mcp\Servers\ProjektverwaltungServer`, Paket `laravel/mcp`). Damit füllt Claude Projekte über natürliche Sprache.
+- Das Backend bietet einen MCP-Server „Mollo Planer“ unter `POST /mcp` (`routes/ai.php`, `App\Mcp\Servers\MolloPlanerServer`, Paket `laravel/mcp`). Damit füllt Claude Projekte über natürliche Sprache.
 - **Zugang:** persönliche Sanctum-Token mit genau der Fähigkeit `mcp` (`App\Support\McpTokens`), 90 Tage gültig, im Profil erzeugt (`createApiToken`, nur in einer stark angemeldeten Sitzung), einmal angezeigt, widerrufbar (`deleteApiToken`). `EnsureMcpToken` lässt nur solche Token durch, auch keines mit allen Fähigkeiten. `resetUserTwoFactor` und das Löschen der Person entfernen alle Token. 60 Anfragen pro Minute.
 - **Werkzeuge** (kein Löschen): `list_projects`, `get_project`, `list_users` (lesend), `create_project` (nur Admins, mit Mitgliedern per E-Mail), `set_project_member`, `create_project_plan` (Milestones, ToDos, Tasks samt Zuweisung per E-Mail in einem Schritt).
 - **Gleiche Regeln wie die App:** Jedes Werkzeug führt die GraphQL-Mutationen des Schemas im Namen der Person aus (`GraphQLRunner`), also mit denselben Rechten, Prüfungen, Status-Automatik und Mails. `create_project_plan` läuft in einer Transaktion: Scheitert ein Element, ist nichts angelegt, und die Meldung nennt das Element.

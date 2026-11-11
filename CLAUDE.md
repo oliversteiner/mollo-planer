@@ -1,7 +1,7 @@
-# Projektverwaltung (FCA DB)
+# Mollo Planer
 
 Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu ein Dashboard als Startseite.
-Produktiv-Domain später: `project.fcadb.ch` (Frontend und API als getrennte Subdomains).
+Produktiv-Domain später: `planer.mollo.ch` (Frontend und API als getrennte Subdomains).
 
 ## Bevor du etwas baust, lies
 - `docs/backend-plan.md`: bestätigte Entscheidungen und die **Reihenfolge beim Bauen**. Gilt vor allem anderen.
