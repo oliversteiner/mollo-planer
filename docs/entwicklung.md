@@ -401,16 +401,27 @@ Bereich System in der Seitenleiste, Status, Datenbank-Doku, Rechte-Tabelle und G
 ### Systemseiten
 
 - [x] [feature] Statusendpunkt GET /status mit Tests
+  Commit 780a462
 - [x] [feature] Seitenleiste: Bereich System mit Einträgen Datenbank und Status
+  Commit 780a462
 - [x] [feature] Statusseite /system/status für Backend, Datenbank und GraphQL
+  Commit 780a462
 - [x] [feature] Datenbank-Doku /system/db mit Test gegen die Migrationen
+  Commit 780a462
 - [x] [feature] Rechte-Tabelle /system/rechte nur für Admins, gelesen aus den Rechte-Klassen
+  Commit 780a462
 - [x] [feature] GraphQL-Endpunkt von /graphql nach /api umgestellt
+  Commit 780a462
 - [x] [feature] Versionen (API, App) und Zugriff auf der Statusseite wie in fcadb
+  Commit 17744b7
 - [x] [bug] Statusseite zeigte „nicht erreichbar“: /status fehlte in der CORS-Liste
+  Commit 17744b7
 - [x] [planning] Prüfung im Browser als Admin und als Mitglied
+  Commit 17744b7
 - [x] [planning] Commit auf feature/system
+  Commit 17744b7
 - [x] [planning] Merge von feature/system nach dev
+  Commit d17115c
 
 ## v0.8 Desktop-App (Tauri)
 
@@ -419,7 +430,9 @@ Desktop-App für macOS und Windows mit Anmeldung per Token und Auto-Update. Plan
 ### Plan
 
 - [x] [planning] Plan für die Desktop-App mit den Entscheidungen festgehalten
+  Commit 780a462
 - [x] [planning] GitHub-Milestone „Desktop-App (Tauri)“ angelegt
+  Commit 780a462
 
 ### Umsetzung
 
