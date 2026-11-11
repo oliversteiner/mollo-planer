@@ -7,7 +7,7 @@
                 "boost:mcp"
             ]
         },
-        "projektverwaltung": {
+        "mollo-planer": {
             "url": "http://localhost:8000/mcp",
             "headers": {
                 "Authorization": "Bearer ${MOLLOPLANER_TOKEN}"

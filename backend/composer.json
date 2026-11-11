@@ -62,7 +62,7 @@
         "test:mariadb": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@putenv DB_CONNECTION=mariadb",
-            "@putenv DB_DATABASE=projektverwaltung_test",
+            "@putenv DB_DATABASE=molloplaner_test",
             "@php artisan test"
         ],
         "post-autoload-dump": [

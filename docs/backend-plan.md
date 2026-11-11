@@ -108,7 +108,7 @@ Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP
 - `KanbanOrdering` (Verschieben, neue Position) und `ProjectMembership` (Mitglied setzen, entfernen) sperren zuerst die Projektzeile (`lockForUpdate`). So laufen gleichzeitige Änderungen am selben Projekt nacheinander: keine doppelten Positionen und kein Projekt ohne Owner, wenn sich zwei Owner gleichzeitig herabstufen. SQLite (Tests) kennt diese Sperre nicht, sie wirkt nur auf MariaDB.
 
 ## Tests (Umsetzung Schritt 12)
-- Die Suite läuft auf SQLite im Speicher (`php artisan test`, schnell) und mit `composer test:mariadb` gegen die lokale MariaDB-Datenbank `projektverwaltung_test`. Nur dort wirken die Sperren (`lockForUpdate`) und die JSON-Prüfungen der Datenbank wie produktiv.
+- Die Suite läuft auf SQLite im Speicher (`php artisan test`, schnell) und mit `composer test:mariadb` gegen die lokale MariaDB-Datenbank `molloplaner_test`. Nur dort wirken die Sperren (`lockForUpdate`) und die JSON-Prüfungen der Datenbank wie produktiv.
 - `OutsiderAccessTest` schickt jede Mutation als Person ausserhalb des Projekts (bzw. Admin-Mutationen als Owner ohne Admin-Rolle) und prüft: abgelehnt, keine Tabelle verändert. Jede Abfrage zeigt einer fremden Person nichts. Ein vergessenes `@can` oder ein fehlender Scope im Schema fällt so auf. Neue Mutationen und Abfragen gehören in diese Listen.
 - Die Rechte-Matrix selbst prüfen `PolicyTest` und `ProjectPermissionsTableTest`.
 - HTML in Titeln und Namen wird in allen Mails maskiert (Task-, Einladungs- und Reset-Mail). Nach abgelaufener Einladung setzt „Passwort vergessen“ das Passwort. Introspection ist nur in Produktion aus.

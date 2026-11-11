@@ -25,7 +25,7 @@ Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code 
 ## Befehle
 Alle Befehle im Terminal im Ordner `backend/` ausführen:
 - `php artisan test` (Tests)
-- `composer test:mariadb` (dieselben Tests gegen MariaDB, Datenbank `projektverwaltung_test`; vor Commits, die Abfragen, Sperren oder Migrationen ändern)
+- `composer test:mariadb` (dieselben Tests gegen MariaDB, Datenbank `molloplaner_test`; vor Commits, die Abfragen, Sperren oder Migrationen ändern)
 - `php artisan migrate`
 - `php artisan lighthouse:validate-schema` (Schema prüfen)
 - `php artisan migrate:fresh --seed --seeder=DemoSeeder` (Demo-Daten wie in der GraphQL-Demo, nur lokal; **löscht alle Daten**. In eine leere Datenbank: `php artisan db:seed --class=DemoSeeder`)

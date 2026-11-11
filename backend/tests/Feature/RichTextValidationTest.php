@@ -99,13 +99,13 @@ class RichTextValidationTest extends TestCase
     public function test_cast_stores_json_and_strips_link_attributes(): void
     {
         $doc = ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [
-            ['type' => 'text', 'text' => 'Link', 'marks' => [['type' => 'link', 'attrs' => ['href' => 'https://fcadb.ch', 'target' => '_blank']]]],
+            ['type' => 'text', 'text' => 'Link', 'marks' => [['type' => 'link', 'attrs' => ['href' => 'https://mollo.ch', 'target' => '_blank']]]],
         ]]]];
 
         $milestone = Milestone::factory()->create(['description' => $doc]);
 
         $this->assertSame(
-            ['href' => 'https://fcadb.ch'],
+            ['href' => 'https://mollo.ch'],
             $milestone->fresh()->description['content'][0]['content'][0]['marks'][0]['attrs'],
         );
     }
