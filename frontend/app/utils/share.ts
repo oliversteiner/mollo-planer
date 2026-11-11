@@ -19,6 +19,18 @@ export interface ShareTask {
   project: { name: string }
 }
 
+/** UI texts for the export, taken from lang/de and lang/en (task.share.labels). */
+export interface ShareLabels {
+  /** Locale for dates, e.g. "de" or "en". */
+  locale: string
+  assignee: string
+  status: string
+  project: string
+  milestone: string
+  todo: string
+  due: string
+}
+
 // ---------------------------------------------------------------------------
 // RichText (TipTap JSON) → plain text
 // ---------------------------------------------------------------------------
@@ -155,29 +167,68 @@ function escapeIcalText(text: string): string {
     .replace(/\n/g, '\\n')
 }
 
+/**
+ * Fold a content line to at most 75 octets (RFC 5545 §3.1): continuation
+ * lines start with a space. Characters are never split.
+ */
+function foldIcalLine(line: string): string {
+  const encoder = new TextEncoder()
+  const parts: string[] = []
+  let current = ''
+  let size = 0
+  let limit = 75
+
+  for (const char of line) {
+    const bytes = encoder.encode(char).length
+    if (size + bytes > limit) {
+      parts.push(current)
+      current = ''
+      size = 0
+      limit = 74
+    }
+    current += char
+    size += bytes
+  }
+  parts.push(current)
+
+  return parts.join('\r\n ')
+}
+
 // ---------------------------------------------------------------------------
 // iCal VEVENT (for Apple Calendar, Outlook)
 // ---------------------------------------------------------------------------
+
+/** Due date as a readable date in the given locale, e.g. "15.06.2024" for de. */
+function formatDueDate(dateStr: string | null | undefined, locale: string): string | null {
+  const match = dateStr?.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return null
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
+}
 
 /**
  * Generate an iCal VEVENT string for calendar apps.
  * Uses the task's dueDate as the event date.
  */
-export function generateIcsEvent(task: ShareTask): string {
+export function generateIcsEvent(task: ShareTask, labels: ShareLabels): string {
   const uid = generateUid(task.id)
   const timestamp = nowTimestamp()
   const summary = escapeIcalText(task.title)
   const location = escapeIcalText(`${task.project.name} · ${task.milestone.title} · ${task.todo.title}`)
 
-  let description = summary
+  // Build the text first, then escape it once: every line break becomes "\n".
+  const blocks = [task.title]
   const plainText = extractPlainTextFromRichText(task.description)
   if (plainText) {
-    description += '\n\n' + escapeIcalText(plainText)
+    blocks.push(plainText)
   }
+  const details = []
   if (task.assignee) {
-    description += '\n\nZugewiesen: ' + escapeIcalText(task.assignee.name)
+    details.push(`${labels.assignee}: ${task.assignee.name}`)
   }
-  description += '\n\nStatus: ' + escapeIcalText(task.status)
+  details.push(`${labels.status}: ${task.status}`)
+  blocks.push(details.join('\n'))
+  const description = escapeIcalText(blocks.join('\n\n'))
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -201,7 +252,7 @@ export function generateIcsEvent(task: ShareTask): string {
   lines.push('END:VEVENT')
   lines.push('END:VCALENDAR')
 
-  return lines.join('\r\n')
+  return lines.map(foldIcalLine).join('\r\n')
 }
 
 // ---------------------------------------------------------------------------
@@ -212,19 +263,21 @@ export function generateIcsEvent(task: ShareTask): string {
  * Generate an iCal VTODO string for reminder apps.
  * Apple Reminders imports VTODO components from .ics files.
  */
-export function generateIcsTodo(task: ShareTask): string {
+export function generateIcsTodo(task: ShareTask, labels: ShareLabels): string {
   const uid = generateUid(task.id)
   const timestamp = nowTimestamp()
   const summary = escapeIcalText(task.title)
 
-  let description = ''
+  // Build the text first, then escape it once: every line break becomes "\n".
+  const blocks: string[] = []
   const plainText = extractPlainTextFromRichText(task.description)
   if (plainText) {
-    description += escapeIcalText(plainText)
+    blocks.push(plainText)
   }
-  description += `\n\n${escapeIcalText(task.project.name)} · ${escapeIcalText(task.milestone.title)} · ${escapeIcalText(task.todo.title)}`
+  blocks.push(`${task.project.name} · ${task.milestone.title} · ${task.todo.title}`)
+  let description = escapeIcalText(blocks.join('\n\n'))
   if (task.assignee) {
-    description += `\nZugewiesen: ${escapeIcalText(task.assignee.name)}`
+    description += escapeIcalText(`\n${labels.assignee}: ${task.assignee.name}`)
   }
 
   const lines = [
@@ -251,7 +304,7 @@ export function generateIcsTodo(task: ShareTask): string {
   lines.push('END:VTODO')
   lines.push('END:VCALENDAR')
 
-  return lines.join('\r\n')
+  return lines.map(foldIcalLine).join('\r\n')
 }
 
 // ---------------------------------------------------------------------------
@@ -262,11 +315,11 @@ export function generateIcsTodo(task: ShareTask): string {
  * Generate plain text for copying to clipboard.
  * Simple format suitable for pasting into Apple Notes.
  */
-export function generatePlainText(task: ShareTask): string {
+export function generatePlainText(task: ShareTask, labels: ShareLabels): string {
   const lines: string[] = []
 
   lines.push(task.title)
-  lines.push(''.repeat(task.title.length) ? '─'.repeat(task.title.length) : '')
+  lines.push('─'.repeat(task.title.length))
 
   const plainText = extractPlainTextFromRichText(task.description)
   if (plainText) {
@@ -274,22 +327,20 @@ export function generatePlainText(task: ShareTask): string {
   }
 
   lines.push('')
-  lines.push(`Projekt: ${task.project.name}`)
-  lines.push(`Milestone: ${task.milestone.title}`)
-  lines.push(`ToDo: ${task.todo.title}`)
+  lines.push(`${labels.project}: ${task.project.name}`)
+  lines.push(`${labels.milestone}: ${task.milestone.title}`)
+  lines.push(`${labels.todo}: ${task.todo.title}`)
 
-  if (task.dueDate) {
-    const dateMatch = task.dueDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
-    if (dateMatch) {
-      lines.push(`Fällig: ${dateMatch[3]}.${dateMatch[2]}.${dateMatch[1]}`)
-    }
+  const due = formatDueDate(task.dueDate, labels.locale)
+  if (due) {
+    lines.push(`${labels.due}: ${due}`)
   }
 
   if (task.assignee) {
-    lines.push(`Zugewiesen: ${task.assignee.name}`)
+    lines.push(`${labels.assignee}: ${task.assignee.name}`)
   }
 
-  lines.push(`Status: ${task.status}`)
+  lines.push(`${labels.status}: ${task.status}`)
 
   return lines.join('\n')
 }
@@ -300,18 +351,16 @@ export function generatePlainText(task: ShareTask): string {
 
 /**
  * Generate Markdown with YAML frontmatter for Obsidian.
- * Frontmatter contains title, date, status, project, milestone, todo, assignee.
+ * Frontmatter keys are fixed (machine-readable); the body uses the labels.
  */
-export function generateMarkdown(task: ShareTask): string {
+export function generateMarkdown(task: ShareTask, labels: ShareLabels): string {
   const frontmatterLines: string[] = []
   frontmatterLines.push('---')
   frontmatterLines.push(`title: "${task.title.replace(/"/g, '\\"')}"`)
 
-  if (task.dueDate) {
-    const dateMatch = task.dueDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
-    if (dateMatch) {
-      frontmatterLines.push(`date: ${dateMatch[0]}`)
-    }
+  const isoDate = task.dueDate?.match(/^\d{4}-\d{2}-\d{2}/)?.[0]
+  if (isoDate) {
+    frontmatterLines.push(`date: ${isoDate}`)
   }
 
   frontmatterLines.push(`status: "${task.status}"`)
@@ -335,22 +384,20 @@ export function generateMarkdown(task: ShareTask): string {
   }
 
   body.push('')
-  body.push(`**Projekt:** ${task.project.name}`)
-  body.push(`**Milestone:** ${task.milestone.title}`)
-  body.push(`**ToDo:** ${task.todo.title}`)
+  body.push(`**${labels.project}:** ${task.project.name}`)
+  body.push(`**${labels.milestone}:** ${task.milestone.title}`)
+  body.push(`**${labels.todo}:** ${task.todo.title}`)
 
-  if (task.dueDate) {
-    const dateMatch = task.dueDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
-    if (dateMatch) {
-      body.push(`**Fällig:** ${dateMatch[3]}.${dateMatch[2]}.${dateMatch[1]}`)
-    }
+  const due = formatDueDate(task.dueDate, labels.locale)
+  if (due) {
+    body.push(`**${labels.due}:** ${due}`)
   }
 
   if (task.assignee) {
-    body.push(`**Zugewiesen:** ${task.assignee.name}`)
+    body.push(`**${labels.assignee}:** ${task.assignee.name}`)
   }
 
-  body.push(`**Status:** ${task.status}`)
+  body.push(`**${labels.status}:** ${task.status}`)
 
   return [...frontmatterLines, '', ...body].join('\n')
 }

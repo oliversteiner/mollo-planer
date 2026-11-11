@@ -297,7 +297,29 @@
     "assigned": "Assigned.",
     "assignedMail": "They get an email if they receive notifications.",
     "deleteTitle": "Delete task?",
-    "deleteDescription": "“{title}” is deleted with all its comments. This cannot be undone."
+    "deleteDescription": "“{title}” is deleted with all its comments. This cannot be undone.",
+    "share": {
+      "shareTitle": "Share",
+      "appleCalendar": "Apple Calendar",
+      "appleCalendarTooltip": "Export as calendar event (.ics file)",
+      "appleReminders": "Reminders",
+      "appleRemindersTooltip": "Export as reminder (.ics file)",
+      "appleNotes": "Notes",
+      "appleNotesTooltip": "Copy plain text to clipboard",
+      "obsidian": "Obsidian",
+      "obsidianTooltip": "Copy Markdown with frontmatter to clipboard",
+      "outlook": "Outlook",
+      "outlookTooltip": "Export as calendar event (.ics file)",
+      "copied": "Copied to clipboard",
+      "labels": {
+        "assignee": "Assigned to",
+        "status": "Status",
+        "project": "Project",
+        "milestone": "Milestone",
+        "todo": "To-do",
+        "due": "Due"
+      }
+    }
   },
   "comments": {
     "title": "Comments ({count})",

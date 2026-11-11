@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ShareTask } from '~/utils/share'
+import type { ShareLabels, ShareTask } from '~/utils/share'
 import {
   copyToClipboard,
   downloadIcs,
@@ -17,33 +17,44 @@ const props = defineProps<{
   task: ShareTask
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
 
+/** Texts of the exported files, in the UI language. */
+const labels = computed<ShareLabels>(() => ({
+  locale: locale.value,
+  assignee: t('task.share.labels.assignee'),
+  status: t('task.share.labels.status'),
+  project: t('task.share.labels.project'),
+  milestone: t('task.share.labels.milestone'),
+  todo: t('task.share.labels.todo'),
+  due: t('task.share.labels.due')
+}))
+
 async function shareAppleCalendar(): Promise<void> {
-  const content = generateIcsEvent(props.task)
+  const content = generateIcsEvent(props.task, labels.value)
   downloadIcs(content, `${sanitizeFilename(props.task.title)}.ics`)
 }
 
 async function shareAppleReminders(): Promise<void> {
-  const content = generateIcsTodo(props.task)
+  const content = generateIcsTodo(props.task, labels.value)
   downloadIcs(content, `${sanitizeFilename(props.task.title)}.ics`)
 }
 
 async function shareAppleNotes(): Promise<void> {
-  const content = generatePlainText(props.task)
+  const content = generatePlainText(props.task, labels.value)
   await copyToClipboard(content)
   toast.add({ title: t('task.share.copied'), color: 'success' })
 }
 
 async function shareObsidian(): Promise<void> {
-  const content = generateMarkdown(props.task)
+  const content = generateMarkdown(props.task, labels.value)
   await copyToClipboard(content)
   toast.add({ title: t('task.share.copied'), color: 'success' })
 }
 
 async function shareOutlook(): Promise<void> {
-  const content = generateIcsEvent(props.task)
+  const content = generateIcsEvent(props.task, labels.value)
   downloadIcs(content, `${sanitizeFilename(props.task.title)}.ics`)
 }
 

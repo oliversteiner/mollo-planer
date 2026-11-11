@@ -5,8 +5,13 @@ import {
   generateIcsTodo,
   generateMarkdown,
   generatePlainText,
+  type ShareLabels,
   type ShareTask
 } from '../../app/utils/share'
+import de from '../../i18n/locales/de.json'
+import en from '../../i18n/locales/en.json'
+
+const labels: ShareLabels = { locale: 'de', ...de.task.share.labels }
 
 const sampleTask: ShareTask = {
   id: '1',
@@ -167,7 +172,7 @@ describe('extractPlainTextFromRichText', () => {
 
 describe('generateIcsEvent', () => {
   it('generates a valid VEVENT with all fields', () => {
-    const ics = generateIcsEvent(sampleTask)
+    const ics = generateIcsEvent(sampleTask, labels)
 
     expect(ics).toContain('BEGIN:VCALENDAR')
     expect(ics).toContain('BEGIN:VEVENT')
@@ -180,23 +185,23 @@ describe('generateIcsEvent', () => {
   })
 
   it('omits DTSTART when there is no due date', () => {
-    const ics = generateIcsEvent(taskWithoutDate)
+    const ics = generateIcsEvent(taskWithoutDate, labels)
     expect(ics).not.toContain('DTSTART')
   })
 
   it('includes assignee in description', () => {
-    const ics = generateIcsEvent(sampleTask)
+    const ics = generateIcsEvent(sampleTask, labels)
     expect(ics).toContain('Max Mustermann')
   })
 
   it('works without assignee', () => {
-    const ics = generateIcsEvent(taskWithoutAssignee)
+    const ics = generateIcsEvent(taskWithoutAssignee, labels)
     expect(ics).toContain('BEGIN:VEVENT')
     expect(ics).not.toContain('Zugewiesen')
   })
 
   it('works without description', () => {
-    const ics = generateIcsEvent(taskWithoutDescription)
+    const ics = generateIcsEvent(taskWithoutDescription, labels)
     expect(ics).toContain('BEGIN:VEVENT')
     expect(ics).toContain('SUMMARY:Test Task')
   })
@@ -204,7 +209,7 @@ describe('generateIcsEvent', () => {
 
 describe('generateIcsTodo', () => {
   it('generates a valid VTODO with all fields', () => {
-    const ics = generateIcsTodo(sampleTask)
+    const ics = generateIcsTodo(sampleTask, labels)
 
     expect(ics).toContain('BEGIN:VCALENDAR')
     expect(ics).toContain('BEGIN:VTODO')
@@ -215,12 +220,12 @@ describe('generateIcsTodo', () => {
   })
 
   it('omits DUE when there is no due date', () => {
-    const ics = generateIcsTodo(taskWithoutDate)
+    const ics = generateIcsTodo(taskWithoutDate, labels)
     expect(ics).not.toContain('DUE')
   })
 
   it('includes project context in description', () => {
-    const ics = generateIcsTodo(sampleTask)
+    const ics = generateIcsTodo(sampleTask, labels)
     expect(ics).toContain('Project Name')
     expect(ics).toContain('Milestone Title')
     expect(ics).toContain('Todo Title')
@@ -229,7 +234,7 @@ describe('generateIcsTodo', () => {
 
 describe('generatePlainText', () => {
   it('generates plain text with all fields', () => {
-    const text = generatePlainText(sampleTask)
+    const text = generatePlainText(sampleTask, labels)
 
     expect(text).toContain('Test Task')
     expect(text).toContain('Hello world')
@@ -242,25 +247,41 @@ describe('generatePlainText', () => {
   })
 
   it('omits due date when not set', () => {
-    const text = generatePlainText(taskWithoutDate)
+    const text = generatePlainText(taskWithoutDate, labels)
     expect(text).not.toContain('Fällig')
   })
 
   it('omits assignee when not set', () => {
-    const text = generatePlainText(taskWithoutAssignee)
+    const text = generatePlainText(taskWithoutAssignee, labels)
     expect(text).not.toContain('Zugewiesen')
   })
 
   it('works without description', () => {
-    const text = generatePlainText(taskWithoutDescription)
+    const text = generatePlainText(taskWithoutDescription, labels)
     expect(text).toContain('Test Task')
     expect(text).toContain('Projekt: Project Name')
   })
 })
 
+describe('export labels', () => {
+  const englishLabels: ShareLabels = { locale: 'en', ...en.task.share.labels }
+
+  it('uses the given labels and locale instead of fixed German texts', () => {
+    const text = generatePlainText(sampleTask, englishLabels)
+
+    expect(text).toContain('Project: Project Name')
+    expect(text).toContain('Due: Jun 15, 2024')
+    expect(text).not.toContain('Projekt')
+  })
+
+  it('formats the due date for German labels as DD.MM.YYYY', () => {
+    expect(generatePlainText(sampleTask, labels)).toContain('Fällig: 15.06.2024')
+  })
+})
+
 describe('generateMarkdown', () => {
   it('generates Markdown with YAML frontmatter', () => {
-    const md = generateMarkdown(sampleTask)
+    const md = generateMarkdown(sampleTask, labels)
 
     expect(md).toContain('---')
     expect(md).toContain('title: "Test Task"')
@@ -275,24 +296,62 @@ describe('generateMarkdown', () => {
   })
 
   it('omits date in frontmatter when not set', () => {
-    const md = generateMarkdown(taskWithoutDate)
+    const md = generateMarkdown(taskWithoutDate, labels)
     expect(md).not.toContain('date:')
   })
 
   it('omits assignee in frontmatter when not set', () => {
-    const md = generateMarkdown(taskWithoutAssignee)
+    const md = generateMarkdown(taskWithoutAssignee, labels)
     expect(md).not.toContain('assignee:')
   })
 
   it('escapes double quotes in title', () => {
     const task = { ...sampleTask, title: 'Test "quoted"' }
-    const md = generateMarkdown(task)
+    const md = generateMarkdown(task, labels)
     expect(md).toContain('title: "Test \\"quoted\\""')
   })
 
   it('works without description', () => {
-    const md = generateMarkdown(taskWithoutDescription)
+    const md = generateMarkdown(taskWithoutDescription, labels)
     expect(md).toContain('# Test Task')
     expect(md).toContain('**Projekt:** Project Name')
+  })
+})
+
+/** Undo RFC 5545 folding: a line break followed by one space continues the line. */
+function unfold(ics: string): string {
+  return ics.replace(/\r\n /g, '')
+}
+
+describe('iCal line handling', () => {
+  it('escapes line breaks inside DESCRIPTION instead of writing raw ones', () => {
+    const ics = unfold(generateIcsEvent(sampleTask, labels))
+    const description = ics.split('\r\n').find(line => line.startsWith('DESCRIPTION:')) ?? ''
+
+    expect(description).toContain('Hello world\\n\\nZugewiesen: Max Mustermann\\nStatus: OPEN')
+    expect(ics.split('\r\n').every(line => /^[A-Z]+[;:]/.test(line) || line === '')).toBe(true)
+  })
+
+  it('escapes line breaks in VTODO DESCRIPTION', () => {
+    const ics = unfold(generateIcsTodo(sampleTask, labels))
+    const description = ics.split('\r\n').find(line => line.startsWith('DESCRIPTION:')) ?? ''
+
+    expect(description).toBe('DESCRIPTION:Hello world\\n\\nProject Name · Milestone Title · Todo Title\\nZugewiesen: Max Mustermann')
+  })
+
+  it('escapes commas and semicolons in SUMMARY', () => {
+    const ics = generateIcsEvent({ ...sampleTask, title: 'Angebot, Entwurf; neu' }, labels)
+
+    expect(ics).toContain('SUMMARY:Angebot\\, Entwurf\\; neu')
+  })
+
+  it('folds lines longer than 75 octets and never splits a character', () => {
+    const longTitle = 'Ä'.repeat(80)
+    const ics = generateIcsEvent({ ...sampleTask, title: longTitle }, labels)
+
+    for (const line of ics.split('\r\n')) {
+      expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75)
+    }
+    expect(unfold(ics)).toContain(`SUMMARY:${longTitle}`)
   })
 })

@@ -297,7 +297,29 @@
     "assigned": "Zugewiesen.",
     "assignedMail": "Die Person bekommt eine E-Mail, falls sie Benachrichtigungen erhält.",
     "deleteTitle": "Task löschen?",
-    "deleteDescription": "«{title}» wird mit allen Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+    "deleteDescription": "«{title}» wird mit allen Kommentaren gelöscht. Das lässt sich nicht rückgängig machen.",
+    "share": {
+      "shareTitle": "Teilen",
+      "appleCalendar": "Apple Kalender",
+      "appleCalendarTooltip": "Als Kalendereintrag exportieren (.ics-Datei)",
+      "appleReminders": "Erinnerungen",
+      "appleRemindersTooltip": "Als Erinnerung exportieren (.ics-Datei)",
+      "appleNotes": "Notizen",
+      "appleNotesTooltip": "Klartext in die Zwischenablage kopieren",
+      "obsidian": "Obsidian",
+      "obsidianTooltip": "Markdown mit Frontmatter in die Zwischenablage kopieren",
+      "outlook": "Outlook",
+      "outlookTooltip": "Als Kalendereintrag exportieren (.ics-Datei)",
+      "copied": "In die Zwischenablage kopiert",
+      "labels": {
+        "assignee": "Zugewiesen",
+        "status": "Status",
+        "project": "Projekt",
+        "milestone": "Milestone",
+        "todo": "ToDo",
+        "due": "Fällig"
+      }
+    }
   },
   "comments": {
     "title": "Kommentare ({count})",
