@@ -625,8 +625,14 @@
     "planned": "geplant",
     "kinds": {
       "neu": "Neu",
-      "verbessert": "Verbessert",
+      "verbessert": "Optimiert",
       "behoben": "Behoben"
+    },
+    "showPlanned": "Geplante Versionen anzeigen",
+    "released": "veröffentlicht",
+    "release": {
+      "major": "Major-Release",
+      "minor": "Minor-Release"
     }
   },
   "db": {

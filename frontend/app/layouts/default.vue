@@ -126,13 +126,17 @@ function skipToContent(): void {
           {{ t('auth.logout') }}
         </wa-dropdown-item>
       </wa-dropdown>
-      <VersionBadge
+      <NuxtLink
         v-if="appVersion"
-        :version="appVersion"
-        :locale="localeProperties.language ?? 'de-CH'"
-        :label="t('systemVersion.label')"
+        to="/system/version"
         class="app-version"
-      />
+      >
+        <VersionBadge
+          :version="appVersion"
+          :locale="localeProperties.language ?? 'de-CH'"
+          :label="t('systemVersion.label')"
+        />
+      </NuxtLink>
     </div>
 
     <main
@@ -228,11 +232,24 @@ function skipToContent(): void {
   text-align: start;
 }
 
-/* Under the user menu, aligned with its text. */
+/* Under the user menu, aligned with its text. A link to the version page. */
 .app-version {
   display: block;
   margin-block-start: var(--wa-space-2xs);
   padding-inline: var(--wa-space-s);
+  border-radius: var(--wa-border-radius-m);
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-version:hover :deep(.version-badge) {
+  color: var(--wa-color-text-normal);
+  text-decoration: underline;
+}
+
+.app-version:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
 }
 
 wa-dropdown:has(> .user-menu-button) {

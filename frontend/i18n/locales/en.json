@@ -627,6 +627,12 @@
       "neu": "New",
       "verbessert": "Improved",
       "behoben": "Fixed"
+    },
+    "showPlanned": "Show planned versions",
+    "released": "released",
+    "release": {
+      "major": "Major release",
+      "minor": "Minor release"
     }
   },
   "db": {
