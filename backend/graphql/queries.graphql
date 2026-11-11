@@ -1,0 +1,49 @@
+# Abfragen (Query)
+
+# ─── Abfragen ───────────────────────────────────────────────────
+
+type Query @guard {
+  "Der angemeldete Benutzer"
+  me: User! @auth
+
+  "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
+  users: [User!]! @can(ability: "viewAny", model: "App\\Models\\User") @all
+  "Namen suchen, um Mitglieder in ein Projekt zu setzen. Ohne E-Mail und Sicherheitsstatus. Für alle, die in einem Projekt Mitglieder verwalten dürfen."
+  userSearch(term: String!): [MemberCandidate!]! @field(resolver: "App\\GraphQL\\Queries\\UserSearch")
+
+  "Deine Projekte. Admins sehen alle."
+  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+  project(id: ID! @eq): Project @find(scopes: ["visibleToViewer"])
+
+  "Milestones eines Projekts (Seite Milestones)"
+  milestones(projectId: ID! @eq(key: "project_id")): [Milestone!]! @all(scopes: ["visibleToViewer"])
+  milestone(id: ID! @eq): Milestone @find(scopes: ["visibleToViewer"])
+
+  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
+  todos(
+    projectId: ID! @builder(method: "App\\GraphQL\\Builders\\TodoBuilder@inProject")
+    milestoneId: ID @filter(key: "milestone_id")
+    status: ItemStatus @filter
+  ): [Todo!]! @all(scopes: ["visibleToViewer"])
+  todo(id: ID! @eq): Todo @find(scopes: ["visibleToViewer"])
+
+  "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
+  task(id: ID! @eq): Task @find(scopes: ["visibleToViewer"])
+
+  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
+  kanban(projectId: ID!): [KanbanColumn!]! @field(resolver: "App\\GraphQL\\Queries\\Kanban")
+
+  "Tasks, die dir zugewiesen sind"
+  myTasks(status: TaskStatus @filter): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer"])
+
+  "Startseite"
+  dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")
+  "Alle Label-Sets (mitgelieferte zuerst, dann eigene nach Name)"
+  labelSets: [LabelSet!]! @field(resolver: "App\\GraphQL\\Queries\\LabelSets")
+  "Welche Fähigkeiten über die ganze App du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
+  viewerSystemAbilities: [SystemAbility!]! @field(resolver: "App\\GraphQL\\Queries\\ViewerSystemAbilities")
+  "Die Rechte-Tabelle: welche Rolle welche Fähigkeit hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
+  permissionMatrix: PermissionMatrix! @can(ability: "viewAny", model: "App\\Models\\User") @field(resolver: "App\\GraphQL\\Queries\\PermissionMatrixQuery")
+  "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
+  appSettings: AppSettings! @field(resolver: "App\\GraphQL\\Queries\\AppSettings")
+}

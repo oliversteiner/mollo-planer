@@ -1,0 +1,88 @@
+# ─── KI-Assistent: Projektplan per Chat ─────────────────────────
+# Ein Entwurf ist noch nichts in der Datenbank. Beschreibungen sind Klartext:
+# Leerzeilen trennen Absätze, Zeilen mit "- " werden eine Liste.
+
+"Antwort des Assistenten: Text für den Chat und der ganze Plan (null, solange er noch Angaben braucht)"
+type ProjectPlanDraft {
+  reply: String!
+  plan: ProjectPlan
+}
+
+type ProjectPlan {
+  name: String!
+  description: String
+  locale: Locale!
+  members: [ProjectPlanMember!]!
+  milestones: [ProjectPlanMilestone!]!
+}
+
+type ProjectPlanMember {
+  email: String!
+  role: ProjectRole!
+}
+
+type ProjectPlanMilestone {
+  title: String!
+  description: String
+  dueDate: Date
+  todos: [ProjectPlanTodo!]!
+}
+
+type ProjectPlanTodo {
+  title: String!
+  description: String
+  dueDate: Date
+  tasks: [ProjectPlanTask!]!
+}
+
+type ProjectPlanTask {
+  title: String!
+  description: String
+  dueDate: Date
+  "E-Mail eines Mitglieds aus members"
+  assigneeEmail: String
+}
+
+enum PlanChatRole {
+  USER
+  ASSISTANT
+}
+
+input PlanChatMessageInput {
+  role: PlanChatRole!
+  content: String! @rules(apply: ["min:1", "max:8000"])
+}
+
+input ProjectPlanInput {
+  name: String! @rules(apply: ["min:2", "max:120"])
+  description: String @rules(apply: ["max:2000"])
+  locale: Locale = DE
+  members: [ProjectPlanMemberInput!]! @rules(apply: ["max:50"])
+  milestones: [ProjectPlanMilestoneInput!]! @rules(apply: ["min:1", "max:30"])
+}
+
+input ProjectPlanMemberInput {
+  email: String! @rules(apply: ["email"])
+  role: ProjectRole!
+}
+
+input ProjectPlanMilestoneInput {
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: String @rules(apply: ["max:5000"])
+  dueDate: Date
+  todos: [ProjectPlanTodoInput!]! @rules(apply: ["max:50"])
+}
+
+input ProjectPlanTodoInput {
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: String @rules(apply: ["max:5000"])
+  dueDate: Date
+  tasks: [ProjectPlanTaskInput!]! @rules(apply: ["max:50"])
+}
+
+input ProjectPlanTaskInput {
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: String @rules(apply: ["max:5000"])
+  dueDate: Date
+  assigneeEmail: String @rules(apply: ["nullable", "email"])
+}

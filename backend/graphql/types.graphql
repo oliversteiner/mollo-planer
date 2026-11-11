@@ -1,0 +1,229 @@
+# Typen: Benutzer, Projekt, Milestone, ToDo, Task, Labels, Kommentare, Dashboard, Rechte-Tabelle
+
+# ─── Typen ──────────────────────────────────────────────────────
+
+"Eine Person mit Zugang. Anlegen und Löschen nur durch Admins."
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  "Globale Berechtigungsrolle, unabhängig von Projekten"
+  role: UserRole!
+  "Funktion, zum Beispiel Designer. Nur zur Anzeige."
+  jobFunction: UserFunction @rename(attribute: "job_function")
+  "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
+  notifyByEmail: Boolean! @rename(attribute: "notify_by_email")
+  "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
+  avatarUrl: String @rename(attribute: "avatar_url")
+  "Hat die Person eine bestätigte 2FA-App? Nur für dich selbst und für Admins, sonst null."
+  twoFactorConfirmed: Boolean @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@twoFactorConfirmed")
+  "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
+  hasPasskey: Boolean @with(relation: "passkeys") @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@hasPasskey")
+  "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
+  passkeys: [Passkey!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@passkeys")
+  "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
+  apiTokens: [ApiToken!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@apiTokens")
+  "Projekte dieser Person, soweit du sie sehen darfst"
+  projects: [Project!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserProjects")
+  "Zugewiesene Tasks, soweit du sie sehen darfst"
+  assignedTasks: [Task!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserTasks")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"
+type Passkey {
+  id: ID!
+  name: String!
+  createdAt: DateTime! @rename(attribute: "created_at")
+  "null, solange der Passkey noch nie benutzt wurde"
+  lastUsedAt: DateTime @rename(attribute: "last_used_at")
+}
+
+"Ein persönlicher Zugang für Claude (MCP-Server unter /mcp). Er handelt mit deinen Rechten."
+type ApiToken {
+  id: ID!
+  name: String!
+  createdAt: DateTime! @rename(attribute: "created_at")
+  "null, solange er noch nie benutzt wurde"
+  lastUsedAt: DateTime @rename(attribute: "last_used_at")
+  expiresAt: DateTime @rename(attribute: "expires_at")
+}
+
+"Ein neu erzeugter Zugang. Den Klartext gibt es nur in dieser Antwort."
+type NewApiToken {
+  token: ApiToken!
+  plainTextToken: String!
+}
+
+"Ein Projekt mit Mitgliedern und Milestones"
+type Project {
+  id: ID!
+  name: String!
+  description: String
+  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
+  icon: String
+  "Sprache der Benachrichtigungsmails dieses Projekts"
+  locale: Locale!
+  "Label-Set der Tasks dieses Projekts. null = keins gewählt."
+  labelSet: LabelSet @belongsTo
+  members: [ProjectMember!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
+  milestones: [Milestone!]! @hasMany
+  "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
+  progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
+  "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
+  viewerRole: ProjectRole @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
+  "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
+  viewerAbilities: [ProjectAbility!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerAbilities")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Mitgliedschaft einer Person in einem Projekt"
+type ProjectMember {
+  user: User!
+  role: ProjectRole!
+}
+
+"Ein Meilenstein mit Zieldatum. Er enthält ToDos."
+type Milestone {
+  id: ID!
+  project: Project! @belongsTo
+  title: String!
+  description: RichText
+  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+  icon: String
+  dueDate: Date @rename(attribute: "due_date")
+  "DONE, sobald alle ToDos erledigt sind"
+  status: ItemStatus!
+  todos: [Todo!]! @hasMany
+  progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@milestone")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
+type Todo {
+  id: ID!
+  milestone: Milestone! @belongsTo
+  title: String!
+  description: RichText
+  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+  icon: String
+  dueDate: Date @rename(attribute: "due_date")
+  "DONE, sobald alle Tasks erledigt sind"
+  status: ItemStatus!
+  tasks: [Task!]! @hasMany
+  progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@todo")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
+type Task {
+  id: ID!
+  todo: Todo! @belongsTo
+  title: String!
+  description: RichText
+  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+  icon: String
+  status: TaskStatus!
+  "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
+  position: Int!
+  dueDate: Date @rename(attribute: "due_date")
+  assignee: User @belongsTo(relation: "assignee")
+  "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
+  comments: [Comment!]! @hasMany
+  commentCount: Int! @count(relation: "comments")
+  "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
+  labels: [Label!]! @belongsToMany
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Eine Gruppe von Labels, app-weit. Jedes Projekt wählt ein Set."
+type LabelSet {
+  id: ID!
+  "Mitgelieferte Sets: übersetzt nach Accept-Language"
+  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setName")
+  description: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setDescription")
+  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
+  isBuiltin: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@isBuiltin")
+  labels: [Label!]! @hasMany
+  "Wie viele Projekte das Set gewählt haben. Ein Set in Gebrauch lässt sich nicht löschen."
+  usedByProjects: Int! @count(relation: "projects")
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@update")
+  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@delete")
+}
+
+type Label {
+  id: ID!
+  "Labels mitgelieferter Sets: übersetzt nach Accept-Language"
+  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelName")
+  "Gruppe im Set, zum Beispiel Phase oder Typ"
+  category: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelCategory")
+  color: LabelColor!
+  "Reihenfolge im Set, beginnt bei 0"
+  position: Int!
+  labelSet: LabelSet! @belongsTo
+}
+
+"Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
+type Comment {
+  id: ID!
+  task: Task! @belongsTo
+  "null, wenn die Person inzwischen gelöscht wurde"
+  author: User @belongsTo(relation: "author")
+  "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
+  body: RichText!
+  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
+  viewerCanEdit: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
+  "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
+  viewerCanDelete: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
+  createdAt: DateTime! @rename(attribute: "created_at")
+  updatedAt: DateTime! @rename(attribute: "updated_at")
+}
+
+"Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
+type AppSettings {
+  "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."
+  twoFactorEnabled: Boolean!
+  "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
+  twoFactorSwitchable: Boolean!
+}
+
+"Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
+type Progress {
+  total: Int!
+  done: Int!
+  "Prozentwert von 0 bis 100, gerundet"
+  percent: Int!
+}
+
+"Eine Spalte im Kanban-Board mit ihren Tasks"
+type KanbanColumn {
+  status: TaskStatus!
+  tasks: [Task!]!
+}
+
+"Alles für die Startseite in einem Aufruf"
+type Dashboard {
+  "Offene ToDos, nach Fälligkeit sortiert"
+  upcomingTodos(limit: Int = 5 @rules(apply: ["integer", "min:1", "max:50"])): [Todo!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@upcomingTodos")
+  "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
+  myOpenTasks: [Task!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@myOpenTasks")
+  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+}
+
+"Rechte-Tabelle (nur Admin): globale Fähigkeiten und Projektfähigkeiten, je mit den Rollen, die sie haben."
+type PermissionMatrix {
+  system: [SystemAbilityRow!]!
+  project: [ProjectAbilityRow!]!
+}
+
+"Eine globale Fähigkeit und die Rollen, die sie haben."
+type SystemAbilityRow {
+  ability: SystemAbility!
+  roles: [UserRole!]!
+}
+
+"Eine Projektfähigkeit und die Projektrollen, die sie haben. Admins dürfen alle Projektfähigkeiten, siehe Systemfähigkeit projects.manageAny."
+type ProjectAbilityRow {
+  ability: ProjectAbility!
+  roles: [ProjectRole!]!
+}
