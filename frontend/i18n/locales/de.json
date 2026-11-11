@@ -301,16 +301,12 @@
     "deleteDescription": "«{title}» wird mit allen Kommentaren gelöscht. Das lässt sich nicht rückgängig machen.",
     "share": {
       "shareTitle": "Teilen",
+      "menu": "Share",
       "appleCalendar": "Apple Kalender",
-      "appleCalendarTooltip": "Als Kalendereintrag exportieren (.ics-Datei)",
       "appleReminders": "Erinnerungen",
-      "appleRemindersTooltip": "Als Erinnerung exportieren (.ics-Datei)",
       "appleNotes": "Notizen",
-      "appleNotesTooltip": "Klartext in die Zwischenablage kopieren",
       "obsidian": "Obsidian",
-      "obsidianTooltip": "Markdown mit Frontmatter in die Zwischenablage kopieren",
       "outlook": "Outlook",
-      "outlookTooltip": "Als Kalendereintrag exportieren (.ics-Datei)",
       "copied": "In die Zwischenablage kopiert",
       "labels": {
         "assignee": "Zugewiesen",

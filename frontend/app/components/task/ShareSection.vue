@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ShareLabels, ShareTask } from '~/utils/share'
 import {
   copyToClipboard,
@@ -12,9 +13,9 @@ import {
 } from '~/utils/share'
 
 /**
- * Share buttons for external apps: one task (detail panel) or the whole
- * list currently shown (My Tasks, after filtering). `name` is the base of
- * the file name for calendar exports.
+ * Share menu for external apps: one task (detail panel) or the whole list
+ * currently shown (My Tasks, after filtering). `name` is the base of the file
+ * name for calendar exports.
  */
 const props = withDefaults(defineProps<{
   tasks: ShareTask[]
@@ -76,6 +77,15 @@ async function shareOutlook(): Promise<void> {
   downloadIcs(generateIcsEvents(props.tasks, labels.value), fileName.value)
 }
 
+/** The entries of the menu. Without tasks they are shown but disabled. */
+const shareItems = computed<ActionMenuItem[]>(() => [
+  { label: t('task.share.appleCalendar'), icon: 'calendar', disabled: !hasTasks.value, onSelect: shareAppleCalendar },
+  { label: t('task.share.appleReminders'), icon: 'clipboard-check', disabled: !hasTasks.value, onSelect: shareAppleReminders },
+  { label: t('task.share.appleNotes'), icon: 'note-sticky', disabled: !hasTasks.value, onSelect: shareAppleNotes },
+  { label: t('task.share.obsidian'), icon: 'book-atlas', disabled: !hasTasks.value, onSelect: shareObsidian },
+  { label: t('task.share.outlook'), icon: 'envelope', disabled: !hasTasks.value, onSelect: shareOutlook }
+])
+
 /** Sanitize a name for use in a filename. */
 function sanitizeFilename(name: string): string {
   return name.replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g, '').replace(/\s+/g, '-').slice(0, 50) || 'tasks'
@@ -90,122 +100,19 @@ function sanitizeFilename(name: string): string {
     >
       {{ t('task.share.shareTitle') }}
     </h3>
-    <div class="share-buttons">
-      <wa-button
-        appearance="outlined"
-        variant="neutral"
-        size="s"
-        :disabled="!hasTasks"
-        @click="shareAppleCalendar"
-      >
-        <wa-tooltip
-          slot="end"
-          :content="t('task.share.appleCalendarTooltip')"
-          position="top"
-        >
-          <wa-icon
-            name="calendar"
-            class="share-icon"
-          ></wa-icon>
-        </wa-tooltip>
-        {{ t('task.share.appleCalendar') }}
-      </wa-button>
-
-      <wa-button
-        appearance="outlined"
-        variant="neutral"
-        size="s"
-        :disabled="!hasTasks"
-        @click="shareAppleReminders"
-      >
-        <wa-tooltip
-          slot="end"
-          :content="t('task.share.appleRemindersTooltip')"
-          position="top"
-        >
-          <wa-icon
-            name="clipboard-check"
-            class="share-icon"
-          ></wa-icon>
-        </wa-tooltip>
-        {{ t('task.share.appleReminders') }}
-      </wa-button>
-
-      <wa-button
-        appearance="outlined"
-        variant="neutral"
-        size="s"
-        :disabled="!hasTasks"
-        @click="shareAppleNotes"
-      >
-        <wa-tooltip
-          slot="end"
-          :content="t('task.share.appleNotesTooltip')"
-          position="top"
-        >
-          <wa-icon
-            name="note-sticky"
-            class="share-icon"
-          ></wa-icon>
-        </wa-tooltip>
-        {{ t('task.share.appleNotes') }}
-      </wa-button>
-
-      <wa-button
-        appearance="outlined"
-        variant="neutral"
-        size="s"
-        :disabled="!hasTasks"
-        @click="shareObsidian"
-      >
-        <wa-tooltip
-          slot="end"
-          :content="t('task.share.obsidianTooltip')"
-          position="top"
-        >
-          <wa-icon
-            name="book-atlas"
-            class="share-icon"
-          ></wa-icon>
-        </wa-tooltip>
-        {{ t('task.share.obsidian') }}
-      </wa-button>
-
-      <wa-button
-        appearance="outlined"
-        variant="neutral"
-        size="s"
-        :disabled="!hasTasks"
-        @click="shareOutlook"
-      >
-        <wa-tooltip
-          slot="end"
-          :content="t('task.share.outlookTooltip')"
-          position="top"
-        >
-          <wa-icon
-            name="envelope"
-            class="share-icon"
-          ></wa-icon>
-        </wa-tooltip>
-        {{ t('task.share.outlook') }}
-      </wa-button>
-    </div>
+    <ActionMenu
+      :items="shareItems"
+      :label="t('task.share.shareTitle')"
+      :text="t('task.share.menu')"
+      icon="share-from"
+      :disabled="!hasTasks"
+      placement="bottom-start"
+    />
   </section>
 </template>
 
 <style scoped>
 .share-title {
   margin-block-end: var(--wa-space-2xs);
-}
-
-.share-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--wa-space-xs);
-}
-
-.share-icon {
-  margin-inline-end: var(--wa-space-3xs);
 }
 </style>
