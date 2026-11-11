@@ -410,7 +410,7 @@ Bereich System in der Seitenleiste, Status, Datenbank-Doku, Rechte-Tabelle und G
 - [x] [bug] Statusseite zeigte „nicht erreichbar“: /status fehlte in der CORS-Liste
 - [x] [planning] Prüfung im Browser als Admin und als Mitglied
 - [x] [planning] Commit auf feature/system
-- [ ] [planning] Merge von feature/system nach dev
+- [x] [planning] Merge von feature/system nach dev
 
 ## v0.8 Desktop-App (Tauri)
 
