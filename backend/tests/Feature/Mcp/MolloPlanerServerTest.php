@@ -4,7 +4,7 @@ namespace Tests\Feature\Mcp;
 
 use App\Enums\ItemStatus;
 use App\Enums\ProjectRole;
-use App\Mcp\Servers\ProjektverwaltungServer;
+use App\Mcp\Servers\MolloPlanerServer;
 use App\Mcp\Tools\CreateProjectPlanTool;
 use App\Mcp\Tools\CreateProjectTool;
 use App\Mcp\Tools\GetProjectTool;
@@ -24,7 +24,7 @@ use Tests\TestCase;
  * The MCP server acts through the GraphQL schema as the token's owner:
  * same permissions and rules as the app, plans are created all or nothing.
  */
-class ProjektverwaltungServerTest extends TestCase
+class MolloPlanerServerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -56,7 +56,7 @@ class ProjektverwaltungServerTest extends TestCase
     {
         Project::factory()->create(['name' => 'Fremd']);
 
-        ProjektverwaltungServer::actingAs($this->member)->tool(ListProjectsTool::class)
+        MolloPlanerServer::actingAs($this->member)->tool(ListProjectsTool::class)
             ->assertOk()
             ->assertSee('Podcast')
             ->assertDontSee('Fremd');
@@ -64,13 +64,13 @@ class ProjektverwaltungServerTest extends TestCase
 
     public function test_get_project_refuses_a_foreign_project(): void
     {
-        ProjektverwaltungServer::actingAs($this->stranger)->tool(GetProjectTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->stranger)->tool(GetProjectTool::class, ['project_id' => (string) $this->project->id])
             ->assertHasErrors(['This project does not exist, or you have no access to it.']);
     }
 
     public function test_only_admins_create_projects(): void
     {
-        ProjektverwaltungServer::actingAs($this->owner)->tool(CreateProjectTool::class, ['name' => 'Neu'])
+        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectTool::class, ['name' => 'Neu'])
             ->assertHasErrors(['This action is unauthorized.']);
 
         $this->assertSame(1, Project::count());
@@ -78,7 +78,7 @@ class ProjektverwaltungServerTest extends TestCase
 
     public function test_admin_creates_a_project_with_members_by_email(): void
     {
-        ProjektverwaltungServer::actingAs($this->admin)->tool(CreateProjectTool::class, [
+        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, [
             'name' => 'Podcast Migration',
             'members' => [
                 ['email' => 'Oliver@example.ch', 'role' => 'OWNER'],
@@ -93,7 +93,7 @@ class ProjektverwaltungServerTest extends TestCase
 
     public function test_an_unknown_member_creates_no_project(): void
     {
-        ProjektverwaltungServer::actingAs($this->admin)->tool(CreateProjectTool::class, [
+        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, [
             'name' => 'Podcast Migration',
             'members' => [['email' => 'niemand@example.ch', 'role' => 'MEMBER']],
         ])->assertHasErrors(['No person with the e-mail niemand@example.ch has an account. An admin must invite them in the app first.']);
@@ -105,7 +105,7 @@ class ProjektverwaltungServerTest extends TestCase
     {
         Notification::fake();
 
-        ProjektverwaltungServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $this->plan())
+        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $this->plan())
             ->assertOk()
             ->assertSee('"tasks":3');
 
@@ -123,7 +123,7 @@ class ProjektverwaltungServerTest extends TestCase
     {
         Notification::fake();
 
-        ProjektverwaltungServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, [...$this->plan(), 'notify_assignees' => true])
+        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, [...$this->plan(), 'notify_assignees' => true])
             ->assertOk();
 
         Notification::assertSentTo($this->member, TaskAssigned::class);
@@ -131,7 +131,7 @@ class ProjektverwaltungServerTest extends TestCase
 
     public function test_a_member_may_not_create_tasks_and_then_nothing_is_created(): void
     {
-        ProjektverwaltungServer::actingAs($this->member)->tool(CreateProjectPlanTool::class, $this->plan())
+        MolloPlanerServer::actingAs($this->member)->tool(CreateProjectPlanTool::class, $this->plan())
             ->assertHasErrors(['Task "Hörerprofile schreiben": This action is unauthorized.']);
 
         $this->assertSame([0, 0, 0], [Milestone::count(), Todo::count(), Task::count()]);
@@ -142,7 +142,7 @@ class ProjektverwaltungServerTest extends TestCase
         $plan = $this->plan();
         $plan['milestones'][0]['todos'][0]['tasks'][0]['assignee_email'] = 'eva@example.ch';
 
-        ProjektverwaltungServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $plan)
+        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $plan)
             ->assertHasErrors(['Task "Hörerprofile schreiben": eva@example.ch is not a member of this project. Add them with set_project_member first, or leave the task unassigned.']);
 
         $this->assertSame([0, 0, 0], [Milestone::count(), Todo::count(), Task::count()]);
@@ -153,7 +153,7 @@ class ProjektverwaltungServerTest extends TestCase
         $plan = $this->plan();
         $plan['milestones'][0]['due_date'] = '31.01.2027';
 
-        ProjektverwaltungServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $plan)
+        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $plan)
             ->assertHasErrors(['Dates are YYYY-MM-DD, for example 2027-03-31.']);
     }
 

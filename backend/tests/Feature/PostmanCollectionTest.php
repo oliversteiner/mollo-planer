@@ -23,7 +23,7 @@ class PostmanCollectionTest extends TestCase
 {
     use DatabaseMigrations;
 
-    private const COLLECTION = __DIR__.'/../../../docs/postman/Projektverwaltung (FCA DB)';
+    private const COLLECTION = __DIR__.'/../../../docs/postman/Mollo Planer';
 
     /**
      * The requests run one after the other on the same data, as in Postman.

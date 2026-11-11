@@ -1,6 +1,6 @@
-# Entwicklung der Projektverwaltung
+# Entwicklung von Mollo Planer
 
-Dieses Dokument spiegelt die Entwicklung wider. Es ist zugleich der Seed für die Datenbank: `php artisan db:seed --class=DevelopmentHistorySeeder` legt daraus das Projekt „Projektverwaltung · Entwicklung“ an (nur lokal).
+Dieses Dokument spiegelt die Entwicklung wider. Es ist zugleich der Seed für die Datenbank: `php artisan db:seed --class=DevelopmentHistorySeeder` legt daraus das Projekt „Mollo Planer · Entwicklung“ an (nur lokal).
 
 ## Aufbau
 

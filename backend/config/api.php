@@ -7,7 +7,7 @@ return [
     'version' => 'v1',
 
     /* Name of the site, shown on the status page. */
-    'site_name' => 'Projektverwaltung',
+    'site_name' => 'Mollo Planer',
 
     /*
      * Version of the application (shown on the status page). Set APP_VERSION when releasing.

@@ -1,6 +1,6 @@
 $kind: collection
 description: |-
-  Projektverwaltung (FCA DB): Login über Fortify (Cookie-Session wie die SPA) und die GraphQL-API.
+  Mollo Planer: Login über Fortify (Cookie-Session wie die SPA) und die GraphQL-API.
 
   **Vorbereitung**
   1. Backend starten: `php artisan serve` im Ordner `backend/` (Adresse in `baseUrl`).

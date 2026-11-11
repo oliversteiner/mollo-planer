@@ -1,4 +1,4 @@
-# Frontend-Plan
+# Mollo Planer Frontend
 
 Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf Web Awesome Pro umgestellt (Einzelheiten und Entscheidungen: `frontend-webawesome-plan.md`). Ergänzt `backend-plan.md` und `graphql-kontext.md`; das GraphQL-Schema bleibt der Vertrag. Wo dieser Plan und `backend-plan.md` sich widersprechen, gilt `backend-plan.md`.
 
@@ -10,10 +10,10 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf 
 5. **Erst Plan, dann bauen**, Schritt für Schritt wie beim Backend.
 6. **Backend-Ergänzungen** unten sind bestätigt.
 7. **Projekte:** Nicht-Admins sehen nur Projekte, in denen sie Mitglied sind (wie das Backend liefert). Keine öffentliche Projektliste.
-8. **Kopf der App:** vorerst der Text „Projektverwaltung“, Logo folgt.
+8. **Kopf der App:** vorerst der Text „Mollo Planer“, Logo folgt.
 
 ## Feste Rahmenbedingungen
-- **Reine Single-Page-App** (`ssr: false`), gebaut mit `nuxt generate` zu statischen Dateien. Hostpoint kann nur PHP, kein Node. Auslieferung auf `project.fcadb.ch`, API auf eigener Subdomain. Die Hosting-Details (Rewrite auf `index.html`, Domains, Cookies) kommen später.
+- **Reine Single-Page-App** (`ssr: false`), gebaut mit `nuxt generate` zu statischen Dateien. Hostpoint kann nur PHP, kein Node. Auslieferung auf `planer.mollo.ch`, API auf eigener Subdomain. Die Hosting-Details (Rewrite auf `index.html`, Domains, Cookies) kommen später.
 - **UI-Texte in Deutsch und Englisch** über `@nuxtjs/i18n` (`i18n/locales/de.json`, `en.json`), nie hart im Template. Standard Deutsch; Sprache wählbar, gemerkt im Browser. Jede Anfrage an die API schickt `Accept-Language`, damit Fehlermeldungen in derselben Sprache kommen.
 - **RichText nur mit TipTap**, gespeichert und übertragen als JSON, angezeigt mit TipTap (nur lesend oder im Editor), **nie `v-html`**. Eine ESLint-Regel verbietet `v-html` im ganzen Frontend.
 - **Rechte nur aus dem Backend:** Knöpfe richten sich nach `Project.viewerAbilities` und `Comment.viewerCanEdit/viewerCanDelete`, nie nach einer eigenen Rollenprüfung im Frontend. Das Backend prüft ohnehin jede Änderung.

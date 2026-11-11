@@ -1,4 +1,4 @@
-# Frontend (Nuxt)
+# Mollo Planer Frontend (Nuxt)
 
 Single-page app für die Projektverwaltung: Nuxt 4 mit Web Awesome Pro (Web Components, Theme „Matter“), gebaut als statische Dateien (`nuxt generate`). Entscheidungen und Bau-Reihenfolge: `../docs/frontend-plan.md`, Umstellung der Oberfläche: `../docs/frontend-webawesome-plan.md`.
 

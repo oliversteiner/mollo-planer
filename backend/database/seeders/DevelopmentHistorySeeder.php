@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
- * Creates the project "Projektverwaltung · Entwicklung" from docs/entwicklung.md:
+ * Creates the project "Mollo Planer · Entwicklung" from docs/entwicklung.md:
  * versions as milestones, work contexts as todos, features, bugs, plans and
  * research as tasks (with their kind as label). Local only.
  *
@@ -25,7 +25,7 @@ use RuntimeException;
  */
 class DevelopmentHistorySeeder extends Seeder
 {
-    public const PROJECT_NAME = 'Projektverwaltung · Entwicklung';
+    public const PROJECT_NAME = 'Mollo Planer · Entwicklung';
 
     /** Label key of the built-in set "Softwareentwicklung" for each task kind. */
     private const LABEL_OF_KIND = [
@@ -65,7 +65,7 @@ class DevelopmentHistorySeeder extends Seeder
 
             $project = Project::create([
                 'name' => self::PROJECT_NAME,
-                'description' => 'Entwicklung der Projektverwaltung, aus docs/entwicklung.md.',
+                'description' => 'Entwicklung von Mollo Planer, aus docs/entwicklung.md.',
                 'locale' => 'de',
                 'label_set_id' => $labelSet->getKey(),
             ]);

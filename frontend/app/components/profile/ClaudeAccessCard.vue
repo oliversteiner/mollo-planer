@@ -4,7 +4,7 @@ import { apiTokensQuery, createApiTokenMutation, deleteApiTokenMutation } from '
 import { formatDateTime } from '~/utils/dates'
 
 /**
- * Access for Claude: personal tokens for the MCP server of the app. Claude
+ * Access for Claude: personal tokens for the MCP server of Mollo Planer. Claude
  * then acts with your permissions. A token is shown once and expires after
  * 90 days.
  */
@@ -25,7 +25,7 @@ const { mutate: createToken } = useMutation(createApiTokenMutation)
 const { mutate: deleteToken } = useMutation(deleteApiTokenMutation)
 
 const command = computed(() => (created.value
-  ? `claude mcp add --transport http projektverwaltung ${apiBase}/mcp --header "Authorization: Bearer ${created.value.plainTextToken}"`
+  ? `claude mcp add --transport http mollo-planer ${apiBase}/mcp --header "Authorization: Bearer ${created.value.plainTextToken}"`
   : ''))
 
 async function create(): Promise<void> {
