@@ -178,7 +178,8 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
   - Fokus: Fokusring sichtbar. Im Dialog „Task anlegen“ bleibt der Fokus im Dialog, nach Escape kehrt er auf den Auslöser zurück.
   - Englisch: Dashboard, Kanban und Profil ohne deutsche Oberflächentexte. Projektnamen und Beschreibungen bleiben deutsch, weil es Daten sind.
   - **Behoben:** Auf `/setup-security` liefen die Labels der Knöpfe „Passkey einrichten (empfohlen)“, „Authenticator-App einrichten“ (und in Englisch „Set up a passkey (recommended)“) über den Rand. Die Knöpfe haben jetzt `class="setup-choice"`, das Label umbricht (`::part(label)`, `white-space: normal`).
-  - **Offen:** Seitenleiste als Schublade und Ansicht bei Telefonbreite, Login- und Passwort-Seiten, vollständige Tab-Reihenfolge, Admin- und System-Seiten auf Englisch. Die Punkte aus den Hinweisen zu Schritt 3 bis 7 (Linie der Zeitachse, Abstände neben Eingabefeldern, Dialog in der Schublade, Native Styles) sind weiterhin offen.
+  - Telefonbreite (388 px, per Iframe auf derselben Herkunft gemessen): Login, Passwort vergessen, Registrierung, Passwort zurücksetzen, Einladung, Wartesseite und Bestätigung ohne horizontalen Überlauf. Login visuell geprüft. Hinweis: Im Browser überlappt das Label „E-Mail“ den Autofill-Text; das ist der Browser, nicht die App.
+  - **Offen:** Dashboard, Kanban und Seitenleiste als Schublade bei Telefonbreite (brauchen eine Anmeldung; die Testkonten sind gelöscht), vollständige Tab-Reihenfolge, Admin- und System-Seiten auf Englisch. Die Punkte aus den Hinweisen zu Schritt 3 bis 7 (Linie der Zeitachse, Abstände neben Eingabefeldern, Dialog in der Schublade, Native Styles) sind weiterhin offen.
 - **Merge nach `dev`** erst nach Abnahme durch den Auftraggeber.
 
 ## Stand
