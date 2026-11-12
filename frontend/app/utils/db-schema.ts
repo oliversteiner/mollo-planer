@@ -113,6 +113,7 @@ const TABLES: Record<DbTableName, DbTable> = {
     columns: [
       { name: 'id', type: 'bigint', primary: true },
       { name: 'project_id', type: 'bigint', references: 'projects' },
+      { name: 'position', type: 'int', default: '0' },
       { name: 'title', type: 'varchar' },
       { name: 'description', type: 'longtext', nullable: true },
       { name: 'icon', type: 'varchar', nullable: true },

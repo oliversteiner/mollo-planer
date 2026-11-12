@@ -121,6 +121,10 @@ type Mutation @guard {
   updateMilestone(id: ID!, input: UpdateMilestoneInput! @spread): Milestone!
     @can(ability: "update", find: "id")
     @update
+  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
+  moveMilestone(id: ID!, position: Int! @rules(apply: ["integer", "min:0"])): Milestone!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveMilestone")
   deleteMilestone(id: ID! @whereKey): Milestone!
     @can(ability: "delete", find: "id")
     @delete

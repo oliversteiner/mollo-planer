@@ -15,5 +15,7 @@ return [
         'task' => 'Task „:subject“: :detail',
         'not_a_member' => 'Task „:subject“: :detail ist nicht Mitglied des Projekts.',
         'unknown_person' => 'Zu :subject gibt es kein Konto. Ein Admin muss die Person zuerst einladen (Verwaltung → Benutzer).',
+        'duplicate_task' => 'Die Aufgabe „:subject“ gibt es in „:detail“ schon. Es wurde nichts angelegt.',
+        'duplicate_todo' => 'Das ToDo „:subject“ gibt es im Milestone „:detail“ schon. Es wurde nichts angelegt.',
     ],
 ];

@@ -37,6 +37,8 @@ input CreateMilestoneInput {
  description: RichText
  dueDate: Date
  icon: String
+ "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
+ position: Int
  projectId: ID!
  title: String!
 }
@@ -160,6 +162,8 @@ type Milestone {
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
  icon: String
  id: ID!
+ "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
+ position: Int!
  progress: Progress!
  project: Project!
  "DONE, sobald alle ToDos erledigt sind"
@@ -205,6 +209,8 @@ type Mutation {
  duplicateLabelSet(id: ID!): LabelSet!
  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
  importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
+ "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
+ moveMilestone(id: ID!, position: Int!): Milestone!
  "Verschiebt einen Task im Kanban"
  moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."

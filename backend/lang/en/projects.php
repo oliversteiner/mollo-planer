@@ -15,5 +15,7 @@ return [
         'task' => 'Task “:subject”: :detail',
         'not_a_member' => 'Task “:subject”: :detail is not a member of the project.',
         'unknown_person' => 'There is no account for :subject. An admin must invite them first (Administration → Users).',
+        'duplicate_task' => 'The task “:subject” already exists in “:detail”. Nothing was created.',
+        'duplicate_todo' => 'The todo “:subject” already exists in the milestone “:detail”. Nothing was created.',
     ],
 ];

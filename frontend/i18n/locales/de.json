@@ -900,6 +900,10 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "position": {
+          "label": "Position",
+          "description": "Reihenfolge des Milestones im Projekt, von 0 an."
         }
       },
       "todos": {

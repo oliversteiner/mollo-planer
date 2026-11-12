@@ -91,6 +91,8 @@ type ProjectMember {
 type Milestone {
   id: ID!
   project: Project! @belongsTo
+  "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
+  position: Int!
   title: String!
   description: RichText
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."

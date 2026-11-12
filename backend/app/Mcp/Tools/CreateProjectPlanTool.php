@@ -19,6 +19,7 @@ All or nothing: if anything fails (a missing right, an invalid date, an assignee
 Milestones and todos may be created by every member; tasks need owner or manager rights (see abilities in list_projects).
 Descriptions are plain text: blank lines separate paragraphs, lines starting with "- " become a bullet list.
 Dates are YYYY-MM-DD. Milestones and todos get their status automatically. Tasks start open; give a task status done to mark it finished (for example to import completed versions).
+Milestones are added at the end unless a position is given (0 is the first); the others move back. The answer lists the ids and titles of everything created, so no search is needed afterwards.
 By default no e-mails are sent for the assignments; set notify_assignees to true to send one per assigned task.
 TEXT)]
 class CreateProjectPlanTool extends Tool
@@ -38,6 +39,7 @@ class CreateProjectPlanTool extends Tool
             'milestones.*.title' => $title,
             'milestones.*.description' => $text,
             'milestones.*.due_date' => $date,
+            'milestones.*.position' => ['nullable', 'integer', 'min:0'],
             'milestones.*.todos' => ['array', 'max:50'],
             'milestones.*.todos.*.title' => $title,
             'milestones.*.todos.*.description' => $text,
@@ -81,6 +83,7 @@ class CreateProjectPlanTool extends Tool
             'tasks' => $schema->array()->items($task)->description('Tasks of this todo; each task is one person\'s piece of work.'),
         ]);
         $milestone = $schema->object([
+            'position' => $schema->integer()->description('Place in the project, 0 is the first. Default: the end.'),
             'title' => $schema->string()->required(),
             'description' => $schema->string()->description('Plain text.'),
             'due_date' => $schema->string()->format('date')->description('YYYY-MM-DD'),

@@ -67,7 +67,7 @@ class Project extends Model
      */
     public function milestones(): HasMany
     {
-        return $this->hasMany(Milestone::class);
+        return $this->hasMany(Milestone::class)->orderBy('position')->orderBy('id');
     }
 
     /**

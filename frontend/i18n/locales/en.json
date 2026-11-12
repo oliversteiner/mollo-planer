@@ -900,6 +900,10 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "position": {
+          "label": "Position",
+          "description": "Order of the milestone in its project, from 0."
         }
       },
       "todos": {

@@ -13,6 +13,8 @@ export type CreateMilestoneInput = {
   description?: Record<string, unknown> | null | undefined;
   dueDate?: string | null | undefined;
   icon?: string | null | undefined;
+  /** Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende. */
+  position?: number | null | undefined;
   projectId: string | number;
   title: string;
 };

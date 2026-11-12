@@ -99,8 +99,13 @@ Claude Code danach neu starten.
 | `set_project_member` | Mitglied hinzufügen oder die Rolle ändern | nach Projektrolle, siehe unten |
 | `create_project_plan` | Milestones, ToDos, Tasks und Zuweisungen in einem Projekt anlegen. Jede Aufgabe kann mit `status` `open` (Standard) oder `done` angelegt werden, etwa um abgeschlossene Versionen zu importieren | Tasks: Owner und Manager. Mit `status` `done` zusätzlich das Recht, Tasks zu verschieben (Mitglieder dürfen das) |
 | `set_task_status` | Setzt den Status einer Aufgabe (`open`, `in_progress`, `review`, `done`). ToDo und Milestone werden danach automatisch berechnet. Antwort mit Task, ToDo und Milestone | alle Mitglieder des Projekts, die Aufgaben verschieben dürfen |
+| `add_to_plan` | Fügt einem bestehenden Plan etwas hinzu, ohne Duplikate: mit `milestone_id` ToDos (mit Tasks) an einen Milestone, mit `todo_id` Tasks an ein ToDo. Ein doppelter Titel im selben Milestone oder ToDo bricht den ganzen Aufruf ab. Antwort mit IDs und Titeln | ToDos: Recht, ToDos anzulegen. Tasks: Owner und Manager |
+| `update_plan_item` | Ändert Titel, Beschreibung oder Fälligkeit eines Milestones oder ToDos. Nur die angegebenen Felder ändern sich. Der Status wird nie gesetzt | Milestone: Recht, Milestones zu ändern. ToDo: Recht, ToDos zu ändern |
+| `move_milestone` | Verschiebt einen Milestone an eine andere Stelle im Projekt (`position`, 0 ist der erste). Die anderen rücken nach | Recht, Milestones zu ändern |
 
-**Löschen kann Claude nicht.** Es gibt kein Werkzeug dafür. Ändern kann Claude nur den Status einer Aufgabe, nicht Titel, Zuweisung oder Beschreibung.
+Beim Anlegen (`create_project_plan`, `add_to_plan`) geben die Werkzeuge die IDs und Titel aller neuen Milestones, ToDos und Tasks zurück, damit ein Folgeaufruf ohne Suche auskommt. `create_project_plan` nimmt außerdem `position` je Milestone entgegen; ohne Angabe kommt er ans Ende.
+
+**Löschen kann Claude nicht.** Es gibt kein Werkzeug dafür. Aufgaben ändert Claude nur im Status, nicht Titel, Zuweisung oder Beschreibung. Milestones und ToDos kann Claude mit `update_plan_item` in Titel, Beschreibung und Fälligkeit ändern, und Milestones mit `move_milestone` umordnen.
 
 **Status:** ToDos und Milestones bekommen ihren Status nie direkt. Sie ergeben sich aus den Aufgaben: ein ToDo ist erledigt, wenn alle seine Aufgaben erledigt sind, ein Milestone, wenn alle seine ToDos erledigt sind. Mails verschickt `set_task_status` nie, auch bei `done` nicht.
 

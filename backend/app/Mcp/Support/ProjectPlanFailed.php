@@ -18,10 +18,14 @@ class ProjectPlanFailed extends GraphQLFailed
 
     public const UNKNOWN_PERSON = 'unknown_person';
 
+    public const DUPLICATE_TASK = 'duplicate_task';
+
+    public const DUPLICATE_TODO = 'duplicate_todo';
+
     /**
      * @param  string  $kind  One of the constants
      * @param  string  $subject  Title of the item, or the e-mail for UNKNOWN_PERSON
-     * @param  string  $detail  Reason (MILESTONE, TODO, TASK) or the e-mail (NOT_A_MEMBER)
+     * @param  string  $detail  Reason (MILESTONE, TODO, TASK), the e-mail (NOT_A_MEMBER) or the parent item (DUPLICATE_*)
      */
     public function __construct(
         public readonly string $kind,
@@ -34,6 +38,8 @@ class ProjectPlanFailed extends GraphQLFailed
             self::TASK => "Task \"{$subject}\": {$detail}",
             self::NOT_A_MEMBER => "Task \"{$subject}\": {$detail} is not a member of this project. Add them with set_project_member first, or leave the task unassigned.",
             self::UNKNOWN_PERSON => "No person with the e-mail {$subject} has an account. An admin must invite them in the app first.",
+            self::DUPLICATE_TASK => "Task \"{$subject}\" already exists in todo \"{$detail}\". Nothing was created.",
+            self::DUPLICATE_TODO => "Todo \"{$subject}\" already exists in milestone \"{$detail}\". Nothing was created.",
         });
     }
 

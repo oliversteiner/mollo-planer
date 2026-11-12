@@ -2,13 +2,16 @@
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\Tools\AddToPlanTool;
 use App\Mcp\Tools\CreateProjectPlanTool;
 use App\Mcp\Tools\CreateProjectTool;
 use App\Mcp\Tools\GetProjectTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\ListUsersTool;
+use App\Mcp\Tools\MoveMilestoneTool;
 use App\Mcp\Tools\SetProjectMemberTool;
 use App\Mcp\Tools\SetTaskStatusTool;
+use App\Mcp\Tools\UpdatePlanItemTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -31,7 +34,7 @@ How to work:
 1. Read first: list_projects (and get_project for an existing plan), list_users to find people.
 2. People are named by e-mail. Someone without an account cannot be added; tell the user that an admin must invite them in the app (Verwaltung > Benutzer) and ask how to go on.
 3. To create a new project: create_project with its members, then create_project_plan with milestones, todos and tasks. Tasks can only be assigned to project members.
-4. Do not create the same items twice; check get_project before adding to an existing plan.
+4. Do not create the same items twice. To extend an existing plan use add_to_plan (milestone_id or todo_id), never create_project_plan again: it would create the milestones a second time. Read the ids from get_project or from the answer of the last call. To change a milestone or todo use update_plan_item, to put milestones in order use move_milestone.
 5. Write titles and descriptions in the language of the user; descriptions are plain text.
 Nothing can be deleted through this server; the user does that in the app.
 TEXT)]
@@ -45,6 +48,9 @@ class MolloPlanerServer extends Server
         SetProjectMemberTool::class,
         CreateProjectPlanTool::class,
         SetTaskStatusTool::class,
+        AddToPlanTool::class,
+        UpdatePlanItemTool::class,
+        MoveMilestoneTool::class,
     ];
 
     protected array $resources = [];

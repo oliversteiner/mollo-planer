@@ -12,22 +12,24 @@ use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Creates a whole project plan (optionally with the project and its
- * members) through the app's own GraphQL mutations, as the current user.
- * Same permissions, validation, status automation and mails as a click in
- * the app; all or nothing in one transaction.
+ * Creates or extends a project plan through the app's own GraphQL mutations,
+ * as the current user. Same permissions, validation, status automation and
+ * mails as a click in the app; all or nothing in one transaction.
  *
  * Used by the MCP tools and by the AI assistant page.
  *
  * Plan shape (plain-text descriptions, dates YYYY-MM-DD):
- * milestones[] { title, description?, due_date?, todos[] { title,
+ * milestones[] { title, description?, due_date?, position?, todos[] { title,
  * description?, due_date?, tasks[] { title, description?, due_date?,
  * assignee_email?, status? (open or done) } } }
  *
+ * Results: the counts, plus items: the ids and titles of what was created,
+ * so a follow-up call needs no search.
+ *
  * @phpstan-type PlanTask array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, assignee_email?: string|null, status?: string|null}
  * @phpstan-type PlanTodo array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, tasks?: list<PlanTask>}
- * @phpstan-type PlanMilestone array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, todos?: list<PlanTodo>}
- * @phpstan-type PlanCounts array{milestones: int, todos: int, tasks: int, assigned: int}
+ * @phpstan-type PlanMilestone array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, position?: int|null, todos?: list<PlanTodo>}
+ * @phpstan-type PlanCounts array{milestones: int, todos: int, tasks: int, assigned: int, items: array<string, mixed>}
  */
 class ProjectPlanImporter
 {
@@ -40,6 +42,8 @@ class ProjectPlanImporter
     private const TODO = 'mutation ($input: CreateTodoInput!) { createTodo(input: $input) { id } }';
 
     private const TASK = 'mutation ($input: CreateTaskInput!) { createTask(input: $input) { id } }';
+
+    private const TREE = 'query ($id: ID!) { project(id: $id) { members { user { id email } } milestones { id title todos { id title tasks { id title } } } } }';
 
     public function __construct(
         private readonly GraphQLRunner $graphQL,
@@ -98,6 +102,61 @@ class ProjectPlanImporter
     }
 
     /**
+     * Adds todos (each with its tasks) to an existing milestone. A todo or
+     * task whose title already exists there stops the whole call.
+     *
+     * @param  list<PlanTodo>  $todos
+     * @return PlanCounts
+     *
+     * @throws ProjectPlanFailed
+     * @throws GraphQLFailed
+     */
+    public function addToMilestone(string $projectId, string $milestoneId, array $todos, bool $notifyAssignees = false): array
+    {
+        return $this->transaction($notifyAssignees, function () use ($projectId, $milestoneId, $todos): array {
+            $tree = $this->projectTree($projectId);
+            $milestone = $this->findMilestone($tree, $milestoneId);
+
+            $existing = array_column($milestone['todos'], 'title');
+            $this->guardDuplicates($todos, $existing, ProjectPlanFailed::DUPLICATE_TODO, $milestone['title']);
+
+            foreach ($todos as $todo) {
+                $this->guardDuplicates($todo['tasks'] ?? [], [], ProjectPlanFailed::DUPLICATE_TASK, $todo['title']);
+            }
+
+            $counts = ['milestones' => 0, 'todos' => 0, 'tasks' => 0, 'assigned' => 0];
+            $items = ['todos' => $this->createTodos($milestoneId, $todos, $this->membersByEmail($projectId), $counts)];
+
+            return [...$counts, 'items' => $items];
+        });
+    }
+
+    /**
+     * Adds tasks to an existing todo. A task whose title already exists in
+     * this todo stops the whole call.
+     *
+     * @param  list<PlanTask>  $tasks
+     * @return PlanCounts
+     *
+     * @throws ProjectPlanFailed
+     * @throws GraphQLFailed
+     */
+    public function addToTodo(string $projectId, string $todoId, array $tasks, bool $notifyAssignees = false): array
+    {
+        return $this->transaction($notifyAssignees, function () use ($projectId, $todoId, $tasks): array {
+            $tree = $this->projectTree($projectId);
+            $todo = $this->findTodo($tree, $todoId);
+
+            $this->guardDuplicates($tasks, array_column($todo['tasks'], 'title'), ProjectPlanFailed::DUPLICATE_TASK, $todo['title']);
+
+            $counts = ['milestones' => 0, 'todos' => 0, 'tasks' => 0, 'assigned' => 0];
+            $items = ['tasks' => $this->createTasks($todoId, $tasks, $this->membersByEmail($projectId), $counts)];
+
+            return [...$counts, 'items' => $items];
+        });
+    }
+
+    /**
      * @template T
      *
      * @param  \Closure(): T  $work
@@ -118,45 +177,114 @@ class ProjectPlanImporter
     {
         $members = $this->membersByEmail($projectId);
         $counts = ['milestones' => 0, 'todos' => 0, 'tasks' => 0, 'assigned' => 0];
+        $items = [];
 
         foreach ($milestones as $milestone) {
+            // The position key is sent only when given: an explicit null fails the integer rule.
+            $position = isset($milestone['position']) ? ['position' => $milestone['position']] : [];
+
             $milestoneId = $this->create(self::MILESTONE, 'createMilestone', ProjectPlanFailed::MILESTONE, $milestone['title'], [
                 'projectId' => $projectId,
+                ...$position,
                 ...$this->fields($milestone),
             ]);
             $counts['milestones']++;
 
-            foreach ($milestone['todos'] ?? [] as $todo) {
-                $todoId = $this->create(self::TODO, 'createTodo', ProjectPlanFailed::TODO, $todo['title'], [
-                    'milestoneId' => $milestoneId,
-                    ...$this->fields($todo),
-                ]);
-                $counts['todos']++;
-
-                foreach ($todo['tasks'] ?? [] as $task) {
-                    $email = isset($task['assignee_email']) && trim($task['assignee_email']) !== ''
-                        ? $this->normalize($task['assignee_email'])
-                        : null;
-
-                    if ($email !== null && ! isset($members[$email])) {
-                        throw new ProjectPlanFailed(ProjectPlanFailed::NOT_A_MEMBER, $task['title'], $task['assignee_email']);
-                    }
-
-                    $taskId = $this->create(self::TASK, 'createTask', ProjectPlanFailed::TASK, $task['title'], [
-                        'todoId' => $todoId,
-                        'assigneeId' => $email === null ? null : $members[$email],
-                        ...$this->fields($task),
-                    ]);
-                    if (($task['status'] ?? 'open') === TaskStatus::DONE->value) {
-                        $this->markDone($taskId, $task['title']);
-                    }
-                    $counts['tasks']++;
-                    $counts['assigned'] += $email === null ? 0 : 1;
-                }
-            }
+            $items[] = [
+                'id' => $milestoneId,
+                'title' => $milestone['title'],
+                'todos' => $this->createTodos($milestoneId, $milestone['todos'] ?? [], $members, $counts),
+            ];
         }
 
-        return $counts;
+        return [...$counts, 'items' => ['milestones' => $items]];
+    }
+
+    /**
+     * @param  list<PlanTodo>  $todos
+     * @param  array<string, string>  $members
+     * @param  array{milestones: int, todos: int, tasks: int, assigned: int}  $counts
+     * @return list<array{id: string, title: string, tasks: list<array{id: string, title: string}>}>
+     */
+    private function createTodos(string $milestoneId, array $todos, array $members, array &$counts): array
+    {
+        $items = [];
+
+        foreach ($todos as $todo) {
+            $todoId = $this->create(self::TODO, 'createTodo', ProjectPlanFailed::TODO, $todo['title'], [
+                'milestoneId' => $milestoneId,
+                ...$this->fields($todo),
+            ]);
+            $counts['todos']++;
+
+            $items[] = [
+                'id' => $todoId,
+                'title' => $todo['title'],
+                'tasks' => $this->createTasks($todoId, $todo['tasks'] ?? [], $members, $counts),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param  list<PlanTask>  $tasks
+     * @param  array<string, string>  $members
+     * @param  array{milestones: int, todos: int, tasks: int, assigned: int}  $counts
+     * @return list<array{id: string, title: string}>
+     */
+    private function createTasks(string $todoId, array $tasks, array $members, array &$counts): array
+    {
+        $items = [];
+
+        foreach ($tasks as $task) {
+            $email = isset($task['assignee_email']) && trim($task['assignee_email']) !== ''
+                ? $this->normalize($task['assignee_email'])
+                : null;
+
+            if ($email !== null && ! isset($members[$email])) {
+                throw new ProjectPlanFailed(ProjectPlanFailed::NOT_A_MEMBER, $task['title'], $task['assignee_email']);
+            }
+
+            $taskId = $this->create(self::TASK, 'createTask', ProjectPlanFailed::TASK, $task['title'], [
+                'todoId' => $todoId,
+                'assigneeId' => $email === null ? null : $members[$email],
+                ...$this->fields($task),
+            ]);
+            if (($task['status'] ?? 'open') === TaskStatus::DONE->value) {
+                $this->markDone($taskId, $task['title']);
+            }
+            $counts['tasks']++;
+            $counts['assigned'] += $email === null ? 0 : 1;
+
+            $items[] = ['id' => $taskId, 'title' => $task['title']];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Stops at the first title that already exists or appears twice in the
+     * same call. The kind says what the duplicate is (todo or task).
+     *
+     * @param  list<array{title: string}>  $items
+     * @param  list<string>  $existing  Titles already in the parent
+     *
+     * @throws ProjectPlanFailed
+     */
+    private function guardDuplicates(array $items, array $existing, string $kind, string $parentTitle): void
+    {
+        $seen = array_map($this->normalizeTitle(...), $existing);
+
+        foreach ($items as $item) {
+            $key = $this->normalizeTitle($item['title']);
+
+            if (in_array($key, $seen, true)) {
+                throw new ProjectPlanFailed($kind, $item['title'], $parentTitle);
+            }
+
+            $seen[] = $key;
+        }
     }
 
     /**
@@ -204,19 +332,69 @@ class ProjectPlanImporter
     }
 
     /**
+     * The project with its milestones, todos and tasks (titles and ids).
+     *
+     * @return array{members: list<array{user: array{id: string, email: string}}>, milestones: list<array{id: string, title: string, todos: list<array{id: string, title: string, tasks: list<array{id: string, title: string}>}>}>}
+     *
+     * @throws GraphQLFailed
+     */
+    private function projectTree(string $projectId): array
+    {
+        $project = $this->graphQL->run(self::TREE, ['id' => $projectId])['project'] ?? null;
+
+        if ($project === null) {
+            throw new GraphQLFailed('This project does not exist, or you have no access to it. Nothing was created.');
+        }
+
+        return $project;
+    }
+
+    /**
+     * @param  array{milestones: list<array{id: string, title: string, todos: list<array<string, mixed>>}>}  $tree
+     * @return array{id: string, title: string, todos: list<array{id: string, title: string, tasks: list<array{id: string, title: string}>}>}
+     *
+     * @throws GraphQLFailed
+     */
+    private function findMilestone(array $tree, string $milestoneId): array
+    {
+        foreach ($tree['milestones'] as $milestone) {
+            if ((string) $milestone['id'] === $milestoneId) {
+                return $milestone;
+            }
+        }
+
+        throw new GraphQLFailed('This milestone does not exist in this project. Nothing was created.');
+    }
+
+    /**
+     * @param  array{milestones: list<array{id: string, title: string, todos: list<array<string, mixed>>}>}  $tree
+     * @return array{id: string, title: string, tasks: list<array{id: string, title: string}>}
+     *
+     * @throws GraphQLFailed
+     */
+    private function findTodo(array $tree, string $todoId): array
+    {
+        foreach ($tree['milestones'] as $milestone) {
+            foreach ($milestone['todos'] as $todo) {
+                if ((string) $todo['id'] === $todoId) {
+                    return $todo;
+                }
+            }
+        }
+
+        throw new GraphQLFailed('This todo does not exist in this project. Nothing was created.');
+    }
+
+    /**
      * @return array<string, string> Member ids by lower-case e-mail
      *
      * @throws GraphQLFailed
      */
     private function membersByEmail(string $projectId): array
     {
-        $project = $this->graphQL->run('query ($id: ID!) { project(id: $id) { members { user { id email } } } }', ['id' => $projectId])['project'] ?? null;
+        $members = $this->projectTree($projectId)['members'] ?? [];
 
-        if ($project === null) {
-            throw new GraphQLFailed('This project does not exist, or you have no access to it.');
-        }
-
-        return collect($project['members'])->mapWithKeys(fn (array $member) => [$this->normalize($member['user']['email']) => $member['user']['id']])->all();
+        return collect($members)->mapWithKeys(fn (array $member) => [$this->normalize($member['user']['email']) => $member['user']['id']])->all();
     }
 
     /**
@@ -232,5 +410,10 @@ class ProjectPlanImporter
     private function normalize(string $email): string
     {
         return mb_strtolower(trim($email));
+    }
+
+    private function normalizeTitle(string $title): string
+    {
+        return mb_strtolower(trim($title));
     }
 }

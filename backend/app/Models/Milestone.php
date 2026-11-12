@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Status is computed by the status observer, never set from input.
  */
-#[Fillable(['project_id', 'title', 'description', 'icon', 'due_date'])]
+#[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position'])]
 class Milestone extends Model implements BelongsToProject
 {
     /** @use HasFactory<MilestoneFactory> */
@@ -67,5 +67,24 @@ class Milestone extends Model implements BelongsToProject
     protected static function projectPath(): ?string
     {
         return 'project';
+    }
+
+    /**
+     * A new milestone goes to the end of its project, or to the given position;
+     * the milestones from there on move one place back.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Milestone $milestone): void {
+            $siblings = static::query()->where('project_id', $milestone->project_id);
+
+            if ($milestone->position === null) {
+                $milestone->position = (int) $siblings->max('position') + 1;
+
+                return;
+            }
+
+            $siblings->where('position', '>=', $milestone->position)->increment('position');
+        });
     }
 }
