@@ -91,7 +91,7 @@ type Mutation @guard {
     @update
   deleteProject(id: ID! @whereKey): Project!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteProject")
   "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
   draftProjectPlan(
     messages: [PlanChatMessageInput!]! @rules(apply: ["min:1", "max:40"])
@@ -127,7 +127,7 @@ type Mutation @guard {
     @field(resolver: "App\\GraphQL\\Mutations\\MoveMilestone")
   deleteMilestone(id: ID! @whereKey): Milestone!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteMilestone")
 
   createTodo(input: CreateTodoInput! @spread): Todo!
     @can(ability: "createTodo", find: "milestone_id", model: "App\\Models\\Milestone")
@@ -137,7 +137,7 @@ type Mutation @guard {
     @update
   deleteTodo(id: ID! @whereKey): Todo!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteTodo")
 
   "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
   createTask(input: CreateTaskInput! @spread): Task!
@@ -160,7 +160,7 @@ type Mutation @guard {
     @field(resolver: "App\\GraphQL\\Mutations\\MoveTaskToTodo")
   deleteTask(id: ID! @whereKey): Task!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteTask")
 
   # Kommentare: Alle Mitglieder dürfen kommentieren. Die Autorin oder der
   # Autor wird aus dem Login gesetzt, nicht aus der Eingabe.
@@ -172,5 +172,5 @@ type Mutation @guard {
     @update
   deleteComment(id: ID! @whereKey): Comment!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteComment")
 }
