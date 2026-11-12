@@ -27,7 +27,7 @@ const users = computed(() => {
 })
 
 const editing = ref<{ user?: User } | null>(null)
-const confirming = ref<{ kind: 'reset' | 'delete' | 'avatar' | 'reject', user: User } | null>(null)
+const confirming = ref<{ kind: ConfirmKind, user: User } | null>(null)
 
 const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
 const { mutate: resetTwoFactor } = useMutation(resetUserTwoFactorMutation, options)
@@ -63,7 +63,7 @@ function startEditing(user?: User): void {
   editing.value = user ? { user } : {}
 }
 
-function ask(kind: 'reset' | 'delete' | 'avatar' | 'reject', user: User): void {
+function ask(kind: ConfirmKind, user: User): void {
   confirming.value = { kind, user }
 }
 
@@ -112,21 +112,17 @@ async function confirm(): Promise<void> {
   }
 }
 
-const confirmTexts = computed(() => {
-  const target = confirming.value
-  const name = target?.user.name ?? ''
+type ConfirmKind = 'reset' | 'delete' | 'avatar' | 'reject'
 
-  switch (target?.kind) {
-    case 'reset':
-      return { title: t('admin.users.resetTitle', { name }), description: t('admin.users.resetDescription'), label: t('admin.users.resetTwoFactor') }
-    case 'avatar':
-      return { title: t('admin.users.avatarTitle', { name }), description: t('admin.users.avatarDescription'), label: t('admin.users.removeAvatar') }
-    case 'reject':
-      return { title: t('admin.users.pending.rejectTitle', { name }), description: t('admin.users.pending.rejectDescription'), label: t('admin.users.pending.reject') }
-    default:
-      return { title: t('admin.users.deleteTitle', { name }), description: t('admin.users.deleteDescription'), label: t('common.delete') }
-  }
-})
+/** Title, text and button of each confirmation; the name of the person fills the title. */
+const confirmCopy: Record<ConfirmKind, (name: string) => { title: string, description: string, label: string }> = {
+  reset: name => ({ title: t('admin.users.resetTitle', { name }), description: t('admin.users.resetDescription'), label: t('admin.users.resetTwoFactor') }),
+  avatar: name => ({ title: t('admin.users.avatarTitle', { name }), description: t('admin.users.avatarDescription'), label: t('admin.users.removeAvatar') }),
+  reject: name => ({ title: t('admin.users.pending.rejectTitle', { name }), description: t('admin.users.pending.rejectDescription'), label: t('admin.users.pending.reject') }),
+  delete: name => ({ title: t('admin.users.deleteTitle', { name }), description: t('admin.users.deleteDescription'), label: t('common.delete') })
+}
+
+const confirmTexts = computed(() => confirmCopy[confirming.value?.kind ?? 'delete'](confirming.value?.user.name ?? ''))
 
 function factorLabel(user: User): string {
   if (user.twoFactorConfirmed && user.hasPasskey) {
@@ -181,53 +177,11 @@ function factorLabel(user: User): string {
       class="users-skeleton"
     ></wa-skeleton>
     <template v-else>
-      <section
-        v-if="pendingUsers.length > 0"
-        class="users-pending"
-      >
-        <h2 class="wa-heading-s">
-          {{ t('admin.users.pending.title', { count: pendingUsers.length }) }}
-        </h2>
-        <ul class="users-list wa-list-plain">
-          <li
-            v-for="user in pendingUsers"
-            :key="user.id"
-            class="users-row"
-          >
-            <UserAvatar
-              :name="user.name"
-              :src="user.avatarUrl"
-              size="md"
-            />
-            <span class="users-text">
-              <span class="users-name-text">{{ user.name }}</span>
-              <span class="users-email">{{ user.email }}</span>
-            </span>
-            <wa-badge
-              :variant="user.emailVerified ? 'brand' : 'warning'"
-              appearance="filled"
-            >
-              {{ user.emailVerified ? t('admin.users.pending.verified') : t('admin.users.pending.unverified') }}
-            </wa-badge>
-            <wa-button
-              size="small"
-              variant="brand"
-              :disabled="!user.emailVerified"
-              @click="approve(user)"
-            >
-              {{ t('admin.users.pending.approve') }}
-            </wa-button>
-            <wa-button
-              size="small"
-              appearance="outlined"
-              variant="danger"
-              @click="ask('reject', user)"
-            >
-              {{ t('admin.users.pending.reject') }}
-            </wa-button>
-          </li>
-        </ul>
-      </section>
+      <AdminPendingUsers
+        :users="pendingUsers"
+        @approve="approve"
+        @reject="ask('reject', $event)"
+      />
 
       <ul class="users-list wa-list-plain">
         <li
@@ -294,13 +248,6 @@ function factorLabel(user: User): string {
 
 .users-skeleton {
   block-size: 10rem;
-}
-
-.users-pending {
-  display: flex;
-  flex-direction: column;
-  gap: var(--wa-space-s);
-  margin-block-end: var(--wa-space-l);
 }
 
 .users-list {
