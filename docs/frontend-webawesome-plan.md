@@ -172,7 +172,13 @@ Darum: Version exakt pinnen, Lockfile committen, die verwendete Version zusätzl
   - de/en: Beide Sprachdateien haben dieselben Schlüssel, jeder verwendete Schlüssel existiert. Zwei nicht mehr verwendete Texte sind entfernt.
   - Dokumentation: `docs/frontend-plan.md`, `CLAUDE.md` (Stack, Regeln, Verweis auf diesen Plan) und `frontend/README.md` sind nachgeführt.
   - Bundle: `_nuxt` rund 2,1 MB (vorher 3,5 MB), Schriften rund 800 KB in `/_fonts`.
-- **Offen (braucht den Browser):** Sichtprüfung jeder Seite in hell und dunkel und auf Deutsch und Englisch. Tastatur und Fokus (Reihenfolge, Fokusfalle in Dialog und Schublade, Rückkehr des Fokus). Kontrast im Theme Matter, vor allem `--wa-color-text-quiet` auf hellen Flächen. Die Punkte aus den Hinweisen zu Schritt 3 bis 7 (Linie der Zeitachse, Abstände neben Eingabefeldern, Dialog in der Schublade, Native Styles).
+- **Browserprüfung (Stand 2026-11-12, lokal, Dashboard, Kanban, Projektseiten, Profil, Admin, Label-Sets, Systemstatus, Konto absichern):**
+  - Hell und dunkel: alle genannten Seiten sichtbar in Ordnung.
+  - Kontrast (Messung per Skript, nur Text im Light-DOM): hell mindestens 5,59:1, dunkel mindestens 5,70:1. Texte in Shadow-DOMs von `wa-*` sind nicht erfasst, dafür bleibt Sichtprüfung nötig. Der Knopf „Passkey einrichten“ im Dunkelmodus kommt rechnerisch auf rund 7,6:1, wirkt im Zoom aber heller als erwartet.
+  - Fokus: Fokusring sichtbar. Im Dialog „Task anlegen“ bleibt der Fokus im Dialog, nach Escape kehrt er auf den Auslöser zurück.
+  - Englisch: Dashboard, Kanban und Profil ohne deutsche Oberflächentexte. Projektnamen und Beschreibungen bleiben deutsch, weil es Daten sind.
+  - **Behoben:** Auf `/setup-security` liefen die Labels der Knöpfe „Passkey einrichten (empfohlen)“, „Authenticator-App einrichten“ (und in Englisch „Set up a passkey (recommended)“) über den Rand. Die Knöpfe haben jetzt `class="setup-choice"`, das Label umbricht (`::part(label)`, `white-space: normal`).
+  - **Offen:** Seitenleiste als Schublade und Ansicht bei Telefonbreite, Login- und Passwort-Seiten, vollständige Tab-Reihenfolge, Admin- und System-Seiten auf Englisch. Die Punkte aus den Hinweisen zu Schritt 3 bis 7 (Linie der Zeitachse, Abstände neben Eingabefeldern, Dialog in der Schublade, Native Styles) sind weiterhin offen.
 - **Merge nach `dev`** erst nach Abnahme durch den Auftraggeber.
 
 ## Stand
