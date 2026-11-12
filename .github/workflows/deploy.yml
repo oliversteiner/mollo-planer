@@ -16,8 +16,10 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DEPLOY_HOST: servername.hostpoint.ch
-  DEPLOY_USER: username
+  # Host and user come from the repository variables (Settings → Secrets and
+  # variables → Actions → Variables), so they are not stored in git.
+  DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+  DEPLOY_USER: ${{ vars.DEPLOY_USER }}
   API_BASE: https://api.planer.mollo.dev
 
 jobs:
