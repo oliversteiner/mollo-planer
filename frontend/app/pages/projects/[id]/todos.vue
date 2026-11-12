@@ -40,22 +40,17 @@ const todos = computed(() => [...(result.value?.todos ?? [])]
 type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
-const deleting = ref<Item | null>(null)
 
 const { mutate: deleteTodo } = useMutation(deleteTodoMutation, { refetchQueries: projectContentQueries, awaitRefetchQueries: true })
+
+const deletion = useConfirmedDelete<Item>(todo => deleteTodo({ id: todo.id }))
 
 function startEditing(todo: Item): void {
   editing.value = { kind: 'todo', item: todo }
 }
 
 function startDeleting(todo: Item): void {
-  deleting.value = todo
-}
-
-async function confirmDelete(): Promise<void> {
-  if (deleting.value) {
-    await deleteTodo({ id: deleting.value.id })
-  }
+  deletion.ask(todo)
 }
 
 function actions(todo: Item): ActionMenuItem[] {
@@ -155,12 +150,12 @@ function actions(todo: Item): ActionMenuItem[] {
       @close="editing = null"
     />
     <ConfirmModal
-      :open="deleting !== null"
+      :open="deletion.isOpen"
       :title="t('item.todo.deleteTitle')"
-      :description="t('item.todo.deleteDescription', { title: deleting?.title ?? '' })"
+      :description="t('item.todo.deleteDescription', { title: deletion.target?.title ?? '' })"
       :confirm-label="t('common.delete')"
-      :action="confirmDelete"
-      @close="deleting = null"
+      :action="deletion.confirm"
+      @close="deletion.close"
     />
   </div>
 </template>

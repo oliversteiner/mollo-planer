@@ -62,7 +62,7 @@ const { mutate: importPlan, loading: importing } = useMutation(importProjectPlan
  * the app (redirects), the message stays in the chat or the preview.
  */
 function failure(error: unknown): string {
-  const apiError = classifyApolloError(error as Parameters<typeof classifyApolloError>[0])
+  const apiError = classifyApolloError(error)
 
   if (apiError.kind !== 'validation' && apiError.kind !== 'unknown') {
     $apiErrors.trigger(apiError)
