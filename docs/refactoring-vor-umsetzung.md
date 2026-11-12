@@ -43,7 +43,7 @@ Dazu kommen kleinere Vorbereitungen (R5–R7). Keines der Refactorings ändert d
 
 ## R1. Eine Reihenfolge-Logik statt drei
 
-**Stand nach `c8f3f46`:**
+**Ausgangslage vor R1 (Stand `c8f3f46`):**
 
 | Ort | Was | Sperre | Lücke nach Löschen |
 |---|---|---|---|
@@ -164,4 +164,4 @@ Jeder Schritt ist ein eigener Commit auf `dev` mit grünen Tests (SQLite und `co
 - **Milestone-Reihenfolge ohne Sperre:** Gleichzeitiges Anlegen oder Verschieben konnte doppelte Positionen erzeugen. Behoben mit R1 (`e003483`), das Projekt wird jetzt gesperrt.
 - **Lücken nach dem Löschen:** `milestones.position` wurde nach `deleteMilestone` nicht neu nummeriert. Harmlos für die Anzeige, aber `moveMilestone(position: n)` landet an einer unerwarteten Stelle, wenn Clients mit `position` statt mit dem Index rechnen (z. B. der Connector). Behoben mit R1 und R4 (`e003483`, `8f20f44`): `Ordering::close()` schließt die Lücke.
 - **Uneinheitliche Plan-Felder:** Der Connector kann Tasks als erledigt anlegen, der Assistent nicht. Wird mit R2 behoben.
-- **Nicht im Repository:** `docs/connector-erweiterung-plan.md` ist nicht eingecheckt (untracked), obwohl die Funktion schon gebaut ist (`9d11daa`). Einchecken oder den Stand in `docs/claude-connector.md` übernehmen.
+- **Connector-Plan:** `docs/connector-erweiterung-plan.md` ist eingecheckt, die Funktion ist mit `9d11daa` gebaut. Ob `docs/claude-connector.md` den aktuellen Stand abbildet, ist nicht geprüft.
