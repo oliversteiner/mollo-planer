@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { useQuery } from '@vue/apollo-composable'
 import { dashboardQuery } from '~/graphql/dashboard'
+import { filterByProject } from '~/utils/project-filter'
 
 const { t } = useI18n()
 const { viewer } = useViewer()
 
 useHead({ title: () => t('dashboard.title') })
 
-const { result, loading } = useQuery(dashboardQuery, { limit: 8 }, { fetchPolicy: 'cache-and-network' })
+// Fetches more upcoming todos than shown, so the project filter still finds its todos; 8 are shown.
+const UPCOMING_SHOWN = 8
+const { result, loading } = useQuery(dashboardQuery, { limit: 50 }, { fetchPolicy: 'cache-and-network' })
 
 const dashboard = computed(() => result.value?.dashboard)
+
+/** Only the items of this project; null shows all. */
+const project = ref<string | null>(null)
+const myOpenTasks = computed(() => filterByProject(dashboard.value?.myOpenTasks ?? [], project.value, task => task.todo.milestone.project.id))
+const upcomingTodos = computed(() => filterByProject(dashboard.value?.upcomingTodos ?? [], project.value, todo => todo.milestone.project.id).slice(0, UPCOMING_SHOWN))
+const projects = computed(() => filterByProject(dashboard.value?.projects ?? [], project.value, item => item.id))
 
 /** "Guten Morgen, Anna": by the time of day, with the first name. */
 const greeting = computed(() => {
@@ -27,6 +36,13 @@ const greeting = computed(() => {
     :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('dashboard.title') }]"
     :description="t('dashboard.subtitle')"
   >
+    <template #actions>
+      <ProjectFilter
+        v-model="project"
+        :projects="dashboard?.projects ?? []"
+      />
+    </template>
+
     <div class="dashboard-columns">
       <wa-card>
         <h2
@@ -42,7 +58,7 @@ const greeting = computed(() => {
           class="dashboard-skeleton"
         ></wa-skeleton>
         <EmptyState
-          v-else-if="!dashboard?.myOpenTasks.length"
+          v-else-if="!myOpenTasks.length"
           icon="square-check"
           :description="t('dashboard.noOpenTasks')"
           size="sm"
@@ -53,7 +69,7 @@ const greeting = computed(() => {
           class="dashboard-list wa-list-plain"
         >
           <li
-            v-for="task in dashboard.myOpenTasks"
+            v-for="task in myOpenTasks"
             :key="task.id"
           >
             <NuxtLink
@@ -92,7 +108,7 @@ const greeting = computed(() => {
           class="dashboard-skeleton"
         ></wa-skeleton>
         <EmptyState
-          v-else-if="!dashboard?.upcomingTodos.length"
+          v-else-if="!upcomingTodos.length"
           icon="list-check"
           :description="t('dashboard.noUpcomingTodos')"
           size="sm"
@@ -103,7 +119,7 @@ const greeting = computed(() => {
           class="dashboard-list wa-list-plain"
         >
           <li
-            v-for="todo in dashboard.upcomingTodos"
+            v-for="todo in upcomingTodos"
             :key="todo.id"
           >
             <NuxtLink
@@ -154,7 +170,7 @@ const greeting = computed(() => {
         class="dashboard-skeleton"
       ></wa-skeleton>
       <EmptyState
-        v-else-if="!dashboard?.projects.length"
+        v-else-if="!projects.length"
         icon="folder-open"
         :description="t('projects.none')"
         size="sm"
@@ -165,20 +181,20 @@ const greeting = computed(() => {
         class="dashboard-projects wa-list-plain"
       >
         <li
-          v-for="project in dashboard.projects"
-          :key="project.id"
+          v-for="item in projects"
+          :key="item.id"
         >
           <NuxtLink
-            :to="`/projects/${project.id}`"
+            :to="`/projects/${item.id}`"
             class="dashboard-project"
           >
-            <span class="dashboard-title">{{ project.name }}</span>
+            <span class="dashboard-title">{{ item.name }}</span>
             <wa-progress-bar
-              :value="project.progress.percent"
-              :label="t('projects.progress', { done: project.progress.done, total: project.progress.total })"
+              :value="item.progress.percent"
+              :label="t('projects.progress', { done: item.progress.done, total: item.progress.total })"
             ></wa-progress-bar>
             <span class="dashboard-sub">
-              {{ t('projects.progress', { done: project.progress.done, total: project.progress.total }) }}
+              {{ t('projects.progress', { done: item.progress.done, total: item.progress.total }) }}
             </span>
           </NuxtLink>
         </li>

@@ -71,6 +71,10 @@
     "projects": "Projects",
     "allProjects": "All projects"
   },
+  "projectFilter": {
+    "label": "Project",
+    "all": "All projects"
+  },
   "error": {
     "notFound": "This page does not exist.",
     "generic": "Something went wrong.",

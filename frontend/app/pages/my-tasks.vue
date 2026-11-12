@@ -3,6 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { myTasksQuery } from '~/graphql/profile'
 import { TASK_STATUSES } from '~/graphql/task'
 import { withoutNulls } from '~/utils/api'
+import { filterByProject, projectOptions } from '~/utils/project-filter'
 import type { ShareTask } from '~/utils/share'
 
 const { t } = useI18n()
@@ -21,8 +22,12 @@ const { result, loading } = useQuery(myTasksQuery, () => withoutNulls({
   status: filter.value === 'open' || filter.value === 'all' ? null : filter.value
 }), { fetchPolicy: 'cache-and-network' })
 
+/** Only the tasks of this project; null shows all. */
+const project = ref<string | null>(null)
+const projects = computed(() => projectOptions(result.value?.myTasks ?? [], task => task.todo.milestone.project))
+
 /** By due date (without date last), then by title. */
-const tasks = computed(() => [...(result.value?.myTasks ?? [])]
+const tasks = computed(() => [...filterByProject(result.value?.myTasks ?? [], project.value, task => task.todo.milestone.project.id)]
   .filter(task => filter.value !== 'open' || task.status !== 'DONE')
   .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || a.title.localeCompare(b.title)))
 
@@ -50,6 +55,10 @@ const shareTasks = computed<ShareTask[]>(() => tasks.value.map(task => ({
         :tasks="shareTasks"
         :name="t('myTasks.title')"
         :heading="false"
+      />
+      <ProjectFilter
+        v-model="project"
+        :projects="projects"
       />
       <FormSelect
         :model-value="filter"
