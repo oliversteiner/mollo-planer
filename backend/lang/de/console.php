@@ -12,4 +12,8 @@ return [
         'invited' => 'Admin :email angelegt. Die Einladung wird über die Queue verschickt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
         'created' => 'Admin :email angelegt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
     ],
+    'prune_unverified' => [
+        'invalid_days' => 'Die Anzahl der Tage muss mindestens 1 sein.',
+        'done' => ':count unbestätigte Konten gelöscht.',
+    ],
 ];

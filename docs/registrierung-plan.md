@@ -47,7 +47,6 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
 - [x] Frontend: `/register` (Layout `auth`, Felder Name, E-Mail, Passwort, Wiederholung), `/verify-email` (Ziel des Bestätigungslinks), `/account-pending` (Wartesseite mit Grund `email` oder `approval`, „Erneut prüfen“, Abmelden), Weiterleitung der Sperre in Middleware, Login und Einrichtung, Freigabeliste mit „Freigeben“ und „Ablehnen“ in `/admin/users`, Texte de/en, Tests (245 grün).
 - [x] Backend nachgetragen: `User.approved` und `User.emailVerified` (GraphQL), CORS für `/register` (vorher blockierte der Browser die Anfrage), Verifikations-Redirect ohne doppeltes `?verified=1`.
 - [x] Anmeldung im Browser geprüft: unbestätigtes Konto landet auf der Wartesseite „E-Mail bestätigen“, bestätigtes Konto ohne Freigabe auf „Konto wartet“. Fehler behoben: Ein wartendes Konto kam bis aufs Dashboard, weil `Viewer` offen ist. Das Frontend prüft jetzt `approved` und `emailVerified`.
-- [ ] Offen: Freigabeliste in `/admin/users` und die Freigabe selbst im Browser.
 - [ ] Browserprüfung (Rest): Die Browser-Erweiterung hat die Bedienung nach zwei Fehlversuchen abgebrochen. Ablauf deshalb per curl geprüft: Registrierung (201), Sperre ohne Bestätigung (`ACCOUNT_NOT_READY`, `email`), Bestätigungslink (302 nach `/verify-email`). Freigabe und Oberfläche noch im Browser prüfen.
 - [ ] Testkonto `testperson-neu@example.test` in der lokalen Datenbank (Dev) entfernen oder ablehnen.
 - [ ] Doku in `backend-plan.md` und `CLAUDE.md` nach Abschluss.
@@ -64,4 +63,13 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
   - `EnsureApproved` läuft danach. Nur `Viewer` bleibt offen, sonst `ACCOUNT_NOT_READY` mit `reason: approval`.
   - Gemeinsame Antwort in `App\Support\AccountReadiness`. Die Middleware `EnsureAccountReady` ist entfernt.
   - Geprüft: unbestätigt liefert `reason: email`, bestätigt und ohne Freigabe liefert `Viewer` die Daten mit `approved: false`. Tests: 501 grün.
+
+## Backlog
+- [ ] Browser-Test der Freigabeliste in `/admin/users`: Freigeben, Ablehnen, Mail an Admins. Hängt an der Browser-Erweiterung, die mehrfach abgebrochen ist. Dafür ein Admin-Testkonto nur für die Prüfung.
+- [ ] `composer test:mariadb`: Der lokale Datenbankbenutzer braucht Rechte auf `molloplaner_test` (SQLSTATE 1044).
+
+## Aufbewahrung unbestätigter Konten (gebaut)
+- `php artisan app:prune-unverified-users` löscht selbst registrierte Konten, deren E-Mail nach 7 Tagen (`--days`) nicht bestätigt ist. Konten ohne Bestätigung und ohne Freigabe; von Admins angelegte Konten bleiben.
+- Täglich um 0:00 im Zeitplan (`routes/console.php`). Der Zeitplan braucht einen Cron-Eintrag `php artisan schedule:run` auf dem Server (Hosting-Thema, später).
+- Tests: `PruneUnverifiedUsersTest` (3 Fälle).
 
