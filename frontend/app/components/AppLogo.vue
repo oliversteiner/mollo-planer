@@ -4,7 +4,6 @@
  * colour of the text around it, so it follows light and dark mode. The
  * accessible name is the name of the app.
  */
-const {t} = useI18n()
 </script>
 
 <template>
