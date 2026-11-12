@@ -12,6 +12,7 @@ use App\Models\Milestone;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Support\McpTokens;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -428,6 +429,7 @@ class MutationTest extends GraphQLTestCase
             'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
             'moveTaskToTodo' => ['manager', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => Todo::factory()->for($test->milestone)->create()->id]],
             'addComment' => ['member', 'mutation ($t: ID!, $body: RichText!) { addComment(input: {taskId: $t, body: $body}) { id } }', fn (self $test) => ['t' => $test->task->id, 'body' => $test->doc('Hallo')]],
+            'deleteApiToken' => ['owner', 'mutation ($id: ID!) { deleteApiToken(id: $id) { name } }', fn (self $test) => ['id' => McpTokens::create($test->users['owner'], 'Meins')->accessToken->id]],
         ];
     }
 }

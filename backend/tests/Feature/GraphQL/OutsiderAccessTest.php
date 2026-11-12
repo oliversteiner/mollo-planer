@@ -3,6 +3,7 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
+use App\Models\LabelSet;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -54,6 +55,7 @@ class OutsiderAccessTest extends GraphQLTestCase
         $task = fn (self $test) => ['id' => $test->task->id];
         $comment = fn (self $test) => ['id' => $test->comment->id];
         $member = fn (self $test) => ['id' => $test->users['member']->id];
+        $labelSet = fn (self $test) => ['id' => LabelSet::factory()->create()->id];
 
         return [
             'updateProject' => ['stranger', 'mutation ($id: ID!) { updateProject(id: $id, input: {name: "Hack"}) { id } }', $project],
@@ -84,6 +86,15 @@ class OutsiderAccessTest extends GraphQLTestCase
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],
             'updateAppSettings (2FA off)' => ['owner', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],
             'deleteUserAvatar (someone else)' => ['owner', 'mutation ($id: ID!) { deleteUserAvatar(id: $id) { id } }', $member],
+            'approveUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { approveUser(id: $id) { id } }', fn (self $test) => ['id' => $test->users['stranger']->id]],
+            'rejectUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { rejectUser(id: $id) }', fn (self $test) => ['id' => $test->users['stranger']->id]],
+            'moveMilestone' => ['stranger', 'mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
+            'setProjectLabelSet (member)' => ['member', 'mutation ($p: ID!) { setProjectLabelSet(projectId: $p, labelSetId: null) { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'setTaskLabels (member)' => ['member', 'mutation ($t: ID!) { setTaskLabels(taskId: $t, labelIds: []) { id } }', fn (self $test) => ['t' => $test->task->id]],
+            'createLabelSet (member)' => ['member', 'mutation { createLabelSet(input: {name: "Bau", labels: []}) { id } }', fn (self $test) => []],
+            'updateLabelSet (member)' => ['member', 'mutation ($id: ID!) { updateLabelSet(id: $id, input: {name: "Hack", labels: []}) { id } }', $labelSet],
+            'deleteLabelSet (member)' => ['member', 'mutation ($id: ID!) { deleteLabelSet(id: $id) { id } }', $labelSet],
+            'duplicateLabelSet (member)' => ['member', 'mutation ($id: ID!) { duplicateLabelSet(id: $id) { id } }', $labelSet],
         ];
     }
 

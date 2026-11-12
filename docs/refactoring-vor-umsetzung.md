@@ -14,7 +14,9 @@ Rollen: Dieses Dokument ist Analyse und Plan. Die Umsetzung erfolgt in einer sep
 | R2 | Plan-Struktur an einer Stelle | offen |
 | R3 | GraphQL-Operationen bündeln und prüfen | **erledigt**: 15 Operationen unter `backend/graphql/operations/`, `GraphQLRunner::runNamed`, Test `OperationFilesTest` prüft jede gegen das Schema. Zählung im Plan war ungenau: im Code 17 Aufrufstellen in 11 Dateien, 15 verschiedene Operationen |
 | R4 | Ein Lösch-Pfad | offen |
-| R5–R7 | Kleinere Vorbereitungen, Tests | offen |
+| R5 | Kleinere Vorbereitungen im Backend | offen (Plan: keine Vorab-Arbeit nötig, nur `DerivesProject`/`RecordsCreator` beim Schema-Umbau) |
+| R6 | Kleinere Vorbereitungen im Frontend | offen (Plan: keine Vorab-Arbeit nötig) |
+| R7 | Vollständigkeitstest für Mutationen | **teilweise erledigt**: `MutationCoverageTest` prüft, dass jede Schema-Mutation in `OutsiderAccessTest` oder `MutationTest` steht. Dafür 11 Zeilen ergänzt (die Liste war im Plan als vollständig beschrieben, war sie nicht). Ausnahme: `updateMyAvatar` (Multipart-Upload, eigener Test in `AvatarTest`). Offen: Liste „in archivierten Projekten verboten“ (mit A5) |
 
 Weitere Refactorings seit `d736d6a`, außerhalb dieses Plans:
 - `7f4158f`: Trait `ExplainsGraphQLErrors` für die Fehlermeldungen der MCP-Plan-Werkzeuge. Der Importer liest die Mitglieder aus dem bereits geladenen Projektbaum. Passt zu R2 und R3, ändert dort nichts am Plan.
