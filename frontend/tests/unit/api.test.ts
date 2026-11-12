@@ -68,6 +68,12 @@ describe('classifyApolloError', () => {
     expect(classifyApolloError({ graphQLErrors: [{ message: 'Unauthenticated.' }] }).kind).toBe('unauthenticated')
     expect(classifyApolloError({ networkError: new Error('Failed to fetch') }).kind).toBe('network')
   })
+
+  it('accepts anything that was thrown, without a cast', () => {
+    expect(classifyApolloError(null).kind).toBe('unknown')
+    expect(classifyApolloError('boom').kind).toBe('unknown')
+    expect(classifyApolloError(new Error('boom')).kind).toBe('unknown')
+  })
 })
 
 describe('safeRedirect', () => {

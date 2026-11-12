@@ -41,7 +41,7 @@ async function onFile(event: Event): Promise<void> {
     await load()
     toast.add({ title: t('profile.avatar.saved'), color: 'success' })
   } catch (failure) {
-    const apiError = classifyApolloError(failure as Parameters<typeof classifyApolloError>[0])
+    const apiError = classifyApolloError(failure)
     error.value = apiError.fields.avatar?.[0] ?? ''
   } finally {
     pending.value = false

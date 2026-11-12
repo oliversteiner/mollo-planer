@@ -124,17 +124,19 @@ interface ApolloErrorLike {
 
 /**
  * Same sorting for an Apollo error (from a query, a mutation or the error
- * link). The lock answers with HTTP 403 and GraphQL errors in the body.
+ * link). Accepts anything thrown or returned, so callers need no cast.
+ * The lock answers with HTTP 403 and GraphQL errors in the body.
  */
-export function classifyApolloError(error: ApolloErrorLike): ApiError {
-  const network = error.networkError ?? null
+export function classifyApolloError(error: unknown): ApiError {
+  const failure = (error && typeof error === 'object' ? error : {}) as ApolloErrorLike
+  const network = failure.networkError ?? null
   const status = network ? (network.statusCode ?? 0) : null
   const result = network?.result
   const bodyErrors = result && typeof result === 'object' && 'errors' in result && Array.isArray(result.errors)
     ? result.errors as GraphQLErrorLike[]
     : []
 
-  return classifyApiError(status, error.graphQLErrors?.length ? [...error.graphQLErrors] : bodyErrors)
+  return classifyApiError(status, failure.graphQLErrors?.length ? [...failure.graphQLErrors] : bodyErrors)
 }
 
 /**
