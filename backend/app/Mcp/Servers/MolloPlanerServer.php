@@ -8,6 +8,7 @@ use App\Mcp\Tools\GetProjectTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\ListUsersTool;
 use App\Mcp\Tools\SetProjectMemberTool;
+use App\Mcp\Tools\SetTaskStatusTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -22,7 +23,7 @@ use Laravel\Mcp\Server\Attributes\Version;
 #[Name('mollo-planer')]
 #[Version('1.0.0')]
 #[Instructions(<<<'TEXT'
-Project management app: projects contain milestones, milestones contain todos, todos contain tasks. Tasks are the work of one person and appear on a Kanban board (status open, in progress, review, done). Statuses of todos and milestones are derived automatically; progress is done tasks out of all tasks.
+Project management app: projects contain milestones, milestones contain todos, todos contain tasks. Tasks are the work of one person and appear on a Kanban board (status open, in progress, review, done). Statuses of todos and milestones are derived automatically; progress is done tasks out of all tasks. Mark a task done with set_task_status (or with status done in create_project_plan), never by changing a todo or milestone directly.
 
 You act as the person who created the access token, with exactly their permissions. Roles per project: OWNER, MANAGER (both manage members and tasks), MEMBER (creates milestones and todos, moves tasks). Only admins create projects and manage accounts. The abilities in list_projects say what you may do in a project.
 
@@ -43,6 +44,7 @@ class MolloPlanerServer extends Server
         CreateProjectTool::class,
         SetProjectMemberTool::class,
         CreateProjectPlanTool::class,
+        SetTaskStatusTool::class,
     ];
 
     protected array $resources = [];
