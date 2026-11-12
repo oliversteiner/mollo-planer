@@ -1,0 +1,158 @@
+name: deploy
+
+# Deploys main to production. Runs the tests first; the deploy job waits
+# for them and then needs a manual approval via the environment "production".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  DEPLOY_HOST: sl23.web.hostpoint.ch
+  DEPLOY_USER: oliver14
+  API_BASE: https://api.planer.mollo.dev
+
+jobs:
+  test-backend:
+    name: Tests (Backend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Configure environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+
+      - name: Execute tests
+        run: composer test
+
+  test-frontend:
+    name: Tests (Frontend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Font Awesome registry
+        run: |
+          echo "@fortawesome:registry=https://npm.fontawesome.com/" > .npmrc
+          echo "//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" >> .npmrc
+        env:
+          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Web Awesome registry
+        run: |
+          echo '@web.awesome.me:registry=https://npm.cloudsmith.io/fortawesome/webawesome-pro/' >> .npmrc
+          echo '//npm.cloudsmith.io/fortawesome/webawesome-pro/:_authToken=${WEBAWESOME_NPM_TOKEN}' >> .npmrc
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          WEBAWESOME_NPM_TOKEN: ${{ secrets.WEBAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+  deploy:
+    name: Deploy
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://planer.mollo.dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Font Awesome registry
+        working-directory: frontend
+        run: |
+          echo "@fortawesome:registry=https://npm.fontawesome.com/" > .npmrc
+          echo "//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" >> .npmrc
+        env:
+          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Web Awesome registry
+        working-directory: frontend
+        run: |
+          echo '@web.awesome.me:registry=https://npm.cloudsmith.io/fortawesome/webawesome-pro/' >> .npmrc
+          echo '//npm.cloudsmith.io/fortawesome/webawesome-pro/:_authToken=${WEBAWESOME_NPM_TOKEN}' >> .npmrc
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+        env:
+          WEBAWESOME_NPM_TOKEN: ${{ secrets.WEBAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          NUXT_PUBLIC_API_BASE: ${{ env.API_BASE }}
+
+      - name: Deploy key and host key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # The server key is restricted to deploy/deploy.sh: it gets the
+      # frontend archive on stdin and runs the deployment, no shell.
+      - name: Upload frontend and run deployment
+        run: |
+          tar -C frontend/.output/public -czf - . \
+            | ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+                -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
+                "$DEPLOY_USER@$DEPLOY_HOST"

@@ -109,3 +109,65 @@ ANTHROPIC_MODEL=claude-opus-5-5
 ```
 
 Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).
+
+## Deployment (Produktion)
+
+Produktiv laufen Frontend unter `https://planer.mollo.dev` und API unter `https://api.planer.mollo.dev` auf dem Hostpoint-Server `sl23.web.hostpoint.ch` (Benutzer `oliver14`). Der Ablauf ist automatisiert: Ein Push auf `main` testet, baut und spielt die App aus, nach einer Freigabe.
+
+### Ablauf
+
+Die Datei `.github/workflows/deploy.yml` läuft bei jedem Push auf `main` (oder manuell, siehe unten):
+
+1. **Tests:** Backend (`composer test`, SQLite) und Frontend (Lint, Typecheck, Unit-Tests). Schlägt ein Test fehl, wird nichts veröffentlicht.
+2. **Freigabe:** Der Job `deploy` wartet auf eine Freigabe im Environment `production`.
+3. **Build:** Das Frontend wird mit `NUXT_PUBLIC_API_BASE=https://api.planer.mollo.dev` gebaut.
+4. **Übertragung:** Das Archiv `frontend/.output/public` geht per SSH an den Server. Der Schlüssel darf nur das Skript `deploy/deploy.sh` starten, keine Shell.
+5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/main`, sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force` und die Caches aus, kopiert das Frontend nach `~/www/planer.mollo.dev` und schaltet den Wartungsmodus wieder aus.
+
+Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen.
+
+### Deployment auslösen
+
+- **Automatisch:** Push oder Merge auf `main`. Im GitHub-Tab **Actions** den Lauf öffnen und unter „Review deployments“ für `production` freigeben.
+- **Manuell:** Actions → `deploy` → **Run workflow** (Branch `main`).
+
+### Einrichtung (bereits erledigt, zur Dokumentation)
+
+Für eine Neuinstallation oder bei einem Schlüsselwechsel:
+
+- **Deploy-Schlüssel** nur für CI: `ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy planer' -f ~/.ssh/mollo-planer-deploy`. Den öffentlichen Teil auf dem Server in `~/.ssh/authorized_keys` mit Einschränkung eintragen (eine Zeile):
+  ```
+  command="/home/oliver14/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer
+  ```
+- **GitHub-Secrets** unter *Settings → Secrets and variables → Actions*:
+  - `DEPLOY_SSH_KEY`: Inhalt der privaten Datei `~/.ssh/mollo-planer-deploy`
+  - `DEPLOY_KNOWN_HOSTS`: Ausgabe von `ssh-keygen -F sl23.web.hostpoint.ch | grep -v '^#'`, damit der Server fest geprüft wird
+  - `FONTAWESOME_NPM_AUTH_TOKEN` und `WEBAWESOME_NPM_AUTH_TOKEN` (wie bei der Frontend-CI)
+- **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
+- **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
+- **Docroots:** `~/www/planer.mollo.dev` ist das Frontend. `~/www/api.planer.mollo.dev` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Hostpoint-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.
+- **PHP:** Der Server hat PHP 8.5 unter `/usr/local/php85/bin`. Das Skript nutzt diesen Pfad fest. Die Standard-`php` (8.3) reicht für das Projekt nicht, mindestens 8.4.1 ist nötig.
+
+### Fehlersuche
+
+- **Tests rot:** Im Log des Jobs `test-backend` oder `test-frontend` steht der Fehler. Es wurde nichts veröffentlicht.
+- **Deploy abgebrochen:** Im Log zeigt die letzte Zeile mit `==>` den Schritt. Bricht das Skript während des Wartungsmodus ab, hebt es ihn selbst wieder auf. Falls die App trotzdem hängen bleibt, auf dem Server ausführen:
+  ```bash
+  cd ~/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan up
+  ```
+- **Stand prüfen:** `ssh mollo.ch` (persönlicher Schlüssel), dann `cd ~/apps/mollo-planer && git log --oneline -1`.
+
+### Zurückrollen
+
+Jedes Deploy sichert die Datenbank vorher nach `~/backups/planer/planer-<Zeit>-<Commit>.sql.gz` (die letzten 10 bleiben erhalten).
+
+- **Code:** Auf `main` den fehlerhaften Commit mit `git revert` rückgängig machen und den Workflow neu starten. `deploy.sh` setzt immer auf `origin/main`, ein erneuter Lauf eines alten Workflows bringt also den alten Code nicht zurück.
+- **Datenbank:** Nur bei einer kaputten Migration. Ein Backup einspielen überschreibt alle Daten, die seit dem Backup entstanden sind. Die Zugangsdaten stehen in `backend/.env`:
+  ```bash
+  gunzip -c ~/backups/planer/<Datei>.sql.gz | MYSQL_PWD='<DB_PASSWORD>' mysql -h <DB_HOST> -u <DB_USERNAME> <DB_DATABASE>
+  ```
+
+### Bekannte Punkte
+
+- Die CI-Workflows (`backend.yml`, `deploy.yml`) testen das Backend mit PHP 8.5, passend zum Server.
+- Das Skript kopiert das Frontend per `rsync --delete`. Eigene Dateien im Docroot `~/www/planer.mollo.dev` gehen dabei verloren.
