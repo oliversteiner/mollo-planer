@@ -1,0 +1,93 @@
+# Enums: Rollen, Status, Rechte-Namen, Farben
+
+# ─── Enums ──────────────────────────────────────────────────────
+
+"Rolle einer Person innerhalb eines Projekts"
+enum ProjectRole {
+  OWNER @enum(value: "owner")
+  MANAGER @enum(value: "manager")
+  MEMBER @enum(value: "member")
+}
+
+"Sprache eines Projekts. Bestimmt die Sprache der Mails."
+enum Locale {
+  DE @enum(value: "de")
+  EN @enum(value: "en")
+}
+
+"Status von Milestone und ToDo (wird automatisch berechnet)"
+enum ItemStatus {
+  OPEN @enum(value: "open")
+  DONE @enum(value: "done")
+}
+
+"Fähigkeiten innerhalb eines Projekts. Welche Rolle sie hat, steht in der Rechte-Tabelle."
+enum ProjectAbility {
+  PROJECT_UPDATE @enum(value: "project.update")
+  PROJECT_DELETE @enum(value: "project.delete")
+  MEMBERS_MANAGE @enum(value: "members.manage")
+  MILESTONE_CREATE @enum(value: "milestone.create")
+  MILESTONE_UPDATE @enum(value: "milestone.update")
+  MILESTONE_DELETE @enum(value: "milestone.delete")
+  TODO_CREATE @enum(value: "todo.create")
+  TODO_UPDATE @enum(value: "todo.update")
+  TODO_DELETE @enum(value: "todo.delete")
+  TASK_CREATE @enum(value: "task.create")
+  TASK_UPDATE @enum(value: "task.update")
+  TASK_ASSIGN @enum(value: "task.assign")
+  TASK_MOVE @enum(value: "task.move")
+  TASK_DELETE @enum(value: "task.delete")
+  COMMENT_CREATE @enum(value: "comment.create")
+  COMMENT_MODERATE @enum(value: "comment.moderate")
+}
+
+"Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\SystemPermissions)."
+enum UserRole {
+  ADMIN @enum(value: "admin")
+  PROJEKTLEITUNG @enum(value: "projektleitung")
+  KOORDINATION @enum(value: "koordination")
+  MITGLIED @enum(value: "mitglied")
+  LESEND @enum(value: "lesend")
+}
+
+"Funktion eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
+enum UserFunction {
+  DESIGNER @enum(value: "designer")
+  ENTWICKLUNG @enum(value: "entwicklung")
+  TESTER @enum(value: "tester")
+  CONTENT @enum(value: "content")
+  TECHNIK @enum(value: "technik")
+  VOLUNTEER @enum(value: "volunteer")
+}
+
+"Fähigkeiten über die ganze App, gegeben durch die globale Rolle."
+enum SystemAbility {
+  PROJECTS_CREATE @enum(value: "projects.create")
+  PROJECTS_VIEW_ALL @enum(value: "projects.viewAll")
+  PROJECTS_MANAGE_ANY @enum(value: "projects.manageAny")
+  USERS_MANAGE @enum(value: "users.manage")
+  LABEL_SETS_MANAGE @enum(value: "labelSets.manage")
+  LABEL_SETS_MANAGE_ANY @enum(value: "labelSets.manageAny")
+}
+
+"Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"
+enum LabelColor {
+  GRAY @enum(value: "gray")
+  RED @enum(value: "red")
+  ORANGE @enum(value: "orange")
+  YELLOW @enum(value: "yellow")
+  GREEN @enum(value: "green")
+  CYAN @enum(value: "cyan")
+  BLUE @enum(value: "blue")
+  INDIGO @enum(value: "indigo")
+  PURPLE @enum(value: "purple")
+  PINK @enum(value: "pink")
+}
+
+"Spalten im Kanban-Board"
+enum TaskStatus {
+  OPEN @enum(value: "open")
+  IN_PROGRESS @enum(value: "in_progress")
+  REVIEW @enum(value: "review")
+  DONE @enum(value: "done")
+}

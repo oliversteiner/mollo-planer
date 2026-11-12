@@ -1,0 +1,471 @@
+{
+  "versions": [
+    {
+      "major": 0,
+      "minor": 1,
+      "number": "0.1",
+      "title": "Backend-Grundlage",
+      "description": "Laravel-Backend: Datenmodell, Rechte, GraphQL-API, Anmeldung, Demo-Daten und Betrieb.",
+      "status": "veröffentlicht",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Add Laravel backend, docs and migrations (step 1)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add ProjectAbility enum and ProjectPermissions table (step 2)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add policies for projects, milestones, todos, tasks, comments and users (step 3)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add visibility scopes, todo builder and status observers (steps 4 and 5)"
+        },
+        {
+          "kind": "neu",
+          "text": "Configure Lighthouse, bind enums and lock API until strong auth (step 6)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add RichText scalar, rich text and icon rules (step 7)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add GraphQL resolvers and mutations (step 8)"
+        },
+        {
+          "kind": "neu",
+          "text": "Batch-load GraphQL lists to avoid N+1 queries"
+        },
+        {
+          "kind": "neu",
+          "text": "Run custom mutations in transactions and lock projects for changes"
+        },
+        {
+          "kind": "neu",
+          "text": "Add user avatars: upload, crop to 500x500 WebP, remove"
+        },
+        {
+          "kind": "neu",
+          "text": "Add authentication: strong sessions, passkeys, invitations (step 9)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add task notifications for assignments and comments (step 10)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add app:create-admin command for the first admin (step 11)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add Laravel Boost guidelines, skills and MCP server"
+        },
+        {
+          "kind": "neu",
+          "text": "Complete step 12: outsider access, mail escaping, MariaDB test run"
+        },
+        {
+          "kind": "neu",
+          "text": "Empty DatabaseSeeder so migrate --seed creates no known-password user"
+        },
+        {
+          "kind": "neu",
+          "text": "Add Postman collection (v3 YAML) for the demo data"
+        },
+        {
+          "kind": "neu",
+          "text": "Ignore Postman environments"
+        },
+        {
+          "kind": "neu",
+          "text": "Let admins switch two-factor authentication off outside production"
+        },
+        {
+          "kind": "neu",
+          "text": "Seed demo data with two-factor authentication switched off"
+        },
+        {
+          "kind": "neu",
+          "text": "db init"
+        },
+        {
+          "kind": "neu",
+          "text": "Switch development setup from WSL to macOS and add backend CI"
+        }
+      ]
+    },
+    {
+      "major": 0,
+      "minor": 2,
+      "number": "0.2",
+      "title": "Frontend-Grundlage",
+      "description": "Nuxt-Frontend: Einrichtung, Anbindung, Anmeldung, Dashboard, Projekte, Kanban, Profil, Verwaltung.",
+      "status": "veröffentlicht",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Set up the frontend: npm, SPA, i18n, layout, CI (frontend step 1)"
+        },
+        {
+          "kind": "neu",
+          "text": "Use Font Awesome Pro Duotone Light for all icons (frontend step 2)"
+        },
+        {
+          "kind": "neu",
+          "text": "Connect the frontend to the API (frontend step 3)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add login, password reset and invitation (frontend step 4)"
+        },
+        {
+          "kind": "neu",
+          "text": "Retry once with a fresh CSRF cookie after 419"
+        },
+        {
+          "kind": "neu",
+          "text": "Let the login work for sessions that are already logged in"
+        },
+        {
+          "kind": "neu",
+          "text": "Add dashboard and project list (frontend step 5)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add project overview and todo list with editing (frontend step 6)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add rich text editor and icon picker (frontend step 7)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add Kanban board and task details (frontend step 8)"
+        },
+        {
+          "kind": "neu",
+          "text": "Treat null as \"no filter\" for optional list filters"
+        },
+        {
+          "kind": "neu",
+          "text": "Leave out null filters in todo list and my tasks"
+        },
+        {
+          "kind": "neu",
+          "text": "Edit Kanban tasks by double-click, one overlay at a time"
+        },
+        {
+          "kind": "neu",
+          "text": "Empty the comment field after sending a comment"
+        },
+        {
+          "kind": "neu",
+          "text": "Add my tasks and profile (frontend step 9)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add two-factor and passkey management (frontend step 10)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add project settings and members (frontend step 11)"
+        },
+        {
+          "kind": "neu",
+          "text": "Add admin area: users and app settings (frontend step 12)"
+        },
+        {
+          "kind": "neu",
+          "text": "Move language and appearance settings to the profile"
+        },
+        {
+          "kind": "neu",
+          "text": "Add component and middleware tests, polish (frontend step 13)"
+        }
+      ]
+    },
+    {
+      "major": 0,
+      "minor": 3,
+      "number": "0.3",
+      "title": "Oberfläche mit Web Awesome",
+      "description": "Umstellung der Oberfläche auf Web Awesome Pro (Theme Matter), Entfernen von Nuxt UI und Tailwind.",
+      "status": "geplant",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Add Web Awesome Pro next to Nuxt UI (phase A, step 1)"
+        },
+        {
+          "kind": "neu",
+          "text": "Use the fonts of the Web Awesome theme Matter instead of Public Sans"
+        },
+        {
+          "kind": "neu",
+          "text": "Load all Web Awesome icons as Duotone Light from our own server"
+        },
+        {
+          "kind": "neu",
+          "text": "Replace the Nuxt UI toast by Web Awesome toasts with the same call"
+        },
+        {
+          "kind": "neu",
+          "text": "Replace UTimeline with a vertical Web Awesome stepper"
+        },
+        {
+          "kind": "neu",
+          "text": "Add form field wrappers for Web Awesome with v-model and server messages"
+        },
+        {
+          "kind": "neu",
+          "text": "Add dialog, empty state and person components for Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Move the layouts to wa-page with own navigation"
+        },
+        {
+          "kind": "neu",
+          "text": "Move login, password pages and the security setup to Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Move the dashboard and the project list to Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Move the project overview and the milestone dialog to Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Move Kanban, todo list, task details and comments to Web Awesome"
+        },
+        {
+          "kind": "behoben",
+          "text": "Fix the status filter binding of the todo list"
+        },
+        {
+          "kind": "neu",
+          "text": "Move my tasks and the profile to Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Move project settings, members and the admin pages to Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Move the AI assistant to Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Move the error page to Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Replace the Nuxt UI editor and icon picker with TipTap and Web Awesome"
+        },
+        {
+          "kind": "neu",
+          "text": "Use an own light/dark setting instead of the Nuxt UI colour mode"
+        },
+        {
+          "kind": "neu",
+          "text": "Remove Nuxt UI and Tailwind"
+        },
+        {
+          "kind": "neu",
+          "text": "Name every form field for screen readers and drop unused texts"
+        },
+        {
+          "kind": "verbessert",
+          "text": "Put the chat introduction right above the input field"
+        },
+        {
+          "kind": "verbessert",
+          "text": "Centre the chat introduction in the free space"
+        },
+        {
+          "kind": "verbessert",
+          "text": "Fit the assistant page into the screen without scrolling"
+        },
+        {
+          "kind": "verbessert",
+          "text": "Mark the status of a task card by its left edge"
+        },
+        {
+          "kind": "verbessert",
+          "text": "Match status colours, widen timeline rows, enlarge card headings"
+        },
+        {
+          "kind": "behoben",
+          "text": "Fix findings of the check in the browser"
+        }
+      ]
+    },
+    {
+      "major": 0,
+      "minor": 4,
+      "number": "0.4",
+      "title": "Projektansicht, Timeline und KI-Assistent",
+      "description": "Zeitachse, Kanban-Verbesserungen, Projektnavigation in der Seitenleiste, KI-Assistent und MCP-Zugang.",
+      "status": "veröffentlicht",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Add a timeline view to the project overview"
+        },
+        {
+          "kind": "neu",
+          "text": "Show the project overview as timeline only, with editable tasks"
+        },
+        {
+          "kind": "neu",
+          "text": "Move tasks to another todo by drag and drop in the timeline"
+        },
+        {
+          "kind": "neu",
+          "text": "Move project pages into the sidebar"
+        },
+        {
+          "kind": "neu",
+          "text": "List the projects in the sidebar and let the sidebar stand out"
+        },
+        {
+          "kind": "neu",
+          "text": "Add page header with breadcrumb and tabs for the project pages"
+        },
+        {
+          "kind": "neu",
+          "text": "Show the logo in the sidebar and on the login pages"
+        },
+        {
+          "kind": "neu",
+          "text": "Give projects an icon"
+        },
+        {
+          "kind": "neu",
+          "text": "Add an AI assistant page that drafts projects with Claude"
+        },
+        {
+          "kind": "neu",
+          "text": "Remove the example prompts from the assistant chat"
+        },
+        {
+          "kind": "neu",
+          "text": "Let Claude fill projects through an MCP server"
+        }
+      ]
+    },
+    {
+      "major": 0,
+      "minor": 5,
+      "number": "0.5",
+      "title": "Labels",
+      "description": "Labels für Tasks: Label-Sets, Anzeige, Auswahl, Verwaltungsseite und Filter.",
+      "status": "veröffentlicht",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Add label sets and task labels to the backend"
+        },
+        {
+          "kind": "neu",
+          "text": "Show and set task labels, choose the label set of a project"
+        },
+        {
+          "kind": "neu",
+          "text": "Add the label sets page with create, duplicate, edit and delete"
+        },
+        {
+          "kind": "neu",
+          "text": "Filter the Kanban by label and seed demo labels"
+        }
+      ]
+    },
+    {
+      "major": 0,
+      "minor": 6,
+      "number": "0.6",
+      "title": "Rollen und Rechte",
+      "description": "Globale Rollen (admin, projektleitung, koordination, mitglied, lesend) und Funktionen, Rechte-Klasse, Umbau.",
+      "status": "geplant",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "behoben",
+          "text": "Fix the role name in the migration test note"
+        },
+        {
+          "kind": "neu",
+          "text": "Replace the admin flag with global roles and abilities"
+        },
+        {
+          "kind": "neu",
+          "text": "Ignore direnv .envrc files in the frontend"
+        }
+      ]
+    },
+    {
+      "major": 0,
+      "minor": 7,
+      "number": "0.7",
+      "title": "System-Bereich und API",
+      "description": "Bereich System in der Seitenleiste, Status, Datenbank-Doku, Rechte-Tabelle und GraphQL unter /api.",
+      "status": "veröffentlicht",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Statusendpunkt GET /status mit Tests"
+        },
+        {
+          "kind": "neu",
+          "text": "Seitenleiste: Bereich System mit Einträgen Datenbank und Status"
+        },
+        {
+          "kind": "neu",
+          "text": "Statusseite /system/status für Backend, Datenbank und GraphQL"
+        },
+        {
+          "kind": "neu",
+          "text": "Datenbank-Doku /system/db mit Test gegen die Migrationen"
+        },
+        {
+          "kind": "neu",
+          "text": "Rechte-Tabelle /system/rechte nur für Admins, gelesen aus den Rechte-Klassen"
+        },
+        {
+          "kind": "neu",
+          "text": "GraphQL-Endpunkt von /graphql nach /api umgestellt"
+        },
+        {
+          "kind": "neu",
+          "text": "Versionen (API, App) und Zugriff auf der Statusseite wie in fcadb"
+        },
+        {
+          "kind": "behoben",
+          "text": "Statusseite zeigte „nicht erreichbar“: /status fehlte in der CORS-Liste"
+        }
+      ]
+    },
+    {
+      "major": 0,
+      "minor": 8,
+      "number": "0.8",
+      "title": "Desktop-App (Tauri)",
+      "description": "Desktop-App für macOS und Windows mit Anmeldung per Token und Auto-Update. Plan: docs/desktop-plan.md.",
+      "status": "geplant",
+      "releasedOn": null,
+      "changes": []
+    }
+  ]
+}

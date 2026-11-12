@@ -3,6 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { myTasksQuery } from '~/graphql/profile'
 import { TASK_STATUSES } from '~/graphql/task'
 import { withoutNulls } from '~/utils/api'
+import type { ShareTask } from '~/utils/share'
 
 const { t } = useI18n()
 
@@ -24,6 +25,19 @@ const { result, loading } = useQuery(myTasksQuery, () => withoutNulls({
 const tasks = computed(() => [...(result.value?.myTasks ?? [])]
   .filter(task => filter.value !== 'open' || task.status !== 'DONE')
   .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || a.title.localeCompare(b.title)))
+
+/** The shown (filtered) tasks in the form the share functions expect. */
+const shareTasks = computed<ShareTask[]>(() => tasks.value.map(task => ({
+  id: task.id,
+  title: task.title,
+  description: task.description,
+  dueDate: task.dueDate,
+  status: task.status,
+  assignee: task.assignee,
+  todo: { title: task.todo.title },
+  milestone: { title: task.todo.milestone.title },
+  project: { name: task.todo.milestone.project.name }
+})))
 </script>
 
 <template>
@@ -32,6 +46,11 @@ const tasks = computed(() => [...(result.value?.myTasks ?? [])]
     :breadcrumbs="[{ label: t('nav.workspace'), to: '/' }, { label: t('myTasks.title') }]"
   >
     <template #actions>
+      <TaskShareSection
+        :tasks="shareTasks"
+        :name="t('myTasks.title')"
+        :heading="false"
+      />
       <FormSelect
         :model-value="filter"
         :items="filterItems"

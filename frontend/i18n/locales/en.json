@@ -17,6 +17,7 @@
     "labelSets": "Label sets",
     "database": "Database",
     "status": "Status",
+    "version": "Version",
     "rights": "Rights"
   },
   "settings": {
@@ -297,7 +298,25 @@
     "assigned": "Assigned.",
     "assignedMail": "They get an email if they receive notifications.",
     "deleteTitle": "Delete task?",
-    "deleteDescription": "“{title}” is deleted with all its comments. This cannot be undone."
+    "deleteDescription": "“{title}” is deleted with all its comments. This cannot be undone.",
+    "share": {
+      "shareTitle": "Share",
+      "menu": "Share",
+      "appleCalendar": "Apple Calendar",
+      "appleReminders": "Reminders",
+      "appleNotes": "Notes",
+      "obsidian": "Obsidian",
+      "outlook": "Outlook",
+      "copied": "Copied to clipboard",
+      "labels": {
+        "assignee": "Assigned to",
+        "status": "Status",
+        "project": "Project",
+        "milestone": "Milestone",
+        "todo": "To-do",
+        "due": "Due"
+      }
+    }
   },
   "comments": {
     "title": "Comments ({count})",
@@ -593,6 +612,24 @@
     "access": "Access",
     "accessAs": "as {role}",
     "accessPublic": "public"
+  },
+  "systemVersion": {
+    "title": "Versions",
+    "subtitle": "Version history of the app. The current version is shown at the bottom of the sidebar.",
+    "label": "Version",
+    "empty": "No versions yet.",
+    "planned": "planned",
+    "kinds": {
+      "neu": "New",
+      "verbessert": "Improved",
+      "behoben": "Fixed"
+    },
+    "showPlanned": "Show planned versions",
+    "released": "released",
+    "release": {
+      "major": "Major release",
+      "minor": "Minor release"
+    }
   },
   "db": {
     "nav": {

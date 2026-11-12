@@ -17,6 +17,7 @@
     "labelSets": "Label-Sets",
     "database": "Datenbank",
     "status": "Status",
+    "version": "Version",
     "rights": "Rechte"
   },
   "settings": {
@@ -297,7 +298,25 @@
     "assigned": "Zugewiesen.",
     "assignedMail": "Die Person bekommt eine E-Mail, falls sie Benachrichtigungen erhält.",
     "deleteTitle": "Task löschen?",
-    "deleteDescription": "«{title}» wird mit allen Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+    "deleteDescription": "«{title}» wird mit allen Kommentaren gelöscht. Das lässt sich nicht rückgängig machen.",
+    "share": {
+      "shareTitle": "Teilen",
+      "menu": "Share",
+      "appleCalendar": "Apple Kalender",
+      "appleReminders": "Erinnerungen",
+      "appleNotes": "Notizen",
+      "obsidian": "Obsidian",
+      "outlook": "Outlook",
+      "copied": "In die Zwischenablage kopiert",
+      "labels": {
+        "assignee": "Zugewiesen",
+        "status": "Status",
+        "project": "Projekt",
+        "milestone": "Milestone",
+        "todo": "ToDo",
+        "due": "Fällig"
+      }
+    }
   },
   "comments": {
     "title": "Kommentare ({count})",
@@ -593,6 +612,24 @@
     "access": "Zugriff",
     "accessAs": "als {role}",
     "accessPublic": "öffentlich"
+  },
+  "systemVersion": {
+    "title": "Versionen",
+    "subtitle": "Versionshistorie der App. Die aktuelle Version steht unten in der Seitenleiste.",
+    "label": "Version",
+    "empty": "Noch keine Versionen.",
+    "planned": "geplant",
+    "kinds": {
+      "neu": "Neu",
+      "verbessert": "Optimiert",
+      "behoben": "Behoben"
+    },
+    "showPlanned": "Geplante Versionen anzeigen",
+    "released": "veröffentlicht",
+    "release": {
+      "major": "Major-Release",
+      "minor": "Minor-Release"
+    }
   },
   "db": {
     "nav": {

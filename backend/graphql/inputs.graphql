@@ -1,0 +1,109 @@
+# Eingaben (input)
+
+# ─── Eingaben ───────────────────────────────────────────────────
+
+input CreateUserInput {
+  name: String! @rules(apply: ["min:2", "max:120"])
+  email: String! @rules(apply: ["email", "unique:users,email"])
+  role: UserRole = MITGLIED
+  jobFunction: UserFunction @rename(attribute: "job_function")
+}
+
+input UpdateUserInput {
+  name: String @rules(apply: ["min:2", "max:120"])
+  email: String @rules(apply: ["email"])
+  role: UserRole
+  jobFunction: UserFunction @rename(attribute: "job_function")
+}
+
+"Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."
+type MemberCandidate {
+  id: ID!
+  name: String!
+}
+
+input CreateProjectInput {
+  name: String! @rules(apply: ["min:2", "max:120"])
+  description: String
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  locale: Locale = DE
+}
+
+input UpdateProjectInput {
+  name: String @rules(apply: ["min:2", "max:120"])
+  description: String
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  locale: Locale
+}
+
+input CreateMilestoneInput {
+  projectId: ID! @rename(attribute: "project_id")
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input UpdateMilestoneInput {
+  title: String @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input CreateTodoInput {
+  milestoneId: ID! @rename(attribute: "milestone_id")
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input UpdateTodoInput {
+  title: String @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input LabelSetInput {
+  name: String! @rules(apply: ["min:2", "max:60"])
+  description: String @rules(apply: ["max:200"])
+  "Höchstens 30 Labels, Namen innerhalb des Sets eindeutig"
+  labels: [LabelInput!]! @rulesForArray(apply: ["max:30"])
+}
+
+input LabelInput {
+  "Bestehendes Label dieses Sets; ohne id wird es neu angelegt"
+  id: ID
+  name: String! @rules(apply: ["min:1", "max:40"])
+  category: String @rules(apply: ["max:40"])
+  color: LabelColor!
+}
+
+input CreateTaskInput {
+  todoId: ID! @rename(attribute: "todo_id")
+  title: String! @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  assigneeId: ID @rename(attribute: "assigned_user_id")
+  dueDate: Date @rename(attribute: "due_date")
+  "Labels aus dem Set des Projekts"
+  labelIds: [ID!] @rename(attribute: "label_ids")
+}
+
+input UpdateTaskInput {
+  title: String @rules(apply: ["min:2", "max:160"])
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
+  dueDate: Date @rename(attribute: "due_date")
+}
+
+input AddCommentInput {
+  taskId: ID! @rename(attribute: "task_id")
+  body: RichText! @rules(apply: ["App\\Rules\\RichTextRule", "required"])
+}
+
+input UpdateCommentInput {
+  body: RichText! @rules(apply: ["App\\Rules\\RichTextRule", "required"])
+}

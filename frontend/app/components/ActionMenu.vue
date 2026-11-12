@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
- * Menu behind a "…" button (wa-dropdown). The entries are data: a label, an
- * optional Font Awesome icon, `color: 'error'` for something destructive and
+ * Menu behind a "…" button (wa-dropdown). With `text` (and `icon`) the button
+ * shows a labelled button with a caret instead. The entries are data: a label,
+ * an optional Font Awesome icon, `color: 'error'` for something destructive and
  * `onSelect`. Several groups (an array of arrays) are separated by a line.
  */
 export interface ActionMenuItem {
@@ -17,6 +18,11 @@ const props = withDefaults(defineProps<{
   items: readonly ActionMenuItem[] | ReadonlyArray<readonly ActionMenuItem[]>
   /** Name of the button for screen readers. */
   label: string
+  /** Text on the button instead of the "…" icon, for example "Share". */
+  text?: string
+  /** Font Awesome name of the icon in front of `text`. */
+  icon?: string
+  disabled?: boolean
   size?: 's' | 'm'
   placement?: 'bottom-start' | 'bottom-end'
 }>(), {
@@ -52,12 +58,25 @@ function onSelect(event: CustomEvent<{ item: { value: string } }>): void {
   >
     <wa-button
       slot="trigger"
-      appearance="plain"
+      :appearance="text ? 'outlined' : 'plain'"
       variant="neutral"
       :size="size"
+      :disabled="disabled"
+      :with-caret="!!text"
       :aria-label="label"
     >
-      <wa-icon name="ellipsis"></wa-icon>
+      <template v-if="text">
+        <wa-icon
+          v-if="icon"
+          :name="icon"
+          class="action-menu-icon"
+        ></wa-icon>
+        {{ text }}
+      </template>
+      <wa-icon
+        v-else
+        name="ellipsis"
+      ></wa-icon>
     </wa-button>
     <template
       v-for="(group, groupIndex) in groups"
@@ -81,3 +100,9 @@ function onSelect(event: CustomEvent<{ item: { value: string } }>): void {
     </template>
   </wa-dropdown>
 </template>
+
+<style scoped>
+.action-menu-icon {
+  margin-inline-end: var(--wa-space-3xs);
+}
+</style>

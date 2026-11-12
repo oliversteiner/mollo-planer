@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
+import type { ShareTask } from '~/utils/share'
 import { setTaskLabelsMutation } from '~/graphql/labels'
 import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES, taskQuery } from '~/graphql/task'
 
@@ -58,6 +59,23 @@ const { mutate: setTaskLabels } = useMutation(setTaskLabelsMutation, options)
 const setLabels = computed(() => task.value?.todo.milestone.project.labelSet?.labels ?? [])
 const setLabelIds = computed(() => setLabels.value.map(label => label.id))
 const extraLabels = computed(() => (task.value?.labels ?? []).filter(label => !setLabelIds.value.includes(label.id)))
+
+/** Share task data derived from the GraphQL result. */
+const shareTask = computed<ShareTask | null>(() => {
+  const t = task.value
+  if (!t) return null
+  return {
+    id: t.id,
+    title: t.title,
+    description: t.description,
+    dueDate: t.dueDate,
+    status: t.status,
+    assignee: t.assignee,
+    todo: { title: t.todo.title },
+    milestone: { title: t.todo.milestone.title },
+    project: { name: t.todo.milestone.project.name }
+  }
+})
 
 async function changeLabels(ids: string[]): Promise<void> {
   if (task.value) {
@@ -149,6 +167,12 @@ async function confirmDelete(): Promise<void> {
           </wa-button>
         </div>
       </div>
+
+      <TaskShareSection
+        v-if="shareTask"
+        :tasks="[shareTask]"
+        :name="shareTask.title"
+      />
 
       <div class="task-fields">
         <FormSelect

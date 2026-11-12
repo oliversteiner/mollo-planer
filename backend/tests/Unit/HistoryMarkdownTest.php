@@ -60,6 +60,13 @@ MD;
         $this->assertSame(['v0.1 Backend', 'v0.2 Frontend'], $titles);
     }
 
+    public function test_release_status_line_under_a_version_is_not_its_description(): void
+    {
+        $history = HistoryMarkdown::parse("## v0.1 X\nStatus: veröffentlicht\n\nText.\n### Todo\n- [x] [feature] Fertig\n  Commit abc1234\n");
+
+        $this->assertSame('Text.', $history['milestones'][0]['description']);
+    }
+
     public function test_blocked_is_a_valid_kind(): void
     {
         $history = HistoryMarkdown::parse("## v0.1 X\n### Todo\n- [ ] [blocked] Wartet auf Freigabe\n");

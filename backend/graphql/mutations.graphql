@@ -1,0 +1,164 @@
+# Änderungen (Mutation)
+
+# ─── Änderungen ─────────────────────────────────────────────────
+
+type Mutation @guard {
+  # Benutzer: nur Admins. Neue Benutzer bekommen eine Einladungsmail
+  # mit Link zum Setzen des Passworts.
+  createUser(input: CreateUserInput! @spread): User!
+    @can(ability: "create", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateUser")
+  "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
+  updateUser(id: ID!, input: UpdateUserInput! @spread): User!
+    @can(ability: "update", find: "id", injectArgs: true)
+    @validator
+    @update
+  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
+  resetUserTwoFactor(id: ID!): User!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\ResetUserTwoFactor")
+  deleteUser(id: ID! @whereKey): User!
+    @can(ability: "delete", find: "id")
+    @delete
+  "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
+  updateMyNotifications(emailEnabled: Boolean!): User!
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateMyNotifications")
+
+  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
+  updateMyAvatar(avatar: Upload!): User!
+    @validator
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateMyAvatar")
+  "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
+  deleteUserAvatar(id: ID!): User!
+    @can(ability: "deleteAvatar", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteUserAvatar")
+
+  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
+  createApiToken(name: String! @rules(apply: ["min:2", "max:60"])): NewApiToken!
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateApiToken")
+  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
+  deleteApiToken(id: ID!): ApiToken
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteApiToken")
+
+  # Einstellungen der App: nur Admins.
+  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
+  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
+    @can(ability: "updateAppSettings", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateAppSettings")
+
+  # Label-Sets: app-weit. Anlegen mit labelSets.manage (Rolle); eigene Sets
+  # ändert und löscht der Ersteller mit dieser Fähigkeit, fremde mit
+  # labelSets.manageAny (Admin), mitgelieferte niemand.
+  "Legt ein eigenes Label-Set an."
+  createLabelSet(input: LabelSetInput!): LabelSet!
+    @can(ability: "create", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@create")
+  "Kopiert ein Set (auch ein mitgeliefertes) als eigenes Set, um es anzupassen."
+  duplicateLabelSet(id: ID!): LabelSet!
+    @can(ability: "duplicate", find: "id", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\DuplicateLabelSet")
+  "Ändert Name, Beschreibung und Labels in einem Zug. Labels mit id bleiben (und an ihren Tasks), ohne id kommen neu dazu, fehlende werden gelöscht (auch an den Tasks)."
+  updateLabelSet(id: ID!, input: LabelSetInput!): LabelSet!
+    @can(ability: "update", find: "id", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@update")
+  "Löscht ein eigenes Set, das kein Projekt mehr verwendet."
+  deleteLabelSet(id: ID!): LabelSet!
+    @can(ability: "delete", find: "id", model: "App\\Models\\LabelSet")
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteLabelSet")
+  "Wählt das Label-Set eines Projekts (null: keins). Tasks behalten ihre bisherigen Labels."
+  setProjectLabelSet(projectId: ID!, labelSetId: ID): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectLabelSet")
+  "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
+  setTaskLabels(taskId: ID!, labelIds: [ID!]!): Task!
+    @can(ability: "update", find: "taskId", model: "App\\Models\\Task")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetTaskLabels")
+
+  # Projekte: Anlegen nur durch Admins, Löschen durch Admin oder Owner.
+  createProject(input: CreateProjectInput! @spread): Project!
+    @can(ability: "create", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateProject")
+  updateProject(id: ID!, input: UpdateProjectInput! @spread): Project!
+    @can(ability: "update", find: "id")
+    @update
+  deleteProject(id: ID! @whereKey): Project!
+    @can(ability: "delete", find: "id")
+    @delete
+  "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
+  draftProjectPlan(
+    messages: [PlanChatMessageInput!]! @rules(apply: ["min:1", "max:40"])
+    "Der Entwurf in der Vorschau, damit Claude ihn ändert statt neu beginnt"
+    currentPlan: ProjectPlanInput
+  ): ProjectPlanDraft!
+    @can(ability: "create", model: "App\\Models\\Project")
+    @throttle(name: "plan-assistant")
+    @field(resolver: "App\\GraphQL\\Mutations\\DraftProjectPlan")
+  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
+  importProjectPlan(plan: ProjectPlanInput!, notifyAssignees: Boolean = false): Project!
+    @can(ability: "create", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ImportProjectPlan")
+  "Fügt eine Person hinzu oder ändert ihre Rolle"
+  setProjectMember(projectId: ID!, userId: ID!, role: ProjectRole!): Project!
+    @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectMember")
+  removeProjectMember(projectId: ID!, userId: ID!): Project!
+    @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\RemoveProjectMember")
+
+  # Milestones, ToDos, Tasks: Wer was darf, steht in der Rechte-Tabelle.
+  # Die Ability-Namen sind die Methoden der Policies.
+  createMilestone(input: CreateMilestoneInput! @spread): Milestone!
+    @can(ability: "createMilestone", find: "project_id", model: "App\\Models\\Project")
+    @create
+  updateMilestone(id: ID!, input: UpdateMilestoneInput! @spread): Milestone!
+    @can(ability: "update", find: "id")
+    @update
+  deleteMilestone(id: ID! @whereKey): Milestone!
+    @can(ability: "delete", find: "id")
+    @delete
+
+  createTodo(input: CreateTodoInput! @spread): Todo!
+    @can(ability: "createTodo", find: "milestone_id", model: "App\\Models\\Milestone")
+    @create
+  updateTodo(id: ID!, input: UpdateTodoInput! @spread): Todo!
+    @can(ability: "update", find: "id")
+    @update
+  deleteTodo(id: ID! @whereKey): Todo!
+    @can(ability: "delete", find: "id")
+    @delete
+
+  "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
+  createTask(input: CreateTaskInput! @spread): Task!
+    @can(ability: "createTask", find: "todo_id", model: "App\\Models\\Todo")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateTask")
+  updateTask(id: ID!, input: UpdateTaskInput! @spread): Task!
+    @can(ability: "update", find: "id")
+    @update
+  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
+  assignTask(id: ID!, assigneeId: ID): Task!
+    @can(ability: "assign", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\AssignTask")
+  "Verschiebt einen Task im Kanban"
+  moveTask(id: ID!, status: TaskStatus!, position: Int! @rules(apply: ["integer", "min:0"])): Task!
+    @can(ability: "move", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveTask")
+  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
+  moveTaskToTodo(id: ID!, todoId: ID!): Task!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveTaskToTodo")
+  deleteTask(id: ID! @whereKey): Task!
+    @can(ability: "delete", find: "id")
+    @delete
+
+  # Kommentare: Alle Mitglieder dürfen kommentieren. Die Autorin oder der
+  # Autor wird aus dem Login gesetzt, nicht aus der Eingabe.
+  addComment(input: AddCommentInput! @spread): Comment!
+    @can(ability: "createComment", find: "task_id", model: "App\\Models\\Task")
+    @field(resolver: "App\\GraphQL\\Mutations\\AddComment")
+  updateComment(id: ID!, input: UpdateCommentInput! @spread): Comment!
+    @can(ability: "update", find: "id")
+    @update
+  deleteComment(id: ID! @whereKey): Comment!
+    @can(ability: "delete", find: "id")
+    @delete
+}

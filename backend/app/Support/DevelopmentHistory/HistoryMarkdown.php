@@ -95,6 +95,10 @@ final class HistoryMarkdown
                 continue;
             }
 
+            if ($context === 'milestone' && preg_match('/^Status: (geplant|veröffentlicht)$/u', $text) === 1) {
+                continue;
+            }
+
             if ($context === 'milestone') {
                 $milestones[$m]['description'] = self::append($milestones[$m]['description'], $text);
             } elseif ($context === 'todo') {

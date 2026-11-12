@@ -37,7 +37,10 @@ class GraphqlEnumBindingTest extends TestCase
     public function test_php_enum_matches_graphql_enum(string $enum): void
     {
         $graphqlName = class_basename($enum);
-        $schema = (string) file_get_contents(__DIR__.'/../../graphql/schema.graphql');
+        $schema = implode("\n", array_map(
+            fn (string $file): string => (string) file_get_contents($file),
+            glob(__DIR__.'/../../graphql/*.graphql') ?: [],
+        ));
 
         $this->assertSame(
             1,

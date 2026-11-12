@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "codegen": "graphql-codegen",
+    "versions": "node scripts/build-versions.mjs",
     "test": "vitest run"
   },
   "dependencies": {

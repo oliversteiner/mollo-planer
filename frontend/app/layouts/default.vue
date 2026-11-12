@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import type { NavItem } from '~/components/NavList.vue'
+import versionData from '~/data/versions.json'
+import { currentVersion, type VersionFile } from '~/utils/versions'
 
 /**
  * App shell on <wa-page>: the navigation is a sidebar on wide screens and a
  * drawer (with its own hamburger button) on narrow ones.
  */
-const { t } = useI18n()
+const { t, localeProperties } = useI18n()
 const { viewer, can, logout } = useViewer()
+
+/** The current (highest released) version, shown under the user menu. */
+const appVersion = currentVersion((versionData as VersionFile).versions)
 
 const mainItems = computed<NavItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
@@ -14,11 +19,12 @@ const mainItems = computed<NavItem[]>(() => [
   ...(can('USERS_MANAGE') ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
 ])
 
-/** The section "System": the database documentation (admins), the status (everyone), then administration. */
+/** The section "System": the database documentation (admins), the status and the version (everyone), then administration. */
 const adminItems = computed<NavItem[]>(() => [
   ...(can('USERS_MANAGE') ? [{ label: t('nav.database'), icon: 'database', to: '/system/db' }] : []),
   ...(can('USERS_MANAGE') ? [{ label: t('nav.rights'), icon: 'list-check', to: '/system/rechte' }] : []),
   { label: t('nav.status'), icon: 'heart-pulse', to: '/system/status' },
+  { label: t('nav.version'), icon: 'code-branch', to: '/system/version' },
   ...(can('USERS_MANAGE') ? [{ label: t('nav.users'), icon: 'users', to: '/admin/users' }] : []),
   ...(can('LABEL_SETS_MANAGE') ? [{ label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' }] : []),
   ...(can('USERS_MANAGE') ? [{ label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }] : [])
@@ -50,7 +56,10 @@ function skipToContent(): void {
       @click.prevent="skipToContent"
     >{{ t('nav.skipToContent') }}</a>
 
-    <div slot="navigation-header">
+    <div
+      slot="navigation-header"
+      class="app-header"
+    >
       <NuxtLink
         to="/"
         class="app-name"
@@ -68,16 +77,21 @@ function skipToContent(): void {
         :label="t('nav.main')"
       />
       <SidebarProjectList />
-      <section
+      <!-- Closed by default; the user opens it with the summary. -->
+      <wa-details
         v-if="adminItems.length"
         class="app-admin"
-        :aria-label="t('nav.admin')"
+        appearance="plain"
       >
-        <h2 class="app-heading">
-          {{ t('nav.admin') }}
-        </h2>
-        <NavList :items="adminItems" />
-      </section>
+        <span
+          slot="summary"
+          class="app-heading"
+        >{{ t('nav.admin') }}</span>
+        <NavList
+          :items="adminItems"
+          :label="t('nav.admin')"
+        />
+      </wa-details>
     </div>
 
     <div
@@ -120,6 +134,17 @@ function skipToContent(): void {
           {{ t('auth.logout') }}
         </wa-dropdown-item>
       </wa-dropdown>
+      <NuxtLink
+        v-if="appVersion"
+        to="/system/version"
+        class="app-version"
+      >
+        <VersionBadge
+          :version="appVersion"
+          :locale="localeProperties.language ?? 'de-CH'"
+          :label="t('systemVersion.label')"
+        />
+      </NuxtLink>
     </div>
 
     <main
@@ -152,6 +177,12 @@ function skipToContent(): void {
 .app-shell::part(menu) {
   background-color: var(--wa-color-surface-default);
   border-inline-end: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+/* The logo sits in the middle of the header of the sidebar. */
+.app-header {
+  display: flex;
+  justify-content: center;
 }
 
 /* Logo in the colour of the brand: the colour of the SVG in light mode, a lighter shade in dark mode. */
@@ -213,6 +244,26 @@ function skipToContent(): void {
   flex: 1;
   min-inline-size: 0;
   text-align: start;
+}
+
+/* Under the user menu, aligned with its text. A link to the version page. */
+.app-version {
+  display: block;
+  margin-block-start: var(--wa-space-2xs);
+  padding-inline: var(--wa-space-s);
+  border-radius: var(--wa-border-radius-m);
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-version:hover :deep(.version-badge) {
+  color: var(--wa-color-text-normal);
+  text-decoration: underline;
+}
+
+.app-version:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
 }
 
 wa-dropdown:has(> .user-menu-button) {
