@@ -4,6 +4,7 @@ Stand: 2026-11-12. Geprüft: `backend/graphql/*.graphql`, Migrationen, Models, O
 Rahmen: Breaking Changes sind erlaubt, bestehende Daten müssen nicht erhalten bleiben (Entscheidung vom 2026-11-12).
 Status: alle Fragen entschieden, bereit für die Umsetzung. Vorher die Refactorings aus `docs/refactoring-vor-umsetzung.md` umsetzen.
 Fachliches Konzept zu Assistent, Ideen und KI-Kontext: `docs/assistent-ideen-konzept.md`.
+Planer-Dateiformat und User-Story: `docs/planer-datei-ssot.md`, Abschnitt 4.4.
 
 ---
 
@@ -17,6 +18,7 @@ Fachliches Konzept zu Assistent, Ideen und KI-Kontext: `docs/assistent-ideen-kon
 - **Keine Frist:** Elemente bleiben im Papierkorb, bis jemand sie endgültig löscht. Kein automatisches Löschen.
 - **Endgültig löschen:** nur Owner und Admins.
 - **KI-Kontext lesen:** alle Projektmitglieder (Variante A).
+- **User-Story am Task:** neues Feld, siehe A6.
 
 ---
 
@@ -150,6 +152,15 @@ Die bestehenden `delete*`-Mutationen bleiben vom Namen her, legen aber in den Pa
 - Global `/trash` für gelöschte Projekte und eigene Ideen.
 - Ein archiviertes Projekt hat einen eigenen Bereich „Archiv“ in der Projektliste.
 
+### A6. User-Story am Task (neu, entschieden am 2026-11-12)
+
+- Spalte `tasks.user_story` (JSON, nullable). Objekt mit `role`, `goal`, `benefit`. Alle drei Felder sind Pflicht, wenn das Objekt gesetzt ist. Grenzen: `role` 80 Zeichen, `goal` und `benefit` je 160 Zeichen, jeweils Klartext ohne Formatierung.
+- GraphQL: neuer Typ `UserStory { role: String!, goal: String!, benefit: String! }`, Feld `Task.userStory: UserStory`, Eingabe in `ProjectPlanTaskInput.userStory` und in den Task-Eingaben von `createTask` und `updateTask`.
+- Rechte: wie das Bearbeiten des Tasks (`task.update`, bei eigenen Tasks `task.updateOwn`).
+- Anzeige: Die Kanban-Karte zeigt die Story nicht. Das Task-Detail zeigt sie über der Beschreibung.
+- MCP und Assistent: Das Feld wird in das Plan-Schema aufgenommen. R2 (`PlanSchema`) übernimmt es dann mit.
+- Migration: neue Spalte, bestehende Tasks bleiben `null`. Breaking Changes sind laut Rahmen erlaubt.
+
 ---
 
 ## B. Neue Teile (aus dem Ideen-Konzept), Schema-Entwurf
@@ -273,7 +284,7 @@ Milestone, ToDo, Task und Kommentar sind RichText, nur das Projekt ist Klartext.
 ## Reihenfolge der Umsetzung
 
 0. Refactorings laut `docs/refactoring-vor-umsetzung.md`.
-1. Datenstruktur in einer Migration, frisch aufgesetzt (`migrate:fresh`), Seeder anpassen: A1 `project_id`, A2 `created_by`, A3 `todos.position` und `boardPosition`, A5 `archived_at`, `deleted_at`/`deleted_by`/`deletion_id`.
+1. Datenstruktur in einer Migration, frisch aufgesetzt (`migrate:fresh`), Seeder anpassen: A1 `project_id`, A2 `created_by`, A3 `todos.position` und `boardPosition`, A5 `archived_at`, `deleted_at`/`deleted_by`/`deletion_id`, A6 `tasks.user_story`.
 2. Rechte: `task.create` für Mitglieder, `task.updateOwn`, `task.assignSelf`, `project.archive`, `trash.purge`, `assistant.use`, `ideas.create`, `ideas.viewAny` in die beiden Rechte-Tabellen.
 3. Archiv und Papierkorb (Backend, dann Frontend).
 4. A4 gemeinsamer Plan-Entwurf und `importPlanIntoProject`.
