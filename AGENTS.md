@@ -1,7 +1,7 @@
 # Mollo Planer
 
 Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu ein Dashboard als Startseite.
-Produktiv-Domain später: `planer.mollo.ch` (Frontend und API als getrennte Subdomains).
+Produktiv-Domain später: `planer.mollo.dev` (Frontend und API als getrennte Subdomains).
 
 ## Bevor du etwas baust, lies
 - `docs/backend-plan.md`: bestätigte Entscheidungen und die **Reihenfolge beim Bauen**. Gilt vor allem anderen.
@@ -85,3 +85,4 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - [x] 11. Projekteinstellungen und Mitglieder
 - [x] 12. Admin
 - [x] 13. Tests und Feinschliff
+- [x] 14. Share-Funktion (Task-Export: Kalender, Erinnerungen, Notizen, Obsidian, Outlook)

@@ -13,7 +13,7 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf 
 8. **Kopf der App:** vorerst der Text „Mollo Planer“, Logo folgt.
 
 ## Feste Rahmenbedingungen
-- **Reine Single-Page-App** (`ssr: false`), gebaut mit `nuxt generate` zu statischen Dateien. Hostpoint kann nur PHP, kein Node. Auslieferung auf `planer.mollo.ch`, API auf eigener Subdomain. Die Hosting-Details (Rewrite auf `index.html`, Domains, Cookies) kommen später.
+- **Reine Single-Page-App** (`ssr: false`), gebaut mit `nuxt generate` zu statischen Dateien. Hostpoint kann nur PHP, kein Node. Auslieferung auf `planer.mollo.dev`, API auf eigener Subdomain. Die Hosting-Details (Rewrite auf `index.html`, Domains, Cookies) kommen später.
 - **UI-Texte in Deutsch und Englisch** über `@nuxtjs/i18n` (`i18n/locales/de.json`, `en.json`), nie hart im Template. Standard Deutsch; Sprache wählbar, gemerkt im Browser. Jede Anfrage an die API schickt `Accept-Language`, damit Fehlermeldungen in derselben Sprache kommen.
 - **RichText nur mit TipTap**, gespeichert und übertragen als JSON, angezeigt mit TipTap (nur lesend oder im Editor), **nie `v-html`**. Eine ESLint-Regel verbietet `v-html` im ganzen Frontend.
 - **Rechte nur aus dem Backend:** Knöpfe richten sich nach `Project.viewerAbilities` und `Comment.viewerCanEdit/viewerCanDelete`, nie nach einer eigenen Rollenprüfung im Frontend. Das Backend prüft ohnehin jede Änderung.

@@ -115,4 +115,9 @@ function sanitizeFilename(name: string): string {
 .share-title {
   margin-block-end: var(--wa-space-2xs);
 }
+
+/* The menu button keeps its own width; the stack would stretch it over the whole panel. */
+.share-section {
+  align-items: flex-start;
+}
 </style>

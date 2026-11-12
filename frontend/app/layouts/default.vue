@@ -180,8 +180,10 @@ function skipToContent(): void {
 }
 
 /* The logo sits in the middle of the header of the sidebar. */
+/* wa-page makes the header slot a column; the logo must be centred in a row. */
 .app-header {
   display: flex;
+  flex-direction: row;
   justify-content: center;
 }
 

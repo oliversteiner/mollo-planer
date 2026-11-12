@@ -3,7 +3,7 @@
 Stand: 2026-11-07. Ergänzt `graphql-kontext.md`. Wo beide sich widersprechen, gilt dieses Dokument.
 
 ## Bestätigt vom Auftraggeber
-1. **Rechte-Tabelle** wie im Kontextdokument. Die dortige Annahme („beim Einbau bestätigen“) ist damit bestätigt: Task anlegen/ändern/zuweisen/löschen, Milestone und ToDo löschen, Projekt ändern/löschen, Mitglieder verwalten und fremde Kommentare löschen sind auf Owner und Manager beschränkt (Projekt löschen nur Owner).
+1. **Rechte-Tabelle** wie im Kontextdokument. Die dortige Annahme („beim Einbau bestätigen“) ist damit bestätigt: Task löschen, Milestone und ToDo löschen, Projekt ändern/löschen, Mitglieder verwalten und fremde Kommentare löschen sind auf Owner und Manager beschränkt (Projekt löschen nur Owner). Geändert: Mitglieder dürfen Tasks anlegen, zuweisen und ändern.
 2. **Erster Admin** über einen Artisan-Befehl (zum Beispiel `php artisan app:create-admin`), nicht über einen Seeder. Kein Passwort im Code oder Repository. Der Befehl fragt Name und E-Mail ab und schickt den Link zum Setzen des Passworts, oder fragt das Passwort interaktiv ab.
 3. **Passkeys werden eingebaut**, zusätzlich zur Pflicht-2FA. **Ein Login mit Passkey braucht keine zusätzliche 2FA.**
 4. **Fremde Kommentare ändert niemand**, auch kein Admin. Löschen dürfen Autor, Owner/Manager und Admins.

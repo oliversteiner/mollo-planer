@@ -55,7 +55,7 @@ class QueryTest extends GraphQLTestCase
         $response->assertJsonPath('data.project.locale', 'DE')
             ->assertJsonPath('data.project.viewerRole', 'MEMBER')
             ->assertJsonPath('data.project.viewerAbilities', [
-                'MILESTONE_CREATE', 'MILESTONE_UPDATE', 'TODO_CREATE', 'TODO_UPDATE', 'TASK_MOVE', 'COMMENT_CREATE',
+                'MILESTONE_CREATE', 'MILESTONE_UPDATE', 'TODO_CREATE', 'TODO_UPDATE', 'TASK_CREATE', 'TASK_UPDATE', 'TASK_ASSIGN', 'TASK_MOVE', 'COMMENT_CREATE',
             ])
             ->assertJsonPath('data.project.members', [
                 ['user' => ['name' => 'Ben Owner'], 'role' => 'OWNER'],

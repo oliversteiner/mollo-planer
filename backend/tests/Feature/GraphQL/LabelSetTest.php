@@ -210,7 +210,7 @@ class LabelSetTest extends GraphQLTestCase
         $location = $event->labels()->where('key', 'location')->firstOrFail();
         $mutation = 'mutation ($t: ID!, $l: [ID!]!) { setTaskLabels(taskId: $t, labelIds: $l) { labels { id } } }';
 
-        $this->assertUnauthorized($this->as('member')->gql($mutation, ['t' => $this->task->id, 'l' => [$bug->id]]));
+        $this->assertUnauthorized($this->as('stranger')->gql($mutation, ['t' => $this->task->id, 'l' => [$bug->id]]));
         $this->as('manager')->gql($mutation, ['t' => $this->task->id, 'l' => [$location->id]])->assertGraphQLValidationKeys(['labelIds']);
 
         $labels = $this->as('manager')->gql($mutation, ['t' => $this->task->id, 'l' => [$bug->id, $feature->id, $bug->id]])->json('data.setTaskLabels.labels');

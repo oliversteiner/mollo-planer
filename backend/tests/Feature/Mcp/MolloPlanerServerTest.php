@@ -4,6 +4,7 @@ namespace Tests\Feature\Mcp;
 
 use App\Enums\ItemStatus;
 use App\Enums\ProjectRole;
+use App\Enums\UserRole;
 use App\Mcp\Servers\MolloPlanerServer;
 use App\Mcp\Tools\CreateProjectPlanTool;
 use App\Mcp\Tools\CreateProjectTool;
@@ -129,10 +130,21 @@ class MolloPlanerServerTest extends TestCase
         Notification::assertSentTo($this->member, TaskAssigned::class);
     }
 
-    public function test_a_member_may_not_create_tasks_and_then_nothing_is_created(): void
+    public function test_a_member_may_create_tasks(): void
     {
         MolloPlanerServer::actingAs($this->member)->tool(CreateProjectPlanTool::class, $this->plan())
-            ->assertHasErrors(['Task "Hörerprofile schreiben": This action is unauthorized.']);
+            ->assertOk()
+            ->assertSee('"tasks":3');
+    }
+
+    public function test_a_read_only_member_may_not_create_tasks_and_then_nothing_is_created(): void
+    {
+        $reader = User::factory()->role(UserRole::LESEND)->create();
+        $this->project->members()->attach($reader, ['role' => ProjectRole::MEMBER->value]);
+
+        MolloPlanerServer::actingAs($reader)->tool(CreateProjectPlanTool::class, $this->plan())
+            ->assertHasErrors()
+            ->assertSee('unauthorized');
 
         $this->assertSame([0, 0, 0], [Milestone::count(), Todo::count(), Task::count()]);
     }

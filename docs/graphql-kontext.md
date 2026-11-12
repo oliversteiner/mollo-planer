@@ -59,7 +59,8 @@ Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprach
 | Milestone löschen | ja | ja | nein |
 | ToDo anlegen / ändern (auch Beschreibung, Icon) | ja | ja | ja |
 | ToDo löschen | ja | ja | nein |
-| Task anlegen / ändern (auch Beschreibung, Icon) / zuweisen | ja | ja | nein |
+| Task anlegen / zuweisen | ja | ja | ja |
+| Task ändern (auch Beschreibung, Icon) | ja | ja | ja |
 | Task verschieben | ja | ja | ja |
 | Task löschen | ja | ja | nein |
 | Kommentieren | ja | ja | ja |

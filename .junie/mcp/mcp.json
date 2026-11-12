@@ -1,17 +1,7 @@
 {
     "mcpServers": {
-        "laravel-boost": {
-            "command": "php",
-            "args": [
-                "backend/artisan",
-                "boost:mcp"
-            ]
-        },
-        "mollo-planer": {
-            "url": "http://localhost:8000/mcp",
-            "headers": {
-                "Authorization": "Bearer ${MOLLOPLANER_TOKEN}"
-            }
+        "JetBrains IDE": {
+            "url": "http://127.0.0.1:64342/sse"
         }
     }
 }

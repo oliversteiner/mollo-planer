@@ -179,10 +179,15 @@ class MutationTest extends GraphQLTestCase
         $create = 'mutation ($in: CreateTaskInput!) { createTask(input: $in) { status position assignee { name } } }';
         $input = ['todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $this->users['member']->id];
 
-        $this->assertUnauthorized($this->as('member')->gql($create, ['in' => $input]));
-
         $this->as('manager')->gql($create, ['in' => $input])
             ->assertJsonPath('data.createTask', ['status' => 'OPEN', 'position' => 1, 'assignee' => ['name' => 'David Member']]);
+    }
+
+    public function test_member_creates_and_assigns_tasks(): void
+    {
+        $this->as('member')->gql('mutation ($in: CreateTaskInput!) { createTask(input: $in) { assignee { name } } }', ['in' => [
+            'todoId' => $this->todo->id, 'title' => 'Vom Mitglied', 'assigneeId' => $this->users['member']->id,
+        ]])->assertJsonPath('data.createTask.assignee.name', 'David Member');
     }
 
     public function test_task_cannot_be_assigned_to_non_members(): void
@@ -204,7 +209,8 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.assignTask.assignee.name', 'David Member');
         $this->as('owner')->gql($assign, ['id' => $this->task->id, 'u' => null])
             ->assertJsonPath('data.assignTask.assignee', null);
-        $this->assertUnauthorized($this->as('member')->gql($assign, ['id' => $this->task->id, 'u' => $this->users['member']->id]));
+        $this->as('member')->gql($assign, ['id' => $this->task->id, 'u' => $this->users['member']->id])
+            ->assertJsonPath('data.assignTask.assignee.name', 'David Member');
     }
 
     public function test_move_reorders_columns_and_updates_status(): void
@@ -239,8 +245,8 @@ class MutationTest extends GraphQLTestCase
 
         $this->assertSame(ItemStatus::OPEN, $this->todo->fresh()->status);
 
-        // Like changing a task: managers yes, members no.
-        $this->assertUnauthorized($this->as('member')->gql($move, ['id' => $open->id, 'todo' => $target->id]));
+        // Like changing a task: members may too now, strangers may not.
+        $this->assertUnauthorized($this->as('stranger')->gql($move, ['id' => $open->id, 'todo' => $target->id]));
 
         $this->as('manager')->gql($move, ['id' => $open->id, 'todo' => $target->id])
             ->assertJsonPath('data.moveTaskToTodo', [
@@ -262,9 +268,10 @@ class MutationTest extends GraphQLTestCase
         $this->assertSame($target->id, $open->fresh()->todo_id);
     }
 
-    public function test_member_cannot_update_or_delete_tasks(): void
+    public function test_member_updates_tasks_but_cannot_delete_them(): void
     {
-        $this->assertUnauthorized($this->as('member')->gql('mutation ($id: ID!) { updateTask(id: $id, input: {title: "Neu"}) { id } }', ['id' => $this->task->id]));
+        $this->as('member')->gql('mutation ($id: ID!) { updateTask(id: $id, input: {title: "Vom Mitglied"}) { title } }', ['id' => $this->task->id])
+            ->assertJsonPath('data.updateTask.title', 'Vom Mitglied');
         $this->assertUnauthorized($this->as('member')->gql('mutation ($id: ID!) { deleteTask(id: $id) { id } }', ['id' => $this->task->id]));
         $this->as('manager')->gql('mutation ($id: ID!) { updateTask(id: $id, input: {title: "Neu", icon: "bug"}) { title icon } }', ['id' => $this->task->id])
             ->assertJsonPath('data.updateTask', ['title' => 'Neu', 'icon' => 'bug']);

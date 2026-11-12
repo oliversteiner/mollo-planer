@@ -54,7 +54,10 @@ class ProjectPermissionsTest extends TestCase
             ->create();
 
         $this->assertTrue(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_MOVE));
-        $this->assertFalse(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_CREATE));
+        $this->assertTrue(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_CREATE));
+        $this->assertTrue(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_ASSIGN));
+        $this->assertTrue(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_UPDATE));
+        $this->assertFalse(ProjectPermissions::allows($member, $project, ProjectAbility::TASK_DELETE));
         $this->assertTrue(ProjectPermissions::allows($manager, $project, ProjectAbility::TASK_CREATE));
         $this->assertFalse(ProjectPermissions::allows($manager, $project, ProjectAbility::PROJECT_DELETE));
         $this->assertSame(
