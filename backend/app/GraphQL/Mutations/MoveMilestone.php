@@ -3,6 +3,7 @@
 namespace App\GraphQL\Mutations;
 
 use App\Models\Milestone;
+use App\Services\MilestoneOrder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -20,19 +21,7 @@ class MoveMilestone
         return DB::transaction(function () use ($args): Milestone {
             $milestone = Milestone::findOrFail($args['id']);
 
-            $order = Milestone::query()
-                ->where('project_id', $milestone->project_id)
-                ->whereKeyNot($milestone->getKey())
-                ->orderBy('position')
-                ->orderBy('id')
-                ->pluck('id')
-                ->all();
-
-            array_splice($order, min($args['position'], count($order)), 0, [$milestone->getKey()]);
-
-            foreach ($order as $position => $id) {
-                Milestone::query()->whereKey($id)->update(['position' => $position]);
-            }
+            app(MilestoneOrder::class)->move($milestone, $args['position']);
 
             return $milestone->refresh();
         });

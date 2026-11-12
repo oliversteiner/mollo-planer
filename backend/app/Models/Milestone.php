@@ -6,6 +6,7 @@ use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
+use App\Services\MilestoneOrder;
 use Database\Factories\MilestoneFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -76,16 +77,15 @@ class Milestone extends Model implements BelongsToProject
     protected static function booted(): void
     {
         static::creating(function (Milestone $milestone): void {
-            $siblings = static::query()->where('project_id', $milestone->project_id);
+            $order = app(MilestoneOrder::class);
 
             if ($milestone->position === null) {
-                $last = $siblings->max('position');
-                $milestone->position = $last === null ? 0 : (int) $last + 1;
+                $milestone->position = $order->nextPosition($milestone->project_id);
 
                 return;
             }
 
-            $siblings->where('position', '>=', $milestone->position)->increment('position');
+            $order->openSlot($milestone->project_id, $milestone->position);
         });
     }
 }
