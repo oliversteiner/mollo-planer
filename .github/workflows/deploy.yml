@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DEPLOY_HOST: sl23.web.hostpoint.ch
-  DEPLOY_USER: oliver14
+  DEPLOY_HOST: servername.hostpoint.ch
+  DEPLOY_USER: username
   API_BASE: https://api.planer.mollo.dev
 
 jobs:
