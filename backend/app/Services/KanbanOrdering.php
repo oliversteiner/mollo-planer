@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Enums\TaskStatus;
-use App\Models\Project;
 use App\Models\Task;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Order of tasks within the Kanban columns of a project.
@@ -18,16 +18,14 @@ use App\Models\Task;
  */
 class KanbanOrdering
 {
+    public function __construct(private readonly Ordering $ordering) {}
+
     /**
      * Position for a new task at the end of a column.
      */
     public function nextPosition(int|string $projectId, TaskStatus $status): int
     {
-        $this->lockProject($projectId);
-
-        $max = Task::query()->inProject($projectId)->where('status', $status->value)->max('position');
-
-        return $max === null ? 0 : (int) $max + 1;
+        return $this->ordering->nextPosition($projectId, $this->column($projectId, $status));
     }
 
     /**
@@ -37,59 +35,29 @@ class KanbanOrdering
     public function move(Task $task, TaskStatus $status, int $position): Task
     {
         $projectId = $task->owningProject()->getKey();
-        $this->lockProject($projectId);
+        $this->ordering->lockProject($projectId);
         // Read the status again: another move may have changed it before the lock.
         $task->refresh();
         $oldStatus = $task->status;
 
-        $target = Task::query()
-            ->inProject($projectId)
-            ->where('status', $status->value)
-            ->whereKeyNot($task->getKey())
-            ->orderBy('position')
-            ->orderBy('id')
-            ->get();
-
-        $position = max(0, min($position, $target->count()));
-        $ordered = $target->values()->all();
-        array_splice($ordered, $position, 0, [$task]);
-
         $task->status = $status;
-        $this->renumber($ordered);
 
-        if ($oldStatus !== $status) {
-            $source = Task::query()
-                ->inProject($projectId)
-                ->where('status', $oldStatus->value)
-                ->orderBy('position')
-                ->orderBy('id')
-                ->get();
-
-            $this->renumber($source->all());
-        }
+        $this->ordering->move(
+            $task,
+            $projectId,
+            $this->column($projectId, $status),
+            $position,
+            $oldStatus !== $status ? $this->column($projectId, $oldStatus) : null,
+        );
 
         return $task;
     }
 
-    private function lockProject(int|string $projectId): void
-    {
-        Project::query()->whereKey($projectId)->lockForUpdate()->first();
-    }
-
     /**
-     * Save positions 0..n. The moved task is saved normally so the status
-     * observer runs; the others change only their position.
-     *
-     * @param  list<Task>  $tasks
+     * @return Builder<Task>
      */
-    private function renumber(array $tasks): void
+    private function column(int|string $projectId, TaskStatus $status): Builder
     {
-        foreach ($tasks as $index => $task) {
-            $task->position = $index;
-
-            if ($task->isDirty()) {
-                $task->save();
-            }
-        }
+        return Task::query()->inProject($projectId)->where('status', $status->value);
     }
 }

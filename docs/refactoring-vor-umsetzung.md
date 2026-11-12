@@ -10,7 +10,7 @@ Rollen: Dieses Dokument ist Analyse und Plan. Die Umsetzung erfolgt in einer sep
 
 | # | Refactoring | Stand |
 |---|---|---|
-| R1 | Eine Reihenfolge-Logik | **teilweise**: `MilestoneOrder` (Commit `c8f3f46`) bündelt Anlegen und Verschieben von Milestones. Offen: Sperre, Lückenschluss, Kanban und ToDos |
+| R1 | Eine Reihenfolge-Logik | **Code fertig, Commit blockiert**: `App\Services\Ordering` ersetzt `MilestoneOrder` und sperrt das Projekt bei jeder Änderung, `close()` schließt Lücken nach dem Löschen eines Milestones, `KanbanOrdering` ist dünne Schicht darüber. Tests: `MilestoneOrderTest` (Lücke: rot vor dem Umbau, grün danach; Sperre: nur unter MariaDB). SQLite-Lauf grün (553 Tests, 1 übersprungen). `composer test:mariadb` scheitert an fehlenden Rechten des DB-Benutzers auf `molloplaner_test` (SQLSTATE 1044), daher kein Commit. ToDos bleiben bis A3 offen |
 | R2 | Plan-Struktur an einer Stelle | offen |
 | R3 | GraphQL-Operationen bündeln und prüfen | **erledigt**: 15 Operationen unter `backend/graphql/operations/`, `GraphQLRunner::runNamed`, Test `OperationFilesTest` prüft jede gegen das Schema. Zählung im Plan war ungenau: im Code 17 Aufrufstellen in 11 Dateien, 15 verschiedene Operationen |
 | R4 | Ein Lösch-Pfad | offen |

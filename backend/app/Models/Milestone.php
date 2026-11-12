@@ -6,7 +6,7 @@ use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
-use App\Services\MilestoneOrder;
+use App\Services\Ordering;
 use Database\Factories\MilestoneFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -72,20 +72,29 @@ class Milestone extends Model implements BelongsToProject
 
     /**
      * A new milestone goes to the end of its project, or to the given position;
-     * the milestones from there on move one place back.
+     * the milestones from there on move one place back. A deleted milestone
+     * leaves no gap.
      */
     protected static function booted(): void
     {
         static::creating(function (Milestone $milestone): void {
-            $order = app(MilestoneOrder::class);
+            $ordering = app(Ordering::class);
+            $group = self::query()->where('project_id', $milestone->project_id);
 
             if ($milestone->position === null) {
-                $milestone->position = $order->nextPosition($milestone->project_id);
+                $milestone->position = $ordering->nextPosition($milestone->project_id, $group);
 
                 return;
             }
 
-            $order->openSlot($milestone->project_id, $milestone->position);
+            $ordering->openSlot($milestone->project_id, $group, $milestone->position);
+        });
+
+        static::deleted(function (Milestone $milestone): void {
+            app(Ordering::class)->close(
+                $milestone->project_id,
+                self::query()->where('project_id', $milestone->project_id),
+            );
         });
     }
 }
