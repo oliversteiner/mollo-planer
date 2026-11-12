@@ -46,7 +46,9 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
 - [ ] `composer test:mariadb`: Der lokale Datenbankbenutzer hat keinen Zugriff auf `molloplaner_test` (SQLSTATE 1044). Rechte bitte lokal setzen, dann laufen die Tests gegen MariaDB.
 - [x] Frontend: `/register` (Layout `auth`, Felder Name, E-Mail, Passwort, Wiederholung), `/verify-email` (Ziel des Bestätigungslinks), `/account-pending` (Wartesseite mit Grund `email` oder `approval`, „Erneut prüfen“, Abmelden), Weiterleitung der Sperre in Middleware, Login und Einrichtung, Freigabeliste mit „Freigeben“ und „Ablehnen“ in `/admin/users`, Texte de/en, Tests (245 grün).
 - [x] Backend nachgetragen: `User.approved` und `User.emailVerified` (GraphQL), CORS für `/register` (vorher blockierte der Browser die Anfrage), Verifikations-Redirect ohne doppeltes `?verified=1`.
-- [ ] Browserprüfung (Wartesseiten, Freigabeliste): Die Browser-Erweiterung hat die Bedienung nach zwei Fehlversuchen abgebrochen. Ablauf deshalb per curl geprüft: Registrierung (201), Sperre ohne Bestätigung (`ACCOUNT_NOT_READY`, `email`), Bestätigungslink (302 nach `/verify-email`). Freigabe und Oberfläche noch im Browser prüfen.
+- [x] Anmeldung im Browser geprüft: unbestätigtes Konto landet auf der Wartesseite „E-Mail bestätigen“, bestätigtes Konto ohne Freigabe auf „Konto wartet“. Fehler behoben: Ein wartendes Konto kam bis aufs Dashboard, weil `Viewer` offen ist. Das Frontend prüft jetzt `approved` und `emailVerified`.
+- [ ] Offen: Freigabeliste in `/admin/users` und die Freigabe selbst im Browser.
+- [ ] Browserprüfung (Rest): Die Browser-Erweiterung hat die Bedienung nach zwei Fehlversuchen abgebrochen. Ablauf deshalb per curl geprüft: Registrierung (201), Sperre ohne Bestätigung (`ACCOUNT_NOT_READY`, `email`), Bestätigungslink (302 nach `/verify-email`). Freigabe und Oberfläche noch im Browser prüfen.
 - [ ] Testkonto `testperson-neu@example.test` in der lokalen Datenbank (Dev) entfernen oder ablehnen.
 - [ ] Doku in `backend-plan.md` und `CLAUDE.md` nach Abschluss.
 

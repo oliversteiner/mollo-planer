@@ -1,7 +1,7 @@
 import type { ViewerQuery } from '~/graphql/generated/graphql'
 import { viewerQuery } from '~/graphql/viewer'
 import type { ApiErrorKind } from '~/utils/api'
-import { classifyApolloError } from '~/utils/api'
+import { classifyApolloError, readinessKind } from '~/utils/api'
 
 export type Viewer = ViewerQuery['me']
 
@@ -17,7 +17,7 @@ export function useViewer() {
 
   /**
    * Asks the API who is logged in. Returns null on success, otherwise why
-   * not (for example "unauthenticated" or "setup-required").
+   * not (for example "unauthenticated", "setup-required" or "awaiting-approval").
    */
   async function load(): Promise<ApiErrorKind | null> {
     try {
@@ -26,11 +26,15 @@ export function useViewer() {
         fetchPolicy: 'network-only',
         context: { silentErrors: true }
       })
-      viewer.value = data.me
       twoFactorEnabled.value = data.appSettings.twoFactorEnabled
-      systemAbilities.value = [...data.viewerSystemAbilities]
 
-      return null
+      // A waiting account gets the viewer query too, but may not use the app.
+      const waiting = readinessKind(data.me)
+
+      viewer.value = waiting ? null : data.me
+      systemAbilities.value = waiting ? [] : [...data.viewerSystemAbilities]
+
+      return waiting
     } catch (error) {
       viewer.value = null
       systemAbilities.value = []

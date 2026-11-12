@@ -11,6 +11,8 @@ export const viewerQuery = graphql(`
       jobFunction
       avatarUrl
       notifyByEmail
+      approved
+      emailVerified
     }
     appSettings {
       twoFactorEnabled

@@ -64,6 +64,19 @@ interface GraphQLErrorLike {
   }
 }
 
+/**
+ * Readiness of the logged-in account from the Viewer query: the viewer query
+ * stays open for accounts waiting for approval, so the answer carries the state.
+ * Null when the account can use the app.
+ */
+export function readinessKind(account: { approved: boolean, emailVerified: boolean }): ApiErrorKind | null {
+  if (!account.emailVerified) {
+    return 'unverified'
+  }
+
+  return account.approved ? null : 'awaiting-approval'
+}
+
 /** Page for an account that cannot use the app yet, or null for other states. */
 export function pendingAccountPath(kind: ApiErrorKind | null): string | null {
   if (kind === 'unverified') {

@@ -74,7 +74,7 @@ type Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": typeof types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": typeof types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": typeof types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": typeof types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
     "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
@@ -137,7 +137,7 @@ const documents: Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": types.ViewerDocument,
 };
 
 /**
@@ -397,7 +397,7 @@ export function graphql(source: "\n  mutation DeleteComment($id: ID!) {\n    del
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"];
+export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

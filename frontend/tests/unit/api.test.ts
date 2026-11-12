@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ACCOUNT_NOT_READY, classifyApiError, classifyApolloError, classifyRestError, pendingAccountPath, readCookie, safeRedirect, SETUP_REQUIRED, STRONG_AUTH_REQUIRED, withoutNulls } from '../../app/utils/api'
+import { ACCOUNT_NOT_READY, classifyApiError, classifyApolloError, classifyRestError, pendingAccountPath, readCookie, readinessKind, safeRedirect, SETUP_REQUIRED, STRONG_AUTH_REQUIRED, withoutNulls } from '../../app/utils/api'
 
 describe('readCookie', () => {
   it('returns the URL-decoded value, as Laravel expects it in X-XSRF-TOKEN', () => {
@@ -109,5 +109,13 @@ describe('pendingAccountPath', () => {
   it('returns null for every other state', () => {
     expect(pendingAccountPath(null)).toBeNull()
     expect(pendingAccountPath('setup-required')).toBeNull()
+  })
+})
+
+describe('readinessKind', () => {
+  it('lets only confirmed and approved accounts into the app', () => {
+    expect(readinessKind({ approved: true, emailVerified: true })).toBeNull()
+    expect(readinessKind({ approved: false, emailVerified: true })).toBe('awaiting-approval')
+    expect(readinessKind({ approved: false, emailVerified: false })).toBe('unverified')
   })
 })
