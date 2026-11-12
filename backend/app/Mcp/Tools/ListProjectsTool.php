@@ -20,13 +20,7 @@ class ListProjectsTool extends Tool
 
     public function handle(Request $request): Response
     {
-        return $this->respond(fn () => Response::json($this->graphQL('{
-            projects {
-                id name description locale viewerRole viewerAbilities
-                progress { done total percent }
-                members { role user { id name email } }
-            }
-        }')['projects'] ?? []));
+        return $this->respond(fn () => Response::json($this->operation('ListProjects')['projects'] ?? []));
     }
 
     /**

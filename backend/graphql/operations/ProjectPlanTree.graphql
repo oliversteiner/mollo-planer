@@ -1,0 +1,3 @@
+query ProjectPlanTree($id: ID!) {
+    project(id: $id) { members { user { id email } } milestones { id title todos { id title tasks { id title } } } }
+}

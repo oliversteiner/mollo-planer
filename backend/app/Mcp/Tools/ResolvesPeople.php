@@ -17,7 +17,7 @@ trait ResolvesPeople
      */
     protected function userIdsByEmail(): array
     {
-        $users = $this->graphQL('{ users { id email } }')['users'] ?? [];
+        $users = $this->operation('UserEmails')['users'] ?? [];
 
         return collect($users)->mapWithKeys(fn (array $user) => [mb_strtolower($user['email']) => $user['id']])->all();
     }

@@ -1,0 +1,7 @@
+query ListProjects {
+    projects {
+        id name description locale viewerRole viewerAbilities
+        progress { done total percent }
+        members { role user { id name email } }
+    }
+}

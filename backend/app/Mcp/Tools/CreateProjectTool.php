@@ -36,7 +36,7 @@ class CreateProjectTool extends Tool
             $members = $validated['members'] ?? [];
             $ids = $members === [] ? [] : $this->userIdsByEmail();
 
-            $project = $this->graphQL('mutation ($input: CreateProjectInput!) { createProject(input: $input) { id name } }', [
+            $project = $this->operation('CreateProject', [
                 'input' => [
                     'name' => $validated['name'],
                     'description' => $validated['description'] ?? null,
@@ -45,7 +45,7 @@ class CreateProjectTool extends Tool
             ])['createProject'];
 
             foreach ($members as $member) {
-                $this->graphQL('mutation ($p: ID!, $u: ID!, $r: ProjectRole!) { setProjectMember(projectId: $p, userId: $u, role: $r) { id } }', [
+                $this->operation('SetProjectMember', [
                     'p' => $project['id'],
                     'u' => $this->idForEmail($ids, $member['email'], 'has an account. An admin must invite them in the app first.'),
                     'r' => $member['role'],

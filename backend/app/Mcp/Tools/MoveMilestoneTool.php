@@ -17,8 +17,6 @@ class MoveMilestoneTool extends Tool
 {
     use ExplainsGraphQLErrors, RunsGraphQL;
 
-    private const MUTATION = 'mutation ($id: ID!, $position: Int!) { moveMilestone(id: $id, position: $position) { id title position } }';
-
     public function handle(Request $request): Response
     {
         $validated = $request->validate([
@@ -31,7 +29,7 @@ class MoveMilestoneTool extends Tool
         ]);
 
         try {
-            $milestone = $this->graphQL(self::MUTATION, [
+            $milestone = $this->operation('MoveMilestone', [
                 'id' => (string) $validated['milestone_id'],
                 'position' => (int) $validated['position'],
             ])['moveMilestone'];

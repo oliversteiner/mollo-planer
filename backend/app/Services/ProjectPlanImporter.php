@@ -33,16 +33,6 @@ use Illuminate\Support\Facades\DB;
  */
 class ProjectPlanImporter
 {
-    private const PROJECT = 'mutation ($input: CreateProjectInput!) { createProject(input: $input) { id name } }';
-
-    private const MEMBER = 'mutation ($p: ID!, $u: ID!, $r: ProjectRole!) { setProjectMember(projectId: $p, userId: $u, role: $r) { id } }';
-
-    private const MILESTONE = 'mutation ($input: CreateMilestoneInput!) { createMilestone(input: $input) { id } }';
-
-    private const TODO = 'mutation ($input: CreateTodoInput!) { createTodo(input: $input) { id } }';
-
-    private const TASK = 'mutation ($input: CreateTaskInput!) { createTask(input: $input) { id } }';
-
     public function __construct(
         private readonly GraphQLRunner $graphQL,
         private readonly ProjectPlanReader $reader,
@@ -63,7 +53,7 @@ class ProjectPlanImporter
     public function createProject(array $project, array $members, array $milestones, bool $notifyAssignees = false): array
     {
         return $this->transaction($notifyAssignees, function () use ($project, $members, $milestones): array {
-            $created = $this->graphQL->run(self::PROJECT, ['input' => [
+            $created = $this->graphQL->runNamed('CreateProject', ['input' => [
                 'name' => $project['name'],
                 'description' => $project['description'] ?? null,
                 'locale' => $project['locale'] ?? 'DE',
@@ -75,7 +65,7 @@ class ProjectPlanImporter
                 $userId = $ids[ProjectPlanReader::normalizeEmail($member['email'])]
                     ?? throw new ProjectPlanFailed(ProjectPlanFailed::UNKNOWN_PERSON, $member['email']);
 
-                $this->graphQL->run(self::MEMBER, ['p' => $created['id'], 'u' => $userId, 'r' => $member['role']]);
+                $this->graphQL->runNamed('SetProjectMember', ['p' => $created['id'], 'u' => $userId, 'r' => $member['role']]);
             }
 
             return [
@@ -184,7 +174,7 @@ class ProjectPlanImporter
             // The position key is sent only when given: an explicit null fails the integer rule.
             $position = isset($milestone['position']) ? ['position' => $milestone['position']] : [];
 
-            $milestoneId = $this->create(self::MILESTONE, 'createMilestone', ProjectPlanFailed::MILESTONE, $milestone['title'], [
+            $milestoneId = $this->create('CreateMilestone', 'createMilestone', ProjectPlanFailed::MILESTONE, $milestone['title'], [
                 'projectId' => $projectId,
                 ...$position,
                 ...$this->fields($milestone),
@@ -212,7 +202,7 @@ class ProjectPlanImporter
         $items = [];
 
         foreach ($todos as $todo) {
-            $todoId = $this->create(self::TODO, 'createTodo', ProjectPlanFailed::TODO, $todo['title'], [
+            $todoId = $this->create('CreateTodo', 'createTodo', ProjectPlanFailed::TODO, $todo['title'], [
                 'milestoneId' => $milestoneId,
                 ...$this->fields($todo),
             ]);
@@ -247,7 +237,7 @@ class ProjectPlanImporter
                 throw new ProjectPlanFailed(ProjectPlanFailed::NOT_A_MEMBER, $task['title'], $task['assignee_email']);
             }
 
-            $taskId = $this->create(self::TASK, 'createTask', ProjectPlanFailed::TASK, $task['title'], [
+            $taskId = $this->create('CreateTask', 'createTask', ProjectPlanFailed::TASK, $task['title'], [
                 'todoId' => $todoId,
                 'assigneeId' => $email === null ? null : $members[$email],
                 ...$this->fields($task),
@@ -297,7 +287,7 @@ class ProjectPlanImporter
     private function markDone(string $taskId, string $title): void
     {
         try {
-            $this->graphQL->run(TaskStatusChange::MUTATION, TaskStatusChange::variables($taskId, TaskStatus::DONE));
+            $this->graphQL->runNamed('MoveTask', TaskStatusChange::variables($taskId, TaskStatus::DONE));
         } catch (GraphQLFailed $failure) {
             throw new ProjectPlanFailed(ProjectPlanFailed::TASK, $title, $failure->getMessage());
         }
@@ -308,10 +298,10 @@ class ProjectPlanImporter
      *
      * @throws ProjectPlanFailed with the item that failed
      */
-    private function create(string $mutation, string $field, string $kind, string $title, array $input): string
+    private function create(string $operation, string $field, string $kind, string $title, array $input): string
     {
         try {
-            return $this->graphQL->run($mutation, ['input' => $input])[$field]['id'];
+            return $this->graphQL->runNamed($operation, ['input' => $input])[$field]['id'];
         } catch (GraphQLFailed $failure) {
             throw new ProjectPlanFailed($kind, $title, $failure->getMessage());
         }

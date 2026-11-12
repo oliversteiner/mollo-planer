@@ -11,12 +11,6 @@ use App\Enums\TaskStatus;
  */
 final class TaskStatusChange
 {
-    public const MUTATION = 'mutation ($id: ID!, $status: TaskStatus!, $position: Int!) {
-        moveTask(id: $id, status: $status, position: $position) {
-            id status todo { id status milestone { id status } }
-        }
-    }';
-
     /** Larger than any column; KanbanOrdering clamps the position, so the task lands at the end. */
     private const END_OF_COLUMN = 2147483647;
 

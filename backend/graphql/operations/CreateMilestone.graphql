@@ -1,0 +1,3 @@
+mutation CreateMilestone($input: CreateMilestoneInput!) {
+    createMilestone(input: $input) { id }
+}

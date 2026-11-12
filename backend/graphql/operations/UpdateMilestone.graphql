@@ -1,0 +1,3 @@
+mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {
+    updateMilestone(id: $id, input: $input) { id title dueDate }
+}

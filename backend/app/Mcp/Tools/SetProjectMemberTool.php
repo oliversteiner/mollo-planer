@@ -29,9 +29,7 @@ class SetProjectMemberTool extends Tool
 
         return $this->respond(function () use ($validated) {
             $userId = $this->idForEmail($this->userIdsByEmail(), $validated['email'], 'has an account. An admin must invite them in the app first.');
-            $members = $this->graphQL('mutation ($p: ID!, $u: ID!, $r: ProjectRole!) {
-                setProjectMember(projectId: $p, userId: $u, role: $r) { members { role user { name email } } }
-            }', ['p' => (string) $validated['project_id'], 'u' => $userId, 'r' => $validated['role']])['setProjectMember']['members'];
+            $members = $this->operation('SetProjectMemberWithMembers', ['p' => (string) $validated['project_id'], 'u' => $userId, 'r' => $validated['role']])['setProjectMember']['members'];
 
             return Response::json(['members' => $members]);
         });

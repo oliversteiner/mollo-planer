@@ -32,7 +32,7 @@ class SetTaskStatusTool extends Tool
         ]);
 
         try {
-            $task = $this->graphQL(TaskStatusChange::MUTATION, TaskStatusChange::variables(
+            $task = $this->operation('MoveTask', TaskStatusChange::variables(
                 (string) $validated['task_id'],
                 TaskStatus::from((string) $validated['status']),
             ))['moveTask'];

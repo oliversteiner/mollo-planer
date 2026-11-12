@@ -20,7 +20,7 @@ class ListUsersTool extends Tool
 
     public function handle(Request $request): Response
     {
-        return $this->respond(fn () => Response::json($this->graphQL('{ users { id name email role jobFunction } }')['users'] ?? []));
+        return $this->respond(fn () => Response::json($this->operation('ListUsers')['users'] ?? []));
     }
 
     /**

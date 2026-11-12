@@ -1,0 +1,3 @@
+mutation SetProjectMember($p: ID!, $u: ID!, $r: ProjectRole!) {
+    setProjectMember(projectId: $p, userId: $u, role: $r) { id }
+}

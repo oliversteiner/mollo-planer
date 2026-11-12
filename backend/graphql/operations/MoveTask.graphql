@@ -1,0 +1,5 @@
+mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {
+    moveTask(id: $id, status: $status, position: $position) {
+        id status todo { id status milestone { id status } }
+    }
+}

@@ -26,19 +26,7 @@ class GetProjectTool extends Tool
         );
 
         return $this->respond(function () use ($validated) {
-            $project = $this->graphQL('query ($id: ID!) {
-                project(id: $id) {
-                    id name description viewerRole viewerAbilities
-                    members { role user { id name email } }
-                    milestones {
-                        id title dueDate status
-                        todos {
-                            id title dueDate status
-                            tasks { id title status dueDate assignee { name email } }
-                        }
-                    }
-                }
-            }', ['id' => (string) $validated['project_id']])['project'] ?? null;
+            $project = $this->operation('GetProject', ['id' => (string) $validated['project_id']])['project'] ?? null;
 
             return $project === null
                 ? Response::error('This project does not exist, or you have no access to it.')

@@ -12,8 +12,6 @@ use App\Mcp\Support\GraphQLRunner;
  */
 class ProjectPlanReader
 {
-    private const TREE = 'query ($id: ID!) { project(id: $id) { members { user { id email } } milestones { id title todos { id title tasks { id title } } } } }';
-
     public function __construct(
         private readonly GraphQLRunner $graphQL,
     ) {}
@@ -27,7 +25,7 @@ class ProjectPlanReader
      */
     public function tree(string $projectId): array
     {
-        $project = $this->graphQL->run(self::TREE, ['id' => $projectId])['project'] ?? null;
+        $project = $this->graphQL->runNamed('ProjectPlanTree', ['id' => $projectId])['project'] ?? null;
 
         if ($project === null) {
             throw new GraphQLFailed('This project does not exist, or you have no access to it. Nothing was created.');
@@ -100,7 +98,7 @@ class ProjectPlanReader
      */
     public function accountIdsByEmail(): array
     {
-        $users = $this->graphQL->run('{ users { id email } }')['users'] ?? [];
+        $users = $this->graphQL->runNamed('UserEmails')['users'] ?? [];
 
         return collect($users)->mapWithKeys(fn (array $user) => [self::normalizeEmail($user['email']) => $user['id']])->all();
     }

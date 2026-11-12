@@ -19,9 +19,9 @@ class UpdatePlanItemTool extends Tool
 {
     use ExplainsGraphQLErrors, RunsGraphQL;
 
-    private const MUTATIONS = [
-        'milestone' => 'mutation ($id: ID!, $input: UpdateMilestoneInput!) { updateMilestone(id: $id, input: $input) { id title dueDate } }',
-        'todo' => 'mutation ($id: ID!, $input: UpdateTodoInput!) { updateTodo(id: $id, input: $input) { id title dueDate } }',
+    private const OPERATIONS = [
+        'milestone' => 'UpdateMilestone',
+        'todo' => 'UpdateTodo',
     ];
 
     public function handle(Request $request): Response
@@ -56,7 +56,7 @@ class UpdatePlanItemTool extends Tool
         }
 
         try {
-            $item = $this->graphQL(self::MUTATIONS[$validated['type']], [
+            $item = $this->operation(self::OPERATIONS[$validated['type']], [
                 'id' => (string) $validated['id'],
                 'input' => $input,
             ])[$validated['type'] === 'milestone' ? 'updateMilestone' : 'updateTodo'];
