@@ -147,7 +147,7 @@ Entschieden: ein optionales Objekt mit drei Teilen, die zusammen den Satz „Als
 - Grenzen (entschieden): `role` höchstens 80 Zeichen, `goal` und `benefit` höchstens 160 Zeichen, jeweils Klartext. Keine Formatierung in diesen Feldern, damit der Satz einheitlich bleibt.
 - Anzeige: Die Markdown-Ansicht rendert den Satz. Die App zeigt ihn über der Beschreibung.
 - Verworfen: ein einzelner String mit dem vollständigen Satz. Der Validator könnte die drei Teile dann nicht prüfen.
-- MD-Schreibweise (entschieden): eine Zeile direkt unter dem Task, eingerückt, `  Story: Als <Rolle> möchte ich <Ziel>, damit <Nutzen>.` Der Konverter zerlegt sie mit einem festen Muster. Passt das Muster nicht, ist es ein Fehler.
+- MD-Schreibweise (entschieden): der erste Absatz der Beschreibung, kursiv, eingerückt, ohne Label und ohne Aufzählungszeichen: `  *Als <Rolle> möchte ich <Ziel>, damit <Nutzen>.*` Er wirkt in der Markdown-Ansicht wie ein Untertitel unter dem Task. Der Konverter erkennt ihn am festen Muster „Als … möchte ich …, damit …“. Passt das Muster nicht, ist es ein Fehler.
 - Auswirkung auf den App-Stand: Eine neue Spalte an `tasks` (JSON), ein GraphQL-Feld am Typ `Task` und an `ProjectPlanTaskInput`, eine Ergänzung der MCP- und Assistenten-Schemas. Das wäre ein neuer Punkt A6 im Schema-Review. R2 (`PlanSchema`) übernimmt das Feld dann automatisch.
 - Nicht umgesetzt, aber möglich: dieselbe Struktur für ToDos und Milestones.
 
@@ -173,6 +173,15 @@ Die App hat bereits eine Whitelist für Rich Text (`backend/app/Support/RichText
 **c) Nicht vorgeschlagen, aber möglich:** Akzeptanzkriterien als Liste am Task. Dann bräuchte es ein weiteres Feld. Sag Bescheid, wenn du das willst.
 
 ---
+
+### 4.5 Grammatik der Markdown-Datei (entschieden am 2026-11-12)
+
+- **Struktur nur aus nicht eingerückten Zeilen:** `## vM.m Titel` (Milestone), `### Titel` (ToDo), `- [ ] Titel` (Task). Alles andere, das eingerückt ist, gehört zum Task.
+- **Inhalt des Tasks eingerückt:** Story, Metadaten und Beschreibung stehen um zwei Leerzeichen eingerückt. Eine Überschrift in der Beschreibung ist deshalb `  ### Hinweis` und kein ToDo. Das gilt auch für Listen und Zitate darin.
+- **Metadaten** als Aufzählung direkt unter dem Task: Fällig, Zuständig, Labels, Commit.
+- **IDs** als Kommentar am Task: `<!-- id: k-001, app: 88 -->`. `id` ist die Datei-ID, `app` die Datenbank-ID (beim Import gesetzt, beim Export zurückgeschrieben). Ohne `app` ist der Task neu.
+- **Marker:** `[ ]` = `open`, `[~]` = `in_progress`, `[?]` = `review`, `[x]` = `done`.
+- **Leerzeilen** trennen die Blöcke. Ohne sie fasst Markdown Zeilen zu einem Absatz zusammen.
 
 ## 5. Validator
 
@@ -212,7 +221,7 @@ Jede Phase ist ein eigener Commit mit Tests. Die Phasen P1 bis P5 in `mollo-vers
 - **P5: Konvertierung.** `convert v1-zu-v2` und `convert md2json`. Roundtrip-Tests für beide.
 - **P6: Anbindung Mollo Planer.** Laravel-Importer für v2 über `importPlanIntoProject` (A4), Export, Roundtrip-Tests in `mollo-planer`. Abhängig von A4 und R2.
 
-**Hinweis zu R2:** R2 aus `refactoring-vor-umsetzung.md` sieht ein `PlanSchema` in PHP vor. Mit diesem Plan ist das JSON Schema v2 die Vorlage. Die PHP-Seite prüft dagegen. Das ist die Richtung, die R2 jetzt bekommt. Die Angabe in R2 muss entsprechend angepasst werden.
+**Hinweis zu R2:** R2 aus `refactoring-vor-umsetzung.md` sieht ein `PlanSchema` in PHP vor. Mit diesem Plan ist das JSON Schema v2 die Vorlage. Die PHP-Seite prüft dagegen. Das ist die Richtung, die R2 jetzt bekommt. Die Angabe in R2 ist angepasst (Commit `56cec2b`).
 
 ---
 
@@ -230,7 +239,8 @@ Jede Phase ist ein eigener Commit mit Tests. Die Phasen P1 bis P5 in `mollo-vers
 
 Alle Entscheidungen aus Abschnitt 2 sind getroffen. Diese Punkte werden in P1 festgeschrieben:
 
-1. Die Liste der Rollen in `members` wird aus dem Enum `ProjectRole` übernommen.
-2. Die Marker `[~]` und `[?]` für `in_progress` und `review` gelten als vorgeschlagen. Sie können in P1 noch geändert werden.
-3. Der Ort des JSON Schema für `$schema`. Vorschlag: `spec/planer-2.schema.json` im Repository `mollo-version`.
-4. Die Grenzen für `userStory` (Rolle 80, Ziel und Nutzen je 160 Zeichen) werden in P1 festgeschrieben.
+1. Die Liste der Rollen in `members` wird in P1 aus dem GraphQL-Enum `ProjectRole` der App übernommen. Die Fundstelle ist dort zu prüfen.
+2. Die Marker `[~]` und `[?]` sind entschieden (Abschnitt 4.5).
+3. Die Grammatikregeln aus Abschnitt 4.5 werden in P1 als Tests gegen `spec/format.md` festgeschrieben.
+4. Der Ort des JSON Schema für `$schema`. Vorschlag: `spec/planer-2.schema.json` im Repository `mollo-version`.
+5. Die Grenzen für `userStory` (Rolle 80, Ziel und Nutzen je 160 Zeichen) werden in P1 festgeschrieben.

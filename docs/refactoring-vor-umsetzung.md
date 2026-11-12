@@ -1,6 +1,6 @@
 # Refactoring vor der Umsetzung des Schema-Reviews
 
-Stand: 2026-11-12, geprüft bis Commit `c8f3f46`. Bezieht sich auf `docs/schema-review.md` (Abschnitte A1–A5, B1–B3, C1–C3) und `docs/assistent-ideen-konzept.md`.
+Stand: 2026-11-12, geprüft bis Commit `347a4d5`. Bezieht sich auf `docs/schema-review.md` (Abschnitte A1–A5, B1–B3, C1–C3) und `docs/assistent-ideen-konzept.md`.
 Frage: Welche Umbauten im heutigen Code machen die geplanten Änderungen einfacher und sicherer?
 Rollen: Dieses Dokument ist Analyse und Plan. Die Umsetzung erfolgt in einer separaten Sitzung.
 
@@ -147,20 +147,21 @@ Für den Papierkorb (A5) reicht `SoftDeletes` allein nicht: Die Kinder müssen d
 
 ---
 
-## Empfohlene Reihenfolge (ab `c8f3f46`)
+## Offene Schritte (ab `347a4d5`)
 
-1. **R3** Operationen bündeln und gegen das Schema prüfen (Sicherheitsnetz für alles Weitere).
-2. **R7** Vollständigkeitstest für Mutationen.
-3. **R1 (Rest)** `MilestoneOrder` zu `Ordering` ausbauen: Sperre, `close()`, Kanban darauf umstellen.
-4. **R4** `Deletion`-Service (mit Lückenschluss) und `useDelete` (noch ohne Papierkorb).
-5. **R2** Plan-Wertobjekte und `PlanSchema`.
-6. Danach die Umsetzung laut Schema-Review, beginnend mit der Migration (A1, A2, A3, A5).
+Erledigt sind R1, R3, R4 (Backend) und R7 (bis auf die Ausnahme oben). Offen:
 
-R1 bis R4 sind je ein eigener Commit auf `dev` mit grünen Tests. R2 kann auch direkt vor A4 erfolgen, falls die Datenstruktur zuerst kommen soll.
+1. **R2 (Rest)** erst nach P1 und P2 in `mollo-version` (JSON-Schema `planer/2`, Validator). Dann Wertobjekte bauen und den Importer umstellen. Vorher nicht anfassen, sonst entsteht eine zweite Vorlage.
+2. **R4 (Frontend)** `useDelete` als Composable, zunächst mit Bestätigung. Unabhängig vom Rest, kann jederzeit passieren.
+3. **R7 (Rest)** Liste „Mutationen in archivierten Projekten verboten“, zusammen mit A5.
+4. **R5** `DerivesProject` und `RecordsCreator`, zusammen mit dem Migrationsschritt A1 und A2.
+5. Danach die Umsetzung laut Schema-Review, Reihenfolge „Reihenfolge der Umsetzung“ in `docs/schema-review.md`, beginnend mit der Migration (A1, A2, A3, A5, A6).
+
+Jeder Schritt ist ein eigener Commit auf `dev` mit grünen Tests (SQLite und `composer test:mariadb`). R2 kann direkt vor A4 erfolgen, falls die Datenstruktur zuerst kommen soll.
 
 ## Gefundene Fehler nebenbei
 
-- **Milestone-Reihenfolge ohne Sperre:** Gleichzeitiges Anlegen oder Verschieben kann doppelte Positionen erzeugen. Besteht nach `c8f3f46` weiter. Wird mit R1 behoben.
-- **Lücken nach dem Löschen:** `milestones.position` wird nach `deleteMilestone` nicht neu nummeriert. Harmlos für die Anzeige, aber `moveMilestone(position: n)` landet an einer unerwarteten Stelle, wenn Clients mit `position` statt mit dem Index rechnen (z. B. der Connector). Wird mit R1 und R4 behoben.
+- **Milestone-Reihenfolge ohne Sperre:** Gleichzeitiges Anlegen oder Verschieben konnte doppelte Positionen erzeugen. Behoben mit R1 (`e003483`), das Projekt wird jetzt gesperrt.
+- **Lücken nach dem Löschen:** `milestones.position` wurde nach `deleteMilestone` nicht neu nummeriert. Harmlos für die Anzeige, aber `moveMilestone(position: n)` landet an einer unerwarteten Stelle, wenn Clients mit `position` statt mit dem Index rechnen (z. B. der Connector). Behoben mit R1 und R4 (`e003483`, `8f20f44`): `Ordering::close()` schließt die Lücke.
 - **Uneinheitliche Plan-Felder:** Der Connector kann Tasks als erledigt anlegen, der Assistent nicht. Wird mit R2 behoben.
 - **Nicht im Repository:** `docs/connector-erweiterung-plan.md` ist nicht eingecheckt (untracked), obwohl die Funktion schon gebaut ist (`9d11daa`). Einchecken oder den Stand in `docs/claude-connector.md` übernehmen.
