@@ -86,26 +86,21 @@ function closeTaskForm(): void {
 type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
-const deleting = ref<{ kind: 'milestone' | 'todo', item: Item } | null>(null)
 
 const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: true }
 const { mutate: deleteMilestone } = useMutation(deleteMilestoneMutation, options)
 const { mutate: deleteTodo } = useMutation(deleteTodoMutation, options)
 
-async function confirmDelete(): Promise<void> {
-  const target = deleting.value
-
-  if (target) {
-    await (target.kind === 'milestone' ? deleteMilestone({ id: target.item.id }) : deleteTodo({ id: target.item.id }))
-  }
-}
+const deletion = useConfirmedDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
+  target.kind === 'milestone' ? deleteMilestone({ id: target.item.id }) : deleteTodo({ id: target.item.id })
+)
 
 function startEditing(target: ItemFormTarget): void {
   editing.value = target
 }
 
 function startDeleting(target: { kind: 'milestone' | 'todo', item: Item }): void {
-  deleting.value = target
+  deletion.ask(target)
 }
 
 /** Menu "Ändern / Löschen" of a milestone or todo, by the viewer's rights. */
@@ -176,12 +171,12 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
       @close="closeTaskForm"
     />
     <ConfirmModal
-      :open="deleting !== null"
-      :title="t(`item.${deleting?.kind ?? 'todo'}.deleteTitle`)"
-      :description="t(`item.${deleting?.kind ?? 'todo'}.deleteDescription`, { title: deleting?.item.title ?? '' })"
+      :open="deletion.isOpen"
+      :title="t(`item.${deletion.target?.kind ?? 'todo'}.deleteTitle`)"
+      :description="t(`item.${deletion.target?.kind ?? 'todo'}.deleteDescription`, { title: deletion.target?.item.title ?? '' })"
       :confirm-label="t('common.delete')"
-      :action="confirmDelete"
-      @close="deleting = null"
+      :action="deletion.confirm"
+      @close="deletion.close"
     />
   </div>
 </template>

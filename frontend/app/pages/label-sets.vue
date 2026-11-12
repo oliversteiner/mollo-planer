@@ -22,11 +22,14 @@ const sets = computed(() => result.value?.labelSets ?? [])
 const canManage = computed(() => (result.value?.viewerSystemAbilities ?? []).includes('LABEL_SETS_MANAGE'))
 
 const editing = ref<LabelSetFormTarget | null>(null)
-const deleting = ref<LabelSet | null>(null)
 
 const refetch = { refetchQueries: [{ query: labelSetsQuery }], awaitRefetchQueries: true }
 const { mutate: duplicateSet } = useMutation(duplicateLabelSetMutation, refetch)
 const { mutate: deleteSet } = useMutation(deleteLabelSetMutation, refetch)
+
+const deletion = useConfirmedDelete<LabelSet>(set => deleteSet({ id: set.id }), {
+  onDeleted: () => toast.add({ title: t('labels.deleted'), color: 'success' })
+})
 
 async function duplicate(set: LabelSet): Promise<void> {
   const copy = (await duplicateSet({ id: set.id }).catch(() => null))?.data?.duplicateLabelSet
@@ -41,13 +44,6 @@ async function duplicate(set: LabelSet): Promise<void> {
   }
 }
 
-async function confirmDelete(): Promise<void> {
-  if (deleting.value) {
-    await deleteSet({ id: deleting.value.id })
-    toast.add({ title: t('labels.deleted'), color: 'success' })
-  }
-}
-
 function actions(set: LabelSet): ActionMenuItem[] {
   const items: ActionMenuItem[] = []
 
@@ -58,7 +54,7 @@ function actions(set: LabelSet): ActionMenuItem[] {
     items.push({ label: t('labels.duplicate'), icon: 'copy', onSelect: () => duplicate(set) })
   }
   if (set.viewerCanDelete) {
-    items.push({ label: set.usedByProjects ? `${t('common.delete')} (${t('labels.inUse')})` : t('common.delete'), icon: 'trash', color: 'error', disabled: set.usedByProjects > 0, onSelect: () => (deleting.value = set) })
+    items.push({ label: set.usedByProjects ? `${t('common.delete')} (${t('labels.inUse')})` : t('common.delete'), icon: 'trash', color: 'error', disabled: set.usedByProjects > 0, onSelect: () => deletion.ask(set) })
   }
 
   return items
@@ -153,12 +149,12 @@ function actions(set: LabelSet): ActionMenuItem[] {
       @close="editing = null"
     />
     <ConfirmModal
-      :open="deleting !== null"
-      :title="t('labels.deleteTitle', { name: deleting?.name ?? '' })"
+      :open="deletion.isOpen"
+      :title="t('labels.deleteTitle', { name: deletion.target?.name ?? '' })"
       :description="t('labels.deleteDescription')"
       :confirm-label="t('common.delete')"
-      :action="confirmDelete"
-      @close="deleting = null"
+      :action="deletion.confirm"
+      @close="deletion.close"
     />
   </PageFrame>
 </template>
