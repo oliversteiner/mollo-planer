@@ -1,6 +1,6 @@
 # Selbstregistrierung mit Passwort: Plan
 
-Stand: 2026-11-12. Status: **geplant, nicht begonnen.** Entscheidung: Registrierung mit Passwort, E-Mail-Bestätigung und Freigabe durch einen Admin. Dieser Plan ersetzt den Beschluss „Keine Selbstregistrierung“ in `backend-plan.md` (Punkt 16) und `claude-desktop-kontext.md`.
+Stand: 2026-11-12. Status: **Backend umgesetzt, Frontend offen.** Entscheidung: Registrierung mit Passwort, E-Mail-Bestätigung und Freigabe durch einen Admin. Dieser Plan ersetzt den Beschluss „Keine Selbstregistrierung“ in `backend-plan.md` (Punkt 16) und `claude-desktop-kontext.md`.
 
 ## Ziel
 Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie hat erst Zugriff, wenn ein Admin das Konto freigibt. Die Einladung durch Admins bleibt bestehen.
@@ -40,3 +40,17 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
 1. Backend: Migration, Fortify, Freigabe, Mutationen, Tests.
 2. Frontend: Registrierung, Verifikation, Wartesseite, Admin-Liste, Tests.
 3. Browserprüfung, Doku, Stand nachführen.
+
+## Stand
+- [x] Backend: Migration `approved_at` (bestehende Konten gelten als freigegeben), Fortify-Registrierung und E-Mail-Bestätigung, `CreateNewUser`, Drosselung `register` (5 pro Minute und IP), Middleware `EnsureAccountReady` (Operation `Viewer` bleibt offen, Fehlercode `ACCOUNT_NOT_READY` mit `reason` email|approval), Mutationen `approveUser` und `rejectUser` mit Policy, Benachrichtigung der Admins nach der Bestätigung, Texte de/en, Tests (`SelfRegistrationTest`, `GraphQL/AccountApprovalTest`), Schema und Frontend-Schema aktualisiert. Suite: 497 Tests grün.
+- [ ] `composer test:mariadb`: Der lokale Datenbankbenutzer hat keinen Zugriff auf `molloplaner_test` (SQLSTATE 1044). Rechte bitte lokal setzen, dann laufen die Tests gegen MariaDB.
+- [ ] Frontend (Schritt 2 oben).
+- [ ] Doku in `backend-plan.md` und `CLAUDE.md` nach Abschluss.
+
+## Festgelegte Standardwerte
+- **Admin-Hinweis:** eine Mail je bestätigte Registrierung, an alle mit `users.manage`.
+- **Captcha:** nicht eingebaut. Die Drosselung reicht vorerst.
+- **Aufbewahrung unbestätigter Konten:** noch nicht umgesetzt (Vorschlag 7 Tage, offen).
+- **Freigabe-Mail an die Person:** nicht vorgesehen, die Person sieht die Freigabe beim nächsten Login.
+- **Hinweis:** Fortify meldet nach `/register` sofort an, die Sperre greift danach. So bleibt die Anmeldung mit 2FA-Einrichtung wie bisher.
+

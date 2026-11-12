@@ -35,16 +35,22 @@ class UserInvitation
     }
 
     /**
-     * Create the user with a password chosen right away (no mail).
+     * Create the user with a password chosen right away (no mail). Created by
+     * an admin, so the account is verified and approved at once.
      */
     public function create(string $name, string $email, UserRole $role, string $password, ?UserFunction $jobFunction = null): User
     {
-        return User::create([
+        $user = User::create([
             'name' => $name,
             'email' => $email,
             'role' => $role,
             'job_function' => $jobFunction,
             'password' => $password,
         ]);
+
+        // An admin created the account: no registration checks apply.
+        $user->forceFill(['email_verified_at' => now(), 'approved_at' => now()])->save();
+
+        return $user;
     }
 }

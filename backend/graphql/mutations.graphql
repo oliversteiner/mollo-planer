@@ -17,6 +17,14 @@ type Mutation @guard {
   resetUserTwoFactor(id: ID!): User!
     @can(ability: "update", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\ResetUserTwoFactor")
+  "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
+  approveUser(id: ID!): User!
+    @can(ability: "approve", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\ApproveUser")
+  "Lehnt ein wartendes Konto ab und löscht es. Freigegebene Konten löscht deleteUser."
+  rejectUser(id: ID!): Boolean!
+    @can(ability: "reject", find: "id", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\RejectUser")
   deleteUser(id: ID! @whereKey): User!
     @can(ability: "delete", find: "id")
     @delete

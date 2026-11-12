@@ -49,9 +49,8 @@ class AuthenticationFlowTest extends TestCase
 
     // ─── Routes ──────────────────────────────────────────────────
 
-    public function test_self_registration_and_rest_user_route_are_gone(): void
+    public function test_rest_user_route_is_gone(): void
     {
-        $this->postJson('/register', ['name' => 'X', 'email' => 'x@example.com', 'password' => 'secret'])->assertNotFound();
         $this->getJson('/api/user')->assertNotFound();
     }
 

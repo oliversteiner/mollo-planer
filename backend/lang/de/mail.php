@@ -32,4 +32,9 @@ return [
         'intro' => ':actor hat den Task «:task» kommentiert.',
         'action' => 'Kommentar lesen',
     ],
+    'awaiting_approval' => [
+        'subject' => '[:app] Neues Konto wartet auf Freigabe',
+        'intro' => ':name hat sich registriert und die E-Mail-Adresse bestätigt. Das Konto wartet auf Freigabe.',
+        'action' => 'Benutzer öffnen',
+    ],
 ];

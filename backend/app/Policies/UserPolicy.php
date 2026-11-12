@@ -73,6 +73,30 @@ class UserPolicy
     }
 
     /**
+     * Releases a self-registered account. Only accounts whose mail address is
+     * confirmed and that are still waiting can be approved; nobody approves
+     * themselves.
+     */
+    public function approve(User $user, User $target): bool
+    {
+        return SystemPermissions::allows($user, SystemAbility::USERS_MANAGE)
+            && $target->hasVerifiedEmail()
+            && ! $target->isApproved()
+            && ! $user->is($target);
+    }
+
+    /**
+     * Rejects a waiting account and deletes it. Approved accounts are never
+     * rejected here; they use deleteUser.
+     */
+    public function reject(User $user, User $target): bool
+    {
+        return SystemPermissions::allows($user, SystemAbility::USERS_MANAGE)
+            && ! $target->isApproved()
+            && ! $user->is($target);
+    }
+
+    /**
      * Nobody deletes their own account.
      */
     public function delete(User $user, User $target): bool

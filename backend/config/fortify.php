@@ -78,6 +78,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Redirects after mail links
+    |--------------------------------------------------------------------------
+    |
+    | The verification link opens the API; the frontend shows the result.
+    |
+    */
+
+    'redirects' => [
+        'email-verification' => env('FRONTEND_URL', 'http://localhost:3000').'/verify-email?verified=1',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Fortify Routes Prefix / Subdomain
     |--------------------------------------------------------------------------
     |
@@ -165,10 +178,11 @@ return [
     */
 
     'features' => [
-        // No self-registration: admins create users (GraphQL createUser),
-        // who get an invitation link to set their password.
+        // Self-registration waits for an admin (approved_at, see EnsureAccountReady).
+        // Admins can still create users (GraphQL createUser) with an invitation link.
+        Features::registration(),
         Features::resetPasswords(),
-        // Features::emailVerification(),
+        Features::emailVerification(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
         Features::twoFactorAuthentication([

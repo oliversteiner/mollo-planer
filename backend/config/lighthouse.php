@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Http\Middleware\EnsureAccountReady;
 use App\Http\Middleware\EnsureStrongAuthentication;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\DisableIntrospection;
@@ -70,6 +71,10 @@ return [
             // Blocks the whole API until the session is strongly authenticated:
             // password plus confirmed 2FA, or a passkey login.
             EnsureStrongAuthentication::class,
+
+            // Locks self-registered accounts until the mail address is confirmed and
+            // an admin has approved them (the Viewer query stays open).
+            EnsureAccountReady::class,
 
             // Logs every incoming GraphQL query.
             // Nuwave\Lighthouse\Http\Middleware\LogGraphQLQueries::class,

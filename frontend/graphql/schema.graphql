@@ -169,6 +169,8 @@ type Milestone {
 }
 type Mutation {
  addComment(input: AddCommentInput!): Comment!
+ "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
+ approveUser(id: ID!): User!
  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
  assignTask(assigneeId: ID, id: ID!): Task!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
@@ -207,6 +209,8 @@ type Mutation {
  moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
  moveTaskToTodo(id: ID!, todoId: ID!): Task!
+ "Lehnt ein wartendes Konto ab und löscht es. Freigegebene Konten löscht deleteUser."
+ rejectUser(id: ID!): Boolean!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
  resetUserTwoFactor(id: ID!): User!

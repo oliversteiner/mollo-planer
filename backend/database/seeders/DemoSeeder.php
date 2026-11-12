@@ -104,6 +104,7 @@ class DemoSeeder extends Seeder
             $user->job_function = $person['job_function'];
             $user->forceFill([
                 'email_verified_at' => $createdAt,
+                'approved_at' => $createdAt,
                 'two_factor_secret' => Fortify::currentEncrypter()->encrypt($secret),
                 'two_factor_recovery_codes' => Fortify::currentEncrypter()->encrypt(json_encode($recovery)),
                 'two_factor_confirmed_at' => $createdAt,

@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserFunction;
 use App\Enums\UserRole;
 use App\Notifications\ResetPasswordNotification;
 use App\Observers\UserObserver;
 use App\Services\UserAvatar;
 use Database\Factories\UserFactory;
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -26,10 +28,10 @@ use Laravel\Sanctum\HasApiTokens;
 #[Fillable(['name', 'email', 'password', 'role', 'job_function'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 #[ObservedBy(UserObserver::class)]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, MustVerifyEmail, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Same defaults as the database, so new instances never hold null.
@@ -50,6 +52,7 @@ class User extends Authenticatable implements PasskeyUser
     {
         return [
             'email_verified_at' => 'datetime',
+            'approved_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'role' => UserRole::class,
@@ -94,5 +97,22 @@ class User extends Authenticatable implements PasskeyUser
     public function sendPasswordResetNotification($token): void
     {
         $this->notify((new ResetPasswordNotification($token))->locale(app()->getLocale()));
+    }
+
+    /**
+     * Whether an admin has released the account (self-registration waits for it).
+     */
+    public function isApproved(): bool
+    {
+        return $this->approved_at !== null;
+    }
+
+    /**
+     * Verification mail after self-registration (Fortify), queued, in the
+     * language of the current request.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify((new VerifyEmail)->locale(app()->getLocale()));
     }
 }

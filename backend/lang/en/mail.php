@@ -32,4 +32,9 @@ return [
         'intro' => ':actor commented on the task “:task”.',
         'action' => 'Read comment',
     ],
+    'awaiting_approval' => [
+        'subject' => '[:app] New account waiting for approval',
+        'intro' => ':name registered and confirmed the email address. The account is waiting for approval.',
+        'action' => 'Open users',
+    ],
 ];
