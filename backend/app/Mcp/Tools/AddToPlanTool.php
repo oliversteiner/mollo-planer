@@ -2,11 +2,11 @@
 
 namespace App\Mcp\Tools;
 
+use App\Mcp\Support\PlanRules;
 use App\Mcp\Support\ProjectPlanFailed;
 use App\Services\ProjectPlanImporter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
-use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -28,33 +28,23 @@ class AddToPlanTool extends Tool
 
     public function handle(Request $request, ProjectPlanImporter $importer): Response
     {
-        $title = ['required', 'string', 'min:2', 'max:160'];
-        $text = ['nullable', 'string', 'max:5000'];
-        $date = ['nullable', 'date_format:Y-m-d'];
-
         $validated = $request->validate([
             'project_id' => ['required'],
             'milestone_id' => ['nullable', 'required_without:todo_id'],
             'todo_id' => ['nullable', 'required_without:milestone_id', 'prohibits:milestone_id'],
             'notify_assignees' => ['boolean'],
             'todos' => ['array', 'max:50', 'required_with:milestone_id'],
-            'todos.*.title' => $title,
-            'todos.*.description' => $text,
-            'todos.*.due_date' => $date,
+            ...PlanRules::item('todos.*'),
             'todos.*.tasks' => ['array', 'max:50'],
             'todos.*.tasks.*' => ['array'],
-            'todos.*.tasks.*.title' => $title,
-            'todos.*.tasks.*.description' => $text,
-            'todos.*.tasks.*.due_date' => $date,
-            'todos.*.tasks.*.assignee_email' => ['nullable', 'email'],
-            'todos.*.tasks.*.status' => ['nullable', Rule::in(['open', 'done'])],
+            ...PlanRules::task('todos.*.tasks.*'),
             'tasks' => ['array', 'max:50', 'required_with:todo_id'],
-            'tasks.*.title' => $title,
-            'tasks.*.description' => $text,
-            'tasks.*.due_date' => $date,
-            'tasks.*.assignee_email' => ['nullable', 'email'],
-            'tasks.*.status' => ['nullable', Rule::in(['open', 'done'])],
+            ...PlanRules::task('tasks.*'),
         ], [
+            ...PlanRules::messages(
+                ['todos.*.due_date', 'todos.*.tasks.*.due_date', 'tasks.*.due_date'],
+                ['todos.*.tasks.*.status', 'tasks.*.status'],
+            ),
             'milestone_id.required_without' => 'Give milestone_id (to add todos) or todo_id (to add tasks), not neither.',
             'todo_id.required_without' => 'Give milestone_id (to add todos) or todo_id (to add tasks), not neither.',
             'todo_id.prohibits' => 'Give either milestone_id or todo_id, not both.',
@@ -63,11 +53,6 @@ class AddToPlanTool extends Tool
             'todos.*.title.min' => 'A todo title needs at least 2 characters.',
             'tasks.*.title.min' => 'A task title needs at least 2 characters.',
             'todos.*.tasks.*.title.min' => 'A task title needs at least 2 characters.',
-            'todos.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
-            'tasks.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
-            'todos.*.tasks.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
-            'tasks.*.status.in' => 'The status of a task is open or done.',
-            'todos.*.tasks.*.status.in' => 'The status of a task is open or done.',
         ]);
 
         $projectId = (string) $validated['project_id'];

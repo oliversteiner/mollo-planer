@@ -2,10 +2,10 @@
 
 namespace App\Mcp\Tools;
 
+use App\Mcp\Support\PlanRules;
 use App\Services\ProjectPlanImporter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
-use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -28,34 +28,22 @@ class CreateProjectPlanTool extends Tool
 
     public function handle(Request $request, ProjectPlanImporter $importer): Response
     {
-        $title = ['required', 'string', 'min:2', 'max:160'];
-        $text = ['nullable', 'string', 'max:5000'];
-        $date = ['nullable', 'date_format:Y-m-d'];
-
         $validated = $request->validate([
             'project_id' => ['required'],
             'notify_assignees' => ['boolean'],
             'milestones' => ['required', 'array', 'min:1', 'max:30'],
-            'milestones.*.title' => $title,
-            'milestones.*.description' => $text,
-            'milestones.*.due_date' => $date,
+            ...PlanRules::item('milestones.*'),
             'milestones.*.position' => ['nullable', 'integer', 'min:0'],
             'milestones.*.todos' => ['array', 'max:50'],
-            'milestones.*.todos.*.title' => $title,
-            'milestones.*.todos.*.description' => $text,
-            'milestones.*.todos.*.due_date' => $date,
+            ...PlanRules::item('milestones.*.todos.*'),
             'milestones.*.todos.*.tasks' => ['array', 'max:50'],
-            'milestones.*.todos.*.tasks.*.title' => $title,
-            'milestones.*.todos.*.tasks.*.description' => $text,
-            'milestones.*.todos.*.tasks.*.due_date' => $date,
-            'milestones.*.todos.*.tasks.*.assignee_email' => ['nullable', 'email'],
-            'milestones.*.todos.*.tasks.*.status' => ['nullable', Rule::in(['open', 'done'])],
+            ...PlanRules::task('milestones.*.todos.*.tasks.*'),
         ], [
-            'milestones.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
-            'milestones.*.todos.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
-            'milestones.*.todos.*.tasks.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
+            ...PlanRules::messages(
+                ['milestones.*.due_date', 'milestones.*.todos.*.due_date', 'milestones.*.todos.*.tasks.*.due_date'],
+                ['milestones.*.todos.*.tasks.*.status'],
+            ),
             'milestones.required' => 'Give at least one milestone.',
-            'milestones.*.todos.*.tasks.*.status.in' => 'The status of a task is open or done.',
         ]);
 
         return $this->respond(fn () => Response::json([
