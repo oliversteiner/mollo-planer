@@ -43,10 +43,9 @@ class ProjectPlanImporter
 
     private const TASK = 'mutation ($input: CreateTaskInput!) { createTask(input: $input) { id } }';
 
-    private const TREE = 'query ($id: ID!) { project(id: $id) { members { user { id email } } milestones { id title todos { id title tasks { id title } } } } }';
-
     public function __construct(
         private readonly GraphQLRunner $graphQL,
+        private readonly ProjectPlanReader $reader,
         private readonly TaskNotifier $notifier,
     ) {}
 
@@ -70,10 +69,10 @@ class ProjectPlanImporter
                 'locale' => $project['locale'] ?? 'DE',
             ]])['createProject'];
 
-            $ids = $members === [] ? [] : $this->userIdsByEmail();
+            $ids = $members === [] ? [] : $this->reader->accountIdsByEmail();
 
             foreach ($members as $member) {
-                $userId = $ids[$this->normalize($member['email'])]
+                $userId = $ids[ProjectPlanReader::normalizeEmail($member['email'])]
                     ?? throw new ProjectPlanFailed(ProjectPlanFailed::UNKNOWN_PERSON, $member['email']);
 
                 $this->graphQL->run(self::MEMBER, ['p' => $created['id'], 'u' => $userId, 'r' => $member['role']]);
@@ -114,9 +113,9 @@ class ProjectPlanImporter
     public function addToMilestone(string $projectId, string $milestoneId, array $todos, bool $notifyAssignees = false): array
     {
         return $this->transaction($notifyAssignees, function () use ($projectId, $milestoneId, $todos): array {
-            $tree = $this->projectTree($projectId);
-            $milestone = $this->findMilestone($tree, $milestoneId);
-            $members = $this->membersFromTree($tree);
+            $tree = $this->reader->tree($projectId);
+            $milestone = $this->reader->findMilestone($tree, $milestoneId);
+            $members = $this->reader->membersFromTree($tree);
 
             $existing = array_column($milestone['todos'], 'title');
             $this->guardDuplicates($todos, $existing, ProjectPlanFailed::DUPLICATE_TODO, $milestone['title']);
@@ -145,9 +144,9 @@ class ProjectPlanImporter
     public function addToTodo(string $projectId, string $todoId, array $tasks, bool $notifyAssignees = false): array
     {
         return $this->transaction($notifyAssignees, function () use ($projectId, $todoId, $tasks): array {
-            $tree = $this->projectTree($projectId);
-            $todo = $this->findTodo($tree, $todoId);
-            $members = $this->membersFromTree($tree);
+            $tree = $this->reader->tree($projectId);
+            $todo = $this->reader->findTodo($tree, $todoId);
+            $members = $this->reader->membersFromTree($tree);
 
             $this->guardDuplicates($tasks, array_column($todo['tasks'], 'title'), ProjectPlanFailed::DUPLICATE_TASK, $todo['title']);
 
@@ -177,7 +176,7 @@ class ProjectPlanImporter
      */
     private function createPlan(string $projectId, array $milestones): array
     {
-        $members = $this->membersByEmail($projectId);
+        $members = $this->reader->membersByEmail($projectId);
         $counts = ['milestones' => 0, 'todos' => 0, 'tasks' => 0, 'assigned' => 0];
         $items = [];
 
@@ -241,7 +240,7 @@ class ProjectPlanImporter
 
         foreach ($tasks as $task) {
             $email = isset($task['assignee_email']) && trim($task['assignee_email']) !== ''
-                ? $this->normalize($task['assignee_email'])
+                ? ProjectPlanReader::normalizeEmail($task['assignee_email'])
                 : null;
 
             if ($email !== null && ! isset($members[$email])) {
@@ -331,98 +330,6 @@ class ProjectPlanImporter
             'description' => PlainTextDocument::from($item['description'] ?? null),
             'dueDate' => $dueDate instanceof DateTimeInterface ? $dueDate->format('Y-m-d') : $dueDate,
         ];
-    }
-
-    /**
-     * The project with its milestones, todos and tasks (titles and ids).
-     *
-     * @return array{members: list<array{user: array{id: string, email: string}}>, milestones: list<array{id: string, title: string, todos: list<array{id: string, title: string, tasks: list<array{id: string, title: string}>}>}>}
-     *
-     * @throws GraphQLFailed
-     */
-    private function projectTree(string $projectId): array
-    {
-        $project = $this->graphQL->run(self::TREE, ['id' => $projectId])['project'] ?? null;
-
-        if ($project === null) {
-            throw new GraphQLFailed('This project does not exist, or you have no access to it. Nothing was created.');
-        }
-
-        return $project;
-    }
-
-    /**
-     * @param  array{milestones: list<array{id: string, title: string, todos: list<array<string, mixed>>}>}  $tree
-     * @return array{id: string, title: string, todos: list<array{id: string, title: string, tasks: list<array{id: string, title: string}>}>}
-     *
-     * @throws GraphQLFailed
-     */
-    private function findMilestone(array $tree, string $milestoneId): array
-    {
-        foreach ($tree['milestones'] as $milestone) {
-            if ((string) $milestone['id'] === $milestoneId) {
-                return $milestone;
-            }
-        }
-
-        throw new GraphQLFailed('This milestone does not exist in this project. Nothing was created.');
-    }
-
-    /**
-     * @param  array{milestones: list<array{id: string, title: string, todos: list<array<string, mixed>>}>}  $tree
-     * @return array{id: string, title: string, tasks: list<array{id: string, title: string}>}
-     *
-     * @throws GraphQLFailed
-     */
-    private function findTodo(array $tree, string $todoId): array
-    {
-        foreach ($tree['milestones'] as $milestone) {
-            foreach ($milestone['todos'] as $todo) {
-                if ((string) $todo['id'] === $todoId) {
-                    return $todo;
-                }
-            }
-        }
-
-        throw new GraphQLFailed('This todo does not exist in this project. Nothing was created.');
-    }
-
-    /**
-     * @return array<string, string> Member ids by lower-case e-mail
-     *
-     * @throws GraphQLFailed
-     */
-    private function membersByEmail(string $projectId): array
-    {
-        return $this->membersFromTree($this->projectTree($projectId));
-    }
-
-    /**
-     * The members of an already loaded project tree, so the tree is read once.
-     *
-     * @param  array{members?: list<array{user: array{id: string, email: string}}>}  $tree
-     * @return array<string, string> Member ids by lower-case e-mail
-     */
-    private function membersFromTree(array $tree): array
-    {
-        return collect($tree['members'] ?? [])
-            ->mapWithKeys(fn (array $member) => [$this->normalize($member['user']['email']) => $member['user']['id']])
-            ->all();
-    }
-
-    /**
-     * @return array<string, string> Ids of all accounts by lower-case e-mail
-     */
-    private function userIdsByEmail(): array
-    {
-        $users = $this->graphQL->run('{ users { id email } }')['users'] ?? [];
-
-        return collect($users)->mapWithKeys(fn (array $user) => [$this->normalize($user['email']) => $user['id']])->all();
-    }
-
-    private function normalize(string $email): string
-    {
-        return mb_strtolower(trim($email));
     }
 
     private function normalizeTitle(string $title): string
