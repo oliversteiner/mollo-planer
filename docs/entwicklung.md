@@ -447,3 +447,44 @@ Desktop-App für macOS und Windows mit Anmeldung per Token und Auto-Update. Plan
 - [ ] [feature] Signierung und Notarisierung (macOS), Code-Signing (Windows)
 - [ ] [feature] Auto-Update mit signierten Updates
 - [ ] [planning] Release-Prozess über GitHub Actions für macOS und Windows
+
+## v0.9 Automatisches Deployment
+Status: veröffentlicht
+
+Automatischer Deploy von main auf den Hostpoint-Server: Tests, Freigabe, Datenbank-Backup, Migrationen, Frontend. Anleitung in der README, Vorlage für weitere Projekte in docs/deploy-template.md.
+
+### Workflow und Server
+
+- [x] [feature] GitHub-Actions-Workflow deploy.yml: Tests, Build, Freigabe im Environment production, Übertragung per SSH
+  Commit 793a072
+- [x] [feature] deploy/deploy.sh auf dem Server: Backup, Wartungsmodus, Migrationen, Caches, Frontend veröffentlichen
+  Commit 793a072
+- [x] [feature] Deploy-Schlüssel nur für das Skript: authorized_keys mit command= und restrict
+  Commit 793a072
+- [x] [feature] Backend-Tests in der CI mit PHP 8.5, wie auf dem Server
+  Commit 793a072
+
+### Fehler beim ersten Lauf
+
+- [x] [bug] Lint-Fehler in AppLogo.vue blockierte den Frontend-Test im Deploy
+  Commit c4cc932
+- [x] [bug] Frontend-Test erwartete role img und currentColor, das Logo auf main war veraltet
+  Commit d07161c
+- [x] [bug] Platzhalter-Host aus der Anonymisierung ließ den Deploy an der Namensauflösung scheitern; Host und Benutzer jetzt als Repository-Variablen
+  Commit d3fcfa3
+
+### Anonymisierung und Doku
+
+- [x] [planning] Server-Angaben im Repo anonymisiert: Benutzer, Host und lokaler Pfad
+  Commit 5c7ee81
+- [x] [planning] Anleitung zum automatischen Deployment im README
+  Commit 793a072
+- [x] [planning] Deploy-Vorlage docs/deploy-template.md für weitere Projekte
+  Commit 793a072
+- [x] [planning] Secrets und Variablen in der Vorlage klar getrennt beschrieben
+  Commit 32df2ad
+
+### Abschluss
+
+- [x] [planning] Erster automatischer Deploy erfolgreich, Datenbank-Backup vor den Migrationen
+  Commit 0968159

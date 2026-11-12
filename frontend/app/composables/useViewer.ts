@@ -35,7 +35,7 @@ export function useViewer() {
       viewer.value = null
       systemAbilities.value = []
 
-      return classifyApolloError(error as Parameters<typeof classifyApolloError>[0]).kind
+      return classifyApolloError(error).kind
     }
   }
 

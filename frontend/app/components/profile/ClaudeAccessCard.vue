@@ -28,6 +28,10 @@ const command = computed(() => (created.value
   ? `claude mcp add --transport http mollo-planer ${apiBase}/mcp --header "Authorization: Bearer ${created.value.plainTextToken}"`
   : ''))
 
+const desktopConfig = computed(() => (created.value
+  ? claudeDesktopConfig(apiBase, created.value.plainTextToken)
+  : ''))
+
 async function create(): Promise<void> {
   const result = await run(() => createToken({ name: name.value.trim() }))
   const token = result?.data?.createApiToken
@@ -102,6 +106,22 @@ async function confirmRevoke(): Promise<void> {
               variant="neutral"
               :aria-label="t('claude.copyCommand')"
               @click="copy(command)"
+            >
+              <wa-icon name="copy"></wa-icon>
+            </wa-button>
+          </div>
+        </FormField>
+        <FormField
+          :label="t('claude.desktop')"
+          :hint="t('claude.desktopHint')"
+        >
+          <div class="claude-copy">
+            <pre class="claude-command claude-config">{{ desktopConfig }}</pre>
+            <wa-button
+              appearance="outlined"
+              variant="neutral"
+              :aria-label="t('claude.copyDesktop')"
+              @click="copy(desktopConfig)"
             >
               <wa-icon name="copy"></wa-icon>
             </wa-button>
@@ -221,6 +241,11 @@ async function confirmRevoke(): Promise<void> {
   font-family: var(--wa-font-family-code);
   font-size: var(--wa-font-size-xs);
   white-space: nowrap;
+}
+
+.claude-config {
+  margin: 0;
+  white-space: pre;
 }
 
 .claude-list {

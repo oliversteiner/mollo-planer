@@ -53,7 +53,7 @@ async function change(action: () => Promise<unknown>, success: string): Promise<
 
     return true
   } catch (error) {
-    const apiError = classifyApolloError(error as Parameters<typeof classifyApolloError>[0])
+    const apiError = classifyApolloError(error)
     const message = Object.values(apiError.fields)[0]?.[0]
 
     if (message) {

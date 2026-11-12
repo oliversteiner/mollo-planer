@@ -100,14 +100,7 @@ async function changeAssignee(value: string): Promise<void> {
   }
 }
 
-const deleting = ref(false)
-
-async function confirmDelete(): Promise<void> {
-  if (task.value) {
-    await deleteTask({ id: task.value.id })
-    emit('close')
-  }
-}
+const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDeleted: () => emit('close') })
 </script>
 
 <template>
@@ -161,7 +154,7 @@ async function confirmDelete(): Promise<void> {
             variant="danger"
             size="s"
             :aria-label="t('common.delete')"
-            @click="deleting = true"
+            @click="task && deletion.ask(task.id)"
           >
             <wa-icon name="trash"></wa-icon>
           </wa-button>
@@ -248,12 +241,12 @@ async function confirmDelete(): Promise<void> {
     </div>
 
     <ConfirmModal
-      :open="deleting"
+      :open="deletion.isOpen"
       :title="t('task.deleteTitle')"
       :description="t('task.deleteDescription', { title: task?.title ?? '' })"
       :confirm-label="t('common.delete')"
-      :action="confirmDelete"
-      @close="deleting = false"
+      :action="deletion.confirm"
+      @close="deletion.close"
     />
   </AppDrawer>
 </template>

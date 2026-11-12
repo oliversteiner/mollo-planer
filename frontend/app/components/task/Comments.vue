@@ -28,13 +28,14 @@ const language = computed(() => localeProperties.value.language ?? 'de-CH')
 const draft = ref<Record<string, unknown> | null>(null)
 const editingId = ref<string | null>(null)
 const editDraft = ref<Record<string, unknown> | null>(null)
-const deletingId = ref<string | null>(null)
 
 const { errors, pending, run } = useGraphqlForm()
 const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
 const { mutate: addComment } = useMutation(addCommentMutation, options)
 const { mutate: updateComment } = useMutation(updateCommentMutation, options)
 const { mutate: deleteComment } = useMutation(deleteCommentMutation, options)
+
+const deletion = useConfirmedDelete<string>(id => deleteComment({ id }))
 
 async function add(): Promise<void> {
   if (isEmptyDocument(draft.value)) {
@@ -61,12 +62,6 @@ async function saveEdit(): Promise<void> {
 
   if (result) {
     editingId.value = null
-  }
-}
-
-async function confirmDelete(): Promise<void> {
-  if (deletingId.value) {
-    await deleteComment({ id: deletingId.value })
   }
 }
 </script>
@@ -123,7 +118,7 @@ async function confirmDelete(): Promise<void> {
                 variant="neutral"
                 size="s"
                 :aria-label="t('common.delete')"
-                @click="deletingId = comment.id"
+                @click="deletion.ask(comment.id)"
               >
                 <wa-icon name="trash"></wa-icon>
               </wa-button>
@@ -207,12 +202,12 @@ async function confirmDelete(): Promise<void> {
     </form>
 
     <ConfirmModal
-      :open="deletingId !== null"
+      :open="deletion.isOpen"
       :title="t('comments.deleteTitle')"
       :description="t('comments.deleteDescription')"
       :confirm-label="t('common.delete')"
-      :action="confirmDelete"
-      @close="deletingId = null"
+      :action="deletion.confirm"
+      @close="deletion.close"
     />
   </section>
 </template>

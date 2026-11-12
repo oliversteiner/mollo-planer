@@ -92,6 +92,7 @@ Das Backend bietet einen MCP-Server unter `http://localhost:8000/mcp` (später a
    export MOLLOPLANER_TOKEN="<Zugang>"
    ```
    **Woanders:** den in der App angezeigten Befehl ausführen (`claude mcp add --transport http mollo-planer http://localhost:8000/mcp --header "Authorization: Bearer <Zugang>"`).
+   **Claude Desktop:** Im selben Dialog steht die Konfiguration für `claude_desktop_config.json` (Einstellungen → Entwickler → Konfiguration bearbeiten), danach Claude Desktop neu starten. Sie startet die Brücke `mcp-remote` über `npx`, dafür braucht der Rechner Node.js. Der Zugang steht nur in dieser Konfiguration, nicht im Chat.
 3. Dann einfach schreiben, zum Beispiel: „Erstelle ein Projekt für einen Podcast mit Milestones, ToDos und Tasks; Oliver macht Technik und Schnitt, Lindita moderiert.“
 
 Die Personen müssen in der App schon ein Konto haben (Verwaltung → Benutzer). Zuweisungsmails gehen nur auf Wunsch raus.
