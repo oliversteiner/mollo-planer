@@ -82,6 +82,18 @@ class PlanExtensionTest extends TestCase
         $this->assertSame(['Version 0.9', 'Version 1.0', 'Version 2.0'], $this->orderOf());
     }
 
+    public function test_the_first_milestone_of_an_empty_project_gets_position_zero(): void
+    {
+        $empty = Project::factory()->withMember($this->owner, ProjectRole::OWNER)->create(['name' => 'Leer']);
+
+        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, [
+            'project_id' => (string) $empty->id,
+            'milestones' => [['title' => 'Erster'], ['title' => 'Zweiter']],
+        ])->assertOk();
+
+        $this->assertSame([0, 1], $empty->milestones()->pluck('position')->map(fn ($position) => (int) $position)->all());
+    }
+
     public function test_move_milestone_puts_it_at_the_given_place_and_renumbers(): void
     {
         MolloPlanerServer::actingAs($this->owner)->tool(MoveMilestoneTool::class, [

@@ -79,7 +79,8 @@ class Milestone extends Model implements BelongsToProject
             $siblings = static::query()->where('project_id', $milestone->project_id);
 
             if ($milestone->position === null) {
-                $milestone->position = (int) $siblings->max('position') + 1;
+                $last = $siblings->max('position');
+                $milestone->position = $last === null ? 0 : (int) $last + 1;
 
                 return;
             }
