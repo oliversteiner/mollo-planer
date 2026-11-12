@@ -466,6 +466,45 @@
       "status": "geplant",
       "releasedOn": null,
       "changes": []
+    },
+    {
+      "major": 0,
+      "minor": 9,
+      "number": "0.9",
+      "title": "Automatisches Deployment",
+      "description": "Automatischer Deploy von main auf den Hostpoint-Server: Tests, Freigabe, Datenbank-Backup, Migrationen, Frontend. Anleitung in der README, Vorlage für weitere Projekte in docs/deploy-template.md.",
+      "status": "veröffentlicht",
+      "releasedOn": "2026-11-12",
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "GitHub-Actions-Workflow deploy.yml: Tests, Build, Freigabe im Environment production, Übertragung per SSH"
+        },
+        {
+          "kind": "neu",
+          "text": "deploy/deploy.sh auf dem Server: Backup, Wartungsmodus, Migrationen, Caches, Frontend veröffentlichen"
+        },
+        {
+          "kind": "neu",
+          "text": "Deploy-Schlüssel nur für das Skript: authorized_keys mit command= und restrict"
+        },
+        {
+          "kind": "neu",
+          "text": "Backend-Tests in der CI mit PHP 8.5, wie auf dem Server"
+        },
+        {
+          "kind": "behoben",
+          "text": "Lint-Fehler in AppLogo.vue blockierte den Frontend-Test im Deploy"
+        },
+        {
+          "kind": "behoben",
+          "text": "Frontend-Test erwartete role img und currentColor, das Logo auf main war veraltet"
+        },
+        {
+          "kind": "behoben",
+          "text": "Platzhalter-Host aus der Anonymisierung ließ den Deploy an der Namensauflösung scheitern; Host und Benutzer jetzt als Repository-Variablen"
+        }
+      ]
     }
   ]
 }
