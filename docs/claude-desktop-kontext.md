@@ -144,7 +144,7 @@ Weitere Regeln:
 
 ## Anmeldung und Sicherheit
 
-- Keine Selbstregistrierung. Benutzer legt ein Admin an (`createUser`), es geht eine Einladungsmail mit Link (gültig 7 Tage, einmal verwendbar). Der erste Admin entsteht über `php artisan app:create-admin`.
+- Benutzer legt ein Admin an (`createUser`), es geht eine Einladungsmail mit Link (gültig 7 Tage, einmal verwendbar). Der erste Admin entsteht über `php artisan app:create-admin`. Selbstregistrierung mit Passwort ist geplant: E-Mail-Bestätigung und Freigabe durch einen Admin (`docs/registrierung-plan.md`).
 - Login per E-Mail und Passwort (Fortify, REST).
 - **2FA ist Pflicht.** Ein Konto braucht einen zweiten Faktor (TOTP-App) oder einen Passkey.
 - Zwei gleichwertige Wege: **Passkey** (ein Schritt, Benutzerprüfung verlangt) oder **Passwort plus 2FA-Code**.

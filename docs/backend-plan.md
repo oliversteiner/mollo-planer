@@ -18,7 +18,7 @@ Stand: 2026-11-07. Ergänzt `graphql-kontext.md`. Wo beide sich widersprechen, g
 13. **Korrekturen am Schema** (Schritt 8, nötig, damit Lighthouse es ausführt): `@whereKey` an `id` bei allen `delete…`-Mutationen; `@can(find: …)` bei den Create-Mutationen nutzt die Namen nach `@spread`/`@rename` (`project_id`, `milestone_id`, `todo_id`, `task_id`); `integer` vor `min`/`max` bei `Dashboard.upcomingTodos(limit)` und `moveTask(position)`, sonst prüft Laravel die Textlänge; `updateUser` hat `injectArgs: true` und `@validator` (E-Mail eindeutig).
 14. **Einladung:** `createUser` schickt eine Mail mit Link zum Frontend (`/invitation?token=…&email=…`), gültig 7 Tage (eigener Broker `invitations`), einmal verwendbar. Das Frontend schickt Token und Passwort an `POST /invitation`. Sprache der Einladung = Sprache der Anfrage des Admins.
 15. **Sprache der API:** Header `Accept-Language` (de oder en), sonst `APP_LOCALE` (in `.env.example` jetzt `de`). Mails zu einem Projekt nutzen weiterhin die Projektsprache.
-16. **Weitere Absicherung:** Keine Selbstregistrierung, keine REST-Route `/api/user` (sie hätte die Sperre umgangen), CORS nur für `FRONTEND_URL` mit Cookies, GraphQL höchstens 120 Anfragen pro Minute und Person.
+16. **Weitere Absicherung:** Selbstregistrierung ist ab 2026-11-12 vorgesehen, mit E-Mail-Bestätigung und Freigabe durch einen Admin (`docs/registrierung-plan.md`; ersetzt „keine Selbstregistrierung“). Keine REST-Route `/api/user` (sie hätte die Sperre umgangen), CORS nur für `FRONTEND_URL` mit Cookies, GraphQL höchstens 120 Anfragen pro Minute und Person.
 
 Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP-Version per SSH, SMTP-Zugangsdaten, Cron, Deployment). Das kommt später.
 
