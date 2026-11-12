@@ -79,6 +79,16 @@ class SelfRegistrationTest extends TestCase
         Notification::assertNotSentTo($applicant, UserAwaitingApproval::class);
     }
 
+    public function test_the_frontend_may_call_the_registration_route(): void
+    {
+        $this->postJson('/register', [
+            'name' => 'Eva Neu',
+            'email' => 'eva@example.com',
+            'password' => self::PASSWORD,
+            'password_confirmation' => self::PASSWORD,
+        ])->assertCreated()->assertHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    }
+
     public function test_the_rest_user_route_stays_gone(): void
     {
         $this->getJson('/api/user')->assertNotFound();

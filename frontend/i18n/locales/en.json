@@ -98,7 +98,8 @@
       "submit": "Sign in",
       "forgot": "Forgot your password?",
       "or": "or",
-      "passkey": "Sign in with a passkey"
+      "passkey": "Sign in with a passkey",
+      "register": "Create account"
     },
     "challenge": {
       "title": "Second factor",
@@ -140,6 +141,23 @@
       "description": "Before you start, secure your account with a second factor.",
       "passkey": "Set up a passkey (recommended)",
       "app": "Set up an authenticator app"
+    },
+    "register": {
+      "title": "Create account",
+      "description": "Create your account yourself. Then confirm your email address, and an admin approves the account.",
+      "name": "Name",
+      "submit": "Create account"
+    },
+    "verify": {
+      "title": "Confirm email address",
+      "done": "Your email address is confirmed.",
+      "loginHint": "Sign in once an admin has approved your account."
+    },
+    "pending": {
+      "title": "Account waiting",
+      "emailText": "Please confirm your email address. We have sent you a link.",
+      "approvalText": "Your email address is confirmed. An admin still has to approve your account. You will be told when it is ready.",
+      "recheck": "Check again"
     }
   },
   "projects": {
@@ -449,7 +467,18 @@
       "roleHint": "Decides what the person may do across the whole app.",
       "jobFunction": "Function",
       "jobFunctionHint": "Display only, no rights.",
-      "noFunction": "None"
+      "noFunction": "None",
+      "pending": {
+        "title": "Waiting for approval ({count})",
+        "verified": "Email confirmed",
+        "unverified": "Email not confirmed",
+        "approve": "Approve",
+        "reject": "Reject",
+        "approved": "{name} is approved.",
+        "rejected": "{name} was rejected.",
+        "rejectTitle": "Reject {name}?",
+        "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards."
+      }
     },
     "settings": {
       "title": "App settings",
@@ -768,6 +797,10 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "approved_at": {
+          "label": "Approved at",
+          "description": "When an admin approved the account. Empty for self-registered accounts that still wait."
         }
       },
       "projects": {

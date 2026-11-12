@@ -86,7 +86,7 @@ return [
     */
 
     'redirects' => [
-        'email-verification' => env('FRONTEND_URL', 'http://localhost:3000').'/verify-email?verified=1',
+        'email-verification' => env('FRONTEND_URL', 'http://localhost:3000').'/verify-email',
     ],
 
     /*
@@ -178,7 +178,7 @@ return [
     */
 
     'features' => [
-        // Self-registration waits for an admin (approved_at, see EnsureAccountReady).
+        // Self-registration waits for an admin (approved_at, see EnsureApproved).
         // Admins can still create users (GraphQL createUser) with an invitation link.
         Features::registration(),
         Features::resetPasswords(),

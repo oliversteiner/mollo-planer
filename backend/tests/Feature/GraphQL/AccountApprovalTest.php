@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\GraphQL;
 
-use App\Http\Middleware\EnsureAccountReady;
 use App\Models\User;
+use App\Support\AccountReadiness;
 use App\Support\StrongAuthentication;
 use Illuminate\Testing\TestResponse;
 
@@ -43,6 +43,16 @@ class AccountApprovalTest extends GraphQLTestCase
         $this->assertFalse($waiting->fresh()->isApproved());
     }
 
+    public function test_admins_see_approval_and_mail_state_of_every_user(): void
+    {
+        $waiting = User::factory()->unapproved()->create(['name' => 'Eva Neu']);
+
+        $users = $this->as('admin')->gql('{ users { id approved emailVerified } }')->json('data.users');
+
+        $this->assertContains(['id' => (string) $waiting->id, 'approved' => false, 'emailVerified' => true], $users);
+        $this->assertContains(['id' => (string) $this->users['member']->id, 'approved' => true, 'emailVerified' => true], $users);
+    }
+
     public function test_admin_rejects_a_waiting_account_and_it_is_deleted(): void
     {
         $waiting = User::factory()->unapproved()->create();
@@ -67,8 +77,8 @@ class AccountApprovalTest extends GraphQLTestCase
 
         $this->lockedRequest($waiting, '{ projects { id } }')
             ->assertForbidden()
-            ->assertJsonPath('errors.0.extensions.code', EnsureAccountReady::CODE)
-            ->assertJsonPath('errors.0.extensions.reason', EnsureAccountReady::REASON_APPROVAL);
+            ->assertJsonPath('errors.0.extensions.code', AccountReadiness::CODE)
+            ->assertJsonPath('errors.0.extensions.reason', AccountReadiness::REASON_APPROVAL);
 
         $this->lockedRequest($waiting, 'query Viewer { me { id } }', 'Viewer')
             ->assertOk()
@@ -81,7 +91,26 @@ class AccountApprovalTest extends GraphQLTestCase
 
         $this->lockedRequest($unconfirmed, '{ projects { id } }')
             ->assertForbidden()
-            ->assertJsonPath('errors.0.extensions.reason', EnsureAccountReady::REASON_EMAIL);
+            ->assertJsonPath('errors.0.extensions.reason', AccountReadiness::REASON_EMAIL);
+    }
+
+    public function test_unconfirmed_mail_is_asked_before_the_second_factor(): void
+    {
+        $unconfirmed = User::factory()->unapproved()->unverified()->create();
+
+        $this->lockedRequest($unconfirmed, 'query Viewer { me { id } }', 'Viewer', strong: false)
+            ->assertForbidden()
+            ->assertJsonPath('errors.0.extensions.code', AccountReadiness::CODE)
+            ->assertJsonPath('errors.0.extensions.reason', AccountReadiness::REASON_EMAIL);
+    }
+
+    public function test_confirmed_mail_without_second_factor_is_sent_to_setup_before_approval(): void
+    {
+        $waiting = User::factory()->unapproved()->create();
+
+        $this->lockedRequest($waiting, 'query Viewer { me { id } }', 'Viewer', strong: false)
+            ->assertForbidden()
+            ->assertJsonPath('errors.0.extensions.code', 'SECOND_FACTOR_SETUP_REQUIRED');
     }
 
     public function test_approved_account_passes_the_lock(): void
@@ -94,11 +123,14 @@ class AccountApprovalTest extends GraphQLTestCase
     /**
      * A request as the frontend sends it: strong session, optional operation name.
      */
-    private function lockedRequest(User $user, string $query, ?string $operationName = null): TestResponse
+    private function lockedRequest(User $user, string $query, ?string $operationName = null, bool $strong = true): TestResponse
     {
-        return $this->actingAs($user)
-            ->withSession([StrongAuthentication::SESSION_KEY => (string) $user->id])
-            ->withHeader('Referer', 'http://localhost')
-            ->postJson(route('graphql'), ['query' => $query, 'operationName' => $operationName]);
+        $request = $this->actingAs($user)->withHeader('Referer', 'http://localhost');
+
+        if ($strong) {
+            $request = $request->withSession([StrongAuthentication::SESSION_KEY => (string) $user->id]);
+        }
+
+        return $request->postJson(route('graphql'), ['query' => $query, 'operationName' => $operationName]);
     }
 }

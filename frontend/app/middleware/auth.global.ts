@@ -24,6 +24,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return to.path === '/setup-security' ? undefined : navigateTo('/setup-security')
   }
 
+  const pendingPath = pendingAccountPath(problem)
+
+  if (pendingPath) {
+    return navigateTo(pendingPath)
+  }
+
   if (problem === 'network') {
     return abortNavigation(createError({ statusCode: 503, statusMessage: 'Backend not reachable' }))
   }

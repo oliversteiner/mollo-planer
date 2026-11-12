@@ -64,6 +64,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'notify_by_email', type: 'tinyint', default: '1' },
       { name: 'avatar_path', type: 'varchar', nullable: true, private: true },
       { name: 'email_verified_at', type: 'timestamp', nullable: true, private: true },
+      { name: 'approved_at', type: 'timestamp', nullable: true },
       { name: 'password', type: 'varchar', private: true },
       { name: 'two_factor_secret', type: 'text', nullable: true, private: true },
       { name: 'two_factor_recovery_codes', type: 'text', nullable: true, private: true },

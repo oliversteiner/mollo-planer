@@ -1,7 +1,8 @@
 <?php
 
 declare(strict_types=1);
-use App\Http\Middleware\EnsureAccountReady;
+use App\Http\Middleware\EnsureApproved;
+use App\Http\Middleware\EnsureEmailVerified;
 use App\Http\Middleware\EnsureStrongAuthentication;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\DisableIntrospection;
@@ -68,13 +69,16 @@ return [
             // Requests per minute and user (AppServiceProvider, limiter "graphql").
             'throttle:graphql',
 
+            // Order of the account gates: mail address first, then the second factor,
+            // then the admin's approval (self-registered accounts).
+            EnsureEmailVerified::class,
+
             // Blocks the whole API until the session is strongly authenticated:
             // password plus confirmed 2FA, or a passkey login.
             EnsureStrongAuthentication::class,
 
-            // Locks self-registered accounts until the mail address is confirmed and
-            // an admin has approved them (the Viewer query stays open).
-            EnsureAccountReady::class,
+            // Approval of self-registered accounts (the Viewer query stays open).
+            EnsureApproved::class,
 
             // Logs every incoming GraphQL query.
             // Nuwave\Lighthouse\Http\Middleware\LogGraphQLQueries::class,

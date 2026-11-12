@@ -12,7 +12,21 @@ export const adminUsersQuery = graphql(`
       twoFactorConfirmed
       hasPasskey
       createdAt
+      approved
+      emailVerified
     }
+  }
+`)
+
+export const approveUserMutation = graphql(`
+  mutation ApproveUser($id: ID!) {
+    approveUser(id: $id) { id approved }
+  }
+`)
+
+export const rejectUserMutation = graphql(`
+  mutation RejectUser($id: ID!) {
+    rejectUser(id: $id)
   }
 `)
 

@@ -100,6 +100,26 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     }
 
     /**
+     * Exposed to GraphQL as User.approved.
+     *
+     * @return Attribute<bool, never>
+     */
+    protected function approved(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->isApproved());
+    }
+
+    /**
+     * Exposed to GraphQL as User.emailVerified.
+     *
+     * @return Attribute<bool, never>
+     */
+    protected function emailVerified(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->hasVerifiedEmail());
+    }
+
+    /**
      * Whether an admin has released the account (self-registration waits for it).
      */
     public function isApproved(): bool

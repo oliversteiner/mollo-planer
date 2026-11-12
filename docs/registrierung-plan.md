@@ -1,6 +1,6 @@
 # Selbstregistrierung mit Passwort: Plan
 
-Stand: 2026-11-12. Status: **Backend umgesetzt, Frontend offen.** Entscheidung: Registrierung mit Passwort, E-Mail-Bestätigung und Freigabe durch einen Admin. Dieser Plan ersetzt den Beschluss „Keine Selbstregistrierung“ in `backend-plan.md` (Punkt 16) und `claude-desktop-kontext.md`.
+Stand: 2026-11-12. Status: **Backend und Frontend umgesetzt, Browserprüfung offen.** Entscheidung: Registrierung mit Passwort, E-Mail-Bestätigung und Freigabe durch einen Admin. Dieser Plan ersetzt den Beschluss „Keine Selbstregistrierung“ in `backend-plan.md` (Punkt 16) und `claude-desktop-kontext.md`.
 
 ## Ziel
 Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie hat erst Zugriff, wenn ein Admin das Konto freigibt. Die Einladung durch Admins bleibt bestehen.
@@ -44,7 +44,10 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
 ## Stand
 - [x] Backend: Migration `approved_at` (bestehende Konten gelten als freigegeben), Fortify-Registrierung und E-Mail-Bestätigung, `CreateNewUser`, Drosselung `register` (5 pro Minute und IP), Middleware `EnsureAccountReady` (Operation `Viewer` bleibt offen, Fehlercode `ACCOUNT_NOT_READY` mit `reason` email|approval), Mutationen `approveUser` und `rejectUser` mit Policy, Benachrichtigung der Admins nach der Bestätigung, Texte de/en, Tests (`SelfRegistrationTest`, `GraphQL/AccountApprovalTest`), Schema und Frontend-Schema aktualisiert. Suite: 497 Tests grün.
 - [ ] `composer test:mariadb`: Der lokale Datenbankbenutzer hat keinen Zugriff auf `molloplaner_test` (SQLSTATE 1044). Rechte bitte lokal setzen, dann laufen die Tests gegen MariaDB.
-- [ ] Frontend (Schritt 2 oben).
+- [x] Frontend: `/register` (Layout `auth`, Felder Name, E-Mail, Passwort, Wiederholung), `/verify-email` (Ziel des Bestätigungslinks), `/account-pending` (Wartesseite mit Grund `email` oder `approval`, „Erneut prüfen“, Abmelden), Weiterleitung der Sperre in Middleware, Login und Einrichtung, Freigabeliste mit „Freigeben“ und „Ablehnen“ in `/admin/users`, Texte de/en, Tests (245 grün).
+- [x] Backend nachgetragen: `User.approved` und `User.emailVerified` (GraphQL), CORS für `/register` (vorher blockierte der Browser die Anfrage), Verifikations-Redirect ohne doppeltes `?verified=1`.
+- [ ] Browserprüfung (Wartesseiten, Freigabeliste): Die Browser-Erweiterung hat die Bedienung nach zwei Fehlversuchen abgebrochen. Ablauf deshalb per curl geprüft: Registrierung (201), Sperre ohne Bestätigung (`ACCOUNT_NOT_READY`, `email`), Bestätigungslink (302 nach `/verify-email`). Freigabe und Oberfläche noch im Browser prüfen.
+- [ ] Testkonto `testperson-neu@example.test` in der lokalen Datenbank (Dev) entfernen oder ablehnen.
 - [ ] Doku in `backend-plan.md` und `CLAUDE.md` nach Abschluss.
 
 ## Festgelegte Standardwerte
@@ -53,4 +56,10 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
 - **Aufbewahrung unbestätigter Konten:** noch nicht umgesetzt (Vorschlag 7 Tage, offen).
 - **Freigabe-Mail an die Person:** nicht vorgesehen, die Person sieht die Freigabe beim nächsten Login.
 - **Hinweis:** Fortify meldet nach `/register` sofort an, die Sperre greift danach. So bleibt die Anmeldung mit 2FA-Einrichtung wie bisher.
+- **Reihenfolge der Sperren (entschieden 2026-11-12):** Anmeldung, dann E-Mail-Bestätigung, dann zweiter Faktor, dann Freigabe durch einen Admin.
+  - `EnsureEmailVerified` läuft vor `EnsureStrongAuthentication`. Ein unbestätigtes Konto bekommt auch `Viewer` nicht, sondern `ACCOUNT_NOT_READY` mit `reason: email`.
+  - `EnsureStrongAuthentication` wie bisher.
+  - `EnsureApproved` läuft danach. Nur `Viewer` bleibt offen, sonst `ACCOUNT_NOT_READY` mit `reason: approval`.
+  - Gemeinsame Antwort in `App\Support\AccountReadiness`. Die Middleware `EnsureAccountReady` ist entfernt.
+  - Geprüft: unbestätigt liefert `reason: email`, bestätigt und ohne Freigabe liefert `Viewer` die Daten mit `approved: false`. Tests: 501 grün.
 

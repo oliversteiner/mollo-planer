@@ -6,6 +6,8 @@
 /** Error codes of the backend lock (EnsureStrongAuthentication). */
 export const SETUP_REQUIRED = 'SECOND_FACTOR_SETUP_REQUIRED'
 export const STRONG_AUTH_REQUIRED = 'STRONG_AUTHENTICATION_REQUIRED'
+/** Self-registered account: mail not confirmed yet, or not approved by an admin (EnsureEmailVerified, EnsureApproved). */
+export const ACCOUNT_NOT_READY = 'ACCOUNT_NOT_READY'
 
 /**
  * Value of a cookie, URL-decoded. The backend sets XSRF-TOKEN; the browser
@@ -36,6 +38,10 @@ export type ApiErrorKind
     | 'validation'
   /** CSRF token expired (419): fetch a new cookie and retry. */
     | 'csrf'
+  /** Self-registered account whose mail address is not confirmed yet. */
+    | 'unverified'
+  /** Self-registered account waiting for an admin's approval. */
+    | 'awaiting-approval'
   /** Backend not reachable. */
     | 'network'
     | 'unknown'
@@ -52,9 +58,22 @@ interface GraphQLErrorLike {
   message?: string
   extensions?: {
     code?: string
+    reason?: string
     category?: string
     validation?: Record<string, string[]>
   }
+}
+
+/** Page for an account that cannot use the app yet, or null for other states. */
+export function pendingAccountPath(kind: ApiErrorKind | null): string | null {
+  if (kind === 'unverified') {
+    return '/account-pending?reason=email'
+  }
+  if (kind === 'awaiting-approval') {
+    return '/account-pending?reason=approval'
+  }
+
+  return null
 }
 
 /**
@@ -66,6 +85,7 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
   const message = first?.message ?? null
   const fields = Object.assign({}, ...errors.map(error => error.extensions?.validation ?? {})) as Record<string, string[]>
   const code = errors.map(error => error.extensions?.code).find(Boolean)
+  const reason = errors.map(error => error.extensions?.reason).find(Boolean)
   const categories = errors.map(error => error.extensions?.category)
 
   const kind: ApiErrorKind = (() => {
@@ -74,6 +94,9 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
     }
     if (code === STRONG_AUTH_REQUIRED) {
       return 'reauth-required'
+    }
+    if (code === ACCOUNT_NOT_READY) {
+      return reason === 'email' ? 'unverified' : 'awaiting-approval'
     }
     if (status === 419) {
       return 'csrf'

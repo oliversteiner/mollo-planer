@@ -10,7 +10,7 @@ use Laravel\Fortify\Contracts\CreatesNewUsers;
 /**
  * Self-registration (Fortify /register). The account gets the role member
  * and waits for an admin to approve it; it stays locked until the mail
- * address is confirmed and the approval is given (EnsureAccountReady).
+ * address is confirmed, a second factor is set up and the approval is given (EnsureEmailVerified, EnsureApproved).
  */
 class CreateNewUser implements CreatesNewUsers
 {

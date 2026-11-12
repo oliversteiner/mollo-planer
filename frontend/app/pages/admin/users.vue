@@ -2,7 +2,7 @@
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { AdminUsersQuery } from '~/graphql/generated/graphql'
-import { adminUsersQuery, deleteUserMutation, resetUserTwoFactorMutation } from '~/graphql/admin'
+import { adminUsersQuery, approveUserMutation, deleteUserMutation, rejectUserMutation, resetUserTwoFactorMutation } from '~/graphql/admin'
 import { deleteUserAvatarMutation } from '~/graphql/profile'
 
 type User = AdminUsersQuery['users'][number]
@@ -26,18 +26,31 @@ const users = computed(() => {
 })
 
 const editing = ref<{ user?: User } | null>(null)
-const confirming = ref<{ kind: 'reset' | 'delete' | 'avatar', user: User } | null>(null)
+const confirming = ref<{ kind: 'reset' | 'delete' | 'avatar' | 'reject', user: User } | null>(null)
 
 const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
 const { mutate: resetTwoFactor } = useMutation(resetUserTwoFactorMutation, options)
 const { mutate: deleteUser } = useMutation(deleteUserMutation, options)
 const { mutate: deleteAvatar } = useMutation(deleteUserAvatarMutation, options)
+const { mutate: approveUser } = useMutation(approveUserMutation, options)
+const { mutate: rejectUser } = useMutation(rejectUserMutation, options)
+
+/** Self-registered accounts waiting for approval, newest first. */
+const pendingUsers = computed(() => users.value
+  .filter(user => !user.approved)
+  .sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
+const activeUsers = computed(() => users.value.filter(user => user.approved))
+
+async function approve(user: User): Promise<void> {
+  await approveUser({ id: user.id })
+  toast.add({ title: t('admin.users.pending.approved', { name: user.name }), color: 'success' })
+}
 
 function startEditing(user?: User): void {
   editing.value = user ? { user } : {}
 }
 
-function ask(kind: 'reset' | 'delete' | 'avatar', user: User): void {
+function ask(kind: 'reset' | 'delete' | 'avatar' | 'reject', user: User): void {
   confirming.value = { kind, user }
 }
 
@@ -71,6 +84,9 @@ async function confirm(): Promise<void> {
     toast.add({ title: t('admin.users.resetDone', { name: target.user.name }), color: 'success' })
   } else if (target.kind === 'avatar') {
     await deleteAvatar({ id })
+  } else if (target.kind === 'reject') {
+    await rejectUser({ id })
+    toast.add({ title: t('admin.users.pending.rejected', { name: target.user.name }), color: 'success' })
   } else {
     await deleteUser({ id })
     toast.add({ title: t('admin.users.deleted', { name: target.user.name }), color: 'success' })
@@ -86,6 +102,8 @@ const confirmTexts = computed(() => {
       return { title: t('admin.users.resetTitle', { name }), description: t('admin.users.resetDescription'), label: t('admin.users.resetTwoFactor') }
     case 'avatar':
       return { title: t('admin.users.avatarTitle', { name }), description: t('admin.users.avatarDescription'), label: t('admin.users.removeAvatar') }
+    case 'reject':
+      return { title: t('admin.users.pending.rejectTitle', { name }), description: t('admin.users.pending.rejectDescription'), label: t('admin.users.pending.reject') }
     default:
       return { title: t('admin.users.deleteTitle', { name }), description: t('admin.users.deleteDescription'), label: t('common.delete') }
   }
@@ -143,50 +161,97 @@ function factorLabel(user: User): string {
       effect="sheen"
       class="users-skeleton"
     ></wa-skeleton>
-    <ul
-      v-else
-      class="users-list wa-list-plain"
-    >
-      <li
-        v-for="user in users"
-        :key="user.id"
-        class="users-row"
+    <template v-else>
+      <section
+        v-if="pendingUsers.length > 0"
+        class="users-pending"
       >
-        <UserAvatar
-          :name="user.name"
-          :src="user.avatarUrl"
-          size="md"
-        />
-        <span class="users-text">
-          <span class="users-name">
-            <span class="users-name-text">{{ user.name }}</span>
+        <h2 class="wa-heading-s">
+          {{ t('admin.users.pending.title', { count: pendingUsers.length }) }}
+        </h2>
+        <ul class="users-list wa-list-plain">
+          <li
+            v-for="user in pendingUsers"
+            :key="user.id"
+            class="users-row"
+          >
+            <UserAvatar
+              :name="user.name"
+              :src="user.avatarUrl"
+              size="md"
+            />
+            <span class="users-text">
+              <span class="users-name-text">{{ user.name }}</span>
+              <span class="users-email">{{ user.email }}</span>
+            </span>
             <wa-badge
-              v-if="user.role !== 'MITGLIED'"
-              variant="brand"
+              :variant="user.emailVerified ? 'brand' : 'warning'"
               appearance="filled"
             >
-              {{ t(`userRole.${user.role}`) }}
+              {{ user.emailVerified ? t('admin.users.pending.verified') : t('admin.users.pending.unverified') }}
             </wa-badge>
-            <span
-              v-if="user.id === viewer?.id"
-              class="users-you"
-            >({{ t('settings.members.you') }})</span>
-          </span>
-          <span class="users-email">{{ user.email }}</span>
-        </span>
-        <wa-badge
-          :variant="user.twoFactorConfirmed || user.hasPasskey ? 'success' : 'warning'"
-          appearance="filled"
+            <wa-button
+              size="small"
+              variant="brand"
+              :disabled="!user.emailVerified"
+              @click="approve(user)"
+            >
+              {{ t('admin.users.pending.approve') }}
+            </wa-button>
+            <wa-button
+              size="small"
+              appearance="outlined"
+              variant="danger"
+              @click="ask('reject', user)"
+            >
+              {{ t('admin.users.pending.reject') }}
+            </wa-button>
+          </li>
+        </ul>
+      </section>
+
+      <ul class="users-list wa-list-plain">
+        <li
+          v-for="user in activeUsers"
+          :key="user.id"
+          class="users-row"
         >
-          {{ factorLabel(user) }}
-        </wa-badge>
-        <ActionMenu
-          :items="actions(user)"
-          :label="t('admin.users.actions', { name: user.name })"
-          size="m"
-        />
-      </li>
-    </ul>
+          <UserAvatar
+            :name="user.name"
+            :src="user.avatarUrl"
+            size="md"
+          />
+          <span class="users-text">
+            <span class="users-name">
+              <span class="users-name-text">{{ user.name }}</span>
+              <wa-badge
+                v-if="user.role !== 'MITGLIED'"
+                variant="brand"
+                appearance="filled"
+              >
+                {{ t(`userRole.${user.role}`) }}
+              </wa-badge>
+              <span
+                v-if="user.id === viewer?.id"
+                class="users-you"
+              >({{ t('settings.members.you') }})</span>
+            </span>
+            <span class="users-email">{{ user.email }}</span>
+          </span>
+          <wa-badge
+            :variant="user.twoFactorConfirmed || user.hasPasskey ? 'success' : 'warning'"
+            appearance="filled"
+          >
+            {{ factorLabel(user) }}
+          </wa-badge>
+          <ActionMenu
+            :items="actions(user)"
+            :label="t('admin.users.actions', { name: user.name })"
+            size="m"
+          />
+        </li>
+      </ul>
+    </template>
 
     <AdminUserFormModal
       :target="editing"
@@ -210,6 +275,13 @@ function factorLabel(user: User): string {
 
 .users-skeleton {
   block-size: 10rem;
+}
+
+.users-pending {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-s);
+  margin-block-end: var(--wa-space-l);
 }
 
 .users-list {

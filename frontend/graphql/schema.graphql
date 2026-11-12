@@ -566,12 +566,16 @@ scalar Upload
 type User {
  "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
  apiTokens: [ApiToken!]
+ "Hat ein Admin das Konto freigegeben? Selbst registrierte Konten warten, bis ein Admin es freigibt."
+ approved: Boolean!
  "Zugewiesene Tasks, soweit du sie sehen darfst"
  assignedTasks: [Task!]!
  "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
  avatarUrl: String
  createdAt: DateTime!
  email: String!
+ "Ist die E-Mail-Adresse bestätigt? Selbst registrierte Konten bestätigen sie zuerst."
+ emailVerified: Boolean!
  "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
  hasPasskey: Boolean
  id: ID!

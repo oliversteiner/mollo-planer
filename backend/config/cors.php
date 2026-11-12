@@ -26,6 +26,7 @@ return [
         'forgot-password',
         'reset-password',
         'invitation',
+        'register',
         'user/*',
         'passkeys/*',
     ],

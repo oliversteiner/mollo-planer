@@ -14,7 +14,9 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n": typeof types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": typeof types.AdminUsersDocument,
+    "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": typeof types.ApproveUserDocument,
+    "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n": typeof types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": typeof types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n": typeof types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": typeof types.ResetUserTwoFactorDocument,
@@ -75,7 +77,9 @@ type Documents = {
     "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n": types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
+    "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": types.ApproveUserDocument,
+    "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n": types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n": types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": types.ResetUserTwoFactorDocument,
@@ -153,7 +157,15 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n    }\n  }\n"];
+export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n"): (typeof documents)["\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n"): (typeof documents)["\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

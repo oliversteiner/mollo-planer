@@ -28,6 +28,10 @@ type User {
   "Zugewiesene Tasks, soweit du sie sehen darfst"
   assignedTasks: [Task!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserTasks")
   createdAt: DateTime! @rename(attribute: "created_at")
+  "Hat ein Admin das Konto freigegeben? Selbst registrierte Konten warten, bis ein Admin es freigibt."
+  approved: Boolean!
+  "Ist die E-Mail-Adresse bestätigt? Selbst registrierte Konten bestätigen sie zuerst."
+  emailVerified: Boolean!
 }
 
 "Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"

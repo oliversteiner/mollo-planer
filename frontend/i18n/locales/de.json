@@ -98,7 +98,8 @@
       "submit": "Anmelden",
       "forgot": "Passwort vergessen?",
       "or": "oder",
-      "passkey": "Mit Passkey anmelden"
+      "passkey": "Mit Passkey anmelden",
+      "register": "Konto anlegen"
     },
     "challenge": {
       "title": "Zweiter Faktor",
@@ -140,6 +141,23 @@
       "description": "Bevor du loslegen kannst, sicherst du dein Konto mit einem zweiten Faktor ab.",
       "passkey": "Passkey einrichten (empfohlen)",
       "app": "Authenticator-App einrichten"
+    },
+    "register": {
+      "title": "Konto anlegen",
+      "description": "Lege dein Konto selbst an. Danach bestätigst du deine E-Mail-Adresse, und ein Admin gibt das Konto frei.",
+      "name": "Name",
+      "submit": "Konto anlegen"
+    },
+    "verify": {
+      "title": "E-Mail-Adresse bestätigen",
+      "done": "Deine E-Mail-Adresse ist bestätigt.",
+      "loginHint": "Melde dich an, sobald ein Admin dein Konto freigegeben hat."
+    },
+    "pending": {
+      "title": "Konto wartet",
+      "emailText": "Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt.",
+      "approvalText": "Deine E-Mail-Adresse ist bestätigt. Ein Admin muss dein Konto noch freigeben. Du bekommst Bescheid, sobald es so weit ist.",
+      "recheck": "Erneut prüfen"
     }
   },
   "projects": {
@@ -449,7 +467,18 @@
       "roleHint": "Bestimmt, was die Person in der ganzen App darf.",
       "jobFunction": "Funktion",
       "jobFunctionHint": "Nur zur Anzeige, ohne Rechte.",
-      "noFunction": "Keine"
+      "noFunction": "Keine",
+      "pending": {
+        "title": "Wartet auf Freigabe ({count})",
+        "verified": "E-Mail bestätigt",
+        "unverified": "E-Mail unbestätigt",
+        "approve": "Freigeben",
+        "reject": "Ablehnen",
+        "approved": "{name} ist freigegeben.",
+        "rejected": "{name} wurde abgelehnt.",
+        "rejectTitle": "{name} ablehnen?",
+        "rejectDescription": "Das wartende Konto wird gelöscht. Die Person kann sich danach nicht mehr anmelden."
+      }
     },
     "settings": {
       "title": "App-Einstellungen",
@@ -768,6 +797,10 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "approved_at": {
+          "label": "Freigegeben am",
+          "description": "Zeitpunkt, an dem ein Admin das Konto freigegeben hat. Leer bei Konten, die sich selbst registriert haben und noch warten."
         }
       },
       "projects": {

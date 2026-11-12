@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyApiError, classifyApolloError, classifyRestError, readCookie, safeRedirect, SETUP_REQUIRED, STRONG_AUTH_REQUIRED, withoutNulls } from '../../app/utils/api'
+import { ACCOUNT_NOT_READY, classifyApiError, classifyApolloError, classifyRestError, pendingAccountPath, readCookie, safeRedirect, SETUP_REQUIRED, STRONG_AUTH_REQUIRED, withoutNulls } from '../../app/utils/api'
 
 describe('readCookie', () => {
   it('returns the URL-decoded value, as Laravel expects it in X-XSRF-TOKEN', () => {
@@ -13,6 +13,11 @@ describe('readCookie', () => {
 })
 
 describe('classifyApiError', () => {
+  it('tells an unconfirmed mail from an account waiting for approval (ACCOUNT_NOT_READY)', () => {
+    expect(classifyApiError(403, [{ extensions: { code: ACCOUNT_NOT_READY, reason: 'email' } }]).kind).toBe('unverified')
+    expect(classifyApiError(403, [{ extensions: { code: ACCOUNT_NOT_READY, reason: 'approval' } }]).kind).toBe('awaiting-approval')
+  })
+
   it('recognises the two codes of the strong-authentication lock (HTTP 403)', () => {
     expect(classifyApiError(403, [{ extensions: { code: SETUP_REQUIRED } }]).kind).toBe('setup-required')
     expect(classifyApiError(403, [{ extensions: { code: STRONG_AUTH_REQUIRED } }]).kind).toBe('reauth-required')
@@ -92,5 +97,17 @@ describe('withoutNulls', () => {
   it('drops null filters so the backend applies no filter for them', () => {
     expect(withoutNulls({ projectId: '1', milestoneId: null, status: null })).toEqual({ projectId: '1' })
     expect(withoutNulls({ status: 'DONE' })).toEqual({ status: 'DONE' })
+  })
+})
+
+describe('pendingAccountPath', () => {
+  it('sends a locked account to the page that explains why', () => {
+    expect(pendingAccountPath('unverified')).toBe('/account-pending?reason=email')
+    expect(pendingAccountPath('awaiting-approval')).toBe('/account-pending?reason=approval')
+  })
+
+  it('returns null for every other state', () => {
+    expect(pendingAccountPath(null)).toBeNull()
+    expect(pendingAccountPath('setup-required')).toBeNull()
   })
 })
