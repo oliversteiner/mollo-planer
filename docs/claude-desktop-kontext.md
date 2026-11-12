@@ -189,7 +189,7 @@ Weitere Regeln:
 
 **Assistent und MCP:**
 - **KI-Assistent** (`/assistant`, nur Admins): Chat, der einen Projektplan entwirft (Milestones, ToDos, Tasks, Mitglieder). Entwurf speichern passiert erst mit „Jetzt eintragen“.
-- **MCP-Server** „Mollo Planer“ (`POST /mcp`): Claude füllt Projekte über natürliche Sprache. Zugang über persönliche Tokens mit Fähigkeit `mcp`, 90 Tage gültig. Werkzeuge: `list_projects`, `get_project`, `list_users`, `create_project` (nur Admins), `set_project_member`, `create_project_plan`. Es gibt kein Löschen. Die Werkzeuge führen die GraphQL-Mutationen im Namen der Person aus, mit denselben Regeln.
+- **MCP-Server** „Mollo Planer“ (`POST /mcp`): Claude füllt Projekte über natürliche Sprache. Zugang über persönliche Tokens mit Fähigkeit `mcp`, 90 Tage gültig. Werkzeuge: `list_projects`, `get_project`, `list_users`, `create_project` (nur Admins), `set_project_member`, `create_project_plan`, `set_task_status`. Es gibt kein Löschen. Ändern kann Claude nur den Status einzelner Aufgaben (`set_task_status`, ToDo und Milestone werden berechnet). Die Werkzeuge führen die GraphQL-Mutationen im Namen der Person aus, mit denselben Regeln.
 
 **Avatare:** JPG oder PNG, höchstens 5 MB, wird auf 500 × 500 px quadratisch zugeschnitten und als WebP ohne Metadaten gespeichert.
 

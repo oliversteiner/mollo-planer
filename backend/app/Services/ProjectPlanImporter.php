@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\TaskStatus;
 use App\Mcp\Support\GraphQLFailed;
 use App\Mcp\Support\GraphQLRunner;
 use App\Mcp\Support\PlainTextDocument;
 use App\Mcp\Support\ProjectPlanFailed;
+use App\Mcp\Support\TaskStatusChange;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -20,9 +22,9 @@ use Illuminate\Support\Facades\DB;
  * Plan shape (plain-text descriptions, dates YYYY-MM-DD):
  * milestones[] { title, description?, due_date?, todos[] { title,
  * description?, due_date?, tasks[] { title, description?, due_date?,
- * assignee_email? } } }
+ * assignee_email?, status? (open or done) } } }
  *
- * @phpstan-type PlanTask array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, assignee_email?: string|null}
+ * @phpstan-type PlanTask array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, assignee_email?: string|null, status?: string|null}
  * @phpstan-type PlanTodo array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, tasks?: list<PlanTask>}
  * @phpstan-type PlanMilestone array{title: string, description?: string|null, due_date?: string|DateTimeInterface|null, todos?: list<PlanTodo>}
  * @phpstan-type PlanCounts array{milestones: int, todos: int, tasks: int, assigned: int}
@@ -140,11 +142,14 @@ class ProjectPlanImporter
                         throw new ProjectPlanFailed(ProjectPlanFailed::NOT_A_MEMBER, $task['title'], $task['assignee_email']);
                     }
 
-                    $this->create(self::TASK, 'createTask', ProjectPlanFailed::TASK, $task['title'], [
+                    $taskId = $this->create(self::TASK, 'createTask', ProjectPlanFailed::TASK, $task['title'], [
                         'todoId' => $todoId,
                         'assigneeId' => $email === null ? null : $members[$email],
                         ...$this->fields($task),
                     ]);
+                    if (($task['status'] ?? 'open') === TaskStatus::DONE->value) {
+                        $this->markDone($taskId, $task['title']);
+                    }
                     $counts['tasks']++;
                     $counts['assigned'] += $email === null ? 0 : 1;
                 }
@@ -152,6 +157,21 @@ class ProjectPlanImporter
         }
 
         return $counts;
+    }
+
+    /**
+     * Same path as set_task_status: the moveTask mutation, so the task.move
+     * permission and the status automation of the observers apply.
+     *
+     * @throws ProjectPlanFailed with the task that failed
+     */
+    private function markDone(string $taskId, string $title): void
+    {
+        try {
+            $this->graphQL->run(TaskStatusChange::MUTATION, TaskStatusChange::variables($taskId, TaskStatus::DONE));
+        } catch (GraphQLFailed $failure) {
+            throw new ProjectPlanFailed(ProjectPlanFailed::TASK, $title, $failure->getMessage());
+        }
     }
 
     /**

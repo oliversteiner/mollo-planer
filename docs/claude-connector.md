@@ -97,9 +97,12 @@ Claude Code danach neu starten.
 | `list_users` | Benutzer und Funktionen auflisten, zum Zuweisen | alle |
 | `create_project` | Projekt anlegen | Admins, Projektleitung, Koordination |
 | `set_project_member` | Mitglied hinzufügen oder die Rolle ändern | nach Projektrolle, siehe unten |
-| `create_project_plan` | Milestones, ToDos, Tasks und Zuweisungen in einem Projekt anlegen | nach Projektrolle |
+| `create_project_plan` | Milestones, ToDos, Tasks und Zuweisungen in einem Projekt anlegen. Jede Aufgabe kann mit `status` `open` (Standard) oder `done` angelegt werden, etwa um abgeschlossene Versionen zu importieren | Tasks: Owner und Manager. Mit `status` `done` zusätzlich das Recht, Tasks zu verschieben (Mitglieder dürfen das) |
+| `set_task_status` | Setzt den Status einer Aufgabe (`open`, `in_progress`, `review`, `done`). ToDo und Milestone werden danach automatisch berechnet. Antwort mit Task, ToDo und Milestone | alle Mitglieder des Projekts, die Aufgaben verschieben dürfen |
 
-**Löschen kann Claude nicht.** Es gibt kein Werkzeug dafür.
+**Löschen kann Claude nicht.** Es gibt kein Werkzeug dafür. Ändern kann Claude nur den Status einer Aufgabe, nicht Titel, Zuweisung oder Beschreibung.
+
+**Status:** ToDos und Milestones bekommen ihren Status nie direkt. Sie ergeben sich aus den Aufgaben: ein ToDo ist erledigt, wenn alle seine Aufgaben erledigt sind, ein Milestone, wenn alle seine ToDos erledigt sind. Mails verschickt `set_task_status` nie, auch bei `done` nicht.
 
 Die Rechte im Projekt folgen der Tabelle in `docs/rollen-plan.md` und `ProjectPermissions`. Ein Mitglied kann also Tasks anlegen, aber keine Mitglieder verwalten.
 

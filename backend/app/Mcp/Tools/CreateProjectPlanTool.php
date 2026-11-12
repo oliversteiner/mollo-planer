@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Services\ProjectPlanImporter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
+use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -17,7 +18,7 @@ Adds milestones with their todos and tasks to an existing project in one step, a
 All or nothing: if anything fails (a missing right, an invalid date, an assignee who is not a member), nothing is created and the error says which item.
 Milestones and todos may be created by every member; tasks need owner or manager rights (see abilities in list_projects).
 Descriptions are plain text: blank lines separate paragraphs, lines starting with "- " become a bullet list.
-Dates are YYYY-MM-DD. Statuses are derived automatically (new items are open).
+Dates are YYYY-MM-DD. Milestones and todos get their status automatically. Tasks start open; give a task status done to mark it finished (for example to import completed versions).
 By default no e-mails are sent for the assignments; set notify_assignees to true to send one per assigned task.
 TEXT)]
 class CreateProjectPlanTool extends Tool
@@ -46,11 +47,13 @@ class CreateProjectPlanTool extends Tool
             'milestones.*.todos.*.tasks.*.description' => $text,
             'milestones.*.todos.*.tasks.*.due_date' => $date,
             'milestones.*.todos.*.tasks.*.assignee_email' => ['nullable', 'email'],
+            'milestones.*.todos.*.tasks.*.status' => ['nullable', Rule::in(['open', 'done'])],
         ], [
             'milestones.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
             'milestones.*.todos.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
             'milestones.*.todos.*.tasks.*.due_date.date_format' => 'Dates are YYYY-MM-DD, for example 2027-03-31.',
             'milestones.required' => 'Give at least one milestone.',
+            'milestones.*.todos.*.tasks.*.status.in' => 'The status of a task is open or done.',
         ]);
 
         return $this->respond(fn () => Response::json([
@@ -69,6 +72,7 @@ class CreateProjectPlanTool extends Tool
             'description' => $schema->string()->description('Details, plain text.'),
             'due_date' => $schema->string()->format('date')->description('YYYY-MM-DD'),
             'assignee_email' => $schema->string()->description('E-mail of a project member who does it.'),
+            'status' => $schema->string()->enum(['open', 'done'])->description('open (default) or done.'),
         ]);
         $todo = $schema->object([
             'title' => $schema->string()->required(),
