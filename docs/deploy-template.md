@@ -115,19 +115,34 @@ ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy <projekt>' -f ~/.ssh/<proj
 
 ## 7. GitHub
 
-**Settings → Secrets and variables → Actions → Repository secrets**
+GitHub hat für Secrets und Variablen dieselbe Oberfläche, nur mit verschiedenen Reitern. Die Unterscheidung ist leicht zu übersehen, deshalb hier genau:
+
+- **Secrets** (Reiter *Secrets*): verschlüsselt, nach dem Speichern nicht mehr einsehbar.
+- **Variablen** (Reiter *Variables*): Klartext, im Repo-Einstellungen sichtbar. Für Hostnamen und Benutzer.
+
+Beides auf **Repository-Ebene** anlegen, nicht in der Umgebung `production`. Der Deploy-Job liest die Variablen aus dem Repository. Liegen sie nur in einer Umgebung, bleiben sie für den Job leer.
+
+### Secrets
+
+**Settings → Secrets and variables → Actions → Reiter „Secrets“ → New repository secret**
 
 - `DEPLOY_SSH_KEY`: Inhalt von `~/.ssh/<projekt>-deploy` (`pbcopy < ~/.ssh/<projekt>-deploy`)
 - `DEPLOY_KNOWN_HOSTS`: Ausgabe des Host-Schlüssel-Befehls aus Abschnitt 6
 - `FONTAWESOME_NPM_AUTH_TOKEN`: nur bei Font Awesome Pro
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
 
-**Settings → Secrets and variables → Actions → Variables** (keine Secrets):
+### Variablen
+
+**Settings → Secrets and variables → Actions → Reiter „Variables“ → New repository variable**
 
 - `DEPLOY_HOST`: Hostname des Hostpoint-Servers, z. B. `<servername.hostpoint.ch>`. Muss zum Eintrag in `DEPLOY_KNOWN_HOSTS` passen.
 - `DEPLOY_USER`: SSH-Benutzer, z. B. `<username>`
 
-**Settings → Environments → New environment:** Name `production`, unter *Required reviewers* den eigenen Account eintragen.
+Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repository-Ebene anlegen. Dann findet der Deploy-Job den Wert nicht.
+
+### Umgebung
+
+**Settings → Environments → New environment:** Name `production`, unter *Required reviewers* den eigenen Account eintragen. Keine Variablen oder Secrets in dieser Umgebung anlegen.
 
 ---
 
