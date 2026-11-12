@@ -16,40 +16,21 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Notifications\TaskAssigned;
 use App\Support\McpTokens;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use Tests\TestCase;
 
 /**
  * The MCP server acts through the GraphQL schema as the token's owner:
  * same permissions and rules as the app, plans are created all or nothing.
  */
-class MolloPlanerServerTest extends TestCase
+class MolloPlanerServerTest extends McpTestCase
 {
-    use RefreshDatabase;
-
     private User $admin;
-
-    private User $owner;
-
-    private User $member;
-
-    private User $stranger;
-
-    private Project $project;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->admin = User::factory()->admin()->create(['email' => 'anna@example.ch']);
-        $this->owner = User::factory()->create(['email' => 'oliver@example.ch']);
-        $this->member = User::factory()->create(['email' => 'lindita@example.ch']);
-        $this->stranger = User::factory()->create(['email' => 'eva@example.ch']);
-        $this->project = Project::factory()
-            ->withMember($this->owner, ProjectRole::OWNER)
-            ->withMember($this->member, ProjectRole::MEMBER)
-            ->create(['name' => 'Podcast']);
     }
 
     public function test_list_projects_shows_only_what_the_token_owner_may_see(): void

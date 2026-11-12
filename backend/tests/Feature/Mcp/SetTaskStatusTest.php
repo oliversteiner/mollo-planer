@@ -14,26 +14,14 @@ use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
 use App\Support\McpTokens;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 /**
  * set_task_status and the task statuses of create_project_plan: same rights
  * and automation as the Kanban board, no mails, nothing else changed.
  */
-class SetTaskStatusTest extends TestCase
+class SetTaskStatusTest extends McpTestCase
 {
-    use RefreshDatabase;
-
-    private User $owner;
-
     private User $manager;
-
-    private User $member;
-
-    private User $stranger;
-
-    private Project $project;
 
     private Milestone $milestone;
 
@@ -41,19 +29,21 @@ class SetTaskStatusTest extends TestCase
 
     private Task $task;
 
-    protected function setUp(): void
+    protected function createProject(): Project
     {
-        parent::setUp();
-
-        $this->owner = User::factory()->create(['email' => 'oliver@example.ch']);
         $this->manager = User::factory()->create(['email' => 'chiara@example.ch']);
-        $this->member = User::factory()->create(['email' => 'lindita@example.ch']);
-        $this->stranger = User::factory()->create(['email' => 'eva@example.ch']);
-        $this->project = Project::factory()
+
+        return Project::factory()
             ->withMember($this->owner, ProjectRole::OWNER)
             ->withMember($this->manager, ProjectRole::MANAGER)
             ->withMember($this->member, ProjectRole::MEMBER)
             ->create(['name' => 'Podcast']);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
         $this->milestone = Milestone::factory()->for($this->project)->create(['title' => 'Bestehender Meilenstein']);
         $this->todo = Todo::factory()->for($this->milestone)->create(['title' => 'Bestehendes ToDo']);
         $this->task = Task::factory()->for($this->todo)->create(['title' => 'Hörerprofile schreiben']);

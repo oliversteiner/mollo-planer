@@ -12,28 +12,15 @@ use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
-use App\Models\User;
 use App\Support\McpTokens;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 /**
  * The plan tools that extend an existing plan: ids in the answers, the order
  * of milestones, adding to a milestone or a todo without duplicates, and
  * changing single fields. Same rights as the app, all or nothing.
  */
-class PlanExtensionTest extends TestCase
+class PlanExtensionTest extends McpTestCase
 {
-    use RefreshDatabase;
-
-    private User $owner;
-
-    private User $member;
-
-    private User $stranger;
-
-    private Project $project;
-
     private Milestone $first;
 
     private Milestone $second;
@@ -44,13 +31,6 @@ class PlanExtensionTest extends TestCase
     {
         parent::setUp();
 
-        $this->owner = User::factory()->create(['email' => 'oliver@example.ch']);
-        $this->member = User::factory()->create(['email' => 'lindita@example.ch']);
-        $this->stranger = User::factory()->create(['email' => 'eva@example.ch']);
-        $this->project = Project::factory()
-            ->withMember($this->owner, ProjectRole::OWNER)
-            ->withMember($this->member, ProjectRole::MEMBER)
-            ->create(['name' => 'Podcast']);
         $this->first = Milestone::factory()->for($this->project)->create(['title' => 'Version 1.0', 'position' => 0]);
         $this->second = Milestone::factory()->for($this->project)->create(['title' => 'Version 2.0', 'position' => 1]);
         $this->todo = Todo::factory()->for($this->first)->create(['title' => 'Meldungen']);
