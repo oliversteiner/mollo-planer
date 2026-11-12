@@ -139,9 +139,12 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
   ```
   command="/home/username/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer
   ```
-- **GitHub-Secrets** unter *Settings → Secrets and variables → Actions*:
+- **GitHub-Variablen** unter *Settings → Secrets and variables → Actions → Variables* (keine Secrets, aber auch nicht im Repo):
+  - `DEPLOY_HOST`: Hostname des Hostpoint-Servers
+  - `DEPLOY_USER`: SSH-Benutzer auf dem Server
+- **GitHub-Secrets** unter *Settings → Secrets and variables → Actions → Secrets*:
   - `DEPLOY_SSH_KEY`: Inhalt der privaten Datei `~/.ssh/mollo-planer-deploy`
-  - `DEPLOY_KNOWN_HOSTS`: Ausgabe von `ssh-keygen -F servername.hostpoint.ch | grep -v '^#'`, damit der Server fest geprüft wird
+  - `DEPLOY_KNOWN_HOSTS`: Ausgabe von `ssh-keygen -F <DEPLOY_HOST> | grep -v '^#'`, damit der Server fest geprüft wird
   - `FONTAWESOME_NPM_AUTH_TOKEN` und `WEBAWESOME_NPM_AUTH_TOKEN` (wie bei der Frontend-CI)
 - **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
 - **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.

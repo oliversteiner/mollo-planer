@@ -122,6 +122,11 @@ ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy <projekt>' -f ~/.ssh/<proj
 - `FONTAWESOME_NPM_AUTH_TOKEN`: nur bei Font Awesome Pro
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
 
+**Settings → Secrets and variables → Actions → Variables** (keine Secrets):
+
+- `DEPLOY_HOST`: Hostname des Hostpoint-Servers, z. B. `<servername.hostpoint.ch>`. Muss zum Eintrag in `DEPLOY_KNOWN_HOSTS` passen.
+- `DEPLOY_USER`: SSH-Benutzer, z. B. `<username>`
+
 **Settings → Environments → New environment:** Name `production`, unter *Required reviewers* den eigenen Account eintragen.
 
 ---
@@ -157,7 +162,7 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 
 - In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`.
 - Bei einem Frontend ohne Backend die Schritte Datenbank-Backup, Migrationen und Caches streichen.
-- In `deploy.yml` die Umgebungsvariablen anpassen: `DEPLOY_HOST`, `DEPLOY_USER`, `API_BASE`.
+- In `deploy.yml` die Umgebungsvariable `API_BASE` anpassen. `DEPLOY_HOST` und `DEPLOY_USER` kommen aus den GitHub-Variablen (Abschnitt 7).
 - Die Tests-Jobs an das Projekt anpassen oder streichen.
 
 ---
