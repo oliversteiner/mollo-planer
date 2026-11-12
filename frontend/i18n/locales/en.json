@@ -477,7 +477,8 @@
         "approved": "{name} is approved.",
         "rejected": "{name} was rejected.",
         "rejectTitle": "Reject {name}?",
-        "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards."
+        "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards.",
+        "failed": "That did not work. The list has been updated."
       }
     },
     "settings": {

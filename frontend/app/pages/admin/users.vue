@@ -15,12 +15,13 @@ const { viewer } = useViewer()
 
 useHead({ title: () => t('admin.users.title') })
 
-const { result, loading } = useQuery(adminUsersQuery, null, { fetchPolicy: 'cache-and-network' })
+const { result, loading, refetch } = useQuery(adminUsersQuery, null, { fetchPolicy: 'cache-and-network' })
 const query = ref('')
+const allUsers = computed(() => [...(result.value?.users ?? [])])
 const users = computed(() => {
   const words = query.value.toLowerCase().split(/\s+/).filter(Boolean)
 
-  return [...(result.value?.users ?? [])]
+  return allUsers.value
     .filter(user => words.every(word => `${user.name} ${user.email}`.toLowerCase().includes(word)))
     .sort((a, b) => a.name.localeCompare(b.name))
 })
@@ -35,15 +36,27 @@ const { mutate: deleteAvatar } = useMutation(deleteUserAvatarMutation, options)
 const { mutate: approveUser } = useMutation(approveUserMutation, options)
 const { mutate: rejectUser } = useMutation(rejectUserMutation, options)
 
-/** Self-registered accounts waiting for approval, newest first. */
-const pendingUsers = computed(() => users.value
+/**
+ * Self-registered accounts waiting for approval, newest first. The search does
+ * not hide them: the approval queue always shows everyone who waits.
+ */
+const pendingUsers = computed(() => allUsers.value
   .filter(user => !user.approved)
   .sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
 const activeUsers = computed(() => users.value.filter(user => user.approved))
 
+/**
+ * A failed approval or rejection (for example because the account was already
+ * approved in the meantime) reloads the list, so the screen shows the real state.
+ */
 async function approve(user: User): Promise<void> {
-  await approveUser({ id: user.id })
-  toast.add({ title: t('admin.users.pending.approved', { name: user.name }), color: 'success' })
+  try {
+    await approveUser({ id: user.id }, { context: { silentErrors: true } })
+    toast.add({ title: t('admin.users.pending.approved', { name: user.name }), color: 'success' })
+  } catch {
+    await refetch()
+    toast.add({ title: t('admin.users.pending.failed'), color: 'error' })
+  }
 }
 
 function startEditing(user?: User): void {
@@ -85,7 +98,13 @@ async function confirm(): Promise<void> {
   } else if (target.kind === 'avatar') {
     await deleteAvatar({ id })
   } else if (target.kind === 'reject') {
-    await rejectUser({ id })
+    try {
+      await rejectUser({ id }, { context: { silentErrors: true } })
+    } catch {
+      await refetch()
+      toast.add({ title: t('admin.users.pending.failed'), color: 'error' })
+      return
+    }
     toast.add({ title: t('admin.users.pending.rejected', { name: target.user.name }), color: 'success' })
   } else {
     await deleteUser({ id })

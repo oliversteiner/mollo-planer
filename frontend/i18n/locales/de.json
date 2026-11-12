@@ -477,7 +477,8 @@
         "approved": "{name} ist freigegeben.",
         "rejected": "{name} wurde abgelehnt.",
         "rejectTitle": "{name} ablehnen?",
-        "rejectDescription": "Das wartende Konto wird gelöscht. Die Person kann sich danach nicht mehr anmelden."
+        "rejectDescription": "Das wartende Konto wird gelöscht. Die Person kann sich danach nicht mehr anmelden.",
+        "failed": "Das hat nicht geklappt. Die Liste wurde aktualisiert."
       }
     },
     "settings": {

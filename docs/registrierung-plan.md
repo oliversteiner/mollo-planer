@@ -65,7 +65,10 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
   - Geprüft: unbestätigt liefert `reason: email`, bestätigt und ohne Freigabe liefert `Viewer` die Daten mit `approved: false`. Tests: 501 grün.
 
 ## Backlog
-- [ ] Browser-Test der Freigabeliste in `/admin/users`: Freigeben, Ablehnen, Mail an Admins. Hängt an der Browser-Erweiterung, die mehrfach abgebrochen ist. Dafür ein Admin-Testkonto nur für die Prüfung.
+- [x] Browser-Test der Freigabeliste (2026-11-12): Abschnitt „Wartet auf Freigabe“ mit Zählung, Freigeben und Ablehnen mit Rückfrage geprüft. Ablehnen löscht das Konto und zeigt eine Meldung.
+  - **Befund 1:** Ein Konto, das per API schon freigegeben wurde, bleibt in der Browser-Liste stehen. Klick auf „Freigeben“ meldet „Dafür fehlt dir die Berechtigung“. Die Liste wird nach einem Fehler nicht neu geladen, und die Meldung passt nicht.
+  - **Befund 2:** Die Suche wird im Browser mit der Admin-E-Mail vorausgefüllt. Dadurch sind die wartenden Konten ausgeblendet. Das ist der Browser (`autocomplete` wird ignoriert), trotzdem sollte die Suche das nicht verstecken.
+  - Der erste Freigeben-Klick ist nicht angekommen; Ursache nicht geklärt, die API-Freigabe funktioniert.
 - [ ] `composer test:mariadb`: Der lokale Datenbankbenutzer braucht Rechte auf `molloplaner_test` (SQLSTATE 1044).
 
 ## Aufbewahrung unbestätigter Konten (gebaut)
