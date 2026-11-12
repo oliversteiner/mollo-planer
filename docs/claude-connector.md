@@ -109,7 +109,7 @@ Personen werden über ihre **E-Mail-Adresse** erkannt. Hat jemand noch kein Kont
 
 > „Erstelle ein Projekt für einen Podcast mit Milestones, ToDos und Tasks; Oliver macht Technik und Schnitt, Lindita moderiert.“
 
-Claude prüft zuerst, welche Personen es gibt, schlägt den Plan vor und legt ihn anschließend an. Die Zuweisungsmails gehen nur raus, wenn das Mail-Versand-Setting es vorsieht.
+Claude prüft zuerst, welche Personen es gibt, schlägt den Plan vor und legt ihn anschließend an. Standardmäßig gehen **keine** Mails für Zuweisungen raus. Nur wenn `notify_assignees` auf `true` gesetzt ist, bekommt jede zugewiesene Person eine Mail.
 
 ---
 
@@ -126,7 +126,7 @@ Claude prüft zuerst, welche Personen es gibt, schlägt den Plan vor und legt ih
 - **Der Zugang ist ein Geheimnis.** Er gehört in die Konfiguration, nicht in den Chat, nicht in ein Repository und nicht in Screenshots.
 - **Nur Zugänge mit der Fähigkeit `mcp`** werden angenommen. Andere Token (zum Beispiel der Login der App mit allen Rechten) lehnt der Server mit HTTP 403 ab.
 - **Drosselung:** höchstens 60 Anfragen pro Minute und Person.
-- **Keine Mails aus dem Connector**, außer den Zuweisungsmails, die auch die Oberfläche auslöst.
+- **Mails:** Ohne `notify_assignees` verschickt der Connector keine Mails. Mit dieser Option gibt es eine Mail je zugewiesenem Task, wie beim Zuweisen in der Oberfläche.
 - **Verlust:** Wurde ein Zugang kopiert oder ist er auf einem fremden Gerät gelandet, sofort widerrufen.
 
 ---
@@ -143,8 +143,6 @@ Claude prüft zuerst, welche Personen es gibt, schlägt den Plan vor und legt ih
 | Claude findet Projekte nicht, die du siehst | Es werden nur Projekte gezeigt, in denen du Mitglied bist (oder Admin). Mitgliedschaft prüfen. |
 | Zugang läuft ab | Zugänge gelten 90 Tage. Neuen erzeugen und die Konfiguration ersetzen. |
 | Für Claude Code bleibt der Server unbekannt | Befehl im Terminal ausführen. Danach Claude Code neu starten. |
-
-Protokolle: Der Bridge `mcp-remote` schreibt in Claude Desktop unter den Protokollen des Servers „mollo-planer“. In Claude Desktop über das Menü **Entwickler** zu den Logs navigieren.
 
 ---
 
