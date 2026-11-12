@@ -112,7 +112,7 @@ Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Bei der
 
 ## Deployment (Produktion)
 
-Produktiv laufen Frontend unter `https://planer.mollo.dev` und API unter `https://api.planer.mollo.dev` auf dem Hostpoint-Server `sl23.web.hostpoint.ch` (Benutzer `oliver14`). Der Ablauf ist automatisiert: Ein Push auf `main` testet, baut und spielt die App aus, nach einer Freigabe.
+Produktiv laufen Frontend unter `https://planer.mollo.dev` und API unter `https://api.planer.mollo.dev` auf dem Hostpoint-Server `servername.hostpoint.ch` (Benutzer `username`). Der Ablauf ist automatisiert: Ein Push auf `main` testet, baut und spielt die App aus, nach einer Freigabe.
 
 ### Ablauf
 
@@ -137,11 +137,11 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
 
 - **Deploy-Schlüssel** nur für CI: `ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy planer' -f ~/.ssh/mollo-planer-deploy`. Den öffentlichen Teil auf dem Server in `~/.ssh/authorized_keys` mit Einschränkung eintragen (eine Zeile):
   ```
-  command="/home/oliver14/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer
+  command="/home/username/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer
   ```
 - **GitHub-Secrets** unter *Settings → Secrets and variables → Actions*:
   - `DEPLOY_SSH_KEY`: Inhalt der privaten Datei `~/.ssh/mollo-planer-deploy`
-  - `DEPLOY_KNOWN_HOSTS`: Ausgabe von `ssh-keygen -F sl23.web.hostpoint.ch | grep -v '^#'`, damit der Server fest geprüft wird
+  - `DEPLOY_KNOWN_HOSTS`: Ausgabe von `ssh-keygen -F servername.hostpoint.ch | grep -v '^#'`, damit der Server fest geprüft wird
   - `FONTAWESOME_NPM_AUTH_TOKEN` und `WEBAWESOME_NPM_AUTH_TOKEN` (wie bei der Frontend-CI)
 - **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
 - **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
