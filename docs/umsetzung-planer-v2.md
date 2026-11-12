@@ -60,7 +60,7 @@ Bestand: Node-CLI ohne Abhängigkeiten, `bin/mollo-version.mjs`, Befehle `valida
 
 ### P5: Konvertierung
 - **Befehle:** `convert v1-zu-v2 <version-*.md>` und `convert md2json <datei.md>`.
-- **Fertig, wenn:** Roundtrip-Tests für beide. `render` → `convert md2json` → `json` ergibt dieselbe kanonische Datei. Bestehende Datei `docs/version-club-db.md` (FCAarau DB, Projekt-ID 2) wird nur gelesen, nicht verändert.
+- **Fertig, wenn:** Roundtrip-Tests für beide. `render` → `convert md2json` → `json` ergibt dieselbe kanonische Datei. Die bestehende Versionsdatei der FCAarau DB (Projekt-ID 2, siehe `docs/connector-erweiterung-plan.md`) wird nur gelesen, nicht verändert.
 - **Commit:** `Feat: convert v1 to v2 and md2json`.
 
 ### Schluss Spur A
