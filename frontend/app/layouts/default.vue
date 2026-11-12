@@ -38,6 +38,22 @@ function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   }
 }
 
+/**
+ * The mobile navigation drawer of wa-page does not give the focus back to its
+ * toggle button when it closes (Escape, click outside, or a link). The drawer
+ * reports its hiding to wa-page; the event comes from inside the page's shadow
+ * DOM, so its target is the page itself. Then the focus goes back to the toggle.
+ */
+function returnFocusToNavigationToggle(event: Event): void {
+  const page = event.currentTarget as HTMLElement
+
+  if (event.target !== page) {
+    return
+  }
+
+  page.shadowRoot?.querySelector<HTMLElement>('[part~="navigation-toggle"]')?.focus()
+}
+
 /** Keyboard users jump past the sidebar to the content of the page. */
 function skipToContent(): void {
   document.getElementById('main-content')?.focus()
@@ -48,6 +64,7 @@ function skipToContent(): void {
   <wa-page
     mobile-breakpoint="1024px"
     class="app-shell"
+    @wa-after-hide="returnFocusToNavigationToggle"
   >
     <a
       slot="skip-to-content"
