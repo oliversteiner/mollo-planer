@@ -18,7 +18,7 @@ use Laravel\Mcp\Server\Tool;
 #[Description('Sets the status of one task, for example done when the work is finished. The status of its todo and milestone is recalculated by the app. Does not change the title, the assignee or anything else, sends no e-mails and deletes nothing.')]
 class SetTaskStatusTool extends Tool
 {
-    use RunsGraphQL;
+    use ExplainsGraphQLErrors, RunsGraphQL;
 
     public function handle(Request $request): Response
     {
@@ -37,7 +37,7 @@ class SetTaskStatusTool extends Tool
                 TaskStatus::from((string) $validated['status']),
             ))['moveTask'];
         } catch (GraphQLFailed $failure) {
-            return Response::error($this->explain($failure->getMessage()));
+            return Response::error($this->explain($failure->getMessage(), 'You may not change this task. Only members of its project can change task statuses; nothing was changed.', 'This task does not exist, or you have no access to it. Nothing was changed.'));
         }
 
         return Response::json(TaskStatusChange::summarize($task));
@@ -60,18 +60,5 @@ class SetTaskStatusTool extends Tool
     private static function statuses(): array
     {
         return array_column(TaskStatus::cases(), 'value');
-    }
-
-    private function explain(string $message): string
-    {
-        if (str_contains($message, 'unauthorized')) {
-            return 'You may not change this task. Only members of its project can change task statuses; nothing was changed.';
-        }
-
-        if (str_contains($message, 'No query results')) {
-            return 'This task does not exist, or you have no access to it. Nothing was changed.';
-        }
-
-        return $message;
     }
 }

@@ -17,7 +17,7 @@ use Laravel\Mcp\Server\Tool;
 #[Description('Changes the title, description or due date of a milestone or a todo. Only the fields you give are changed; the others stay as they are. The status is never set here: the app calculates it from the tasks. Nothing is deleted, and no e-mails are sent.')]
 class UpdatePlanItemTool extends Tool
 {
-    use RunsGraphQL;
+    use ExplainsGraphQLErrors, RunsGraphQL;
 
     private const MUTATIONS = [
         'milestone' => 'mutation ($id: ID!, $input: UpdateMilestoneInput!) { updateMilestone(id: $id, input: $input) { id title dueDate } }',
@@ -61,7 +61,7 @@ class UpdatePlanItemTool extends Tool
                 'input' => $input,
             ])[$validated['type'] === 'milestone' ? 'updateMilestone' : 'updateTodo'];
         } catch (GraphQLFailed $failure) {
-            return Response::error($this->explain($failure->getMessage()));
+            return Response::error($this->explain($failure->getMessage(), 'You may not change this item. Nothing was changed.', 'This milestone or todo does not exist, or you have no access to it. Nothing was changed.'));
         }
 
         return Response::json(['type' => $validated['type'], 'id' => $item['id'], 'title' => $item['title'], 'due_date' => $item['dueDate']]);
@@ -79,18 +79,5 @@ class UpdatePlanItemTool extends Tool
             'description' => $schema->string()->description('New description, plain text. Empty text clears it.'),
             'due_date' => $schema->string()->format('date')->description('New due date, YYYY-MM-DD. Null clears it.'),
         ];
-    }
-
-    private function explain(string $message): string
-    {
-        if (str_contains($message, 'unauthorized')) {
-            return 'You may not change this item. Nothing was changed.';
-        }
-
-        if (str_contains($message, 'No query results')) {
-            return 'This milestone or todo does not exist, or you have no access to it. Nothing was changed.';
-        }
-
-        return $message;
     }
 }

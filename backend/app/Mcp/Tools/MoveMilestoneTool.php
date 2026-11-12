@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tool;
 #[Description('Moves a milestone to another place in its project, for example to put a version in order. Position 0 is the first. The other milestones keep their order and move along. Only the order changes; titles, todos and tasks stay as they are.')]
 class MoveMilestoneTool extends Tool
 {
-    use RunsGraphQL;
+    use ExplainsGraphQLErrors, RunsGraphQL;
 
     private const MUTATION = 'mutation ($id: ID!, $position: Int!) { moveMilestone(id: $id, position: $position) { id title position } }';
 
@@ -36,7 +36,7 @@ class MoveMilestoneTool extends Tool
                 'position' => (int) $validated['position'],
             ])['moveMilestone'];
         } catch (GraphQLFailed $failure) {
-            return Response::error($this->explain($failure->getMessage()));
+            return Response::error($this->explain($failure->getMessage(), 'You may not move this milestone. Nothing was changed.', 'This milestone does not exist, or you have no access to it. Nothing was changed.'));
         }
 
         return Response::json(['id' => $milestone['id'], 'title' => $milestone['title'], 'position' => $milestone['position']]);
@@ -51,18 +51,5 @@ class MoveMilestoneTool extends Tool
             'milestone_id' => $schema->string()->description('Id of the milestone (from get_project).')->required(),
             'position' => $schema->integer()->description('New place, 0 is the first.')->required(),
         ];
-    }
-
-    private function explain(string $message): string
-    {
-        if (str_contains($message, 'unauthorized')) {
-            return 'You may not move this milestone. Nothing was changed.';
-        }
-
-        if (str_contains($message, 'No query results')) {
-            return 'This milestone does not exist, or you have no access to it. Nothing was changed.';
-        }
-
-        return $message;
     }
 }

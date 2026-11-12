@@ -116,6 +116,7 @@ class ProjectPlanImporter
         return $this->transaction($notifyAssignees, function () use ($projectId, $milestoneId, $todos): array {
             $tree = $this->projectTree($projectId);
             $milestone = $this->findMilestone($tree, $milestoneId);
+            $members = $this->membersFromTree($tree);
 
             $existing = array_column($milestone['todos'], 'title');
             $this->guardDuplicates($todos, $existing, ProjectPlanFailed::DUPLICATE_TODO, $milestone['title']);
@@ -125,7 +126,7 @@ class ProjectPlanImporter
             }
 
             $counts = ['milestones' => 0, 'todos' => 0, 'tasks' => 0, 'assigned' => 0];
-            $items = ['todos' => $this->createTodos($milestoneId, $todos, $this->membersByEmail($projectId), $counts)];
+            $items = ['todos' => $this->createTodos($milestoneId, $todos, $members, $counts)];
 
             return [...$counts, 'items' => $items];
         });
@@ -146,11 +147,12 @@ class ProjectPlanImporter
         return $this->transaction($notifyAssignees, function () use ($projectId, $todoId, $tasks): array {
             $tree = $this->projectTree($projectId);
             $todo = $this->findTodo($tree, $todoId);
+            $members = $this->membersFromTree($tree);
 
             $this->guardDuplicates($tasks, array_column($todo['tasks'], 'title'), ProjectPlanFailed::DUPLICATE_TASK, $todo['title']);
 
             $counts = ['milestones' => 0, 'todos' => 0, 'tasks' => 0, 'assigned' => 0];
-            $items = ['tasks' => $this->createTasks($todoId, $tasks, $this->membersByEmail($projectId), $counts)];
+            $items = ['tasks' => $this->createTasks($todoId, $tasks, $members, $counts)];
 
             return [...$counts, 'items' => $items];
         });
@@ -392,9 +394,20 @@ class ProjectPlanImporter
      */
     private function membersByEmail(string $projectId): array
     {
-        $members = $this->projectTree($projectId)['members'] ?? [];
+        return $this->membersFromTree($this->projectTree($projectId));
+    }
 
-        return collect($members)->mapWithKeys(fn (array $member) => [$this->normalize($member['user']['email']) => $member['user']['id']])->all();
+    /**
+     * The members of an already loaded project tree, so the tree is read once.
+     *
+     * @param  array{members?: list<array{user: array{id: string, email: string}}>}  $tree
+     * @return array<string, string> Member ids by lower-case e-mail
+     */
+    private function membersFromTree(array $tree): array
+    {
+        return collect($tree['members'] ?? [])
+            ->mapWithKeys(fn (array $member) => [$this->normalize($member['user']['email']) => $member['user']['id']])
+            ->all();
     }
 
     /**

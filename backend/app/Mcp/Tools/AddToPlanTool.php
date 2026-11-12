@@ -24,7 +24,7 @@ Tasks accept status (open or done), assignee_email (a project member) and notify
 TEXT)]
 class AddToPlanTool extends Tool
 {
-    use RunsGraphQL;
+    use ExplainsGraphQLErrors, RunsGraphQL;
 
     public function handle(Request $request, ProjectPlanImporter $importer): Response
     {
@@ -79,7 +79,7 @@ class AddToPlanTool extends Tool
                     ? $importer->addToMilestone($projectId, (string) $validated['milestone_id'], $validated['todos'], $notify)
                     : $importer->addToTodo($projectId, (string) $validated['todo_id'], $validated['tasks'], $notify);
             } catch (ProjectPlanFailed $failure) {
-                throw new ProjectPlanFailed($failure->kind, $failure->subject, $this->explain($failure->detail));
+                throw new ProjectPlanFailed($failure->kind, $failure->subject, $this->explain($failure->detail, 'You may not add to this plan. Nothing was changed.'));
             }
 
             return Response::json(['created' => $created, 'project_id' => $projectId]);
@@ -89,13 +89,6 @@ class AddToPlanTool extends Tool
     /**
      * The message of a denied right is the same wording as in the other tools.
      */
-    private function explain(string $message): string
-    {
-        return str_contains($message, 'unauthorized')
-            ? 'You may not add to this plan. Nothing was changed.'
-            : $message;
-    }
-
     /**
      * @return array<string, Type>
      */
