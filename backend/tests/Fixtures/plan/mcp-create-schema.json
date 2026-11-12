@@ -1,0 +1,98 @@
+{
+    "project_id": {
+        "description": "Id of the project (from list_projects or create_project).",
+        "type": "string"
+    },
+    "milestones": {
+        "description": "Milestones in order, each with its todos and tasks.",
+        "items": {
+            "properties": {
+                "position": {
+                    "description": "Place in the project, 0 is the first. Default: the end.",
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Plain text.",
+                    "type": "string"
+                },
+                "due_date": {
+                    "description": "YYYY-MM-DD",
+                    "format": "date",
+                    "type": "string"
+                },
+                "todos": {
+                    "items": {
+                        "properties": {
+                            "title": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Plain text.",
+                                "type": "string"
+                            },
+                            "due_date": {
+                                "description": "YYYY-MM-DD",
+                                "format": "date",
+                                "type": "string"
+                            },
+                            "tasks": {
+                                "description": "Tasks of this todo; each task is one person's piece of work.",
+                                "items": {
+                                    "properties": {
+                                        "title": {
+                                            "description": "What to do, short.",
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "description": "Details, plain text.",
+                                            "type": "string"
+                                        },
+                                        "due_date": {
+                                            "description": "YYYY-MM-DD",
+                                            "format": "date",
+                                            "type": "string"
+                                        },
+                                        "assignee_email": {
+                                            "description": "E-mail of a project member who does it.",
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "description": "open (default) or done.",
+                                            "enum": [
+                                                "open",
+                                                "done"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "title"
+                                    ]
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "title"
+                        ]
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object",
+            "required": [
+                "title"
+            ]
+        },
+        "type": "array"
+    },
+    "notify_assignees": {
+        "description": "Send an assignment e-mail per task. Default false.",
+        "type": "boolean"
+    }
+}

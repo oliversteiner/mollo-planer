@@ -3,6 +3,7 @@
 namespace App\Mcp\Tools;
 
 use App\Mcp\Support\PlanRules;
+use App\Plan\PlanSchema;
 use App\Services\ProjectPlanImporter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
@@ -57,26 +58,9 @@ class CreateProjectPlanTool extends Tool
      */
     public function schema(JsonSchema $schema): array
     {
-        $task = $schema->object([
-            'title' => $schema->string()->description('What to do, short.')->required(),
-            'description' => $schema->string()->description('Details, plain text.'),
-            'due_date' => $schema->string()->format('date')->description('YYYY-MM-DD'),
-            'assignee_email' => $schema->string()->description('E-mail of a project member who does it.'),
-            'status' => $schema->string()->enum(['open', 'done'])->description('open (default) or done.'),
-        ]);
-        $todo = $schema->object([
-            'title' => $schema->string()->required(),
-            'description' => $schema->string()->description('Plain text.'),
-            'due_date' => $schema->string()->format('date')->description('YYYY-MM-DD'),
-            'tasks' => $schema->array()->items($task)->description('Tasks of this todo; each task is one person\'s piece of work.'),
-        ]);
-        $milestone = $schema->object([
-            'position' => $schema->integer()->description('Place in the project, 0 is the first. Default: the end.'),
-            'title' => $schema->string()->required(),
-            'description' => $schema->string()->description('Plain text.'),
-            'due_date' => $schema->string()->format('date')->description('YYYY-MM-DD'),
-            'todos' => $schema->array()->items($todo),
-        ]);
+        $task = PlanSchema::mcpTask($schema, 'What to do, short.');
+        $todo = PlanSchema::mcpTodo($schema, $task, 'Tasks of this todo; each task is one person\'s piece of work.');
+        $milestone = PlanSchema::mcpMilestone($schema, $todo, withPosition: true);
 
         return [
             'project_id' => $schema->string()->description('Id of the project (from list_projects or create_project).')->required(),

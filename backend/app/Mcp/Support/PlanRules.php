@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Support;
 
+use App\Plan\PlanSchema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\In;
 
@@ -21,7 +22,7 @@ final class PlanRules
      */
     public static function title(): array
     {
-        return ['required', 'string', 'min:2', 'max:160'];
+        return ['required', 'string', 'min:'.PlanSchema::TITLE_MIN, 'max:'.PlanSchema::TITLE_MAX];
     }
 
     /**
@@ -29,7 +30,7 @@ final class PlanRules
      */
     public static function text(): array
     {
-        return ['nullable', 'string', 'max:5000'];
+        return ['nullable', 'string', 'max:'.PlanSchema::TEXT_MAX];
     }
 
     /**
@@ -64,7 +65,7 @@ final class PlanRules
         return [
             ...self::item($prefix),
             $prefix.'.assignee_email' => ['nullable', 'email'],
-            $prefix.'.status' => ['nullable', Rule::in(['open', 'done'])],
+            $prefix.'.status' => ['nullable', Rule::in(PlanSchema::TASK_STATUSES)],
         ];
     }
 

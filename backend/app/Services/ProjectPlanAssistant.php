@@ -9,6 +9,7 @@ use Anthropic\Core\Exceptions\APIStatusException;
 use Anthropic\Core\Exceptions\AuthenticationException;
 use Anthropic\Core\Exceptions\PermissionDeniedException;
 use App\Models\User;
+use App\Plan\PlanSchema;
 use Carbon\CarbonImmutable;
 use GraphQL\Error\Error;
 use Illuminate\Support\Facades\Log;
@@ -32,8 +33,6 @@ use Illuminate\Support\Str;
  */
 class ProjectPlanAssistant
 {
-    private const ROLES = ['OWNER', 'MANAGER', 'MEMBER'];
-
     /**
      * @param  list<ChatMessage>  $messages  Chat so far, the last one from the user
      * @param  DraftPlan|null  $currentPlan  The draft shown in the preview
@@ -184,33 +183,7 @@ class ProjectPlanAssistant
      */
     public static function schema(): array
     {
-        $text = ['type' => ['string', 'null']];
-        $date = ['type' => ['string', 'null'], 'description' => 'YYYY-MM-DD'];
-        $object = fn (array $properties): array => [
-            'type' => 'object',
-            'properties' => $properties,
-            'required' => array_keys($properties),
-            'additionalProperties' => false,
-        ];
-
-        $task = $object(['title' => ['type' => 'string'], 'description' => $text, 'dueDate' => $date, 'assigneeEmail' => $text]);
-        $todo = $object(['title' => ['type' => 'string'], 'description' => $text, 'dueDate' => $date, 'tasks' => ['type' => 'array', 'items' => $task]]);
-        $milestone = $object(['title' => ['type' => 'string'], 'description' => $text, 'dueDate' => $date, 'todos' => ['type' => 'array', 'items' => $todo]]);
-        $plan = $object([
-            'name' => ['type' => 'string'],
-            'description' => $text,
-            'locale' => ['type' => 'string', 'enum' => ['DE', 'EN']],
-            'members' => ['type' => 'array', 'items' => $object([
-                'email' => ['type' => 'string'],
-                'role' => ['type' => 'string', 'enum' => self::ROLES],
-            ])],
-            'milestones' => ['type' => 'array', 'items' => $milestone],
-        ]);
-
-        return $object([
-            'reply' => ['type' => 'string'],
-            'plan' => ['anyOf' => [$plan, ['type' => 'null']]],
-        ]);
+        return PlanSchema::claude();
     }
 
     /**
@@ -231,20 +204,20 @@ class ProjectPlanAssistant
             if ($email !== null) {
                 $members[mb_strtolower($email)] = [
                     'email' => $email,
-                    'role' => in_array($member['role'] ?? null, self::ROLES, true) ? $member['role'] : 'MEMBER',
+                    'role' => in_array($member['role'] ?? null, PlanSchema::ROLES, true) ? $member['role'] : 'MEMBER',
                 ];
             }
         }
 
         $milestones = [];
 
-        foreach (array_slice((array) ($plan['milestones'] ?? []), 0, 30) as $milestone) {
+        foreach (array_slice((array) ($plan['milestones'] ?? []), 0, PlanSchema::MAX_MILESTONES) as $milestone) {
             $todos = [];
 
-            foreach (array_slice((array) ($milestone['todos'] ?? []), 0, 50) as $todo) {
+            foreach (array_slice((array) ($milestone['todos'] ?? []), 0, PlanSchema::MAX_TODOS) as $todo) {
                 $tasks = [];
 
-                foreach (array_slice((array) ($todo['tasks'] ?? []), 0, 50) as $task) {
+                foreach (array_slice((array) ($todo['tasks'] ?? []), 0, PlanSchema::MAX_TASKS) as $task) {
                     $assignee = mb_strtolower(trim((string) ($task['assigneeEmail'] ?? '')));
 
                     // An assignee who has an account becomes a member.
@@ -265,8 +238,8 @@ class ProjectPlanAssistant
         }
 
         return [
-            'name' => $this->title($plan['name'] ?? null, 120),
-            'description' => $this->text($plan['description'] ?? null, 2000),
+            'name' => $this->title($plan['name'] ?? null, PlanSchema::PLAN_NAME_MAX),
+            'description' => $this->text($plan['description'] ?? null, PlanSchema::PLAN_DESCRIPTION_MAX),
             'locale' => ($plan['locale'] ?? null) === 'EN' ? 'EN' : 'DE',
             'members' => array_values($members),
             'milestones' => $milestones,
@@ -280,8 +253,8 @@ class ProjectPlanAssistant
     private function item(array $item): array
     {
         return [
-            'title' => $this->title($item['title'] ?? null, 160),
-            'description' => $this->text($item['description'] ?? null, 5000),
+            'title' => $this->title($item['title'] ?? null, PlanSchema::TITLE_MAX),
+            'description' => $this->text($item['description'] ?? null, PlanSchema::TEXT_MAX),
             'dueDate' => $this->date($item['dueDate'] ?? null),
         ];
     }

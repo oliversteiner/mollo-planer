@@ -1,0 +1,113 @@
+{
+    "project_id": {
+        "description": "Id of the project (from list_projects).",
+        "type": "string"
+    },
+    "milestone_id": {
+        "description": "Id of the milestone that gets the todos. Use this or todo_id.",
+        "type": "string"
+    },
+    "todos": {
+        "description": "Todos to add to the milestone, each with its tasks. With milestone_id.",
+        "items": {
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Plain text.",
+                    "type": "string"
+                },
+                "due_date": {
+                    "description": "YYYY-MM-DD",
+                    "format": "date",
+                    "type": "string"
+                },
+                "tasks": {
+                    "items": {
+                        "properties": {
+                            "title": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Details, plain text.",
+                                "type": "string"
+                            },
+                            "due_date": {
+                                "description": "YYYY-MM-DD",
+                                "format": "date",
+                                "type": "string"
+                            },
+                            "assignee_email": {
+                                "description": "E-mail of a project member who does it.",
+                                "type": "string"
+                            },
+                            "status": {
+                                "description": "open (default) or done.",
+                                "enum": [
+                                    "open",
+                                    "done"
+                                ],
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "title"
+                        ]
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object",
+            "required": [
+                "title"
+            ]
+        },
+        "type": "array"
+    },
+    "todo_id": {
+        "description": "Id of the todo that gets the tasks. Use this or milestone_id.",
+        "type": "string"
+    },
+    "tasks": {
+        "description": "Tasks to add to the todo. With todo_id.",
+        "items": {
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Details, plain text.",
+                    "type": "string"
+                },
+                "due_date": {
+                    "description": "YYYY-MM-DD",
+                    "format": "date",
+                    "type": "string"
+                },
+                "assignee_email": {
+                    "description": "E-mail of a project member who does it.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "open (default) or done.",
+                    "enum": [
+                        "open",
+                        "done"
+                    ],
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "title"
+            ]
+        },
+        "type": "array"
+    },
+    "notify_assignees": {
+        "description": "Send an assignment e-mail per task. Default false.",
+        "type": "boolean"
+    }
+}

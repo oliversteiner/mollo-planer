@@ -4,6 +4,7 @@ namespace App\Mcp\Tools;
 
 use App\Mcp\Support\PlanRules;
 use App\Mcp\Support\ProjectPlanFailed;
+use App\Plan\PlanSchema;
 use App\Services\ProjectPlanImporter;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
@@ -79,19 +80,8 @@ class AddToPlanTool extends Tool
      */
     public function schema(JsonSchema $schema): array
     {
-        $task = $schema->object([
-            'title' => $schema->string()->required(),
-            'description' => $schema->string()->description('Details, plain text.'),
-            'due_date' => $schema->string()->format('date')->description('YYYY-MM-DD'),
-            'assignee_email' => $schema->string()->description('E-mail of a project member who does it.'),
-            'status' => $schema->string()->enum(['open', 'done'])->description('open (default) or done.'),
-        ]);
-        $todo = $schema->object([
-            'title' => $schema->string()->required(),
-            'description' => $schema->string()->description('Plain text.'),
-            'due_date' => $schema->string()->format('date')->description('YYYY-MM-DD'),
-            'tasks' => $schema->array()->items($task),
-        ]);
+        $task = PlanSchema::mcpTask($schema);
+        $todo = PlanSchema::mcpTodo($schema, $task);
 
         return [
             'project_id' => $schema->string()->description('Id of the project (from list_projects).')->required(),
