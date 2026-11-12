@@ -37,4 +37,11 @@ return [
         'intro' => ':name hat sich registriert und die E-Mail-Adresse bestätigt. Das Konto wartet auf Freigabe.',
         'action' => 'Benutzer öffnen',
     ],
+    'verify_email' => [
+        'subject' => 'Bitte bestätige deine E-Mail-Adresse',
+        'intro' => 'Du hast dich bei :app registriert. Bitte bestätige deine E-Mail-Adresse mit dem Button unten.',
+        'action' => 'E-Mail-Adresse bestätigen',
+        'ignore' => 'Falls du dich nicht registriert hast, musst du nichts tun.',
+        'approval' => 'Danach gibt ein Admin dein Konto frei.',
+    ],
 ];

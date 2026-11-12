@@ -5,11 +5,11 @@ namespace App\Models;
 use App\Enums\UserFunction;
 use App\Enums\UserRole;
 use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyRegistrationEmail;
 use App\Observers\UserObserver;
 use App\Services\UserAvatar;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -133,6 +133,6 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
      */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify((new VerifyEmail)->locale(app()->getLocale()));
+        $this->notify((new VerifyRegistrationEmail)->locale(app()->getLocale()));
     }
 }

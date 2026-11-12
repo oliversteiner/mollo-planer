@@ -37,4 +37,11 @@ return [
         'intro' => ':name registered and confirmed the email address. The account is waiting for approval.',
         'action' => 'Open users',
     ],
+    'verify_email' => [
+        'subject' => 'Please confirm your email address',
+        'intro' => 'You registered at :app. Please confirm your email address with the button below.',
+        'action' => 'Confirm email address',
+        'ignore' => 'If you did not register, you need not do anything.',
+        'approval' => 'After that, an admin releases your account.',
+    ],
 ];

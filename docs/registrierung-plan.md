@@ -73,3 +73,8 @@ Eine Person registriert sich selbst mit Name, E-Mail-Adresse und Passwort. Sie h
 - Täglich um 0:00 im Zeitplan (`routes/console.php`). Der Zeitplan braucht einen Cron-Eintrag `php artisan schedule:run` auf dem Server (Hosting-Thema, später).
 - Tests: `PruneUnverifiedUsersTest` (3 Fälle).
 
+## Mailtexte (Punkt 4, geprüft 2026-11-12)
+- Laravels Bestätigungsmail kam nur auf Englisch: Ihre Texte stehen nicht in `lang/de.json`. Behoben mit `App\Notifications\VerifyRegistrationEmail`, Texte in `mail.verify_email` (de und en). Der Link stammt weiterhin von Laravel (signiert, 60 Minuten).
+- Admin-Mail (`UserAwaitingApproval`) und Mails der Einladung und des Passwort-Resets prüft: deutsch wie erwartet.
+- Test: `SelfRegistrationTest` prüft Betreff, Anrede und Button auf Deutsch. Backend: 505 Tests grün.
+

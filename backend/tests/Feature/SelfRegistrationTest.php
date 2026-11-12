@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Notifications\UserAwaitingApproval;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\VerifyRegistrationEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
@@ -44,7 +44,7 @@ class SelfRegistrationTest extends TestCase
         $this->assertSame(UserRole::MITGLIED, $user->role);
         $this->assertNull($user->email_verified_at);
         $this->assertFalse($user->isApproved());
-        Notification::assertSentTo($user, VerifyEmail::class);
+        Notification::assertSentTo($user, VerifyRegistrationEmail::class);
     }
 
     public function test_registration_rejects_a_taken_mail_address(): void
@@ -77,6 +77,18 @@ class SelfRegistrationTest extends TestCase
         $this->assertFalse($applicant->fresh()->isApproved());
         Notification::assertSentTo($admin, UserAwaitingApproval::class);
         Notification::assertNotSentTo($applicant, UserAwaitingApproval::class);
+    }
+
+    public function test_the_confirmation_mail_is_german_for_a_german_request(): void
+    {
+        app()->setLocale('de');
+        $user = User::factory()->unverified()->unapproved()->create(['name' => 'Eva Neu']);
+
+        $mail = (new VerifyRegistrationEmail)->locale('de')->toMail($user);
+
+        $this->assertSame('Bitte bestätige deine E-Mail-Adresse', $mail->subject);
+        $this->assertSame('Hallo Eva Neu', $mail->greeting);
+        $this->assertSame('E-Mail-Adresse bestätigen', $mail->actionText);
     }
 
     public function test_the_frontend_may_call_the_registration_route(): void
