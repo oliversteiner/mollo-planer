@@ -35,7 +35,7 @@ const { mutate: addComment } = useMutation(addCommentMutation, options)
 const { mutate: updateComment } = useMutation(updateCommentMutation, options)
 const { mutate: deleteComment } = useMutation(deleteCommentMutation, options)
 
-const deletion = useConfirmedDelete<string>(id => deleteComment({ id }))
+const deletion = useDelete<string>(id => deleteComment({ id }))
 
 async function add(): Promise<void> {
   if (isEmptyDocument(draft.value)) {

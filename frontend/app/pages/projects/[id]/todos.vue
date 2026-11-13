@@ -43,7 +43,7 @@ const editing = ref<ItemFormTarget | null>(null)
 
 const { mutate: deleteTodo } = useMutation(deleteTodoMutation, { refetchQueries: projectContentQueries, awaitRefetchQueries: true })
 
-const deletion = useConfirmedDelete<Item>(todo => deleteTodo({ id: todo.id }))
+const deletion = useDelete<Item>(todo => deleteTodo({ id: todo.id }))
 
 function startEditing(todo: Item): void {
   editing.value = { kind: 'todo', item: todo }

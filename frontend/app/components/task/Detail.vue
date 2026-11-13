@@ -100,7 +100,7 @@ async function changeAssignee(value: string): Promise<void> {
   }
 }
 
-const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDeleted: () => emit('close') })
+const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => emit('close') })
 </script>
 
 <template>

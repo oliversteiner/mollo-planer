@@ -91,7 +91,7 @@ const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: tr
 const { mutate: deleteMilestone } = useMutation(deleteMilestoneMutation, options)
 const { mutate: deleteTodo } = useMutation(deleteTodoMutation, options)
 
-const deletion = useConfirmedDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
+const deletion = useDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
   target.kind === 'milestone' ? deleteMilestone({ id: target.item.id }) : deleteTodo({ id: target.item.id })
 )
 
