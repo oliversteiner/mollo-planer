@@ -8,7 +8,7 @@ Diese Schritte hängen an keiner offenen Entscheidung. Alles, was noch offen ist
 
 **Seit 2026-11-13 gibt es nur noch eine Spur.** Format und Werkzeuge aus `mollo-version` ziehen nach `mollo-planer` (`docs/planer-abgleich.md` §4). Wo ältere Dokumente „Spur A“ oder `mollo-version` nennen, gilt jetzt `tools/planer/` bzw. `spec/` in diesem Repository.
 
-**Stand:** S1 erledigt (`d368475`, `f03d853`). U0 erledigt (`c2b1577`). T1 erledigt (`072fcbb`). T4 erledigt bis auf `template` und `validate --template`, die auf eine Entscheidung zu `planer-abgleich.md` §3.4 und §3.6 warten. S2 erledigt (Inline-Code in Rich Text). S3: A1 (`d53db03`), A2 (`a99cc89`), A3 Teil 1 Reihenfolge der ToDos erledigt (`aa4b336`, `moveTodo`, Zeitachse). A3 Teil 2 erledigt: `Task.position` heißt `boardPosition` (Spalte `board_position`). Offen in S3: A5-Spalten, A6, Task-Status idea und planned.
+**Stand:** S1 erledigt (`d368475`, `f03d853`). U0 erledigt (`c2b1577`). T1 erledigt (`072fcbb`). T4 erledigt bis auf `template` und `validate --template`, die auf eine Entscheidung zu `planer-abgleich.md` §3.4 und §3.6 warten. S2 erledigt (Inline-Code in Rich Text). S3: A1 (`d53db03`), A2 (`a99cc89`), A3 Teil 1 Reihenfolge der ToDos erledigt (`aa4b336`, `moveTodo`, Zeitachse). A3 Teil 2 erledigt: `Task.position` heißt `boardPosition` (Spalte `board_position`). A5-Spalten erledigt (`archived_at`, `deleted_at`, `deleted_by`, `deletion_id`, ohne Logik). Offen in S3: A6, Task-Status idea und planned.
 
 ---
 
@@ -127,7 +127,11 @@ Details: `docs/planer-abgleich.md` §9. Nur PHP, keine neue Abhängigkeit.
 
 Details: `docs/planer-abgleich.md` §9.3 und §9.7. Kanonische Markdown-Form in `spec/format-v2.md`. `validate`: Konstrukte aus §9.6 sind Fehler (wie bisher), Schreibweisen aus §9.5 ein Hinweis. `json` schreibt Beschreibungen kanonisch. Testfälle aus `spec/fixtures/richtext/` gegen die Whitelist und die kanonische Form.
 
-## S4. Rechte (Schema-Review Schritt 2)
+## S4. Rechte (Schema-Review Schritt 2) — ZURÜCKGESTELLT
+
+**Nicht umsetzen.** Wird ersetzt durch das Rollen-System in `docs/rollen-funktionen-rechte.md` (Vorschlag, Entscheidung offen). Schritte, die vorher ein neues Recht brauchen (z. B. S5 `project.archive`, `trash.purge`), tragen es vorläufig in `ProjectPermissions`/`SystemPermissions` nach der Standardbelegung in `docs/rollen-funktionen-rechte.md` §5 ein.
+
+Ursprünglicher Inhalt (nur noch als Standardbelegung relevant):
 
 In `ProjectPermissions` und `SystemPermissions`, mit Tests in `ProjectPermissionsTableTest`, `SystemPermissionsTableTest`, `PolicyTest`:
 

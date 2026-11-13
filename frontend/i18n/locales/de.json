@@ -837,6 +837,22 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "archived_at": {
+          "label": "Archiviert am",
+          "description": "Zeitpunkt, zu dem das Projekt archiviert wurde. Leer heißt aktiv."
+        },
+        "deleted_at": {
+          "label": "Gelöscht am",
+          "description": "Zeitpunkt des Löschens in den Papierkorb. Leer heißt nicht gelöscht."
+        },
+        "deleted_by": {
+          "label": "Gelöscht von",
+          "description": "Person, die gelöscht hat."
+        },
+        "deletion_id": {
+          "label": "Löschvorgang",
+          "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
         }
       },
       "project_user": {
@@ -905,6 +921,18 @@
         "position": {
           "label": "Position",
           "description": "Reihenfolge des Milestones im Projekt, von 0 an."
+        },
+        "deleted_at": {
+          "label": "Gelöscht am",
+          "description": "Zeitpunkt des Löschens in den Papierkorb. Leer heißt nicht gelöscht."
+        },
+        "deleted_by": {
+          "label": "Gelöscht von",
+          "description": "Person, die gelöscht hat."
+        },
+        "deletion_id": {
+          "label": "Löschvorgang",
+          "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
         }
       },
       "todos": {
@@ -951,6 +979,18 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "deleted_at": {
+          "label": "Gelöscht am",
+          "description": "Zeitpunkt des Löschens in den Papierkorb. Leer heißt nicht gelöscht."
+        },
+        "deleted_by": {
+          "label": "Gelöscht von",
+          "description": "Person, die gelöscht hat."
+        },
+        "deletion_id": {
+          "label": "Löschvorgang",
+          "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
         }
       },
       "tasks": {
@@ -1001,6 +1041,18 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "deleted_at": {
+          "label": "Gelöscht am",
+          "description": "Zeitpunkt des Löschens in den Papierkorb. Leer heißt nicht gelöscht."
+        },
+        "deleted_by": {
+          "label": "Gelöscht von",
+          "description": "Person, die gelöscht hat."
+        },
+        "deletion_id": {
+          "label": "Löschvorgang",
+          "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
         }
       },
       "comments": {
@@ -1027,6 +1079,18 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "deleted_at": {
+          "label": "Gelöscht am",
+          "description": "Zeitpunkt des Löschens in den Papierkorb. Leer heißt nicht gelöscht."
+        },
+        "deleted_by": {
+          "label": "Gelöscht von",
+          "description": "Person, die gelöscht hat."
+        },
+        "deletion_id": {
+          "label": "Löschvorgang",
+          "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
         }
       },
       "label_sets": {

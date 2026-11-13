@@ -87,9 +87,14 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'label_set_id', type: 'bigint', nullable: true, references: 'label_sets' },
       { name: 'locale', type: 'varchar', default: 'de' },
       { name: 'created_at', type: 'timestamp', nullable: true },
-      { name: 'updated_at', type: 'timestamp', nullable: true }
+      { name: 'updated_at', type: 'timestamp', nullable: true },
+      { name: 'archived_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
+      { name: 'deletion_id', type: 'varchar', nullable: true }
     ],
     indexes: [
+      { kind: 'index', columns: ['deletion_id'] },
       { kind: 'index', columns: ['label_set_id'] }
     ]
   },
@@ -120,9 +125,13 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'due_date', type: 'date', nullable: true },
       { name: 'status', type: 'varchar', default: 'open', values: ['open', 'done'] },
       { name: 'created_at', type: 'timestamp', nullable: true },
-      { name: 'updated_at', type: 'timestamp', nullable: true }
+      { name: 'updated_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
+      { name: 'deletion_id', type: 'varchar', nullable: true }
     ],
     indexes: [
+      { kind: 'index', columns: ['deletion_id'] },
       { kind: 'index', columns: ['project_id'] }
     ]
   },
@@ -139,9 +148,13 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'due_date', type: 'date', nullable: true },
       { name: 'status', type: 'varchar', default: 'open', values: ['open', 'done'] },
       { name: 'created_at', type: 'timestamp', nullable: true },
-      { name: 'updated_at', type: 'timestamp', nullable: true }
+      { name: 'updated_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
+      { name: 'deletion_id', type: 'varchar', nullable: true }
     ],
     indexes: [
+      { kind: 'index', columns: ['deletion_id'] },
       { kind: 'index', columns: ['milestone_id'] },
       { kind: 'index', columns: ['milestone_id', 'position'] }
     ]
@@ -160,9 +173,13 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'board_position', type: 'int', default: '0' },
       { name: 'due_date', type: 'date', nullable: true },
       { name: 'created_at', type: 'timestamp', nullable: true },
-      { name: 'updated_at', type: 'timestamp', nullable: true }
+      { name: 'updated_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
+      { name: 'deletion_id', type: 'varchar', nullable: true }
     ],
     indexes: [
+      { kind: 'index', columns: ['deletion_id'] },
       { kind: 'index', columns: ['assigned_user_id'] },
       { kind: 'index', columns: ['todo_id', 'status'] },
       { kind: 'index', columns: ['project_id', 'status', 'board_position'] }
@@ -176,9 +193,13 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'user_id', type: 'bigint', nullable: true, references: 'users' },
       { name: 'body', type: 'longtext' },
       { name: 'created_at', type: 'timestamp', nullable: true },
-      { name: 'updated_at', type: 'timestamp', nullable: true }
+      { name: 'updated_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
+      { name: 'deletion_id', type: 'varchar', nullable: true }
     ],
     indexes: [
+      { kind: 'index', columns: ['deletion_id'] },
       { kind: 'index', columns: ['task_id'] },
       { kind: 'index', columns: ['user_id'] }
     ]

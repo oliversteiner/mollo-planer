@@ -837,6 +837,22 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "archived_at": {
+          "label": "Archived at",
+          "description": "When the project was archived. Empty means active."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
         }
       },
       "project_user": {
@@ -905,6 +921,18 @@
         "position": {
           "label": "Position",
           "description": "Order of the milestone in its project, from 0."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
         }
       },
       "todos": {
@@ -951,6 +979,18 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
         }
       },
       "tasks": {
@@ -1001,6 +1041,18 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
         }
       },
       "comments": {
@@ -1027,6 +1079,18 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
         }
       },
       "label_sets": {
