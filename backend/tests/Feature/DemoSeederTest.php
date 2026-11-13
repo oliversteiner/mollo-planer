@@ -40,7 +40,7 @@ class DemoSeederTest extends TestCase
 
         $this->assertSame(
             ['Mockup Desktop', 'Veraltete Seiten markieren', 'Hosting bestellen'],
-            Task::query()->inProject($relaunch->id)->where('status', TaskStatus::OPEN)->orderBy('position')->pluck('title')->all(),
+            Task::query()->inProject($relaunch->id)->where('status', TaskStatus::OPEN)->orderBy('board_position')->pluck('title')->all(),
         );
         $this->assertSame([ItemStatus::OPEN], Todo::pluck('status')->unique()->values()->all());
         $this->assertSame('bulletList', Todo::where('title', 'Styleguide erstellen')->firstOrFail()->description['content'][1]['type']);

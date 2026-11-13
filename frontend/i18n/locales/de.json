@@ -986,7 +986,7 @@
           "label": "Status",
           "description": "Offen, in Arbeit, Review oder erledigt."
         },
-        "position": {
+        "board_position": {
           "label": "Position",
           "description": "Reihenfolge innerhalb der Kanban-Spalte."
         },

@@ -24,7 +24,7 @@ class DatabaseSchemaTest extends TestCase
             'project_user' => ['project_user', ['project_id', 'user_id', 'role']],
             'milestones' => ['milestones', ['project_id', 'title', 'description', 'icon', 'due_date', 'status']],
             'todos' => ['todos', ['milestone_id', 'title', 'description', 'icon', 'due_date', 'status']],
-            'tasks' => ['tasks', ['todo_id', 'assigned_user_id', 'title', 'description', 'icon', 'status', 'position', 'due_date']],
+            'tasks' => ['tasks', ['todo_id', 'assigned_user_id', 'title', 'description', 'icon', 'status', 'board_position', 'due_date']],
             'comments' => ['comments', ['task_id', 'user_id', 'body', 'created_at', 'updated_at']],
         ];
     }

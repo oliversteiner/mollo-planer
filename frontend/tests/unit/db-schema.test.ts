@@ -8,7 +8,7 @@ import { DB_TABLE_NAMES, dbTable } from '../../app/utils/db-schema'
 const migrationsDir = fileURLToPath(new URL('../../../backend/database/migrations', import.meta.url))
 
 /** Blueprint methods that do not define a column. */
-const NOT_A_COLUMN = new Set(['index', 'unique', 'primary', 'foreign', 'dropColumn', 'dropIndex', 'dropForeign'])
+const NOT_A_COLUMN = new Set(['index', 'unique', 'primary', 'foreign', 'dropColumn', 'dropIndex', 'dropForeign', 'renameColumn', 'renameIndex'])
 
 /** The "up" part of every migration, in the order the migrations run. */
 function upSources(): string[] {
@@ -36,13 +36,16 @@ function columnsAfterMigrations(table: string): string[] {
       const end = blocks[index + 1]?.index ?? source.length
       const body = source.slice(start, end)
 
-      const events: { at: number, add?: string[], drop?: string[] }[] = []
+      const events: { at: number, add?: string[], drop?: string[], rename?: [string, string] }[] = []
 
       for (const column of body.matchAll(/\$table->(\w+)\('(\w+)'/g)) {
         if (!NOT_A_COLUMN.has(column[1] ?? '')) events.push({ at: column.index, add: [column[2] ?? ''] })
       }
       for (const drop of body.matchAll(/\$table->dropColumn\((\[[^\]]*\]|'\w+')\)/g)) {
         events.push({ at: drop.index, drop: [...(drop[1] ?? '').matchAll(/'(\w+)'/g)].map(name => name[1] ?? '') })
+      }
+      for (const rename of body.matchAll(/\$table->renameColumn\('(\w+)',\s*'(\w+)'\)/g)) {
+        events.push({ at: rename.index, rename: [rename[1] ?? '', rename[2] ?? ''] })
       }
       if (/\$table->id\(\)/.test(body)) events.push({ at: body.indexOf('$table->id()'), add: ['id'] })
       if (/\$table->timestamps\(\)/.test(body)) events.push({ at: body.indexOf('$table->timestamps()'), add: ['created_at', 'updated_at'] })
@@ -51,6 +54,10 @@ function columnsAfterMigrations(table: string): string[] {
       for (const event of events.sort((a, b) => a.at - b.at)) {
         if (event.add) event.add.forEach(name => columns.add(name))
         if (event.drop) columns = new Set([...columns].filter(name => !event.drop?.includes(name)))
+        if (event.rename && columns.has(event.rename[0])) {
+          columns.delete(event.rename[0])
+          columns.add(event.rename[1])
+        }
       }
     })
   }

@@ -489,6 +489,8 @@ type SystemAbilityRow {
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
 type Task {
  assignee: User
+ "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
+ boardPosition: Int!
  commentCount: Int!
  "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
  comments: [Comment!]!
@@ -501,8 +503,6 @@ type Task {
  id: ID!
  "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
  labels: [Label!]!
- "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
- position: Int!
  project: Project!
  status: TaskStatus!
  title: String!

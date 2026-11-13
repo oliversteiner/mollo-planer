@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class KanbanOrdering
 {
+    /** The column that holds the place of a task in its Kanban column. */
+    public const COLUMN = 'board_position';
+
     public function __construct(private readonly Ordering $ordering) {}
 
     /**
@@ -25,7 +28,7 @@ class KanbanOrdering
      */
     public function nextPosition(int|string $projectId, TaskStatus $status): int
     {
-        return $this->ordering->nextPosition($projectId, $this->column($projectId, $status));
+        return $this->ordering->nextPosition($projectId, $this->column($projectId, $status), self::COLUMN);
     }
 
     /**
@@ -48,6 +51,7 @@ class KanbanOrdering
             $this->column($projectId, $status),
             $position,
             $oldStatus !== $status ? $this->column($projectId, $oldStatus) : null,
+            self::COLUMN,
         );
 
         return $task;

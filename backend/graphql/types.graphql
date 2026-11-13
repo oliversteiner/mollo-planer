@@ -138,7 +138,7 @@ type Task {
   icon: String
   status: TaskStatus!
   "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
-  position: Int!
+  boardPosition: Int! @rename(attribute: "board_position")
   dueDate: Date @rename(attribute: "due_date")
   assignee: User @belongsTo(relation: "assignee")
   "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"

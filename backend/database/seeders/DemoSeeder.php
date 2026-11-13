@@ -239,7 +239,7 @@ class DemoSeeder extends Seeder
             'due_date' => $dueDate,
         ]);
         $task->status = $status;
-        $task->position = $position;
+        $task->board_position = $position;
         $task->assigned_user_id = $assignee === null ? null : $this->users[$assignee]->id;
         $task->save();
 

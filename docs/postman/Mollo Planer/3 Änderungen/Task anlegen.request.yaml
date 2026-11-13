@@ -7,7 +7,7 @@ body:
   content:
     query: |
       mutation CreateTask($input: CreateTaskInput!) {
-        createTask(input: $input) { id title status position assignee { name } }
+        createTask(input: $input) { id title status boardPosition assignee { name } }
       }
     variables: |-
       {

@@ -177,13 +177,13 @@ class MutationTest extends GraphQLTestCase
 
     public function test_manager_creates_task_at_end_of_open_column(): void
     {
-        $create = 'mutation ($in: CreateTaskInput!) { createTask(input: $in) { status position assignee { name } } }';
+        $create = 'mutation ($in: CreateTaskInput!) { createTask(input: $in) { status boardPosition assignee { name } } }';
         $input = ['todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $this->users['member']->id];
 
         $this->assertUnauthorized($this->as('member')->gql($create, ['in' => $input]));
 
         $this->as('manager')->gql($create, ['in' => $input])
-            ->assertJsonPath('data.createTask', ['status' => 'OPEN', 'position' => 1, 'assignee' => ['name' => 'David Member']]);
+            ->assertJsonPath('data.createTask', ['status' => 'OPEN', 'boardPosition' => 1, 'assignee' => ['name' => 'David Member']]);
     }
 
     public function test_task_cannot_be_assigned_to_non_members(): void
@@ -210,20 +210,20 @@ class MutationTest extends GraphQLTestCase
 
     public function test_move_reorders_columns_and_updates_status(): void
     {
-        $second = Task::factory()->for($this->todo)->create(['position' => 1]);
-        $done = Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'position' => 0]);
-        $move = 'mutation ($id: ID!, $s: TaskStatus!, $p: Int!) { moveTask(id: $id, status: $s, position: $p) { status position } }';
+        $second = Task::factory()->for($this->todo)->create(['board_position' => 1]);
+        $done = Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'board_position' => 0]);
+        $move = 'mutation ($id: ID!, $s: TaskStatus!, $p: Int!) { moveTask(id: $id, status: $s, position: $p) { status boardPosition } }';
 
         // Member moves the first open task to the top of DONE.
         $this->as('member')->gql($move, ['id' => $this->task->id, 's' => 'DONE', 'p' => 0])
-            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'position' => 0]);
+            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'boardPosition' => 0]);
 
-        $this->assertSame(1, $done->fresh()->position);
-        $this->assertSame(0, $second->fresh()->position);
+        $this->assertSame(1, $done->fresh()->board_position);
+        $this->assertSame(0, $second->fresh()->board_position);
         $this->assertSame(ItemStatus::OPEN, $this->todo->fresh()->status);
 
         $this->as('member')->gql($move, ['id' => $second->id, 's' => 'DONE', 'p' => 99])
-            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'position' => 2]);
+            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'boardPosition' => 2]);
         $this->assertSame(ItemStatus::DONE, $this->todo->fresh()->status);
 
         $this->as('member')->gql($move, ['id' => $second->id, 's' => 'DONE', 'p' => -1])
@@ -234,9 +234,9 @@ class MutationTest extends GraphQLTestCase
     public function test_move_to_todo_keeps_the_task_in_its_project_and_updates_statuses(): void
     {
         $this->task->forceFill(['status' => TaskStatus::DONE])->save();
-        $open = Task::factory()->for($this->todo)->create(['position' => 1]);
+        $open = Task::factory()->for($this->todo)->create(['board_position' => 1]);
         $target = Todo::factory()->for(Milestone::factory()->for($this->project))->create();
-        $move = 'mutation ($id: ID!, $todo: ID!) { moveTaskToTodo(id: $id, todoId: $todo) { todo { id milestone { id } } status position } }';
+        $move = 'mutation ($id: ID!, $todo: ID!) { moveTaskToTodo(id: $id, todoId: $todo) { todo { id milestone { id } } status boardPosition } }';
 
         $this->assertSame(ItemStatus::OPEN, $this->todo->fresh()->status);
 
@@ -247,7 +247,7 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.moveTaskToTodo', [
                 'todo' => ['id' => (string) $target->id, 'milestone' => ['id' => (string) $target->milestone_id]],
                 'status' => 'OPEN',
-                'position' => 1,
+                'boardPosition' => 1,
             ]);
 
         // The old todo has only its done task left, the new one an open task.

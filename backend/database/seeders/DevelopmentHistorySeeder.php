@@ -98,7 +98,7 @@ class DevelopmentHistorySeeder extends Seeder
                             'description' => $this->richText($taskData['description']),
                         ]);
                         $task->status = $status;
-                        $task->position = $position;
+                        $task->board_position = $position;
                         $task->save();
 
                         $labelId = $labelIds[self::LABEL_OF_KIND[$taskData['kind']]] ?? null;

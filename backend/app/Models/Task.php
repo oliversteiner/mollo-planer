@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Status and position are changed by moveTask, the assignee by assignTask.
+ * Status and Kanban position are changed by moveTask, the assignee by assignTask.
  */
 #[Fillable(['todo_id', 'title', 'description', 'icon', 'due_date'])]
 #[ObservedBy(TaskObserver::class)]
@@ -48,7 +48,7 @@ class Task extends Model implements BelongsToProject
             'description' => RichTextCast::class,
             'status' => TaskStatus::class,
             'due_date' => 'date',
-            'position' => 'integer',
+            'board_position' => 'integer',
         ];
     }
 

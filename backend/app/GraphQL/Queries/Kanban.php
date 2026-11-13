@@ -31,7 +31,7 @@ class Kanban
 
         $tasks = Task::query()
             ->inProject($project->getKey())
-            ->orderBy('position')
+            ->orderBy('board_position')
             ->orderBy('id')
             ->get()
             ->groupBy(fn (Task $task) => $task->status->value);

@@ -55,7 +55,7 @@ class CreateTask
             $task->todo()->associate($todo);
             $task->assigned_user_id = $assigneeId;
             $task->status = TaskStatus::OPEN;
-            $task->position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
+            $task->board_position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
             $task->save();
             $task->labels()->sync($labelIds);
 

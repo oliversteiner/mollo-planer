@@ -214,10 +214,10 @@ class QueryTest extends GraphQLTestCase
             ->assertJsonPath('data.task.comments.1.viewerCanDelete', false);
     }
 
-    public function test_kanban_columns_sorted_by_position(): void
+    public function test_kanban_columns_sorted_by_board_position(): void
     {
-        $second = Task::factory()->for($this->todo)->create(['position' => 2]);
-        $first = Task::factory()->for($this->todo)->create(['position' => 1]);
+        $second = Task::factory()->for($this->todo)->create(['board_position' => 2]);
+        $first = Task::factory()->for($this->todo)->create(['board_position' => 1]);
         $review = Task::factory()->for($this->todo)->create(['status' => TaskStatus::REVIEW]);
 
         $response = $this->as('member')->gql('query ($p: ID!) { kanban(projectId: $p) { status tasks { id } } }', ['p' => $this->project->id]);

@@ -118,12 +118,12 @@ class SetTaskStatusTest extends McpTestCase
 
     public function test_the_task_lands_at_the_end_of_its_column(): void
     {
-        $done = Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'position' => 0]);
+        $done = Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'board_position' => 0]);
 
         MolloPlanerServer::actingAs($this->member)->tool(SetTaskStatusTool::class, ['task_id' => (string) $this->task->id, 'status' => 'done'])->assertOk();
 
-        $this->assertSame(0, $done->fresh()->position);
-        $this->assertSame(1, $this->task->fresh()->position);
+        $this->assertSame(0, $done->fresh()->board_position);
+        $this->assertSame(1, $this->task->fresh()->board_position);
     }
 
     public function test_the_tool_sends_no_mails_and_does_not_rename_or_reassign(): void

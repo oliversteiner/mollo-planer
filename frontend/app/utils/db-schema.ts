@@ -157,7 +157,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'description', type: 'longtext', nullable: true },
       { name: 'icon', type: 'varchar', nullable: true },
       { name: 'status', type: 'varchar', default: 'open', values: ['open', 'in_progress', 'review', 'done'] },
-      { name: 'position', type: 'int', default: '0' },
+      { name: 'board_position', type: 'int', default: '0' },
       { name: 'due_date', type: 'date', nullable: true },
       { name: 'created_at', type: 'timestamp', nullable: true },
       { name: 'updated_at', type: 'timestamp', nullable: true }
@@ -165,7 +165,7 @@ const TABLES: Record<DbTableName, DbTable> = {
     indexes: [
       { kind: 'index', columns: ['assigned_user_id'] },
       { kind: 'index', columns: ['todo_id', 'status'] },
-      { kind: 'index', columns: ['project_id', 'status', 'position'] }
+      { kind: 'index', columns: ['project_id', 'status', 'board_position'] }
     ]
   },
   comments: {
