@@ -320,7 +320,7 @@ Grund: Ein Format, ein Schema, ein Importer ohne Sonderfall (Grundregel „eine 
 | Feld | Werte in Datei und Datenbank | Bisher in `planer/2` |
 |---|---|---|
 | `project.locale` | `de`, `en` | `DE`, `EN` |
-| `members[].role` | `owner`, `manager`, `member` | unverändert |
+| `members[].role` | `owner`, `manager`, `member`, `guest` | unverändert (`guest` seit R1 Stufe 3a) |
 | `task.status` | `open`, `in_progress`, `review`, `done` | unverändert |
 | `release.status` | `planned`, `released` | `geplant`, `veröffentlicht` |
 | `task.commit` ohne Hash | `none` | `ohne` |
