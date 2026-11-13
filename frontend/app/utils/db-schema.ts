@@ -132,6 +132,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'id', type: 'bigint', primary: true },
       { name: 'milestone_id', type: 'bigint', references: 'milestones' },
       { name: 'project_id', type: 'bigint', references: 'projects' },
+      { name: 'position', type: 'int', default: '0' },
       { name: 'title', type: 'varchar' },
       { name: 'description', type: 'longtext', nullable: true },
       { name: 'icon', type: 'varchar', nullable: true },
@@ -141,7 +142,8 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'updated_at', type: 'timestamp', nullable: true }
     ],
     indexes: [
-      { kind: 'index', columns: ['milestone_id'] }
+      { kind: 'index', columns: ['milestone_id'] },
+      { kind: 'index', columns: ['milestone_id', 'position'] }
     ]
   },
   tasks: {

@@ -27,6 +27,7 @@ class ArchivedProjectMutationsTest extends TestCase
         'deleteTodo',
         'moveMilestone',
         'moveTask',
+        'moveTodo',
         'moveTaskToTodo',
         'removeProjectMember',
         'setProjectLabelSet',

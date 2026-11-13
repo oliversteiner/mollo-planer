@@ -135,6 +135,9 @@ type Mutation @guard {
   updateTodo(id: ID!, input: UpdateTodoInput! @spread): Todo!
     @can(ability: "update", find: "id")
     @update
+  moveTodo(id: ID!, milestoneId: ID!, position: Int! @rules(apply: ["integer", "min:0"])): Todo!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveTodo")
   deleteTodo(id: ID! @whereKey): Todo!
     @can(ability: "delete", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteTodo")

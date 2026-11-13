@@ -110,6 +110,8 @@ type Milestone {
 type Todo {
   id: ID!
   milestone: Milestone! @belongsTo
+  "Reihenfolge im Milestone, von 0 an. Die ToDos kommen in dieser Reihenfolge."
+  position: Int!
   project: Project! @belongsTo
   createdBy: User @belongsTo
   title: String!

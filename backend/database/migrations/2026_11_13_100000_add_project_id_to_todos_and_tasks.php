@@ -39,11 +39,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            // MariaDB needs an index that starts with project_id for the foreign key,
-            // and the composite index below is the only one there is.
-            $table->index('project_id');
+            $table->dropForeign(['project_id']);
             $table->dropIndex(['project_id', 'status', 'position']);
-            $table->dropConstrainedForeignId('project_id');
+            $table->dropColumn('project_id');
         });
 
         Schema::table('todos', function (Blueprint $table) {

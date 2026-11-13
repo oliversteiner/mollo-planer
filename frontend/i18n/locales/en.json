@@ -920,6 +920,10 @@
           "label": "Project",
           "description": "Project the todo belongs to. Taken from the milestone."
         },
+        "position": {
+          "label": "Position",
+          "description": "Order of the todo in its milestone, from 0."
+        },
         "title": {
           "label": "Titel",
           "description": "Titel des ToDos."

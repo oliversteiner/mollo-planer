@@ -88,6 +88,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'deleteUserAvatar (someone else)' => ['owner', 'mutation ($id: ID!) { deleteUserAvatar(id: $id) { id } }', $member],
             'approveUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { approveUser(id: $id) { id } }', fn (self $test) => ['id' => $test->users['stranger']->id]],
             'rejectUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { rejectUser(id: $id) }', fn (self $test) => ['id' => $test->users['stranger']->id]],
+            'moveTodo' => ['stranger', 'mutation ($id: ID!, $m: ID!) { moveTodo(id: $id, milestoneId: $m, position: 0) { id } }', fn (self $test) => ['id' => $test->todo->id, 'm' => $test->milestone->id]],
             'moveMilestone' => ['stranger', 'mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
             'setProjectLabelSet (member)' => ['member', 'mutation ($p: ID!) { setProjectLabelSet(projectId: $p, labelSetId: null) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'setTaskLabels (member)' => ['member', 'mutation ($t: ID!) { setTaskLabels(taskId: $t, labelIds: []) { id } }', fn (self $test) => ['t' => $test->task->id]],

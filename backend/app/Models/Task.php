@@ -111,7 +111,7 @@ class Task extends Model implements BelongsToProject
 
     protected function parentProjectId(): int|string
     {
-        return $this->todo->project_id;
+        return Todo::query()->whereKey($this->todo_id)->value('project_id');
     }
 
     /**

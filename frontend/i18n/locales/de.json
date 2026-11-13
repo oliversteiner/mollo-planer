@@ -920,6 +920,10 @@
           "label": "Projekt",
           "description": "Projekt, zu dem das ToDo gehört. Wird aus dem Milestone übernommen."
         },
+        "position": {
+          "label": "Position",
+          "description": "Reihenfolge des ToDos im Milestone, von 0 an."
+        },
         "title": {
           "label": "Titel",
           "description": "Titel des ToDos."

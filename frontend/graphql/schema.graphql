@@ -63,6 +63,8 @@ input CreateTodoInput {
  dueDate: Date
  icon: String
  milestoneId: ID!
+ "Stelle im Milestone (0 = erstes ToDo). Ohne Angabe ans Ende."
+ position: Int
  title: String!
 }
 input CreateUserInput {
@@ -216,6 +218,7 @@ type Mutation {
  moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
  moveTaskToTodo(id: ID!, todoId: ID!): Task!
+ moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
  "Lehnt ein wartendes Konto ab und löscht es. Freigegebene Konten löscht deleteUser."
  rejectUser(id: ID!): Boolean!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
@@ -522,6 +525,8 @@ type Todo {
  icon: String
  id: ID!
  milestone: Milestone!
+ "Reihenfolge im Milestone, von 0 an. Die ToDos kommen in dieser Reihenfolge."
+ position: Int!
  progress: Progress!
  project: Project!
  "DONE, sobald alle Tasks erledigt sind"

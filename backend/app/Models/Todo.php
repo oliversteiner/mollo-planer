@@ -9,6 +9,7 @@ use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TodoObserver;
+use App\Services\Ordering;
 use Database\Factories\TodoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Status is computed by the status observer, never set from input.
  */
-#[Fillable(['milestone_id', 'title', 'description', 'icon', 'due_date'])]
+#[Fillable(['milestone_id', 'title', 'description', 'icon', 'due_date', 'position'])]
 #[ObservedBy(TodoObserver::class)]
 class Todo extends Model implements BelongsToProject
 {
@@ -45,7 +46,35 @@ class Todo extends Model implements BelongsToProject
             'description' => RichTextCast::class,
             'status' => ItemStatus::class,
             'due_date' => 'date',
+            'position' => 'integer',
         ];
+    }
+
+    /**
+     * A new todo goes to the end of its milestone, or to the given position;
+     * the todos from there on move one place back. A deleted todo leaves no gap.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Todo $todo): void {
+            $ordering = app(Ordering::class);
+            $group = self::query()->where('milestone_id', $todo->milestone_id);
+
+            if ($todo->position === null) {
+                $todo->position = $ordering->nextPosition($todo->project_id, $group);
+
+                return;
+            }
+
+            $ordering->openSlot($todo->project_id, $group, $todo->position);
+        });
+
+        static::deleted(function (Todo $todo): void {
+            app(Ordering::class)->close(
+                $todo->project_id,
+                self::query()->where('milestone_id', $todo->milestone_id),
+            );
+        });
     }
 
     /**
@@ -87,7 +116,7 @@ class Todo extends Model implements BelongsToProject
 
     protected function parentProjectId(): int|string
     {
-        return $this->milestone->project_id;
+        return Milestone::query()->whereKey($this->milestone_id)->value('project_id');
     }
 
     protected static function projectPath(): ?string

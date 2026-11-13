@@ -66,7 +66,7 @@ class Milestone extends Model implements BelongsToProject
      */
     public function todos(): HasMany
     {
-        return $this->hasMany(Todo::class);
+        return $this->hasMany(Todo::class)->orderBy('position')->orderBy('id');
     }
 
     public function owningProject(): Project

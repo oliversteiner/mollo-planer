@@ -4,6 +4,7 @@ return [
     'last_owner' => 'Das Projekt braucht mindestens einen Owner. Ernenne zuerst eine andere Person zum Owner.',
     'assignee_not_member' => 'Tasks können nur Mitgliedern des Projekts zugewiesen werden.',
     'todo_other_project' => 'Ein Task kann nur in ein ToDo desselben Projekts verschoben werden.',
+    'milestone_other_project' => 'Ein ToDo kann nur in einen Milestone desselben Projekts verschoben werden.',
     'plan' => [
         'not_configured' => 'Der KI-Assistent ist noch nicht eingerichtet. Im Backend fehlt ANTHROPIC_API_KEY in der .env.',
         'invalid_key' => 'Claude lehnt den API-Schlüssel ab. Prüfe ANTHROPIC_API_KEY in der .env des Backends (beginnt mit sk-ant-).',

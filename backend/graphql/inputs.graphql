@@ -55,6 +55,8 @@ input UpdateMilestoneInput {
 
 input CreateTodoInput {
   milestoneId: ID! @rename(attribute: "milestone_id")
+  "Stelle im Milestone (0 = erstes ToDo). Ohne Angabe ans Ende."
+  position: Int @rules(apply: ["integer", "min:0"])
   title: String! @rules(apply: ["min:2", "max:160"])
   description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])

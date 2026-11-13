@@ -249,7 +249,7 @@ function toggleAll() {
                 class="todo-list wa-list-plain"
               >
                 <li
-                  v-for="todo in byDueDate(item.milestone.todos)"
+                  v-for="todo in item.milestone.todos"
                   :key="todo.id"
                   class="todo"
                 >

@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * The order of rows inside a group: the milestones of a project, the tasks of
- * a Kanban column. Positions start at 0 and have no gaps after a change.
+ * The order of rows inside a group: the milestones of a project, the todos of a
+ * milestone, the tasks of a Kanban column. Positions start at 0 and have no gaps
+ * after a change. The column is "position" unless the caller names another one
+ * (for example "board_position" for tasks).
  *
  * Every method locks the project row first, so two changes in the same project
  * run one after the other. The callers run inside a transaction (Lighthouse
@@ -29,11 +31,11 @@ class Ordering
      *
      * @param  Builder<Model>  $group
      */
-    public function nextPosition(int|string $projectId, Builder $group): int
+    public function nextPosition(int|string $projectId, Builder $group, string $column = 'position'): int
     {
         $this->lockProject($projectId);
 
-        $max = (clone $group)->max('position');
+        $max = (clone $group)->max($column);
 
         return $max === null ? 0 : (int) $max + 1;
     }
@@ -43,11 +45,11 @@ class Ordering
      *
      * @param  Builder<Model>  $group
      */
-    public function openSlot(int|string $projectId, Builder $group, int $position): void
+    public function openSlot(int|string $projectId, Builder $group, int $position, string $column = 'position'): void
     {
         $this->lockProject($projectId);
 
-        (clone $group)->where('position', '>=', $position)->increment('position');
+        (clone $group)->where($column, '>=', $position)->increment($column);
     }
 
     /**
@@ -58,18 +60,18 @@ class Ordering
      * @param  Builder<Model>  $target  The group the item ends up in, may contain the item itself
      * @param  Builder<Model>|null  $source  The group the item comes from, if it changes group
      */
-    public function move(Model $item, int|string $projectId, Builder $target, int $position, ?Builder $source = null): void
+    public function move(Model $item, int|string $projectId, Builder $target, int $position, ?Builder $source = null, string $column = 'position'): void
     {
         $this->lockProject($projectId);
 
-        $ordered = $this->rowsOf((clone $target)->whereKeyNot($item->getKey()));
+        $ordered = $this->rowsOf((clone $target)->whereKeyNot($item->getKey()), $column);
         $position = max(0, min($position, count($ordered)));
         array_splice($ordered, $position, 0, [$item]);
 
-        $this->renumber($ordered);
+        $this->renumber($ordered, $column);
 
         if ($source !== null) {
-            $this->renumber($this->rowsOf((clone $source)->whereKeyNot($item->getKey())));
+            $this->renumber($this->rowsOf((clone $source)->whereKeyNot($item->getKey()), $column), $column);
         }
     }
 
@@ -78,20 +80,20 @@ class Ordering
      *
      * @param  Builder<Model>  $group
      */
-    public function close(int|string $projectId, Builder $group): void
+    public function close(int|string $projectId, Builder $group, string $column = 'position'): void
     {
         $this->lockProject($projectId);
 
-        $this->renumber($this->rowsOf(clone $group));
+        $this->renumber($this->rowsOf(clone $group, $column), $column);
     }
 
     /**
      * @param  Builder<Model>  $group
      * @return list<Model>
      */
-    private function rowsOf(Builder $group): array
+    private function rowsOf(Builder $group, string $column): array
     {
-        return $group->orderBy('position')->orderBy('id')->get()->all();
+        return $group->orderBy($column)->orderBy('id')->get()->all();
     }
 
     /**
@@ -99,10 +101,10 @@ class Ordering
      *
      * @param  list<Model>  $rows
      */
-    private function renumber(array $rows): void
+    private function renumber(array $rows, string $column): void
     {
         foreach ($rows as $index => $row) {
-            $row->position = $index;
+            $row->setAttribute($column, $index);
 
             if ($row->isDirty()) {
                 $row->save();

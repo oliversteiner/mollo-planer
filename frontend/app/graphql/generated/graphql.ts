@@ -42,6 +42,8 @@ export type CreateTodoInput = {
   dueDate?: string | null | undefined;
   icon?: string | null | undefined;
   milestoneId: string | number;
+  /** Stelle im Milestone (0 = erstes ToDo). Ohne Angabe ans Ende. */
+  position?: number | null | undefined;
   title: string;
 };
 
