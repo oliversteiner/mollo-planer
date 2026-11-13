@@ -59,7 +59,8 @@ const groups = computed<Tool[][]>(() => {
 
   const marks: Tool[] = [
     { key: 'bold', icon: 'bold', label: t('richText.bold'), active: current.isActive('bold'), run: () => current.chain().focus().toggleBold().run() },
-    { key: 'italic', icon: 'italic', label: t('richText.italic'), active: current.isActive('italic'), run: () => current.chain().focus().toggleItalic().run() }
+    { key: 'italic', icon: 'italic', label: t('richText.italic'), active: current.isActive('italic'), run: () => current.chain().focus().toggleItalic().run() },
+    { key: 'code', icon: 'code', label: t('richText.code'), active: current.isActive('code'), run: () => current.chain().focus().toggleCode().run() }
   ]
   const lists: Tool[] = [
     { key: 'bulletList', icon: 'list-ul', label: t('richText.bulletList'), active: current.isActive('bulletList'), run: () => current.chain().focus().toggleBulletList().run() },

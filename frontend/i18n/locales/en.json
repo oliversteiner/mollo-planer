@@ -273,6 +273,7 @@
     "toolbar": "Formatting",
     "bold": "Bold",
     "italic": "Italic",
+    "code": "Code",
     "bulletList": "Bullet list",
     "orderedList": "Numbered list",
     "blockquote": "Quote",

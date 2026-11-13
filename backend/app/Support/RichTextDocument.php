@@ -7,7 +7,7 @@ namespace App\Support;
  *
  * The whitelist here must match the editor configuration in the frontend:
  * paragraph, heading (levels 2 and 3), bullet list, ordered list, list item,
- * hard break, blockquote, text; marks bold, italic and link (http, https,
+ * hard break, blockquote, text; marks bold, italic, inline code and link (http, https,
  * mailto). HTML is never stored or produced.
  */
 final class RichTextDocument
@@ -42,7 +42,7 @@ final class RichTextDocument
 
     private const NODE_KEYS = ['type', 'attrs', 'content', 'text', 'marks'];
 
-    private const MARKS = ['bold', 'italic', 'link'];
+    private const MARKS = ['bold', 'italic', 'code', 'link'];
 
     /** Link attributes the editor sends. Only href is kept (see normalize). */
     private const LINK_ATTRS = ['href', 'target', 'rel', 'class'];

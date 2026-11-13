@@ -273,6 +273,7 @@
     "toolbar": "Textformat",
     "bold": "Fett",
     "italic": "Kursiv",
+    "code": "Code",
     "bulletList": "Aufzählung",
     "orderedList": "Nummerierte Liste",
     "blockquote": "Zitat",
