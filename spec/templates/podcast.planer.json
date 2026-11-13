@@ -1,0 +1,86 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Podcast",
+    "description": "Vorlage für eine Podcast-Produktion: von der Themenidee bis zur Veröffentlichung.",
+    "locale": "de",
+    "members": [],
+    "labels": [
+      {
+        "key": "topic_idea",
+        "names": {
+          "de": "Themenidee",
+          "en": "topic idea"
+        },
+        "category": "pipeline",
+        "color": "indigo"
+      },
+      {
+        "key": "guest_booking",
+        "names": {
+          "de": "Gästebuchung",
+          "en": "guest booking"
+        },
+        "category": "pipeline",
+        "color": "cyan"
+      },
+      {
+        "key": "audio_editing",
+        "names": {
+          "de": "Audioschnitt",
+          "en": "audio editing"
+        },
+        "category": "pipeline",
+        "color": "yellow"
+      },
+      {
+        "key": "social_media",
+        "names": {
+          "de": "Social Media",
+          "en": "social media"
+        },
+        "category": "promotion",
+        "color": "pink"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Produktion",
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Folge",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Thema festlegen",
+              "status": "planned",
+              "labels": [
+                "topic_idea"
+              ]
+            },
+            {
+              "id": "k-new-2",
+              "title": "Gast buchen",
+              "status": "planned",
+              "labels": [
+                "guest_booking"
+              ]
+            },
+            {
+              "id": "k-new-3",
+              "title": "Schnitt",
+              "status": "planned",
+              "labels": [
+                "audio_editing"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

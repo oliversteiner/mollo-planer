@@ -378,3 +378,6 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 - `render` → `convert md2json` → kanonische Form ergibt dieselbe Datei. Geprüft für das Beispiel und die gültige Fixture (ohne `$schema`).
 - v1 → planer-v2 → Markdown → planer-v2 ergibt denselben Stand. Geprüft für die gültige v1-Fixture und für die echte Versionsdatei aus `club-db` (17 Milestones, 39 ToDos, 107 Tasks), die nur gelesen wurde.
 
+## 8. Vorlagen
+
+Eine Vorlage ist ein gültiges planer-v2-Dokument mit festen Werten (planer-abgleich §3.8): `revision` 0, nur `-new-`-IDs, `members` leer, keine Zuweisungen, Fälligkeiten und Commits, `release.status` nur `planned`, Task-Status `planned`, mindestens ein Label. `validate --template` prüft die Datei nach diesen Regeln zusätzlich zur normalen Prüfung. `template <datei> [--out <datei>]` setzt die Werte. Die mitgelieferten Vorlagen liegen in `spec/templates/`.

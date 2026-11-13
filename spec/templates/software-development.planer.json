@@ -1,0 +1,124 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Softwareentwicklung",
+    "description": "Vorlage für Software- und Produktentwicklung: von der Recherche bis zur ersten Freigabe.",
+    "locale": "de",
+    "members": [],
+    "labels": [
+      {
+        "key": "research",
+        "names": {
+          "de": "Recherche",
+          "en": "research"
+        },
+        "category": "phase",
+        "color": "blue"
+      },
+      {
+        "key": "design",
+        "names": {
+          "de": "Design",
+          "en": "design"
+        },
+        "category": "phase",
+        "color": "pink"
+      },
+      {
+        "key": "feature",
+        "names": {
+          "de": "Feature",
+          "en": "feature"
+        },
+        "category": "type",
+        "color": "green"
+      },
+      {
+        "key": "bug",
+        "names": {
+          "de": "Fehler",
+          "en": "bug"
+        },
+        "category": "type",
+        "color": "red"
+      },
+      {
+        "key": "planning",
+        "names": {
+          "de": "Planung",
+          "en": "planning"
+        },
+        "category": "type",
+        "color": "indigo"
+      },
+      {
+        "key": "blocked",
+        "names": {
+          "de": "Blockiert",
+          "en": "blocked"
+        },
+        "category": "status",
+        "color": "yellow"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Konzept",
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Anforderungen",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Ziele und Nutzer klären",
+              "status": "planned",
+              "labels": [
+                "research"
+              ]
+            },
+            {
+              "id": "k-new-2",
+              "title": "Anforderungen festhalten",
+              "status": "planned",
+              "labels": [
+                "planning"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-2",
+      "title": "Erste Version",
+      "todos": [
+        {
+          "id": "t-new-2",
+          "title": "Umsetzung",
+          "tasks": [
+            {
+              "id": "k-new-3",
+              "title": "Kernfunktion umsetzen",
+              "status": "planned",
+              "labels": [
+                "feature"
+              ]
+            },
+            {
+              "id": "k-new-4",
+              "title": "Fehler aus den Tests beheben",
+              "status": "planned",
+              "labels": [
+                "bug"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

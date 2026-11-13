@@ -6,12 +6,15 @@ import { validate } from '../../core/validate.mjs';
 import { validatePlaner } from '../../core/validate-planer.mjs';
 import { canonicalText } from '../../core/planer-canonical.mjs';
 import { renderPlaner } from '../../core/render-planer.mjs';
+import { templateIssues, toTemplate } from '../../core/template.mjs';
 import { HELPERS, runPlanerCommand } from '../planer-commands.mjs';
 import { runConvert } from '../planer-convert.mjs';
 
 const USAGE = `Verwendung:
-  mollo-planer validate [datei]   Prüft die Datei (Fehler brechen ab, Hinweise nicht)
-                                   version-*.md zeilengenau, *.planer.json (planer-v2) mit Pfad
+  mollo-planer validate [datei] [--template]   Prüft die Datei (Fehler brechen ab, Hinweise nicht)
+                                   version-*.md zeilengenau, *.planer.json (planer-v2) mit Pfad;
+                                   --template prüft zusätzlich die Vorlagen-Regeln (§3.8)
+  mollo-planer template <datei> [--out <datei>]   Macht aus einer planer-v2-Datei eine Vorlage (§3.8)
   mollo-planer json [datei]       Schreibt die Datei als JSON nach stdout
                                    version-*.md als gelesene Struktur, planer-v2 kanonisch
   mollo-planer render [datei] [--out <datei>] [--lang de|en] [--legend-translations]
@@ -50,11 +53,17 @@ function readInput(argument) {
   return { path, markdown: readFileSync(path, 'utf8') };
 }
 
-function runValidate(argument) {
+function runValidate(argument, { template = false } = {}) {
   const { path, markdown } = readInput(argument);
   const issues = isPlanerFile(path)
     ? validatePlaner(markdown)
     : validate(markdown);
+  if (template && isPlanerFile(path) && issues.every((issue) => issue.severity !== 'error')) {
+    issues.push(...templateIssues(JSON.parse(markdown)));
+  } else if (template && !isPlanerFile(path)) {
+    console.error('--template gilt für planer-v2 (*.planer.json).');
+    return 2;
+  }
   const errors = issues.filter((issue) => issue.severity === 'error').length;
   const warnings = issues.length - errors;
 
@@ -115,6 +124,37 @@ function runRender(argument, out, { lang, legendTranslations }) {
   return 0;
 }
 
+function runTemplate(argument, out) {
+  const { path, markdown } = readInput(argument);
+  if (!isPlanerFile(path)) {
+    console.error('template gilt für planer-v2 (*.planer.json).');
+    return 2;
+  }
+  const plan = checkedPlan(markdown);
+  if (plan === null) {
+    return 1;
+  }
+  const template = toTemplate(plan);
+  const problems = templateIssues(template);
+  if (problems.length > 0) {
+    console.error(`Keine Vorlage: ${problems[0].path}: ${problems[0].message}`);
+    return 1;
+  }
+  const text = canonicalText(template);
+  const errors = validatePlaner(text).filter((issue) => issue.severity === 'error');
+  if (errors.length > 0) {
+    console.error(`Keine Vorlage: ${errors[0].path || 'Datei'}: ${errors[0].message}`);
+    return 1;
+  }
+  if (out) {
+    writeFileSync(resolve(out), text);
+    console.log(`Geschrieben: ${resolve(out)}`);
+  } else {
+    process.stdout.write(text);
+  }
+  return 0;
+}
+
 function runJson(argument) {
   const { path, markdown } = readInput(argument);
   if (isPlanerFile(path)) {
@@ -163,7 +203,9 @@ function main(argv) {
   try {
     switch (command) {
       case 'validate':
-        return runValidate(argument);
+        return runValidate(argument, { template: rest.includes('--template') });
+      case 'template':
+        return runTemplate(argument, optionValue(rest, '--out'));
       case 'json':
         return runJson(argument);
       case 'render':

@@ -1,0 +1,104 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Event",
+    "description": "Vorlage für Veranstaltungen und Konferenzen: Planung, Speaker und Ankündigung.",
+    "locale": "de",
+    "members": [],
+    "labels": [
+      {
+        "key": "location",
+        "names": {
+          "de": "Location",
+          "en": "location"
+        },
+        "category": "trade",
+        "color": "purple"
+      },
+      {
+        "key": "speakers",
+        "names": {
+          "de": "Speaker",
+          "en": "speakers"
+        },
+        "category": "trade",
+        "color": "cyan"
+      },
+      {
+        "key": "marketing",
+        "names": {
+          "de": "Marketing",
+          "en": "marketing"
+        },
+        "category": "trade",
+        "color": "orange"
+      },
+      {
+        "key": "confirmed",
+        "names": {
+          "de": "Bestätigt",
+          "en": "confirmed"
+        },
+        "category": "status",
+        "color": "green"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Planung",
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Locations",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Veranstaltungsort anfragen",
+              "status": "planned",
+              "labels": [
+                "location"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t-new-2",
+          "title": "Speaker",
+          "tasks": [
+            {
+              "id": "k-new-2",
+              "title": "Speaker einladen",
+              "status": "planned",
+              "labels": [
+                "speakers"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-2",
+      "title": "Durchführung",
+      "todos": [
+        {
+          "id": "t-new-3",
+          "title": "Marketing",
+          "tasks": [
+            {
+              "id": "k-new-3",
+              "title": "Ankündigung versenden",
+              "status": "planned",
+              "labels": [
+                "marketing"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

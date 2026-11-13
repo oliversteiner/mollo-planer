@@ -50,3 +50,5 @@ Ist nur eine `docs/*.planer.json` im Ordner, genügt der Befehl. Mehrere Dateien
 2. `show <id>`, falls Beschreibung oder Kinder gebraucht werden.
 3. Die Änderung mit einem Helfer machen. Die Ausgabe enthält die neue ID und die Revision.
 4. Nicht die ganze Datei erneut lesen.
+
+- **Vorlagen:** `mollo-planer template <datei> [--out <datei>]` macht aus einer Planer-Datei eine Vorlage (neue IDs, Status `planned`, ohne Zuweisungen und Fälligkeiten). `mollo-planer validate <datei> --template` prüft sie.
