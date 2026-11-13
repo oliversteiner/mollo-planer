@@ -10,8 +10,10 @@ Hier werden die Punkte geklärt, die unter „Nicht in diesem Auftrag“ in `doc
 | 2 | Import-Semantik: ergänzen oder abgleichen | **entschieden: `full` und `partial`, alle Formatfelder, `file_id`** |
 | 3 | Labels in der Datei, Vorlagen (Templates) in der App | **entschieden** (3.6) |
 | 4 | Ort der Werkzeuge: `mollo-version` als Abhängigkeit oder in die App integrieren | **entschieden: V2, Umzug sofort** (4.7) |
-| 5 | Schreibweise von Rollen und Sprache | offen |
-| 6 | Entscheidungen zum Assistenten (`docs/assistent-ideen-konzept.md` §12) | offen |
+| 5 | Schreibweise der Werte, mehrsprachige Labels, Sprache der Markdown-Ansicht | **entschieden** (§5) |
+| 6 | Entscheidungen zum Assistenten (`docs/assistent-ideen-konzept.md` §12) | Empfehlungen vorgelegt, offen |
+| 7 | Vereinfachungen durch das neue Konzept | Vorschlag, offen (§7) |
+| 8 | Task-Status `idea` und `planned` | **entschieden** (§8) |
 
 ---
 
@@ -21,11 +23,11 @@ Die App speichert alle drei. Die Datenbank bleibt der einzige Live-Speicher, der
 
 **Schema-Review, neuer Punkt A7:**
 
-- `milestones.release_version` (String `M.m`, nullable) und `milestones.release_status` (`geplant`, `veröffentlicht`, nullable; beide gesetzt oder beide leer).
-- `tasks.commit` (String, nullable): Hash aus 7 bis 40 Kleinbuchstaben und Ziffern oder `ohne`.
+- `milestones.release_version` (String `M.m`, nullable) und `milestones.release_status` (`planned`, `released`, nullable; beide gesetzt oder beide leer). Werte nach §5.
+- `tasks.commit` (String, nullable): Hash aus 7 bis 40 Kleinbuchstaben und Ziffern oder `none`.
 - `projects.planer_revision` (ganze Zahl, Standard 0).
 - GraphQL: Typ `Release { version: String!, status: ReleaseStatus! }`, `Milestone.release: Release`, `Task.commit: String`, `Project.planerRevision: Int!`. Eingaben in `createMilestone`/`updateMilestone` und `createTask`/`updateTask`.
-- Regeln der App wie im Validator (`spec/format-v2.md` §5.3): Eine veröffentlichte Version darf keinen Task ungleich `done` haben; ein `done`-Task in einer veröffentlichten Version braucht einen Commit oder `ohne`. Geprüft beim Setzen von `release_status: veröffentlicht` und beim Ändern von Task-Status oder Commit in einer veröffentlichten Version.
+- Regeln der App wie im Validator (`spec/format-v2.md` §5.3): Eine veröffentlichte Version darf keinen Task ungleich `done` haben; ein `done`-Task in einer veröffentlichten Version braucht einen Commit oder `none`. Geprüft beim Setzen von `release_status: released` und beim Ändern von Task-Status oder Commit in einer veröffentlichten Version.
 - Oberfläche: Versionsnummer und Freigabe-Status im Zeitstrahl am Milestone und in dessen Formular; Commit im Task-Detail (Anzeige als Kurz-Hash, bearbeitbar).
 - Rechte: Release ändern wie `milestone.update`, Commit wie Task bearbeiten.
 - Umsetzung: als Nachtrag zu S3 in einer eigenen Migration (S3b in `docs/spur-b-sichere-schritte.md`).
@@ -188,21 +190,21 @@ Gründe:
   "locale": "DE",
   "members": [ … ],
   "labels": [
-    { "key": "feature", "name": "Feature", "category": "type", "color": "green" },
-    { "key": "bug", "name": "Fehler", "category": "type", "color": "red" },
-    { "key": "backend", "name": "Backend", "category": "area", "color": "cyan" }
+    { "key": "feature", "names": { "de": "Feature", "en": "Feature" }, "category": "type", "color": "green" },
+    { "key": "bug", "names": { "de": "Fehler", "en": "Bug" }, "category": "type", "color": "red" },
+    { "key": "backend", "names": { "de": "Backend" }, "category": "area", "color": "cyan" }
   ]
 }
 ```
 
 - `key`: Pflicht, 1 bis 40 Zeichen, `a-z`, `0-9`, `_`, `-`, eindeutig je Datei. Stabiler Bezug für `labelNames`.
-- `name`: Pflicht, 1 bis 40 Zeichen, eindeutig je Datei. Anzeigename in der Sprache des Projekts.
+- `names`: Pflicht, Objekt mit Sprachcode → Name (1 bis 40 Zeichen). Der Name in der Sprache des Projekts (`project.locale`) ist Pflicht, weitere Sprachen optional. Je Sprache eindeutig in der Datei. Mehrsprachigkeit siehe §5.2.
 - `category`: optional, 1 bis 40 Zeichen.
 - `color`: Pflicht, einer der zehn Töne der App (`gray`, `red`, `orange`, `yellow`, `green`, `cyan`, `blue`, `indigo`, `purple`, `pink`).
 - Reihenfolge = Array-Reihenfolge (wie `labels.position`).
 - Höchstens 30 Labels (Grenze der App).
 - `labelNames` am Task enthält **Schlüssel** aus `project.labels`. Der Validator prüft das. (Der bisherige Name `labelNames` bleibt, um das Format nicht unnötig zu brechen; Umbenennung in `labels` ist möglich, siehe 3.6.)
-- Übersetzung: Mitgelieferte Vorlagen haben Namen in DE und EN. Beim Anlegen eines Projekts wird der Name in der Sprache des Projekts kopiert. Danach ist es ein normaler Name.
+- Übersetzung: Mitgelieferte Vorlagen haben Namen in `de` und `en`. Beim Anlegen eines Projekts werden alle Sprachen kopiert (§5.2).
 
 **Markdown-Ansicht:** Legende am Schluss, nach dem letzten Milestone:
 
@@ -218,12 +220,14 @@ Gründe:
 | backend | Backend | area | cyan |
 ```
 
+Sprache der Ansicht und Legende mit Übersetzungen: §5.3.
+
 - Am Task stehen in der Zeile `Labels:` die **Namen** (lesbar), `md2json` ordnet sie über die Legende den Schlüsseln zu.
 - Die Tabelle ist die einzige Tabelle in der Ansicht. `md2json` erkennt sie an der Überschrift `## Labels` nach dem letzten Trenner.
 
 ### 3.4 Vorlagen in der App
 
-**Was eine Vorlage ist:** ein `planer/2`-Dokument ohne App-Bezug: keine `appId`, keine `revision`, keine Mitglieder, keine Zuweisungen, keine Commits, kein `release.status`, Task-Status immer `open`. Gespeichert als JSON in `templates.content` und mit demselben Validator geprüft. Umfang siehe 3.6.
+**Was eine Vorlage ist:** ein `planer/2`-Dokument ohne App-Bezug: keine `appId`, keine `revision`, keine Mitglieder, keine Zuweisungen, keine Commits, kein `release.status`, Task-Status immer `planned` (§8.2 Nr. 7). Gespeichert als JSON in `templates.content` und mit demselben Validator geprüft. Umfang siehe 3.6.
 
 **Mitgelieferte Vorlagen:** „Softwareentwicklung“, „Event“, „Podcast“ aus `BuiltinLabelSets`, mit Namen in DE und EN. Unveränderlich, nur duplizieren.
 
@@ -263,7 +267,7 @@ Gründe:
 
 ### 3.6 Entscheidungen zum Umfang (Oliver, 2026-11-13)
 
-1. **Voller Umfang:** Eine Vorlage enthält immer die Labels und optional das ganze Plan-Gerüst: Milestones, ToDos und Tasks mit Titel, Beschreibung, User-Story, Labels und Reihenfolge, Milestones mit `release.version` (ohne `release.status`). Nicht enthalten: Fälligkeiten, Mitglieder, Zuweisungen, Commits, Status (alle Tasks `open`), `appId`, `id`, `revision`, `changed`. Beim Anlegen eines Projekts aus der Vorlage wird das Gerüst vollständig angelegt (Import `full` in ein leeres Projekt).
+1. **Voller Umfang:** Eine Vorlage enthält immer die Labels und optional das ganze Plan-Gerüst: Milestones, ToDos und Tasks mit Titel, Beschreibung, User-Story, Labels und Reihenfolge, Milestones mit `release.version` (ohne `release.status`). Nicht enthalten: Fälligkeiten, Mitglieder, Zuweisungen, Commits, Status (alle Tasks `planned`, §8), `appId`, `id`, `revision`, `changed`. Beim Anlegen eines Projekts aus der Vorlage wird das Gerüst vollständig angelegt (Import `full` in ein leeres Projekt).
 2. **Fälligkeiten:** in der ersten Fassung weggelassen. Relative Fälligkeiten („Tag 14 nach Projektstart“) sind eine mögliche spätere Erweiterung.
 3. **Feldname:** `labelNames` am Task heißt neu **`labels`** und enthält Schlüssel aus `project.labels`. Breaking Change am Format.
 4. **Sichtbarkeit von Vorlagen:** Alle Vorlagen sind für alle Angemeldeten lesbar, auch für die Rolle `lesend`. Ändern nach `templates.manage` bzw. `templates.manageAny`.
@@ -280,6 +284,167 @@ Gründe:
 - Zusammen mit A-S1 als Version 2.0.0.
 
 **Spur B (`mollo-planer`), sicherer Schritt S7** in `docs/spur-b-sichere-schritte.md`.
+
+---
+
+## 5. Schreibweise der Werte und Mehrsprachigkeit (entschieden 2026-11-13)
+
+### 5.1 Alle Werte klein und auf Englisch
+
+| Feld | Werte in Datei und Datenbank | Bisher in `planer/2` |
+|---|---|---|
+| `project.locale` | `de`, `en` | `DE`, `EN` |
+| `members[].role` | `owner`, `manager`, `member` | unverändert |
+| `task.status` | `open`, `in_progress`, `review`, `done` | unverändert |
+| `release.status` | `planned`, `released` | `geplant`, `veröffentlicht` |
+| `task.commit` ohne Hash | `none` | `ohne` |
+| `label.color` | `gray`, `red`, … | unverändert |
+| `label.category` | Schlüssel, z. B. `type`, `phase`, `area` | unverändert |
+
+- Deutsche (oder englische) Wörter erscheinen nur in der Markdown-Ansicht und in der Oberfläche. `render` und `md2json` übersetzen in beide Richtungen.
+- Breaking Change am Format, gehört in T1. A7 (S3b) speichert gleich `planned`/`released`/`none`.
+- Assistent und MCP: `PlanSchema::ROLES` (heute `OWNER`, …) und die Locale-Werte werden auf die kleinen Werte umgestellt, wenn der Assistent auf `planer/2` umgebaut wird (B5a).
+
+### 5.2 Mehrsprachige Labels
+
+- Jedes Label hat **`names`**: ein Objekt Sprachcode → Name (§3.3). Pflicht ist der Name in der Sprache des Projekts, weitere Sprachen sind optional.
+- Unterstützte Sprachcodes: die Sprachen der App (`de`, `en`). Eine neue Sprache der App erweitert die Liste in `spec/`.
+- **App:** Spalte `labels.names` (JSON) statt `labels.name`, ebenso in Vorlagen. Eindeutig je Projekt und Sprache.
+- **Anzeige in der App:** Name in der Sprache der Oberfläche der Person, sonst in der Sprache des Projekts.
+- **Bearbeiten:** Im Label-Editor (Projekt und Vorlage) je Label ein Feld pro Sprache, die Sprache des Projekts ist Pflicht. Hinweis bei fehlenden Übersetzungen.
+- **Mitgelieferte Vorlagen** haben beide Sprachen (heute schon über die Übersetzungsdateien). Die Übersetzungen wandern aus `lang/` in den Inhalt der Vorlage, damit eine Kopie sie mitnimmt.
+- **Kategorien** bleiben Schlüssel (`type`, `phase`, …). Übersetzt werden sie nur für die mitgelieferten Schlüssel über die Übersetzungsdateien der App. Eigene Kategorien erscheinen, wie sie geschrieben sind.
+- **Abgleich in `md2json`:** Ein Name am Task wird über die Legende in jeder Sprache erkannt.
+
+### 5.3 Sprache der Markdown-Ansicht und Legende
+
+- **Sprache wählbar:** `mollo-planer render --lang de|en` (Standard: Sprache des Projekts). Übersetzt werden die festen Wörter (Status, Fällig, Zuständig, Labels, Commit, `planned`/`released`, `none`, Rahmen der User-Story „Als … möchte ich …, damit …“ bzw. „As … I want …, so that …“) und die Label-Namen. Inhalte (Titel, Beschreibungen, Texte der User-Story) bleiben, wie sie sind.
+- Die gewählte Sprache steht in der Kopfzeile der Ansicht (`<!-- Ansicht von planer/2, revision N, lang de -->`), damit `md2json` die festen Wörter richtig liest.
+- **Legende am Schluss**, immer mit der gewählten Sprache. **Optional mit Übersetzungen:** `render --legend-translations` fügt je weitere Sprache eine Spalte hinzu:
+
+```markdown
+## Labels
+
+| Schlüssel | Name | en | Kategorie | Farbe |
+|---|---|---|---|---|
+| feature | Feature | Feature | type | green |
+| bug | Fehler | Bug | type | red |
+| backend | Backend | – | area | cyan |
+```
+
+  `–` steht für eine fehlende Übersetzung. `md2json` liest die zusätzlichen Spalten als `names`.
+- **In der App:** Download „Als Markdown“ in den Projekteinstellungen bzw. der Zeitachse, mit Auswahl der Sprache und Schalter „Übersetzungen in der Legende“. Umgesetzt im Frontend mit `tools/planer/core` (gleicher Code wie die CLI). Daneben Download „Als planer.json“.
+
+### 5.4 Folgen für die Schritte
+
+- **T1** zusätzlich: Werte nach §5.1 in Spezifikation, Schema, Validator, `convert` (v1 `Status: geplant` → `planned`, `Ohne Commit` → `none`), Fixtures.
+- **T4** zusätzlich: `names` statt `name` (§5.2), `render --lang`, `--legend-translations`, `md2json` mit Sprache aus der Kopfzeile und mehrsprachiger Legende.
+- **S3b:** Werte `planned`, `released`, `none`.
+- **S7:** `labels.names` und Vorlagen mit `names`, Anzeige nach Sprache der Oberfläche, Editor mit Feldern je Sprache.
+- **Neu, nach Export und Import (P6):** Download als Markdown und als `planer.json` in der App (§5.3).
+
+---
+
+## 8. Task-Status `idea` und `planned` (entschieden 2026-11-13)
+
+**Entscheidung (Oliver):** Der Task-Status bekommt zwei weitere Werte: **Idee** und **geplant**. Werte nach §5.1 klein und englisch: `idea`, `planned`.
+
+### 8.1 Reihenfolge und Bedeutung
+
+| Wert | Oberfläche (de / en) | Bedeutung |
+|---|---|---|
+| `idea` | Idee / Idea | Vorschlag im Projekt, noch nicht beschlossen |
+| `planned` | Geplant / Planned | beschlossen, noch nicht begonnen und noch nicht zur Arbeit freigegeben |
+| `open` | Offen / Open | bereit zur Arbeit |
+| `in_progress` | In Arbeit / In progress | |
+| `review` | Prüfung / Review | |
+| `done` | Erledigt / Done | |
+
+### 8.2 Folgen (Vorschläge 1 bis 11 angenommen am 2026-11-13)
+
+1. **Berechneter Status und Fortschritt:** Tasks mit `idea` zählen nicht. Ein ToDo ist `done`, wenn es mindestens einen Task außer `idea` hat und alle diese `done` sind. Der Fortschritt rechnet ohne `idea`. `planned` zählt normal mit (ist beschlossen).
+2. **Freigabe (A7):** Eine Version mit `release.status: released` darf weiterhin nur `done`-Tasks haben. Ideen müssen vorher verschoben, auf einen anderen Status gesetzt oder gelöscht werden.
+3. **Kanban:** sechs Spalten. `idea` und `planned` lassen sich einklappen bzw. ausblenden (Schalter „Ideen und Geplantes anzeigen“, pro Person gespeichert im Browser), damit das Board für die tägliche Arbeit schlank bleibt.
+4. **Meine Tasks und Dashboard:** „Offene Tasks“ zeigen `planned` bis `review`, ohne `idea`.
+5. **Mails:** Die Zuweisungs-Mail geht erst, wenn der Task mindestens `planned` ist. Wechselt ein zugewiesener Task von `idea` auf einen anderen Status, geht die Zuweisungs-Mail dann. Sonst bleiben die Mail-Regeln unverändert (Statuswechsel lösen keine Mail aus).
+6. **Neuer Task in der Oberfläche:** Standard bleibt `open`. Im Formular wählbar.
+7. **Assistent und Vorlagen:** Vom Assistenten vorgeschlagene Tasks bekommen standardmäßig `planned`. Tasks im Gerüst einer Vorlage sind `planned` (statt `open`, §3.6 Nr. 1).
+8. **Rechte:** Status setzen wie bisher über `task.move`.
+9. **Abgrenzung zur Ideen-Seite (B1):** Ein Task mit `idea` gehört zu einem Projekt, einem Milestone und einem ToDo und ist für alle Mitglieder sichtbar. Eine Idee auf der Ideen-Seite ist privat (Autor und Admins) und braucht kein Projekt. Beides bleibt. Im Assistenten heißt die bisherige Option „In Ideen ablegen“ weiterhin so (private Idee). Neu als fünfte Option bei der Milestone-Auswahl ist nicht nötig, weil ein Task mit `idea` ohnehin einen Milestone braucht. Der Assistent kann Tasks aber als `idea` vorschlagen, wenn die Person etwas nur festhalten will.
+10. **Markdown-Ansicht:** `[i]` für `idea`, `[p]` für `planned` (entschieden), zu den bestehenden `[ ]` open, `[~]` in_progress, `[?]` review, `[x]` done.
+11. **Umwandlung v1:** `[ ]` bleibt `open`, keine Abbildung auf die neuen Werte.
+
+### 8.3 Folgen für die Schritte
+
+- **T4** (läuft): Schema, Validator, `render`/`md2json` mit den neuen Werten und Markierungen, Fixtures.
+- **S3:** `TaskStatus` in PHP, GraphQL und Frontend um `idea` und `planned` erweitern, `ItemStatusSync` und Fortschritt nach 8.2 Nr. 1, Kanban-Spalten und Schalter nach Nr. 3, Filter nach Nr. 4, Mails nach Nr. 5.
+- **S7** (Vorlagen): Gerüst-Tasks `planned`.
+
+## 7. Vereinfachungen durch das neue Konzept (Vorschlag)
+
+Stand der Prüfung: `mollo-planer` bis `072fcbb` (U0 und T1 erledigt).
+
+Mit `planer/2` als einziger Beschreibung eines Plans, Import/Export in der App, Vorlagen als Dokumente und einem Repository gibt es mehrere Stellen, die doppelt sind oder ganz entfallen können.
+
+### V1. IDs aus der Datenbank statt `appId` plus Datei-ID (hoch)
+
+**Heute geplant:** zwei IDs je Element (`id` = Datei-ID `k-001`, `appId` = Datenbank-ID), dazu in der App `file_id` an drei Tabellen und der Zähler `projects.planer_next_ids` (S3d), damit Datei-IDs nie wiederverwendet werden.
+
+**Einfacher:** Die Datei-ID **ist** die Datenbank-ID mit Präfix: `m-12`, `t-41`, `k-88`.
+- Neue Elemente, die lokal (Helfer, Assistent, Markdown) entstehen, bekommen eine vorläufige ID `k-new-1`, `t-new-2` … Nach `push` bzw. Import ersetzt der Export sie durch die echte ID. Im Git-Diff erscheint das einmal als Umbenennung.
+- Eindeutig und nie wiederverwendet: garantiert der Auto-Increment der Datenbank (gelöschte Elemente liegen im Papierkorb und behalten ihre ID; endgültig gelöschte IDs vergibt MariaDB nicht neu, der Zähler ist seit 10.2.4 dauerhaft).
+- Es entfallen: Feld `appId` im Format, `file_id` (S3d), `planer_next_ids`, der ID-Dienst, die Regel „nie wiederverwenden“ im Validator (wird zu „Form `x-<Zahl>` oder `x-new-<Zahl>`, eindeutig je Datei“).
+- Anker im Assistenten-Entwurf: einfach Elemente mit echter ID. Neu: Elemente mit `-new-`.
+- **Folge:** S3d entfällt. T1 bzw. T4 passen Schema, Validator, Helfer und `convert` an (`convert` vergibt `-new-`-IDs).
+
+### V2. Ein Schreibweg für Pläne, MCP auf wenige Werkzeuge reduziert (hoch)
+
+**Heute:** `ProjectPlanImporter` (339 Zeilen) und `ProjectPlanReader` schreiben über 15 GraphQL-Operationen als Strings (R3). Dazu kommen fünf Plan-Werkzeuge im MCP (`create_project_plan`, `add_to_plan`, `update_plan_item`, `move_milestone`, `set_task_status`), `PlanRules`, die MCP-Teile von `PlanSchema`, `ReadsProjectPlanInput`, `PlainTextDocument`, `plan.graphql` mit eigenen Typen, `importProjectPlan`.
+
+**Einfacher:**
+- **Ein Importer** `App\Planer\Import` für alle Wege: Datei (`full`), Assistent und Connector (`partial`), Vorlage (`full` in ein neues Projekt). Er ruft die Dienste der App direkt auf (`Ordering`, `Deletion`, `ItemStatusSync`, `TaskNotifier`) und prüft jede Änderung mit `Gate`/Policies. Gleiche Rechte wie die Oberfläche, ohne den Umweg über GraphQL-Strings, in einer Transaktion.
+- **`partial` = ergänzen und ändern, nie löschen:** Ein Element mit echter ID wird mit den angegebenen Feldern aktualisiert (fehlende Felder bleiben), eines mit `-new-` angelegt. Damit deckt `import_plan` alles ab, was die fünf Plan-Werkzeuge heute tun. Ob der **Assistent** Anker ändern darf, bleibt eine Regel des Assistenten (§6 Frage 2), nicht des Importers.
+- **Trockenlauf:** `import_plan(…, dry_run: true)` liefert die Liste der geplanten Änderungen (anlegen, ändern, verschieben, löschen, je mit Pfad) und alle Fehler, ohne zu schreiben. Dieselbe Liste nutzen die Vorschau des Assistenten („neu“/„vorhanden“/„geändert“), die Duplikat-Prüfung, die Fehlermeldung von `push` und eine Import-Vorschau in der App. Ein einziger Abgleich statt vier.
+- **MCP danach:** `list_projects`, `export_plan`, `import_plan`, `list_templates`, `create_idea`, `list_ideas`, `get_project_ai_context`, `list_users` (nur für neue Projekte, eingeschränkt nach §6 Frage 3). Ein neues Projekt entsteht über `import_plan` ohne `project_id` (mit `projects.create`), aus einer Vorlage über `template_id`. `create_project` und `set_project_member` entfallen (Mitglieder stehen im Dokument).
+- **Es entfallen:** die fünf Plan-Werkzeuge, `create_project`, `set_project_member`, `ProjectPlanImporter`, `ProjectPlanReader`, `PlanRules`, MCP-Teile von `PlanSchema`, `ReadsProjectPlanInput`, `PlainTextDocument`, `plan.graphql`-Typen, `importProjectPlan`, die meisten Dateien in `graphql/operations/` (bleiben nur, wenn noch etwas sie nutzt; sonst samt `GraphQLRunner::runNamed` entfernen).
+- **Breaking Change am Connector:** laut Rahmen erlaubt. `docs/claude-connector.md` neu schreiben.
+
+### V3. Vorlagen und Demo-Daten als Dateien (mittel)
+
+- **Mitgelieferte Vorlagen** als Dateien `spec/templates/software-development.planer.json`, `event.planer.json`, `podcast.planer.json` (mit `names` in `de` und `en`). Ein Befehl synchronisiert sie in die Tabelle `templates` (wie heute `BuiltinLabelSets::sync`). Es entfallen `BuiltinLabelSets.php` und die Label-Übersetzungen in `lang/`.
+- **Vorlage-Funktionen** werden zu Import/Export: Projekt aus Vorlage = `import_plan` (`full`) in ein neues Projekt; „Als Vorlage speichern“ = Export plus `template` (Entfernen der App-Bezüge, eine Funktion in PHP und `tools/planer/core`); Duplizieren = Kopie des JSON; Upload/Download = Datei. Der Editor in `/templates` bearbeitet nur Name, Beschreibung und Labels. Das Gerüst wird nicht in einem eigenen Editor bearbeitet, sondern über „Projekt aus Vorlage anlegen, ändern, als Vorlage speichern“ oder über die Datei.
+- **Demo-Daten** als Dateien `database/seeders/demo/*.planer.json` (Website-Relaunch, Sommerfest 2027). `DemoSeeder` legt Personen an und importiert die Dateien. Das ist zugleich ein Roundtrip-Test (`export(import(datei)) = datei`, bis auf IDs).
+
+### V4. Eine Baum-Ansicht für Plan-Dokumente im Frontend (mittel)
+
+Ein Baustein `PlanerTree` zeigt ein `planer/2`-Dokument (Milestones, ToDos, Tasks, Labels, User-Story, Status) mit optionalen Markierungen aus dem Trockenlauf (neu, geändert, verschoben, gelöscht). Genutzt für: Vorschau des Assistenten (ersetzt `PlanPreview.vue`), Ansicht einer Vorlage, Entwurf an einer Idee, Vorschau beim Datei-Import. Typen aus `spec/planer-2.schema.json`.
+
+### V5. Ideen als Entwurf (klein)
+
+Eine Idee hat Titel, Beschreibung und optional einen `planer/2`-Ausschnitt (`draft`). Einplanen = `import_plan` (`partial`) mit diesem Ausschnitt. Kein eigener Weg vom Entwurf ins Projekt.
+
+### V6. Markdown statt TipTap-JSON als Speicherform für Beschreibungen (groß, zur Prüfung)
+
+**Heute:** Die Datenbank speichert TipTap-JSON. Die Datei speichert Markdown. Also braucht es Markdown ↔ TipTap-JSON in PHP (Import, Export, Assistent) **und** in JavaScript (CLI, Vorschau), mit derselben Whitelist an drei Stellen (`RichTextDocument.php`, `utils/rich-text.ts`, `tools/planer/core`).
+
+**Einfacher:** Die App speichert Beschreibungen und Kommentare als Markdown (nach der Whitelist). TipTap lädt und speichert Markdown (offizielle Markdown-Erweiterung von TipTap 3).
+- Import und Export übernehmen den Text ohne Umwandlung. Der Assistent liefert direkt Markdown.
+- PHP prüft nur noch Markdown gegen die Whitelist (mit `league/commonmark`, das Laravel ohnehin mitbringt), keine Umwandlung.
+- Sicherheit bleibt: Anzeige weiterhin über TipTap, nie `v-html`, nie HTML gespeichert.
+- **Risiko:** Treue des Roundtrips TipTap ↔ Markdown (z. B. harte Zeilenumbrüche, verschachtelte Listen). Muss mit Tests über alle erlaubten Konstrukte belegt werden, bevor umgestellt wird.
+- **Empfehlung:** als kurzer Spike vor S3 prüfen (ein Test mit allen Whitelist-Konstrukten durch den TipTap-Editor). Gelingt er, umstellen und sich den PHP-Konverter sparen. Sonst bei TipTap-JSON bleiben.
+
+### V7. Kleinere
+
+- **`list_users` im MCP:** nur noch für neue Projekte nötig. Mit §6 Frage 3 eingeschränkt.
+- **`Project.planerRevision` im Frontend:** kann das Neuladen nach Änderungen steuern (nur neu laden, wenn sich die Revision geändert hat), statt nach jeder Mutation alle aktiven Abfragen. Ersetzt C1 (Payloads) ganz oder teilweise. Zu prüfen, wenn S3c steht.
+- **Spur-Begriffe:** In `docs/umsetzung-planer-v2.md` die Spuren auflösen, sobald V1 bis V3 entschieden sind (ein neues kurzes Umsetzungsdokument statt Hinweisen in drei alten).
+
+### Folgen für die laufende Umsetzung
+
+- **V1 betrifft T4 und S3d.** Wenn V1 angenommen wird: S3d entfällt, T4 nutzt das neue ID-Schema. Der Agent sollte vor T4 auf die Entscheidung warten.
+- **V2 betrifft nur spätere Schritte** (Export/Import, Assistent). S2 bis S6 sind unabhängig.
+- **V3 betrifft S7.** **V6 betrifft S2, S3 und alle Beschreibungen** und sollte vor S3 entschieden sein.
 
 ---
 

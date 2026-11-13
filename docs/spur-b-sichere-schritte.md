@@ -8,7 +8,7 @@ Diese Schritte hängen an keiner offenen Entscheidung. Alles, was noch offen ist
 
 **Seit 2026-11-13 gibt es nur noch eine Spur.** Format und Werkzeuge aus `mollo-version` ziehen nach `mollo-planer` (`docs/planer-abgleich.md` §4). Wo ältere Dokumente „Spur A“ oder `mollo-version` nennen, gilt jetzt `tools/planer/` bzw. `spec/` in diesem Repository.
 
-**Stand:** S1 erledigt (`d368475`, `f03d853`). U0 erledigt (`c2b1577`, in `mollo-version` `56e68a2`). T1 erledigt (siehe Git-Log).
+**Stand:** S1 erledigt (`d368475`, `f03d853`).
 
 ---
 
@@ -28,13 +28,17 @@ Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version
 - Commit: `Chore: move planer/2 format and tools from mollo-version (c169118)`. Danach alle Tests grün (`tools/planer`: `npm test`).
 - In `~/www/mollo-version`: README oben mit Hinweis „Archiviert. planer/2 wird in mollo-planer weiterentwickelt (spec/, tools/planer/).“ Ein Commit `Docs: archived, moved to mollo-planer`. Sonst nichts ändern.
 
-## T1. Revision nur durch die App, `changed` (früher A-S1)
+## T1. Revision nur durch die App, `changed`, Werte klein und englisch (früher A-S1)
 
-`docs/planer-abgleich.md` §1a. In `spec/` und `tools/planer/`: `revision` erhöht nur die App, Helfer setzen `"changed": true`, Schema und Spezifikation nachführen, Tests und Golden Files.
+`docs/planer-abgleich.md` §1a und §5.1. In `spec/` und `tools/planer/`: `revision` erhöht nur die App, Helfer setzen `"changed": true`. Alle Werte klein und englisch: `locale` `de`/`en`, `release.status` `planned`/`released`, Commit `none`. `render`/`md2json` übersetzen die festen Wörter. `convert` bildet v1 darauf ab. Schema, Spezifikation, Tests und Golden Files nachführen.
 
 ## T4. Labels in der Datei, Vorlagen (früher A-S4)
 
-`docs/planer-abgleich.md` §3.3, §3.6, §3.7. In `spec/` und `tools/planer/`: `project.labels`, Task-Feld `labels` (statt `labelNames`), Verweisprüfung, Legende in `render`/`md2json`, `validate --template`, Befehl `template`, `convert` erzeugt Labels der Vorlage „Softwareentwicklung“. Fixtures und `docs/beispiel-planer.md` nachführen.
+`docs/planer-abgleich.md` §3.3, §3.6, §3.7. In `spec/` und `tools/planer/`: `project.labels` mit mehrsprachigen `names` (§5.2), Task-Feld `labels` (statt `labelNames`), Verweisprüfung, Legende in `render`/`md2json`, `render --lang de|en` und `--legend-translations` (§5.3), `validate --template`, Befehl `template`, `convert` erzeugt Labels der Vorlage „Softwareentwicklung“ in `de` und `en`. Fixtures und `docs/beispiel-planer.md` nachführen.
+
+**Zusätzlich in T4:** Task-Status `idea` und `planned` (`docs/planer-abgleich.md` §8), Markierungen `[i]` (idea) und `[p]` (planned).
+
+**S3d nicht umsetzen**, bis V1 (IDs aus der Datenbank, `docs/planer-abgleich.md` §7) entschieden ist. Alles andere läuft weiter.
 
 T1 und T4 vor S3, damit die App gleich gegen das neue Format gebaut wird. T2 (`pull`/`push`/`sync`) und T3 (GitHub Action) folgen nach dem Export und Import in der App (siehe „Nicht in diesem Auftrag“).
 
@@ -63,6 +67,7 @@ Eine Migration bzw. Umbau der bestehenden Migrationen, danach `migrate:fresh --s
 - **A3** `todos.position` je Milestone über `Ordering` (R1), Relation sortiert, `CreateTodoInput.position` optional, Mutation `moveTodo(id, milestoneId, position)`. Umbenennung `Task.position` → `boardPosition` (Spalte `board_position`). Frontend: Zeitachse sortiert nicht mehr selbst (`Timeline.vue`), Kanban nutzt `boardPosition`.
 - **A5 (nur Spalten)** `projects.archived_at`; `deleted_at`, `deleted_by`, `deletion_id` an `projects`, `milestones`, `todos`, `tasks`, `comments`. Noch ohne Logik, `SoftDeletes` noch nicht aktivieren.
 - **A6** `tasks.user_story` (JSON, nullable) mit `role` (max. 80), `goal`, `benefit` (je max. 160), Klartext, alle drei Pflicht wenn gesetzt. GraphQL-Typ `UserStory`, Feld `Task.userStory`, Eingabe in `createTask` und `updateTask`. Task-Detail zeigt den Satz „Als … möchte ich …, damit …“ über der Beschreibung, Kanban-Karte nicht. Formular im Task-Detail mit drei Feldern.
+- **Task-Status `idea` und `planned`** (`docs/planer-abgleich.md` §8): `TaskStatus` in PHP, GraphQL und Frontend, `ItemStatusSync` und Fortschritt ohne `idea`, Kanban mit sechs Spalten und Schalter für `idea`/`planned`, „offene Tasks“ ohne `idea`, Zuweisungs-Mail erst ab `planned`.
 - Seeder: Demoprojekte mit Positionen der ToDos, einigen User-Stories, `created_by`.
 - `composer schema:frontend`, `npm run codegen`, alle Prüfungen.
 - Commits: je Punkt (A1, A2, A3, A5-Spalten, A6) einer.
@@ -71,11 +76,11 @@ Eine Migration bzw. Umbau der bestehenden Migrationen, danach `migrate:fresh --s
 
 Details in `docs/planer-abgleich.md`, Abschnitt 1. Eigene Migration nach S3.
 
-- `milestones.release_version` (`M.m`) und `milestones.release_status` (`geplant`, `veröffentlicht`), beide gesetzt oder beide leer.
-- `tasks.commit`: Hash (7 bis 40 Kleinbuchstaben und Ziffern) oder `ohne`.
+- `milestones.release_version` (`M.m`) und `milestones.release_status` (`planned`, `released`), beide gesetzt oder beide leer. Oberfläche zeigt „geplant“/„veröffentlicht“ bzw. „planned“/„released“.
+- `tasks.commit`: Hash (7 bis 40 Kleinbuchstaben und Ziffern) oder `none` (Oberfläche: „ohne“).
 - `projects.planer_revision` (Standard 0). Gezählt wird in S3c.
 - GraphQL: `Release`, `ReleaseStatus`, `Milestone.release`, `Task.commit`, `Project.planerRevision`, Eingaben in Milestone- und Task-Mutationen.
-- Regeln wie `mollo-version` `spec/format-v2.md` §5.3, mit Tests: veröffentlichte Version nur mit `done`-Tasks, `done`-Task in veröffentlichter Version braucht Commit oder `ohne`, `ohne` nur bei `done`.
+- Regeln wie `mollo-version` `spec/format-v2.md` §5.3, mit Tests: veröffentlichte Version nur mit `done`-Tasks, `done`-Task in veröffentlichter Version braucht Commit oder `none`, `none` nur bei `done`.
 - Oberfläche: Version und Freigabe am Milestone (Zeitstrahl, Formular), Commit im Task-Detail.
 - Seeder: Demoprojekt mit einer veröffentlichten und einer geplanten Version.
 
@@ -132,14 +137,15 @@ Vollständig nach `docs/schema-review.md` A5:
 Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set-Modell. Breaking Change, `migrate:fresh` lokal.
 
 **Datenmodell:**
-- `labels.project_id` statt `labels.label_set_id`: Jedes Projekt hat eigene Labels (Schlüssel `key`, Name, Kategorie, Farbe, Position), Schlüssel und Name eindeutig je Projekt, höchstens 30.
+- `labels.project_id` statt `labels.label_set_id`: Jedes Projekt hat eigene Labels (Schlüssel `key`, `names` als JSON Sprache → Name, Kategorie, Farbe, Position), Schlüssel und Name je Sprache eindeutig je Projekt, höchstens 30. Name in der Sprache des Projekts Pflicht (`docs/planer-abgleich.md` §5.2).
 - `projects.label_set_id` entfällt. Optional `projects.template_id` (nullable, `nullOnDelete`) als Herkunft.
 - Tabelle `templates`: `key` (nur mitgelieferte), `name`, `description`, `content` (JSON, `planer/2`-Vorlage), `created_by`, Zeitstempel. Mitgelieferte Vorlagen aus `BuiltinLabelSets` mit Namen in DE und EN (Übersetzung wie heute über den Schlüssel), unveränderlich.
 - `label_sets` entfällt.
 
 **Funktionen (Backend und GraphQL):**
 - Vorlagen auflisten, ansehen, anlegen, duplizieren, ändern, löschen. Inhalt: Labels und optional Plan-Gerüst (Milestones, ToDos, Tasks mit Titel, Beschreibung, User-Story, Labels, Reihenfolge, `release.version`). Keine Fälligkeiten, Personen, Commits, Status.
-- Projekt aus Vorlage anlegen (`createProject` mit optionalem `templateId`): Labels kopieren (Namen in der Sprache des Projekts), Gerüst anlegen.
+- Projekt aus Vorlage anlegen (`createProject` mit optionalem `templateId`): Labels mit allen Sprachen kopieren, Gerüst anlegen.
+- Anzeige der Label-Namen in der Sprache der Oberfläche, sonst der Sprache des Projekts. Editor mit einem Feld je Sprache. Übersetzungen der mitgelieferten Vorlagen aus `lang/` in den Inhalt der Vorlage.
 - „Als Vorlage speichern“ aus einem Projekt.
 - Labels eines Projekts bearbeiten (`project.update`), Labels aus einer Vorlage übernehmen (ersetzen oder ergänzen; Labels an Tasks bleiben beim Ersetzen erhalten).
 - Rechte: `labelSets.manage` → `templates.manage`, `labelSets.manageAny` → `templates.manageAny` (gleiche Rollen). Sichtbarkeit: alle Vorlagen für alle Angemeldeten lesbar, auch Rolle `lesend` (entschieden, `docs/planer-abgleich.md` 3.6 Nr. 4).
@@ -164,6 +170,7 @@ U0 → T1 → T4 → S2 → S3 → S3b → S3c → S3d → S4 → S5 → S6 → 
 
 - R2 Rest und PHP-Teil `backend/app/Planer/` (Schema-Prüfung mit `opis/json-schema`, Semantik, kanonisches JSON, Markdown ↔ Rich Text, gemeinsame Fixtures mit `tools/planer`): Ort entschieden (§4), Reihenfolge folgt mit Problem 5.
 - T2 `pull`/`push`/`sync`/`--watch` und T3 GitHub Action: nach `export_plan`/`import_plan`.
+- Download als Markdown (Sprache wählbar, optional Legende mit Übersetzungen) und als `planer.json` in der App: nach `export_plan` (`docs/planer-abgleich.md` §5.3).
 - B5 `importPlanIntoProject` und P6 Import/Export der Datei: `export_plan`/`import_plan` (Semantik entschieden, `docs/planer-abgleich.md` §2), Webhook, Abbildung von `labelNames` auf Labels und von Rollen und Sprache sind offen (`docs/planer-abgleich.md`).
 - B5a Assistent nach `docs/assistent-ideen-konzept.md`: Entscheidungen Abschnitt 12 offen.
 - B6 Ideen, KI-Kontext, MCP `create_idea`, `list_ideas`, `get_project_ai_context`, `import_plan`.
