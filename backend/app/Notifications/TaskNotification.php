@@ -5,7 +5,7 @@ namespace App\Notifications;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -48,7 +48,7 @@ abstract class TaskNotification extends Notification implements ShouldQueue
     {
         return $notifiable instanceof User
             && $notifiable->notify_by_email
-            && ProjectPermissions::canView($notifiable, $this->project());
+            && Rights::canView($notifiable, $this->project());
     }
 
     protected function project(): Project

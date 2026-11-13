@@ -5,7 +5,7 @@ namespace App\Enums;
 /**
  * Abilities within a project. The values match the GraphQL enum ProjectAbility.
  *
- * Which role has which ability is defined in App\Support\ProjectPermissions.
+ * Which role has which ability is defined in App\Support\Rights.
  */
 enum ProjectAbility: string
 {

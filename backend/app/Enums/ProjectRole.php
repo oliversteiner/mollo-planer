@@ -6,7 +6,7 @@ namespace App\Enums;
  * Role of a user within a project (pivot column project_user.role).
  *
  * The role alone grants nothing. What a role may do is defined only in
- * App\Support\ProjectPermissions.
+ * App\Support\Rights.
  */
 enum ProjectRole: string
 {

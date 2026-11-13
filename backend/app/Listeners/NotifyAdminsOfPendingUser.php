@@ -6,14 +6,14 @@ use App\Enums\SystemAbility;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Notifications\UserAwaitingApproval;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Notification;
 
 /**
  * After the mail address is confirmed, the admins hear about the account
  * that waits for approval. Only users who manage users get the mail, the
- * roles come from App\Support\SystemPermissions.
+ * roles come from App\Support\Rights.
  */
 class NotifyAdminsOfPendingUser
 {
@@ -29,7 +29,7 @@ class NotifyAdminsOfPendingUser
             UserRole::cases(),
             fn (UserRole $role): bool => in_array(
                 SystemAbility::USERS_MANAGE,
-                SystemPermissions::abilitiesOf($role),
+                Rights::systemRightsOf($role),
                 true,
             ),
         );

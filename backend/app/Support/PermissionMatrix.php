@@ -25,7 +25,7 @@ final class PermissionMatrix
                     'ability' => $ability,
                     'roles' => array_values(array_filter(
                         UserRole::cases(),
-                        fn (UserRole $role): bool => in_array($ability, SystemPermissions::abilitiesOf($role), true),
+                        fn (UserRole $role): bool => in_array($ability, Rights::systemRightsOf($role), true),
                     )),
                 ],
                 SystemAbility::cases(),
@@ -35,7 +35,7 @@ final class PermissionMatrix
                     'ability' => $ability,
                     'roles' => array_values(array_filter(
                         ProjectRole::cases(),
-                        fn (ProjectRole $role): bool => ProjectPermissions::roleAllows($role, $ability),
+                        fn (ProjectRole $role): bool => Rights::projectRoleAllows($role, $ability),
                     )),
                 ],
                 ProjectAbility::cases(),

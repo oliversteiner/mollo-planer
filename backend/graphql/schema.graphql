@@ -9,7 +9,7 @@
 #  Schreiben  Eine Policy prüft per @can. Ohne Recht gibt es den Fehler
 #             "This action is unauthorized."
 #
-#  Rechte     Eine zentrale Rechte-Tabelle (App\Support\ProjectPermissions)
+#  Rechte     Eine zentrale Rechte-Tabelle (App\Support\Rights)
 #             legt fest, welche Projektrolle welche Fähigkeit hat. Alle
 #             Policies fragen nur diese Tabelle. Eine neue Einschränkung
 #             ändert dort eine Zeile, nicht das Schema. Admins

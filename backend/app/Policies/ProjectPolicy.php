@@ -7,7 +7,7 @@ use App\Enums\SystemAbility;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 
 class ProjectPolicy
 {
@@ -18,7 +18,7 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        return SystemPermissions::allows($user, SystemAbility::PROJECTS_CREATE);
+        return Rights::systemAllows($user, SystemAbility::PROJECTS_CREATE);
     }
 
     public function update(User $user, Project $project): bool

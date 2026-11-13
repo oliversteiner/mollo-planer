@@ -7,7 +7,7 @@ use App\Enums\ProjectRole;
 use App\Enums\SystemAbility;
 use App\Models\Project;
 use App\Models\User;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -33,7 +33,7 @@ class CreateProject
                 'locale' => $args['locale'] ?? Locale::DE->value,
             ]);
 
-            if ($creator instanceof User && ! SystemPermissions::allows($creator, SystemAbility::PROJECTS_MANAGE_ANY)) {
+            if ($creator instanceof User && ! Rights::systemAllows($creator, SystemAbility::PROJECTS_MANAGE_ANY)) {
                 $project->members()->attach($creator->getKey(), ['role' => ProjectRole::OWNER->value]);
             }
 

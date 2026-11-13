@@ -4,15 +4,15 @@ namespace Tests\Unit;
 
 use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 /**
  * Checks the permission table against the matrix confirmed by the client
  * (docs/graphql-kontext.md, "Rechte-Tabelle"). Order: owner, manager, member.
  */
-class ProjectPermissionsTableTest extends TestCase
+class RightsProjectTableTest extends TestCase
 {
     private const CONFIRMED_MATRIX = [
         'project.update' => [true, true, false],
@@ -50,7 +50,7 @@ class ProjectPermissionsTableTest extends TestCase
     #[DataProvider('matrix')]
     public function test_role_has_exactly_the_confirmed_abilities(ProjectAbility $ability, ProjectRole $role, bool $expected): void
     {
-        $this->assertSame($expected, ProjectPermissions::roleAllows($role, $ability));
+        $this->assertSame($expected, Rights::projectRoleAllows($role, $ability));
     }
 
     public function test_matrix_covers_every_ability(): void
@@ -64,10 +64,10 @@ class ProjectPermissionsTableTest extends TestCase
     public function test_without_role_nothing_is_allowed(): void
     {
         foreach (ProjectAbility::cases() as $ability) {
-            $this->assertFalse(ProjectPermissions::roleAllows(null, $ability));
+            $this->assertFalse(Rights::projectRoleAllows(null, $ability));
         }
 
-        $this->assertSame([], ProjectPermissions::abilitiesOfRole(null));
+        $this->assertSame([], Rights::projectRightsOfRole(null));
     }
 
     public function test_abilities_of_member(): void
@@ -79,6 +79,6 @@ class ProjectPermissionsTableTest extends TestCase
             ProjectAbility::TODO_UPDATE,
             ProjectAbility::TASK_MOVE,
             ProjectAbility::COMMENT_CREATE,
-        ], ProjectPermissions::abilitiesOfRole(ProjectRole::MEMBER));
+        ], Rights::projectRightsOfRole(ProjectRole::MEMBER));
     }
 }

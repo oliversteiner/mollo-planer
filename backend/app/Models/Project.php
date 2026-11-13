@@ -83,7 +83,7 @@ class Project extends Model
      *
      * Uses the loaded members relation if present, otherwise one query.
      * This only looks up the role; what it allows is decided by
-     * App\Support\ProjectPermissions.
+     * App\Support\Rights.
      */
     public function roleOf(User $user): ?ProjectRole
     {

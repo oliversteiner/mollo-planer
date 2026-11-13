@@ -5,7 +5,7 @@ namespace App\GraphQL\Queries;
 use App\Enums\ProjectAbility;
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\User;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -27,7 +27,7 @@ class UserSearch
     {
         $viewer = $this->viewer($context);
 
-        if (! ProjectPermissions::allowsInAnyProject($viewer, ProjectAbility::MEMBERS_MANAGE)) {
+        if (! Rights::projectAllowsInAnyProject($viewer, ProjectAbility::MEMBERS_MANAGE)) {
             return [];
         }
 

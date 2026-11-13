@@ -6,7 +6,7 @@ use App\Enums\ProjectAbility;
 use App\Models\Contracts\BelongsToProject;
 use App\Models\Project;
 use App\Models\User;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 
 trait ChecksProjectAbilities
 {
@@ -17,6 +17,6 @@ trait ChecksProjectAbilities
     {
         $project = $model instanceof Project ? $model : $model->owningProject();
 
-        return ProjectPermissions::allows($user, $project, $ability);
+        return Rights::projectAllows($user, $project, $ability);
     }
 }

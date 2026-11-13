@@ -41,7 +41,7 @@ enum ProjectAbility {
   COMMENT_MODERATE @enum(value: "comment.moderate")
 }
 
-"Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\SystemPermissions)."
+"Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\Rights)."
 enum UserRole {
   ADMIN @enum(value: "admin")
   PROJEKTLEITUNG @enum(value: "projektleitung")

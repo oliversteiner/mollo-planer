@@ -4,11 +4,11 @@ namespace App\GraphQL\Queries;
 
 use App\Enums\SystemAbility;
 use App\GraphQL\Concerns\ResolvesViewer;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
- * The system-wide abilities of the viewer, from the SystemPermissions table.
+ * The system-wide abilities of the viewer, from config/permissions.php.
  */
 class ViewerSystemAbilities
 {
@@ -20,6 +20,6 @@ class ViewerSystemAbilities
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): array
     {
-        return SystemPermissions::abilitiesOf($this->viewer($context)->role);
+        return Rights::systemRightsOf($this->viewer($context)->role);
     }
 }

@@ -6,7 +6,7 @@ namespace App\Enums;
  * Abilities across the whole app, granted by the global UserRole. The values
  * match the GraphQL enum SystemAbility.
  *
- * Which role has which ability is defined in App\Support\SystemPermissions.
+ * Which role has which ability is defined in App\Support\Rights.
  */
 enum SystemAbility: string
 {

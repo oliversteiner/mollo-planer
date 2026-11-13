@@ -5,15 +5,15 @@ namespace Tests\Unit;
 use App\Enums\SystemAbility;
 use App\Enums\UserRole;
 use App\Models\User;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 /**
  * Checks the system permission table against the matrix confirmed for the
  * roles (rollen-plan.md). Any change of the table must change this matrix too.
  */
-class SystemPermissionsTableTest extends TestCase
+class RightsSystemTableTest extends TestCase
 {
     /**
      * @var array<string, list<string>>
@@ -45,7 +45,7 @@ class SystemPermissionsTableTest extends TestCase
     #[DataProvider('matrix')]
     public function test_role_has_exactly_the_confirmed_abilities(UserRole $role, SystemAbility $ability, bool $expected): void
     {
-        $this->assertSame($expected, SystemPermissions::allows(new User(['role' => $role]), $ability));
+        $this->assertSame($expected, Rights::systemAllows(new User(['role' => $role]), $ability));
     }
 
     public function test_matrix_covers_every_role(): void
@@ -58,12 +58,12 @@ class SystemPermissionsTableTest extends TestCase
 
     public function test_guests_have_no_system_ability(): void
     {
-        $this->assertFalse(SystemPermissions::allows(null, SystemAbility::PROJECTS_CREATE));
+        $this->assertFalse(Rights::systemAllows(null, SystemAbility::PROJECTS_CREATE));
     }
 
     public function test_read_only_is_only_the_lesend_role(): void
     {
-        $this->assertTrue(SystemPermissions::isReadOnly(new User(['role' => UserRole::LESEND])));
-        $this->assertFalse(SystemPermissions::isReadOnly(new User(['role' => UserRole::ADMIN])));
+        $this->assertTrue(Rights::isReadOnly(new User(['role' => UserRole::LESEND])));
+        $this->assertFalse(Rights::isReadOnly(new User(['role' => UserRole::ADMIN])));
     }
 }

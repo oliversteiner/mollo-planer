@@ -6,7 +6,7 @@ use App\Enums\ProjectRole;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
@@ -101,7 +101,7 @@ class ProjectMembership
      */
     private function authorize(User $actor, Project $project, ?ProjectRole $current, ?ProjectRole $new): void
     {
-        if (! ProjectPermissions::canChangeMembership($actor, $project, $current, $new)) {
+        if (! Rights::canChangeMembership($actor, $project, $current, $new)) {
             throw new AuthorizationException;
         }
     }
@@ -111,7 +111,7 @@ class ProjectMembership
      */
     private function guardLastOwner(User $actor, Project $project, string $field): void
     {
-        if ($project->countMembersWithRole(ProjectRole::OWNER) <= 1 && ! ProjectPermissions::canRemoveLastOwner($actor)) {
+        if ($project->countMembersWithRole(ProjectRole::OWNER) <= 1 && ! Rights::canRemoveLastOwner($actor)) {
             throw ValidationException::withMessages([$field => __('projects.last_owner')]);
         }
     }

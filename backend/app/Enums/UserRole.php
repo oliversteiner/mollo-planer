@@ -4,7 +4,7 @@ namespace App\Enums;
 
 /**
  * Global role of a user (users.role). It decides what someone may do in the
- * whole app. What a role may do is defined only in App\Support\SystemPermissions.
+ * whole app. What a role may do is defined only in App\Support\Rights.
  */
 enum UserRole: string
 {

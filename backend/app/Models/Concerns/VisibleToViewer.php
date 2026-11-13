@@ -4,15 +4,14 @@ namespace App\Models\Concerns;
 
 use App\Enums\SystemAbility;
 use App\Models\User;
-use App\Support\ProjectPermissions;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 /**
  * Read filter for everything that lives in a project.
  *
- * The rule itself (who sees which project) is in ProjectPermissions.
+ * The rule itself (who sees which project) is in App\Support\Rights.
  * This trait only follows the relations up to the project.
  */
 trait VisibleToViewer
@@ -44,18 +43,18 @@ trait VisibleToViewer
      */
     public function scopeVisibleTo(Builder $query, ?User $user): void
     {
-        if (SystemPermissions::allows($user, SystemAbility::PROJECTS_VIEW_ALL)) {
+        if (Rights::systemAllows($user, SystemAbility::PROJECTS_VIEW_ALL)) {
             return;
         }
 
         $path = static::projectPath();
 
         if ($path === null) {
-            ProjectPermissions::constrainToVisibleProjects($query, $user);
+            Rights::constrainToVisibleProjects($query, $user);
 
             return;
         }
 
-        $query->whereHas($path, fn (Builder $projects) => ProjectPermissions::constrainToVisibleProjects($projects, $user));
+        $query->whereHas($path, fn (Builder $projects) => Rights::constrainToVisibleProjects($projects, $user));
     }
 }

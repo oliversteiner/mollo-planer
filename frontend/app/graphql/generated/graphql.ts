@@ -228,7 +228,7 @@ export type UserFunction =
   | 'TESTER'
   | 'VOLUNTEER';
 
-/** Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\Support\SystemPermissions). */
+/** Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\Support\Rights). */
 export type UserRole =
   | 'ADMIN'
   | 'KOORDINATION'

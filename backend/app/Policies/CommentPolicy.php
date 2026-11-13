@@ -6,7 +6,7 @@ use App\Enums\ProjectAbility;
 use App\Models\Comment;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 
 class CommentPolicy
 {
@@ -34,6 +34,6 @@ class CommentPolicy
     private function isAuthorWithAccess(User $user, Comment $comment): bool
     {
         return $comment->isAuthoredBy($user)
-            && ProjectPermissions::canView($user, $comment->owningProject());
+            && Rights::canView($user, $comment->owningProject());
     }
 }

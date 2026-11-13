@@ -10,7 +10,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -86,7 +86,7 @@ class PolicyTest extends TestCase
 
         foreach (ProjectRole::cases() as $role) {
             $this->assertSame(
-                ProjectPermissions::roleAllows($role, $ability),
+                Rights::projectRoleAllows($role, $ability),
                 $this->users[$role->value]->can($method, $target),
                 "{$role->value} {$method} {$model}",
             );

@@ -7,7 +7,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskAssigned;
 use App\Notifications\TaskCommented;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use Closure;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
@@ -85,7 +85,7 @@ class TaskNotifier
             ->filter()
             ->unique(fn (User $user) => $user->getKey())
             ->reject(fn (User $user) => $user->is($actor))
-            ->filter(fn (User $user) => $user->notify_by_email && ProjectPermissions::canView($user, $project))
+            ->filter(fn (User $user) => $user->notify_by_email && Rights::canView($user, $project))
             ->values();
     }
 }
