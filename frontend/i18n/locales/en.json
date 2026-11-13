@@ -318,6 +318,14 @@
     "loading": "Task",
     "notFound": "This task does not exist, or you have no access.",
     "noDescription": "No description.",
+    "story": {
+      "title": "User story",
+      "role": "Role",
+      "goal": "Goal",
+      "benefit": "Benefit",
+      "sentence": "As {role} I want {goal}, so that {benefit}.",
+      "partial": "Fill in all three parts or leave all empty."
+    },
     "assigned": "Assigned.",
     "assignedMail": "They get an email if they receive notifications.",
     "deleteTitle": "Delete task?",
@@ -1053,6 +1061,10 @@
         "deletion_id": {
           "label": "Deletion",
           "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "user_story": {
+          "label": "User story",
+          "description": "User story of the task: As role I want goal, so that benefit. Three parts, all or none."
         }
       },
       "comments": {

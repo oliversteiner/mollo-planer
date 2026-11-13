@@ -318,6 +318,14 @@
     "loading": "Task",
     "notFound": "Diesen Task gibt es nicht, oder du hast keinen Zugriff.",
     "noDescription": "Keine Beschreibung.",
+    "story": {
+      "title": "Story",
+      "role": "Rolle",
+      "goal": "Ziel",
+      "benefit": "Nutzen",
+      "sentence": "Als {role} möchte ich {goal}, damit {benefit}.",
+      "partial": "Alle drei Teile ausfüllen oder alle leer lassen."
+    },
     "assigned": "Zugewiesen.",
     "assignedMail": "Die Person bekommt eine E-Mail, falls sie Benachrichtigungen erhält.",
     "deleteTitle": "Task löschen?",
@@ -1053,6 +1061,10 @@
         "deletion_id": {
           "label": "Löschvorgang",
           "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
+        },
+        "user_story": {
+          "label": "Story",
+          "description": "Story des Tasks: Als Rolle möchte ich Ziel, damit Nutzen. Drei Teile, alle oder keiner."
         }
       },
       "comments": {

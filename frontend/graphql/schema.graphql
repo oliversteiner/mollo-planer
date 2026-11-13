@@ -57,6 +57,8 @@ input CreateTaskInput {
  labelIds: [ID!]
  title: String!
  todoId: ID!
+ "Die Story des Tasks, alle drei Teile oder keiner"
+ userStory: UserStoryInput
 }
 input CreateTodoInput {
  description: RichText
@@ -507,6 +509,8 @@ type Task {
  status: TaskStatus!
  title: String!
  todo: Todo!
+ "Die Story des Tasks: Als <Rolle> möchte ich <Ziel>, damit <Nutzen>."
+ userStory: UserStory
 }
 "Spalten im Kanban-Board"
 enum TaskStatus {
@@ -563,6 +567,8 @@ input UpdateTaskInput {
  dueDate: Date
  icon: String
  title: String
+ "Die Story des Tasks, null entfernt sie"
+ userStory: UserStoryInput
 }
 input UpdateTodoInput {
  description: RichText
@@ -625,5 +631,16 @@ enum UserRole {
  LESEND
  MITGLIED
  PROJEKTLEITUNG
+}
+"Die Story eines Tasks, Klartext in drei Teilen."
+type UserStory {
+ benefit: String!
+ goal: String!
+ role: String!
+}
+input UserStoryInput {
+ benefit: String!
+ goal: String!
+ role: String!
 }
 

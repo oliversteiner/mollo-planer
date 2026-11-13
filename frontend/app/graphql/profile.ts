@@ -8,6 +8,7 @@ export const myTasksQuery = graphql(`
       icon
       status
       dueDate
+      userStory { role goal benefit }
       commentCount
       description
       assignee { id name }

@@ -14,6 +14,8 @@ export interface TaskFormTarget {
     dueDate?: string | null
     icon?: string | null
     description?: Record<string, unknown> | null
+    /** Only present when the caller loaded the story; without it the story is left as it is. */
+    userStory?: { role: string, goal: string, benefit: string } | null
   }
 }
 
@@ -50,7 +52,8 @@ const state = reactive<{
   icon: string | null
   description: Record<string, unknown> | null
   labelIds: string[]
-}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null, labelIds: [] })
+  story: { role: string, goal: string, benefit: string }
+}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null, labelIds: [], story: { role: '', goal: '', benefit: '' } })
 
 /** Labels of the project's set, for a new task (an existing one gets its labels in the details). */
 const { project } = useProject()
@@ -64,10 +67,19 @@ watch(() => props.target, (target) => {
   state.dueDate = target?.task?.dueDate ?? ''
   state.icon = target?.task?.icon ?? null
   state.description = target?.task?.description ?? null
+  state.story = { role: target?.task?.userStory?.role ?? '', goal: target?.task?.userStory?.goal ?? '', benefit: target?.task?.userStory?.benefit ?? '' }
   state.labelIds = []
 }, { immediate: true })
 
 const isNew = computed(() => !props.target?.task)
+/** The story is edited only where the caller passed the story along (see TaskFormTarget). */
+const storyEditable = computed(() => !props.target?.task || 'userStory' in props.target.task)
+
+/** All three parts, trimmed; null when all are empty. A partial story is refused by the server. */
+function storyInput(): { role: string, goal: string, benefit: string } | null {
+  const parts = { role: state.story.role.trim(), goal: state.story.goal.trim(), benefit: state.story.benefit.trim() }
+  return parts.role || parts.goal || parts.benefit ? parts : null
+}
 const todoItems = computed(() => props.todos.map(todo => ({ label: `${todo.milestone.title} · ${todo.title}`, value: todo.id })))
 const memberItems = computed(() => [
   { label: t('task.nobody'), value: 'none' },
@@ -83,7 +95,8 @@ async function submit(): Promise<void> {
     title: state.title.trim(),
     dueDate: state.dueDate || null,
     icon: state.icon,
-    description: isEmptyDocument(state.description) ? null : state.description
+    description: isEmptyDocument(state.description) ? null : state.description,
+    ...(storyEditable.value ? { userStory: storyInput() } : {})
   }
   const task = props.target?.task
   const result = await run<unknown>(() => task
@@ -167,6 +180,33 @@ async function submit(): Promise<void> {
       >
         {{ errors.labelIds }}
       </p>
+
+      <section
+        v-if="storyEditable"
+        class="wa-stack wa-gap-xs"
+      >
+        <h3 class="wa-heading-s">
+          {{ t('task.story.title') }}
+        </h3>
+        <FormInput
+          v-model="state.story.role"
+          name="userStoryRole"
+          :label="t('task.story.role')"
+          :error="errors['userStory.role']"
+        />
+        <FormInput
+          v-model="state.story.goal"
+          name="userStoryGoal"
+          :label="t('task.story.goal')"
+          :error="errors['userStory.goal']"
+        />
+        <FormInput
+          v-model="state.story.benefit"
+          name="userStoryBenefit"
+          :label="t('task.story.benefit')"
+          :error="errors['userStory.benefit']"
+        />
+      </section>
 
       <FormField
         :label="t('item.fields.description')"

@@ -216,6 +216,12 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
       </FormField>
 
       <section class="wa-stack wa-gap-xs">
+        <p
+          v-if="task.userStory"
+          class="wa-body-s"
+        >
+          {{ t('task.story.sentence', { role: task.userStory.role, goal: task.userStory.goal, benefit: task.userStory.benefit }) }}
+        </p>
         <h3 class="wa-heading-s">
           {{ t('item.fields.description') }}
         </h3>

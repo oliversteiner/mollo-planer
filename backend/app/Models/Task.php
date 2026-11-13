@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Status and Kanban position are changed by moveTask, the assignee by assignTask.
  */
-#[Fillable(['todo_id', 'title', 'description', 'icon', 'due_date'])]
+#[Fillable(['todo_id', 'title', 'description', 'icon', 'due_date', 'user_story'])]
 #[ObservedBy(TaskObserver::class)]
 class Task extends Model implements BelongsToProject
 {
@@ -49,6 +49,7 @@ class Task extends Model implements BelongsToProject
             'status' => TaskStatus::class,
             'due_date' => 'date',
             'board_position' => 'integer',
+            'user_story' => 'array',
         ];
     }
 

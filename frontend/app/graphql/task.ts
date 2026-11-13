@@ -11,6 +11,7 @@ export const kanbanQuery = graphql(`
         status
         boardPosition
         dueDate
+        userStory { role goal benefit }
         commentCount
         labels { id name color position }
         assignee { id name avatarUrl }
@@ -48,6 +49,7 @@ export const taskQuery = graphql(`
       status
       boardPosition
       dueDate
+      userStory { role goal benefit }
       assignee { id name avatarUrl }
       labels { id name color position }
       todo {
@@ -80,7 +82,7 @@ export const createTaskMutation = graphql(`
 
 export const updateTaskMutation = graphql(`
   mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
-    updateTask(id: $id, input: $input) { id title description icon dueDate }
+    updateTask(id: $id, input: $input) { id title description icon dueDate userStory { role goal benefit } }
   }
 `)
 

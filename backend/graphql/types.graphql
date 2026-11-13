@@ -126,6 +126,13 @@ type Todo {
   createdAt: DateTime! @rename(attribute: "created_at")
 }
 
+"Die Story eines Tasks, Klartext in drei Teilen."
+type UserStory {
+  role: String!
+  goal: String!
+  benefit: String!
+}
+
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
 type Task {
   id: ID!
@@ -134,6 +141,8 @@ type Task {
   createdBy: User @belongsTo
   title: String!
   description: RichText
+  "Die Story des Tasks: Als <Rolle> möchte ich <Ziel>, damit <Nutzen>."
+  userStory: UserStory @rename(attribute: "user_story")
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
   icon: String
   status: TaskStatus!

@@ -85,10 +85,18 @@ input LabelInput {
   color: LabelColor!
 }
 
+input UserStoryInput {
+  role: String! @rules(apply: ["min:1", "max:80"])
+  goal: String! @rules(apply: ["min:1", "max:160"])
+  benefit: String! @rules(apply: ["min:1", "max:160"])
+}
+
 input CreateTaskInput {
   todoId: ID! @rename(attribute: "todo_id")
   title: String! @rules(apply: ["min:2", "max:160"])
   description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  "Die Story des Tasks, alle drei Teile oder keiner"
+  userStory: UserStoryInput @rename(attribute: "user_story")
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   assigneeId: ID @rename(attribute: "assigned_user_id")
   dueDate: Date @rename(attribute: "due_date")
@@ -99,6 +107,8 @@ input CreateTaskInput {
 input UpdateTaskInput {
   title: String @rules(apply: ["min:2", "max:160"])
   description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  "Die Story des Tasks, null entfernt sie"
+  userStory: UserStoryInput @rename(attribute: "user_story")
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
 }
