@@ -36,7 +36,7 @@ Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version
 
 `docs/planer-abgleich.md` §3.3, §3.6, §3.7. In `spec/` und `tools/planer/`: `project.labels` mit mehrsprachigen `names` (§5.2), Task-Feld `labels` (statt `labelNames`), Verweisprüfung, Legende in `render`/`md2json`, `render --lang de|en` und `--legend-translations` (§5.3), `validate --template`, Befehl `template`, `convert` erzeugt Labels der Vorlage „Softwareentwicklung“ in `de` und `en`. Fixtures und `docs/beispiel-planer.md` nachführen.
 
-**T4 Rest (jetzt entschieden durch V3):** `template <datei>` entfernt die App-Bezüge nach `docs/planer-abgleich.md` §3.4 und §3.6 (keine `revision`, `changed`, Mitglieder, Zuweisungen, Fälligkeiten, Commits, `release.status`; Task-Status `planned`; IDs werden `-new-`). `validate --template` prüft genau diese Regeln. Die Dateien in `spec/templates/` müssen `validate --template` bestehen.
+**T4 Rest (nach T5):** Eine Vorlage ist ein gültiges `planer/2`-Dokument mit festen Werten nach `docs/planer-abgleich.md` §3.8 (`revision: 0`, nur `-new-`-IDs, `members: []`, keine Zuweisungen, Fälligkeiten, Commits, `release.status` nur `planned`, Task-Status `planned`, mindestens ein Label). `validate --template` = normale Prüfung plus diese Regeln. `template <datei>` setzt genau diese Werte. Kein eigenes Vorlagen-Format. Die Dateien in `spec/templates/` müssen `validate --template` bestehen.
 
 **Zusätzlich in T4:** Task-Status `idea` und `planned` (`docs/planer-abgleich.md` §8), Markierungen `[i]` (idea) und `[p]` (planned).
 
@@ -266,7 +266,7 @@ Wie `docs/planer-abgleich.md` §1a (A-S2, A-S3), in `tools/planer/`. Tests gegen
 
 ## Reihenfolge
 
-U0 → T1 → T4 (Rest) → T5 → T6 → S2 → S3 → R1 → S3b → S3c → S3f → S3e → S5 → S6 → S7 → I1 → I2 → I3 → I4 → I5 → T2 → T3 → W1 → B5a → B6. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
+U0 → T1 → T5 → T4 (Rest) → T6 → S2 → S3 → R1 → S3b → S3c → S3f → S3e → S5 → S6 → S7 → I1 → I2 → I3 → I4 → I5 → T2 → T3 → W1 → B5a → B6. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
 
 ## Nicht in diesem Auftrag (wird in der Planung geklärt)
 

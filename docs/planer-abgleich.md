@@ -229,7 +229,7 @@ Sprache der Ansicht und Legende mit Übersetzungen: §5.3.
 
 ### 3.4 Vorlagen in der App
 
-**Was eine Vorlage ist:** ein `planer/2`-Dokument ohne App-Bezug: keine `appId`, keine `revision`, keine Mitglieder, keine Zuweisungen, keine Commits, kein `release.status`, Task-Status immer `planned` (§8.2 Nr. 7). Gespeichert als JSON in `templates.content` und mit demselben Validator geprüft. Umfang siehe 3.6.
+**Was eine Vorlage ist:** ein **gültiges `planer/2`-Dokument mit festen Werten** (§3.8). Gespeichert als JSON in `templates.content` und mit demselben Validator geprüft, plus die Zusatzregeln von `validate --template`. Umfang siehe 3.6.
 
 **Mitgelieferte Vorlagen:** „Softwareentwicklung“, „Event“, „Podcast“ aus `BuiltinLabelSets`, mit Namen in DE und EN. Unveränderlich, nur duplizieren.
 
@@ -269,10 +269,33 @@ Sprache der Ansicht und Legende mit Übersetzungen: §5.3.
 
 ### 3.6 Entscheidungen zum Umfang (Oliver, 2026-11-13)
 
-1. **Voller Umfang:** Eine Vorlage enthält immer die Labels und optional das ganze Plan-Gerüst: Milestones, ToDos und Tasks mit Titel, Beschreibung, User-Story, Labels und Reihenfolge, Milestones mit `release.version` (ohne `release.status`). Nicht enthalten: Fälligkeiten, Mitglieder, Zuweisungen, Commits, Status (alle Tasks `planned`, §8), `appId`, `id`, `revision`, `changed`. Beim Anlegen eines Projekts aus der Vorlage wird das Gerüst vollständig angelegt (Import `full` in ein leeres Projekt).
+1. **Voller Umfang:** Eine Vorlage enthält immer die Labels und optional das ganze Plan-Gerüst: Milestones, ToDos und Tasks mit Titel, Beschreibung, User-Story, Labels und Reihenfolge, Milestones optional mit `release.version`. Die festen Werte stehen in §3.8. Beim Anlegen eines Projekts aus der Vorlage wird das Gerüst vollständig angelegt (Import `full` in ein leeres Projekt), die echten IDs vergibt der Import.
 2. **Fälligkeiten:** in der ersten Fassung weggelassen. Relative Fälligkeiten („Tag 14 nach Projektstart“) sind eine mögliche spätere Erweiterung.
 3. **Feldname:** `labelNames` am Task heißt neu **`labels`** und enthält Schlüssel aus `project.labels`. Breaking Change am Format.
 4. **Sichtbarkeit von Vorlagen:** Alle Vorlagen sind für alle Angemeldeten lesbar, auch für die Rolle `lesend`. Ändern nach `templates.manage` bzw. `templates.manageAny`.
+
+### 3.8 Feste Werte einer Vorlage (entschieden 2026-11-13, korrigiert §3.4 und §3.6)
+
+Eine Vorlage ist ein **gültiges `planer/2`-Dokument**. Es gibt kein eigenes Vorlagen-Format und kein zweites Schema. `validate --template` ist die normale Prüfung plus diese Regeln, `template <datei>` setzt genau diese Werte:
+
+| Feld | Wert in der Vorlage |
+|---|---|
+| `revision` | `0` |
+| `changed` | fehlt |
+| `id` (Milestone, ToDo, Task) | nur `-new-`-IDs: `m-new-1`, `t-new-1`, `k-new-1` … (nach V1, T5) |
+| `project.members` | `[]` |
+| `assigneeEmail` | fehlt |
+| `dueDate` (alle Ebenen) | fehlt |
+| `commit` | fehlt |
+| `release` | optional; wenn gesetzt, `status: planned` |
+| Task-`status` | immer `planned` |
+| `project.labels` | Pflicht, mindestens ein Label |
+| `project.name`, `project.description` | Name und Beschreibung der Vorlage |
+| `project.locale` | Sprache der Vorlage (Titel, Beschreibungen) |
+
+Grund: Ein Format, ein Schema, ein Importer ohne Sonderfall (Grundregel „eine Beschreibung eines Plans“). Hinweis des Umsetzungs-Agenten vom 2026-11-13: §3.4 und §3.6 widersprachen dem Schema (fehlende `id`, `revision`, `release.status`). Das ist hiermit korrigiert.
+
+**Folge für die Reihenfolge:** T5 (IDs aus der Datenbank, `-new-`-IDs) kommt **vor** T4-Rest.
 
 ### 3.7 Arbeitspakete
 
