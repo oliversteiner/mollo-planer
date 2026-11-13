@@ -15,6 +15,7 @@ Hier werden die Punkte geklärt, die unter „Nicht in diesem Auftrag“ in `doc
 | 7 | Vereinfachungen durch das neue Konzept | **entschieden:** V1 bis V5 angenommen, V6 abgelehnt (§7, §9) |
 | 8 | Task-Status `idea` und `planned` | **entschieden** (§8) |
 | 10 | Webhook-Details, Neuladen über `planerRevision` statt C1 | **entschieden** (§10) |
+| 11 | Name des Formats: `planer/2` → `planer-v2` | **entschieden** (§11) |
 | 9 | Rich Text: TipTap bleibt, Konverter Markdown ↔ TipTap-JSON | **entschieden: TipTap bleibt** (V6 abgelehnt), Umsetzung als Vorschlag (§9) |
 
 ---
@@ -683,3 +684,13 @@ Wenn `planer/2` stabil ist (Import, Export, Vorlagen, Assistent laufen, Roundtri
 - Mutationen liefern die neue `planerRevision`. +1 = eigene Änderung, nur Projektbaum und Fortschritt neu laden. Mehr als +1 = jemand anderes hat geändert, alles neu laden und Hinweis zeigen.
 - Zeitachse und Kanban fragen alle 30 Sekunden nur `planerRevision` ab (nicht bei verborgenem Tab). Keine WebSockets nötig (Hostpoint).
 - C1 (Payloads mit Elternteilen) entfällt.
+
+---
+
+## 11. Name des Formats (entschieden 2026-11-13)
+
+- Der technische Name `planer/2` wird zu **`planer-v2`**: `"format": "planer-v2"`, Schema `spec/planer-v2.schema.json`, `$id` `urn:mollo-planer:planer-v2`.
+- Im Fließtext und in der Oberfläche: „Planer v2“.
+- Gründe: `/` sieht aus wie ein Pfad oder MIME-Typ, geht nicht in Dateinamen (das Schema hieß deshalb uneinheitlich `planer-2.schema.json`) und muss in Shell und URN/URL teils maskiert werden. `planer-v2` passt zu `format-v2.md` und braucht keine Sonderzeichen.
+- Die Dateiendung `<projekt>.planer.json` bleibt.
+- Umsetzung: Schritt T0 in `docs/spur-b-sichere-schritte.md`. Ältere Erwähnungen von `planer/2` in den Dokumenten ersetzt T0 mit.

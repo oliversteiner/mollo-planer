@@ -28,6 +28,17 @@ Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version
 - Commit: `Chore: move planer/2 format and tools from mollo-version (c169118)`. Danach alle Tests grün (`tools/planer`: `npm test`).
 - In `~/www/mollo-version`: README oben mit Hinweis „Archiviert. planer/2 wird in mollo-planer weiterentwickelt (spec/, tools/planer/).“ Ein Commit `Docs: archived, moved to mollo-planer`. Sonst nichts ändern.
 
+## T0. Umbenennung `planer/2` → `planer-v2` (entschieden 2026-11-13)
+
+Details: `docs/planer-abgleich.md` §11. Reines Ersetzen, keine Logikänderung, vor T5.
+- Technischer Wert überall `planer-v2`: `"format": "planer-v2"` (Schema, Validator, Fixtures, Golden Files, Tests, PHP, Frontend).
+- Schema-Datei `spec/planer-2.schema.json` → `spec/planer-v2.schema.json` (`git mv`), `$id` `urn:mollo-planer:planer-v2`, alle Verweise darauf.
+- Im Fließtext von Dokumenten, Kommentaren, Meldungen und Oberfläche „Planer v2“.
+- Dateiendung `<projekt>.planer.json` bleibt.
+- Auch alle Dokumente in `docs/` (inkl. dieser Datei und `planer-abgleich.md`) und `spec/format-v2.md`.
+- Test: `grep -r "planer/2"` findet nichts mehr (außer in der Git-Geschichte und in §11 von `planer-abgleich.md`, wo die Umbenennung beschrieben ist).
+- Commit: `Refactor: rename format planer/2 to planer-v2`.
+
 ## T1. Revision nur durch die App, `changed`, Werte klein und englisch (früher A-S1)
 
 `docs/planer-abgleich.md` §1a und §5.1. In `spec/` und `tools/planer/`: `revision` erhöht nur die App, Helfer setzen `"changed": true`. Alle Werte klein und englisch: `locale` `de`/`en`, `release.status` `planned`/`released`, Commit `none`. `render`/`md2json` übersetzen die festen Wörter. `convert` bildet v1 darauf ab. Schema, Spezifikation, Tests und Golden Files nachführen.
@@ -266,7 +277,7 @@ Wie `docs/planer-abgleich.md` §1a (A-S2, A-S3), in `tools/planer/`. Tests gegen
 
 ## Reihenfolge
 
-U0 → T1 → T5 → T4 (Rest) → T6 → S2 → S3 → R1 → S3b → S3c → S3f → S3e → S5 → S6 → S7 → I1 → I2 → I3 → I4 → I5 → T2 → T3 → W1 → B5a → B6. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
+U0 → T1 → T0 → T5 → T4 (Rest) → T6 → S2 → S3 → R1 → S3b → S3c → S3f → S3e → S5 → S6 → S7 → I1 → I2 → I3 → I4 → I5 → T2 → T3 → W1 → B5a → B6. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
 
 ## Nicht in diesem Auftrag (wird in der Planung geklärt)
 
