@@ -36,6 +36,8 @@ Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version
 
 `docs/planer-abgleich.md` §3.3, §3.6, §3.7. In `spec/` und `tools/planer/`: `project.labels` mit mehrsprachigen `names` (§5.2), Task-Feld `labels` (statt `labelNames`), Verweisprüfung, Legende in `render`/`md2json`, `render --lang de|en` und `--legend-translations` (§5.3), `validate --template`, Befehl `template`, `convert` erzeugt Labels der Vorlage „Softwareentwicklung“ in `de` und `en`. Fixtures und `docs/beispiel-planer.md` nachführen.
 
+**T4 Rest (jetzt entschieden durch V3):** `template <datei>` entfernt die App-Bezüge nach `docs/planer-abgleich.md` §3.4 und §3.6 (keine `revision`, `changed`, Mitglieder, Zuweisungen, Fälligkeiten, Commits, `release.status`; Task-Status `planned`; IDs werden `-new-`). `validate --template` prüft genau diese Regeln. Die Dateien in `spec/templates/` müssen `validate --template` bestehen.
+
 **Zusätzlich in T4:** Task-Status `idea` und `planned` (`docs/planer-abgleich.md` §8), Markierungen `[i]` (idea) und `[p]` (planned).
 
 ## T5. IDs aus der Datenbank (V1, entschieden 2026-11-13)
@@ -49,7 +51,7 @@ Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version
 
 **S3d entfällt** (ersetzt durch T5).
 
-T1 und T4 vor S3, damit die App gleich gegen das neue Format gebaut wird. T2 (`pull`/`push`/`sync`) und T3 (GitHub Action) folgen nach dem Export und Import in der App (siehe „Nicht in diesem Auftrag“).
+T1 und T4 vor S3, damit die App gleich gegen das neue Format gebaut wird. T2 (`pull`/`push`/`sync`) und T3 (GitHub Action) folgen nach dem Export und Import in der App (I1, I2).
 
 ## S1. `useDelete` und Liste für archivierte Projekte (B1)
 
@@ -111,6 +113,20 @@ Details in `docs/planer-abgleich.md`, Abschnitt 2.3.
 - Service zum Vergeben der nächsten ID je Präfix, mit Sperre auf dem Projekt (wie `Ordering`). Wird erst vom Export benutzt, hier nur mit Tests: eindeutig, steigend, keine Wiederverwendung nach Löschen.
 - Kein GraphQL-Feld nötig (nur für Import und Export). Optional `fileId` zum Lesen für die Fehlersuche.
 
+## S3e. Rich-Text-Konverter Markdown ↔ TipTap-JSON (entschieden 2026-11-13)
+
+Details: `docs/planer-abgleich.md` §9. Nur PHP, keine neue Abhängigkeit.
+
+- `App\Planer\RichText\MarkdownToTiptap` auf Basis von `league/commonmark` (AST, kein HTML), `App\Planer\RichText\TiptapToMarkdown` als eigener Serialisierer in kanonischer Form (§9.3).
+- Umfang: §9.4 verlustfrei, §9.5 vereinheitlicht, §9.6 als Klartext mit Warnungsliste (Rückgabe `{ doc, warnings }`).
+- Ergebnis von `MarkdownToTiptap` immer gültig nach `RichTextRule` (gleiche Whitelist, inkl. Mark `code` aus S2).
+- Testfälle `spec/fixtures/richtext/*.md` und `*.json`: beide Richtungen, Roundtrip byte-gleich für §9.4, Warnungen für §9.6.
+- `PlainTextDocument` wird erst beim Umbau des Assistenten ersetzt (B5a), hier nicht anfassen.
+
+## T6. Kanonisches Markdown in `tools/planer` (entschieden 2026-11-13)
+
+Details: `docs/planer-abgleich.md` §9.3 und §9.7. Kanonische Markdown-Form in `spec/format-v2.md`. `validate`: Konstrukte aus §9.6 sind Fehler (wie bisher), Schreibweisen aus §9.5 ein Hinweis. `json` schreibt Beschreibungen kanonisch. Testfälle aus `spec/fixtures/richtext/` gegen die Whitelist und die kanonische Form.
+
 ## S4. Rechte (Schema-Review Schritt 2)
 
 In `ProjectPermissions` und `SystemPermissions`, mit Tests in `ProjectPermissionsTableTest`, `SystemPermissionsTableTest`, `PolicyTest`:
@@ -148,14 +164,14 @@ Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set
 **Datenmodell:**
 - `labels.project_id` statt `labels.label_set_id`: Jedes Projekt hat eigene Labels (Schlüssel `key`, `names` als JSON Sprache → Name, Kategorie, Farbe, Position), Schlüssel und Name je Sprache eindeutig je Projekt, höchstens 30. Name in der Sprache des Projekts Pflicht (`docs/planer-abgleich.md` §5.2).
 - `projects.label_set_id` entfällt. Optional `projects.template_id` (nullable, `nullOnDelete`) als Herkunft.
-- Tabelle `templates`: `key` (nur mitgelieferte), `name`, `description`, `content` (JSON, `planer/2`-Vorlage), `created_by`, Zeitstempel. Mitgelieferte Vorlagen aus `BuiltinLabelSets` mit Namen in DE und EN (Übersetzung wie heute über den Schlüssel), unveränderlich.
+- Tabelle `templates`: `key` (nur mitgelieferte), `name`, `description`, `content` (JSON, `planer/2`-Vorlage), `created_by`, Zeitstempel.
+- **Mitgelieferte Vorlagen als Dateien** (V3): `spec/templates/software-development.planer.json`, `event.planer.json`, `podcast.planer.json` mit `names` in `de` und `en`. Ein Befehl `php artisan planer:sync-templates` (auch im Seeder und nach dem Deployment) schreibt sie in `templates`, unveränderlich. `BuiltinLabelSets.php` und die Label-Übersetzungen in `lang/` entfallen. Die Dateien liegen in `spec/templates/` und gehen mit aufs Deployment.
 - `label_sets` entfällt.
 
 **Funktionen (Backend und GraphQL):**
-- Vorlagen auflisten, ansehen, anlegen, duplizieren, ändern, löschen. Inhalt: Labels und optional Plan-Gerüst (Milestones, ToDos, Tasks mit Titel, Beschreibung, User-Story, Labels, Reihenfolge, `release.version`). Keine Fälligkeiten, Personen, Commits, Status.
-- Projekt aus Vorlage anlegen (`createProject` mit optionalem `templateId`): Labels mit allen Sprachen kopieren, Gerüst anlegen.
+- Vorlagen auflisten, ansehen, anlegen, duplizieren, ändern, löschen. Inhalt: Labels und optional Plan-Gerüst (Milestones, ToDos, Tasks mit Titel, Beschreibung, User-Story, Labels, Reihenfolge, `release.version`, Task-Status `planned`). Keine Fälligkeiten, Personen, Commits. **Der Editor bearbeitet nur Name, Beschreibung und Labels** (V3). Das Gerüst wird angezeigt, nicht bearbeitet.
+- Projekt aus Vorlage anlegen (`createProject` mit optionalem `templateId`): Labels mit allen Sprachen kopieren, Gerüst anlegen. Solange der Importer (I2) fehlt, legt ein kleiner Dienst das Gerüst an. Mit I2 wird das durch `import` (`full`, leeres Projekt) ersetzt.
 - Anzeige der Label-Namen in der Sprache der Oberfläche, sonst der Sprache des Projekts. Editor mit einem Feld je Sprache. Übersetzungen der mitgelieferten Vorlagen aus `lang/` in den Inhalt der Vorlage.
-- „Als Vorlage speichern“ aus einem Projekt.
 - Labels eines Projekts bearbeiten (`project.update`), Labels aus einer Vorlage übernehmen (ersetzen oder ergänzen; Labels an Tasks bleiben beim Ersetzen erhalten).
 - Rechte: `labelSets.manage` → `templates.manage`, `labelSets.manageAny` → `templates.manageAny` (gleiche Rollen). Sichtbarkeit: alle Vorlagen für alle Angemeldeten lesbar, auch Rolle `lesend` (entschieden, `docs/planer-abgleich.md` 3.6 Nr. 4).
 - MCP: `list_templates`, `create_project` mit optionalem `template_id`.
@@ -165,22 +181,58 @@ Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set
 - Neues Projekt: Auswahl der Vorlage.
 - Projekteinstellungen: Labels bearbeiten, „Labels aus Vorlage übernehmen“, „Als Vorlage speichern“.
 
-**Noch nicht in S7** (braucht Problem 4, Prüfung gegen das JSON-Schema): Vorlage aus hochgeladener `.planer.json`, Vorlage als Datei herunterladen. Bis dahin wird `content` in PHP mit den Regeln aus `docs/planer-abgleich.md` 3.4 und 3.6 geprüft, mit Tests.
+**Noch nicht in S7:** „Als Vorlage speichern“ aus einem Projekt, Upload und Download einer `.planer.json`. Diese kommen mit Export und Import (I1, I2, I5). Bis dahin wird `content` in PHP mit den Regeln aus `docs/planer-abgleich.md` 3.4 und 3.6 geprüft, mit Tests.
 
 **Tests:** Projekt aus Vorlage (Labels und Gerüst), Bearbeiten der Projekt-Labels verändert keine anderen Projekte, mitgelieferte Vorlagen unveränderlich, Rechte, `OutsiderAccessTest`/`MutationTest` ergänzen.
+
+## I1. Export (V2, nach S7)
+
+Details: `docs/planer-abgleich.md` §1a, §2, §5, §7 V1 und V2, §9.
+- `App\Planer\Export`: Projekt → kanonisches `planer/2` (IDs `m-<id>` …, Werte nach §5.1, Labels mit `names`, Beschreibungen über `TiptapToMarkdown`, Reihenfolge, Release, Commit, User-Story, `revision`).
+- PHP: kanonisches JSON wie `tools/planer` (Test: byte-gleich für alle gültigen Fixtures).
+- PHP-Prüfung: Schema (`opis/json-schema` gegen `spec/planer-2.schema.json`) und Semantik, gegen dieselben Fixtures mit erwarteten Fehlern wie `tools/planer`.
+- MCP `export_plan(project_id)`.
+
+## I2. Import mit Trockenlauf (V2)
+
+- `App\Planer\Import` mit `full` und `partial` nach §2.1 und §2.2, `partial` = ergänzen und ändern, nie löschen (§7 V2). Ruft die Dienste der App direkt auf, prüft jede Änderung über Policies, eine Transaktion, `planer_revision` +1.
+- Neues Projekt ohne `project_id` (mit `projects.create`), aus Vorlage mit `template_id`.
+- `dry_run`: Liste der geplanten Änderungen (anlegen, ändern, verschieben, löschen, je mit Pfad) und Fehler, ohne zu schreiben.
+- Beschreibungen über `MarkdownToTiptap` (S3e), Warnungen in der Antwort.
+- MCP `import_plan(project_id?, plan, mode, dry_run, notify_assignees, template_id?)`.
+- Projekt aus Vorlage (S7) auf den Importer umstellen.
+- Roundtrip-Tests: `export(import(datei)) = datei` (bis auf `-new-`-IDs), `import(export(db))` ändert nichts.
+
+## I3. Aufräumen: ein Schreibweg (V2)
+
+- Entfernen: MCP `create_project_plan`, `add_to_plan`, `update_plan_item`, `move_milestone`, `set_task_status`, `create_project`, `set_project_member`; `ProjectPlanImporter`, `ProjectPlanReader`, `PlanRules`, MCP-Teile von `PlanSchema`, nicht mehr genutzte Dateien in `graphql/operations/` (und `GraphQLRunner::runNamed`, falls ungenutzt).
+- MCP danach: `list_projects`, `export_plan`, `import_plan`, `list_templates`, `list_users` (eingeschränkt, siehe Assistent).
+- `docs/claude-connector.md` neu schreiben. Assistent (`draftProjectPlan`, `importProjectPlan`, `plan.graphql`) bleibt bis B5a unverändert.
+
+## I4. Demo-Daten als Dateien (V3)
+
+- `database/seeders/demo/website-relaunch.planer.json`, `sommerfest-2027.planer.json`. `DemoSeeder` legt Personen an und importiert die Dateien. Test: Seeder läuft, Export ergibt die Datei (bis auf IDs).
+
+## I5. Baum-Ansicht, Downloads, Vorlagen aus Dateien (V3, V4, §5.3)
+
+- Baustein `PlanerTree` (V4): zeigt ein `planer/2`-Dokument, optional mit Markierungen aus dem Trockenlauf. Typen aus `spec/planer-2.schema.json`.
+- Projekteinstellungen: Download „Als planer.json“ und „Als Markdown“ (Sprache wählbar, Schalter „Übersetzungen in der Legende“, über `tools/planer/core` im Frontend).
+- Datei-Import mit Vorschau (`dry_run` in `PlanerTree`), dann Eintragen.
+- Vorlagen: „Als Vorlage speichern“ (Export + `template`), Upload einer `.planer.json` als Vorlage, Download einer Vorlage, Ansicht des Gerüsts mit `PlanerTree`.
+
+## T2, T3. `pull`/`push`/`sync` und GitHub Action (nach I2)
+
+Wie `docs/planer-abgleich.md` §1a (A-S2, A-S3), in `tools/planer/`. Tests gegen den echten MCP-Server der App (lokal), nicht gegen eine Nachbildung.
 
 ---
 
 ## Reihenfolge
 
-U0 → T1 → T4 → T5 → S2 → S3 → S3b → S3c → S4 → S5 → S6 → S7. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
+U0 → T1 → T4 (Rest) → T5 → T6 → S2 → S3 → S3b → S3c → S3e → S4 → S5 → S6 → S7 → I1 → I2 → I3 → I4 → I5 → T2 → T3. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
 
 ## Nicht in diesem Auftrag (wird in der Planung geklärt)
 
-- R2 Rest und PHP-Teil `backend/app/Planer/` (Schema-Prüfung mit `opis/json-schema`, Semantik, kanonisches JSON, Markdown ↔ Rich Text, gemeinsame Fixtures mit `tools/planer`): Ort entschieden (§4), Reihenfolge folgt mit Problem 5.
-- T2 `pull`/`push`/`sync`/`--watch` und T3 GitHub Action: nach `export_plan`/`import_plan`.
-- Download als Markdown (Sprache wählbar, optional Legende mit Übersetzungen) und als `planer.json` in der App: nach `export_plan` (`docs/planer-abgleich.md` §5.3).
-- B5 `importPlanIntoProject` und P6 Import/Export der Datei: `export_plan`/`import_plan` (Semantik entschieden, `docs/planer-abgleich.md` §2), Webhook, Abbildung von `labelNames` auf Labels und von Rollen und Sprache sind offen (`docs/planer-abgleich.md`).
+- Webhook für GitHub Actions (`docs/planer-abgleich.md` §1a): nach T3.
 - B5a Assistent nach `docs/assistent-ideen-konzept.md`: Entscheidungen Abschnitt 12 offen.
-- B6 Ideen, KI-Kontext, MCP `create_idea`, `list_ideas`, `get_project_ai_context`, `import_plan`.
-- C1 Payloads.
+- B6 Ideen (mit Entwurf als `planer/2`-Ausschnitt, V5), KI-Kontext, MCP `create_idea`, `list_ideas`, `get_project_ai_context`.
+- C1 Payloads (eventuell ersetzt durch Neuladen nach `planerRevision`, §7 V7).

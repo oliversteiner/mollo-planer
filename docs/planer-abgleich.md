@@ -12,8 +12,9 @@ Hier werden die Punkte geklärt, die unter „Nicht in diesem Auftrag“ in `doc
 | 4 | Ort der Werkzeuge: `mollo-version` als Abhängigkeit oder in die App integrieren | **entschieden: V2, Umzug sofort** (4.7) |
 | 5 | Schreibweise der Werte, mehrsprachige Labels, Sprache der Markdown-Ansicht | **entschieden** (§5) |
 | 6 | Entscheidungen zum Assistenten (`docs/assistent-ideen-konzept.md` §12) | Empfehlungen vorgelegt, offen |
-| 7 | Vereinfachungen durch das neue Konzept | V1 **entschieden**, V2 bis V6 offen (§7) |
+| 7 | Vereinfachungen durch das neue Konzept | **entschieden:** V1 bis V5 angenommen, V6 abgelehnt (§7, §9) |
 | 8 | Task-Status `idea` und `planned` | **entschieden** (§8) |
+| 9 | Rich Text: TipTap bleibt, Konverter Markdown ↔ TipTap-JSON | **entschieden: TipTap bleibt** (V6 abgelehnt), Umsetzung als Vorschlag (§9) |
 
 ---
 
@@ -345,6 +346,104 @@ Sprache der Ansicht und Legende mit Übersetzungen: §5.3.
 
 ---
 
+## 9. Rich Text: Konverter Markdown ↔ TipTap-JSON
+
+**Entscheidung (Oliver, 2026-11-13):** Die App bleibt bei TipTap-JSON als Speicherform. Für Import, Export und Assistent wird ein Konverter gebaut. Vorher prüfen, ob es Pakete gibt; sonst festlegen, welche Formatierungen umgesetzt werden und welche selten genutzten Fälle ihre Formatierung verlieren und als Klartext ankommen.
+
+### 9.1 Wo der Konverter gebraucht wird
+
+- **Nur in PHP** (App auf dem Server): Import und Export von `planer/2`, Entwurf des Assistenten, Vorlagen.
+- **Nicht in `tools/planer`:** Die Datei enthält nur Markdown. Die CLI prüft Markdown gegen die Whitelist und schreibt es kanonisch, kennt aber kein TipTap-JSON.
+- **Nicht im Frontend:** Es bekommt TipTap-JSON über GraphQL. Der Download „Als Markdown“ nutzt den Export (Markdown kommt aus PHP).
+
+### 9.2 Vorhandene Pakete
+
+| Paket | Kann | Bewertung |
+|---|---|---|
+| `league/commonmark` | Markdown parsen (AST), CommonMark-Spezifikation, Erweiterungen | **schon installiert** (Abhängigkeit von Laravel), gepflegt |
+| `ueberdosis/tiptap-php` | TipTap-JSON ↔ **HTML**, Bereinigen | offizielles Paket, sehr verbreitet, aber **kein Markdown** |
+| `league/html-to-markdown` | HTML → Markdown | verbreitet, letzte Version 2023 |
+| `hyvor/phrosemirror`, `nadar/prosemirror-json-parser` | ProseMirror-JSON lesen, nach HTML | kein Markdown |
+| `@tiptap/markdown` (JavaScript) | Markdown ↔ TipTap-JSON, auch serverseitig | nur Node, Hostpoint hat kein Node |
+| TipTap Convert (Cloud-API) | Markdown ↔ TipTap-JSON | kostenpflichtig, externer Dienst, Inhalte verlassen den Server: **nicht geeignet** |
+
+**Ein fertiges PHP-Paket für Markdown ↔ TipTap-JSON gibt es nicht.** Möglich wäre eine Kette über HTML (`commonmark` → HTML → `tiptap-php` → JSON und zurück `tiptap-php` → HTML → `html-to-markdown`). Nachteile: zwei zusätzliche Pakete, HTML als Zwischenschritt, die Markdown-Ausgabe von `html-to-markdown` müsste nachträglich auf die kanonische Form gebracht werden (Listenzeichen, Zeilenumbrüche, Einrückung), sonst ist der Roundtrip nicht byte-gleich.
+
+### 9.3 Vorschlag: schlanker eigener Konverter auf `league/commonmark`
+
+- **Markdown → TipTap-JSON:** `league/commonmark` parst zum AST (kein HTML). Ein Besucher (`App\Planer\RichText\MarkdownToTiptap`) übersetzt die erlaubten Knoten direkt in TipTap-Knoten. Etwa 150 Zeilen.
+- **TipTap-JSON → Markdown:** eigener Serialisierer (`App\Planer\RichText\TiptapToMarkdown`), der direkt die **kanonische Form** schreibt. Etwa 150 Zeilen. Die Whitelist ist klein, ein eigener Serialisierer ist einfacher als eine Kette mit Nachbearbeitung.
+- **Keine neue Abhängigkeit.**
+- **Kanonische Markdown-Form** (in `spec/format-v2.md` festschreiben, gilt für CLI und PHP gleich):
+  - Absätze durch eine Leerzeile getrennt.
+  - Überschriften als `## ` und `### `.
+  - Aufzählung mit `- `, nummerierte Liste mit `1. `, `2. ` … (fortlaufend ab 1).
+  - Verschachtelte Listen: Einrückung um die Breite des Listenzeichens (2 Zeichen bei `- `, 3 bei `1. `).
+  - Zitat mit `> ` je Zeile.
+  - Fett `**…**`, kursiv `*…*`, Inline-Code `` `…` ``, Link `[Text](URL)`.
+  - Harter Zeilenumbruch als `\` am Zeilenende (nicht zwei Leerzeichen, die unsichtbar sind).
+  - Zeichen mit Markdown-Bedeutung im Text werden mit `\` maskiert, nur wo nötig.
+- **Gemeinsame Testfälle:** `spec/fixtures/richtext/` mit Paaren `<name>.md` und `<name>.json` (TipTap). PHP prüft beide Richtungen. `tools/planer` prüft, dass jede `.md` die Whitelist besteht und kanonisch ist. So laufen PHP und CLI nicht auseinander.
+
+### 9.4 Was umgesetzt wird (voll, verlustfrei hin und zurück)
+
+| Markdown | TipTap |
+|---|---|
+| Absatz | `paragraph` |
+| `## `, `### ` | `heading` Ebene 2, 3 |
+| `- ` Liste | `bulletList` / `listItem` |
+| `1. ` Liste | `orderedList` / `listItem` |
+| verschachtelte Listen, auch gemischt (bis 3 Ebenen) | verschachtelte `bulletList`/`orderedList` |
+| mehrere Absätze in einem Listenpunkt | mehrere `paragraph` im `listItem` |
+| `> ` Zitat, auch mit Absätzen und Listen darin | `blockquote` |
+| `\` am Zeilenende | `hardBreak` |
+| `**fett**`, `*kursiv*`, `***beides***` | Marks `bold`, `italic`, kombiniert |
+| `` `Code` `` | Mark `code` (ohne weitere Marks, wie in TipTap) |
+| `[Text](https://…)`, `http`, `mailto`, auch mit fett/kursiv im Text | Mark `link` |
+| `<https://…>` (Autolink) | Mark `link`, Export als `[https://…](https://…)` |
+
+### 9.5 Was vereinheitlicht wird (Inhalt bleibt, Schreibweise ändert sich)
+
+Diese Schreibweisen werden gelesen, aber in der kanonischen Form zurückgeschrieben. Die Datei sieht nach einem Roundtrip anders aus, der Inhalt ist derselbe. Der Validator meldet sie als **Hinweis** (nicht kanonisch), nicht als Fehler.
+
+- `__fett__`, `_kursiv_` → `**fett**`, `*kursiv*`
+- `* ` oder `+ ` als Listenzeichen → `- `
+- Überschriften mit Unterstrich (`Titel` + `===`) → `## `
+- harter Umbruch mit zwei Leerzeichen → `\`
+- Referenz-Links (`[Text][1]` … `[1]: https://…`) → `[Text](https://…)`
+- HTML-Entitäten (`&amp;`) → Zeichen
+- nummerierte Liste mit Lücken oder `1.` überall → fortlaufend
+
+### 9.6 Was die Formatierung verliert und als Klartext ankommt (selten)
+
+Diese Fälle sind in der Datei nach dem Validator **Fehler** (Whitelist). Sie kommen aber vor, wenn Text aus freier Eingabe stammt: Antwort des Assistenten, Idee, MCP-Ausschnitt (`partial`), Einfügen aus anderen Quellen. Dort bricht der Konverter nicht ab, sondern macht Klartext daraus und meldet eine Warnung (im Assistenten in der Vorschau, im MCP in der Antwort).
+
+| Konstrukt | wird zu |
+|---|---|
+| Überschrift Ebene 1 | Ebene 2 |
+| Überschrift Ebene 4 bis 6 | Ebene 3 |
+| Überschrift in Listenpunkt oder Zitat | Absatz mit fettem Text |
+| Startnummer einer nummerierten Liste (`5. …`) | Liste ab 1 (Nummer geht verloren) |
+| Liste tiefer als 3 Ebenen | Ebene 3, tiefere Punkte als Punkte der 3. Ebene |
+| Code-Block (```` ``` ````, eingerückter Code) | Absatz, jede Zeile als Inline-Code, Zeilen mit `hardBreak` |
+| Tabelle | je Zeile ein Absatz, Zellen mit ` · ` getrennt |
+| Bild `![Alt](URL)` | Link mit dem Alt-Text auf die URL (bei `http`/`https`), sonst nur Alt-Text |
+| Link mit anderem Schema (`javascript:`, `ftp:`, `file:` …) | nur der Linktext |
+| Linktitel `[x](url "Titel")` | Titel geht verloren |
+| Durchgestrichen `~~…~~` | Klartext |
+| Aufgabenliste `- [ ] …` in einer Beschreibung | Aufzählung, `[ ]` bzw. `[x]` bleibt als Text |
+| Trennlinie `---` | entfällt |
+| HTML (Block oder inline) | Tags entfernt, Text bleibt |
+| Fußnoten | Klartext, Verweis `[^1]` bleibt als Text |
+| Code mit Fett/Kursiv kombiniert | nur Code |
+
+### 9.7 Folgen
+
+- **Assistent:** Die Wiederholung bei unerlaubtem Markdown (Konzept §6.4) entfällt. Der Konverter macht Klartext daraus, die Vorschau zeigt die Warnung. Einfacher und ohne zweiten Aufruf an Claude.
+- **Datei:** unverändert streng. `validate` meldet Konstrukte aus 9.6 als Fehler, Schreibweisen aus 9.5 als Hinweis.
+- **Neuer Schritt S3e** in `docs/spur-b-sichere-schritte.md`: Konverter mit gemeinsamen Testfällen. Unabhängig von Export und Import, sofort möglich.
+- **`tools/planer`:** kanonische Markdown-Form (9.3) in Spezifikation und `json`/`validate` (Hinweis bei Abweichung), Testfälle in `spec/fixtures/richtext/`. Als Teil von T5 oder eigener kleiner Schritt T6.
+
 ## 8. Task-Status `idea` und `planned` (entschieden 2026-11-13)
 
 **Entscheidung (Oliver):** Der Task-Status bekommt zwei weitere Werte: **Idee** und **geplant**. Werte nach §5.1 klein und englisch: `idea`, `planned`.
@@ -380,7 +479,7 @@ Sprache der Ansicht und Legende mit Übersetzungen: §5.3.
 - **S3:** `TaskStatus` in PHP, GraphQL und Frontend um `idea` und `planned` erweitern, `ItemStatusSync` und Fortschritt nach 8.2 Nr. 1, Kanban-Spalten und Schalter nach Nr. 3, Filter nach Nr. 4, Mails nach Nr. 5.
 - **S7** (Vorlagen): Gerüst-Tasks `planned`.
 
-## 7. Vereinfachungen durch das neue Konzept (Vorschlag)
+## 7. Vereinfachungen durch das neue Konzept (entschieden 2026-11-13)
 
 Stand der Prüfung: `mollo-planer` bis `072fcbb` (U0 und T1 erledigt).
 
@@ -399,7 +498,7 @@ Mit `planer/2` als einziger Beschreibung eines Plans, Import/Export in der App, 
 - **Ersetzt** §2.3 (Datei-IDs in der App) und das Feld `appId` aus §1a und der SSoT. Der Vertrag von `export_plan`/`import_plan` liefert die IDs in dieser Form.
 - Nachteil (bewusst in Kauf genommen): Ein neues Element ändert beim ersten Import einmal seine ID.
 
-### V2. Ein Schreibweg für Pläne, MCP auf wenige Werkzeuge reduziert (hoch)
+### V2. Ein Schreibweg für Pläne, MCP auf wenige Werkzeuge reduziert (angenommen 2026-11-13)
 
 **Heute:** `ProjectPlanImporter` (339 Zeilen) und `ProjectPlanReader` schreiben über 15 GraphQL-Operationen als Strings (R3). Dazu kommen fünf Plan-Werkzeuge im MCP (`create_project_plan`, `add_to_plan`, `update_plan_item`, `move_milestone`, `set_task_status`), `PlanRules`, die MCP-Teile von `PlanSchema`, `ReadsProjectPlanInput`, `PlainTextDocument`, `plan.graphql` mit eigenen Typen, `importProjectPlan`.
 
@@ -411,21 +510,21 @@ Mit `planer/2` als einziger Beschreibung eines Plans, Import/Export in der App, 
 - **Es entfallen:** die fünf Plan-Werkzeuge, `create_project`, `set_project_member`, `ProjectPlanImporter`, `ProjectPlanReader`, `PlanRules`, MCP-Teile von `PlanSchema`, `ReadsProjectPlanInput`, `PlainTextDocument`, `plan.graphql`-Typen, `importProjectPlan`, die meisten Dateien in `graphql/operations/` (bleiben nur, wenn noch etwas sie nutzt; sonst samt `GraphQLRunner::runNamed` entfernen).
 - **Breaking Change am Connector:** laut Rahmen erlaubt. `docs/claude-connector.md` neu schreiben.
 
-### V3. Vorlagen und Demo-Daten als Dateien (mittel)
+### V3. Vorlagen und Demo-Daten als Dateien (angenommen 2026-11-13)
 
 - **Mitgelieferte Vorlagen** als Dateien `spec/templates/software-development.planer.json`, `event.planer.json`, `podcast.planer.json` (mit `names` in `de` und `en`). Ein Befehl synchronisiert sie in die Tabelle `templates` (wie heute `BuiltinLabelSets::sync`). Es entfallen `BuiltinLabelSets.php` und die Label-Übersetzungen in `lang/`.
 - **Vorlage-Funktionen** werden zu Import/Export: Projekt aus Vorlage = `import_plan` (`full`) in ein neues Projekt; „Als Vorlage speichern“ = Export plus `template` (Entfernen der App-Bezüge, eine Funktion in PHP und `tools/planer/core`); Duplizieren = Kopie des JSON; Upload/Download = Datei. Der Editor in `/templates` bearbeitet nur Name, Beschreibung und Labels. Das Gerüst wird nicht in einem eigenen Editor bearbeitet, sondern über „Projekt aus Vorlage anlegen, ändern, als Vorlage speichern“ oder über die Datei.
 - **Demo-Daten** als Dateien `database/seeders/demo/*.planer.json` (Website-Relaunch, Sommerfest 2027). `DemoSeeder` legt Personen an und importiert die Dateien. Das ist zugleich ein Roundtrip-Test (`export(import(datei)) = datei`, bis auf IDs).
 
-### V4. Eine Baum-Ansicht für Plan-Dokumente im Frontend (mittel)
+### V4. Eine Baum-Ansicht für Plan-Dokumente im Frontend (angenommen 2026-11-13)
 
 Ein Baustein `PlanerTree` zeigt ein `planer/2`-Dokument (Milestones, ToDos, Tasks, Labels, User-Story, Status) mit optionalen Markierungen aus dem Trockenlauf (neu, geändert, verschoben, gelöscht). Genutzt für: Vorschau des Assistenten (ersetzt `PlanPreview.vue`), Ansicht einer Vorlage, Entwurf an einer Idee, Vorschau beim Datei-Import. Typen aus `spec/planer-2.schema.json`.
 
-### V5. Ideen als Entwurf (klein)
+### V5. Ideen als Entwurf (angenommen 2026-11-13)
 
 Eine Idee hat Titel, Beschreibung und optional einen `planer/2`-Ausschnitt (`draft`). Einplanen = `import_plan` (`partial`) mit diesem Ausschnitt. Kein eigener Weg vom Entwurf ins Projekt.
 
-### V6. Markdown statt TipTap-JSON als Speicherform für Beschreibungen (groß, zur Prüfung)
+### V6. Markdown statt TipTap-JSON als Speicherform für Beschreibungen (abgelehnt 2026-11-13, siehe §9)
 
 **Heute:** Die Datenbank speichert TipTap-JSON. Die Datei speichert Markdown. Also braucht es Markdown ↔ TipTap-JSON in PHP (Import, Export, Assistent) **und** in JavaScript (CLI, Vorschau), mit derselben Whitelist an drei Stellen (`RichTextDocument.php`, `utils/rich-text.ts`, `tools/planer/core`).
 
