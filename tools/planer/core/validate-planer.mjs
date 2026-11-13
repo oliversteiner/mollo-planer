@@ -14,7 +14,6 @@ import { canonicalText } from './planer-canonical.mjs';
  * 3. Kanonische Form, als Hinweis: zwei Leerzeichen Einrückung, Zeilenende am Schluss.
  *
  * Stufe 2 prüft außerdem die Whitelist der Formatierung in Beschreibungen (Spec, Abschnitt 6).
- * Nicht geprüft: Labels (das Label-Set steht nicht in der Datei, die Prüfung folgt beim Import in P6).
  */
 
 const schema = JSON.parse(readFileSync(new URL('../../../spec/planer-2.schema.json', import.meta.url), 'utf8'));
@@ -120,11 +119,31 @@ function semantics(plan) {
 
   const members = new Set(plan.project.members.map((member) => member.email.toLowerCase()));
 
+  const labelKeys = new Set();
+  const labelNames = new Set();
+  (plan.project.labels ?? []).forEach((label, li) => {
+    const lp = `project.labels[${li}]`;
+    if (labelKeys.has(label.key)) {
+      add(`${lp}.key`, `Schlüssel ${label.key} ist doppelt`);
+    }
+    labelKeys.add(label.key);
+    if (label.names[plan.project.locale] === undefined) {
+      add(`${lp}.names`, `Name in der Sprache des Projekts (${plan.project.locale}) fehlt`);
+    }
+    for (const [lang, name] of Object.entries(label.names)) {
+      const seen = `${lang}:${name}`;
+      if (labelNames.has(seen)) {
+        add(`${lp}.names.${lang}`, `Name ${name} ist in ${lang} doppelt`);
+      }
+      labelNames.add(seen);
+    }
+  });
+
   plan.milestones.forEach((milestone, mi) => {
     const mp = `milestones[${mi}]`;
     claimId(milestone.id, `${mp}.id`);
 
-    const released = milestone.release?.status === 'veröffentlicht';
+    const released = milestone.release?.status === 'released';
     let open = 0;
 
     milestone.todos.forEach((todo, ti) => {
@@ -143,13 +162,19 @@ function semantics(plan) {
           add(`${kp}.assigneeEmail`, `${task.assigneeEmail} ist kein Mitglied des Projekts`);
         }
 
-        if (task.commit === 'ohne' && task.status !== 'done') {
-          add(`${kp}.commit`, '„ohne“ ist nur bei erledigten Tasks erlaubt');
+        (task.labels ?? []).forEach((key, li) => {
+          if (!labelKeys.has(key)) {
+            add(`${kp}.labels[${li}]`, `${key} ist kein Label des Projekts`);
+          }
+        });
+
+        if (task.commit === 'none' && task.status !== 'done') {
+          add(`${kp}.commit`, '„none“ ist nur bei erledigten Tasks erlaubt');
         }
 
         // Ein fehlendes commit-Feld zählt wie null (nicht gesetzt).
         if (released && task.status === 'done' && (task.commit ?? null) === null) {
-          add(`${kp}.commit`, `Erledigter Task in veröffentlichter Version ${milestone.release.version} braucht einen Hash oder „ohne“`);
+          add(`${kp}.commit`, `Erledigter Task in veröffentlichter Version ${milestone.release.version} braucht einen Hash oder „none“`);
         }
       });
     });

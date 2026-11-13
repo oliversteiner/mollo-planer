@@ -1,8 +1,8 @@
-<!-- Ansicht von planer/2, revision 3. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->
+<!-- Ansicht von planer/2, revision 3, lang de. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->
 
 # Mollo Planer
 
-- Sprache: DE
+- Sprache: de
 
 Projektverwaltung mit Milestones, ToDos und Kanban.
 
@@ -24,7 +24,7 @@ Projektverwaltung mit Milestones, ToDos und Kanban.
 
 - [x] Sperre für Milestones ergänzen <!-- id: k-001 -->
 
-  - Labels: backend
+  - Labels: Backend
   - Commit: 1a2b3c4d
 
 - [x] Altbestand übernommen <!-- id: k-002 -->
@@ -42,7 +42,7 @@ Projektverwaltung mit Milestones, ToDos und Kanban.
 - [~] Lückenschluss nach Löschen <!-- id: k-003, app: 88 -->
 
   - Zuständig: anna@example.org
-  - Labels: backend
+  - Labels: Backend
 
 - [ ] Filter nach Status <!-- id: k-004 -->
 
@@ -52,3 +52,10 @@ Projektverwaltung mit Milestones, ToDos und Kanban.
 
   - nach Kanban-Spalte
   - nach Zuständigem
+
+---
+
+## Labels
+| Schlüssel | Name | Kategorie | Farbe |
+|---|---|---|---|
+| backend | Backend | area | cyan |

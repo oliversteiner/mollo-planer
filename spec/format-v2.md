@@ -18,8 +18,9 @@ Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md`
   "project": {
     "name": "Mollo Planer",
     "description": "Projektverwaltung mit Milestones, ToDos und Kanban.",
-    "locale": "DE",
-    "members": [{ "email": "oliver@mollo.ch", "role": "owner" }]
+    "locale": "de",
+    "members": [{ "email": "oliver@mollo.ch", "role": "owner" }],
+    "labels": [{ "key": "backend", "names": { "de": "Backend", "en": "Backend" }, "category": "area", "color": "cyan" }]
   },
   "milestones": [
     {
@@ -27,14 +28,14 @@ Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md`
       "appId": null,
       "title": "Schema-Refactoring",
       "dueDate": "2026-12-15",
-      "release": { "version": "1.4", "status": "geplant" },
+      "release": { "version": "1.4", "status": "planned" },
       "todos": [
         {
           "id": "t-001",
           "title": "Ordering-Service ausbauen",
           "tasks": [
-            { "id": "k-001", "title": "Sperre für Milestones ergänzen", "status": "done", "labelNames": ["backend"], "commit": null },
-            { "id": "k-002", "title": "Lückenschluss nach Löschen", "status": "open", "assigneeEmail": "oliver@mollo.ch", "labelNames": ["backend"] }
+            { "id": "k-001", "title": "Sperre für Milestones ergänzen", "status": "done", "labels": ["backend"], "commit": null },
+            { "id": "k-002", "title": "Lückenschluss nach Löschen", "status": "open", "assigneeEmail": "oliver@mollo.ch", "labels": ["backend"] }
           ]
         }
       ]
@@ -49,7 +50,7 @@ Das Beispiel ist gegen `spec/planer-2.schema.json` geprüft. Die Rolle `owner` i
 
 ## 2. Felder
 
-Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein Feld, das auch `null` sein darf, gilt es als nicht gesetzt. Fehlt `labelNames`, gilt es als leere Liste.
+Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein Feld, das auch `null` sein darf, gilt es als nicht gesetzt. Fehlt `labels`, gilt es als leere Liste.
 
 ### 2.1 Datei
 
@@ -68,8 +69,9 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 |---|---|---|
 | `name` | ja | String, 2 bis 120 Zeichen. |
 | `description` | nein | String, höchstens 2000 Zeichen, oder `null`. |
-| `locale` | ja | `"DE"` oder `"EN"`. Die App speichert den Wert klein (`de`, `en`). Die Umwandlung beim Import und Export ist Aufgabe von P6. |
+| `locale` | ja | `"de"` oder `"en"`. Die App speichert dieselben Werte (Abschnitt 5.1). |
 | `members` | ja | Liste mit höchstens 50 Einträgen. Leer ist erlaubt. |
+| `labels` | nein | Liste mit höchstens 30 Labels, siehe Abschnitt 5.4. Fehlt sie, hat das Projekt keine Labels. |
 
 Ein Mitglied (`members[]`):
 
@@ -95,7 +97,7 @@ Ein Mitglied (`members[]`):
 | Feld | Pflicht | Typ und Grenze |
 |---|---|---|
 | `version` | ja | `M.m`, ganze Zahlen, z. B. `1.4`. Keine Patch-Stufe. |
-| `status` | ja | `"geplant"` oder `"veröffentlicht"`. |
+| `status` | ja | `"planned"` oder `"released"`. |
 
 ### 2.4 ToDo
 
@@ -119,11 +121,11 @@ Ein Mitglied (`members[]`):
 | `dueDate` | nein | Wie beim Milestone. |
 | `status` | ja | `"open"`, `"in_progress"`, `"review"` oder `"done"`. Siehe Abschnitt 3. |
 | `assigneeEmail` | nein | E-Mail eines Mitglieds aus `project.members`, oder `null`. |
-| `labelNames` | nein | Liste von Namen aus dem Label-Set des Projekts. Jeder Name 1 bis 40 Zeichen. |
-| `commit` | nein | `null`, `"ohne"` (Altbestand) oder Hash mit 7 bis 40 Zeichen, nur `0-9` und `a-f`. Siehe Abschnitt 5.3. |
+| `labels` | nein | Liste von Schlüsseln aus `project.labels`. Jeder Schlüssel 1 bis 40 Zeichen. |
+| `commit` | nein | `null`, `"none"` (Altbestand) oder Hash mit 7 bis 40 Zeichen, nur `0-9` und `a-f`. Siehe Abschnitt 5.3. |
 | `userStory` | nein | Objekt, siehe Abschnitt 4, oder `null`. |
 
-Die Art einer Aufgabe (`feature`, `bug`, `planning`, `research`, `design`, `blocked`) ist kein eigenes Feld. Sie ist ein Label aus dem Label-Set (`labelNames`).
+Die Art einer Aufgabe (`feature`, `bug`, `planning`, `research`, `design`, `blocked`) ist kein eigenes Feld. Sie ist ein Label des Projekts (`labels`, Schlüssel aus `project.labels`).
 
 ### 2.6 Nicht im Format
 
@@ -135,12 +137,14 @@ Diese Werte stehen nicht in der Datei, weil die App sie berechnet oder speichert
 
 | Status | Markierung in Markdown | Bedeutung |
 |---|---|---|
+| `idea` | `[i]` | Vorschlag im Projekt, noch nicht beschlossen. |
+| `planned` | `[p]` | Beschlossen, noch nicht zur Arbeit freigegeben. |
 | `open` | `[ ]` | Offen. Spalte „Offen“ im Board. |
 | `in_progress` | `[~]` | In Arbeit. |
 | `review` | `[?]` | Zur Prüfung. |
 | `done` | `[x]` | Erledigt. |
 
-Die vier Werte entsprechen dem Enum `TaskStatus` der App.
+Die sechs Werte stehen in dieser Reihenfolge. Die Werte `idea` und `planned` kommen aus Entscheidung §8 (planer-abgleich). Sie gehören noch nicht zum Enum der App (Schritt S3).
 
 ---
 
@@ -185,21 +189,22 @@ Optionales Feld `userStory` am Task. Es ist ein Objekt aus drei Teilen. Zusammen
 ### 5.3 Releases und Commits
 
 - **`release`** gibt es nur auf Milestones. Fehlt es, hat der Milestone keine Version.
-- **Freigabe:** Eine Version mit `release.status: "veröffentlicht"` darf keinen Task mit `status` ungleich `done` haben.
-- **Commit-Pflicht:** Ein Task mit `status: "done"` in einer Version mit `release.status: "veröffentlicht"` braucht einen Hash oder `"ohne"`. `null` ist dort ein Fehler. Die Regel prüft der Validator, nicht das Schema, weil das Schema den Milestone nicht kennt, zu dem der Task gehört.
-- **Altbestand:** `"ohne"` kennzeichnet einen erledigten Task ohne Hash, wie `  Ohne Commit` in Spezifikation v1, Regel 6. Der Wert ist nur bei `status: "done"` erlaubt. Bei anderen Status ist er ein Fehler. Der Validator prüft das.
+- **Freigabe:** Eine Version mit `release.status: "released"` darf keinen Task mit `status` ungleich `done` haben.
+- **Commit-Pflicht:** Ein Task mit `status: "done"` in einer Version mit `release.status: "released"` braucht einen Hash oder `"none"`. `null` ist dort ein Fehler. Die Regel prüft der Validator, nicht das Schema, weil das Schema den Milestone nicht kennt, zu dem der Task gehört.
+- **Altbestand:** `"none"` kennzeichnet einen erledigten Task ohne Hash, wie `  Ohne Commit` in Spezifikation v1, Regel 6. Der Wert ist nur bei `status: "done"` erlaubt. Bei anderen Status ist er ein Fehler. Der Validator prüft das.
 - **`null`** heißt: kein Commit eingetragen. Bei erledigten Tasks in einer veröffentlichten Version ist das ein Fehler. Für geplante Versionen und offene Tasks ist es normal.
 - **Hash:** Nur Kleinbuchstaben und Ziffern, 7 bis 40 Zeichen. Das entspricht der Regel in `src/parse.mjs` der Spezifikation v1.
 
 ### 5.4 Labels und Mitglieder
 
 - `assigneeEmail` verweist auf ein Mitglied. Der Validator prüft das (P2), Groß- und Kleinschreibung spielen keine Rolle.
-- `labelNames` verweist auf das Label-Set des Projekts. Das Label-Set steht nicht in der Datei. Die Prüfung folgt deshalb erst beim Import in P6. Das Schema prüft nur Form und Länge.
+- `project.labels` steht in der Datei: je Label `key` (`a-z`, `0-9`, `_`, `-`, 1 bis 40 Zeichen), `names` (Namen je Sprache, `de` und `en`, je 1 bis 40 Zeichen, Pflicht ist der Name in der Sprache des Projekts), optional `category` und `color` (einer der zehn Töne der App). Reihenfolge = Array-Reihenfolge.
+- Der Validator prüft: Schlüssel und Namen sind je Datei eindeutig. Jeder Schlüssel in `labels` eines Tasks ist in `project.labels` vorhanden.
 
 ### 5.5 Kanonische Form
 
 - Zwei Leerzeichen Einrückung, feste Schlüsselreihenfolge wie in Abschnitt 1, Zeilenende am Schluss. Abweichungen sind ein Hinweis, kein Fehler. Das sorgt für lesbare Git-Diffs.
-- Ein optionales Feld, das `null` ist, fehlt in der kanonischen Form. `null` und fehlend bedeuten dasselbe: nicht gesetzt. Ein leeres `labelNames` fehlt ebenso. Leere Pflichtlisten (`members`, `todos`, `tasks`) bleiben.
+- Ein optionales Feld, das `null` ist, fehlt in der kanonischen Form. `null` und fehlend bedeuten dasselbe: nicht gesetzt. Eine leere `labels`-Liste fehlt ebenso. Leere Pflichtlisten (`members`, `todos`, `tasks`) bleiben.
 - Dieselben Daten ergeben immer denselben Text. Die Schlüsselreihenfolge der Eingabe spielt keine Rolle.
 
 ### 5.6 Leere Container
@@ -246,7 +251,7 @@ Die Markdown-Ansicht ist für Menschen. Die Datei bleibt die Quelle. `mollo-plan
   - `## vM.m Titel` für einen Milestone mit Version.
   - `## Titel` für einen Milestone ohne Version (`release` fehlt). Erkannt wird er an seiner ID-Zeile `m-NNN`.
   - `### Titel` für ein ToDo.
-  - `- [ ] Titel`, `- [~] Titel`, `- [?] Titel` oder `- [x] Titel` für einen Task.
+  - `- [ ] Titel`, `- [i] Titel`, `- [p] Titel`, `- [~] Titel`, `- [?] Titel` oder `- [x] Titel` für einen Task.
 - Alles, was eingerückt ist, gehört zum darüber liegenden Task.
 - Vor jedem Milestone steht eine Trennlinie `---`.
 
@@ -260,8 +265,10 @@ Die Markdown-Ansicht ist für Menschen. Die Datei bleibt die Quelle. `mollo-plan
 Unter der Task-Zeile folgen die Blöcke in dieser Reihenfolge, jeweils durch eine Leerzeile getrennt. Eingerückt wird um zwei Leerzeichen.
 
 1. **Story:** `  *Als <Rolle> möchte ich <Ziel>, damit <Nutzen>.*`. Der Konverter erkennt das feste Muster „Als … möchte ich …, damit …“. Passt das Muster nicht, ist es ein Fehler.
-2. **Metadaten:** als Aufzählung, in dieser Reihenfolge und nur, wenn der Wert gesetzt ist: `  - Fällig: <Datum>`, `  - Zuständig: <E-Mail>`, `  - Labels: <Name>, <Name>`, `  - Commit: <Hash>`. Für `commit: "ohne"` steht `  - Commit: Ohne Commit`.
+2. **Metadaten:** als Aufzählung, in dieser Reihenfolge und nur, wenn der Wert gesetzt ist: `  - Fällig: <Datum>`, `  - Zuständig: <E-Mail>`, `  - Labels: <Name>, <Name>` (die Namen, nicht die Schlüssel), `  - Commit: <Hash>`. Für `commit: "ohne"` steht `  - Commit: Ohne Commit`.
 3. **Beschreibung:** eingerückt. Eine Überschrift darin ist `  ### Hinweis` und kein ToDo. Das gilt auch für Listen und Zitate.
+
+**Legende der Labels.** Ganz am Schluss, nach dem letzten Milestone, steht ein Trenner `---` und der Abschnitt `## Labels` mit einer Tabelle `| Schlüssel | Name | Kategorie | Farbe |` und der Trennzeile `|---|---|---|---|`. Jede Zeile ist ein Label aus `project.labels`. Ohne Labels fehlt der Abschnitt. Nach der Legende folgt nichts mehr. Name und Kategorie dürfen weder `|` noch `,` enthalten, sonst bricht die Ansicht. Der Konverter ordnet die Namen aus den Metadaten über diese Legende den Schlüsseln zu. Ein Name ohne Legendeneintrag ist ein Fehler mit Zeilenangabe.
 
 ### 7.4 Milestone und ToDo
 
@@ -270,7 +277,7 @@ Unter der Task-Zeile folgen die Blöcke in dieser Reihenfolge, jeweils durch ein
 
 ### 7.5 Projektkopf
 
-- `<!-- Ansicht von planer/2, revision <N>. … -->` als erste Zeile. Ist `changed` gesetzt, steht `, geändert` hinter der Revision.
+- `<!-- Ansicht von planer/2, revision <N>, lang de. … -->` als erste Zeile. Ist `changed` gesetzt, steht `, geändert` hinter der Revision. `lang` ist die Sprache der festen Wörter (`de` oder `en`, Abschnitt 5.3).
 - `# <Projektname>`, dann `- Sprache: <locale>`, dann die Projektbeschreibung, falls gesetzt.
 - `## Mitglieder` mit einer Zeile je Mitglied: `- <E-Mail> | <Rolle>`.
 
@@ -313,12 +320,12 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 - **Was das Schema prüft:** Felder, Typen, Pflichtfelder, unbekannte Felder, Formate (Datum, E-Mail), Längen, Muster (IDs, Hash, Version), Aufzählungen (Status, Rolle, Locale), Anzahlen.
 - **Was das Schema nicht prüft** (Validator, P2):
   - Eindeutigkeit der IDs in der Datei.
-  - `assigneeEmail` ist ein Mitglied, `labelNames` sind im Label-Set.
+  - `assigneeEmail` ist ein Mitglied, `labels` sind Schlüssel aus `project.labels`.
   - Release-Regel: keine offenen Tasks in einer veröffentlichten Version.
-  - Commit-Pflicht für `done`-Tasks in einer veröffentlichten Version, also Hash oder `"ohne"` statt `null`.
-  - `"ohne"` nur bei `status: "done"`.
+  - Commit-Pflicht für `done`-Tasks in einer veröffentlichten Version, also Hash oder `"none"` statt `null`.
+  - `"none"` nur bei `status: "done"`.
   - Whitelist der Formatierung und das Muster der Story in der Markdown-Ansicht. Stand P2: nicht geprüft, folgt mit der Markdown-Ansicht (P3 und P5).
-  - Labels in `labelNames` (P6, siehe Abschnitt 5.4).
+  - Labels in `labels` sind in `project.labels` vorhanden (Abschnitt 5.4).
   - Kanonische Form (Hinweis, kein Fehler).
 - **Garantie:** Eine Datei, die der Validator ohne Fehler annimmt, ist gültig für planer/2 und importierbar. Dass der Stand der App dazu passt, prüft der Roundtrip-Test.
 
@@ -328,8 +335,8 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 
 Diese Punkte sind entschieden. Sie gelten für planer/2.
 
-1. **Schreibweise von `locale`: `"DE"` und `"EN"` in der Datei.** Das entspricht der Planung und dem Beispiel. Die App speichert `de` und `en`. Die Umwandlung ist Aufgabe des Imports und Exports in P6. Begründung: Die Datei soll lesbar bleiben, und die App-Werte sind ein Detail der Schnittstelle.
-2. **Altbestand ohne Hash: `"ohne"`.** Ein erledigter Task ohne Hash bekommt `commit: "ohne"`. `null` bleibt „kein Commit eingetragen“ und ist bei erledigten Tasks in einer veröffentlichten Version ein Fehler. Begründung: `null` allein war mehrdeutig, und v1 kennzeichnet den Altbestand ausdrücklich.
+1. **Schreibweise der Werte: klein und englisch in der Datei** (`locale` `de`/`en`, `planned`/`released`, `none`). Entschieden in planer-abgleich §5.1. Die Ansicht übersetzt die festen Wörter.
+2. **Altbestand ohne Hash: `"none"`.** Ein erledigter Task ohne Hash bekommt `commit: "none"`. `null` bleibt „kein Commit eingetragen“ und ist bei erledigten Tasks in einer veröffentlichten Version ein Fehler. Begründung: `null` allein war mehrdeutig, und v1 kennzeichnet den Altbestand ausdrücklich.
 3. **Ort der `$schema`-Referenz: ohne Wirkung.** Das Schema liegt fest in `spec/planer-2.schema.json` im Repository `mollo-planer`. Der Validator prüft immer dagegen und ignoriert `$schema`. Das Feld ist nur ein Hinweis für Editoren. Begründung: Ein relativer Pfad aus dem Projektordner kann nicht überall stimmen, und ein Feld, das die Prüfung beeinflusst, wäre eine zweite Quelle.
 4. **Grammatik-Tests kommen mit P5, nicht mit P1.** Die Tests prüfen `md2json` und die Ansicht. Beides entsteht erst in P3 und P5. P1 umfasst Spezifikation und Schema. Die Anleitung in `planer-datei-ssot.md` §9 Punkt 3 wird mit P5 umgesetzt. Die Planung in `mollo-planer` bleibt unverändert, wie vorgegeben.
 5. **Mindestlänge von `userStory`-Teilen: 1 Zeichen.** Die Teile sind Pflicht, ein leerer Teil wäre kein Teil. Die Höchstlängen bleiben wie geplant.
@@ -350,17 +357,17 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 
 | v1 | planer/2 |
 |---|---|
-| `## vM.m Titel` mit Status | Milestone mit `release` `{ version: "M.m", status }`. Fehlt der Status, gilt `geplant`. |
+| `## vM.m Titel` mit Status | Milestone mit `release` `{ version: "M.m", status }`. Fehlt der Status, gilt `planned`. |
 | Beschreibung unter der Überschrift | `description` des Milestones |
 | `### Titel` | ToDo |
-| `- [x] [art] Titel` | Task mit `status: "done"`, `labelNames: ["art"]` |
-| `- [ ] [art] Titel` | Task mit `status: "open"`, `labelNames: ["art"]` |
+| `- [x] [art] Titel` | Task mit `status: "done"`, `labels: ["art"]` |
+| `- [ ] [art] Titel` | Task mit `status: "open"`, `labels: ["art"]` |
 | `  Commit <Hash>` | `commit: "<Hash>"` |
-| `  Ohne Commit` | `commit: "ohne"` |
+| `  Ohne Commit` | `commit: "none"` |
 | eingerückte Zeilen unter dem Task | `description` des Tasks |
 
 - **IDs:** fortlaufend je Art über die ganze Datei (`m-001`, `t-001`, `k-001`, …), in Dokumentreihenfolge.
-- **Projekt:** `name` aus dem Dateinamen (`version-<name>.md` ergibt `<name>`) oder aus `--name`. Ist der Name zu kurz oder fehlt er, verlangt der Befehl `--name`. `locale` ist `DE`, außer `--locale` sagt etwas anderes. `members` ist leer, weil v1 keine Mitglieder kennt. `revision` ist `1`.
+- **Projekt:** `name` aus dem Dateinamen (`version-<name>.md` ergibt `<name>`) oder aus `--name`. Ist der Name zu kurz oder fehlt er, verlangt der Befehl `--name`. `locale` ist `de`, außer `--locale` sagt etwas anderes (`DE` oder `EN`). `members` ist leer, weil v1 keine Mitglieder kennt. `revision` ist `1`.
 - **Gültigkeit:** Die v1-Datei muss gültig sein, sonst bricht der Befehl ab. Das Ergebnis wird wie jede planer/2-Datei geprüft.
 
 ### 11.2 Markdown-Ansicht nach planer/2

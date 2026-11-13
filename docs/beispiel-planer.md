@@ -105,3 +105,14 @@ Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist gep
 - [ ] Ältere Plan-Felder entfernen <!-- id: k-007 -->
 
   - Labels: backend, design
+
+---
+
+## Labels
+
+| Schlüssel | Name | Kategorie | Farbe |
+|---|---|---|---|
+| feature | Feature | type | green |
+| bug | Fehler | type | red |
+| design | Design | phase | pink |
+| backend | Backend | area | cyan |

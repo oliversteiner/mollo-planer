@@ -3,7 +3,7 @@
   "revision": 4,
   "project": {
     "name": "Mollo Planer",
-    "locale": "EN",
+    "locale": "en",
     "members": [
       {
         "email": "oliver@mollo.ch",
@@ -21,7 +21,7 @@
       "title": "Schema-Refactoring",
       "release": {
         "version": "1.4",
-        "status": "veröffentlicht"
+        "status": "released"
       },
       "todos": [
         {
@@ -42,7 +42,7 @@
               "id": "k-003",
               "title": "Altbestand übernommen",
               "status": "done",
-              "commit": "ohne"
+              "commit": "none"
             }
           ]
         }
@@ -60,7 +60,7 @@
               "id": "k-004",
               "title": "Filter nach Status",
               "status": "open",
-              "commit": "ohne"
+              "commit": "none"
             },
             {
               "id": "k-002",

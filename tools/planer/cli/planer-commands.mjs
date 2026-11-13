@@ -12,17 +12,17 @@ import { CommandError, addElement, findNode, listLines, moveElement, setStatus }
 
 export const HELPERS = ['add', 'move', 'status', 'list', 'show', 'revision'];
 
-const TASK_STATUSES = ['open', 'in_progress', 'review', 'done'];
-const RELEASE_STATUSES = ['geplant', 'veröffentlicht'];
+const TASK_STATUSES = ['idea', 'planned', 'open', 'in_progress', 'review', 'done'];
+const RELEASE_STATUSES = ['planned', 'released'];
 const ELEMENT_FLAGS = ['title', 'description', 'due', 'version', 'release-status', 'assignee', 'label', 'commit', 'status'];
 
 const USAGE = `Verwendung (planer/2, Datei per --datei oder docs/*.planer.json):
-  mollo-planer add milestone --title <Text> [--due JJJJ-MM-TT] [--version M.m [--release-status geplant|veröffentlicht]]
+  mollo-planer add milestone --title <Text> [--due JJJJ-MM-TT] [--version M.m [--release-status planned|released]]
   mollo-planer add todo --milestone <m-NNN> --title <Text> [--due JJJJ-MM-TT]
-  mollo-planer add task --todo <t-NNN> --title <Text> [--status open|in_progress|review|done] [--assignee <E-Mail>] [--label <Name>]... [--commit <Hash|ohne>] [--due JJJJ-MM-TT]
+  mollo-planer add task --todo <t-NNN> --title <Text> [--status idea|planned|open|in_progress|review|done] [--assignee <E-Mail>] [--label <Name|Schlüssel>]... [--commit <Hash|none>] [--due JJJJ-MM-TT]
   mollo-planer add <milestone|todo|task> --json          Element als JSON auf stdin (für Beschreibung, userStory, …)
   mollo-planer move <id> [--to <ziel-id>] [--position <N>]
-  mollo-planer status <k-NNN> open|in_progress|review|done [--commit <Hash|ohne>]
+  mollo-planer status <k-NNN> idea|planned|open|in_progress|review|done [--commit <Hash|none>]
   mollo-planer list [--compact]
   mollo-planer show <id>
   mollo-planer revision`;
@@ -82,6 +82,10 @@ function add(args, flags, options) {
 
   const element = flags.json ? elementFromStdin(kind, flags, options) : elementFromFlags(kind, flags);
   return change(flags, options, (plan) => {
+    if (element.labelNames !== undefined) {
+      element.labels = resolveLabelNames(plan, element.labelNames);
+      delete element.labelNames;
+    }
     const id = addElement(plan, kind, element, parentId);
     return `${id} angelegt`;
   });
@@ -194,7 +198,7 @@ function elementFromFlags(kind, flags) {
   if (kind === 'milestone') {
     element.todos = [];
     if (flags.version !== undefined) {
-      const releaseStatus = flags['release-status'] ?? 'geplant';
+      const releaseStatus = flags['release-status'] ?? 'planned';
       if (!RELEASE_STATUSES.includes(releaseStatus)) {
         throw new CommandError(`Unbekannter Release-Status „${releaseStatus}“. Erlaubt: ${RELEASE_STATUSES.join(', ')}.`, 2);
       }
@@ -215,6 +219,19 @@ function elementFromFlags(kind, flags) {
     if (flags.commit !== undefined) element.commit = flags.commit;
   }
   return element;
+}
+
+/** --label nimmt Schlüssel oder Namen aus den Labels des Projekts und gibt Schlüssel zurück. */
+function resolveLabelNames(plan, values) {
+  const labels = plan.project.labels ?? [];
+  return values.map((value) => {
+    const label = labels.find((candidate) => candidate.key === value || Object.values(candidate.names).includes(value));
+    if (!label) {
+      const known = labels.map((candidate) => candidate.key).join(', ') || 'keine';
+      throw new CommandError(`Label „${value}“ gibt es im Projekt nicht. Vorhanden: ${known}.`, 2);
+    }
+    return label.key;
+  });
 }
 
 function elementFromStdin(kind, flags, options) {

@@ -1,8 +1,8 @@
-<!-- Ansicht von planer/2, revision 3. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->
+<!-- Ansicht von planer/2, revision 3, lang de. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->
 
 # Mollo Planer
 
-- Sprache: DE
+- Sprache: de
 
 Projekt für Planung und Umsetzung. Alle Milestones, ToDos und Tasks stehen in der Reihenfolge, in der sie in der Datei erscheinen.
 
@@ -31,14 +31,14 @@ Erste Version des Ordering-Service. Alle Tasks sind erledigt, deshalb ist die Ve
 
   - Fällig: 2026-10-18
   - Zuständig: oliver@mollo.ch
-  - Labels: backend, feature
+  - Labels: Backend, Feature
   - Commit: abc1234
 
   Die Sperre liegt auf dem **Projekt**, nicht auf dem Milestone. Das ist ein Muster aus `KanbanOrdering`.
 
 - [x] Lücken nach dem Verschieben schließen <!-- id: k-002 -->
 
-  - Labels: backend, bug
+  - Labels: Backend, Fehler
   - Commit: def5678
 
 ### Fehlerfälle
@@ -69,7 +69,7 @@ Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist gep
 
   - Fällig: 2026-12-03
   - Zuständig: oliver@mollo.ch
-  - Labels: backend, feature
+  - Labels: Backend, Feature
 
   Ziel ist eine Klasse `Ordering` mit den Methoden `nextPosition`, `openSlot`, `move` und `close`.
 
@@ -85,7 +85,7 @@ Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist gep
 
 - [ ] Lückenschluss nach Löschen testen <!-- id: k-005 -->
 
-  - Labels: backend, feature
+  - Labels: Backend, Feature
 
   > Ohne Test fällt ein fehlender Lückenschluss erst in der Zeitachse auf.
 
@@ -97,10 +97,20 @@ Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist gep
   *Als Assistent möchte ich Milestones und ToDos per ID anhängen, damit ich keine Duplikate erzeuge.*
 
   - Zuständig: oliver@mollo.ch
-  - Labels: backend, feature
+  - Labels: Backend, Feature
 
   Details im Plan: [A4 im Schema-Review](https://planer.mollo.dev/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.
 
 - [ ] Ältere Plan-Felder entfernen <!-- id: k-007 -->
 
-  - Labels: backend, design
+  - Labels: Backend, Design
+
+---
+
+## Labels
+| Schlüssel | Name | Kategorie | Farbe |
+|---|---|---|---|
+| feature | Feature | type | green |
+| bug | Fehler | type | red |
+| design | Design | phase | pink |
+| backend | Backend | area | cyan |

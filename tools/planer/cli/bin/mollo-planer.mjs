@@ -14,7 +14,7 @@ const USAGE = `Verwendung:
                                    version-*.md zeilengenau, *.planer.json (planer/2) mit Pfad
   mollo-planer json [datei]       Schreibt die Datei als JSON nach stdout
                                    version-*.md als gelesene Struktur, planer/2 kanonisch
-  mollo-planer render [datei] [--out <datei>]
+  mollo-planer render [datei] [--out <datei>] [--lang de|en] [--legend-translations]
                                    Erzeugt die Markdown-Ansicht einer planer/2-Datei
   mollo-planer add|move|status|list|show|revision ...
                                    Helfer für planer/2, ändern nur die Datei (Hilfe: skills/planer/SKILL.md)
@@ -85,7 +85,11 @@ function checkedPlan(markdown) {
   return JSON.parse(markdown);
 }
 
-function runRender(argument, out) {
+function runRender(argument, out, { lang, legendTranslations }) {
+  if (lang !== undefined && !['de', 'en'].includes(lang)) {
+    console.error(`--lang: de oder en, nicht „${lang}“.`);
+    return 2;
+  }
   const { path, markdown } = readInput(argument);
   if (!isPlanerFile(path)) {
     console.error('render gilt für planer/2 (*.planer.json).');
@@ -97,7 +101,7 @@ function runRender(argument, out) {
   }
   let text;
   try {
-    text = renderPlaner(plan);
+    text = renderPlaner(plan, { lang, legendTranslations });
   } catch (error) {
     console.error(error.message);
     return 1;
@@ -163,7 +167,10 @@ function main(argv) {
       case 'json':
         return runJson(argument);
       case 'render':
-        return runRender(argument, optionValue(rest, '--out'));
+        return runRender(argument, optionValue(rest, '--out'), {
+          lang: optionValue(rest, '--lang') ?? undefined,
+          legendTranslations: rest.includes('--legend-translations'),
+        });
       case undefined:
       case '-h':
       case '--help':

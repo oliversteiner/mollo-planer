@@ -11,7 +11,7 @@ const ANNOTATIONS = new Set(['$schema', '$id', '$defs', 'title', 'description'])
 /** Schlüsselwörter, die dieser Prüfer auswertet. */
 const CHECKED = new Set([
   'type', 'const', 'enum', 'pattern', 'format', 'minLength', 'maxLength', 'minimum',
-  'minItems', 'maxItems', 'required', 'additionalProperties', 'properties', 'items', '$ref', 'anyOf',
+  'minItems', 'maxItems', 'minProperties', 'required', 'additionalProperties', 'properties', 'items', '$ref', 'anyOf',
 ]);
 
 /**
@@ -117,6 +117,9 @@ function checkArray(root, schema, value, path, issues) {
 }
 
 function checkObject(root, schema, value, path, issues) {
+  if (schema.minProperties !== undefined && Object.keys(value).length < schema.minProperties) {
+    issues.push({ path, message: `braucht mindestens ${schema.minProperties} Eintrag/Einträge` });
+  }
   for (const key of schema.required ?? []) {
     if (!Object.hasOwn(value, key)) {
       issues.push({ path: join(path, key), message: 'fehlt (Pflichtfeld)' });

@@ -1,4 +1,5 @@
 import { parse } from './parse.mjs';
+import { softwareDevLabels } from './builtin-labels.mjs';
 import { validate } from './validate.mjs';
 
 /**
@@ -7,14 +8,17 @@ import { validate } from './validate.mjs';
  * Abbildung (spec/format-v2.md, Abschnitt 11):
  * - Milestone „## vM.m Titel“ mit Status → Milestone mit release { version, status }.
  * - ToDo, Task → ToDo, Task. Erledigt → status done, offen → open.
- * - Art des Tasks → Label in labelNames (die Art ist ein Label, SSoT §2 Entscheidung 5).
- * - Commit → commit. „Ohne Commit“ → commit "ohne".
+ * - Art des Tasks → Label (Schlüssel der Vorlage „Softwareentwicklung“, planer-abgleich 3.7).
+ * - Commit → commit. „Ohne Commit“ → commit "none".
  * - Beschreibungen bleiben als Text erhalten.
  * - Projekt: name und locale kommen von außen (der Dateiname liefert keinen Namen),
  *   Mitglieder gibt es in v1 nicht, die Liste bleibt leer. Revision ist 1.
  *
  * Die v1-Datei muss vorher gültig sein. Sonst wird ein Fehler geworfen.
  */
+/** v1-Wörter auf die Werte der Datei (planer-abgleich §5.1). */
+const V1_RELEASE_STATUS = { geplant: 'planned', veröffentlicht: 'released' };
+
 export function planerFromV1(markdown, { name, locale = 'DE' }) {
   const errors = validate(markdown).filter((issue) => issue.severity === 'error');
   if (errors.length > 0) {
@@ -33,7 +37,7 @@ export function planerFromV1(markdown, { name, locale = 'DE' }) {
     const entry = {
       id: next('m'),
       title: milestone.title,
-      release: { version: milestone.number, status: milestone.status },
+      release: { version: milestone.number, status: V1_RELEASE_STATUS[milestone.status] },
     };
     if (milestone.description) entry.description = milestone.description;
 
@@ -46,10 +50,10 @@ export function planerFromV1(markdown, { name, locale = 'DE' }) {
           id: next('k'),
           title: task.title,
           status: task.done ? 'done' : 'open',
-          labelNames: [task.kind],
+          labels: [task.kind],
         };
         if (task.description) taskEntry.description = task.description;
-        if (task.commit !== null) taskEntry.commit = task.commit;
+        if (task.commit !== null) taskEntry.commit = task.commit === 'ohne' ? 'none' : task.commit;
         return taskEntry;
       });
       return todoEntry;
@@ -61,7 +65,7 @@ export function planerFromV1(markdown, { name, locale = 'DE' }) {
   return {
     format: 'planer/2',
     revision: 1,
-    project: { name, locale, members: [] },
+    project: { name, locale: locale.toLowerCase(), members: [], labels: softwareDevLabels() },
     milestones,
   };
 }

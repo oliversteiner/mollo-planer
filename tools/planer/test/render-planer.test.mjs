@@ -19,7 +19,7 @@ function plan(overrides = {}) {
   return {
     format: 'planer/2',
     revision: 1,
-    project: { name: 'Demo', locale: 'DE', members: [] },
+    project: { name: 'Demo', locale: 'de', members: [] },
     milestones: [
       {
         id: 'm-001',
@@ -50,11 +50,11 @@ test('Die Fixtures sind in kanonischer Form', () => {
 test('Kanonische Form hängt nicht von der Schlüsselreihenfolge der Eingabe ab', () => {
   const shuffled = {
     milestones: [{ todos: [], title: 'Start', id: 'm-001' }],
-    project: { members: [], locale: 'DE', name: 'Demo' },
+    project: { members: [], locale: 'de', name: 'Demo' },
     revision: 1,
     format: 'planer/2',
   };
-  const ordered = { format: 'planer/2', revision: 1, project: { name: 'Demo', locale: 'DE', members: [] }, milestones: [{ id: 'm-001', title: 'Start', todos: [] }] };
+  const ordered = { format: 'planer/2', revision: 1, project: { name: 'Demo', locale: 'de', members: [] }, milestones: [{ id: 'm-001', title: 'Start', todos: [] }] };
   assert.equal(canonicalText(shuffled), canonicalText(ordered));
 });
 
@@ -66,7 +66,7 @@ test('Milestone ohne Version: Überschrift ohne vM.m, ID-Zeile darunter, kein St
 
 test('Altbestand: Commit „ohne“ wird als „Ohne Commit“ angezeigt', () => {
   const data = plan();
-  data.milestones[0].todos[0].tasks[0] = { id: 'k-001', title: 'Alt', status: 'done', commit: 'ohne' };
+  data.milestones[0].todos[0].tasks[0] = { id: 'k-001', title: 'Alt', status: 'done', commit: 'none' };
   assert.match(renderPlaner(data), /^  - Commit: Ohne Commit$/m);
 });
 
@@ -132,7 +132,7 @@ test('changed: die Kopfzeile zeigt „geändert“, md2json liest es zurück', (
   plan.changed = true;
   const markdown = renderPlaner(plan);
 
-  assert.match(markdown.split('\n')[0], /^<!-- Ansicht von planer\/2, revision \d+, geändert\. /);
+  assert.match(markdown.split('\n')[0], /^<!-- Ansicht von planer\/2, revision \d+, geändert, lang de\. /);
   assert.equal(planerFromMarkdown(markdown).changed, true);
 });
 

@@ -138,7 +138,7 @@ export function listLines(plan) {
   return lines;
 }
 
-const MARK = { open: ' ', in_progress: '~', review: '?', done: 'x' };
+const MARK = { idea: 'i', planned: 'p', open: ' ', in_progress: '~', review: '?', done: 'x' };
 
 function allIds(plan) {
   const ids = [];

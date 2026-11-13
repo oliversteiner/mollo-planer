@@ -23,15 +23,18 @@ function withoutSchema(text) {
   return canonicalText(data);
 }
 
+/** Ansicht mit allen Sprachen in der Legende, damit ein Roundtrip nichts verliert. */
+const ALL = { legendTranslations: true };
+
 test('Roundtrip planer/2: render → md2json ergibt dieselbe kanonische Datei (beispiel)', () => {
   const original = read('../../../spec/fixtures/beispiel-planer.planer.json');
-  const back = planerFromMarkdown(renderPlaner(JSON.parse(original)));
+  const back = planerFromMarkdown(renderPlaner(JSON.parse(original), ALL));
   assert.equal(canonicalText(back), original);
 });
 
 test('Roundtrip planer/2 ohne $schema (valid)', () => {
   const original = read('../../../spec/fixtures/planer-valid.planer.json');
-  const back = planerFromMarkdown(renderPlaner(JSON.parse(original)));
+  const back = planerFromMarkdown(renderPlaner(JSON.parse(original), ALL));
   assert.equal(canonicalText(back), withoutSchema(original));
 });
 
@@ -65,20 +68,20 @@ test('v1 → v2: Art wird Label, Erledigt wird done, Commit bleibt', () => {
   const v1 = '## v1.0 Start\n\n### Arbeit\n\n- [x] [bug] Erledigt\n  Commit abc1234\n\n- [ ] [feature] Offen\n';
   const plan = planerFromV1(v1, { name: 'Demo' });
   const [done, open] = plan.milestones[0].todos[0].tasks;
-  assert.deepEqual(done, { id: 'k-001', title: 'Erledigt', status: 'done', labelNames: ['bug'], commit: 'abc1234' });
-  assert.deepEqual(open, { id: 'k-002', title: 'Offen', status: 'open', labelNames: ['feature'] });
+  assert.deepEqual(done, { id: 'k-001', title: 'Erledigt', status: 'done', labels: ['bug'], commit: 'abc1234' });
+  assert.deepEqual(open, { id: 'k-002', title: 'Offen', status: 'open', labels: ['feature'] });
 });
 
 test('v1 → v2: „Ohne Commit“ wird zu commit „ohne“', () => {
   const v1 = '## v1.0 Start\n\n### Arbeit\n\n- [x] [feature] Alt\n  Ohne Commit\n';
   const plan = planerFromV1(v1, { name: 'Demo' });
-  assert.equal(plan.milestones[0].todos[0].tasks[0].commit, 'ohne');
+  assert.equal(plan.milestones[0].todos[0].tasks[0].commit, 'none');
 });
 
 test('v1 → v2 → Markdown → v2: derselbe Stand', () => {
   const v1 = read('../../../spec/fixtures/valid.md');
   const v2 = canonicalText(planerFromV1(v1, { name: 'Demo', locale: 'EN' }));
-  const back = canonicalText(planerFromMarkdown(renderPlaner(JSON.parse(v2))));
+  const back = canonicalText(planerFromMarkdown(renderPlaner(JSON.parse(v2), ALL)));
   assert.equal(back, v2);
 });
 
@@ -91,7 +94,7 @@ test('md2json: fehlende Kopfzeile nennt Zeile 1', () => {
 });
 
 test('md2json: Task ohne ID-Zeile nennt die Zeile', () => {
-  const markdown = renderPlaner(JSON.parse(read('../../../spec/fixtures/beispiel-planer.planer.json')))
+  const markdown = renderPlaner(JSON.parse(read('../../../spec/fixtures/beispiel-planer.planer.json')), ALL)
     .replace('- [~] Ordering-Service ausbauen <!-- id: k-004 -->', '- [~] Ordering-Service ausbauen');
   assert.throws(() => planerFromMarkdown(markdown), (error) => {
     return error instanceof MarkdownError && /Task nicht lesbar/.test(error.message) && error.line > 1;
@@ -102,7 +105,7 @@ test('md2json: unbekannte Metadaten-Zeile am Task bleibt Beschreibung', () => {
   // Eine Liste in der Beschreibung ist kein Metadatum und darf nicht abbrechen.
   const data = JSON.parse(read('../../../spec/fixtures/beispiel-planer.planer.json'));
   data.milestones[1].todos[0].tasks[1].description = '- Punkt eins\n- Punkt zwei';
-  const back = planerFromMarkdown(renderPlaner(data));
+  const back = planerFromMarkdown(renderPlaner(data, ALL));
   assert.equal(back.milestones[1].todos[0].tasks[1].description, '- Punkt eins\n- Punkt zwei');
 });
 

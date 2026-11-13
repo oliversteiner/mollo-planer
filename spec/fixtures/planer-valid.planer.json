@@ -5,7 +5,7 @@
   "project": {
     "name": "Mollo Planer",
     "description": "Projektverwaltung mit Milestones, ToDos und Kanban.",
-    "locale": "DE",
+    "locale": "de",
     "members": [
       {
         "email": "oliver@mollo.ch",
@@ -14,6 +14,17 @@
       {
         "email": "anna@example.org",
         "role": "member"
+      }
+    ],
+    "labels": [
+      {
+        "key": "backend",
+        "names": {
+          "de": "Backend",
+          "en": "Backend"
+        },
+        "category": "area",
+        "color": "cyan"
       }
     ]
   },
@@ -24,7 +35,7 @@
       "dueDate": "2026-12-15",
       "release": {
         "version": "1.4",
-        "status": "veröffentlicht"
+        "status": "released"
       },
       "todos": [
         {
@@ -35,7 +46,7 @@
               "id": "k-001",
               "title": "Sperre für Milestones ergänzen",
               "status": "done",
-              "labelNames": [
+              "labels": [
                 "backend"
               ],
               "commit": "1a2b3c4d"
@@ -44,7 +55,7 @@
               "id": "k-002",
               "title": "Altbestand übernommen",
               "status": "done",
-              "commit": "ohne"
+              "commit": "none"
             }
           ]
         }
@@ -64,7 +75,7 @@
               "title": "Lückenschluss nach Löschen",
               "status": "in_progress",
               "assigneeEmail": "anna@example.org",
-              "labelNames": [
+              "labels": [
                 "backend"
               ]
             },

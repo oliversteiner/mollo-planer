@@ -4,11 +4,49 @@
   "project": {
     "name": "Mollo Planer",
     "description": "Projekt für Planung und Umsetzung. Alle Milestones, ToDos und Tasks stehen in der Reihenfolge, in der sie in der Datei erscheinen.",
-    "locale": "DE",
+    "locale": "de",
     "members": [
       {
         "email": "oliver@mollo.ch",
         "role": "owner"
+      }
+    ],
+    "labels": [
+      {
+        "key": "feature",
+        "names": {
+          "de": "Feature",
+          "en": "Feature"
+        },
+        "category": "type",
+        "color": "green"
+      },
+      {
+        "key": "bug",
+        "names": {
+          "de": "Fehler",
+          "en": "Bug"
+        },
+        "category": "type",
+        "color": "red"
+      },
+      {
+        "key": "design",
+        "names": {
+          "de": "Design",
+          "en": "Design"
+        },
+        "category": "phase",
+        "color": "pink"
+      },
+      {
+        "key": "backend",
+        "names": {
+          "de": "Backend",
+          "en": "Backend"
+        },
+        "category": "area",
+        "color": "cyan"
       }
     ]
   },
@@ -21,7 +59,7 @@
       "dueDate": "2026-10-31",
       "release": {
         "version": "1.3",
-        "status": "veröffentlicht"
+        "status": "released"
       },
       "todos": [
         {
@@ -37,7 +75,7 @@
               "dueDate": "2026-10-18",
               "status": "done",
               "assigneeEmail": "oliver@mollo.ch",
-              "labelNames": [
+              "labels": [
                 "backend",
                 "feature"
               ],
@@ -52,7 +90,7 @@
               "id": "k-002",
               "title": "Lücken nach dem Verschieben schließen",
               "status": "done",
-              "labelNames": [
+              "labels": [
                 "backend",
                 "bug"
               ],
@@ -81,7 +119,7 @@
       "dueDate": "2026-12-15",
       "release": {
         "version": "1.4",
-        "status": "geplant"
+        "status": "planned"
       },
       "todos": [
         {
@@ -96,7 +134,7 @@
               "dueDate": "2026-12-03",
               "status": "in_progress",
               "assigneeEmail": "oliver@mollo.ch",
-              "labelNames": [
+              "labels": [
                 "backend",
                 "feature"
               ],
@@ -111,7 +149,7 @@
               "title": "Lückenschluss nach Löschen testen",
               "description": "> Ohne Test fällt ein fehlender Lückenschluss erst in der Zeitachse auf.",
               "status": "open",
-              "labelNames": [
+              "labels": [
                 "backend",
                 "feature"
               ]
@@ -128,7 +166,7 @@
               "description": "Details im Plan: [A4 im Schema-Review](https://planer.mollo.dev/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.",
               "status": "review",
               "assigneeEmail": "oliver@mollo.ch",
-              "labelNames": [
+              "labels": [
                 "backend",
                 "feature"
               ],
@@ -142,7 +180,7 @@
               "id": "k-007",
               "title": "Ältere Plan-Felder entfernen",
               "status": "open",
-              "labelNames": [
+              "labels": [
                 "backend",
                 "design"
               ]

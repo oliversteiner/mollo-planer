@@ -2,17 +2,18 @@
  * Kanonische Form einer Planer-Datei (planer/2): feste Schlüsselreihenfolge,
  * zwei Leerzeichen Einrückung, Zeilenende am Schluss. Dieselben Daten ergeben
  * immer denselben Text, dadurch bleiben Git-Diffs lesbar. Nicht gesetzte optionale
- * Felder (null) und leere labelNames fehlen in der kanonischen Form.
+ * Felder (null) und leere Listen (labels, members) fehlen in der kanonischen Form.
  */
 
 const ORDER = {
   root: ['$schema', 'format', 'revision', 'changed', 'project', 'milestones'],
-  project: ['name', 'description', 'locale', 'members'],
+  project: ['name', 'description', 'locale', 'members', 'labels'],
   member: ['email', 'role'],
+  label: ['key', 'names', 'category', 'color'],
   milestone: ['id', 'appId', 'title', 'description', 'dueDate', 'release', 'todos'],
   release: ['version', 'status'],
   todo: ['id', 'appId', 'title', 'description', 'dueDate', 'tasks'],
-  task: ['id', 'appId', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labelNames', 'commit', 'userStory'],
+  task: ['id', 'appId', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labels', 'commit', 'userStory'],
   story: ['role', 'goal', 'benefit'],
 };
 
@@ -26,13 +27,16 @@ function canonicalize(plan) {
     changed: (changed) => (changed === true ? true : undefined),
     project: (project) => order(project, ORDER.project, {
       members: (members) => members.map((member) => order(member, ORDER.member)),
+      labels: (labels) => (labels.length > 0 ? labels.map((label) => order(label, ORDER.label, {
+        names: (names) => order(names, ['de', 'en']),
+      })) : undefined),
     }),
     milestones: (milestones) => milestones.map((milestone) => order(milestone, ORDER.milestone, {
       release: (release) => order(release, ORDER.release),
       todos: (todos) => todos.map((todo) => order(todo, ORDER.todo, {
         tasks: (tasks) => tasks.map((task) => order(task, ORDER.task, {
           userStory: (story) => (story === null ? null : order(story, ORDER.story)),
-          labelNames: (names) => (names.length > 0 ? names : undefined),
+          labels: (keys) => (keys.length > 0 ? keys : undefined),
         })),
       })),
     })),

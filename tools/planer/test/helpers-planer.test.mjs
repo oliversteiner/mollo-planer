@@ -43,7 +43,7 @@ test('revision: liefert die aktuelle Revision, ändert nichts', () => {
 test('list: eine Zeile je Element, ohne Beschreibungen', () => {
   const result = run(['list']);
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^m-001 v1\.3 \[veröffentlicht\] Ordering-Grundlage$/m);
+  assert.match(result.stdout, /^m-001 v1\.3 \[released\] Ordering-Grundlage$/m);
   assert.match(result.stdout, /^ {4}k-004 \[~\] Ordering-Service ausbauen$/m);
   assert.doesNotMatch(result.stdout, /Ziel ist eine Klasse/);
 });
@@ -81,18 +81,18 @@ test('add todo: vergibt t-005 im Milestone', () => {
   assert.equal(plan().milestones[1].todos.at(-1).id, 't-005');
 });
 
-test('add milestone: Version mit Standard-Status geplant, ID m-003', () => {
+test('add milestone: Version mit Standard-Status planned, ID m-003', () => {
   const result = run(['add', 'milestone', '--title', 'Neu', '--version', '1.5']);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(result.stdout, 'm-003 angelegt\n');
-  assert.deepEqual(plan().milestones.at(-1).release, { version: '1.5', status: 'geplant' });
+  assert.deepEqual(plan().milestones.at(-1).release, { version: '1.5', status: 'planned' });
 });
 
 test('add task: Labels, Zuständiger und Commit aus Flags', () => {
   const result = run(['add', 'task', '--todo', 't-003', '--title', 'Mit Feldern', '--assignee', 'oliver@mollo.ch', '--label', 'backend', '--label', 'bug', '--due', '2026-12-20', '--status', 'review']);
   assert.equal(result.status, 0, result.stderr);
   const task = plan().milestones[1].todos[0].tasks.at(-1);
-  assert.deepEqual(task.labelNames, ['backend', 'bug']);
+  assert.deepEqual(task.labels, ['backend', 'bug']);
   assert.equal(task.assigneeEmail, 'oliver@mollo.ch');
   assert.equal(task.dueDate, '2026-12-20');
   assert.equal(task.status, 'review');
@@ -152,7 +152,7 @@ test('add mit done ohne Commit in veröffentlichter Version wird abgelehnt', () 
   const result = run(['add', 'task', '--todo', 't-002', '--title', 'Ohne Commit', '--status', 'done']);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Änderung abgelehnt, Datei unverändert/);
-  assert.match(result.stderr, /Hash oder „ohne“/);
+  assert.match(result.stderr, /Hash oder „none“/);
   assert.equal(text(), before);
 });
 
@@ -171,11 +171,11 @@ test('status done mit Commit in veröffentlichter Version wird angenommen', () =
   assert.equal(plan().milestones[1].todos[0].tasks[0].commit, '1234abc');
 });
 
-test('status: „ohne“ als Commit ist nur bei done erlaubt', () => {
+test('status: „none“ als Commit ist nur bei done erlaubt', () => {
   const before = text();
-  const result = run(['status', 'k-004', 'open', '--commit', 'ohne']);
+  const result = run(['status', 'k-004', 'open', '--commit', 'none']);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /„ohne“ ist nur bei erledigten Tasks erlaubt/);
+  assert.match(result.stderr, /„none“ ist nur bei erledigten Tasks erlaubt/);
   assert.equal(text(), before);
 });
 
@@ -248,4 +248,29 @@ test('Ohne Datei und ohne docs/*.planer.json: Code 2', () => {
   } finally {
     rmSync(other, { recursive: true, force: true });
   }
+});
+
+test('add task: --label nimmt den Namen oder den Schlüssel aus den Labels des Projekts', () => {
+  const byName = run(['add', 'task', '--todo', 't-003', '--title', 'Mit Namen', '--label', 'Fehler']);
+  assert.equal(byName.status, 0, byName.stderr);
+  assert.deepEqual(plan().milestones[1].todos[0].tasks.at(-1).labels, ['bug']);
+});
+
+test('add task: unbekanntes Label endet mit Code 2 und ändert nichts', () => {
+  const before = text();
+  const result = run(['add', 'task', '--todo', 't-003', '--title', 'Falsch', '--label', 'Nicht da']);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /„Nicht da“ gibt es im Projekt nicht/);
+  assert.equal(text(), before);
+});
+
+test('status: idea und planned sind gültige Status, Freigabe-Werte planned und released', () => {
+  const idea = run(['status', 'k-004', 'idea']);
+  assert.equal(idea.status, 0, idea.stderr);
+  assert.equal(plan().milestones[1].todos[0].tasks[0].status, 'idea');
+  const planned = run(['status', 'k-004', 'planned']);
+  assert.equal(planned.status, 0, planned.stderr);
+  assert.equal(plan().milestones[1].todos[0].tasks[0].status, 'planned');
+  const old = run(['add', 'milestone', '--title', 'Alt', '--version', '2.0', '--release-status', 'veröffentlicht']);
+  assert.equal(old.status, 2);
 });

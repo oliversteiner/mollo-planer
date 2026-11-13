@@ -75,7 +75,7 @@ test('Schema: Grenzen (Titel, Version, Hash, Label, Datum)', () => {
   assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].title = 'x'; }), ['milestones[0].todos[0].tasks[0].title']);
   assert.deepEqual(errorPaths((d) => { d.milestones[0].release.version = '1.4.0'; }), ['milestones[0].release.version']);
   assert.deepEqual(errorPaths((d) => { d.milestones[1].todos[0].tasks[0].commit = 'nein'; }), ['milestones[1].todos[0].tasks[0].commit']);
-  assert.deepEqual(errorPaths((d) => { d.milestones[1].todos[0].tasks[0].labelNames = ['x'.repeat(41)]; }), ['milestones[1].todos[0].tasks[0].labelNames[0]']);
+  assert.deepEqual(errorPaths((d) => { d.milestones[1].todos[0].tasks[0].labels = ['x'.repeat(41)]; }), ['milestones[1].todos[0].tasks[0].labels[0]']);
   assert.deepEqual(errorPaths((d) => { d.milestones[0].dueDate = '31.12.2026'; }), ['milestones[0].dueDate']);
 });
 
@@ -93,13 +93,13 @@ test('Schema-Fehler verhindern die Semantikprüfung', () => {
   assert.deepEqual(paths, ['milestones[1].todos[0].tasks[0].status']);
 });
 
-test('Semantik: Commit „ohne“ nur bei erledigten Tasks', () => {
-  const paths = errorPaths((d) => { d.milestones[1].todos[0].tasks[0].commit = 'ohne'; });
+test('Semantik: Commit „none“ nur bei erledigten Tasks', () => {
+  const paths = errorPaths((d) => { d.milestones[1].todos[0].tasks[0].commit = 'none'; });
   assert.deepEqual(paths, ['milestones[1].todos[0].tasks[0].commit']);
 });
 
 test('Semantik: erledigter Task ohne Commit ist in geplanter Version erlaubt, in veröffentlichter nicht', () => {
-  assert.deepEqual(errorPaths((d) => { d.milestones[0].release.status = 'geplant'; d.milestones[0].todos[0].tasks[0].commit = null; }), []);
+  assert.deepEqual(errorPaths((d) => { d.milestones[0].release.status = 'planned'; d.milestones[0].todos[0].tasks[0].commit = null; }), []);
   assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].commit = null; }), ['milestones[0].todos[0].tasks[0].commit']);
 });
 
@@ -179,3 +179,9 @@ test('CLI validate ohne Argument findet docs/*.planer.json', () => {
 function fileFixture(name) {
   return fileURLToPath(new URL(`../../../spec/fixtures/${name}`, import.meta.url));
 }
+
+test('Labels: Schlüssel und Namen sind je Projekt eindeutig, Tasks verweisen nur auf vorhandene', () => {
+  assert.deepEqual(errorPaths((d) => { d.project.labels.push({ key: 'backend', names: { de: 'Doppelt', en: 'Twice' }, color: 'red' }); }), ['project.labels[1].key']);
+  assert.deepEqual(errorPaths((d) => { d.project.labels.push({ key: 'neu', names: { de: 'Backend', en: 'Twice' }, color: 'red' }); }), ['project.labels[1].names.de']);
+  assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].labels = ['gibt-es-nicht']; }), ['milestones[0].todos[0].tasks[0].labels[0]']);
+});

@@ -11,23 +11,28 @@ export class MarkdownError extends Error {
   }
 }
 
-const HEADER = /^<!-- Ansicht von planer\/2, revision (\d+)(, geändert)?\./;
+import { LANGUAGES } from './planer-words.mjs';
+
+const HEADER = /^<!-- Ansicht von planer\/2, revision (\d+)(, geändert)?, lang (de|en)\./;
 const MILESTONE_VERSION = /^## v(\d+\.\d+) (.+)$/;
 const MILESTONE_PLAIN = /^## (.+)$/;
 const TODO = /^### (.+)$/;
-const TASK = /^- \[( |~|\?|x)\] (.+?) <!-- id: (k-\d{3})(?:, app: (\d+))? -->$/;
+const TASK = /^- \[( |~|\?|x|i|p)\] (.+?) <!-- id: (k-\d{3})(?:, app: (\d+))? -->$/;
 const ID_LINE = /^<!-- id: ([mt]-\d{3})(?:, app: (\d+))? -->$/;
-const STORY = /^ {2}\*Als (.+?) möchte ich (.+?), damit (.+)\.\*$/;
+const STORY = /^ {2}\*(?:Als (.+?) möchte ich (.+?), damit (.+)|As (.+?) I want (.+?), so that (.+))\.\*$/;
 const MEMBER = /^- (\S+) \| (owner|manager|member)$/;
-const MARKS = { ' ': 'open', '~': 'in_progress', '?': 'review', x: 'done' };
-const RELEASE_STATUSES = ['geplant', 'veröffentlicht'];
+const MARKS = { i: 'idea', p: 'planned', ' ': 'open', '~': 'in_progress', '?': 'review', x: 'done' };
+/** Feste Wörter der Ansicht in beiden Sprachen auf die Werte der Datei (planer-words.mjs). */
+const STATUS_KEYS = { geplant: 'planned', veröffentlicht: 'released', planned: 'planned', released: 'released' };
+/** Schlüsselwörter der Metadaten in beiden Sprachen auf die deutschen Namen, die der Leser benutzt. */
+const KEY_ALIASES = { Due: 'Fällig', Assignee: 'Zuständig' };
 
 /** Wandelt die Markdown-Ansicht in ein Plan-Objekt (ungeprüft). */
 export function planerFromMarkdown(markdown) {
   const lines = markdown.split(/\r?\n/);
   const reader = new Reader(lines);
 
-  const { revision, changed } = readRevision(reader);
+  const { revision, changed, lang } = readRevision(reader);
   const project = readProject(reader);
   const milestones = [];
 
@@ -38,8 +43,23 @@ export function planerFromMarkdown(markdown) {
     }
     reader.next();
     reader.skipBlank();
+    if (reader.peek() === '## Labels') {
+      break;
+    }
     milestones.push(readMilestone(reader));
     reader.skipBlank();
+  }
+
+  const labels = readLegend(reader, { lang, projectLang: project.locale });
+  if (labels.length > 0) {
+    project.labels = labels;
+  }
+  for (const milestone of milestones) {
+    for (const todo of milestone.todos) {
+      for (const task of todo.tasks) {
+        resolveTaskLabels(task, labels);
+      }
+    }
   }
 
   return { format: 'planer/2', revision, ...(changed ? { changed: true } : {}), project, milestones };
@@ -88,18 +108,94 @@ class Reader {
   }
 }
 
+/**
+ * Die Legende „## Labels“ am Schluss. Fehlt sie, gibt es keine Labels.
+ * Spalten: Schlüssel, Name (Sprache der Ansicht), je weitere Sprache eine Spalte, Kategorie, Farbe.
+ */
+function readLegend(reader, { lang, projectLang }) {
+  reader.skipBlank();
+  if (reader.done()) {
+    return [];
+  }
+  if (reader.peek() !== '## Labels') {
+    throw new MarkdownError(reader.number(), 'Nach dem letzten Milestone ist nur die Legende „## Labels“ erlaubt.');
+  }
+  reader.next();
+  reader.skipBlank();
+
+  const headerNumber = reader.number();
+  const header = splitRow(reader.next());
+  if (header.length < 4 || header.slice(2, -2).some((code) => !LANGUAGES.includes(code))) {
+    throw new MarkdownError(headerNumber, 'Kopf der Legende: Schlüssel, Name, optional Sprachcodes (de, en), Kategorie, Farbe.');
+  }
+  if (reader.peek() === undefined || !/^\|(---\|)+$/.test(reader.next().trim()) ) {
+    throw new MarkdownError(reader.number() - 1, 'Trennzeile der Legende erwartet: „|---|…|“, eine Spalte je Kopf.');
+  }
+
+  const languageColumns = header.slice(2, -2).map((code, index) => [code, index + 2]);
+  const labels = [];
+  while (!reader.done() && reader.peek().startsWith('|')) {
+    const number = reader.number();
+    const cells = splitRow(reader.next());
+    if (cells.length !== header.length) {
+      throw new MarkdownError(number, 'Eine Zeile der Legende hat nicht so viele Spalten wie ihr Kopf.');
+    }
+    const names = {};
+    for (const [code, column] of [[lang, 1], ...languageColumns]) {
+      if (cells[column] !== '–' && cells[column] !== '') {
+        names[code] = cells[column];
+      }
+    }
+    if (names[projectLang] === undefined) {
+      throw new MarkdownError(number, `Der Name in der Sprache des Projekts (${projectLang}) fehlt in der Legende.`);
+    }
+    const [key, , , ...rest] = cells;
+    const category = rest[rest.length - 2];
+    const color = rest[rest.length - 1];
+    labels.push({ key, names, ...(category ? { category } : {}), color });
+  }
+
+  reader.skipBlank();
+  if (!reader.done()) {
+    throw new MarkdownError(reader.number(), 'Nach der Legende folgt nichts mehr.');
+  }
+  return labels;
+}
+
+/** Zerlegt eine Tabellenzeile „| a | b |“ in Zellen ohne Rand. */
+function splitRow(line) {
+  return (line ?? '').split('|').slice(1, -1).map((cell) => cell.trim());
+}
+
+/** Am Task stehen die Namen der Labels (Zeile „Labels:“), die Datei braucht die Schlüssel. */
+function resolveTaskLabels(task, labels) {
+  if (task.labelNames === undefined) {
+    return;
+  }
+  const keys = task.labelNames.map((name) => {
+    const label = labels.find((candidate) => Object.values(candidate.names).includes(name));
+    if (!label) {
+      throw new MarkdownError(task.labelNamesLine, `Label „${name}“ steht nicht in der Legende „## Labels“.`);
+    }
+    return label.key;
+  });
+  task.labels = keys;
+  delete task.labelNames;
+  delete task.labelNamesLine;
+}
+
 function readRevision(reader) {
   while (!reader.done()) {
     const line = reader.next();
     const match = line.match(HEADER);
     if (match) {
-      return { revision: Number(match[1]), changed: match[2] !== undefined };
+      return { revision: Number(match[1]), changed: match[2] !== undefined, lang: match[3] };
     }
     if (line.trim() !== '') {
       break;
     }
   }
-  throw new MarkdownError(1, 'Kopfzeile „<!-- Ansicht von planer/2, revision N. … -->“ fehlt.');
+  throw new MarkdownError(1, 'Kopfzeile „<!-- Ansicht von planer/2, revision N, lang de. … -->“ fehlt.');
 }
 
 function readProject(reader) {
@@ -111,15 +207,15 @@ function readProject(reader) {
   }
 
   reader.skipBlank();
-  const locale = reader.next()?.match(/^- Sprache: (DE|EN)$/);
+  const locale = reader.next()?.match(/^- (?:Sprache|Language): (de|en)$/);
   if (!locale) {
-    throw new MarkdownError(reader.number() - 1, 'Erwartet „- Sprache: DE“ oder „- Sprache: EN“.');
+    throw new MarkdownError(reader.number() - 1, 'Erwartet „- Sprache: de“ oder „- Language: en“.');
   }
 
   reader.skipBlank();
-  const description = reader.collectUntil((line) => line === '## Mitglieder');
+  const description = reader.collectUntil((line) => line === '## Mitglieder' || line === '## Members');
   if (reader.done()) {
-    throw new MarkdownError(reader.number(), 'Abschnitt „## Mitglieder“ fehlt.');
+    throw new MarkdownError(reader.number(), 'Abschnitt „## Mitglieder“ (oder „## Members“) fehlt.');
   }
   reader.next();
 
@@ -159,15 +255,15 @@ function readMilestone(reader) {
   const milestone = { id, title: version ? version[2] : plain[1] };
   if (appId !== undefined) milestone.appId = appId;
 
-  const meta = readMeta(reader, ['Status', 'Fällig']);
+  const meta = readMeta(reader, ['Status', 'Fällig', 'Due']);
   if (meta.Status !== undefined) {
     if (!version) {
       throw new MarkdownError(number, 'Status gibt es nur bei einem Milestone mit Version.');
     }
-    if (!RELEASE_STATUSES.includes(meta.Status)) {
+    if (STATUS_KEYS[meta.Status] === undefined) {
       throw new MarkdownError(number, `Unbekannter Status „${meta.Status}“.`);
     }
-    milestone.release = { version: version[1], status: meta.Status };
+    milestone.release = { version: version[1], status: STATUS_KEYS[meta.Status] };
   } else if (version) {
     milestone.release = { version: version[1], status: 'geplant' };
   }
@@ -198,7 +294,7 @@ function readTodo(reader) {
   const todo = { id, title: title[1] };
   if (appId !== undefined) todo.appId = appId;
 
-  const meta = readMeta(reader, ['Fällig']);
+  const meta = readMeta(reader, ['Fällig', 'Due']);
   if (meta['Fällig'] !== undefined) todo.dueDate = meta['Fällig'];
 
   reader.skipBlank();
@@ -230,20 +326,25 @@ function readTask(reader) {
 
   // Der Block unter dem Task: Story, Metadaten, Beschreibung. Jeder Teil durch Leerzeilen getrennt.
   reader.skipBlank();
-  if (!reader.done() && reader.peek().startsWith('  *Als ')) {
+  if (!reader.done() && /^ {2}\*(?:Als|As) /.test(reader.peek())) {
     const storyNumber = reader.number();
     const story = reader.next().match(STORY);
     if (!story) {
       throw new MarkdownError(storyNumber, 'Story passt nicht zum Muster „*Als … möchte ich …, damit ….*“.');
     }
-    task.userStory = { role: story[1], goal: story[2], benefit: story[3] };
+    task.userStory = story[1] !== undefined
+      ? { role: story[1], goal: story[2], benefit: story[3] }
+      : { role: story[4], goal: story[5], benefit: story[6] };
     reader.skipBlank();
   }
 
   const meta = readTaskMeta(reader);
   if (meta.dueDate !== undefined) task.dueDate = meta.dueDate;
   if (meta.assigneeEmail !== undefined) task.assigneeEmail = meta.assigneeEmail;
-  if (meta.labelNames !== undefined) task.labelNames = meta.labelNames;
+  if (meta.labelNames !== undefined) {
+    task.labelNames = meta.labelNames;
+    task.labelNamesLine = meta.labelNamesLine;
+  }
   if (meta.commit !== undefined) task.commit = meta.commit;
   reader.skipBlank();
 
@@ -267,14 +368,19 @@ function readTaskMeta(reader) {
   const meta = {};
   while (!reader.done()) {
     // Nur bekannte Schlüssel gehören zu den Metadaten. Alles andere ist Beschreibung, z. B. eine Liste.
-    const match = reader.peek().match(/^ {2}- (Fällig|Zuständig|Labels|Commit): (.*)$/);
+    const match = reader.peek().match(/^ {2}- (Fällig|Due|Zuständig|Assignee|Labels|Commit): (.*)$/);
     if (!match) break;
+    const lineNumber = reader.number();
     reader.next();
-    const [, key, value] = match;
+    const [, rawKey, value] = match;
+    const key = KEY_ALIASES[rawKey] ?? rawKey;
     if (key === 'Fällig') meta.dueDate = value;
     if (key === 'Zuständig') meta.assigneeEmail = value;
-    if (key === 'Labels') meta.labelNames = value.split(', ');
-    if (key === 'Commit') meta.commit = value === 'Ohne Commit' ? 'ohne' : value;
+    if (key === 'Labels') {
+      meta.labelNames = value.split(', ');
+      meta.labelNamesLine = lineNumber;
+    }
+    if (key === 'Commit') meta.commit = value === 'Ohne Commit' || value === 'None' ? 'none' : value;
     reader.skipBlank();
   }
   return meta;
@@ -285,10 +391,10 @@ function readMeta(reader, keys) {
   const meta = {};
   while (!reader.done() && /^- /.test(reader.peek())) {
     const line = reader.peek();
-    const match = line.match(/^- (Status|Fällig): (.*)$/);
+    const match = line.match(/^- (Status|Fällig|Due): (.*)$/);
     if (!match || !keys.includes(match[1])) break;
     reader.next();
-    meta[match[1]] = match[2];
+    meta[KEY_ALIASES[match[1]] ?? match[1]] = match[2];
     reader.skipBlank();
   }
   return meta;
