@@ -1,8 +1,8 @@
-# Format planer/2: `<projekt>.planer.json`
+# Format planer-v2: `<projekt>.planer.json`
 
 Version 2 des Formats. Gilt für die Planung eines Projekts: Milestones, ToDos und Tasks. Eine Datei pro Projekt, im Ordner `docs/`, Name `<projekt>.planer.json`.
 
-Die Datei ist ein JSON-Dokument. Die Form beschreibt das JSON-Schema `spec/planer-2.schema.json`. Die Prüfung der Datei ist der Validator (`mollo-planer validate`, ab P2). Das Format folgt dem Schema der App (`ProjectPlanInput` in `mollo-planer/backend/graphql/plan.graphql`), damit Markdown, App-Oberfläche und MCP-Connector dieselbe Struktur bearbeiten.
+Die Datei ist ein JSON-Dokument. Die Form beschreibt das JSON-Schema `spec/planer-v2.schema.json`. Die Prüfung der Datei ist der Validator (`mollo-planer validate`, ab P2). Das Format folgt dem Schema der App (`ProjectPlanInput` in `mollo-planer/backend/graphql/plan.graphql`), damit Markdown, App-Oberfläche und MCP-Connector dieselbe Struktur bearbeiten.
 
 Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md` unverändert.
 
@@ -12,8 +12,8 @@ Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md`
 
 ```json
 {
-  "$schema": "planer-2.schema.json",
-  "format": "planer/2",
+  "$schema": "planer-v2.schema.json",
+  "format": "planer-v2",
   "revision": 3,
   "project": {
     "name": "Mollo Planer",
@@ -44,7 +44,7 @@ Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md`
 }
 ```
 
-Das Beispiel ist gegen `spec/planer-2.schema.json` geprüft. Die Rolle `owner` ist ein Beispielwert.
+Das Beispiel ist gegen `spec/planer-v2.schema.json` geprüft. Die Rolle `owner` ist ein Beispielwert.
 
 ---
 
@@ -56,8 +56,8 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 
 | Feld | Pflicht | Typ und Grenze |
 |---|---|---|
-| `$schema` | nein | String. Hinweis für Editoren. Der Validator ignoriert das Feld und prüft immer gegen `spec/planer-2.schema.json`. |
-| `format` | ja | Genau `"planer/2"`. |
+| `$schema` | nein | String. Hinweis für Editoren. Der Validator ignoriert das Feld und prüft immer gegen `spec/planer-v2.schema.json`. |
+| `format` | ja | Genau `"planer-v2"`. |
 | `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. |
 | `changed` | nein | Nur `true`, sonst fehlt das Feld. Die Datei wurde lokal geändert und ist noch nicht eingetragen. |
 | `project` | ja | Objekt, Abschnitt 2.2. |
@@ -209,7 +209,7 @@ Optionales Feld `userStory` am Task. Es ist ein Objekt aus drei Teilen. Zusammen
 
 ### 5.6 Leere Container
 
-- Leere ToDos und Tasks sind erlaubt, weil die App sie zulässt. Die Regel aus Spezifikation v1, nach der jeder ToDo und jeder Milestone Inhalt braucht, gilt für planer/2 nicht.
+- Leere ToDos und Tasks sind erlaubt, weil die App sie zulässt. Die Regel aus Spezifikation v1, nach der jeder ToDo und jeder Milestone Inhalt braucht, gilt für planer-v2 nicht.
 
 ---
 
@@ -277,7 +277,7 @@ Unter der Task-Zeile folgen die Blöcke in dieser Reihenfolge, jeweils durch ein
 
 ### 7.5 Projektkopf
 
-- `<!-- Ansicht von planer/2, revision <N>, lang de. … -->` als erste Zeile. Ist `changed` gesetzt, steht `, geändert` hinter der Revision. `lang` ist die Sprache der festen Wörter (`de` oder `en`, Abschnitt 5.3).
+- `<!-- Ansicht von planer-v2, revision <N>, lang de. … -->` als erste Zeile. Ist `changed` gesetzt, steht `, geändert` hinter der Revision. `lang` ist die Sprache der festen Wörter (`de` oder `en`, Abschnitt 5.3).
 - `# <Projektname>`, dann `- Sprache: <locale>`, dann die Projektbeschreibung, falls gesetzt.
 - `## Mitglieder` mit einer Zeile je Mitglied: `- <E-Mail> | <Rolle>`.
 
@@ -316,7 +316,7 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 
 ## 9. Schema und Validator
 
-- **Schema:** `spec/planer-2.schema.json`, JSON Schema Draft 2020-12. Es ist die Form der Datei. Es gibt keine zweite Beschreibung der Form.
+- **Schema:** `spec/planer-v2.schema.json`, JSON Schema Draft 2020-12. Es ist die Form der Datei. Es gibt keine zweite Beschreibung der Form.
 - **Was das Schema prüft:** Felder, Typen, Pflichtfelder, unbekannte Felder, Formate (Datum, E-Mail), Längen, Muster (IDs, Hash, Version), Aufzählungen (Status, Rolle, Locale), Anzahlen.
 - **Was das Schema nicht prüft** (Validator, P2):
   - Eindeutigkeit der IDs in der Datei.
@@ -327,17 +327,17 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
   - Whitelist der Formatierung und das Muster der Story in der Markdown-Ansicht. Stand P2: nicht geprüft, folgt mit der Markdown-Ansicht (P3 und P5).
   - Labels in `labels` sind in `project.labels` vorhanden (Abschnitt 5.4).
   - Kanonische Form (Hinweis, kein Fehler).
-- **Garantie:** Eine Datei, die der Validator ohne Fehler annimmt, ist gültig für planer/2 und importierbar. Dass der Stand der App dazu passt, prüft der Roundtrip-Test.
+- **Garantie:** Eine Datei, die der Validator ohne Fehler annimmt, ist gültig für planer-v2 und importierbar. Dass der Stand der App dazu passt, prüft der Roundtrip-Test.
 
 ---
 
 ## 10. Entschieden (Abschluss der offenen Punkte)
 
-Diese Punkte sind entschieden. Sie gelten für planer/2.
+Diese Punkte sind entschieden. Sie gelten für planer-v2.
 
 1. **Schreibweise der Werte: klein und englisch in der Datei** (`locale` `de`/`en`, `planned`/`released`, `none`). Entschieden in planer-abgleich §5.1. Die Ansicht übersetzt die festen Wörter.
 2. **Altbestand ohne Hash: `"none"`.** Ein erledigter Task ohne Hash bekommt `commit: "none"`. `null` bleibt „kein Commit eingetragen“ und ist bei erledigten Tasks in einer veröffentlichten Version ein Fehler. Begründung: `null` allein war mehrdeutig, und v1 kennzeichnet den Altbestand ausdrücklich.
-3. **Ort der `$schema`-Referenz: ohne Wirkung.** Das Schema liegt fest in `spec/planer-2.schema.json` im Repository `mollo-planer`. Der Validator prüft immer dagegen und ignoriert `$schema`. Das Feld ist nur ein Hinweis für Editoren. Begründung: Ein relativer Pfad aus dem Projektordner kann nicht überall stimmen, und ein Feld, das die Prüfung beeinflusst, wäre eine zweite Quelle.
+3. **Ort der `$schema`-Referenz: ohne Wirkung.** Das Schema liegt fest in `spec/planer-v2.schema.json` im Repository `mollo-planer`. Der Validator prüft immer dagegen und ignoriert `$schema`. Das Feld ist nur ein Hinweis für Editoren. Begründung: Ein relativer Pfad aus dem Projektordner kann nicht überall stimmen, und ein Feld, das die Prüfung beeinflusst, wäre eine zweite Quelle.
 4. **Grammatik-Tests kommen mit P5, nicht mit P1.** Die Tests prüfen `md2json` und die Ansicht. Beides entsteht erst in P3 und P5. P1 umfasst Spezifikation und Schema. Die Anleitung in `planer-datei-ssot.md` §9 Punkt 3 wird mit P5 umgesetzt. Die Planung in `mollo-planer` bleibt unverändert, wie vorgegeben.
 5. **Mindestlänge von `userStory`-Teilen: 1 Zeichen.** Die Teile sind Pflicht, ein leerer Teil wäre kein Teil. Die Höchstlängen bleiben wie geplant.
 
@@ -351,11 +351,11 @@ Diese Punkte sind entschieden. Sie gelten für planer/2.
 
 Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach stdout oder nach `--out`.
 
-### 11.1 v1 nach planer/2
+### 11.1 v1 nach planer-v2
 
 `mollo-planer convert v1-zu-v2 <version-<name>.md> [--name <Projektname>] [--locale DE|EN] [--out <datei>]`
 
-| v1 | planer/2 |
+| v1 | planer-v2 |
 |---|---|
 | `## vM.m Titel` mit Status | Milestone mit `release` `{ version: "M.m", status }`. Fehlt der Status, gilt `planned`. |
 | Beschreibung unter der Überschrift | `description` des Milestones |
@@ -368,18 +368,18 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 
 - **IDs:** fortlaufend je Art über die ganze Datei (`m-001`, `t-001`, `k-001`, …), in Dokumentreihenfolge.
 - **Projekt:** `name` aus dem Dateinamen (`version-<name>.md` ergibt `<name>`) oder aus `--name`. Ist der Name zu kurz oder fehlt er, verlangt der Befehl `--name`. `locale` ist `de`, außer `--locale` sagt etwas anderes (`DE` oder `EN`). `members` ist leer, weil v1 keine Mitglieder kennt. `revision` ist `1`.
-- **Gültigkeit:** Die v1-Datei muss gültig sein, sonst bricht der Befehl ab. Das Ergebnis wird wie jede planer/2-Datei geprüft.
+- **Gültigkeit:** Die v1-Datei muss gültig sein, sonst bricht der Befehl ab. Das Ergebnis wird wie jede planer-v2-Datei geprüft.
 
-### 11.2 Markdown-Ansicht nach planer/2
+### 11.2 Markdown-Ansicht nach planer-v2
 
 `mollo-planer convert md2json <datei.md> [--out <datei>]`
 
-- Liest die Ansicht nach Abschnitt 7. Die `revision` steht in der Kopfzeile. Die Datei ist danach eine planer/2-Datei und wird geprüft.
+- Liest die Ansicht nach Abschnitt 7. Die `revision` steht in der Kopfzeile. Die Datei ist danach eine planer-v2-Datei und wird geprüft.
 - Fehler nennen die Zeile. Ein Task ohne ID-Zeile ist ein Fehler, ebenso eine Metadatenzeile, die nicht zu den Schlüsseln gehört. Eine eingerückte Zeile mit einem Schlüssel wie `- Fällig:` in der Beschreibung eines Tasks wird als Metadatum gelesen. Das ist die einzige bekannte Mehrdeutigkeit.
 - `$schema` ist kein Inhalt. Die Ansicht trägt es nicht, deshalb stellt der Roundtrip es nicht wieder her.
 
 ### 11.3 Roundtrip
 
 - `render` → `convert md2json` → kanonische Form ergibt dieselbe Datei. Geprüft für das Beispiel und die gültige Fixture (ohne `$schema`).
-- v1 → planer/2 → Markdown → planer/2 ergibt denselben Stand. Geprüft für die gültige v1-Fixture und für die echte Versionsdatei aus `club-db` (17 Milestones, 39 ToDos, 107 Tasks), die nur gelesen wurde.
+- v1 → planer-v2 → Markdown → planer-v2 ergibt denselben Stand. Geprüft für die gültige v1-Fixture und für die echte Versionsdatei aus `club-db` (17 Milestones, 39 ToDos, 107 Tasks), die nur gelesen wurde.
 

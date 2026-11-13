@@ -1,4 +1,4 @@
-# Umsetzungsanleitung: Planer-Datei `planer/2`
+# Umsetzungsanleitung: Planer-Datei `planer-v2`
 
 Stand: 2026-11-12. Für die Umsetzungssitzung(en), die nach dieser Planung arbeiten.
 Grundlage: `docs/planer-datei-ssot.md` (Entscheidungen §2, Format §4, Grammatik §4.5, Phasen §7), `docs/planer-vs-mollo-version.md` (§7), `docs/schema-review.md` (A1–A6, Reihenfolge), `docs/refactoring-vor-umsetzung.md` (Offene Schritte), `docs/beispiel-planer.md` (Testfall).
@@ -13,7 +13,7 @@ Grundlage: `docs/planer-datei-ssot.md` (Entscheidungen §2, Format §4, Grammati
 - **Zwei Repositories, zwei Spuren.** Spur A (`~/www/mollo-version`) ist das Werkzeug. Spur B (`~/www/mollo-planer`) ist die App. Spur A kann vorab und ohne Spur B laufen. Spur B braucht Spur A ab P2 (R2 und P6).
 - **Ein Schritt, ein Commit, grüne Tests.** Commit-Nachrichten im bisherigen Stil (`Refactor:`, `Feat:`, `Fix:`, `Docs:`). Jeder Schritt endet mit einer Zeile Stand im betroffenen Plan-Dokument.
 - **Refactorings ändern kein Verhalten.** R-Schritte müssen mit den bestehenden Tests laufen, bevor Schema-Schritte beginnen.
-- **Keine Kurzschlüsse über die Schemas.** Die Form eines Plans steht in genau einer Quelle (`planer/2`-JSON-Schema, danach `PlanSchema` in PHP). Keine zweite Beschreibung anlegen.
+- **Keine Kurzschlüsse über die Schemas.** Die Form eines Plans steht in genau einer Quelle (`planer-v2`-JSON-Schema, danach `PlanSchema` in PHP). Keine zweite Beschreibung anlegen.
 
 ---
 
@@ -22,10 +22,10 @@ Grundlage: `docs/planer-datei-ssot.md` (Entscheidungen §2, Format §4, Grammati
 Offene Punkte aus SSoT §9, die in P1 festgeschrieben werden:
 
 1. **Rollen in `members`:** Werte aus dem GraphQL-Enum `ProjectRole` der App übernehmen. Die Fundstelle in `mollo-planer` ist vorher zu prüfen (nicht in den bisherigen Dokumenten belegt).
-2. **Ort des JSON-Schemas:** `spec/planer-2.schema.json` in `mollo-version` (Vorschlag, bestätigt).
+2. **Ort des JSON-Schemas:** `spec/planer-v2.schema.json` in `mollo-version` (Vorschlag, bestätigt).
 3. **Grenzen `userStory`:** `role` höchstens 80, `goal` und `benefit` höchstens 160 Zeichen, Klartext.
 4. **Grammatikregeln §4.5** als Tests gegen `spec/format-v2.md` festschreiben.
-5. **Leere Container:** Die App lässt leere ToDos und Tasks zu, `planer/2` folgt der App. Die Regel aus v1 gilt nur für v1.
+5. **Leere Container:** Die App lässt leere ToDos und Tasks zu, `planer-v2` folgt der App. Die Regel aus v1 gilt nur für v1.
 
 Stopp-Punkt: Ist einer dieser Punkte nicht eindeutig, nachfragen. Nicht raten.
 
@@ -36,29 +36,29 @@ Stopp-Punkt: Ist einer dieser Punkte nicht eindeutig, nachfragen. Nicht raten.
 Bestand: Node-CLI ohne Abhängigkeiten, `bin/mollo-version.mjs`, Befehle `validate` und `json`, Spezifikation v1 in `spec/format.md`, Fixtures `fixtures/valid.md` (keine Fehler) und `fixtures/invalid.md` (13 Fehler), Tests über `npm test`, Laravel-Paket `laravel/`.
 
 ### P1: Spezifikation v2
-- **Dateien:** `spec/format-v2.md`, `spec/planer-2.schema.json`.
+- **Dateien:** `spec/format-v2.md`, `spec/planer-v2.schema.json`.
 - **Inhalt:** Felder aus SSoT §4.2, Regeln §4.3, User-Story §4.4a, Formatierung §4.4b (Whitelist), Grammatik §4.5, Release-Regeln, Commit-Regel.
 - **Fertig, wenn:** Das Schema ein gültiges JSON-Schema ist, `$schema` in der Beispieldatei zeigt, und das Beispiel aus SSoT §4.1 gegen das Schema läuft.
-- **Commit:** `Docs: planer/2 specification and JSON schema`.
+- **Commit:** `Docs: planer-v2 specification and JSON schema`.
 
 ### P2: Validator v2
 - **Dateien:** Erweiterung von `bin/` und `src/` (vorhandene Struktur übernehmen), neue Fixtures `fixtures/planer-valid.planer.json` und `fixtures/planer-invalid.planer.json`, Tests.
 - **Prüfungen:** Schema, Semantik (eindeutige `id`, Verweise auf Mitglieder und Labels, Release-Regeln, Grenzen, Commit-Regel), Kanonik als Hinweis.
 - **Dateierkennung:** `validate` findet `*.planer.json` zusätzlich zu `version-*.md` (SSoT §8).
 - **Fertig, wenn:** Gültige Fixture ohne Fehler, jede ungültige Fixture mit der erwarteten Fehlerzahl und Pfadangabe. `npm test` grün.
-- **Commit:** `Feat: validator for planer/2`.
+- **Commit:** `Feat: validator for planer-v2`.
 
 ### P3: Ausgabe
 - **Befehle:** `json` für v2 (kanonisch, Schlüsselreihenfolge fest), `render` nach Markdown (Grammatik §4.5, IDs als Kommentar).
 - **Fertig, wenn:** Golden-File-Tests für Beispiel und Fixtures. Das Beispiel aus `docs/beispiel-planer.md` ist als Testfall erfasst, soweit er die Grammatik abdeckt.
-- **Commit:** `Feat: render and canonical json for planer/2`.
+- **Commit:** `Feat: render and canonical json for planer-v2`.
 
 ### P4: Helfer für Agenten
 - **Befehle:** `add milestone|todo|task`, `move <id> --to <ziel>`, `status <task-id> open|in_progress|review|done`, `list --compact`, `show <id>`, `revision`.
 - **Regeln:** Jede Änderung erhöht `revision`. IDs werden vergeben und nie wiederverwendet. Ausgabe kurz, mit neuer ID.
 - **Zusätzlich:** `SKILL.md` für Agenten.
 - **Messung:** Tokenbedarf vorher und nachher an einer Beispieldatei protokollieren (SSoT §3 und §8). Ergebnis in die Planung zurückschreiben, nicht vorher behaupten.
-- **Commit:** `Feat: helper commands for planer/2`.
+- **Commit:** `Feat: helper commands for planer-v2`.
 
 ### P5: Konvertierung
 - **Befehle:** `convert v1-zu-v2 <version-*.md>` und `convert md2json <datei.md>`.
@@ -81,7 +81,7 @@ Reihenfolge laut `docs/refactoring-vor-umsetzung.md` (Offene Schritte) und `docs
 
 ### B2: R2 (Rest), erst nach P2 in Spur A
 - Wertobjekte `App\Plan\PlanMilestone`, `PlanTodo`, `PlanTask` mit `fromArray()` und `toArray()`.
-- `PlanSchema` prüft gegen das JSON-Schema `planer/2` (aus `mollo-version`). Die PHP-Seite übernimmt die Grenzwerte aus dem Schema, nicht umgekehrt.
+- `PlanSchema` prüft gegen das JSON-Schema `planer-v2` (aus `mollo-version`). Die PHP-Seite übernimmt die Grenzwerte aus dem Schema, nicht umgekehrt.
 - `ProjectPlanImporter` nimmt nur Wertobjekte an. `ReadsProjectPlanInput` und `ProjectPlanAssistant::clean()` bauen Wertobjekte.
 - Test: Felder von `plan.graphql` gegen das Schema.
 - **Verhaltensänderung:** `status` (Task) und `position` (Milestone) fehlen heute im Assistenten und in GraphQL. Das ist eine Verhaltensänderung und braucht Freigabe. Vorher Oliver fragen.
@@ -109,11 +109,11 @@ Reihenfolge laut `docs/refactoring-vor-umsetzung.md` (Offene Schritte) und `docs
 - Nach Bedarf, Reihenfolge laut Schema-Review.
 
 ### P6: Anbindung Planer (SSoT §7)
-- Laravel-Importer für `planer/2` über `importPlanIntoProject`, Export, Roundtrip-Tests:
+- Laravel-Importer für `planer-v2` über `importPlanIntoProject`, Export, Roundtrip-Tests:
   - `export(import(datei))` ergibt dieselbe kanonische Datei.
   - `import(export(db))` ändert die Datenbank nicht.
 - Abhängig von A4 und R2. Erst danach.
-- Der Beispielplan `docs/beispiel-planer.md` wird als `planer/2`-JSON im Repo abgelegt und zum Roundtrip-Testfall.
+- Der Beispielplan `docs/beispiel-planer.md` wird als `planer-v2`-JSON im Repo abgelegt und zum Roundtrip-Testfall.
 
 ---
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:mollo-planer:planer-2",
-  "title": "Planer-Datei planer/2",
-  "description": "Form der Datei <projekt>.planer.json (Format planer/2). Das Schema prüft die Struktur, Typen und Grenzwerte. Eindeutigkeit der IDs, Verweise auf Mitglieder und Labels, Release- und Commit-Regeln prüft der Validator (P2). Siehe spec/format-v2.md.",
+  "$id": "urn:mollo-planer:planer-v2",
+  "title": "Planer-Datei planer-v2",
+  "description": "Form der Datei <projekt>.planer.json (Format planer-v2). Das Schema prüft die Struktur, Typen und Grenzwerte. Eindeutigkeit der IDs, Verweise auf Mitglieder und Labels, Release- und Commit-Regeln prüft der Validator (P2). Siehe spec/format-v2.md.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,7 +17,7 @@
       "description": "Hinweis für Editoren. Der Validator ignoriert das Feld und prüft immer gegen dieses Schema."
     },
     "format": {
-      "const": "planer/2"
+      "const": "planer-v2"
     },
     "revision": {
       "type": "integer",

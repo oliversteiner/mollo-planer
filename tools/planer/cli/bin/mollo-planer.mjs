@@ -11,17 +11,17 @@ import { runConvert } from '../planer-convert.mjs';
 
 const USAGE = `Verwendung:
   mollo-planer validate [datei]   Prüft die Datei (Fehler brechen ab, Hinweise nicht)
-                                   version-*.md zeilengenau, *.planer.json (planer/2) mit Pfad
+                                   version-*.md zeilengenau, *.planer.json (planer-v2) mit Pfad
   mollo-planer json [datei]       Schreibt die Datei als JSON nach stdout
-                                   version-*.md als gelesene Struktur, planer/2 kanonisch
+                                   version-*.md als gelesene Struktur, planer-v2 kanonisch
   mollo-planer render [datei] [--out <datei>] [--lang de|en] [--legend-translations]
-                                   Erzeugt die Markdown-Ansicht einer planer/2-Datei
+                                   Erzeugt die Markdown-Ansicht einer planer-v2-Datei
   mollo-planer add|move|status|list|show|revision ...
-                                   Helfer für planer/2, ändern nur die Datei (Hilfe: skills/planer/SKILL.md)
+                                   Helfer für planer-v2, ändern nur die Datei (Hilfe: skills/planer/SKILL.md)
   mollo-planer convert v1-zu-v2 <version-*.md> [--out <datei>] [--name <Name>] [--locale DE|EN]
-                                   Führt eine v1-Datei nach planer/2 über (nur lesen, Ausgabe nach stdout)
+                                   Führt eine v1-Datei nach planer-v2 über (nur lesen, Ausgabe nach stdout)
   mollo-planer convert md2json <datei.md> [--out <datei>]
-                                   Liest die Markdown-Ansicht von planer/2 zurück in die Datei
+                                   Liest die Markdown-Ansicht von planer-v2 zurück in die Datei
 
 Ohne Datei sucht das Werkzeug im aktuellen Ordner nach docs/version-*.md oder docs/*.planer.json.`;
 
@@ -74,7 +74,7 @@ function runValidate(argument) {
   return 0;
 }
 
-/** Liest eine planer/2-Datei und gibt das Objekt zurück, oder null bei Fehlern (mit Meldung). */
+/** Liest eine planer-v2-Datei und gibt das Objekt zurück, oder null bei Fehlern (mit Meldung). */
 function checkedPlan(markdown) {
   const errors = validatePlaner(markdown).filter((issue) => issue.severity === 'error');
   if (errors.length > 0) {
@@ -92,7 +92,7 @@ function runRender(argument, out, { lang, legendTranslations }) {
   }
   const { path, markdown } = readInput(argument);
   if (!isPlanerFile(path)) {
-    console.error('render gilt für planer/2 (*.planer.json).');
+    console.error('render gilt für planer-v2 (*.planer.json).');
     return 2;
   }
   const plan = checkedPlan(markdown);

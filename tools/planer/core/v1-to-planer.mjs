@@ -3,7 +3,7 @@ import { softwareDevLabels } from './builtin-labels.mjs';
 import { validate } from './validate.mjs';
 
 /**
- * Führt eine v1-Datei (version-<name>.md) nach planer/2 über. Liefert ein Plan-Objekt (ungeprüft).
+ * Führt eine v1-Datei (version-<name>.md) nach planer-v2 über. Liefert ein Plan-Objekt (ungeprüft).
  *
  * Abbildung (spec/format-v2.md, Abschnitt 11):
  * - Milestone „## vM.m Titel“ mit Status → Milestone mit release { version, status }.
@@ -63,7 +63,7 @@ export function planerFromV1(markdown, { name, locale = 'DE' }) {
   });
 
   return {
-    format: 'planer/2',
+    format: 'planer-v2',
     revision: 1,
     project: { name, locale: locale.toLowerCase(), members: [], labels: softwareDevLabels() },
     milestones,

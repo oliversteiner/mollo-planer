@@ -5,7 +5,7 @@ import { canonicalText } from '../core/planer-canonical.mjs';
 import { CommandError, addElement, findNode, listLines, moveElement, setStatus } from '../core/planer-edit.mjs';
 
 /**
- * Helfer-Befehle für planer/2: add, move, status, list, show, revision.
+ * Helfer-Befehle für planer-v2: add, move, status, list, show, revision.
  * Jede Änderung lädt die Datei, prüft sie, ändert sie, prüft das Ergebnis und
  * schreibt erst dann. Schlägt eine Prüfung fehl, bleibt die Datei unverändert.
  */
@@ -16,7 +16,7 @@ const TASK_STATUSES = ['idea', 'planned', 'open', 'in_progress', 'review', 'done
 const RELEASE_STATUSES = ['planned', 'released'];
 const ELEMENT_FLAGS = ['title', 'description', 'due', 'version', 'release-status', 'assignee', 'label', 'commit', 'status'];
 
-const USAGE = `Verwendung (planer/2, Datei per --datei oder docs/*.planer.json):
+const USAGE = `Verwendung (planer-v2, Datei per --datei oder docs/*.planer.json):
   mollo-planer add milestone --title <Text> [--due JJJJ-MM-TT] [--version M.m [--release-status planned|released]]
   mollo-planer add todo --milestone <m-NNN> --title <Text> [--due JJJJ-MM-TT]
   mollo-planer add task --todo <t-NNN> --title <Text> [--status idea|planned|open|in_progress|review|done] [--assignee <E-Mail>] [--label <Name|Schlüssel>]... [--commit <Hash|none>] [--due JJJJ-MM-TT]

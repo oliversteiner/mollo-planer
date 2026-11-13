@@ -1,7 +1,7 @@
 {
   "name": "mollo-planer",
   "version": "2.0.0",
-  "description": "Planung als Datei (planer/2): Prüfung, Markdown-Ansicht, Helfer für Agenten. Teil von mollo-planer.",
+  "description": "Planung als Datei (planer-v2): Prüfung, Markdown-Ansicht, Helfer für Agenten. Teil von mollo-planer.",
   "type": "module",
   "bin": {
     "mollo-planer": "cli/bin/mollo-planer.mjs"

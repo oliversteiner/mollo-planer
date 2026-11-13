@@ -1,5 +1,5 @@
 /**
- * Kanonische Form einer Planer-Datei (planer/2): feste Schlüsselreihenfolge,
+ * Kanonische Form einer Planer-Datei (planer-v2): feste Schlüsselreihenfolge,
  * zwei Leerzeichen Einrückung, Zeilenende am Schluss. Dieselben Daten ergeben
  * immer denselben Text, dadurch bleiben Git-Diffs lesbar. Nicht gesetzte optionale
  * Felder (null) und leere Listen (labels, members) fehlen in der kanonischen Form.

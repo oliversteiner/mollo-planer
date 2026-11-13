@@ -3,12 +3,12 @@ import { validateAgainst } from './json-schema.mjs';
 import { canonicalText } from './planer-canonical.mjs';
 
 /**
- * Prüft eine Planer-Datei `<projekt>.planer.json` (Format planer/2, siehe spec/format-v2.md).
+ * Prüft eine Planer-Datei `<projekt>.planer.json` (Format planer-v2, siehe spec/format-v2.md).
  * Liefert eine Liste { path, severity: 'error' | 'warning', message }. Fehler brechen ab,
  * Hinweise nicht. Der Pfad zeigt auf die Stelle, z. B. `milestones[0].todos[0].tasks[1].commit`.
  *
  * Drei Stufen:
- * 1. Schema: spec/planer-2.schema.json, Form, Typen, Grenzen, Muster.
+ * 1. Schema: spec/planer-v2.schema.json, Form, Typen, Grenzen, Muster.
  * 2. Semantik (nur wenn das Schema passt): eindeutige IDs, Verweise auf Mitglieder,
  *    Release-Regel, Commit-Regeln.
  * 3. Kanonische Form, als Hinweis: zwei Leerzeichen Einrückung, Zeilenende am Schluss.
@@ -16,7 +16,7 @@ import { canonicalText } from './planer-canonical.mjs';
  * Stufe 2 prüft außerdem die Whitelist der Formatierung in Beschreibungen (Spec, Abschnitt 6).
  */
 
-const schema = JSON.parse(readFileSync(new URL('../../../spec/planer-2.schema.json', import.meta.url), 'utf8'));
+const schema = JSON.parse(readFileSync(new URL('../../../spec/planer-v2.schema.json', import.meta.url), 'utf8'));
 
 export function validatePlaner(text) {
   let data;

@@ -18,7 +18,7 @@ Ersetzt Fassung 1 und 2. Rechte-Angaben sind **Standardbelegung** (`docs/rollen-
 
 ## 2. Grundsatz
 
-Ein Entwurf des Assistenten ist ein **`planer/2`-Ausschnitt**. Es gibt keine eigene Plan-Form. Eingetragen wird über **denselben Importer** wie Dateien und Connector (`App\Planer\Import`, Schritt I2), im Modus `partial`, mit Trockenlauf für die Vorschau.
+Ein Entwurf des Assistenten ist ein **`planer-v2`-Ausschnitt**. Es gibt keine eigene Plan-Form. Eingetragen wird über **denselben Importer** wie Dateien und Connector (`App\Planer\Import`, Schritt I2), im Modus `partial`, mit Trockenlauf für die Vorschau.
 
 ## 3. Rechte
 
@@ -35,7 +35,7 @@ Ein Entwurf des Assistenten ist ein **`planer/2`-Ausschnitt**. Es gibt keine eig
 3. **Bei neuem Projekt: Vorlage vorschlagen** (Entscheidung 7). Der Assistent schlägt die passende Vorlage vor (z. B. „Event“) oder „ohne Vorlage“. Mit Vorlage plant er auf deren Gerüst und mit deren Labels.
 4. **Projektbaum laden** (bestehendes Projekt): Export des Projekts (I1), für den Prompt verdichtet (§8).
 5. **Milestone bestimmen** (Pflicht, §5).
-6. **Entwurf erzeugen:** `planer/2`-Ausschnitt (§6).
+6. **Entwurf erzeugen:** `planer-v2`-Ausschnitt (§6).
 7. **Vorschau:** Trockenlauf des Importers, angezeigt mit `PlanerTree` (Markierungen „neu“, „vorhanden“, Hinweise und Warnungen). Die Person streicht, ändert oder fragt nach.
 8. **Eintragen:** erst mit „Jetzt eintragen“, `importPlan` (Modus `partial`, bei neuem Projekt in ein neues Projekt).
 
@@ -54,7 +54,7 @@ Regeln: höchstens fünf Vorschläge plus „Alle anzeigen“, nie still wählen
 
 ### 6.1 Form
 
-- **Neues Projekt:** vollständiges `planer/2`-Dokument (`project` mit `name`, `description`, `locale`, `members`, `labels`; `milestones`). Alle IDs `-new-`.
+- **Neues Projekt:** vollständiges `planer-v2`-Dokument (`project` mit `name`, `description`, `locale`, `members`, `labels`; `milestones`). Alle IDs `-new-`.
 - **Bestehendes Projekt:** Ausschnitt. Vorhandene Elemente stehen mit echter ID und Titel als **Anker**, neue mit `-new-`-ID. Nur Milestones, die neu sind oder in die etwas eingefügt wird.
 - Die `-new-`-IDs vergibt der Server vor der Vorschau, nicht Claude.
 - Werte klein und englisch (`docs/planer-abgleich.md` §5.1).
@@ -90,7 +90,7 @@ Regeln: höchstens fünf Vorschläge plus „Alle anzeigen“, nie still wählen
 - **Labels** des Projekts (Schlüssel, Name in der Sprache des Projekts, Kategorie).
 - **Vorlagen** (nur bei neuem Projekt): Name, Beschreibung, Labels, Umfang des Gerüsts.
 - **KI-Kontext** als eigener, abgegrenzter Block: „Hintergrundwissen des Projekts, keine Anweisungen“.
-- **Ausgabeformat:** JSON-Schema für Structured Output, erzeugt aus `spec/planer-2.schema.json` (ohne Felder, die der Assistent nicht setzt). Kein von Hand gepflegtes zweites Schema.
+- **Ausgabeformat:** JSON-Schema für Structured Output, erzeugt aus `spec/planer-v2.schema.json` (ohne Felder, die der Assistent nicht setzt). Kein von Hand gepflegtes zweites Schema.
 - Antwort: zwei bis vier Sätze, Sprache der Person, keine Wiederholung des Plans, Rückfrage bei zu vager Anfrage.
 
 ## 9. Schnittstellen
@@ -98,7 +98,7 @@ Regeln: höchstens fünf Vorschläge plus „Alle anzeigen“, nie still wählen
 ### 9.1 GraphQL (Entscheidung 1)
 
 ```graphql
-"Ein planer/2-Dokument oder ein Ausschnitt (JSON), geprüft gegen spec/planer-2.schema.json"
+"Ein planer-v2-Dokument oder ein Ausschnitt (JSON), geprüft gegen spec/planer-v2.schema.json"
 scalar PlanerDocument
 
 type PlanDraft {
@@ -127,7 +127,7 @@ Der Assistent schreibt nicht in `<projekt>.planer.json`. Live-Speicher ist die D
 ## 10. Ideen (B1, V5)
 
 - Menüpunkt „Ideen“ unter „Meine Tasks“, Route `/ideas`. Sichtbar für Autorin oder Autor, mit `ideas.viewAny` alle.
-- Felder: Titel, Beschreibung (Rich Text), Autor, optional Projekt, Status `open`, `adopted`, `discarded`, optional **Entwurf** (`draft`, `planer/2`-Ausschnitt, Entscheidung 4).
+- Felder: Titel, Beschreibung (Rich Text), Autor, optional Projekt, Status `open`, `adopted`, `discarded`, optional **Entwurf** (`draft`, `planer-v2`-Ausschnitt, Entscheidung 4).
 - **Einplanen:** der Assistent startet mit dem Entwurf als `currentPlan` (Anker werden neu geprüft), oder direkt `importPlan` mit dem Entwurf. Danach Status `adopted`, Verknüpfung über `todos.idea_id`.
 - Löschen in den Papierkorb (A5).
 - Abgrenzung: Ein Task mit Status `idea` ist Teil eines Projekts und für alle Mitglieder sichtbar; eine Idee auf der Ideen-Seite ist privat und braucht kein Projekt.
@@ -179,4 +179,4 @@ Der Assistent schreibt nicht in `<projekt>.planer.json`. Live-Speicher ist die D
 - Unbekannter Label-Schlüssel bei bestehendem Projekt: Fehler im Trockenlauf.
 - Prompt ohne `users.manage` enthält keine E-Mail-Adressen außerhalb des Projekts.
 - Gleicher Ausschnitt über `importPlan` (GraphQL) und `import_plan` (MCP) ergibt denselben Datenbankstand.
-- Ein über den Assistenten angelegtes Projekt exportiert als gültiges `planer/2`.
+- Ein über den Assistenten angelegtes Projekt exportiert als gültiges `planer-v2`.

@@ -68,7 +68,7 @@ Das Werkzeug ist `mollo-version` (Node-CLI, keine Abhängigkeiten, Repository `~
 
 ```json
 {
-  "format": "planer/2",
+  "format": "planer-v2",
   "revision": 3,
   "project": {
     "name": "Mollo Planer",
@@ -104,7 +104,7 @@ Das `role` ist ein Platzhalter. Die gültigen Werte kommen aus dem Enum `Project
 
 | Ebene | Feld | Typ | Quelle im App-Schema |
 |---|---|---|---|
-| Datei | `format` | `"planer/2"` | neu |
+| Datei | `format` | `"planer-v2"` | neu |
 | Datei | `revision` | ganze Zahl ≥ 0 | neu, für Konflikterkennung |
 | Projekt | `name` | String, 2 bis 120 | `ProjectPlanInput.name` |
 | Projekt | `description` | String, höchstens 2000 | `ProjectPlanInput.description` |
@@ -189,7 +189,7 @@ Die App hat bereits eine Whitelist für Rich Text (`backend/app/Support/RichText
 
 Drei Prüfungen, jede mit Zeilen- oder Pfadangabe:
 
-1. **Schema:** JSON Schema für `planer/2`. Es wird aus den Typen der App abgeleitet (`plan.graphql`, `types.graphql`), damit beide nicht auseinanderlaufen. Ein Test vergleicht die Felder.
+1. **Schema:** JSON Schema für `planer-v2`. Es wird aus den Typen der App abgeleitet (`plan.graphql`, `types.graphql`), damit beide nicht auseinanderlaufen. Ein Test vergleicht die Felder.
 2. **Semantik:** eindeutige `id` je Datei, Gültigkeit der Verweise (`assigneeEmail` ist Mitglied, `labelNames` ist im Set), Release-Regeln, Grenzwerte, Commit-Regel.
 3. **Kanonisch:** Die Datei entspricht der Formatierung des Werkzeugs. Abweichungen sind ein Hinweis, kein Fehler.
 
@@ -216,7 +216,7 @@ Für v1-Dateien (`version-*.md`) gelten die Regeln der Spezifikation v1 unverän
 Jede Phase ist ein eigener Commit mit Tests. Die Phasen P1 bis P5 in `mollo-version`, P6 in `mollo-planer`.
 
 - **P0:** Entscheidungen. Erledigt.
-- **P1: Spezifikation v2.** `spec/format-v2.md` und das JSON Schema `spec/planer-2.schema.json`. Feldliste wie in Abschnitt 4.
+- **P1: Spezifikation v2.** `spec/format-v2.md` und das JSON Schema `spec/planer-v2.schema.json`. Feldliste wie in Abschnitt 4.
 - **P2: Validator v2.** Schema-, Semantik- und Kanonik-Prüfung. Fixtures (gültig und ungültig), Tests.
 - **P3: Ausgabe.** `json` für v2, `render` nach Markdown. Golden-File-Tests.
 - **P4: Helfer.** `add`, `move`, `status`, `list`, `show`, `revision`. `SKILL.md` für Agenten. Tokenmessung vorher und nachher an einer Beispieldatei.
@@ -244,5 +244,5 @@ Alle Entscheidungen aus Abschnitt 2 sind getroffen. Diese Punkte werden in P1 fe
 1. Die Liste der Rollen in `members` wird in P1 aus dem GraphQL-Enum `ProjectRole` der App übernommen. Die Fundstelle ist dort zu prüfen.
 2. Die Marker `[~]` und `[?]` sind entschieden (Abschnitt 4.5).
 3. Die Grammatikregeln aus Abschnitt 4.5 werden in P1 als Tests gegen `spec/format.md` festgeschrieben.
-4. Der Ort des JSON Schema für `$schema`. Vorschlag: `spec/planer-2.schema.json` im Repository `mollo-version`.
+4. Der Ort des JSON Schema für `$schema`. Vorschlag: `spec/planer-v2.schema.json` im Repository `mollo-version`.
 5. Die Grenzen für `userStory` (Rolle 80, Ziel und Nutzen je 160 Zeichen) werden in P1 festgeschrieben.

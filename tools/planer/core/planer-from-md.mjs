@@ -1,5 +1,5 @@
 /**
- * Liest die Markdown-Ansicht einer planer/2-Datei zurück (Grammatik: spec/format-v2.md, Abschnitt 7).
+ * Liest die Markdown-Ansicht einer planer-v2-Datei zurück (Grammatik: spec/format-v2.md, Abschnitt 7).
  * Das Gegenstück zu core/render-planer.mjs. Ergebnis ist ein Plan-Objekt, das anschließend
  * validatePlaner prüft. Fehler nennen die Zeile.
  */
@@ -13,7 +13,7 @@ export class MarkdownError extends Error {
 
 import { LANGUAGES } from './planer-words.mjs';
 
-const HEADER = /^<!-- Ansicht von planer\/2, revision (\d+)(, geändert)?, lang (de|en)\./;
+const HEADER = /^<!-- Ansicht von planer-v2, revision (\d+)(, geändert)?, lang (de|en)\./;
 const MILESTONE_VERSION = /^## v(\d+\.\d+) (.+)$/;
 const MILESTONE_PLAIN = /^## (.+)$/;
 const TODO = /^### (.+)$/;
@@ -62,7 +62,7 @@ export function planerFromMarkdown(markdown) {
     }
   }
 
-  return { format: 'planer/2', revision, ...(changed ? { changed: true } : {}), project, milestones };
+  return { format: 'planer-v2', revision, ...(changed ? { changed: true } : {}), project, milestones };
 }
 
 class Reader {
@@ -195,7 +195,7 @@ function readRevision(reader) {
       break;
     }
   }
-  throw new MarkdownError(1, 'Kopfzeile „<!-- Ansicht von planer/2, revision N, lang de. … -->“ fehlt.');
+  throw new MarkdownError(1, 'Kopfzeile „<!-- Ansicht von planer-v2, revision N, lang de. … -->“ fehlt.');
 }
 
 function readProject(reader) {

@@ -1,4 +1,4 @@
-<!-- Ansicht von planer/2, revision 3, lang de. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->
+<!-- Ansicht von planer-v2, revision 3, lang de. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->
 
 # Mollo Planer
 

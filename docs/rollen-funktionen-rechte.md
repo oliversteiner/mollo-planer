@@ -136,7 +136,7 @@ Diese Regeln schützen vor Aussperren und vor Missbrauch. Sie sind keine Rechte,
 - **Ein Dienst** `App\Support\Rights` ersetzt `ProjectPermissions` und `SystemPermissions`: `allows(User, Right, ?Project)`, `rightsOf(User, ?Project)`. Ergebnis pro Person und Projekt im Request zwischengespeichert, Rollen und Funktionen mit Cache (bei Änderung in den Einstellungen geleert).
 - `ChecksProjectAbilities` und alle Policies rufen nur `Rights::allows` auf. Die Grundregeln (§7) bleiben in den Policies bzw. in `ProjectMembership`.
 - GraphQL: `ProjectAbility` und `SystemAbility` werden zum Enum `Right`. `Project.viewerAbilities` → `Project.viewerRights`, `viewerSystemAbilities` → `viewerRights` (System). Neue Typen `Role`, `RoleFunction` (Name „Function“ ist in GraphQL frei, aber in PHP reserviert, daher `RoleFunction`), Mutationen zum Verwalten (Recht `roles.manage`).
-- `members[].role` in `planer/2`: der **Schlüssel** einer Projektrolle (mitgeliefert `owner`, `manager`, `member`, eigene Rollen mit eigenem Schlüssel). Der Validator prüft nur die Form, der Import prüft, ob es die Rolle gibt.
+- `members[].role` in `planer-v2`: der **Schlüssel** einer Projektrolle (mitgeliefert `owner`, `manager`, `member`, eigene Rollen mit eigenem Schlüssel). Der Validator prüft nur die Form, der Import prüft, ob es die Rolle gibt.
 - MCP-Token: handeln mit den Rechten der Person, unverändert.
 
 ## 9. Entscheidungen (Oliver, 2026-11-13)

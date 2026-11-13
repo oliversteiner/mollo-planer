@@ -1,5 +1,5 @@
 /**
- * Operationen auf einem geprüften Plan (planer/2), ohne Dateizugriff.
+ * Operationen auf einem geprüften Plan (planer-v2), ohne Dateizugriff.
  * Die Befehle in src/planer-commands.mjs laden, rufen diese Funktionen auf,
  * prüfen das Ergebnis und schreiben erst dann.
  */

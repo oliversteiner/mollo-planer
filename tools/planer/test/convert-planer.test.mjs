@@ -26,13 +26,13 @@ function withoutSchema(text) {
 /** Ansicht mit allen Sprachen in der Legende, damit ein Roundtrip nichts verliert. */
 const ALL = { legendTranslations: true };
 
-test('Roundtrip planer/2: render → md2json ergibt dieselbe kanonische Datei (beispiel)', () => {
+test('Roundtrip planer-v2: render → md2json ergibt dieselbe kanonische Datei (beispiel)', () => {
   const original = read('../../../spec/fixtures/beispiel-planer.planer.json');
   const back = planerFromMarkdown(renderPlaner(JSON.parse(original), ALL));
   assert.equal(canonicalText(back), original);
 });
 
-test('Roundtrip planer/2 ohne $schema (valid)', () => {
+test('Roundtrip planer-v2 ohne $schema (valid)', () => {
   const original = read('../../../spec/fixtures/planer-valid.planer.json');
   const back = planerFromMarkdown(renderPlaner(JSON.parse(original), ALL));
   assert.equal(canonicalText(back), withoutSchema(original));

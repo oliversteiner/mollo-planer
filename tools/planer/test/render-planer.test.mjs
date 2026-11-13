@@ -17,7 +17,7 @@ const fixturePath = (name) => fileURLToPath(new URL(`../../../spec/fixtures/${na
 /** Ein minimaler gültiger Plan, zum gezielten Verändern. */
 function plan(overrides = {}) {
   return {
-    format: 'planer/2',
+    format: 'planer-v2',
     revision: 1,
     project: { name: 'Demo', locale: 'de', members: [] },
     milestones: [
@@ -52,9 +52,9 @@ test('Kanonische Form hängt nicht von der Schlüsselreihenfolge der Eingabe ab'
     milestones: [{ todos: [], title: 'Start', id: 'm-001' }],
     project: { members: [], locale: 'de', name: 'Demo' },
     revision: 1,
-    format: 'planer/2',
+    format: 'planer-v2',
   };
-  const ordered = { format: 'planer/2', revision: 1, project: { name: 'Demo', locale: 'de', members: [] }, milestones: [{ id: 'm-001', title: 'Start', todos: [] }] };
+  const ordered = { format: 'planer-v2', revision: 1, project: { name: 'Demo', locale: 'de', members: [] }, milestones: [{ id: 'm-001', title: 'Start', todos: [] }] };
   assert.equal(canonicalText(shuffled), canonicalText(ordered));
 });
 
@@ -102,13 +102,13 @@ test('Task-Beschreibung mit Überschrift wird eingerückt und bleibt beim Task',
   assert.match(markdown, /^  - Punkt$/m);
 });
 
-test('CLI json: planer/2 gibt die kanonische Form aus', () => {
+test('CLI json: planer-v2 gibt die kanonische Form aus', () => {
   const result = run(['json', fixturePath('planer-valid.planer.json')]);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(result.stdout, fixture('planer-valid.planer.json'));
 });
 
-test('CLI json: ungültige planer/2-Datei endet mit Code 1', () => {
+test('CLI json: ungültige planer-v2-Datei endet mit Code 1', () => {
   const result = run(['json', fixturePath('planer-invalid.planer.json')]);
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
@@ -124,7 +124,7 @@ test('CLI render: stdout entspricht der Golden-Datei', () => {
 test('CLI render: ein v1-Dokument wird abgelehnt (Code 2)', () => {
   const result = run(['render', fixturePath('valid.md')]);
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /planer\/2/);
+  assert.match(result.stderr, /planer-v2/);
 });
 
 test('changed: die Kopfzeile zeigt „geändert“, md2json liest es zurück', () => {
@@ -132,7 +132,7 @@ test('changed: die Kopfzeile zeigt „geändert“, md2json liest es zurück', (
   plan.changed = true;
   const markdown = renderPlaner(plan);
 
-  assert.match(markdown.split('\n')[0], /^<!-- Ansicht von planer\/2, revision \d+, geändert, lang de\. /);
+  assert.match(markdown.split('\n')[0], /^<!-- Ansicht von planer-v2, revision \d+, geändert, lang de\. /);
   assert.equal(planerFromMarkdown(markdown).changed, true);
 });
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Misst den Aufwand einer Änderung an einer planer/2-Datei, vorher und nachher.
+ * Misst den Aufwand einer Änderung an einer planer-v2-Datei, vorher und nachher.
  *
  * Vorher: der Agent liest die ganze Datei und schreibt sie komplett neu.
  * Nachher: der Agent ruft einen Helfer auf und liest dessen kurze Ausgabe.

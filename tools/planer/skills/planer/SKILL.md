@@ -1,6 +1,6 @@
 ---
 name: planer
-description: Ändert die Planung eines Projekts in der Datei docs/<projekt>.planer.json (Format planer/2) über die Helfer von mollo-planer. Nutzen, wenn Milestones, ToDos oder Tasks angelegt, verschoben oder in ihrem Status geändert werden sollen, und wenn der Stand einer Aufgabe gefragt ist.
+description: Ändert die Planung eines Projekts in der Datei docs/<projekt>.planer.json (Format planer-v2) über die Helfer von mollo-planer. Nutzen, wenn Milestones, ToDos oder Tasks angelegt, verschoben oder in ihrem Status geändert werden sollen, und wenn der Stand einer Aufgabe gefragt ist.
 ---
 
 # Planer-Datei ändern

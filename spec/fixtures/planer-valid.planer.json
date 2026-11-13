@@ -1,6 +1,6 @@
 {
-  "$schema": "planer-2.schema.json",
-  "format": "planer/2",
+  "$schema": "planer-v2.schema.json",
+  "format": "planer-v2",
   "revision": 3,
   "project": {
     "name": "Mollo Planer",

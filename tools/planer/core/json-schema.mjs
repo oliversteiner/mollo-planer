@@ -1,6 +1,6 @@
 /**
  * Kleiner JSON-Schema-Prüfer ohne Abhängigkeiten. Er kennt nur die Schlüsselwörter,
- * die spec/planer-2.schema.json (Draft 2020-12) verwendet. Ein unbekanntes
+ * die spec/planer-v2.schema.json (Draft 2020-12) verwendet. Ein unbekanntes
  * Schlüsselwort bricht mit einem Fehler ab, damit eine Schemaänderung nicht
  * stillschweigend falsch geprüft wird.
  */

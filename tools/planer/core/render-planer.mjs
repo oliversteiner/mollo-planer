@@ -1,5 +1,5 @@
 /**
- * Markdown-Ansicht einer geprüften Planer-Datei (planer/2). Die Grammatik steht in
+ * Markdown-Ansicht einer geprüften Planer-Datei (planer-v2). Die Grammatik steht in
  * spec/format-v2.md, Abschnitt 7. Der Renderer erzeugt nur Text. Die Datei bleibt die Quelle.
  */
 import { LANGUAGES, WORDS } from './planer-words.mjs';
@@ -30,7 +30,7 @@ export function renderPlaner(plan, { lang = plan.project.locale, legendTranslati
   }
 
   const chunks = [
-    `<!-- Ansicht von planer/2, revision ${plan.revision}${plan.changed === true ? ', geändert' : ''}, lang ${lang}. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->`,
+    `<!-- Ansicht von planer-v2, revision ${plan.revision}${plan.changed === true ? ', geändert' : ''}, lang ${lang}. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->`,
     `# ${plan.project.name}`,
     `- ${words.language}: ${projectLang}`,
   ];
