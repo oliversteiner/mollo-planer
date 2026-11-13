@@ -9,38 +9,17 @@
 #  Schreiben  Eine Policy prüft per @can. Ohne Recht gibt es den Fehler
 #             "This action is unauthorized."
 #
-#  Rechte     Eine zentrale Rechte-Tabelle (App\Support\Rights)
-#             legt fest, welche Projektrolle welche Fähigkeit hat. Alle
-#             Policies fragen nur diese Tabelle. Eine neue Einschränkung
-#             ändert dort eine Zeile, nicht das Schema. Admins
-#             (Rolle admin, Fähigkeit projects.manageAny) dürfen immer alles.
-#
-#                                 Owner  Manager  Mitglied
-#             Projekt ändern        ja     ja       nein
-#             Projekt löschen       ja     nein     nein
-#             Mitglieder verwalten  ja     ja       nein
-#             Milestone anlegen     ja     ja       ja
-#             Milestone ändern      ja     ja       ja
-#             Milestone löschen     ja     ja       nein
-#             ToDo anlegen          ja     ja       ja
-#             ToDo ändern           ja     ja       ja
-#             ToDo löschen          ja     ja       nein
-#             Task anlegen          ja     ja       nein
-#             Task ändern           ja     ja       nein
-#             Task zuweisen         ja     ja       nein
-#             Task verschieben      ja     ja       ja
-#             Task löschen          ja     ja       nein
-#             Kommentieren          ja     ja       ja
-#             Fremde Kommentare
-#             löschen               ja     ja       nein
-#             Label-Sets verwalten  ja     ja       nein   (in irgendeinem Projekt;
-#                                                         eigene Sets ändert der
-#                                                         Ersteller oder ein Admin)
+#  Rechte     Die Rechte stehen in Tabellen (roles, functions, function_rights,
+#             role_functions), Standard in config/permissions.php. Alle Policies
+#             fragen nur App\Support\Rights. Wer was darf, steht in
+#             docs/rollen-funktionen-rechte.md (§5). Admins (Rolle admin,
+#             Recht projects.manageAny) dürfen immer alles.
 #
 #             Eigene Kommentare ändern und löschen darf jede Person,
 #             solange sie das Projekt sehen darf.
 #             Fremde Kommentare ändert niemand, auch kein Admin.
-#             Projekte anlegen und Benutzer verwalten dürfen nur Admins.
+#             Im Standard dürfen Projekte anlegen: Admin, Projektleitung, Koordination.
+#             Benutzer verwalten dürfen im Standard nur Admins.
 #  Login      läuft nicht über GraphQL, sondern über Fortify (REST):
 #             Login, Logout, Passwort-Reset, 2FA und Passkeys
 #  2FA-Pflicht  Eine Middleware in config/lighthouse.php (route.middleware)

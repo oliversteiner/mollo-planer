@@ -47,13 +47,13 @@ Nach jedem Meilenstein: alle Prüfungen grün, `migrate:fresh --seed --seeder=De
 Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version`, Stand `c169118`.
 
 - **Übernehmen:**
-  - `spec/format-v2.md`, `spec/planer-2.schema.json`, `spec/messung-helfer.md` → `spec/`. `spec/format.md` (v1) → `spec/format-v1.md`, nur als Grundlage für `convert`.
+  - `spec/format-v2.md`, `spec/planer-v2.schema.json`, `spec/messung-helfer.md` → `spec/`. `spec/format.md` (v1) → `spec/format-v1.md`, nur als Grundlage für `convert`.
   - `src/`, `bin/` → `tools/planer/core/` (Prüfung, kanonisches JSON, `render`, `md2json`, Whitelist, v1-Parser, Konvertierung) und `tools/planer/cli/` (Befehle). Aufteilung: Alles, was Dateien liest oder schreibt oder Argumente auswertet, gehört in `cli/`; reine Funktionen in `core/`.
   - `test/` → `tools/planer/test/`, `fixtures/` → `spec/fixtures/`, `skills/planer/` → `tools/planer/skills/planer/`, `scripts/messung-helfer.mjs` → `tools/planer/scripts/`.
 - **Nicht übernehmen:** `Backend/` (Laravel-Paket, `app_versions`), `frontend/`, `demo/`, `templates/vue-webawesome/`, Teile von `src/` und `test/`, die nur der v1-Versionsseite dienen (Auswertung für `app_versions`, Vorlagen-Test der Vue-Seite). Der v1-**Parser** und `convert v1-zu-v2` bleiben.
 - Befehl umbenennen: `mollo-planer` (`tools/planer/cli/bin/mollo-planer.mjs`), `package.json` in `tools/planer/` mit `"bin"` und `"test": "node --test test/*.test.mjs"`, keine Abhängigkeiten, Node ≥ 20.
 - Texte und Kommentare: `mollo-version` → `mollo-planer` (Werkzeug), Format bleibt `planer-v2`.
-- `deploy/deploy.sh`: `tools/` und `spec/fixtures/` nicht auf den Server, `spec/planer-2.schema.json` schon (die App liest es).
+- `deploy/deploy.sh`: `tools/` und `spec/fixtures/` nicht auf den Server, `spec/planer-v2.schema.json` schon (die App liest es).
 - CI bzw. `composer test`-Umfeld: `npm test` in `tools/planer/` als eigener Schritt in den Prüfungen vor jedem Commit (in `CLAUDE.md`/`AGENTS.md` ergänzen).
 - Commit: `Chore: move planer/2 format and tools from mollo-version (c169118)`. Danach alle Tests grün (`tools/planer`: `npm test`).
 - In `~/www/mollo-version`: README oben mit Hinweis „Archiviert. planer/2 wird in mollo-planer weiterentwickelt (spec/, tools/planer/).“ Ein Commit `Docs: archived, moved to mollo-planer`. Sonst nichts ändern.
@@ -244,7 +244,7 @@ Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set
 Details: `docs/planer-abgleich.md` §1a, §2, §5, §7 V1 und V2, §9.
 - `App\Planer\Export`: Projekt → kanonisches `planer-v2` (IDs `m-<id>` …, Werte nach §5.1, Labels mit `names`, Beschreibungen über `TiptapToMarkdown`, Reihenfolge, Release, Commit, User-Story, `revision`).
 - PHP: kanonisches JSON wie `tools/planer` (Test: byte-gleich für alle gültigen Fixtures).
-- PHP-Prüfung: Schema (`opis/json-schema` gegen `spec/planer-2.schema.json`) und Semantik, gegen dieselben Fixtures mit erwarteten Fehlern wie `tools/planer`.
+- PHP-Prüfung: Schema (`opis/json-schema` gegen `spec/planer-v2.schema.json`) und Semantik, gegen dieselben Fixtures mit erwarteten Fehlern wie `tools/planer`.
 - MCP `export_plan(project_id)`.
 
 ## I2. Import mit Trockenlauf (V2)
@@ -269,7 +269,7 @@ Details: `docs/planer-abgleich.md` §1a, §2, §5, §7 V1 und V2, §9.
 
 ## I5. Baum-Ansicht, Downloads, Vorlagen aus Dateien (V3, V4, §5.3)
 
-- Baustein `PlanerTree` (V4): zeigt ein `planer-v2`-Dokument, optional mit Markierungen aus dem Trockenlauf. Typen aus `spec/planer-2.schema.json`.
+- Baustein `PlanerTree` (V4): zeigt ein `planer-v2`-Dokument, optional mit Markierungen aus dem Trockenlauf. Typen aus `spec/planer-v2.schema.json`.
 - Projekteinstellungen: Download „Als planer.json“ und „Als Markdown“ (Sprache wählbar, Schalter „Übersetzungen in der Legende“, über `tools/planer/core` im Frontend).
 - Datei-Import mit Vorschau (`dry_run` in `PlanerTree`), dann Eintragen.
 - Vorlagen: „Als Vorlage speichern“ (Export + `template`), Upload einer `.planer.json` als Vorlage, Download einer Vorlage, Ansicht des Gerüsts mit `PlanerTree`.
@@ -286,7 +286,7 @@ Nach T3. Details: `docs/planer-abgleich.md` §1a und §10.
 
 Details: `docs/assistent-ideen-konzept.md` (Fassung 3, verbindlich). Nach I2, I3 und I5 (`PlanerTree`).
 - GraphQL `PlanerDocument`, `PlanDraft`, `PlanPreview`, `draftPlan`, `importPlan` (§9.1). Entfernen: `plan.graphql`-Typen, `draftProjectPlan`, `importProjectPlan`, `ReadsProjectPlanInput`, `PlainTextDocument`, `ProjectPlanAssistant::clean()`.
-- `ProjectPlanAssistant`: Prompt nach §8 (Personen nach Rechten, kompakter Baum, Labels, Vorlagen, KI-Kontext als Datenblock), Structured-Output-Schema aus `spec/planer-2.schema.json` erzeugt, Entwurf als Ausschnitt nach §6, `-new-`-IDs vom Server, Vorschau über den Trockenlauf des Importers.
+- `ProjectPlanAssistant`: Prompt nach §8 (Personen nach Rechten, kompakter Baum, Labels, Vorlagen, KI-Kontext als Datenblock), Structured-Output-Schema aus `spec/planer-v2.schema.json` erzeugt, Entwurf als Ausschnitt nach §6, `-new-`-IDs vom Server, Vorschau über den Trockenlauf des Importers.
 - `/assistant` öffnen für `assistant.use` (bisher nur `projects.create`).
 - Oberfläche: Projekt- und Milestone-Auswahl mit Buttons (§4, §5), Vorschlag einer Vorlage bei neuem Projekt, Vorschau mit `PlanerTree`.
 - MCP `list_users` nach §8 einschränken.
