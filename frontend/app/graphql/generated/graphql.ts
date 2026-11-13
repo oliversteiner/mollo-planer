@@ -178,8 +178,10 @@ export type SystemAbility =
 /** Spalten im Kanban-Board */
 export type TaskStatus =
   | 'DONE'
+  | 'IDEA'
   | 'IN_PROGRESS'
   | 'OPEN'
+  | 'PLANNED'
   | 'REVIEW';
 
 export type UpdateCommentInput = {

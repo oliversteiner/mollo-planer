@@ -90,6 +90,8 @@ enum LabelColor {
 
 "Spalten im Kanban-Board"
 enum TaskStatus {
+  IDEA @enum(value: "idea")
+  PLANNED @enum(value: "planned")
   OPEN @enum(value: "open")
   IN_PROGRESS @enum(value: "in_progress")
   REVIEW @enum(value: "review")

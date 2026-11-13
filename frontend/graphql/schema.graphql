@@ -519,8 +519,10 @@ type Task {
 "Spalten im Kanban-Board"
 enum TaskStatus {
  DONE
+ IDEA
  IN_PROGRESS
  OPEN
+ PLANNED
  REVIEW
 }
 "Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."

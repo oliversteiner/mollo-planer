@@ -50,6 +50,29 @@ const todos = computed(() => todosResult.value?.todos ?? [])
  */
 const columns = ref<Column[]>([])
 
+/** Ideas and planned tasks have their own columns, shown on request (planer-abgleich §8.2 Nr. 3). */
+const SHOW_IDEAS_KEY = 'mollo.kanban.showIdeas'
+const HIDDEN_BY_DEFAULT = ['IDEA', 'PLANNED']
+
+function readShowIdeas(): boolean {
+  try {
+    return localStorage.getItem(SHOW_IDEAS_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+const showIdeas = ref(readShowIdeas())
+watch(showIdeas, (value) => {
+  try {
+    localStorage.setItem(SHOW_IDEAS_KEY, value ? '1' : '0')
+  } catch {
+    // Private window or blocked storage: the switch still works for this visit.
+  }
+})
+
+const visibleColumns = computed(() => columns.value.filter(column => showIdeas.value || !HIDDEN_BY_DEFAULT.includes(column.status)))
+
 watch(() => result.value?.kanban, (kanban) => {
   columns.value = (kanban ?? []).map(column => ({ ...column, tasks: [...column.tasks] }))
 }, { immediate: true })
@@ -210,6 +233,13 @@ const abilities = computed(() => ({
       </wa-button>
     </Teleport>
 
+    <FormSwitch
+      v-model="showIdeas"
+      :label="t('kanban.showIdeas')"
+      :hint="t('kanban.showIdeasHint')"
+      class="kanban-filter"
+    />
+
     <FormSelect
       v-if="filterItems.length > 1"
       v-model="labelFilter"
@@ -229,7 +259,7 @@ const abilities = computed(() => ({
       class="kanban-board"
     >
       <section
-        v-for="column in columns"
+        v-for="column in visibleColumns"
         :key="column.status"
         class="kanban-column"
         :aria-label="t(`status.${column.status}`)"

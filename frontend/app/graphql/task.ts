@@ -123,4 +123,4 @@ export const deleteCommentMutation = graphql(`
 `)
 
 /** Kanban columns in board order (same as the backend's TaskStatus). */
-export const TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'REVIEW', 'DONE'] as const
+export const TASK_STATUSES = ['IDEA', 'PLANNED', 'OPEN', 'IN_PROGRESS', 'REVIEW', 'DONE'] as const

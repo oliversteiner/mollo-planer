@@ -96,7 +96,7 @@ class SetTaskStatusTest extends McpTestCase
     public function test_an_invalid_status_lists_the_valid_values_and_changes_nothing(): void
     {
         MolloPlanerServer::actingAs($this->owner)->tool(SetTaskStatusTool::class, ['task_id' => (string) $this->task->id, 'status' => 'fertig'])
-            ->assertHasErrors(['Unknown status. Use one of: open, in_progress, review, done.']);
+            ->assertHasErrors(['Unknown status. Use one of: idea, planned, open, in_progress, review, done.']);
 
         $this->assertSame(TaskStatus::OPEN, $this->task->fresh()->status);
     }

@@ -57,7 +57,7 @@ class Dashboard
         return Task::query()
             ->assignedTo($viewer)
             ->visibleTo($viewer)
-            ->where('status', '!=', TaskStatus::DONE->value)
+            ->whereNotIn('status', [TaskStatus::DONE->value, TaskStatus::IDEA->value])
             ->orderByRaw('due_date is null')
             ->orderBy('due_date')
             ->orderBy('id')

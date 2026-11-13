@@ -1,10 +1,10 @@
 <script setup lang="ts">
 /**
- * Status of a task (Kanban column: OPEN, IN_PROGRESS, REVIEW, DONE) or of
+ * Status of a task (Kanban column: IDEA, PLANNED, OPEN, IN_PROGRESS, REVIEW, DONE) or of
  * a milestone/todo (OPEN, DONE). Same colours as the left edge of a task
  * card: grey open, blue in progress, orange review, green done.
  */
-defineProps<{ status: 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' }>()
+defineProps<{ status: 'IDEA' | 'PLANNED' | 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' }>()
 
 const { t } = useI18n()
 </script>
@@ -24,6 +24,16 @@ const { t } = useI18n()
 .status-badge {
   --wa-color-fill-normal: var(--wa-color-gray-90);
   --wa-color-on-normal: var(--wa-color-gray-30);
+}
+
+.status-badge[data-status='IDEA'] {
+  --wa-color-fill-normal: var(--wa-color-purple-90);
+  --wa-color-on-normal: var(--wa-color-purple-30);
+}
+
+.status-badge[data-status='PLANNED'] {
+  --wa-color-fill-normal: var(--wa-color-gray-80);
+  --wa-color-on-normal: var(--wa-color-gray-20);
 }
 
 .status-badge[data-status='IN_PROGRESS'] {

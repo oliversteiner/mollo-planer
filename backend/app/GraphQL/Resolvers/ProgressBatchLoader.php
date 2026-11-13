@@ -71,7 +71,7 @@ final class ProgressBatchLoader
 
         ($this->tasksByKey)($keys)
             ->toBase()
-            ->selectRaw('count(*) as total')
+            ->selectRaw('sum(case when tasks.status = ? then 0 else 1 end) as total', [TaskStatus::IDEA->value])
             ->selectRaw('sum(case when tasks.status = ? then 1 else 0 end) as done', [TaskStatus::DONE->value])
             ->groupBy($this->groupColumn)
             ->get()

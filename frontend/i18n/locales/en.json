@@ -182,6 +182,8 @@
     }
   },
   "status": {
+    "IDEA": "Idea",
+    "PLANNED": "Planned",
     "OPEN": "Open",
     "IN_PROGRESS": "In progress",
     "REVIEW": "Review",
@@ -301,6 +303,8 @@
     "noResults": "No icon found."
   },
   "kanban": {
+    "showIdeas": "Show ideas and planned tasks",
+    "showIdeasHint": "Off keeps the board lean for daily work. Stored in the browser.",
     "moveMenu": "Actions for “{title}”",
     "moveUp": "Move up",
     "moveDown": "Move down",

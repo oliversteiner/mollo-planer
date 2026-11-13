@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Enums\TaskStatus;
 use App\Mcp\Support\GraphQLFailed;
 use App\Mcp\Support\TaskStatusChange;
+use App\Services\TaskNotifier;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Illuminate\Validation\Rule;
@@ -27,15 +28,15 @@ class SetTaskStatusTool extends Tool
             'status' => ['required', Rule::in(self::statuses())],
         ], [
             'task_id.required' => 'Give the task_id, for example from get_project.',
-            'status.required' => 'Give the status: open, in_progress, review or done.',
-            'status.in' => 'Unknown status. Use one of: open, in_progress, review, done.',
+            'status.required' => 'Give the status: idea, planned, open, in_progress, review or done.',
+            'status.in' => 'Unknown status. Use one of: idea, planned, open, in_progress, review, done.',
         ]);
 
         try {
-            $task = $this->operation('MoveTask', TaskStatusChange::variables(
+            $task = app(TaskNotifier::class)->withoutAssignmentMails(fn () => $this->operation('MoveTask', TaskStatusChange::variables(
                 (string) $validated['task_id'],
                 TaskStatus::from((string) $validated['status']),
-            ))['moveTask'];
+            ))['moveTask']);
         } catch (GraphQLFailed $failure) {
             return Response::error($this->explain($failure->getMessage(), 'You may not change this task. Only members of its project can change task statuses; nothing was changed.', 'This task does not exist, or you have no access to it. Nothing was changed.'));
         }

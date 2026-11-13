@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\TaskStatus;
 use App\Models\Comment;
 use App\Models\Task;
 use App\Models\User;
@@ -51,7 +52,7 @@ class TaskNotifier
 
     public function assigned(Task $task, User $actor): void
     {
-        if ($this->assignmentMailsMuted) {
+        if ($this->assignmentMailsMuted || $task->status === TaskStatus::IDEA) {
             return;
         }
 

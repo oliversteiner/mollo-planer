@@ -224,13 +224,15 @@ class QueryTest extends GraphQLTestCase
 
         $response = $this->as('member')->gql('query ($p: ID!) { kanban(projectId: $p) { status tasks { id } } }', ['p' => $this->project->id]);
 
-        $response->assertJsonPath('data.kanban.0.status', 'OPEN')
-            ->assertJsonPath('data.kanban.0.tasks', [
+        $response->assertJsonPath('data.kanban.0', ['status' => 'IDEA', 'tasks' => []])
+            ->assertJsonPath('data.kanban.1', ['status' => 'PLANNED', 'tasks' => []])
+            ->assertJsonPath('data.kanban.2.status', 'OPEN')
+            ->assertJsonPath('data.kanban.2.tasks', [
                 ['id' => (string) $this->task->id], ['id' => (string) $first->id], ['id' => (string) $second->id],
             ])
-            ->assertJsonPath('data.kanban.1', ['status' => 'IN_PROGRESS', 'tasks' => []])
-            ->assertJsonPath('data.kanban.2.tasks', [['id' => (string) $review->id]])
-            ->assertJsonPath('data.kanban.3.status', 'DONE');
+            ->assertJsonPath('data.kanban.3', ['status' => 'IN_PROGRESS', 'tasks' => []])
+            ->assertJsonPath('data.kanban.4.tasks', [['id' => (string) $review->id]])
+            ->assertJsonPath('data.kanban.5.status', 'DONE');
 
         $this->as('stranger')->gql('query ($p: ID!) { kanban(projectId: $p) { status } }', ['p' => $this->project->id])
             ->assertJsonPath('data.kanban', []);

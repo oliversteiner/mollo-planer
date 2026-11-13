@@ -182,6 +182,8 @@
     }
   },
   "status": {
+    "IDEA": "Idee",
+    "PLANNED": "Geplant",
     "OPEN": "Offen",
     "IN_PROGRESS": "In Arbeit",
     "REVIEW": "Review",
@@ -301,6 +303,8 @@
     "noResults": "Kein Icon gefunden."
   },
   "kanban": {
+    "showIdeas": "Ideen und Geplantes anzeigen",
+    "showIdeasHint": "Aus, bleibt das Board für die tägliche Arbeit schlank. Gespeichert im Browser.",
     "moveMenu": "Aktionen für «{title}»",
     "moveUp": "Nach oben",
     "moveDown": "Nach unten",
