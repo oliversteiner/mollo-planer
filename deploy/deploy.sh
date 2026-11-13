@@ -54,6 +54,9 @@ cd "$APP"
 git fetch --quiet origin main
 git reset --hard --quiet origin/main
 echo "Commit: $(git rev-parse --short HEAD)"
+# Werkzeuge und Testdaten für planer/2 gehören nicht auf den Server (dort gibt es kein Node).
+# spec/planer-2.schema.json bleibt: die App liest es.
+rm -rf "$APP/tools" "$APP/spec/fixtures"
 
 log "Datenbank sichern"
 DB_HOST=$(env_value DB_HOST)

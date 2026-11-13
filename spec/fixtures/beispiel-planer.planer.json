@@ -1,0 +1,155 @@
+{
+  "format": "planer/2",
+  "revision": 3,
+  "project": {
+    "name": "Mollo Planer",
+    "description": "Projekt für Planung und Umsetzung. Alle Milestones, ToDos und Tasks stehen in der Reihenfolge, in der sie in der Datei erscheinen.",
+    "locale": "DE",
+    "members": [
+      {
+        "email": "oliver@mollo.ch",
+        "role": "owner"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-001",
+      "appId": 12,
+      "title": "Ordering-Grundlage",
+      "description": "Erste Version des Ordering-Service. Alle Tasks sind erledigt, deshalb ist die Version veröffentlicht. Dann ist ein Commit je erledigtem Task Pflicht.",
+      "dueDate": "2026-10-31",
+      "release": {
+        "version": "1.3",
+        "status": "veröffentlicht"
+      },
+      "todos": [
+        {
+          "id": "t-001",
+          "title": "Sperre und Reihenfolge",
+          "dueDate": "2026-10-20",
+          "tasks": [
+            {
+              "id": "k-001",
+              "appId": 88,
+              "title": "Milestone-Reihenfolge absichern",
+              "description": "Die Sperre liegt auf dem **Projekt**, nicht auf dem Milestone. Das ist ein Muster aus `KanbanOrdering`.",
+              "dueDate": "2026-10-18",
+              "status": "done",
+              "assigneeEmail": "oliver@mollo.ch",
+              "labelNames": [
+                "backend",
+                "feature"
+              ],
+              "commit": "abc1234",
+              "userStory": {
+                "role": "Owner",
+                "goal": "doppelte Positionen bei gleichzeitigem Anlegen vermeiden",
+                "benefit": "die Zeitachse stimmt"
+              }
+            },
+            {
+              "id": "k-002",
+              "title": "Lücken nach dem Verschieben schließen",
+              "status": "done",
+              "labelNames": [
+                "backend",
+                "bug"
+              ],
+              "commit": "def5678"
+            }
+          ]
+        },
+        {
+          "id": "t-002",
+          "title": "Fehlerfälle",
+          "tasks": [
+            {
+              "id": "k-003",
+              "title": "Doppelte Positionen erkennen",
+              "status": "done",
+              "commit": "9a8b7c6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-002",
+      "title": "Schema-Refactoring",
+      "description": "Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist geplant, deshalb ist ein Task ohne Commit erlaubt.",
+      "dueDate": "2026-12-15",
+      "release": {
+        "version": "1.4",
+        "status": "geplant"
+      },
+      "todos": [
+        {
+          "id": "t-003",
+          "title": "Ordering",
+          "dueDate": "2026-12-05",
+          "tasks": [
+            {
+              "id": "k-004",
+              "title": "Ordering-Service ausbauen",
+              "description": "Ziel ist eine Klasse `Ordering` mit den Methoden `nextPosition`, `openSlot`, `move` und `close`.\n\nDabei gelten diese Punkte:\n\n1. Das Projekt wird vor jeder Änderung gesperrt.\n2. Der Lückenschluss läuft nach jedem Löschen.\n3. Die Tests laufen gegen MariaDB.\n\n### Hinweis\n\nDie Methode `close` ist neu und muss in die Tests für Papierkorb (A5) aufgenommen werden.",
+              "dueDate": "2026-12-03",
+              "status": "in_progress",
+              "assigneeEmail": "oliver@mollo.ch",
+              "labelNames": [
+                "backend",
+                "feature"
+              ],
+              "userStory": {
+                "role": "Entwickler",
+                "goal": "eine einzige Reihenfolge-Logik",
+                "benefit": "neue Sortierungen nicht an drei Stellen gepflegt werden"
+              }
+            },
+            {
+              "id": "k-005",
+              "title": "Lückenschluss nach Löschen testen",
+              "description": "> Ohne Test fällt ein fehlender Lückenschluss erst in der Zeitachse auf.",
+              "status": "open",
+              "labelNames": [
+                "backend",
+                "feature"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t-004",
+          "title": "Plan-Typen",
+          "tasks": [
+            {
+              "id": "k-006",
+              "title": "Plan-Entwurf für bestehende Projekte prüfen",
+              "description": "Details im Plan: [A4 im Schema-Review](https://planer.mollo.dev/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.",
+              "status": "review",
+              "assigneeEmail": "oliver@mollo.ch",
+              "labelNames": [
+                "backend",
+                "feature"
+              ],
+              "userStory": {
+                "role": "Assistent",
+                "goal": "Milestones und ToDos per ID anhängen",
+                "benefit": "ich keine Duplikate erzeuge"
+              }
+            },
+            {
+              "id": "k-007",
+              "title": "Ältere Plan-Felder entfernen",
+              "status": "open",
+              "labelNames": [
+                "backend",
+                "design"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

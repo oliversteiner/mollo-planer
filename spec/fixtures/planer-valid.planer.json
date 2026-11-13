@@ -1,0 +1,87 @@
+{
+  "$schema": "planer-2.schema.json",
+  "format": "planer/2",
+  "revision": 3,
+  "project": {
+    "name": "Mollo Planer",
+    "description": "Projektverwaltung mit Milestones, ToDos und Kanban.",
+    "locale": "DE",
+    "members": [
+      {
+        "email": "oliver@mollo.ch",
+        "role": "owner"
+      },
+      {
+        "email": "anna@example.org",
+        "role": "member"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-001",
+      "title": "Schema-Refactoring",
+      "dueDate": "2026-12-15",
+      "release": {
+        "version": "1.4",
+        "status": "veröffentlicht"
+      },
+      "todos": [
+        {
+          "id": "t-001",
+          "title": "Ordering-Service ausbauen",
+          "tasks": [
+            {
+              "id": "k-001",
+              "title": "Sperre für Milestones ergänzen",
+              "status": "done",
+              "labelNames": [
+                "backend"
+              ],
+              "commit": "1a2b3c4d"
+            },
+            {
+              "id": "k-002",
+              "title": "Altbestand übernommen",
+              "status": "done",
+              "commit": "ohne"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-002",
+      "title": "Ideen sammeln",
+      "todos": [
+        {
+          "id": "t-002",
+          "title": "Import prüfen",
+          "tasks": [
+            {
+              "id": "k-003",
+              "appId": 88,
+              "title": "Lückenschluss nach Löschen",
+              "status": "in_progress",
+              "assigneeEmail": "anna@example.org",
+              "labelNames": [
+                "backend"
+              ]
+            },
+            {
+              "id": "k-004",
+              "title": "Filter nach Status",
+              "description": "Die Liste soll **Status** filtern.\n\n- nach Kanban-Spalte\n- nach Zuständigem",
+              "status": "open",
+              "userStory": {
+                "role": "Mitglied",
+                "goal": "meine Tasks nach Status filtern",
+                "benefit": "ich in Meetings schnell den Stand zeige"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

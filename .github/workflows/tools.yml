@@ -1,0 +1,33 @@
+name: tools
+
+on:
+  push:
+    paths:
+      - 'tools/planer/**'
+      - 'spec/**'
+      - '.github/workflows/tools.yml'
+  pull_request:
+    paths:
+      - 'tools/planer/**'
+      - 'spec/**'
+      - '.github/workflows/tools.yml'
+
+defaults:
+  run:
+    working-directory: tools/planer
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Test planer tools
+        run: npm test

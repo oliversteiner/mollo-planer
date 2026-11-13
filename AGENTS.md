@@ -33,6 +33,10 @@ Alle Befehle im Terminal im Ordner `backend/` ausführen:
 - `composer schema:frontend` (nach jeder Schemaänderung: schreibt `frontend/graphql/schema.graphql`, danach im Frontend `npm run codegen`)
 - `php artisan boost:update --no-discover` (Boost-Guidelines und -Skills neu erzeugen, läuft auch nach `composer update`)
 
+Werkzeug für `planer/2` im Ordner `tools/planer/` (Node 20 oder neuer, keine Abhängigkeiten):
+- `npm test` (Tests, zusammen mit der Prüfung vor jedem Commit)
+- `node cli/bin/mollo-planer.mjs validate <datei>` (Prüfung einer Planer-Datei, Formatregeln in `spec/format-v2.md`)
+
 Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - `npm run dev` (http://localhost:3000)
 - `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)

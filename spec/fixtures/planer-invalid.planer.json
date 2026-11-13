@@ -1,0 +1,81 @@
+{
+  "format": "planer/2",
+  "revision": 4,
+  "project": {
+    "name": "Mollo Planer",
+    "locale": "EN",
+    "members": [
+      {
+        "email": "oliver@mollo.ch",
+        "role": "owner"
+      },
+      {
+        "email": "anna@example.org",
+        "role": "member"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-001",
+      "title": "Schema-Refactoring",
+      "release": {
+        "version": "1.4",
+        "status": "veröffentlicht"
+      },
+      "todos": [
+        {
+          "id": "t-001",
+          "title": "Ordering-Service ausbauen",
+          "tasks": [
+            {
+              "id": "k-001",
+              "title": "Sperre für Milestones ergänzen",
+              "status": "done"
+            },
+            {
+              "id": "k-002",
+              "title": "Lückenschluss nach Löschen",
+              "status": "open"
+            },
+            {
+              "id": "k-003",
+              "title": "Altbestand übernommen",
+              "status": "done",
+              "commit": "ohne"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-002",
+      "title": "Ideen sammeln",
+      "todos": [
+        {
+          "id": "t-002",
+          "title": "Import prüfen",
+          "tasks": [
+            {
+              "id": "k-004",
+              "title": "Filter nach Status",
+              "status": "open",
+              "commit": "ohne"
+            },
+            {
+              "id": "k-002",
+              "title": "Doppelte ID",
+              "status": "in_progress"
+            },
+            {
+              "id": "k-005",
+              "title": "Fremder Zuständiger",
+              "status": "review",
+              "assigneeEmail": "nobody@example.org"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
