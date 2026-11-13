@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
+use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Services\Ordering;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Milestone extends Model implements BelongsToProject
 {
     /** @use HasFactory<MilestoneFactory> */
-    use HasFactory, VisibleToViewer;
+    use HasFactory, RecordsCreator, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -50,6 +51,14 @@ class Milestone extends Model implements BelongsToProject
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**

@@ -157,6 +157,7 @@ type MemberCandidate {
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
  createdAt: DateTime!
+ createdBy: User
  description: RichText
  dueDate: Date
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -489,6 +490,7 @@ type Task {
  "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
  comments: [Comment!]!
  createdAt: DateTime!
+ createdBy: User
  description: RichText
  dueDate: Date
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -513,6 +515,7 @@ enum TaskStatus {
 "Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
 type Todo {
  createdAt: DateTime!
+ createdBy: User
  description: RichText
  dueDate: Date
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."

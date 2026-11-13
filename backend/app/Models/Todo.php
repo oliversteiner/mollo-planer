@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
 use App\Models\Concerns\DerivesProject;
+use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TodoObserver;
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Todo extends Model implements BelongsToProject
 {
     /** @use HasFactory<TodoFactory> */
-    use DerivesProject, HasFactory, VisibleToViewer;
+    use DerivesProject, HasFactory, RecordsCreator, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -61,6 +62,14 @@ class Todo extends Model implements BelongsToProject
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
