@@ -12,7 +12,7 @@ Hier werden die Punkte geklärt, die unter „Nicht in diesem Auftrag“ in `doc
 | 4 | Ort der Werkzeuge: `mollo-version` als Abhängigkeit oder in die App integrieren | **entschieden: V2, Umzug sofort** (4.7) |
 | 5 | Schreibweise der Werte, mehrsprachige Labels, Sprache der Markdown-Ansicht | **entschieden** (§5) |
 | 6 | Entscheidungen zum Assistenten (`docs/assistent-ideen-konzept.md` §12) | Empfehlungen vorgelegt, offen |
-| 7 | Vereinfachungen durch das neue Konzept | Vorschlag, offen (§7) |
+| 7 | Vereinfachungen durch das neue Konzept | V1 **entschieden**, V2 bis V6 offen (§7) |
 | 8 | Task-Status `idea` und `planned` | **entschieden** (§8) |
 
 ---
@@ -96,8 +96,8 @@ Folge für Spur A: `spec/format-v2.md` §5.2 und die Helfer (P4) anpassen, Tests
 
 | Werkzeug | Argumente | Ergebnis |
 |---|---|---|
-| `export_plan` | `project_id` | `{ "document": <planer/2, kanonisch> }`. `revision` = `projects.planer_revision`, alle `appId` gesetzt, Datei-IDs `id` aus `file_id` (Problem 2). |
-| `import_plan` | `project_id`, `plan` (planer/2), `mode` (`full` oder `partial`, Standard `full`), `notify_assignees` (optional, Standard `false`) | dasselbe wie `export_plan` nach dem Import, also neue `appId` und neue `revision`. Fehler als MCP-Fehler mit Pfad im Dokument. |
+| `export_plan` | `project_id` | `{ "document": <planer/2, kanonisch> }`. `revision` = `projects.planer_revision`, IDs `m-<id>`, `t-<id>`, `k-<id>` aus der Datenbank (§7 V1). |
+| `import_plan` | `project_id`, `plan` (planer/2), `mode` (`full` oder `partial`, Standard `full`), `notify_assignees` (optional, Standard `false`) | dasselbe wie `export_plan` nach dem Import, also echte IDs statt `-new-` und neue `revision`. Fehler als MCP-Fehler mit Pfad im Dokument. |
 
 `import_plan` lehnt ab, wenn `plan.revision` ungleich `planer_revision` ist (Fehlertext nennt beide Zahlen). Was der Import mit dem Inhalt macht, legt Problem 2 fest.
 
@@ -139,7 +139,7 @@ Folge für Spur A: `spec/format-v2.md` §5.2 und die Helfer (P4) anpassen, Tests
 - **Mitglieder im Modus `full`:** Wer in der App Mitglied ist und im Dokument fehlt, wird entfernt (seine Tasks werden unzugewiesen, wie heute). Der letzte Owner kann nicht entfernt werden, dann Abbruch.
 - Die Freigabe-Regeln (A7) werden nach dem Import für das Ergebnis geprüft, nicht Schritt für Schritt.
 
-### 2.3 Datei-IDs in der App
+### 2.3 Datei-IDs in der App (ersetzt durch V1 in §7)
 
 - Neue Spalte `file_id` (String, nullable) an `milestones`, `todos`, `tasks`, eindeutig je Projekt (`unique(project_id, file_id)`, bei Milestones über `project_id` direkt, bei ToDos und Tasks über `project_id` aus A1).
 - Der Import speichert die `id` aus dem Dokument in `file_id`. Der Export schreibt `file_id` als `id`.
@@ -386,7 +386,7 @@ Stand der Prüfung: `mollo-planer` bis `072fcbb` (U0 und T1 erledigt).
 
 Mit `planer/2` als einziger Beschreibung eines Plans, Import/Export in der App, Vorlagen als Dokumente und einem Repository gibt es mehrere Stellen, die doppelt sind oder ganz entfallen können.
 
-### V1. IDs aus der Datenbank statt `appId` plus Datei-ID (hoch)
+### V1. IDs aus der Datenbank statt `appId` plus Datei-ID (entschieden 2026-11-13)
 
 **Heute geplant:** zwei IDs je Element (`id` = Datei-ID `k-001`, `appId` = Datenbank-ID), dazu in der App `file_id` an drei Tabellen und der Zähler `projects.planer_next_ids` (S3d), damit Datei-IDs nie wiederverwendet werden.
 
@@ -395,7 +395,9 @@ Mit `planer/2` als einziger Beschreibung eines Plans, Import/Export in der App, 
 - Eindeutig und nie wiederverwendet: garantiert der Auto-Increment der Datenbank (gelöschte Elemente liegen im Papierkorb und behalten ihre ID; endgültig gelöschte IDs vergibt MariaDB nicht neu, der Zähler ist seit 10.2.4 dauerhaft).
 - Es entfallen: Feld `appId` im Format, `file_id` (S3d), `planer_next_ids`, der ID-Dienst, die Regel „nie wiederverwenden“ im Validator (wird zu „Form `x-<Zahl>` oder `x-new-<Zahl>`, eindeutig je Datei“).
 - Anker im Assistenten-Entwurf: einfach Elemente mit echter ID. Neu: Elemente mit `-new-`.
-- **Folge:** S3d entfällt. T1 bzw. T4 passen Schema, Validator, Helfer und `convert` an (`convert` vergibt `-new-`-IDs).
+- **Folge:** S3d entfällt. Neuer Schritt **T5** passt Schema, Validator, Helfer, `md2json` und `convert` an (`convert` vergibt `-new-`-IDs).
+- **Ersetzt** §2.3 (Datei-IDs in der App) und das Feld `appId` aus §1a und der SSoT. Der Vertrag von `export_plan`/`import_plan` liefert die IDs in dieser Form.
+- Nachteil (bewusst in Kauf genommen): Ein neues Element ändert beim ersten Import einmal seine ID.
 
 ### V2. Ein Schreibweg für Pläne, MCP auf wenige Werkzeuge reduziert (hoch)
 

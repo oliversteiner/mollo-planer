@@ -38,7 +38,16 @@ Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version
 
 **Zusätzlich in T4:** Task-Status `idea` und `planned` (`docs/planer-abgleich.md` §8), Markierungen `[i]` (idea) und `[p]` (planned).
 
-**S3d nicht umsetzen**, bis V1 (IDs aus der Datenbank, `docs/planer-abgleich.md` §7) entschieden ist. Alles andere läuft weiter.
+## T5. IDs aus der Datenbank (V1, entschieden 2026-11-13)
+
+`docs/planer-abgleich.md` §7 V1. In `spec/` und `tools/planer/`:
+- `id` hat die Form `m-<Zahl>`, `t-<Zahl>`, `k-<Zahl>` (Datenbank-ID) oder `m-new-<Zahl>`, `t-new-<Zahl>`, `k-new-<Zahl>` (lokal neu, noch nicht importiert). Eindeutig je Datei.
+- Feld `appId` entfällt in Schema, Spezifikation, Validator, kanonischer Form, `render` (Kommentar nur noch `<!-- id: k-88 -->`) und `md2json`.
+- Helfer vergeben `-new-`-Nummern (nächste freie je Präfix in der Datei). `convert v1-zu-v2` vergibt nur `-new-`-IDs.
+- Regel „nie wiederverwenden“ im Validator entfällt (die Datenbank sorgt dafür).
+- Fixtures, Golden Files, `docs/beispiel-planer.md` nachführen.
+
+**S3d entfällt** (ersetzt durch T5).
 
 T1 und T4 vor S3, damit die App gleich gegen das neue Format gebaut wird. T2 (`pull`/`push`/`sync`) und T3 (GitHub Action) folgen nach dem Export und Import in der App (siehe „Nicht in diesem Auftrag“).
 
@@ -93,7 +102,7 @@ Details in `docs/planer-abgleich.md`, Abschnitt 1a.
 - Lesen über `Project.planerRevision`.
 - Tests: jede Art von Änderung erhöht um genau 1, Kommentar nicht, Lesen nicht.
 
-## S3d. Datei-IDs (entschieden 2026-11-13)
+## S3d. Datei-IDs (entfällt, ersetzt durch T5)
 
 Details in `docs/planer-abgleich.md`, Abschnitt 2.3.
 
@@ -164,7 +173,7 @@ Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set
 
 ## Reihenfolge
 
-U0 → T1 → T4 → S2 → S3 → S3b → S3c → S3d → S4 → S5 → S6 → S7. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
+U0 → T1 → T4 → T5 → S2 → S3 → S3b → S3c → S4 → S5 → S6 → S7. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
 
 ## Nicht in diesem Auftrag (wird in der Planung geklärt)
 
