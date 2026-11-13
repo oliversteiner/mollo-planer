@@ -80,6 +80,8 @@ class RightsProjectTest extends TestCase
         $member = User::factory()->create();
         $project = Project::factory()->withMember($member)->create()->load('members');
 
+        Rights::projectRightsOf($member, $project);
+
         DB::enableQueryLog();
         Rights::projectRightsOf($member, $project);
 

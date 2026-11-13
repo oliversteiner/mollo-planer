@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
 use App\Support\Rights;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -14,6 +15,8 @@ use Tests\TestCase;
  */
 class RightsProjectTableTest extends TestCase
 {
+    use RefreshDatabase;
+
     private const CONFIRMED_MATRIX = [
         'project.update' => [true, true, false],
         'project.delete' => [true, false, false],

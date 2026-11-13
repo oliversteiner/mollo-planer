@@ -6,6 +6,8 @@ use App\Enums\SystemAbility;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Support\Rights;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -15,6 +17,8 @@ use Tests\TestCase;
  */
 class RightsSystemTableTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @var array<string, list<string>>
      */
@@ -61,9 +65,11 @@ class RightsSystemTableTest extends TestCase
         $this->assertFalse(Rights::systemAllows(null, SystemAbility::PROJECTS_CREATE));
     }
 
-    public function test_read_only_is_only_the_lesend_role(): void
+    public function test_only_the_lesend_role_has_an_empty_project_cap(): void
     {
-        $this->assertTrue(Rights::isReadOnly(new User(['role' => UserRole::LESEND])));
-        $this->assertFalse(Rights::isReadOnly(new User(['role' => UserRole::ADMIN])));
+        $cap = fn (string $role) => json_decode((string) DB::table('roles')->where(['scope' => 'system', 'key' => $role])->value('project_cap'), true);
+
+        $this->assertSame([], $cap('lesend'));
+        $this->assertNull($cap('admin'));
     }
 }

@@ -9,21 +9,30 @@ use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The single service that answers "may this person do this?". Policies ask
- * only this class. The standard rights are read from config/permissions.php;
- * no other code compares roles.
+ * only this class. The rights of a role come from the tables roles,
+ * functions, function_rights and role_functions (seeded from
+ * config/permissions.php). No other code compares roles.
  *
  * Rules that are not rights (nobody edits someone else's comment, the last
  * owner stays) belong in the respective policy or in ProjectMembership.
  */
 final class Rights
 {
-    /** Read-only users may not change anything, whatever their project role. */
-    public static function isReadOnly(User $user): bool
+    /**
+     * Rights and project cap per role, read once per request.
+     *
+     * @var array<string, array{rights: list<string>, cap: list<string>|null}>
+     */
+    private static array $grants = [];
+
+    /** Forget what was read, after the rights changed. */
+    public static function clearCache(): void
     {
-        return $user->role === UserRole::LESEND;
+        self::$grants = [];
     }
 
     /**
@@ -49,11 +58,7 @@ final class Rights
             return [];
         }
 
-        $granted = (array) config('permissions.system.'.$role->value, []);
-
-        if (in_array('*', $granted, true)) {
-            return SystemAbility::cases();
-        }
+        $granted = self::grantOf('system', $role->value)['rights'];
 
         return array_values(array_filter(
             SystemAbility::cases(),
@@ -66,10 +71,6 @@ final class Rights
      */
     public static function projectRoleAllows(?ProjectRole $role, ProjectAbility $ability): bool
     {
-        if ($role === null) {
-            return false;
-        }
-
         return in_array($ability, self::projectRightsOfRole($role), true);
     }
 
@@ -84,7 +85,7 @@ final class Rights
             return [];
         }
 
-        $granted = (array) config('permissions.project.'.$role->value, []);
+        $granted = self::grantOf('project', $role->value)['rights'];
 
         return array_values(array_filter(
             ProjectAbility::cases(),
@@ -97,15 +98,12 @@ final class Rights
      */
     public static function projectAllows(User $user, Project $project, ProjectAbility $ability): bool
     {
-        if (self::isReadOnly($user)) {
-            return false;
-        }
-
         if (self::systemAllows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
             return true;
         }
 
-        return self::projectRoleAllows($project->roleOf($user), $ability);
+        return self::withinCap($user, $ability)
+            && self::projectRoleAllows($project->roleOf($user), $ability);
     }
 
     /**
@@ -114,12 +112,12 @@ final class Rights
      */
     public static function projectAllowsInAnyProject(User $user, ProjectAbility $ability): bool
     {
-        if (self::isReadOnly($user)) {
-            return false;
-        }
-
         if (self::systemAllows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
             return true;
+        }
+
+        if (! self::withinCap($user, $ability)) {
+            return false;
         }
 
         return $user->projects()
@@ -134,15 +132,14 @@ final class Rights
      */
     public static function projectRightsOf(User $user, Project $project): array
     {
-        if (self::isReadOnly($user)) {
-            return [];
-        }
-
         if (self::systemAllows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
             return ProjectAbility::cases();
         }
 
-        return self::projectRightsOfRole($project->roleOf($user));
+        return array_values(array_filter(
+            self::projectRightsOfRole($project->roleOf($user)),
+            fn (ProjectAbility $ability): bool => self::withinCap($user, $ability),
+        ));
     }
 
     /**
@@ -200,5 +197,55 @@ final class Rights
         }
 
         $projects->whereHas('members', fn (Builder $members) => $members->whereKey($user->getKey()));
+    }
+
+    /** The project cap of the user's system role allows this right (null cap = all). */
+    private static function withinCap(User $user, ProjectAbility $ability): bool
+    {
+        $cap = self::grantOf('system', $user->role?->value ?? '')['cap'];
+
+        return $cap === null || in_array($ability->value, $cap, true);
+    }
+
+    /**
+     * Rights and cap of one role. All roles are read in one query the first
+     * time, so the number of queries does not grow with the number of roles.
+     *
+     * @return array{rights: list<string>, cap: list<string>|null}
+     */
+    private static function grantOf(string $scope, string $key): array
+    {
+        if (self::$grants === []) {
+            self::loadGrants();
+        }
+
+        return self::$grants[$scope.':'.$key] ?? ['rights' => [], 'cap' => []];
+    }
+
+    private static function loadGrants(): void
+    {
+        $rows = DB::table('roles')
+            ->leftJoin('role_functions', 'role_functions.role_id', '=', 'roles.id')
+            ->leftJoin('function_rights', 'function_rights.function_id', '=', 'role_functions.function_id')
+            ->select(['roles.scope', 'roles.key', 'roles.project_cap', 'function_rights.right'])
+            ->get();
+
+        $grants = [];
+        foreach ($rows as $row) {
+            $cacheKey = $row->scope.':'.$row->key;
+            $grants[$cacheKey] ??= [
+                'rights' => [],
+                'cap' => $row->project_cap === null ? null : json_decode($row->project_cap, true),
+            ];
+            if ($row->right !== null) {
+                $grants[$cacheKey]['rights'][] = $row->right;
+            }
+        }
+
+        foreach ($grants as $cacheKey => $grant) {
+            $grants[$cacheKey]['rights'] = array_values(array_unique($grant['rights']));
+        }
+
+        self::$grants = $grants;
     }
 }

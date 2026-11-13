@@ -129,6 +129,7 @@ class QueryTest extends GraphQLTestCase
         }';
 
         $this->addProjectWithTaskForMember();
+        $this->as('member')->gql($query);
         $queriesBefore = $this->countQueries(fn () => $this->as('member')->gql($query)->assertJsonMissingPath('errors'));
 
         $this->addProjectWithTaskForMember();
@@ -141,6 +142,7 @@ class QueryTest extends GraphQLTestCase
     public function test_user_list_with_security_flags_does_not_grow_with_the_number_of_users(): void
     {
         $query = '{ users { id twoFactorConfirmed hasPasskey } }';
+        $this->as('admin')->gql($query);
         $queriesBefore = $this->countQueries(fn () => $this->as('admin')->gql($query)->assertJsonMissingPath('errors'));
 
         User::factory()->count(3)->create()->each(fn (User $user) => $user->passkeys()->forceCreate([
