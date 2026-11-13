@@ -73,6 +73,7 @@ export function planerFromV1(markdown, { name, locale = 'DE' }) {
 export class ConvertError extends Error {}
 
 /** Ausgabe einer ID wie m-001, t-012, k-007. */
+/** Neue IDs aus der Konvertierung: vorläufig, der Import vergibt die echten (planer-abgleich V1). */
 function sequence(prefix, n) {
-  return `${prefix}-${String(n).padStart(3, '0')}`;
+  return `${prefix}-new-${n}`;
 }

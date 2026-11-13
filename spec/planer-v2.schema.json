@@ -63,13 +63,6 @@
       "format": "date",
       "description": "Fälligkeitsdatum als JJJJ-MM-TT."
     },
-    "appId": {
-      "type": [
-        "integer",
-        "null"
-      ],
-      "description": "ID in der App. Beim ersten Import null oder nicht gesetzt."
-    },
     "email": {
       "type": "string",
       "format": "email"
@@ -91,15 +84,15 @@
     },
     "id-milestone": {
       "type": "string",
-      "pattern": "^m-[0-9]{3}$"
+      "pattern": "^m-(new-)?[0-9]+$"
     },
     "id-todo": {
       "type": "string",
-      "pattern": "^t-[0-9]{3}$"
+      "pattern": "^t-(new-)?[0-9]+$"
     },
     "id-task": {
       "type": "string",
-      "pattern": "^k-[0-9]{3}$"
+      "pattern": "^k-(new-)?[0-9]+$"
     },
     "project": {
       "type": "object",
@@ -170,9 +163,6 @@
         "id": {
           "$ref": "#/$defs/id-milestone"
         },
-        "appId": {
-          "$ref": "#/$defs/appId"
-        },
         "title": {
           "$ref": "#/$defs/title"
         },
@@ -228,9 +218,6 @@
         "id": {
           "$ref": "#/$defs/id-todo"
         },
-        "appId": {
-          "$ref": "#/$defs/appId"
-        },
         "title": {
           "$ref": "#/$defs/title"
         },
@@ -260,9 +247,6 @@
       "properties": {
         "id": {
           "$ref": "#/$defs/id-task"
-        },
-        "appId": {
-          "$ref": "#/$defs/appId"
         },
         "title": {
           "$ref": "#/$defs/title"

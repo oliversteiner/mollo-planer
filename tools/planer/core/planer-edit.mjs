@@ -13,7 +13,6 @@ export class CommandError extends Error {
 
 const PREFIX = { milestone: 'm', todo: 't', task: 'k' };
 const LABEL = { milestone: 'Milestone', todo: 'ToDo', task: 'Task' };
-const MAX_PER_KIND = 999;
 
 /** Findet ein Element über seine ID. Liefert Art, Element, Liste, in der es steht, und Index. */
 export function findNode(plan, id) {
@@ -43,15 +42,12 @@ export function nextId(plan, kind) {
   const prefix = PREFIX[kind];
   let max = 0;
   for (const id of allIds(plan)) {
-    if (id.startsWith(`${prefix}-`)) {
-      max = Math.max(max, Number(id.slice(prefix.length + 1)));
+    const match = id.match(new RegExp(`^${prefix}-new-(\\d+)$`));
+    if (match) {
+      max = Math.max(max, Number(match[1]));
     }
   }
-  const next = max + 1;
-  if (next > MAX_PER_KIND) {
-    throw new CommandError(`Keine ID mehr für ${LABEL[kind]}: höchstens ${MAX_PER_KIND} je Art.`, 1);
-  }
-  return `${prefix}-${String(next).padStart(3, '0')}`;
+  return `${prefix}-new-${max + 1}`;
 }
 
 /** Hängt ein neues Element ans Ende seiner Liste an und liefert seine neue ID. */
@@ -112,7 +108,7 @@ export function setStatus(plan, id, status, commit) {
     throw new CommandError(`ID ${id} nicht gefunden.`, 1);
   }
   if (found.kind !== 'task') {
-    throw new CommandError(`${id} ist kein Task. Der Status gilt nur für Tasks (k-NNN).`, 2);
+    throw new CommandError(`${id} ist kein Task. Der Status gilt nur für Tasks (k-id).`, 2);
   }
   const previous = found.node.status;
   found.node.status = status;

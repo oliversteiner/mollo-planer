@@ -10,10 +10,10 @@ const ORDER = {
   project: ['name', 'description', 'locale', 'members', 'labels'],
   member: ['email', 'role'],
   label: ['key', 'names', 'category', 'color'],
-  milestone: ['id', 'appId', 'title', 'description', 'dueDate', 'release', 'todos'],
+  milestone: ['id', 'title', 'description', 'dueDate', 'release', 'todos'],
   release: ['version', 'status'],
-  todo: ['id', 'appId', 'title', 'description', 'dueDate', 'tasks'],
-  task: ['id', 'appId', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labels', 'commit', 'userStory'],
+  todo: ['id', 'title', 'description', 'dueDate', 'tasks'],
+  task: ['id', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labels', 'commit', 'userStory'],
   story: ['role', 'goal', 'benefit'],
 };
 

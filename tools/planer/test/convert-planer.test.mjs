@@ -47,7 +47,7 @@ test('Golden: md2json liest die Golden-Datei des Beispiels zurück', () => {
   assert.equal(back.revision, 3);
 });
 
-test('v1 → v2: gültige Fixture ergibt eine gültige Datei mit fortlaufenden IDs', () => {
+test('v1 → v2: gültige Fixture ergibt eine gültige Datei mit neuen IDs', () => {
   const plan = planerFromV1(read('../../../spec/fixtures/valid.md'), { name: 'Demo', locale: 'DE' });
   const text = canonicalText(plan);
   assert.deepEqual(errorsOf(text), []);
@@ -61,15 +61,15 @@ test('v1 → v2: gültige Fixture ergibt eine gültige Datei mit fortlaufenden I
     }
   }
   assert.equal(new Set(ids).size, ids.length, 'IDs sind eindeutig');
-  assert.equal(plan.milestones[0].id, 'm-001');
+  assert.equal(plan.milestones[0].id, 'm-new-1');
 });
 
 test('v1 → v2: Art wird Label, Erledigt wird done, Commit bleibt', () => {
   const v1 = '## v1.0 Start\n\n### Arbeit\n\n- [x] [bug] Erledigt\n  Commit abc1234\n\n- [ ] [feature] Offen\n';
   const plan = planerFromV1(v1, { name: 'Demo' });
   const [done, open] = plan.milestones[0].todos[0].tasks;
-  assert.deepEqual(done, { id: 'k-001', title: 'Erledigt', status: 'done', labels: ['bug'], commit: 'abc1234' });
-  assert.deepEqual(open, { id: 'k-002', title: 'Offen', status: 'open', labels: ['feature'] });
+  assert.deepEqual(done, { id: 'k-new-1', title: 'Erledigt', status: 'done', labels: ['bug'], commit: 'abc1234' });
+  assert.deepEqual(open, { id: 'k-new-2', title: 'Offen', status: 'open', labels: ['feature'] });
 });
 
 test('v1 → v2: „Ohne Commit“ wird zu commit „ohne“', () => {

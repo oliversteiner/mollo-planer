@@ -24,17 +24,16 @@ Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md`
   },
   "milestones": [
     {
-      "id": "m-001",
-      "appId": null,
+      "id": "m-1",
       "title": "Schema-Refactoring",
       "dueDate": "2026-12-15",
       "release": { "version": "1.4", "status": "planned" },
       "todos": [
         {
-          "id": "t-001",
+          "id": "t-1",
           "title": "Ordering-Service ausbauen",
           "tasks": [
-            { "id": "k-001", "title": "Sperre für Milestones ergänzen", "status": "done", "labels": ["backend"], "commit": null },
+            { "id": "k-1", "title": "Sperre für Milestones ergänzen", "status": "done", "labels": ["backend"], "commit": null },
             { "id": "k-002", "title": "Lückenschluss nach Löschen", "status": "open", "assigneeEmail": "oliver@mollo.ch", "labels": ["backend"] }
           ]
         }
@@ -84,8 +83,7 @@ Ein Mitglied (`members[]`):
 
 | Feld | Pflicht | Typ und Grenze |
 |---|---|---|
-| `id` | ja | `m-NNN`, drei Ziffern, z. B. `m-001`. |
-| `appId` | nein | Ganze Zahl, oder `null`. Die ID in der App. |
+| `id` | ja | `m-<Zahl>` (ID in der App) oder `m-new-<Zahl>` (lokal neu, noch nicht eingetragen), z. B. `m-12` oder `m-new-1`. |
 | `title` | ja | String, 2 bis 160 Zeichen, Klartext. |
 | `description` | nein | Markdown, höchstens 5000 Zeichen, oder `null`. Siehe Abschnitt 6. |
 | `dueDate` | nein | Datum `JJJJ-MM-TT`, oder `null`. |
@@ -103,8 +101,7 @@ Ein Mitglied (`members[]`):
 
 | Feld | Pflicht | Typ und Grenze |
 |---|---|---|
-| `id` | ja | `t-NNN`, z. B. `t-001`. |
-| `appId` | nein | Wie beim Milestone. |
+| `id` | ja | `t-<Zahl>` oder `t-new-<Zahl>`, z. B. `t-41` oder `t-new-2`. |
 | `title` | ja | String, 2 bis 160 Zeichen, Klartext. |
 | `description` | nein | Markdown, höchstens 5000 Zeichen, oder `null`. |
 | `dueDate` | nein | Wie beim Milestone. |
@@ -114,8 +111,7 @@ Ein Mitglied (`members[]`):
 
 | Feld | Pflicht | Typ und Grenze |
 |---|---|---|
-| `id` | ja | `k-NNN`, z. B. `k-001`. |
-| `appId` | nein | Wie beim Milestone. |
+| `id` | ja | `k-<Zahl>` oder `k-new-<Zahl>`, z. B. `k-88` oder `k-new-1`. |
 | `title` | ja | String, 2 bis 160 Zeichen, Klartext. |
 | `description` | nein | Markdown, höchstens 5000 Zeichen, oder `null`. |
 | `dueDate` | nein | Wie beim Milestone. |
@@ -180,8 +176,7 @@ Optionales Feld `userStory` am Task. Es ist ein Objekt aus drei Teilen. Zusammen
 
 ### 5.2 IDs und Konflikte
 
-- **`id`** ist die Datei-ID mit Präfix und drei Ziffern: `m-NNN`, `t-NNN`, `k-NNN`. Sie ist je Datei eindeutig und wird nie wiederverwendet, auch nicht nach dem Löschen.
-- **`appId`** ist die ID in der App. Beim ersten Import ist sie `null` oder fehlt. Der Import setzt sie. Ein erneuter Import mit gesetzter `appId` aktualisiert das Element und legt es nicht doppelt an.
+- **`id`** ist die ID mit Präfix: `m-<Zahl>`, `t-<Zahl>`, `k-<Zahl>` ist die ID in der App (Datenbank, V1 in planer-abgleich §7). `m-new-<Zahl>`, `t-new-<Zahl>`, `k-new-<Zahl>` sind lokal neu entstandene Elemente, die der Import durch die echte ID ersetzt. Eindeutig je Datei. Es gibt kein Feld `appId`.
 - **`revision`** ist der Stand der App beim letzten Export oder Import. Nur die App erhöht sie. Die Helfer ändern sie nie.
 - **`changed`** setzen die Helfer auf `true`, sobald sie die Datei ändern. `push` ist nur erlaubt, wenn `revision` der Datei gleich der Revision der App ist. `pull` überschreibt keine Datei mit `changed: true`. Nach einem erfolgreichen `push` hat die Datei die neue Revision der App und kein `changed`.
 - Ein echtes Zusammenführen gibt es in der ersten Fassung nicht. Der Mensch entscheidet: lokale Änderungen verwerfen (`pull --force`) oder neu auf den aktuellen Stand anwenden.
@@ -249,7 +244,7 @@ Die Markdown-Ansicht ist für Menschen. Die Datei bleibt die Quelle. `mollo-plan
 
 - Nur nicht eingerückte Zeilen bilden die Struktur:
   - `## vM.m Titel` für einen Milestone mit Version.
-  - `## Titel` für einen Milestone ohne Version (`release` fehlt). Erkannt wird er an seiner ID-Zeile `m-NNN`.
+  - `## Titel` für einen Milestone ohne Version (`release` fehlt). Erkannt wird er an seiner ID-Zeile `m-<Zahl>` oder `m-new-<Zahl>`.
   - `### Titel` für ein ToDo.
   - `- [ ] Titel`, `- [i] Titel`, `- [p] Titel`, `- [~] Titel`, `- [?] Titel` oder `- [x] Titel` für einen Task.
 - Alles, was eingerückt ist, gehört zum darüber liegenden Task.
@@ -257,8 +252,8 @@ Die Markdown-Ansicht ist für Menschen. Die Datei bleibt die Quelle. `mollo-plan
 
 ### 7.2 IDs
 
-- **Milestone und ToDo:** eine Zeile direkt unter der Überschrift, `<!-- id: m-001, app: 12 -->`. `app` steht nur, wenn `appId` gesetzt ist.
-- **Task:** am Ende der Task-Zeile, `- [x] Titel <!-- id: k-001, app: 88 -->`.
+- **Milestone und ToDo:** eine Zeile direkt unter der Überschrift, `<!-- id: m-12 -->`.
+- **Task:** am Ende der Task-Zeile, `- [x] Titel <!-- id: k-88 -->`.
 
 ### 7.3 Inhalt eines Tasks
 
@@ -366,7 +361,7 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 | `  Ohne Commit` | `commit: "none"` |
 | eingerückte Zeilen unter dem Task | `description` des Tasks |
 
-- **IDs:** fortlaufend je Art über die ganze Datei (`m-001`, `t-001`, `k-001`, …), in Dokumentreihenfolge.
+- **IDs:** Der Konverter vergibt `m-new-1`, `t-new-1`, `k-new-1`, … je Art in Dokumentreihenfolge.
 - **Projekt:** `name` aus dem Dateinamen (`version-<name>.md` ergibt `<name>`) oder aus `--name`. Ist der Name zu kurz oder fehlt er, verlangt der Befehl `--name`. `locale` ist `de`, außer `--locale` sagt etwas anderes (`DE` oder `EN`). `members` ist leer, weil v1 keine Mitglieder kennt. `revision` ist `1`.
 - **Gültigkeit:** Die v1-Datei muss gültig sein, sonst bricht der Befehl ab. Das Ergebnis wird wie jede planer-v2-Datei geprüft.
 

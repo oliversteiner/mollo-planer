@@ -22,12 +22,12 @@ Ist nur eine `docs/*.planer.json` im Ordner, genügt der Befehl. Mehrere Dateien
 | `list` | Überblick: IDs, Titel, Status. Ohne Beschreibungen. | Eine Zeile je Element |
 | `show <id>` | Ein Element mit allen Kindern, als JSON | JSON |
 | `revision` | Stand der App (ändern die Helfer nie) | Zahl |
-| `add milestone --title T [--version M.m [--release-status planned\|released]] [--due JJJJ-MM-TT]` | Milestone anlegen, ans Ende | `m-NNN angelegt` |
-| `add todo --milestone m-NNN --title T [--due …]` | ToDo anlegen, ans Ende | `t-NNN angelegt` |
-| `add task --todo t-NNN --title T [--status …] [--assignee E-Mail] [--label L]… [--commit H\|none] [--due …]` | Task anlegen, ans Ende | `k-NNN angelegt` |
+| `add milestone --title T [--version M.m [--release-status planned\|released]] [--due JJJJ-MM-TT]` | Milestone anlegen, ans Ende | `m-new-N angelegt` |
+| `add todo --milestone m-<Zahl> --title T [--due …]` | ToDo anlegen, ans Ende | `t-new-N angelegt` |
+| `add task --todo t-<Zahl> --title T [--status …] [--assignee E-Mail] [--label L]… [--commit H\|none] [--due …]` | Task anlegen, ans Ende | `k-new-N angelegt` |
 | `add <art> --json` | Element mit Beschreibung, userStory und allem übrigen. JSON auf stdin, ohne `id` | wie oben |
 | `move <id> [--to <ziel>] [--position N]` | Verschieben. Task: `--to` ist ein ToDo. ToDo: `--to` ist ein Milestone. Ohne `--to` bleibt der Elternteil. | `<id> verschoben` |
-| `status <k-NNN> idea\|planned\|open\|in_progress\|review\|done [--commit H\|none]` | Status eines Tasks setzen | `k-NNN: alt → neu` |
+| `status <k-<Zahl>> idea\|planned\|open\|in_progress\|review\|done [--commit H\|none]` | Status eines Tasks setzen | `k-<Zahl>: alt → neu` |
 
 ## Regeln
 
@@ -36,7 +36,7 @@ Ist nur eine `docs/*.planer.json` im Ordner, genügt der Befehl. Mehrere Dateien
 - **Eine Änderung, die die Prüfung nicht besteht, wird abgelehnt.** Die Meldung nennt den Pfad, z. B. `milestones[1].todos[0].tasks[2].assigneeEmail`. Die Datei bleibt dann unverändert. Korrigiere den Aufruf und versuche es erneut.
 - **Veröffentlichte Versionen** (`release.status` = `released`) haben keine offenen Tasks. Erledigte Tasks dort brauchen einen Commit: `--commit <Hash>`, oder `--commit none` für Altbestand.
 - **`--commit none`** ist nur bei `status done` erlaubt.
-- **Längere Inhalte per JSON.** Eine Beschreibung mit Absätzen oder Listen, eine userStory oder mehrere Felder: `add task --todo t-NNN --json` und das Objekt auf stdin. Das Objekt enthält `title` und die Felder, aber keine `id`.
+- **Längere Inhalte per JSON.** Eine Beschreibung mit Absätzen oder Listen, eine userStory oder mehrere Felder: `add task --todo t-<Zahl> --json` und das Objekt auf stdin. Das Objekt enthält `title` und die Felder, aber keine `id`.
 
 ## Grenzen
 

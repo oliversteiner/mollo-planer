@@ -160,8 +160,7 @@ function legendChunk(labels, { words, lang, projectLang, legendTranslations }) {
 
 /** Die ID-Zeile unter Milestone- und ToDo-Überschrift, am Task das Zeilenende. */
 function idComment(node) {
-  const app = node.appId === null || node.appId === undefined ? '' : `, app: ${node.appId}`;
-  return `<!-- id: ${node.id}${app} -->`;
+  return `<!-- id: ${node.id} -->`;
 }
 
 /** Beschreibung ohne Einrückung, wie im Beispiel. Zeilen, die die Struktur brechen, sind ein Fehler. */

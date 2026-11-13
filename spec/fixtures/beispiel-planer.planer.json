@@ -53,7 +53,6 @@
   "milestones": [
     {
       "id": "m-001",
-      "appId": 12,
       "title": "Ordering-Grundlage",
       "description": "Erste Version des Ordering-Service. Alle Tasks sind erledigt, deshalb ist die Version veröffentlicht. Dann ist ein Commit je erledigtem Task Pflicht.",
       "dueDate": "2026-10-31",
@@ -69,7 +68,6 @@
           "tasks": [
             {
               "id": "k-001",
-              "appId": 88,
               "title": "Milestone-Reihenfolge absichern",
               "description": "Die Sperre liegt auf dem **Projekt**, nicht auf dem Milestone. Das ist ein Muster aus `KanbanOrdering`.",
               "dueDate": "2026-10-18",

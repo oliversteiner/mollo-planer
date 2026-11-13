@@ -17,8 +17,8 @@ const HEADER = /^<!-- Ansicht von planer-v2, revision (\d+)(, geändert)?, lang 
 const MILESTONE_VERSION = /^## v(\d+\.\d+) (.+)$/;
 const MILESTONE_PLAIN = /^## (.+)$/;
 const TODO = /^### (.+)$/;
-const TASK = /^- \[( |~|\?|x|i|p)\] (.+?) <!-- id: (k-\d{3})(?:, app: (\d+))? -->$/;
-const ID_LINE = /^<!-- id: ([mt]-\d{3})(?:, app: (\d+))? -->$/;
+const TASK = /^- \[( |~|\?|x|i|p)\] (.+?) <!-- id: (k-(?:new-)?\d+) -->$/;
+const ID_LINE = /^<!-- id: ([mt]-(?:new-)?\d+) -->$/;
 const STORY = /^ {2}\*(?:Als (.+?) möchte ich (.+?), damit (.+)|As (.+?) I want (.+?), so that (.+))\.\*$/;
 const MEMBER = /^- (\S+) \| (owner|manager|member)$/;
 const MARKS = { i: 'idea', p: 'planned', ' ': 'open', '~': 'in_progress', '?': 'review', x: 'done' };
@@ -249,11 +249,10 @@ function readMilestone(reader) {
   }
 
   reader.skipBlank();
-  const { id, appId } = readIdLine(reader, 'm');
+  const { id } = readIdLine(reader, 'm');
   reader.skipBlank();
 
   const milestone = { id, title: version ? version[2] : plain[1] };
-  if (appId !== undefined) milestone.appId = appId;
 
   const meta = readMeta(reader, ['Status', 'Fällig', 'Due']);
   if (meta.Status !== undefined) {
@@ -288,11 +287,10 @@ function readTodo(reader) {
   if (!title) throw new MarkdownError(number, 'ToDo erwartet: „### Titel“.');
 
   reader.skipBlank();
-  const { id, appId } = readIdLine(reader, 't');
+  const { id } = readIdLine(reader, 't');
   reader.skipBlank();
 
   const todo = { id, title: title[1] };
-  if (appId !== undefined) todo.appId = appId;
 
   const meta = readMeta(reader, ['Fällig', 'Due']);
   if (meta['Fällig'] !== undefined) todo.dueDate = meta['Fällig'];
@@ -314,7 +312,7 @@ function readTask(reader) {
   const number = reader.number();
   const match = reader.next().match(TASK);
   if (!match) {
-    throw new MarkdownError(number, 'Task nicht lesbar. Erwartet: „- [ ] Titel <!-- id: k-NNN -->“.');
+    throw new MarkdownError(number, 'Task nicht lesbar. Erwartet: „- [ ] Titel <!-- id: k-<Zahl> -->“.');
   }
 
   const task = {
@@ -322,7 +320,6 @@ function readTask(reader) {
     title: match[2],
     status: MARKS[match[1]],
   };
-  if (match[4] !== undefined) task.appId = Number(match[4]);
 
   // Der Block unter dem Task: Story, Metadaten, Beschreibung. Jeder Teil durch Leerzeilen getrennt.
   reader.skipBlank();
@@ -405,9 +402,9 @@ function readIdLine(reader, prefix) {
   const line = reader.next();
   const match = line?.match(ID_LINE);
   if (!match || !match[1].startsWith(`${prefix}-`)) {
-    throw new MarkdownError(number, `ID-Zeile erwartet: „<!-- id: ${prefix}-NNN -->“.`);
+    throw new MarkdownError(number, `ID-Zeile erwartet: „<!-- id: ${prefix}-<Zahl> -->“ oder „<!-- id: ${prefix}-new-<Zahl> -->“.`);
   }
-  return { id: match[1], appId: match[2] === undefined ? undefined : Number(match[2]) };
+  return { id: match[1] };
 }
 
 /** Zeilen, die die Struktur beginnen: Milestone, ToDo, Task, Trennlinie. */

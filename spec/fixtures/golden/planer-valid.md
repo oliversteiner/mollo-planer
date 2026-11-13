@@ -39,7 +39,7 @@ Projektverwaltung mit Milestones, ToDos und Kanban.
 ### Import prüfen
 <!-- id: t-002 -->
 
-- [~] Lückenschluss nach Löschen <!-- id: k-003, app: 88 -->
+- [~] Lückenschluss nach Löschen <!-- id: k-003 -->
 
   - Zuständig: anna@example.org
   - Labels: Backend

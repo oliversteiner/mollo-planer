@@ -13,7 +13,7 @@ Projekt für Planung und Umsetzung. Alle Milestones, ToDos und Tasks stehen in d
 ---
 
 ## v1.3 Ordering-Grundlage
-<!-- id: m-001, app: 12 -->
+<!-- id: m-001 -->
 
 - Status: veröffentlicht
 - Fällig: 2026-10-31
@@ -25,7 +25,7 @@ Erste Version des Ordering-Service. Alle Tasks sind erledigt, deshalb ist die Ve
 
 - Fällig: 2026-10-20
 
-- [x] Milestone-Reihenfolge absichern <!-- id: k-001, app: 88 -->
+- [x] Milestone-Reihenfolge absichern <!-- id: k-001 -->
 
   *Als Owner möchte ich doppelte Positionen bei gleichzeitigem Anlegen vermeiden, damit die Zeitachse stimmt.*
 

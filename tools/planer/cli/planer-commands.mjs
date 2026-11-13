@@ -18,11 +18,11 @@ const ELEMENT_FLAGS = ['title', 'description', 'due', 'version', 'release-status
 
 const USAGE = `Verwendung (planer-v2, Datei per --datei oder docs/*.planer.json):
   mollo-planer add milestone --title <Text> [--due JJJJ-MM-TT] [--version M.m [--release-status planned|released]]
-  mollo-planer add todo --milestone <m-NNN> --title <Text> [--due JJJJ-MM-TT]
-  mollo-planer add task --todo <t-NNN> --title <Text> [--status idea|planned|open|in_progress|review|done] [--assignee <E-Mail>] [--label <Name|Schlüssel>]... [--commit <Hash|none>] [--due JJJJ-MM-TT]
+  mollo-planer add todo --milestone <m-id> --title <Text> [--due JJJJ-MM-TT]
+  mollo-planer add task --todo <t-id> --title <Text> [--status idea|planned|open|in_progress|review|done] [--assignee <E-Mail>] [--label <Name|Schlüssel>]... [--commit <Hash|none>] [--due JJJJ-MM-TT]
   mollo-planer add <milestone|todo|task> --json          Element als JSON auf stdin (für Beschreibung, userStory, …)
   mollo-planer move <id> [--to <ziel-id>] [--position <N>]
-  mollo-planer status <k-NNN> idea|planned|open|in_progress|review|done [--commit <Hash|none>]
+  mollo-planer status <k-id> idea|planned|open|in_progress|review|done [--commit <Hash|none>]
   mollo-planer list [--compact]
   mollo-planer show <id>
   mollo-planer revision`;
@@ -248,8 +248,8 @@ function elementFromStdin(kind, flags, options) {
   if (element === null || typeof element !== 'object' || Array.isArray(element)) {
     throw new CommandError('Das JSON auf stdin muss ein Objekt sein.', 2);
   }
-  if (Object.hasOwn(element, 'id') || Object.hasOwn(element, 'appId')) {
-    throw new CommandError('id und appId werden nicht selbst gesetzt. Die ID vergibt der Helfer, appId setzt der Import.', 2);
+  if (Object.hasOwn(element, 'id')) {
+    throw new CommandError('id wird nicht selbst gesetzt. Die ID vergibt der Helfer.', 2);
   }
   if (kind === 'milestone' && element.todos === undefined) element.todos = [];
   if (kind === 'todo' && element.tasks === undefined) element.tasks = [];

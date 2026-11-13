@@ -71,7 +71,6 @@
           "tasks": [
             {
               "id": "k-003",
-              "appId": 88,
               "title": "Lückenschluss nach Löschen",
               "status": "in_progress",
               "assigneeEmail": "anna@example.org",

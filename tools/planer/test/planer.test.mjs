@@ -59,7 +59,7 @@ test('changed: nur true ist erlaubt, das Feld fehlt bei unveränderten Dateien',
 });
 
 test('Schema: falsches id-Format, Rollen-Platzhalter, berechneter Wert', () => {
-  assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].id = 'k-1'; }), ['milestones[0].todos[0].tasks[0].id']);
+  assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].id = 'k-abc'; }), ['milestones[0].todos[0].tasks[0].id']);
   assert.deepEqual(errorPaths((d) => { d.project.members[0].role = '<ProjectRole>'; }), ['project.members[0].role']);
   assert.deepEqual(errorPaths((d) => { d.milestones[1].status = 'open'; }), ['milestones[1].status']);
 });

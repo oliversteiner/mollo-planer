@@ -65,26 +65,26 @@ test('show: unbekannte ID endet mit Code 1', () => {
 test('add task: hängt ans Ende des ToDos, vergibt die nächste ID, setzt changed', () => {
   const result = run(['add', 'task', '--todo', 't-003', '--title', 'Neue Aufgabe']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 'k-008 angelegt\n');
+  assert.equal(result.stdout, 'k-new-1 angelegt\n');
 
   const todo = plan().milestones[1].todos[0];
-  assert.deepEqual(todo.tasks.at(-1), { id: 'k-008', title: 'Neue Aufgabe', status: 'open' });
+  assert.deepEqual(todo.tasks.at(-1), { id: 'k-new-1', title: 'Neue Aufgabe', status: 'open' });
   assert.equal(plan().revision, 3);
   assert.equal(plan().changed, true);
   assert.deepEqual(validatePlaner(text()).filter((issue) => issue.severity === 'error'), []);
 });
 
-test('add todo: vergibt t-005 im Milestone', () => {
+test('add todo: vergibt t-new-1 im Milestone', () => {
   const result = run(['add', 'todo', '--milestone', 'm-002', '--title', 'Test-ToDo']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 't-005 angelegt\n');
-  assert.equal(plan().milestones[1].todos.at(-1).id, 't-005');
+  assert.equal(result.stdout, 't-new-1 angelegt\n');
+  assert.equal(plan().milestones[1].todos.at(-1).id, 't-new-1');
 });
 
-test('add milestone: Version mit Standard-Status planned, ID m-003', () => {
+test('add milestone: Version mit Standard-Status planned, ID m-new-1', () => {
   const result = run(['add', 'milestone', '--title', 'Neu', '--version', '1.5']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 'm-003 angelegt\n');
+  assert.equal(result.stdout, 'm-new-1 angelegt\n');
   assert.deepEqual(plan().milestones.at(-1).release, { version: '1.5', status: 'planned' });
 });
 
@@ -107,7 +107,7 @@ test('add task --json: Beschreibung und userStory von stdin', () => {
   const result = run(['add', 'task', '--todo', 't-003', '--json'], JSON.stringify(element));
   assert.equal(result.status, 0, result.stderr);
   const task = plan().milestones[1].todos[0].tasks.at(-1);
-  assert.equal(task.id, 'k-008');
+  assert.equal(task.id, 'k-new-1');
   assert.equal(task.status, 'open');
   assert.deepEqual(task.userStory, element.userStory);
 });
