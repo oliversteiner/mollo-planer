@@ -234,6 +234,24 @@ Die Whitelist der App gilt auch für die Datei. Sie steht in `backend/app/Suppor
 
 Das Schema prüft nur die Länge der Beschreibung. Die Struktur prüft der Validator.
 
+### 6.1 Kanonische Markdown-Form
+
+Der Konverter in `tools/planer/core/richtext.mjs` liest eine Beschreibung in einen Baum (wie die App) und schreibt sie wieder. `json` und die kanonische Form der Datei schreiben jede Beschreibung so:
+
+- Absätze durch eine Leerzeile getrennt. Weiche Zeilenumbrüche innerhalb eines Absatzes werden zu einem Leerzeichen.
+- Harter Umbruch als `\` am Zeilenende (nicht zwei Leerzeichen).
+- Fett `**…**`, kursiv `*…*`, beides `***…***`, Inline-Code `` `…` `` (auch innerhalb von Fett oder Kursiv).
+- Aufzählungen mit `- `, nummerierte Listen mit `1.`, `2.`, … fortlaufend, verschachtelt mit zwei bzw. drei Leerzeichen.
+- Links `[Text](URL)`. Ein Linktitel entfällt. Autolinks `<URL>` werden zu `[URL](URL)`.
+- Zitate `> `, Überschriften `## ` und `### `.
+- Ist eine Beschreibung ungültig, bleibt sie unverändert; der Validator meldet den Fehler.
+
+**Hinweise** (Schreibweisen aus §9.5, Text bleibt gleich): `__fett__` und `_kursiv_` werden zu `**` und `*`, Zeilenumbruch mit zwei Leerzeichen zu `\`, HTML-Entitäten (`&amp;` u. a.) zu Zeichen, Listenzeichen `*` oder `+` zu `-`, fortlaufende Nummerierung, Autolinks, Linktitel. Weicht eine Beschreibung von der kanonischen Form ab, meldet `validate` einen Hinweis.
+
+**Fehler** (§9.6, Text kann nicht übernommen werden): HTML (auch Kommentare und Inline-HTML), Bilder (auch im Text), Tabellen, Code-Blöcke, durchgestrichen `~~`, nicht geschlossenes Fett oder Kursiv, Überschriften außer Ebene 2 und 3, Links mit anderem Schema, gemischte verschachtelte Listen (Aufzählung in nummerierter Liste oder umgekehrt).
+
+Testfälle: `spec/fixtures/richtext/`. Paare `*.in.md` und `*.out.md` prüfen die kanonische Form, `*.error.md` prüft die Fehler, `*.hint.in.md` und die Hinweise.
+
 ---
 
 ## 7. Markdown-Ansicht und Grammatik

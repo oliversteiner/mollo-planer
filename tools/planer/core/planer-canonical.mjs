@@ -5,6 +5,8 @@
  * Felder (null) und leere Listen (labels, members) fehlen in der kanonischen Form.
  */
 
+import { canonicalDescription } from './richtext.mjs';
+
 const ORDER = {
   root: ['$schema', 'format', 'revision', 'changed', 'project', 'milestones'],
   project: ['name', 'description', 'locale', 'members', 'labels'],
@@ -26,15 +28,19 @@ function canonicalize(plan) {
   return order(plan, ORDER.root, {
     changed: (changed) => (changed === true ? true : undefined),
     project: (project) => order(project, ORDER.project, {
+      description: canonicalDescription,
       members: (members) => members.map((member) => order(member, ORDER.member)),
       labels: (labels) => (labels.length > 0 ? labels.map((label) => order(label, ORDER.label, {
         names: (names) => order(names, ['de', 'en']),
       })) : undefined),
     }),
     milestones: (milestones) => milestones.map((milestone) => order(milestone, ORDER.milestone, {
+      description: canonicalDescription,
       release: (release) => order(release, ORDER.release),
       todos: (todos) => todos.map((todo) => order(todo, ORDER.todo, {
+        description: canonicalDescription,
         tasks: (tasks) => tasks.map((task) => order(task, ORDER.task, {
+          description: canonicalDescription,
           userStory: (story) => (story === null ? null : order(story, ORDER.story)),
           labels: (keys) => (keys.length > 0 ? keys : undefined),
         })),

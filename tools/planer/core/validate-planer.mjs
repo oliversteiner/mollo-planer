@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { validateAgainst } from './json-schema.mjs';
 import { canonicalText } from './planer-canonical.mjs';
+import { parseDescription } from './richtext.mjs';
 
 /**
  * Prüft eine Planer-Datei `<projekt>.planer.json` (Format planer-v2, siehe spec/format-v2.md).
@@ -13,7 +14,7 @@ import { canonicalText } from './planer-canonical.mjs';
  *    Release-Regel, Commit-Regeln.
  * 3. Kanonische Form, als Hinweis: zwei Leerzeichen Einrückung, Zeilenende am Schluss.
  *
- * Stufe 2 prüft außerdem die Whitelist der Formatierung in Beschreibungen (Spec, Abschnitt 6).
+ * Stufe 2 prüft außerdem die Whitelist der Formatierung in Beschreibungen (Spec, Abschnitt 6): Konstrukte außerhalb sind Fehler, Schreibweisen aus §9.5 Hinweise (core/richtext.mjs).
  */
 
 const schema = JSON.parse(readFileSync(new URL('../../../spec/planer-v2.schema.json', import.meta.url), 'utf8'));
@@ -56,8 +57,14 @@ function markdownIssues(plan) {
   const issues = [];
   const check = (text, path) => {
     if (typeof text !== 'string') return;
-    for (const message of forbiddenMarkdown(text)) {
+    const { errors, hints } = parseDescription(text);
+    for (const message of errors) {
       issues.push({ path, severity: 'error', message });
+    }
+    if (errors.length === 0) {
+      for (const message of hints) {
+        issues.push({ path, severity: 'warning', message });
+      }
     }
   };
 
@@ -76,33 +83,7 @@ function markdownIssues(plan) {
   return issues;
 }
 
-/** Liefert die Verstöße eines Markdown-Textes gegen die Whitelist. Leere Liste, wenn alles erlaubt ist. */
-export function forbiddenMarkdown(text) {
-  const problems = [];
-  if (/<\/?[A-Za-z!][^>]*>/.test(text)) {
-    problems.push('HTML ist in Beschreibungen nicht erlaubt');
-  }
-  if (/!\[[^\]]*\]\(/.test(text)) {
-    problems.push('Bilder sind in Beschreibungen nicht erlaubt');
-  }
-  for (const line of text.split('\n')) {
-    if (/^# /.test(line) || /^#{4,} /.test(line)) {
-      problems.push('Nur Überschriften der Ebene 2 und 3 sind erlaubt');
-    }
-    if (line.startsWith('```')) {
-      problems.push('Code-Blöcke sind in Beschreibungen nicht erlaubt');
-    }
-    if (/^\s*\|.*\|/.test(line)) {
-      problems.push('Tabellen sind in Beschreibungen nicht erlaubt');
-    }
-  }
-  for (const match of text.matchAll(/\]\(([^)\s]*)/g)) {
-    if (!/^(https?:\/\/|mailto:)/i.test(match[1])) {
-      problems.push(`Link-Schema nicht erlaubt: ${match[1]}`);
-    }
-  }
-  return [...new Set(problems)];
-}
+export { forbiddenMarkdown } from './richtext.mjs';
 
 function semantics(plan) {
   const issues = [];
