@@ -1,5 +1,7 @@
 # Claude anbinden: der Connector für Mollo Planer
 
+> **Hinweis (2026-11-13, D1):** Gilt für den heutigen Connector bis Schritt I3. Danach neu schreiben (`umsetzung.md` I3).
+
 Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang einrichtest und was dabei passiert. Die Einrichtung in einem Satz: Im Profil einen Zugang erzeugen und die Konfiguration in Claude Desktop oder Claude Code eintragen.
 
 ---

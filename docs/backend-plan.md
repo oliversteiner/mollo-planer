@@ -1,5 +1,7 @@
 # Backend-Plan und bestätigte Entscheidungen
 
+> **Hinweis (2026-11-13, D1):** Historisch (Stand 2026-11-07). Rechte, Rollen und Labels sind ersetzt durch `rollen-funktionen-rechte.md`, `planer-abgleich.md` und `schema-review.md`. Für den aktuellen Stand `README.md` lesen.
+
 Stand: 2026-11-07. Ergänzt `graphql-kontext.md`. Wo beide sich widersprechen, gilt dieses Dokument.
 
 ## Bestätigt vom Auftraggeber

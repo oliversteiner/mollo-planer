@@ -1,7 +1,7 @@
 # Planer-Datei und App: offene Probleme und Entscheidungen
 
-Stand: 2026-11-13. Rolle: Analyse und Plan. Ergänzt `docs/planer-datei-ssot.md`, `docs/umsetzung-planer-v2.md` und `docs/spur-b-sichere-schritte.md`.
-Hier werden die Punkte geklärt, die unter „Nicht in diesem Auftrag“ in `docs/spur-b-sichere-schritte.md` stehen. Jeder Punkt bekommt eine Entscheidung und die Folgen für Spur A (`mollo-version`) und Spur B (`mollo-planer`).
+Stand: 2026-11-13. Rolle: Analyse und Plan. Ergänzt `docs/planer-datei-ssot.md`, `docs/umsetzung-planer-v2.md` und `docs/umsetzung.md`.
+Hier werden die Punkte geklärt, die unter „Nicht in diesem Auftrag“ in `docs/umsetzung.md` stehen. Jeder Punkt bekommt eine Entscheidung und die Folgen für Spur A (`mollo-version`) und Spur B (`mollo-planer`).
 
 | # | Problem | Stand |
 |---|---|---|
@@ -33,7 +33,7 @@ Die App speichert alle drei. Die Datenbank bleibt der einzige Live-Speicher, der
 - Regeln der App wie im Validator (`spec/format-v2.md` §5.3): Eine veröffentlichte Version darf keinen Task ungleich `done` haben; ein `done`-Task in einer veröffentlichten Version braucht einen Commit oder `none`. Geprüft beim Setzen von `release_status: released` und beim Ändern von Task-Status oder Commit in einer veröffentlichten Version.
 - Oberfläche: Versionsnummer und Freigabe-Status im Zeitstrahl am Milestone und in dessen Formular; Commit im Task-Detail (Anzeige als Kurz-Hash, bearbeitbar).
 - Rechte: Release ändern wie `milestone.update`, Commit wie Task bearbeiten.
-- Umsetzung: als Nachtrag zu S3 in einer eigenen Migration (S3b in `docs/spur-b-sichere-schritte.md`).
+- Umsetzung: als Nachtrag zu S3 in einer eigenen Migration (S3b in `docs/umsetzung.md`).
 
 `planer_revision` wird erst mit 1a festgelegt (wer sie erhöht).
 
@@ -112,7 +112,7 @@ Folge für Spur A: `spec/format-v2.md` §5.2 und die Helfer (P4) anpassen, Tests
 - A-S2: `pull`, `push`, `sync`, `pull --watch` gegen den Vertrag oben. Verbindung über `fetch` an `POST /mcp` (JSON-RPC `tools/call`). Konfiguration über `MOLLO_PLANER_URL`, `MOLLO_PLANER_TOKEN` oder `.mollo-planer` (in `.gitignore`). Tests mit einem lokalen Testserver, der den Vertrag nachbildet.
 - A-S3: Vorlage `templates/github-action/planer-export.yml` (`repository_dispatch` und Zeitplan, `pull`, Commit nur bei Änderung). `SKILL.md` ergänzen.
 
-**Spur B (`mollo-planer`), sofort möglich (Nachtrag S3c in `docs/spur-b-sichere-schritte.md`):**
+**Spur B (`mollo-planer`), sofort möglich (Nachtrag S3c in `docs/umsetzung.md`):**
 
 - Zählung `projects.planer_revision`: +1 bei jeder Änderung an Projekt, Milestone, ToDo, Task (Felder, Status, Reihenfolge, Zuweisung, Labels, Papierkorb, Wiederherstellen). Kommentare zählen nicht. Mehrere Änderungen in einer Mutation oder einem Import ergeben +1, nicht mehrere.
 
@@ -149,7 +149,7 @@ Folge für Spur A: `spec/format-v2.md` §5.2 und die Helfer (P4) anpassen, Tests
 - Elemente ohne `file_id` (in der App angelegt) bekommen beim Export die nächste freie Nummer je Präfix, und der Export speichert sie sofort in `file_id`. Damit bleibt die ID über alle weiteren Exporte stabil.
 - „Nächste freie Nummer“ zählt über alle je vergebenen Nummern, auch gelöschte (im Papierkorb oder endgültig gelöscht). Dafür je Projekt ein Zähler `projects.planer_next_ids` (JSON mit `m`, `t`, `k`), damit eine Nummer nie wiederverwendet wird (`spec/format-v2.md` §5.2).
 - Die Vergabe beim Export erhöht `planer_revision` nicht (nur Metadaten).
-- Umsetzung: sicherer Schritt S3d in `docs/spur-b-sichere-schritte.md`.
+- Umsetzung: sicherer Schritt S3d in `docs/umsetzung.md`.
 
 ### 2.4 Folge für Spur A
 
@@ -266,7 +266,7 @@ Sprache der Ansicht und Legende mit Übersetzungen: §5.3.
 - Beispiel `fixtures/beispiel-planer.planer.json` und `docs/beispiel-planer.md` mit Legende nachführen.
 - Version 2.0.0 (zusammen mit A-S1).
 
-**Spur B (`mollo-planer`):** Umbau Label-Sets → Vorlagen und Projekt-Labels, neue Seite `/templates`, Projekt aus Vorlage, „Als Vorlage speichern“, Upload. Wird nach der Klärung von 3.6 als sicherer Schritt S7 in `docs/spur-b-sichere-schritte.md` aufgenommen. **Bis dahin den Label-Code nicht umbauen.**
+**Spur B (`mollo-planer`):** Umbau Label-Sets → Vorlagen und Projekt-Labels, neue Seite `/templates`, Projekt aus Vorlage, „Als Vorlage speichern“, Upload. Wird nach der Klärung von 3.6 als sicherer Schritt S7 in `docs/umsetzung.md` aufgenommen. **Bis dahin den Label-Code nicht umbauen.**
 
 ### 3.6 Entscheidungen zum Umfang (Oliver, 2026-11-13)
 
@@ -309,7 +309,7 @@ Grund: Ein Format, ein Schema, ein Importer ohne Sonderfall (Grundregel „eine 
 - Fixtures, Golden Files, `fixtures/beispiel-planer.planer.json` und `mollo-planer/docs/beispiel-planer.md` nachführen (`backend` als eigenes Label in der Beispieldatei definieren).
 - Zusammen mit A-S1 als Version 2.0.0.
 
-**Spur B (`mollo-planer`), sicherer Schritt S7** in `docs/spur-b-sichere-schritte.md`.
+**Spur B (`mollo-planer`), sicherer Schritt S7** in `docs/umsetzung.md`.
 
 ---
 
@@ -466,7 +466,7 @@ Diese Fälle sind in der Datei nach dem Validator **Fehler** (Whitelist). Sie ko
 
 - **Assistent:** Die Wiederholung bei unerlaubtem Markdown (Konzept §6.4) entfällt. Der Konverter macht Klartext daraus, die Vorschau zeigt die Warnung. Einfacher und ohne zweiten Aufruf an Claude.
 - **Datei:** unverändert streng. `validate` meldet Konstrukte aus 9.6 als Fehler, Schreibweisen aus 9.5 als Hinweis.
-- **Neuer Schritt S3e** in `docs/spur-b-sichere-schritte.md`: Konverter mit gemeinsamen Testfällen. Unabhängig von Export und Import, sofort möglich.
+- **Neuer Schritt S3e** in `docs/umsetzung.md`: Konverter mit gemeinsamen Testfällen. Unabhängig von Export und Import, sofort möglich.
 - **`tools/planer`:** kanonische Markdown-Form (9.3) in Spezifikation und `json`/`validate` (Hinweis bei Abweichung), Testfälle in `spec/fixtures/richtext/`. Als Teil von T5 oder eigener kleiner Schritt T6.
 
 ## 8. Task-Status `idea` und `planned` (entschieden 2026-11-13)
@@ -668,13 +668,13 @@ Wenn `planer/2` stabil ist (Import, Export, Vorlagen, Assistent laufen, Roundtri
 1. **V2:** Werkzeuge und Format ziehen nach `mollo-planer`. Auslagerung als `mollo-planer-tools`, wenn `planer/2` stabil ist (4.5).
 2. **Keine Altlasten, keine Abhängigkeiten:** Niemand nutzt die v1-Versionsseite, `app_versions` oder die Vue-Vorlage. Sie werden **nicht** übernommen. `mollo-version` wird nach dem Umzug archiviert (README-Hinweis, keine weiteren Commits). Übernommen werden nur der v1-Parser und `convert v1-zu-v2`, damit vorhandene `version-*.md` (z. B. `version-club-db.md` im Club-DB-Repository) einmalig umgewandelt werden können.
 3. **Ordner und Namen** wie in 4.4: `spec/`, `tools/planer/` (mit `core/` und `cli/`), `backend/app/Planer/`, Befehl `mollo-planer`.
-4. **Umzug sofort.** Kein Agent arbeitet gerade im Code. Es gibt nur noch **eine Spur** in `mollo-planer`. Die Arbeitspakete A-S1 bis A-S4 heißen dort T1 bis T4 (`docs/spur-b-sichere-schritte.md`).
+4. **Umzug sofort.** Kein Agent arbeitet gerade im Code. Es gibt nur noch **eine Spur** in `mollo-planer`. Die Arbeitspakete A-S1 bis A-S4 heißen dort T1 bis T4 (`docs/umsetzung.md`).
 
 ---
 
 ## 10. Webhook-Details und Neuladen (entschieden 2026-11-13)
 
-**Webhook (W1 in `docs/spur-b-sichere-schritte.md`):**
+**Webhook (W1 in `docs/umsetzung.md`):**
 - Einrichten mit Recht `project.update`.
 - Geheimnis verschlüsselt in der Datenbank, nach dem Speichern nie wieder angezeigt, nur ersetzbar. Signatur HMAC-SHA256.
 - Bei Fehlern drei weitere Versuche mit wachsendem Abstand, danach Hinweis in den Projekteinstellungen mit Datum, keine Mail.
@@ -693,4 +693,4 @@ Wenn `planer/2` stabil ist (Import, Export, Vorlagen, Assistent laufen, Roundtri
 - Im Fließtext und in der Oberfläche: „Planer v2“.
 - Gründe: `/` sieht aus wie ein Pfad oder MIME-Typ, geht nicht in Dateinamen (das Schema hieß deshalb uneinheitlich `planer-2.schema.json`) und muss in Shell und URN/URL teils maskiert werden. `planer-v2` passt zu `format-v2.md` und braucht keine Sonderzeichen.
 - Die Dateiendung `<projekt>.planer.json` bleibt.
-- Umsetzung: Schritt T0 in `docs/spur-b-sichere-schritte.md`. Ältere Erwähnungen von `planer/2` in den Dokumenten ersetzt T0 mit.
+- Umsetzung: Schritt T0 in `docs/umsetzung.md`. Ältere Erwähnungen von `planer/2` in den Dokumenten ersetzt T0 mit.

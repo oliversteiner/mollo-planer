@@ -1,5 +1,7 @@
 # Connector ausbauen: Status, Ergänzen und Reihenfolge
 
+> **Hinweis (2026-11-13, D1):** Historisch: umgesetzt (`9d11daa`). Der Connector wird mit I3 auf `export_plan`/`import_plan` umgebaut (`planer-abgleich.md` §7 V2, `umsetzung.md` I3).
+
 Ziel: Claude soll einen bestehenden Plan vollständig pflegen können. Das heißt: erledigte Punkte als erledigt anlegen, fehlende Punkte in bestehende Milestones und Todos einfügen, neue Versionen an der richtigen Stelle einordnen und keine Duplikate erzeugen.
 
 Auslöser ist die Pflege von FCAarau DB (Projekt-ID 2) aus `docs/version-club-db.md` im Club-DB-Repo. Dort stehen die Versionen als Milestones, die Abschnitte als Todos und die Punkte als Aufgaben.

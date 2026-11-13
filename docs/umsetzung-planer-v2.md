@@ -1,9 +1,11 @@
 # Umsetzungsanleitung: Planer-Datei `planer-v2`
 
+> **Hinweis (2026-11-13, D1):** Historisch. Ersetzt durch `umsetzung.md` (ein Repository, eine Spur, Meilensteine).
+
 Stand: 2026-11-12. Für die Umsetzungssitzung(en), die nach dieser Planung arbeiten.
 Grundlage: `docs/planer-datei-ssot.md` (Entscheidungen §2, Format §4, Grammatik §4.5, Phasen §7), `docs/planer-vs-mollo-version.md` (§7), `docs/schema-review.md` (A1–A6, Reihenfolge), `docs/refactoring-vor-umsetzung.md` (Offene Schritte), `docs/beispiel-planer.md` (Testfall).
 
-> **Hinweis (2026-11-13):** Format und Werkzeuge ziehen von `mollo-version` nach `mollo-planer` (`spec/`, `tools/planer/`, Befehl `mollo-planer`). Es gibt nur noch eine Spur. Maßgeblich sind `docs/planer-abgleich.md` und `docs/spur-b-sichere-schritte.md`. Angaben zu „Spur A“ und zum Repository `mollo-version` in diesem Dokument gelten sinngemäß für `tools/planer/`.
+> **Hinweis (2026-11-13):** Format und Werkzeuge ziehen von `mollo-version` nach `mollo-planer` (`spec/`, `tools/planer/`, Befehl `mollo-planer`). Es gibt nur noch eine Spur. Maßgeblich sind `docs/planer-abgleich.md` und `docs/umsetzung.md`. Angaben zu „Spur A“ und zum Repository `mollo-version` in diesem Dokument gelten sinngemäß für `tools/planer/`.
 
 ---
 

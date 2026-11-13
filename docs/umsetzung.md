@@ -1,4 +1,4 @@
-# Umsetzung planer/2 in mollo-planer: sichere Arbeitsschritte
+# Umsetzung Planer v2 in mollo-planer: Arbeitsschritte und Meilensteine
 
 Stand: 2026-11-13 (U0, T1, T4, S3b, S3c, S3d, S7 ergänzt). Geprüft: `mollo-planer` bis `a98662d`, `mollo-version` 1.0.0 bis `c169118`.
 Rolle: Auftrag für die Umsetzungssitzung in `mollo-planer`. Ergänzt `docs/umsetzung-planer-v2.md` (Grundregeln §0, Checkliste §4 und Stopp-Punkte §5 gelten).
@@ -8,7 +8,37 @@ Diese Schritte hängen an keiner offenen Entscheidung. Alles, was noch offen ist
 
 **Seit 2026-11-13 gibt es nur noch eine Spur.** Format und Werkzeuge aus `mollo-version` ziehen nach `mollo-planer` (`docs/planer-abgleich.md` §4). Wo ältere Dokumente „Spur A“ oder `mollo-version` nennen, gilt jetzt `tools/planer/` bzw. `spec/` in diesem Repository.
 
-**Stand:** S1 erledigt (`d368475`, `f03d853`). U0 erledigt (`c2b1577`). T1 erledigt (`072fcbb`). T4 erledigt (einschließlich Vorlagen: `template`, `validate --template`, `spec/templates/`, Regeln §3.8). S2 erledigt (Inline-Code in Rich Text). S3: A1 (`d53db03`), A2 (`a99cc89`), A3 Teil 1 Reihenfolge der ToDos erledigt (`aa4b336`, `moveTodo`, Zeitachse). A3 Teil 2 erledigt: `Task.position` heißt `boardPosition` (Spalte `board_position`). A5-Spalten erledigt (`archived_at`, `deleted_at`, `deleted_by`, `deletion_id`, ohne Logik). Offen in S3: A6, Task-Status idea und planned. T0 erledigt (`19fb404`, `planer-v2`). T5 erledigt: IDs `m-<Zahl>` bzw. `m-new-<Zahl>`, kein `appId` mehr (nur Werkzeug und Format). T6 erledigt: kanonisches Markdown in `tools/planer` (`core/richtext.mjs`, Fehler nach §9.6, Hinweise nach §9.5, Fixtures `spec/fixtures/richtext/`, Spezifikation Abschnitt 6.1). Die PHP-Whitelist (`RichTextDocument.php`) ist noch nicht gegen den Konverter geprüft, das folgt mit S3e. R1 Stufe 1 erledigt: ein Dienst `App\Support\Rights` ersetzt `ProjectPermissions` und `SystemPermissions`, die Standardmatrix steht in `config/permissions.php` (verhaltensgleich, 588 Tests grün). R1 Stufe 2 erledigt: Tabellen `roles`, `functions`, `function_rights`, `role_functions` (Migration `2026_11_13_160000`), Standardzeilen aus `config/permissions.php` über `App\Support\RightsDefaults`, `Rights` liest die Tabellen (einmal je Anfrage geladen), Obergrenze der Systemrolle als `project_cap` (Lesend = keine Projektrechte, ohne Sonderregel). Die Spalten `users.role` und `project_user.role` bleiben vorerst Schlüssel-Texte (kein `role_id`). R1 Stufe 3a erledigt: Rechte `task.updateOwn`, `task.assignSelf`, `owner.manage`, Projektrolle Gast (ohne Rechte), Mitglieder dürfen Aufgaben anlegen, eigene ändern und sich selbst zuweisen (`Rights::mayAssignTask`), Befehl `permissions:sync-defaults`. Offen in R1 (Stufe 3b): Enum `Right` statt `ProjectAbility`/`SystemAbility`, `role_id`-Spalten, die übrigen Rechte aus §4 mit ihren Funktionen (`project.archive`, `trash.*`, `planer.*`, `aiContext.update`, `assistant.use`, `ideas.*`, `templates.*`, `roles.manage`, `settings.manage`, `system.view`, `database.view`), Grundregeln §7 mit Tests, `job_function` → `activity`, Seite `/admin/roles`.
+**Stand:** S1 erledigt (`d368475`, `f03d853`). U0 erledigt (`c2b1577`). T1 erledigt (`072fcbb`). T4 erledigt (einschließlich Vorlagen: `template`, `validate --template`, `spec/templates/`, Regeln §3.8). S2 erledigt (Inline-Code in Rich Text). S3: A1 (`d53db03`), A2 (`a99cc89`), A3 Teil 1 Reihenfolge der ToDos erledigt (`aa4b336`, `moveTodo`, Zeitachse). A3 Teil 2 erledigt: `Task.position` heißt `boardPosition` (Spalte `board_position`). A5-Spalten erledigt (`archived_at`, `deleted_at`, `deleted_by`, `deletion_id`, ohne Logik). A6 erledigt (`2d04b51`). Offen in S3: Task-Status idea und planned. T0 erledigt (`19fb404`, `planer-v2`). T5 erledigt: IDs `m-<Zahl>` bzw. `m-new-<Zahl>`, kein `appId` mehr (nur Werkzeug und Format). T6 erledigt: kanonisches Markdown in `tools/planer` (`core/richtext.mjs`, Fehler nach §9.6, Hinweise nach §9.5, Fixtures `spec/fixtures/richtext/`, Spezifikation Abschnitt 6.1). Die PHP-Whitelist (`RichTextDocument.php`) ist noch nicht gegen den Konverter geprüft, das folgt mit S3e. R1 Stufe 1 erledigt: ein Dienst `App\Support\Rights` ersetzt `ProjectPermissions` und `SystemPermissions`, die Standardmatrix steht in `config/permissions.php` (verhaltensgleich, 588 Tests grün). R1 Stufe 2 erledigt: Tabellen `roles`, `functions`, `function_rights`, `role_functions` (Migration `2026_11_13_160000`), Standardzeilen aus `config/permissions.php` über `App\Support\RightsDefaults`, `Rights` liest die Tabellen (einmal je Anfrage geladen), Obergrenze der Systemrolle als `project_cap` (Lesend = keine Projektrechte, ohne Sonderregel). Die Spalten `users.role` und `project_user.role` bleiben vorerst Schlüssel-Texte (kein `role_id`). R1 Stufe 3a erledigt: Rechte `task.updateOwn`, `task.assignSelf`, `owner.manage`, Projektrolle Gast (ohne Rechte), Mitglieder dürfen Aufgaben anlegen, eigene ändern und sich selbst zuweisen (`Rights::mayAssignTask`), Befehl `permissions:sync-defaults`. Offen in R1 (Stufe 3b): Enum `Right` statt `ProjectAbility`/`SystemAbility`, `role_id`-Spalten, die übrigen Rechte aus §4 mit ihren Funktionen (`project.archive`, `trash.*`, `planer.*`, `aiContext.update`, `assistant.use`, `ideas.*`, `templates.*`, `roles.manage`, `settings.manage`, `system.view`, `database.view`), Grundregeln §7 mit Tests, `job_function` → `activity`, Seite `/admin/roles`.
+
+
+**D1 erledigt (2026-11-13, Planung):** Dokumente bereinigt, Einstiegsdokument `docs/README.md`, dieses Dokument von `spur-b-sichere-schritte.md` in `umsetzung.md` umbenannt, historische Dokumente markiert. Offen aus D1 für die Umsetzung: Kopfkommentar in `backend/graphql/schema.graphql` (in R1 Stufe 3b).
+
+## Meilensteine (entschieden 2026-11-13, `docs/neubewertung-2026-11-13.md` §5)
+
+Nach jedem Meilenstein: alle Prüfungen grün, `migrate:fresh --seed --seeder=DemoSeeder`, Browser-Prüfung (hell/dunkel, DE/EN, Tastatur), **Abnahme durch Oliver**, erst dann der nächste Meilenstein.
+
+| Meilenstein | Schritte | Ergebnis |
+|---|---|---|
+| **M1 Fundament** | S3 Rest (Status `idea`/`planned`, Vergleichstest App ↔ Schema), R1 Stufe 3b, S3b, S3c, S3f | Rechte einstellbar, Release/Commit, neue Status, gezieltes Neuladen |
+| **M2 Sicher löschen** | S5, S6 | Archiv, Papierkorb mit Rückgängig |
+| **M3 Vorlagen und Labels** | S3e, S7 | Projekte aus Vorlagen, Labels je Projekt mit Sprachen |
+| **M4 Datei-Abgleich** | I1, I2, I3, I4, I5 | Export/Import, Vorschau, Downloads, neuer Connector |
+| **M5 Synchronisation** | T2, T3, W1 | `pull`/`push`, GitHub Action, Webhook |
+| **M6 Assistent und Ideen** | B5a, B6 | Assistent für alle, Ideen-Seite, KI-Kontext |
+
+**Abhängigkeiten, die nicht verloren gehen dürfen:** I1 braucht S7 (Labels je Projekt mit `names`) und S3e (Konverter). I2 im Modus `full` braucht S5 (Papierkorb). B5a braucht I2, I3, I5.
+
+## Ergänzungen aus der Neubewertung (verbindlich)
+
+- **S3 Rest:** zusätzlich ein Test, der die Werte der App mit dem Schema vergleicht: `TaskStatus`, Rollenschlüssel der Projektrollen, `LabelColor`, Locale, `release.status` (sobald S3b steht). Er darf vorübergehend für Teile, die erst S7 bringt (Labels je Projekt), als bekannte Lücke markiert sein, aber nicht fehlen.
+- **R1 Stufe 3b:**
+  - Funktionsschlüssel in `config/permissions.php` **englisch** (z. B. `create-projects`, `plan`, `contribute`, `manage-tasks`, `manage-project`, `own-project`), Namen bleiben DE/EN.
+  - Standardbelegung genau nach `docs/rollen-funktionen-rechte.md` §5, Matrix-Test darauf ausrichten.
+  - **Grundregeln §7 auf Rechte statt Rollennamen:** `Rights::canChangeMembership`, letzter „Owner“ in `ProjectMembership` (= letzte Person mit `project.delete`), Selbstschutz in `UserPolicy` (`users.manage`/`roles.manage` statt `UserRole::ADMIN`), Ersteller eines Projekts bekommt die **in den Einstellungen festgelegte Ersteller-Rolle** (Standard: Owner). Je Regel ein Test mit einer eigenen Rolle, die die gleichen Rechte hat.
+  - **Cache:** `Rights::clearCache()` vor jedem Queue-Job (Listener auf `JobProcessing`) und nach jeder Änderung an Rollen oder Funktionen. Test.
+  - Kopfkommentar in `backend/graphql/schema.graphql` auf einen Verweis zu `docs/rollen-funktionen-rechte.md` und `permissionMatrix` kürzen.
+- **I1:** `PlanSchema` liest die Grenzwerte aus `spec/planer-v2.schema.json`; Test „PlanSchema = Schema“ statt „PlanSchema = plan.graphql“. Namensraum einheitlich **`App\Planer`** (heute `App\Plan` verschieben).
+- **I4:** auch `docs/entwicklung.md` (heute Seed für `DevelopmentHistorySeeder` im alten v1-Format) nach Planer v2 umstellen: `docs/entwicklung.planer.json` mit `mollo-planer convert v1-zu-v2`, Seeder importiert die Datei über den Importer. Die Markdown-Ansicht entsteht mit `render`.
 
 ---
 
@@ -22,7 +52,7 @@ Details: `docs/planer-abgleich.md` §4.4 und §4.7. Quelle: `~/www/mollo-version
   - `test/` → `tools/planer/test/`, `fixtures/` → `spec/fixtures/`, `skills/planer/` → `tools/planer/skills/planer/`, `scripts/messung-helfer.mjs` → `tools/planer/scripts/`.
 - **Nicht übernehmen:** `Backend/` (Laravel-Paket, `app_versions`), `frontend/`, `demo/`, `templates/vue-webawesome/`, Teile von `src/` und `test/`, die nur der v1-Versionsseite dienen (Auswertung für `app_versions`, Vorlagen-Test der Vue-Seite). Der v1-**Parser** und `convert v1-zu-v2` bleiben.
 - Befehl umbenennen: `mollo-planer` (`tools/planer/cli/bin/mollo-planer.mjs`), `package.json` in `tools/planer/` mit `"bin"` und `"test": "node --test test/*.test.mjs"`, keine Abhängigkeiten, Node ≥ 20.
-- Texte und Kommentare: `mollo-version` → `mollo-planer` (Werkzeug), Format bleibt `planer/2`.
+- Texte und Kommentare: `mollo-version` → `mollo-planer` (Werkzeug), Format bleibt `planer-v2`.
 - `deploy/deploy.sh`: `tools/` und `spec/fixtures/` nicht auf den Server, `spec/planer-2.schema.json` schon (die App liest es).
 - CI bzw. `composer test`-Umfeld: `npm test` in `tools/planer/` als eigener Schritt in den Prüfungen vor jedem Commit (in `CLAUDE.md`/`AGENTS.md` ergänzen).
 - Commit: `Chore: move planer/2 format and tools from mollo-version (c169118)`. Danach alle Tests grün (`tools/planer`: `npm test`).
@@ -47,7 +77,7 @@ Details: `docs/planer-abgleich.md` §11. Reines Ersetzen, keine Logikänderung, 
 
 `docs/planer-abgleich.md` §3.3, §3.6, §3.7. In `spec/` und `tools/planer/`: `project.labels` mit mehrsprachigen `names` (§5.2), Task-Feld `labels` (statt `labelNames`), Verweisprüfung, Legende in `render`/`md2json`, `render --lang de|en` und `--legend-translations` (§5.3), `validate --template`, Befehl `template`, `convert` erzeugt Labels der Vorlage „Softwareentwicklung“ in `de` und `en`. Fixtures und `docs/beispiel-planer.md` nachführen.
 
-**T4 Rest (nach T5):** Eine Vorlage ist ein gültiges `planer/2`-Dokument mit festen Werten nach `docs/planer-abgleich.md` §3.8 (`revision: 0`, nur `-new-`-IDs, `members: []`, keine Zuweisungen, Fälligkeiten, Commits, `release.status` nur `planned`, Task-Status `planned`, mindestens ein Label). `validate --template` = normale Prüfung plus diese Regeln. `template <datei>` setzt genau diese Werte. Kein eigenes Vorlagen-Format. Die Dateien in `spec/templates/` müssen `validate --template` bestehen.
+**T4 Rest (nach T5):** Eine Vorlage ist ein gültiges `planer-v2`-Dokument mit festen Werten nach `docs/planer-abgleich.md` §3.8 (`revision: 0`, nur `-new-`-IDs, `members: []`, keine Zuweisungen, Fälligkeiten, Commits, `release.status` nur `planned`, Task-Status `planned`, mindestens ein Label). `validate --template` = normale Prüfung plus diese Regeln. `template <datei>` setzt genau diese Werte. Kein eigenes Vorlagen-Format. Die Dateien in `spec/templates/` müssen `validate --template` bestehen.
 
 **Zusätzlich in T4:** Task-Status `idea` und `planned` (`docs/planer-abgleich.md` §8), Markierungen `[i]` (idea) und `[p]` (planned).
 
@@ -159,7 +189,7 @@ Details: `docs/rollen-funktionen-rechte.md` (verbindlich). Breaking Change, `mig
 - **Neue Rechte** aus der bisherigen Planung sind darin enthalten: `task.updateOwn`, `task.assignSelf`, `project.archive`, `trash.restore`, `trash.purge`, `owner.manage`, `assistant.use`, `ideas.create`, `ideas.viewAny`, `templates.manage`, `templates.manageAny`, `planer.export`, `planer.import`, `aiContext.update`, `roles.manage`, `settings.manage`, `system.view`, `database.view`.
 - **Tätigkeit:** `job_function` → `activity` (Spalte, GraphQL, Frontend, Texte „Tätigkeit“/„Activity“).
 - **Oberfläche:** Seite `/admin/roles` (Rollen je Bereich, Funktionen, Übersicht Rolle × Recht), Rollenauswahl in Benutzerverwaltung und Mitgliederseite aus der Liste, Knöpfe nach `viewerRights`.
-- **`planer/2`:** `members[].role` ist der Schlüssel einer Projektrolle (`owner`, `manager`, `member`, `guest` oder eigene). Validator prüft nur die Form (`spec/`, `tools/planer`), der Import prüft die Existenz.
+- **`planer-v2`:** `members[].role` ist der Schlüssel einer Projektrolle (`owner`, `manager`, `member`, `guest` oder eigene). Validator prüft nur die Form (`spec/`, `tools/planer`), der Import prüft die Existenz.
 - `docs/rollen-plan.md` als ersetzt markieren (Verweis auf `docs/rollen-funktionen-rechte.md`).
 - `OutsiderAccessTest`, `MutationTest`, `PolicyTest` auf Rechte statt Rollen umstellen.
 
@@ -188,7 +218,7 @@ Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set
 **Datenmodell:**
 - `labels.project_id` statt `labels.label_set_id`: Jedes Projekt hat eigene Labels (Schlüssel `key`, `names` als JSON Sprache → Name, Kategorie, Farbe, Position), Schlüssel und Name je Sprache eindeutig je Projekt, höchstens 30. Name in der Sprache des Projekts Pflicht (`docs/planer-abgleich.md` §5.2).
 - `projects.label_set_id` entfällt. Optional `projects.template_id` (nullable, `nullOnDelete`) als Herkunft.
-- Tabelle `templates`: `key` (nur mitgelieferte), `name`, `description`, `content` (JSON, `planer/2`-Vorlage), `created_by`, Zeitstempel.
+- Tabelle `templates`: `key` (nur mitgelieferte), `name`, `description`, `content` (JSON, `planer-v2`-Vorlage), `created_by`, Zeitstempel.
 - **Mitgelieferte Vorlagen als Dateien** (V3): `spec/templates/software-development.planer.json`, `event.planer.json`, `podcast.planer.json` mit `names` in `de` und `en`. Ein Befehl `php artisan planer:sync-templates` (auch im Seeder und nach dem Deployment) schreibt sie in `templates`, unveränderlich. `BuiltinLabelSets.php` und die Label-Übersetzungen in `lang/` entfallen. Die Dateien liegen in `spec/templates/` und gehen mit aufs Deployment.
 - `label_sets` entfällt.
 
@@ -212,7 +242,7 @@ Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set
 ## I1. Export (V2, nach S7)
 
 Details: `docs/planer-abgleich.md` §1a, §2, §5, §7 V1 und V2, §9.
-- `App\Planer\Export`: Projekt → kanonisches `planer/2` (IDs `m-<id>` …, Werte nach §5.1, Labels mit `names`, Beschreibungen über `TiptapToMarkdown`, Reihenfolge, Release, Commit, User-Story, `revision`).
+- `App\Planer\Export`: Projekt → kanonisches `planer-v2` (IDs `m-<id>` …, Werte nach §5.1, Labels mit `names`, Beschreibungen über `TiptapToMarkdown`, Reihenfolge, Release, Commit, User-Story, `revision`).
 - PHP: kanonisches JSON wie `tools/planer` (Test: byte-gleich für alle gültigen Fixtures).
 - PHP-Prüfung: Schema (`opis/json-schema` gegen `spec/planer-2.schema.json`) und Semantik, gegen dieselben Fixtures mit erwarteten Fehlern wie `tools/planer`.
 - MCP `export_plan(project_id)`.
@@ -239,7 +269,7 @@ Details: `docs/planer-abgleich.md` §1a, §2, §5, §7 V1 und V2, §9.
 
 ## I5. Baum-Ansicht, Downloads, Vorlagen aus Dateien (V3, V4, §5.3)
 
-- Baustein `PlanerTree` (V4): zeigt ein `planer/2`-Dokument, optional mit Markierungen aus dem Trockenlauf. Typen aus `spec/planer-2.schema.json`.
+- Baustein `PlanerTree` (V4): zeigt ein `planer-v2`-Dokument, optional mit Markierungen aus dem Trockenlauf. Typen aus `spec/planer-2.schema.json`.
 - Projekteinstellungen: Download „Als planer.json“ und „Als Markdown“ (Sprache wählbar, Schalter „Übersetzungen in der Legende“, über `tools/planer/core` im Frontend).
 - Datei-Import mit Vorschau (`dry_run` in `PlanerTree`), dann Eintragen.
 - Vorlagen: „Als Vorlage speichern“ (Export + `template`), Upload einer `.planer.json` als Vorlage, Download einer Vorlage, Ansicht des Gerüsts mit `PlanerTree`.
@@ -252,7 +282,7 @@ Nach T3. Details: `docs/planer-abgleich.md` §1a und §10.
 - Fehler: drei weitere Versuche mit wachsendem Abstand, danach Hinweis „Letzte Benachrichtigung fehlgeschlagen“ mit Datum in den Projekteinstellungen. Keine Mail.
 - Tests mit gefälschtem HTTP-Client.
 
-## B5a. KI-Assistent auf `planer/2` (entschieden 2026-11-13)
+## B5a. KI-Assistent auf `planer-v2` (entschieden 2026-11-13)
 
 Details: `docs/assistent-ideen-konzept.md` (Fassung 3, verbindlich). Nach I2, I3 und I5 (`PlanerTree`).
 - GraphQL `PlanerDocument`, `PlanDraft`, `PlanPreview`, `draftPlan`, `importPlan` (§9.1). Entfernen: `plan.graphql`-Typen, `draftProjectPlan`, `importProjectPlan`, `ReadsProjectPlanInput`, `PlainTextDocument`, `ProjectPlanAssistant::clean()`.
@@ -265,7 +295,7 @@ Details: `docs/assistent-ideen-konzept.md` (Fassung 3, verbindlich). Nach I2, I3
 ## B6. Ideen und KI-Kontext (entschieden 2026-11-13)
 
 Details: `docs/assistent-ideen-konzept.md` §10 und §11, `docs/schema-review.md` B1 und B2.
-- Ideen: Tabelle mit `draft` (`planer/2`-Ausschnitt), Status `open`/`adopted`/`discarded`, `todos.idea_id`, Papierkorb, Seite `/ideas`, „Einplanen“ über den Assistenten oder `importPlan`. Rechte `ideas.create`, `ideas.viewAny`.
+- Ideen: Tabelle mit `draft` (`planer-v2`-Ausschnitt), Status `open`/`adopted`/`discarded`, `todos.idea_id`, Papierkorb, Seite `/ideas`, „Einplanen“ über den Assistenten oder `importPlan`. Rechte `ideas.create`, `ideas.viewAny`.
 - KI-Kontext: Tabelle `project_ai_contexts`, Upload `.txt`/`.md`, 20 000 Zeichen, Freigabe für externe Tools, Recht `aiContext.update`. Einbindung in den Prompt (B5a).
 - MCP `create_idea`, `list_ideas`, `get_project_ai_context`.
 

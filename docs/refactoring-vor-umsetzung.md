@@ -1,5 +1,7 @@
 # Refactoring vor der Umsetzung des Schema-Reviews
 
+> **Hinweis (2026-11-13, D1):** Historisch: R1 bis R4 und R7 erledigt, R2 Rest geht in I1/I2 auf. Aktueller Stand in `umsetzung.md`.
+
 Stand: 2026-11-12, geprüft bis Commit `347a4d5`. Bezieht sich auf `docs/schema-review.md` (Abschnitte A1–A5, B1–B3, C1–C3) und `docs/assistent-ideen-konzept.md`.
 Frage: Welche Umbauten im heutigen Code machen die geplanten Änderungen einfacher und sicherer?
 Rollen: Dieses Dokument ist Analyse und Plan. Die Umsetzung erfolgt in einer separaten Sitzung.

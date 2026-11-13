@@ -1,6 +1,6 @@
 # Rollen, Funktionen, Rechte
 
-Stand: 2026-11-13, geprüft bis `7348f28`. Rolle: Analyse und Plan. Status: **entschieden am 2026-11-13** (§9). Umsetzung als Schritt R1 in `docs/spur-b-sichere-schritte.md`.
+Stand: 2026-11-13, geprüft bis `7348f28`. Rolle: Analyse und Plan. Status: **entschieden am 2026-11-13** (§9). Umsetzung als Schritt R1 in `docs/umsetzung.md`.
 Ersetzt `docs/rollen-plan.md` und die festen Rechte-Tabellen `App\Support\ProjectPermissions` und `App\Support\SystemPermissions`.
 
 **Auftrag (Oliver, 2026-11-13):** Rechte nicht mehr in der Logik festlegen. In den Einstellungen werden Rollen definiert, Rollen haben Funktionen, aus den Funktionen entstehen die Rechte.
@@ -150,6 +150,6 @@ Diese Regeln schützen vor Aussperren und vor Missbrauch. Sie sind keine Rechte,
 
 ## 10. Folgen für die laufende Umsetzung
 
-- **S4 entfällt.** Ersetzt durch Schritt **R1** in `docs/spur-b-sichere-schritte.md`, direkt nach S3. Die neuen Rechte (`task.updateOwn`, `task.assignSelf`, `project.archive`, …) entstehen dort als Rechte (§4) mit Standardbelegung (§5).
+- **S4 entfällt.** Ersetzt durch Schritt **R1** in `docs/umsetzung.md`, direkt nach S3. Die neuen Rechte (`task.updateOwn`, `task.assignSelf`, `project.archive`, …) entstehen dort als Rechte (§4) mit Standardbelegung (§5).
 - Alle späteren Schritte (S3b, S3c, S3e, S5 bis S7, I1 bis I5, B5a, B6) prüfen nur Rechte über `Rights::allows` und die Policies. Welche Rolle ein Recht hat, legen sie nicht fest.
 - Die Rechte-Angaben in `docs/schema-review.md`, `docs/planer-abgleich.md` und `docs/assistent-ideen-konzept.md` („Owner und Manager dürfen …“) gelten als **Standardbelegung**, nicht als feste Logik.

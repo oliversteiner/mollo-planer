@@ -4,14 +4,14 @@ Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu e
 Produktiv-Domain später: `planer.mollo.ch` (Frontend und API als getrennte Subdomains).
 
 ## Bevor du etwas baust, lies
-- `docs/backend-plan.md`: bestätigte Entscheidungen und die **Reihenfolge beim Bauen**. Gilt vor allem anderen.
-- `docs/graphql-kontext.md`: alle Entscheidungen im Detail (Rechte, Status-Automatik, Mails, RichText, Icons, Kommentare).
+- `docs/README.md`: Einstieg, **Vorrang der Dokumente** und welche historisch sind. Zuerst lesen.
+- `docs/umsetzung.md`: Arbeitsschritte, Reihenfolge, Meilensteine, Stand. **Was dort steht, wird gebaut.**
+- `docs/planer-abgleich.md`, `docs/rollen-funktionen-rechte.md`, `docs/assistent-ideen-konzept.md`: Entscheidungen (Planer v2, Rechte, Assistent).
+- `spec/format-v2.md`, `spec/planer-v2.schema.json`: das Format Planer v2.
 - `backend/graphql/schema.graphql`: das GraphQL-Schema (Lighthouse). Ist der Vertrag zwischen Backend und Frontend.
-- `docs/frontend-plan.md`: Entscheidungen und Bau-Reihenfolge für das Frontend.
-- `docs/labels-plan.md`: Labels für Tasks (Label-Sets): Entscheidungen, mitgelieferte Sets, Stand.
-- `docs/frontend-webawesome-plan.md`: Umstellung der Oberfläche auf Web Awesome Pro (Bausteine, Abweichungen, Stand). Für alles an der Oberfläche gilt dieses Dokument vor `frontend-plan.md`.
+- `docs/frontend-webawesome-plan.md`: Oberfläche (Web Awesome Pro). Für alles an der Oberfläche gilt es vor `frontend-plan.md`.
 
-Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code vom Schema ab, nicht stillschweigend das Schema ändern, sondern nachfragen.
+Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuerst `umsetzung.md`). `backend-plan.md` und `graphql-kontext.md` sind historisch. Weicht der Code vom Schema oder von den Dokumenten ab, nicht stillschweigend ändern, sondern nachfragen.
 
 ## Stack
 - **Backend:** Laravel 13 headless in `backend/`, Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
@@ -46,7 +46,7 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 ## Laravel Boost
 - Boost liefert `backend/CLAUDE.md` (allgemeine Laravel-Regeln), Skills in `backend/.claude/skills/` und den MCP-Server `laravel-boost` (`.mcp.json` im Projektordner: Doku-Suche `search-docs`, Datenbankschema, Logs).
 - `backend/CLAUDE.md` und die Skills werden von Boost erzeugt, **nicht von Hand ändern**. Auswahl in `backend/boost.json`, Ausschlüsse in `backend/config/boost.php` (Laravel Cloud und Tailwind sind ausgeschlossen).
-- Bei Widersprüchen gilt diese Datei und `docs/backend-plan.md` vor den Boost-Regeln. Insbesondere: API nur über GraphQL (Lighthouse), keine Eloquent API Resources oder REST-Versionierung. Den Abschnitt „Stand“ und `docs/backend-plan.md` nachführen, auch wenn Boost sagt, Dokumentation nur auf Anfrage.
+- Bei Widersprüchen gilt diese Datei und `docs/README.md` (mit `docs/umsetzung.md`) vor den Boost-Regeln. Insbesondere: API nur über GraphQL (Lighthouse), keine Eloquent API Resources oder REST-Versionierung. Den Stand in `docs/umsetzung.md` nachführen, auch wenn Boost sagt, Dokumentation nur auf Anfrage.
 
 ## Regeln
 - **Code** (Klassen, Methoden, Variablen, Kommentare im Code) auf Englisch. **UI-Texte und Mails** in Deutsch und Englisch über `lang/de` und `lang/en`, nie hart codiert.

@@ -1,6 +1,6 @@
 # KI-Assistent und Ideen (Konzept, Fassung 3)
 
-Stand: 2026-11-13, geprüft bis `f0dd993`. Status: **entschieden**. Rolle: Analyse und Plan, Umsetzung in den Schritten B5a und B6 von `docs/spur-b-sichere-schritte.md`.
+Stand: 2026-11-13, geprüft bis `f0dd993`. Status: **entschieden**. Rolle: Analyse und Plan, Umsetzung in den Schritten B5a und B6 von `docs/umsetzung.md`.
 Grundlagen: `docs/planer-abgleich.md` (Format, Import/Export, Labels, Vorlagen, Werte, Status, Vereinfachungen V1 bis V5, Rich Text §9), `docs/rollen-funktionen-rechte.md` (Rechte), `docs/schema-review.md` (B1, B2).
 Ersetzt Fassung 1 und 2. Rechte-Angaben sind **Standardbelegung** (`docs/rollen-funktionen-rechte.md` §5), keine feste Logik.
 
