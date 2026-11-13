@@ -5,6 +5,8 @@ Rolle: Analyse und Plan. Es wird hier kein Code geändert.
 Abgleich mit dem Bestand: `docs/planer-vs-mollo-version.md`.
 Ersetzt den früheren Entwurf. Das eigene Werkzeug `planer-tools` entfällt, das Werkzeug ist `mollo-version`.
 
+> **Hinweis (2026-11-13):** Format und Werkzeuge ziehen von `mollo-version` nach `mollo-planer` (`spec/`, `tools/planer/`, Befehl `mollo-planer`). Es gibt nur noch eine Spur. Maßgeblich sind `docs/planer-abgleich.md` und `docs/spur-b-sichere-schritte.md`. Angaben zu „Spur A“ und zum Repository `mollo-version` in diesem Dokument gelten sinngemäß für `tools/planer/`.
+
 ---
 
 ## 1. Ziel

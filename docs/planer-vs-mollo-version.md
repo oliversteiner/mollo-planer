@@ -5,6 +5,8 @@ Rolle: Analyse und Plan. Die Umsetzung erfolgt in einer separaten Sitzung.
 Quellen: `~/www/mollo-version` (Version 0.2.0, Spezifikation `spec/format.md`), `~/www/mollo-planer` (`backend/graphql/types.graphql`, `enums.graphql`, `plan.graphql`, `docs/connector-erweiterung-plan.md`).
 Ergänzt `docs/planer-datei-ssot.md`. Dort ist Abschnitt 4 („Ort: eigenes Repository“) durch diesen Plan überholt.
 
+> **Hinweis (2026-11-13):** Format und Werkzeuge ziehen von `mollo-version` nach `mollo-planer` (`spec/`, `tools/planer/`, Befehl `mollo-planer`). Es gibt nur noch eine Spur. Maßgeblich sind `docs/planer-abgleich.md` und `docs/spur-b-sichere-schritte.md`. Angaben zu „Spur A“ und zum Repository `mollo-version` in diesem Dokument gelten sinngemäß für `tools/planer/`.
+
 ---
 
 ## 1. Befund
