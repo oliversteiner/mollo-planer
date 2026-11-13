@@ -18,22 +18,25 @@ class RightsProjectTableTest extends TestCase
     use RefreshDatabase;
 
     private const CONFIRMED_MATRIX = [
-        'project.update' => [true, true, false],
-        'project.delete' => [true, false, false],
-        'members.manage' => [true, true, false],
-        'milestone.create' => [true, true, true],
-        'milestone.update' => [true, true, true],
-        'milestone.delete' => [true, true, false],
-        'todo.create' => [true, true, true],
-        'todo.update' => [true, true, true],
-        'todo.delete' => [true, true, false],
-        'task.create' => [true, true, false],
-        'task.update' => [true, true, false],
-        'task.assign' => [true, true, false],
-        'task.move' => [true, true, true],
-        'task.delete' => [true, true, false],
-        'comment.create' => [true, true, true],
-        'comment.moderate' => [true, true, false],
+        'project.update' => [true, true, false, false],
+        'project.delete' => [true, false, false, false],
+        'members.manage' => [true, true, false, false],
+        'milestone.create' => [true, true, true, false],
+        'milestone.update' => [true, true, true, false],
+        'milestone.delete' => [true, true, false, false],
+        'todo.create' => [true, true, true, false],
+        'todo.update' => [true, true, true, false],
+        'todo.delete' => [true, true, false, false],
+        'task.create' => [true, true, true, false],
+        'task.update' => [true, true, false, false],
+        'task.assign' => [true, true, false, false],
+        'task.move' => [true, true, true, false],
+        'task.delete' => [true, true, false, false],
+        'comment.create' => [true, true, true, false],
+        'comment.moderate' => [true, true, false, false],
+        'task.updateOwn' => [true, true, true, false],
+        'task.assignSelf' => [true, true, true, false],
+        'owner.manage' => [true, false, false, false],
     ];
 
     /**
@@ -41,7 +44,7 @@ class RightsProjectTableTest extends TestCase
      */
     public static function matrix(): iterable
     {
-        $roles = [ProjectRole::OWNER, ProjectRole::MANAGER, ProjectRole::MEMBER];
+        $roles = [ProjectRole::OWNER, ProjectRole::MANAGER, ProjectRole::MEMBER, ProjectRole::GUEST];
 
         foreach (self::CONFIRMED_MATRIX as $ability => $allowed) {
             foreach ($roles as $i => $role) {
@@ -80,7 +83,10 @@ class RightsProjectTableTest extends TestCase
             ProjectAbility::MILESTONE_UPDATE,
             ProjectAbility::TODO_CREATE,
             ProjectAbility::TODO_UPDATE,
+            ProjectAbility::TASK_CREATE,
             ProjectAbility::TASK_MOVE,
+            ProjectAbility::TASK_UPDATE_OWN,
+            ProjectAbility::TASK_ASSIGN_SELF,
             ProjectAbility::COMMENT_CREATE,
         ], Rights::projectRightsOfRole(ProjectRole::MEMBER));
     }

@@ -15,7 +15,7 @@ useHead({ title: () => t('rights.title') })
 const { result, loading } = useQuery(permissionMatrixQuery, null, { fetchPolicy: 'cache-and-network' })
 
 const SYSTEM_ROLES = ['ADMIN', 'PROJEKTLEITUNG', 'KOORDINATION', 'MITGLIED', 'LESEND'] as const
-const PROJECT_ROLES = ['OWNER', 'MANAGER', 'MEMBER'] as const
+const PROJECT_ROLES = ['OWNER', 'MANAGER', 'MEMBER', 'GUEST'] as const
 
 const system = computed(() => result.value?.permissionMatrix.system ?? [])
 const project = computed(() => result.value?.permissionMatrix.project ?? [])

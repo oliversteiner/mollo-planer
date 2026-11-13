@@ -10,6 +10,8 @@ use App\Services\KanbanOrdering;
 use App\Services\ProjectMembership;
 use App\Services\TaskLabels;
 use App\Services\TaskNotifier;
+use App\Support\Rights;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -39,6 +41,10 @@ class CreateTask
             $todo = Todo::findOrFail($args['todo_id']);
             $project = $todo->owningProject();
             $assigneeId = $args['assigned_user_id'] ?? null;
+
+            if (! Rights::mayAssignTask($viewer, $project, $assigneeId, null)) {
+                throw new AuthorizationException;
+            }
 
             if ($assigneeId !== null) {
                 $this->membership->ensureAssignable($project, $assigneeId, 'input.assigneeId');

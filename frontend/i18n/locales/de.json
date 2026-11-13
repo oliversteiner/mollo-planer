@@ -190,7 +190,8 @@
   "role": {
     "OWNER": "Owner",
     "MANAGER": "Manager",
-    "MEMBER": "Mitglied"
+    "MEMBER": "Mitglied",
+    "GUEST": "Gast"
   },
   "locale": {
     "DE": "Deutsch",
@@ -1247,8 +1248,11 @@
       "TASK_ASSIGN": "Task zuweisen",
       "TASK_MOVE": "Task verschieben",
       "TASK_DELETE": "Task löschen",
+      "TASK_UPDATE_OWN": "Eigene Tasks ändern (die man selbst angelegt hat)",
+      "TASK_ASSIGN_SELF": "Sich selbst zuweisen oder die eigene Zuweisung lösen",
       "COMMENT_CREATE": "Kommentieren",
-      "COMMENT_MODERATE": "Fremde Kommentare löschen"
+      "COMMENT_MODERATE": "Fremde Kommentare löschen",
+      "OWNER_MANAGE": "Owner-Rolle vergeben oder entziehen"
     }
   }
 }

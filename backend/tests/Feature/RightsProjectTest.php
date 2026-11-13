@@ -54,7 +54,8 @@ class RightsProjectTest extends TestCase
             ->create();
 
         $this->assertTrue(Rights::projectAllows($member, $project, ProjectAbility::TASK_MOVE));
-        $this->assertFalse(Rights::projectAllows($member, $project, ProjectAbility::TASK_CREATE));
+        $this->assertTrue(Rights::projectAllows($member, $project, ProjectAbility::TASK_CREATE));
+        $this->assertFalse(Rights::projectAllows($member, $project, ProjectAbility::TASK_UPDATE));
         $this->assertTrue(Rights::projectAllows($manager, $project, ProjectAbility::TASK_CREATE));
         $this->assertFalse(Rights::projectAllows($manager, $project, ProjectAbility::PROJECT_DELETE));
         $this->assertSame(

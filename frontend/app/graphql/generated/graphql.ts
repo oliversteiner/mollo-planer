@@ -111,13 +111,16 @@ export type ProjectAbility =
   | 'MILESTONE_CREATE'
   | 'MILESTONE_DELETE'
   | 'MILESTONE_UPDATE'
+  | 'OWNER_MANAGE'
   | 'PROJECT_DELETE'
   | 'PROJECT_UPDATE'
   | 'TASK_ASSIGN'
+  | 'TASK_ASSIGN_SELF'
   | 'TASK_CREATE'
   | 'TASK_DELETE'
   | 'TASK_MOVE'
   | 'TASK_UPDATE'
+  | 'TASK_UPDATE_OWN'
   | 'TODO_CREATE'
   | 'TODO_DELETE'
   | 'TODO_UPDATE';
@@ -158,6 +161,7 @@ export type ProjectPlanTodoInput = {
 
 /** Rolle einer Person innerhalb eines Projekts */
 export type ProjectRole =
+  | 'GUEST'
   | 'MANAGER'
   | 'MEMBER'
   | 'OWNER';

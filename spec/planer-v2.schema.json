@@ -71,7 +71,8 @@
       "enum": [
         "owner",
         "manager",
-        "member"
+        "member",
+        "guest"
       ],
       "description": "Werte des GraphQL-Enums ProjectRole der App (@enum-Werte)."
     },

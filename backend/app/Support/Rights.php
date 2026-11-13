@@ -144,7 +144,8 @@ final class Rights
 
     /**
      * May the actor change a membership from $currentRole to $newRole?
-     * Null means "not a member" (add) or "remove".
+     * Null means "not a member" (add) or "remove". Touching the owner role
+     * needs owner.manage.
      */
     public static function canChangeMembership(User $actor, Project $project, ?ProjectRole $currentRole, ?ProjectRole $newRole): bool
     {
@@ -154,9 +155,28 @@ final class Rights
 
         $touchesOwner = $currentRole === ProjectRole::OWNER || $newRole === ProjectRole::OWNER;
 
-        return ! $touchesOwner
-            || self::systemAllows($actor, SystemAbility::PROJECTS_MANAGE_ANY)
-            || $project->roleOf($actor) === ProjectRole::OWNER;
+        return ! $touchesOwner || self::projectAllows($actor, $project, ProjectAbility::OWNER_MANAGE);
+    }
+
+    /**
+     * May the actor assign the task to $assigneeId? With task.assign any
+     * assignment is allowed. With only task.assignSelf the actor may assign
+     * the task to themselves, or remove the assignment if it is theirs.
+     */
+    public static function mayAssignTask(User $actor, Project $project, int|string|null $assigneeId, int|string|null $currentAssigneeId): bool
+    {
+        if (self::projectAllows($actor, $project, ProjectAbility::TASK_ASSIGN)) {
+            return true;
+        }
+
+        if (! self::projectAllows($actor, $project, ProjectAbility::TASK_ASSIGN_SELF)) {
+            return false;
+        }
+
+        $self = (string) $actor->getKey();
+
+        return (string) $assigneeId === $self
+            || ($assigneeId === null && (string) $currentAssigneeId === $self);
     }
 
     /**

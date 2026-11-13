@@ -180,8 +180,6 @@ class MutationTest extends GraphQLTestCase
         $create = 'mutation ($in: CreateTaskInput!) { createTask(input: $in) { status boardPosition assignee { name } } }';
         $input = ['todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $this->users['member']->id];
 
-        $this->assertUnauthorized($this->as('member')->gql($create, ['in' => $input]));
-
         $this->as('manager')->gql($create, ['in' => $input])
             ->assertJsonPath('data.createTask', ['status' => 'OPEN', 'boardPosition' => 1, 'assignee' => ['name' => 'David Member']]);
     }
@@ -205,7 +203,7 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.assignTask.assignee.name', 'David Member');
         $this->as('owner')->gql($assign, ['id' => $this->task->id, 'u' => null])
             ->assertJsonPath('data.assignTask.assignee', null);
-        $this->assertUnauthorized($this->as('member')->gql($assign, ['id' => $this->task->id, 'u' => $this->users['member']->id]));
+        $this->assertUnauthorized($this->as('member')->gql($assign, ['id' => $this->task->id, 'u' => $this->users['owner']->id]));
     }
 
     public function test_move_reorders_columns_and_updates_status(): void

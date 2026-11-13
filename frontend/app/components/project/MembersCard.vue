@@ -18,7 +18,7 @@ const { t } = useI18n()
 const toast = useToast()
 const { viewer } = useViewer()
 
-const roles: ProjectRole[] = ['OWNER', 'MANAGER', 'MEMBER']
+const roles: ProjectRole[] = ['OWNER', 'MANAGER', 'MEMBER', 'GUEST']
 const roleItems = computed(() => roles.map(role => ({ label: t(`role.${role}`), value: role })))
 
 const sortedMembers = computed(() => [...props.members].sort((a, b) => a.user.name.localeCompare(b.user.name)))

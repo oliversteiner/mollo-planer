@@ -17,7 +17,7 @@ describe('rights table texts', () => {
   const abilities = [...abilityNames('SystemAbility.php'), ...abilityNames('ProjectAbility.php')]
 
   it('lists the abilities of the backend enums', () => {
-    expect(abilities.length).toBe(22)
+    expect(abilities.length).toBe(25)
     expect(readdirSync(enumsDir)).toContain('ProjectAbility.php')
   })
 

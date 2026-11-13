@@ -13,4 +13,6 @@ enum ProjectRole: string
     case OWNER = 'owner';
     case MANAGER = 'manager';
     case MEMBER = 'member';
+    /** Reads the project, changes nothing (the standard rights are empty). */
+    case GUEST = 'guest';
 }

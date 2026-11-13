@@ -7,6 +7,7 @@ enum ProjectRole {
   OWNER @enum(value: "owner")
   MANAGER @enum(value: "manager")
   MEMBER @enum(value: "member")
+  GUEST @enum(value: "guest")
 }
 
 "Sprache eines Projekts. Bestimmt die Sprache der Mails."
@@ -37,8 +38,11 @@ enum ProjectAbility {
   TASK_ASSIGN @enum(value: "task.assign")
   TASK_MOVE @enum(value: "task.move")
   TASK_DELETE @enum(value: "task.delete")
+  TASK_UPDATE_OWN @enum(value: "task.updateOwn")
+  TASK_ASSIGN_SELF @enum(value: "task.assignSelf")
   COMMENT_CREATE @enum(value: "comment.create")
   COMMENT_MODERATE @enum(value: "comment.moderate")
+  OWNER_MANAGE @enum(value: "owner.manage")
 }
 
 "Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\Rights)."

@@ -58,7 +58,11 @@ return [
             ],
             'projekt-besitzen' => [
                 'names' => ['de' => 'Projekt besitzen', 'en' => 'Own project'],
-                'rights' => ['project.delete'],
+                'rights' => ['project.delete', 'owner.manage'],
+            ],
+            'aufgaben-eigene' => [
+                'names' => ['de' => 'Eigene Aufgaben', 'en' => 'Own tasks'],
+                'rights' => ['task.create', 'task.updateOwn', 'task.assignSelf'],
             ],
         ],
     ],
@@ -95,15 +99,19 @@ return [
         'project' => [
             'owner' => [
                 'names' => ['de' => 'Owner', 'en' => 'Owner'],
-                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-bearbeiten', 'loeschen', 'projekt-verwalten', 'projekt-besitzen'],
+                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-eigene', 'aufgaben-bearbeiten', 'loeschen', 'projekt-verwalten', 'projekt-besitzen'],
             ],
             'manager' => [
                 'names' => ['de' => 'Manager', 'en' => 'Manager'],
-                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-bearbeiten', 'loeschen', 'projekt-verwalten'],
+                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-eigene', 'aufgaben-bearbeiten', 'loeschen', 'projekt-verwalten'],
             ],
             'member' => [
                 'names' => ['de' => 'Mitglied', 'en' => 'Member'],
-                'functions' => ['planen', 'aufgaben-bewegen'],
+                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-eigene'],
+            ],
+            'guest' => [
+                'names' => ['de' => 'Gast', 'en' => 'Guest'],
+                'functions' => [],
             ],
         ],
     ],

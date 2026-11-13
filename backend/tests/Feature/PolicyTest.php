@@ -39,6 +39,7 @@ class PolicyTest extends TestCase
             'owner' => User::factory()->create(),
             'manager' => User::factory()->create(),
             'member' => User::factory()->create(),
+            'guest' => User::factory()->create(),
             'stranger' => User::factory()->create(),
             'admin' => User::factory()->admin()->create(),
         ];
@@ -47,6 +48,7 @@ class PolicyTest extends TestCase
             ->withMember($this->users['owner'], ProjectRole::OWNER)
             ->withMember($this->users['manager'], ProjectRole::MANAGER)
             ->withMember($this->users['member'], ProjectRole::MEMBER)
+            ->withMember($this->users['guest'], ProjectRole::GUEST)
             ->create();
         $this->milestone = Milestone::factory()->for($this->project)->create();
         $this->todo = Todo::factory()->for($this->milestone)->create();
@@ -72,7 +74,6 @@ class PolicyTest extends TestCase
             'todo delete' => ['delete', 'todo', ProjectAbility::TODO_DELETE],
             'todo createTask' => ['createTask', 'todo', ProjectAbility::TASK_CREATE],
             'task update' => ['update', 'task', ProjectAbility::TASK_UPDATE],
-            'task assign' => ['assign', 'task', ProjectAbility::TASK_ASSIGN],
             'task move' => ['move', 'task', ProjectAbility::TASK_MOVE],
             'task delete' => ['delete', 'task', ProjectAbility::TASK_DELETE],
             'task createComment' => ['createComment', 'task', ProjectAbility::COMMENT_CREATE],

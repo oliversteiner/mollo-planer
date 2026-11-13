@@ -21,9 +21,9 @@ class RightsDataTest extends TestCase
     public function test_standard_rows_are_written_from_the_config(): void
     {
         $this->assertSame(5, DB::table('functions')->where('scope', 'system')->count());
-        $this->assertSame(6, DB::table('functions')->where('scope', 'project')->count());
+        $this->assertSame(7, DB::table('functions')->where('scope', 'project')->count());
         $this->assertSame(5, DB::table('roles')->where('scope', 'system')->count());
-        $this->assertSame(3, DB::table('roles')->where('scope', 'project')->count());
+        $this->assertSame(4, DB::table('roles')->where('scope', 'project')->count());
     }
 
     public function test_changing_a_function_changes_the_rights_of_its_roles(): void
@@ -63,6 +63,15 @@ class RightsDataTest extends TestCase
         RightsDefaults::apply();
 
         $this->assertTrue(Rights::projectRoleAllows(ProjectRole::MEMBER, ProjectAbility::TASK_MOVE));
-        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::MEMBER, ProjectAbility::TASK_CREATE));
+        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::GUEST, ProjectAbility::TASK_CREATE));
+    }
+
+    public function test_sync_command_restores_the_standard_rows(): void
+    {
+        DB::table('role_functions')->delete();
+
+        $this->artisan('permissions:sync-defaults')->assertSuccessful();
+
+        $this->assertTrue(Rights::projectRoleAllows(ProjectRole::MEMBER, ProjectAbility::TASK_MOVE));
     }
 }

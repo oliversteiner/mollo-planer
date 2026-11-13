@@ -190,7 +190,8 @@
   "role": {
     "OWNER": "Owner",
     "MANAGER": "Manager",
-    "MEMBER": "Member"
+    "MEMBER": "Member",
+    "GUEST": "Guest"
   },
   "locale": {
     "DE": "German",
@@ -1247,8 +1248,11 @@
       "TASK_ASSIGN": "Assign tasks",
       "TASK_MOVE": "Move tasks",
       "TASK_DELETE": "Delete tasks",
+      "TASK_UPDATE_OWN": "Change own tasks (the ones created by oneself)",
+      "TASK_ASSIGN_SELF": "Assign oneself, or remove one’s own assignment",
       "COMMENT_CREATE": "Comment",
-      "COMMENT_MODERATE": "Delete comments of others"
+      "COMMENT_MODERATE": "Delete comments of others",
+      "OWNER_MANAGE": "Grant or take away the owner role"
     }
   }
 }

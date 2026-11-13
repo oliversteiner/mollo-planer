@@ -110,10 +110,12 @@ class MolloPlanerServerTest extends McpTestCase
         Notification::assertSentTo($this->member, TaskAssigned::class);
     }
 
-    public function test_a_member_may_not_create_tasks_and_then_nothing_is_created(): void
+    public function test_a_guest_may_not_create_tasks_and_then_nothing_is_created(): void
     {
+        $this->project->members()->updateExistingPivot($this->member->id, ['role' => ProjectRole::GUEST->value]);
+
         MolloPlanerServer::actingAs($this->member)->tool(CreateProjectPlanTool::class, $this->plan())
-            ->assertHasErrors(['Task "Hörerprofile schreiben": This action is unauthorized.']);
+            ->assertHasErrors(['Milestone "Konzept steht": This action is unauthorized.']);
 
         $this->assertSame([0, 0, 0], [Milestone::count(), Todo::count(), Task::count()]);
     }

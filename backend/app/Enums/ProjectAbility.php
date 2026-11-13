@@ -23,7 +23,13 @@ enum ProjectAbility: string
     case TASK_ASSIGN = 'task.assign';
     case TASK_MOVE = 'task.move';
     case TASK_DELETE = 'task.delete';
+    /** Change tasks created by the person (not those of others). */
+    case TASK_UPDATE_OWN = 'task.updateOwn';
+    /** Assign a task to oneself (or remove oneself as assignee). */
+    case TASK_ASSIGN_SELF = 'task.assignSelf';
     case COMMENT_CREATE = 'comment.create';
     /** Delete comments written by someone else. Editing them is never allowed. */
     case COMMENT_MODERATE = 'comment.moderate';
+    /** Grant or take away the owner role. Without it, only owners may change owners. */
+    case OWNER_MANAGE = 'owner.manage';
 }
