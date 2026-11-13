@@ -6,7 +6,7 @@
  */
 
 const ORDER = {
-  root: ['$schema', 'format', 'revision', 'project', 'milestones'],
+  root: ['$schema', 'format', 'revision', 'changed', 'project', 'milestones'],
   project: ['name', 'description', 'locale', 'members'],
   member: ['email', 'role'],
   milestone: ['id', 'appId', 'title', 'description', 'dueDate', 'release', 'todos'],
@@ -23,6 +23,7 @@ export function canonicalText(plan) {
 
 function canonicalize(plan) {
   return order(plan, ORDER.root, {
+    changed: (changed) => (changed === true ? true : undefined),
     project: (project) => order(project, ORDER.project, {
       members: (members) => members.map((member) => order(member, ORDER.member)),
     }),

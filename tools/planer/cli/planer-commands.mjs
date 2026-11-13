@@ -137,15 +137,15 @@ function revision(flags, options) {
 }
 
 /**
- * Lädt, ändert, prüft und schreibt. Die Revision steigt um eins.
- * Die Ausgabe ist die Meldung der Änderung plus die neue Revision.
+ * Lädt, ändert, prüft und schreibt. Setzt `changed`: die Revision zählt nur die App.
+ * Die Ausgabe ist die Meldung der Änderung.
  */
 function change(flags, options, mutate) {
   const path = resolvePath(flags, options);
   const plan = readPlan(path);
   const message = mutate(plan);
 
-  plan.revision += 1;
+  plan.changed = true;
   const text = canonicalText(plan);
   const errors = validatePlaner(text).filter((issue) => issue.severity === 'error');
   if (errors.length > 0) {
@@ -154,7 +154,7 @@ function change(flags, options, mutate) {
   }
 
   writeFileSync(path, text);
-  return ok(`${message}, revision ${plan.revision}\n`);
+  return ok(`${message}\n`);
 }
 
 function readPlan(path) {

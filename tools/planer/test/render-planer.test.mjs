@@ -126,3 +126,20 @@ test('CLI render: ein v1-Dokument wird abgelehnt (Code 2)', () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /planer\/2/);
 });
+
+test('changed: die Kopfzeile zeigt „geändert“, md2json liest es zurück', () => {
+  const plan = JSON.parse(fixture('planer-valid.planer.json'));
+  plan.changed = true;
+  const markdown = renderPlaner(plan);
+
+  assert.match(markdown.split('\n')[0], /^<!-- Ansicht von planer\/2, revision \d+, geändert\. /);
+  assert.equal(planerFromMarkdown(markdown).changed, true);
+});
+
+test('ohne changed: keine Markierung, md2json setzt kein changed', () => {
+  const plan = JSON.parse(fixture('planer-valid.planer.json'));
+  const markdown = renderPlaner(plan);
+
+  assert.doesNotMatch(markdown.split('\n')[0], /geändert/);
+  assert.equal(planerFromMarkdown(markdown).changed, undefined);
+});

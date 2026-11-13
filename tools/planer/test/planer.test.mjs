@@ -53,6 +53,11 @@ test('Beispiel aus spec/format-v2.md ist gültig', () => {
   assert.deepEqual(errors(block), []);
 });
 
+test('changed: nur true ist erlaubt, das Feld fehlt bei unveränderten Dateien', () => {
+  assert.deepEqual(errorPaths((d) => { d.changed = false; }), ['changed']);
+  assert.deepEqual(errorPaths((d) => { d.changed = true; }), []);
+});
+
 test('Schema: falsches id-Format, Rollen-Platzhalter, berechneter Wert', () => {
   assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].id = 'k-1'; }), ['milestones[0].todos[0].tasks[0].id']);
   assert.deepEqual(errorPaths((d) => { d.project.members[0].role = '<ProjectRole>'; }), ['project.members[0].role']);

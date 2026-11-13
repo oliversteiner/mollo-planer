@@ -8,7 +8,7 @@ Diese Schritte hängen an keiner offenen Entscheidung. Alles, was noch offen ist
 
 **Seit 2026-11-13 gibt es nur noch eine Spur.** Format und Werkzeuge aus `mollo-version` ziehen nach `mollo-planer` (`docs/planer-abgleich.md` §4). Wo ältere Dokumente „Spur A“ oder `mollo-version` nennen, gilt jetzt `tools/planer/` bzw. `spec/` in diesem Repository.
 
-**Stand:** S1 erledigt (`d368475`, `f03d853`).
+**Stand:** S1 erledigt (`d368475`, `f03d853`). U0 erledigt (`c2b1577`, in `mollo-version` `56e68a2`). T1 erledigt (siehe Git-Log).
 
 ---
 

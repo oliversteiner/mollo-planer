@@ -62,28 +62,29 @@ test('show: unbekannte ID endet mit Code 1', () => {
   assert.match(result.stderr, /nicht gefunden/);
 });
 
-test('add task: hängt ans Ende des ToDos, vergibt die nächste ID, erhöht die Revision', () => {
+test('add task: hängt ans Ende des ToDos, vergibt die nächste ID, setzt changed', () => {
   const result = run(['add', 'task', '--todo', 't-003', '--title', 'Neue Aufgabe']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 'k-008 angelegt, revision 4\n');
+  assert.equal(result.stdout, 'k-008 angelegt\n');
 
   const todo = plan().milestones[1].todos[0];
   assert.deepEqual(todo.tasks.at(-1), { id: 'k-008', title: 'Neue Aufgabe', status: 'open' });
-  assert.equal(plan().revision, 4);
+  assert.equal(plan().revision, 3);
+  assert.equal(plan().changed, true);
   assert.deepEqual(validatePlaner(text()).filter((issue) => issue.severity === 'error'), []);
 });
 
 test('add todo: vergibt t-005 im Milestone', () => {
   const result = run(['add', 'todo', '--milestone', 'm-002', '--title', 'Test-ToDo']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 't-005 angelegt, revision 4\n');
+  assert.equal(result.stdout, 't-005 angelegt\n');
   assert.equal(plan().milestones[1].todos.at(-1).id, 't-005');
 });
 
 test('add milestone: Version mit Standard-Status geplant, ID m-003', () => {
   const result = run(['add', 'milestone', '--title', 'Neu', '--version', '1.5']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 'm-003 angelegt, revision 4\n');
+  assert.equal(result.stdout, 'm-003 angelegt\n');
   assert.deepEqual(plan().milestones.at(-1).release, { version: '1.5', status: 'geplant' });
 });
 
@@ -141,7 +142,7 @@ test('add: ungültiger Wert wird vom Validator abgelehnt, Datei bleibt unveränd
 test('status: setzt den Status und die Revision', () => {
   const result = run(['status', 'k-004', 'review']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 'k-004: in_progress → review, revision 4\n');
+  assert.equal(result.stdout, 'k-004: in_progress → review\n');
   assert.equal(plan().milestones[1].todos[0].tasks[0].status, 'review');
 });
 
@@ -189,7 +190,7 @@ test('status: unbekannter Status endet mit Code 2', () => {
 test('move: Task in ein anderes ToDo derselben Version, ID bleibt, Revision steigt', () => {
   const result = run(['move', 'k-007', '--to', 't-003', '--position', '0']);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, 'k-007 verschoben, revision 4\n');
+  assert.equal(result.stdout, 'k-007 verschoben\n');
   const todo = plan().milestones[1].todos[0];
   assert.equal(todo.tasks[0].id, 'k-007');
   assert.equal(plan().milestones[1].todos[1].tasks.length, 1);
@@ -215,11 +216,12 @@ test('move: Milestone mit --to endet mit Code 2', () => {
   assert.equal(run(['move', 'm-002', '--to', 'm-001']).status, 2);
 });
 
-test('Lesebefehle ändern die Revision nicht', () => {
+test('Lesebefehle ändern die Revision nicht und setzen kein changed', () => {
   run(['list']);
   run(['show', 'k-001']);
   run(['revision']);
   assert.equal(plan().revision, 3);
+  assert.equal(plan().changed, undefined);
 });
 
 test('Ungültige Ausgangsdatei: kein Helfer schreibt', () => {

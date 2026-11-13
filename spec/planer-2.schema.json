@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:mollo-version:planer-2",
+  "$id": "urn:mollo-planer:planer-2",
   "title": "Planer-Datei planer/2",
   "description": "Form der Datei <projekt>.planer.json (Format planer/2). Das Schema prüft die Struktur, Typen und Grenzwerte. Eindeutigkeit der IDs, Verweise auf Mitglieder und Labels, Release- und Commit-Regeln prüft der Validator (P2). Siehe spec/format-v2.md.",
   "type": "object",
@@ -17,7 +17,11 @@
     "revision": {
       "type": "integer",
       "minimum": 0,
-      "description": "Zähler für die Konflikterkennung. Jede Änderung erhöht ihn."
+      "description": "Stand der App beim letzten Export oder Import. Nur die App erhöht ihn (spec/format-v2.md, Abschnitt 5.2)."
+    },
+    "changed": {
+      "const": true,
+      "description": "Gesetzt, wenn die Datei lokal geändert wurde und noch nicht eingetragen ist. Fehlt das Feld, ist die Datei unverändert."
     },
     "project": {
       "$ref": "#/$defs/project"

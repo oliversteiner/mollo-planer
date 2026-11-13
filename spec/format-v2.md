@@ -57,7 +57,8 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 |---|---|---|
 | `$schema` | nein | String. Hinweis für Editoren. Der Validator ignoriert das Feld und prüft immer gegen `spec/planer-2.schema.json`. |
 | `format` | ja | Genau `"planer/2"`. |
-| `revision` | ja | Ganze Zahl, mindestens 0. Konflikterkennung, siehe Abschnitt 5.2. |
+| `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. |
+| `changed` | nein | Nur `true`, sonst fehlt das Feld. Die Datei wurde lokal geändert und ist noch nicht eingetragen. |
 | `project` | ja | Objekt, Abschnitt 2.2. |
 | `milestones` | ja | Liste mit mindestens 1 und höchstens 30 Milestones. |
 
@@ -177,7 +178,9 @@ Optionales Feld `userStory` am Task. Es ist ein Objekt aus drei Teilen. Zusammen
 
 - **`id`** ist die Datei-ID mit Präfix und drei Ziffern: `m-NNN`, `t-NNN`, `k-NNN`. Sie ist je Datei eindeutig und wird nie wiederverwendet, auch nicht nach dem Löschen.
 - **`appId`** ist die ID in der App. Beim ersten Import ist sie `null` oder fehlt. Der Import setzt sie. Ein erneuter Import mit gesetzter `appId` aktualisiert das Element und legt es nicht doppelt an.
-- **`revision`** zählt jede Änderung. Ein Import mit einer `revision`, die kleiner ist als die in der App, wird abgelehnt. Die Fehlermeldung zeigt die Unterschiede.
+- **`revision`** ist der Stand der App beim letzten Export oder Import. Nur die App erhöht sie. Die Helfer ändern sie nie.
+- **`changed`** setzen die Helfer auf `true`, sobald sie die Datei ändern. `push` ist nur erlaubt, wenn `revision` der Datei gleich der Revision der App ist. `pull` überschreibt keine Datei mit `changed: true`. Nach einem erfolgreichen `push` hat die Datei die neue Revision der App und kein `changed`.
+- Ein echtes Zusammenführen gibt es in der ersten Fassung nicht. Der Mensch entscheidet: lokale Änderungen verwerfen (`pull --force`) oder neu auf den aktuellen Stand anwenden.
 
 ### 5.3 Releases und Commits
 
@@ -267,7 +270,7 @@ Unter der Task-Zeile folgen die Blöcke in dieser Reihenfolge, jeweils durch ein
 
 ### 7.5 Projektkopf
 
-- `<!-- Ansicht von planer/2, revision <N>. … -->` als erste Zeile.
+- `<!-- Ansicht von planer/2, revision <N>. … -->` als erste Zeile. Ist `changed` gesetzt, steht `, geändert` hinter der Revision.
 - `# <Projektname>`, dann `- Sprache: <locale>`, dann die Projektbeschreibung, falls gesetzt.
 - `## Mitglieder` mit einer Zeile je Mitglied: `- <E-Mail> | <Rolle>`.
 

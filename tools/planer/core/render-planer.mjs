@@ -12,7 +12,7 @@ const COMMIT_OHNE = 'ohne';
  */
 export function renderPlaner(plan) {
   const chunks = [
-    `<!-- Ansicht von planer/2, revision ${plan.revision}. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->`,
+    `<!-- Ansicht von planer/2, revision ${plan.revision}${plan.changed === true ? ', geändert' : ''}. Änderungen nur über mollo-planer (convert md2json oder die Helfer), nicht von Hand. -->`,
     `# ${plan.project.name}`,
     `- Sprache: ${plan.project.locale}`,
   ];

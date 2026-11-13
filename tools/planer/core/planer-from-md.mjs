@@ -11,7 +11,7 @@ export class MarkdownError extends Error {
   }
 }
 
-const HEADER = /^<!-- Ansicht von planer\/2, revision (\d+)\./;
+const HEADER = /^<!-- Ansicht von planer\/2, revision (\d+)(, geändert)?\./;
 const MILESTONE_VERSION = /^## v(\d+\.\d+) (.+)$/;
 const MILESTONE_PLAIN = /^## (.+)$/;
 const TODO = /^### (.+)$/;
@@ -27,7 +27,7 @@ export function planerFromMarkdown(markdown) {
   const lines = markdown.split(/\r?\n/);
   const reader = new Reader(lines);
 
-  const revision = readRevision(reader);
+  const { revision, changed } = readRevision(reader);
   const project = readProject(reader);
   const milestones = [];
 
@@ -42,7 +42,7 @@ export function planerFromMarkdown(markdown) {
     reader.skipBlank();
   }
 
-  return { format: 'planer/2', revision, project, milestones };
+  return { format: 'planer/2', revision, ...(changed ? { changed: true } : {}), project, milestones };
 }
 
 class Reader {
@@ -93,7 +93,7 @@ function readRevision(reader) {
     const line = reader.next();
     const match = line.match(HEADER);
     if (match) {
-      return Number(match[1]);
+      return { revision: Number(match[1]), changed: match[2] !== undefined };
     }
     if (line.trim() !== '') {
       break;
