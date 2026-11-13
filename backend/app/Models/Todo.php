@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
+use App\Models\Concerns\DerivesProject;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TodoObserver;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Todo extends Model implements BelongsToProject
 {
     /** @use HasFactory<TodoFactory> */
-    use HasFactory, VisibleToViewer;
+    use DerivesProject, HasFactory, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -55,6 +56,14 @@ class Todo extends Model implements BelongsToProject
     }
 
     /**
+     * @return BelongsTo<Project, $this>
+     */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    /**
      * @return HasMany<Task, $this>
      */
     public function tasks(): HasMany
@@ -64,11 +73,16 @@ class Todo extends Model implements BelongsToProject
 
     public function owningProject(): Project
     {
-        return $this->milestone->owningProject();
+        return $this->project;
+    }
+
+    protected function parentProjectId(): int|string
+    {
+        return $this->milestone->project_id;
     }
 
     protected static function projectPath(): ?string
     {
-        return 'milestone.project';
+        return 'project';
     }
 }

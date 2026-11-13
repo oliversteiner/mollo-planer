@@ -59,8 +59,8 @@ class DatabaseSchemaTest extends TestCase
         $userId = DB::table('users')->insertGetId(['name' => 'A', 'email' => 'a@example.com', 'password' => 'x']);
         $projectId = DB::table('projects')->insertGetId(['name' => 'P']);
         $milestoneId = DB::table('milestones')->insertGetId(['project_id' => $projectId, 'title' => 'M']);
-        $todoId = DB::table('todos')->insertGetId(['milestone_id' => $milestoneId, 'title' => 'T']);
-        $taskId = DB::table('tasks')->insertGetId(['todo_id' => $todoId, 'title' => 'Task']);
+        $todoId = DB::table('todos')->insertGetId(['milestone_id' => $milestoneId, 'project_id' => $projectId, 'title' => 'T']);
+        $taskId = DB::table('tasks')->insertGetId(['todo_id' => $todoId, 'project_id' => $projectId, 'title' => 'Task']);
         $body = json_encode(['type' => 'doc', 'content' => []]);
         DB::table('comments')->insert(['task_id' => $taskId, 'user_id' => $userId, 'body' => $body]);
 

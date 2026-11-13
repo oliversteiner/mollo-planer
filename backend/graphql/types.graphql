@@ -109,6 +109,7 @@ type Milestone {
 type Todo {
   id: ID!
   milestone: Milestone! @belongsTo
+  project: Project! @belongsTo
   title: String!
   description: RichText
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -125,6 +126,7 @@ type Todo {
 type Task {
   id: ID!
   todo: Todo! @belongsTo
+  project: Project! @belongsTo
   title: String!
   description: RichText
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -178,9 +180,9 @@ type Comment {
   "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
   body: RichText!
   "Darfst du den Text ändern? Nur die Autorin oder der Autor."
-  viewerCanEdit: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
+  viewerCanEdit: Boolean! @with(relation: "task.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
   "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
-  viewerCanDelete: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
+  viewerCanDelete: Boolean! @with(relation: "task.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
   createdAt: DateTime! @rename(attribute: "created_at")
   updatedAt: DateTime! @rename(attribute: "updated_at")
 }

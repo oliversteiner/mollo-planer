@@ -498,6 +498,7 @@ type Task {
  labels: [Label!]!
  "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
  position: Int!
+ project: Project!
  status: TaskStatus!
  title: String!
  todo: Todo!
@@ -519,6 +520,7 @@ type Todo {
  id: ID!
  milestone: Milestone!
  progress: Progress!
+ project: Project!
  "DONE, sobald alle Tasks erledigt sind"
  status: ItemStatus!
  tasks: [Task!]!

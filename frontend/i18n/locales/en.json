@@ -916,6 +916,10 @@
           "label": "Milestone",
           "description": "Milestone, zu dem das ToDo gehört."
         },
+        "project_id": {
+          "label": "Project",
+          "description": "Project the todo belongs to. Taken from the milestone."
+        },
         "title": {
           "label": "Titel",
           "description": "Titel des ToDos."
@@ -953,6 +957,10 @@
         "todo_id": {
           "label": "ToDo",
           "description": "ToDo, zu dem der Task gehört."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "Project the task belongs to. Taken from the todo."
         },
         "assigned_user_id": {
           "label": "Zugewiesen an",

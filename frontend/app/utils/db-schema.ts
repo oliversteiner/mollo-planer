@@ -131,6 +131,7 @@ const TABLES: Record<DbTableName, DbTable> = {
     columns: [
       { name: 'id', type: 'bigint', primary: true },
       { name: 'milestone_id', type: 'bigint', references: 'milestones' },
+      { name: 'project_id', type: 'bigint', references: 'projects' },
       { name: 'title', type: 'varchar' },
       { name: 'description', type: 'longtext', nullable: true },
       { name: 'icon', type: 'varchar', nullable: true },
@@ -148,6 +149,7 @@ const TABLES: Record<DbTableName, DbTable> = {
     columns: [
       { name: 'id', type: 'bigint', primary: true },
       { name: 'todo_id', type: 'bigint', references: 'todos' },
+      { name: 'project_id', type: 'bigint', references: 'projects' },
       { name: 'assigned_user_id', type: 'bigint', nullable: true, references: 'users' },
       { name: 'title', type: 'varchar' },
       { name: 'description', type: 'longtext', nullable: true },
@@ -160,7 +162,8 @@ const TABLES: Record<DbTableName, DbTable> = {
     ],
     indexes: [
       { kind: 'index', columns: ['assigned_user_id'] },
-      { kind: 'index', columns: ['todo_id', 'status'] }
+      { kind: 'index', columns: ['todo_id', 'status'] },
+      { kind: 'index', columns: ['project_id', 'status', 'position'] }
     ]
   },
   comments: {
