@@ -1,158 +1,182 @@
-# KI-Assistent und Ideen-Sammlung (Konzept)
+# KI-Assistent und Ideen (Konzept, Fassung 3)
 
-Stand: 2026-11-12. Status: Entscheidungen des Auftraggebers eingearbeitet, noch nicht gebaut.
-Das technische Schema (Typen, Mutationen, Tabellen, Rechte) steht in `docs/schema-review.md` (Abschnitte A4, B1–B3). Bei Abweichungen gilt das Schema-Review. Breaking Changes sind erlaubt, bestehende Daten müssen nicht erhalten bleiben.
+Stand: 2026-11-13, geprüft bis `f0dd993`. Status: **entschieden**. Rolle: Analyse und Plan, Umsetzung in den Schritten B5a und B6 von `docs/spur-b-sichere-schritte.md`.
+Grundlagen: `docs/planer-abgleich.md` (Format, Import/Export, Labels, Vorlagen, Werte, Status, Vereinfachungen V1 bis V5, Rich Text §9), `docs/rollen-funktionen-rechte.md` (Rechte), `docs/schema-review.md` (B1, B2).
+Ersetzt Fassung 1 und 2. Rechte-Angaben sind **Standardbelegung** (`docs/rollen-funktionen-rechte.md` §5), keine feste Logik.
 
 ---
 
-## 1. Ausgangslage
+## 1. Ziel
 
-- Der KI-Assistent (`/assistant`, heute für Rollen mit `projects.create`) legt nur **neue Projekte** an. Er entwirft einen Plan aus Milestones, ToDos, Tasks und Mitgliedern. Gespeichert wird erst mit „Jetzt eintragen“.
-- Der MCP-Server kann inzwischen auch bestehende Projekte pflegen: `list_projects`, `get_project`, `list_users`, `create_project`, `set_project_member`, `create_project_plan`, `add_to_plan`, `update_plan_item`, `move_milestone`, `set_task_status`.
-- Es gibt kein Löschen über MCP. Fehlerhafte Einträge müssen also vor dem Speichern abgefangen werden.
+1. Freie Ideen annehmen (Text, Sprache, Stichpunkte).
+2. Neue Projekte planen, auf Wunsch aus einer Vorlage.
+3. Bestehende Projekte ergänzen: ToDos und Tasks in vorhandene Milestones, Tasks in vorhandene ToDos, neue Milestones an der richtigen Stelle.
+4. Bei unklarem Projekt oder Milestone nachfragen, mit Auswahl zum Anklicken.
+5. Nichts speichern, bevor die Person den Entwurf bestätigt hat.
+6. Ideen, die noch nicht eingeplant werden, privat auf der Ideen-Seite ablegen.
+7. Den KI-Kontext des Projekts nutzen.
 
-## 2. Ziel
+## 2. Grundsatz
 
-1. Freie Ideen (Text, Stichpunkte) annehmen. Ideen ohne Projekt landen auf der **Ideen-Seite**.
-2. Ein neues ToDo aus einer Anfrage anlegen und dazu **Tasks vorschlagen**.
-3. Eine größere Idee in **mehrere ToDos** mit jeweils Tasks aufteilen.
-4. Bei unklarem Projekt **nachfragen, mit Auswahl**.
-5. Fehlt ein Milestone, **nachfragen, mit Auswahl** (Abschnitt 5).
-6. Nichts speichern, bevor die Person den Vorschlag bestätigt hat.
-7. Pro Projekt **KI-Kontext** hinterlegen können, den der Assistent beim Vorschlagen nutzt und auf Wunsch externe KI-Tools erhalten (Abschnitt 11).
+Ein Entwurf des Assistenten ist ein **`planer/2`-Ausschnitt**. Es gibt keine eigene Plan-Form. Eingetragen wird über **denselben Importer** wie Dateien und Connector (`App\Planer\Import`, Schritt I2), im Modus `partial`, mit Trockenlauf für die Vorschau.
 
-## 3. Entscheidungen
+## 3. Rechte
 
-- **Milestone-Pflicht:** Ein ToDo gehört immer zu einem Milestone. Ein ToDo ohne Milestone wird nie gespeichert.
-- **Rechte für Tasks:** Mitglieder dürfen **Tasks anlegen** und **eigene Tasks ändern** (eigener Task = von der Person angelegt). Einen eigenen Task dürfen sie **sich selbst zuweisen**, aber niemand anderem. **Löschen** und das Zuweisen an andere bleiben bei Owner und Manager.
-- **Projekt anlegen:** Admins, Projektleitung und Koordination.
-- **Ideen:** Ideen ohne Projekt werden gesammelt. Im Assistenten heißt die Option „In Ideen ablegen“.
-- **Sichtbarkeit der Ideen:** Nur Admins und die Person, die die Idee erstellt hat, sehen sie.
-- **Zugang zum Assistenten:** Alle angemeldeten Personen außer der Rolle `lesend`. Die Projektrechte gelten weiterhin für jedes Schreiben.
-- **Ideen anlegen:** alle Rollen außer `lesend`.
-- **Löschen** von Ideen, ToDos, Tasks usw. legt in den Papierkorb (siehe `docs/schema-review.md`, A5).
+- **Assistent nutzen:** Systemrecht `assistant.use`.
+- **Neues Projekt planen:** zusätzlich `projects.create`.
+- **Eintragen:** die Projektrechte der Person, geprüft vom Importer je Änderung (`milestone.create`, `todo.create`, `task.create`, `task.assign` bzw. `task.assignSelf`, `task.move` für einen Status ungleich dem Standard).
+- **Ideen:** `ideas.create`; sichtbar nur für Autorin oder Autor, außer mit `ideas.viewAny`.
+- Der Assistent kennt die Rechte der Person (`viewerRights`) und hält sich schon im Entwurf daran (§7). Das Backend prüft trotzdem jede Änderung.
 
 ## 4. Ablauf
 
-1. **Absicht erkennen:** neues Projekt, neues ToDo, Tasks zu einem bestehenden ToDo, Idee aufteilen oder nur als Idee ablegen. Bei Unklarheit fragen.
-2. **Projekt bestimmen:**
-   - Eindeutig, wenn die Person es nennt oder die Seite es vorgibt (zum Beispiel `/projects/:id/todos`).
-   - Sonst **Rückfrage mit Auswahl**. Angeboten werden nur nicht archivierte Projekte, in denen die Person ToDos anlegen darf (Owner, Manager, Mitglied). Dazu kommen „Neues Projekt“ (nur mit `projects.create`) und „In Ideen ablegen“.
-3. **Milestone bestimmen** (Pflicht, siehe Abschnitt 5). Erst danach ist das ToDo speicherbar.
-4. **Vorschlag erzeugen (nur Entwurf):** ToDo mit Titel, Beschreibung, Milestone, Tasks mit Titel, Labels aus dem Label-Set des Projekts, optional Fälligkeit und Zuweisung. Der KI-Kontext des Projekts (Abschnitt 11) fließt ein, falls vorhanden.
-5. **Prüfen lassen:** Die Person kann einzelne Tasks streichen, umbenennen oder ändern.
-6. **Eintragen:** erst nach „Jetzt eintragen“, über `importPlanIntoProject` (Schema-Review A4) mit denselben Policies wie im Frontend.
+1. **Absicht erkennen:** neues Projekt, bestehendes Projekt ergänzen, Idee ablegen. Bei Unklarheit eine kurze Rückfrage.
+2. **Projekt bestimmen:** eindeutig durch Nennung oder Seite (`/projects/:id/…`). Sonst Auswahl aus nicht archivierten Projekten, in denen die Person ToDos anlegen darf, plus „Neues Projekt“ (nur mit `projects.create`) und „In Ideen ablegen“ (nur mit `ideas.create`).
+3. **Bei neuem Projekt: Vorlage vorschlagen** (Entscheidung 7). Der Assistent schlägt die passende Vorlage vor (z. B. „Event“) oder „ohne Vorlage“. Mit Vorlage plant er auf deren Gerüst und mit deren Labels.
+4. **Projektbaum laden** (bestehendes Projekt): Export des Projekts (I1), für den Prompt verdichtet (§8).
+5. **Milestone bestimmen** (Pflicht, §5).
+6. **Entwurf erzeugen:** `planer/2`-Ausschnitt (§6).
+7. **Vorschau:** Trockenlauf des Importers, angezeigt mit `PlanerTree` (Markierungen „neu“, „vorhanden“, Hinweise und Warnungen). Die Person streicht, ändert oder fragt nach.
+8. **Eintragen:** erst mit „Jetzt eintragen“, `importPlan` (Modus `partial`, bei neuem Projekt in ein neues Projekt).
 
 ## 5. Milestone-Pflicht: Rückfrage mit Auswahl
 
-Fehlt der Milestone, zeigt der Assistent den Hinweis „Ein ToDo gehört zu einem Milestone“ und bietet Optionen zum Anklicken an. Die Optionen sind Buttons, keine Freitext-Abfrage. Im Chat ohne Buttons erscheint dieselbe Liste nummeriert.
+Ein ToDo gehört immer zu einem Milestone. Fehlt er, zeigt der Assistent den Hinweis „Ein ToDo gehört zu einem Milestone“ und Buttons (ohne Buttons, z. B. im Connector, dieselbe Liste nummeriert):
 
-Die Liste enthält:
+1. **Bestehende Milestones** des Projekts mit Titel, Fälligkeit und Versionsnummer, der passendste als „Empfohlen“. Im Entwurf: Milestone mit echter ID (`m-12`).
+2. **Neuer Milestone (Vorschlag)** mit Titel und einem Satz Begründung. Im Entwurf: Milestone mit `m-new-…` an der Stelle im Array, an der er stehen soll.
+3. **Eigenen Milestone definieren:** Titel, optional Fälligkeit.
+4. **In Ideen ablegen:** nichts im Projekt, private Idee mit dem Entwurf (§10).
 
-1. **Bestehende Milestones des Projekts:** jeder als eigener Button, mit Titel und Fälligkeit, falls vorhanden. Der passendste ist mit „Empfohlen“ markiert. Der Assistent wählt ihn nach Titel und Inhalt der Idee.
-2. **Neuer Milestone (Vorschlag):** Der Assistent schlägt einen Titel vor, mit einer Begründung in einem Satz. Beispiel: „Neuer Milestone „Launch-Vorbereitung““. Die Person bestätigt oder ändert den Titel.
-3. **Eigenen Milestone definieren:** öffnet ein Feld für Titel und optional Fälligkeit. Der Milestone wird erst beim Eintragen angelegt.
-4. **In Ideen ablegen:** Das ToDo wird nicht angelegt. Die Idee landet ohne Milestone auf der Ideen-Seite und kann später zugeordnet werden.
+Regeln: höchstens fünf Vorschläge plus „Alle anzeigen“, nie still wählen, die Auswahl gilt für die weiteren ToDos derselben Anfrage.
 
-Regeln für die Auswahl:
-- Bei mehr als fünf bestehenden Milestones zeigt der Assistent die fünf passendsten und eine Option „Alle anzeigen“.
-- Ein Milestone wird nie still gewählt, auch nicht, wenn nur einer existiert. Die Person bestätigt den Klick.
-- Ist der Milestone einmal gewählt, bleibt die Auswahl für weitere ToDos derselben Idee erhalten, bis die Person sie ändert.
-- Die Option „In Ideen ablegen“ speichert nichts im Projekt. Sie erzeugt nur eine Idee, mit dem gewählten Projekt oder ohne Projekt.
-- Technisch: Ein neuer Milestone ist im Plan-Entwurf ein Milestone ohne `id`, ein bestehender einer mit `id` (Schema-Review A4).
+## 6. Der Entwurf
 
-## 6. Ideen-Seite
+### 6.1 Form
 
-- Menüpunkt **„Ideen“** unter **„Meine Tasks“**, Route `/ideas` (Vorschlag). Eingeblendet nach `viewerSystemAbilities` (`ideas.create`).
-- Sichtbar nur für Admins und die Person, die die Idee erstellt hat.
-- Zeigt alle **offenen** Ideen. Übernommene oder verworfene Ideen werden nach einem Filter ausgeblendet.
-- Pro Idee: Titel, Beschreibung, Autorin oder Autor, Datum, optional Projekt.
-- Aktionen: einem Projekt zuordnen und in ToDos aufteilen (führt in den Assistenten-Ablauf ab Schritt 2), verwerfen, als übernommen markieren, löschen (Papierkorb).
-- Datenmodell und Mutationen: `docs/schema-review.md`, B1.
+- **Neues Projekt:** vollständiges `planer/2`-Dokument (`project` mit `name`, `description`, `locale`, `members`, `labels`; `milestones`). Alle IDs `-new-`.
+- **Bestehendes Projekt:** Ausschnitt. Vorhandene Elemente stehen mit echter ID und Titel als **Anker**, neue mit `-new-`-ID. Nur Milestones, die neu sind oder in die etwas eingefügt wird.
+- Die `-new-`-IDs vergibt der Server vor der Vorschau, nicht Claude.
+- Werte klein und englisch (`docs/planer-abgleich.md` §5.1).
 
-## 7. Regeln, die dabei gelten
+### 6.2 Regeln
 
-- **Rechte:** Wie in Abschnitt 3 festgelegt. Das Backend prüft jede Änderung, der Assistent soll Verbote vorher nennen.
-- **Archiv:** In archivierten Projekten schlägt der Assistent nichts vor und trägt nichts ein.
-- **Sichtbarkeit:** Projekte nur über den Scope `visibleToViewer` anbieten, nie Projekte, die die Person nicht sieht. Ideen nur für Admins und die Autorin oder den Autor. Die Policy prüft das serverseitig, nicht nur die Seite.
-- **Status:** Von ToDo und Milestone wird er vom Observer berechnet, nie eingegeben. Der Status einer Idee wird von der Person gesetzt.
-- **Rich Text:** TipTap-JSON, nie HTML.
-- **Labels:** nur aus dem Label-Set des jeweiligen Projekts.
-- **Mails:** Eine Zuweisung löst beim Speichern eine Mail aus. Der Vorschlag zeigt Zuweisungen klar an und warnt vor dem Eintragen.
-- **Tests:** Neue Mutationen, die Milestone-Auswahl, die Ideen-Seite und der KI-Kontext brauchen Tests. Dazu gehören Tests, dass andere Mitglieder Ideen nicht sehen und dass der KI-Kontext ohne Freigabe nicht über MCP ausgegeben wird. `OutsiderAccessTest` und `MutationTest` werden ergänzt.
-- **Oberfläche:** nur `wa-*`-Elemente und eigene Bausteine. Alle Texte in `i18n/locales/de.json` und `en.json`.
+- **Nur ergänzen** (Entscheidung 2): Der Assistent ändert in der ersten Stufe keine vorhandenen Elemente. Anker im Entwurf bleiben unverändert. Ändern ist technisch über `partial` möglich und wird später freigeschaltet.
+- **Reihenfolge:** Ein neues Element steht hinter dem Anker, der ihm im Array vorausgeht; ohne vorausgehenden Anker am Anfang.
+- **Duplikate:** gleicher Titel im selben Elternteil wird im Trockenlauf gemeldet; der Assistent bietet „an bestehendes ToDo anhängen“ an.
+- **Status** neuer Tasks: `planned`. Will die Person etwas nur festhalten: `idea` (Entscheidung 9).
+- **Labels:** nur Schlüssel aus `project.labels`. Bei neuen Projekten darf der Assistent neue Labels mit `names` in der Sprache des Projekts vorschlagen (Entscheidung 8).
+- **User-Story:** vorgeschlagen, wenn eine Aufgabe einen Nutzen für eine Rolle hat (typisch Label `feature`), sonst `null`.
+- **Beschreibungen:** Markdown nach der Whitelist. Unerlaubtes wird vom Konverter zu Klartext, mit Warnung in der Vorschau (Entscheidung 10, `docs/planer-abgleich.md` §9.6). Kein zweiter Aufruf an Claude.
+- **Nicht gesetzt** vom Assistenten: `release.status`, `commit`, `icon`, Status von Milestone und ToDo. `release.version` nur, wenn die Person eine Versionsnummer nennt.
 
-## 8. MCP-Werkzeuge
+## 7. Rechte im Entwurf
 
-Bestehende Werkzeuge decken das Anlegen schon ab und werden weiterverwendet:
-
-| Werkzeug | Zweck im Ideen-Ablauf |
+| Fall | Verhalten |
 |---|---|
-| `list_projects` | Auswahl für Rückfragen (neu: nur nicht archivierte, Filter „darf ToDos anlegen“) |
-| `get_project` | bestehende Milestones und ToDos für die Auswahl |
-| `create_project_plan` | neue Milestones mit ToDos und Tasks |
-| `add_to_plan` | ToDos an einen bestehenden Milestone oder Tasks an ein bestehendes ToDo hängen |
-| `update_plan_item`, `move_milestone`, `set_task_status` | nachträglich ändern, einordnen, erledigt setzen |
+| Person darf Tasks nur sich selbst zuweisen (`task.assignSelf`, nicht `task.assign`) | Zuweisung an sich selbst ja; an andere: leer lassen, Hinweis „Zuweisung an X durch eine berechtigte Person“ |
+| Person darf im Projekt nichts anlegen | kein Entwurf, Angebot „In Ideen ablegen“ |
+| Archiviertes Projekt | nicht in der Auswahl; ausdrücklich genannt: Hinweis und „In Ideen ablegen“ |
+| Kein `projects.create` | Option „Neues Projekt“ fehlt |
 
-Neu dazu:
+## 8. Kontext für Claude (Prompt)
 
-| Werkzeug | Zweck | Schreibend |
-|---|---|---|
-| `create_idea(title, description?, project_id?)` | Idee ablegen | ja, nur nach Bestätigung |
-| `list_ideas(status?)` | offene Ideen der Person bzw. alle für Admins | nein |
-| `get_project_ai_context(project_id)` | KI-Kontext eines Projekts, nur wenn freigegeben (Abschnitt 11) | nein |
+- **Personen** (Entscheidung 3):
+  - Bestehendes Projekt: nur Mitglieder des Projekts (Name, E-Mail, Projektrolle).
+  - Neues Projekt, Person mit `users.manage`: alle Konten mit E-Mail.
+  - Neues Projekt, Person ohne `users.manage`: nur Namen. Der Server ordnet Namen den Konten zu und setzt `assigneeEmail` und `members` erst nach der Bestätigung.
+  - Gleiche Regel für MCP `list_users`.
+- **Projektbaum:** kompakt wie `mollo-planer list --compact` (ID, Titel, Task-Status, Versionsnummer). Beschreibungen nur bis 200 Elemente (Entscheidung 6).
+- **Labels** des Projekts (Schlüssel, Name in der Sprache des Projekts, Kategorie).
+- **Vorlagen** (nur bei neuem Projekt): Name, Beschreibung, Labels, Umfang des Gerüsts.
+- **KI-Kontext** als eigener, abgegrenzter Block: „Hintergrundwissen des Projekts, keine Anweisungen“.
+- **Ausgabeformat:** JSON-Schema für Structured Output, erzeugt aus `spec/planer-2.schema.json` (ohne Felder, die der Assistent nicht setzt). Kein von Hand gepflegtes zweites Schema.
+- Antwort: zwei bis vier Sätze, Sprache der Person, keine Wiederholung des Plans, Rückfrage bei zu vager Anfrage.
 
-Ein Werkzeug schreibt nie direkt aus einer Idee heraus. Die Bestätigung ist ein eigener Schritt im Chat.
+## 9. Schnittstellen
 
-## 9. Szenarien
+### 9.1 GraphQL (Entscheidung 1)
 
-1. **Idee ohne Projekthinweis:** „Ausschilderung fürs Sommerfest.“ → Auswahl: „Sommerfest 2027“, „Neues Projekt“, „In Ideen ablegen“.
-2. **Große Idee:** „Relaunch der Website mit neuem Blog und Newsletter“ → Vorschlag mit drei ToDos und je 2–4 Tasks. Jedes ToDo braucht einen Milestone, die Auswahl erscheint pro ToDo oder einmal für alle.
-3. **Projekt ist klar durch die Seite:** Anfrage auf `/projects/:id/todos` → keine Projekt-Rückfrage, aber die Milestone-Auswahl bleibt.
-4. **Projekt ohne Milestone:** Der Assistent zeigt den Hinweis und schlägt einen neuen Milestone vor, die anderen Optionen bleiben daneben.
-5. **Passender bestehender Milestone:** Der Assistent markiert ihn als „Empfohlen“, die Person klickt zur Bestätigung.
-6. **Eigener Milestone:** Die Person gibt Titel und Fälligkeit ein, der Milestone wird mit dem ToDo zusammen angelegt.
-7. **Mitglied gibt eine Idee ein:** ToDo und Tasks werden angelegt. Zuweisen kann das Mitglied nur sich selbst; Vorschläge für andere Personen zeigt der Assistent als Hinweis „Zuweisung durch Manager“.
-8. **Doppelte Idee:** Ähnliches ToDo existiert → Hinweis und Option „Tasks an bestehendes ToDo hängen“.
-9. **Zuweisung per Name:** nur Projektmitglieder wählbar. Unbekannter Name → Auswahl aus den Mitgliedern.
-10. **Labels aus dem Set:** „Event“-Projekt, Idee „Speaker einladen“ → Label „Speaker“ vorgeschlagen.
-11. **Datum in der Idee:** „bis Freitag“ → konkretes Datum im Vorschlag zur Bestätigung zeigen.
-12. **Liste mit mehreren Ideen:** jede Zeile wird ein eigener Vorschlag, gesammelt bestätigt.
-13. **Keine Rechte im gewählten Projekt:** freundliche Absage mit Hinweis, den Manager zu fragen. Die Idee bleibt auf der Ideen-Seite der Autorin oder des Autors.
-14. **Idee später zuordnen:** Auf der Ideen-Seite wird eine offene Idee einem Projekt zugeordnet, Milestone-Auswahl folgt wie oben. Beim Eintragen wird die Idee mit den ToDos verknüpft und auf „übernommen“ gesetzt.
-15. **Abbruch:** Nichts wird gespeichert, bis bestätigt. Ein Entwurf bleibt im Chat, eine Idee bleibt auf der Ideen-Seite.
-16. **KI-Kontext hilft beim Vorschlag:** Im Projekt steht „Alle Texte auf Deutsch, Sie-Form, Budget max. 2000 CHF“. Der Assistent beachtet das beim Formulieren der Tasks.
-17. **Externe KI mit Kontext:** Eine Person ändert Tasks über einen Connector in einem externen KI-Tool. Ist der KI-Kontext freigegeben und fragt die Person ihn an, ruft das Tool `get_project_ai_context` auf. Ohne Freigabe kommt nichts zurück.
-18. **Archiviertes Projekt:** Es erscheint nicht in der Auswahl. Nennt die Person es ausdrücklich, weist der Assistent darauf hin und bietet „In Ideen ablegen“ an.
+```graphql
+"Ein planer/2-Dokument oder ein Ausschnitt (JSON), geprüft gegen spec/planer-2.schema.json"
+scalar PlanerDocument
 
-## 10. Offene Punkte
+type PlanDraft {
+  reply: String!
+  "null, solange der Assistent noch Angaben braucht"
+  plan: PlanerDocument
+  "Ergebnis des Trockenlaufs: geplante Änderungen, Hinweise, Warnungen"
+  preview: PlanPreview
+}
 
-Keine. Die Umsetzung folgt `docs/refactoring-vor-umsetzung.md` und danach `docs/schema-review.md` (Reihenfolge der Umsetzung). Die Rechte-Dokumentation wird nach dem Funktionsbau geprüft und nachgeführt.
+draftPlan(messages: [PlanChatMessageInput!]!, projectId: ID, templateId: ID, currentPlan: PlanerDocument, ideaId: ID): PlanDraft!   # assistant.use
+importPlan(plan: PlanerDocument!, projectId: ID, templateId: ID, ideaId: ID, notifyAssignees: Boolean = false): Project!            # Projektrechte je Änderung
+```
 
-## 11. KI-Kontext pro Projekt
+- `PlanPreview` ist die GraphQL-Sicht auf das Ergebnis von `dry_run` (I2).
+- Entfällt: `plan.graphql` mit `ProjectPlan*`, `draftProjectPlan`, `importProjectPlan`, `ReadsProjectPlanInput`, `ProjectPlanAssistant::clean()`, `PlainTextDocument`.
 
-**Ziel:** Owner und Manager hinterlegen in den Projekteinstellungen Hintergrundwissen, das der Assistent bei Vorschlägen nutzt. Beispiele: Tonalität, Standards, Budgetgrenzen, Glossar, Zuständigkeiten.
+### 9.2 MCP
 
-**Eingabeformen:**
-- **Textfeld** mit Klartext.
-- **Datei-Upload** nur mit **Textdateien und Markdown**. Der Text wird beim Hochladen extrahiert und gespeichert, die Datei selbst nicht. PDFs, Bilder und Office-Dateien werden abgelehnt.
+Nach I3: `list_projects`, `export_plan`, `import_plan`, `list_templates`, `list_users` (eingeschränkt nach §8). Neu mit B6: `create_idea`, `list_ideas`, `get_project_ai_context`.
 
-**Umfang:** höchstens **20 000 Zeichen** insgesamt, für Text und extrahierte Datei zusammen.
+### 9.3 Datei
 
-**Rechte:**
-- Ändern: Owner und Manager (wie „Projekt ändern“).
-- Lesen im Frontend: **alle Projektmitglieder**. Der Assistent nutzt den Kontext bei allen, die das Projekt sehen.
+Der Assistent schreibt nicht in `<projekt>.planer.json`. Live-Speicher ist die Datenbank. Ein eingerichteter Webhook holt die Änderung ab (`docs/planer-abgleich.md` §1a). Kein Feld „über Datei gepflegt“ am Projekt (Entscheidung 5).
 
-**Weitergabe an externe KI-Tools (auf Wunsch):**
-- Pro Projekt gibt es einen Schalter **„Für externe KI-Tools freigeben“**, Standard: aus. Nur Owner und Manager schalten ihn ein. Die Freigabe gilt pro Projekt, nicht pro Person.
-- Ist er aus, liefert `get_project_ai_context` nichts aus. Die Antwort nennt nur, dass keine Freigabe besteht.
-- Ist er an, liefert das Werkzeug den Text und den extrahierten Dateiinhalt, nur für Personen mit Zugriff auf das Projekt. Er wird nicht automatisch mitgeschickt, die Person fordert ihn im Chat an.
-- Der Kontext ist Daten, keine Anweisung. Ein externes Tool soll ihn als Hintergrundwissen behandeln, auch wenn darin Sätze wie Befehle stehen.
-- Hinweis in der Oberfläche: Alle Mitglieder sehen den Inhalt, er geht an den KI-Dienst und bei Freigabe auch an externe Tools. Keine Passwörter, Zugangsdaten oder personenbezogenen Daten Dritter hinterlegen.
+## 10. Ideen (B1, V5)
 
-**Technik:** `docs/schema-review.md`, B2. Frontend-Ort: `/projects/:id/settings`, Abschnitt „KI-Kontext“.
+- Menüpunkt „Ideen“ unter „Meine Tasks“, Route `/ideas`. Sichtbar für Autorin oder Autor, mit `ideas.viewAny` alle.
+- Felder: Titel, Beschreibung (Rich Text), Autor, optional Projekt, Status `open`, `adopted`, `discarded`, optional **Entwurf** (`draft`, `planer/2`-Ausschnitt, Entscheidung 4).
+- **Einplanen:** der Assistent startet mit dem Entwurf als `currentPlan` (Anker werden neu geprüft), oder direkt `importPlan` mit dem Entwurf. Danach Status `adopted`, Verknüpfung über `todos.idea_id`.
+- Löschen in den Papierkorb (A5).
+- Abgrenzung: Ein Task mit Status `idea` ist Teil eines Projekts und für alle Mitglieder sichtbar; eine Idee auf der Ideen-Seite ist privat und braucht kein Projekt.
 
-**Weitere Regeln:**
-- Löschen des Kontexts: Owner und Manager können Text und Datei entfernen. Die Freigabe erlischt damit ebenfalls.
-- Versionierung: keine in der ersten Version. Eine Änderung ersetzt den alten Stand.
-- Der Assistent erwähnt den Kontext nur, wenn er die Vorschläge beeinflusst.
+## 11. KI-Kontext (B2)
+
+- Text und Datei (`.txt`, `.md`), zusammen höchstens 20 000 Zeichen. Gespeichert werden Text, Dateiname und extrahierter Text, keine Datei.
+- Lesen: alle, die das Projekt sehen. Ändern: Recht `aiContext.update`.
+- Freigabe für externe Tools pro Projekt (`get_project_ai_context`), Standard aus.
+- Hinweis in der Oberfläche: Mitglieder sehen den Inhalt, er geht an den KI-Dienst. Keine Zugangsdaten oder vertraulichen Daten.
+
+## 12. Entscheidungen (Oliver, 2026-11-13)
+
+1. Schnittstelle über den Importer: `draftPlan`/`importPlan` mit `PlanerDocument`; `plan.graphql` und `ProjectPlan*` entfallen.
+2. Der Assistent ergänzt vorerst nur; Ändern später.
+3. Personen im Prompt nach §8 (Mitglieder; alle Konten nur mit `users.manage`; sonst nur Namen).
+4. Entwurf an der Idee speichern.
+5. Kein Feld „über Datei gepflegt“.
+6. Beschreibungen im Prompt bis 200 Elemente, darüber nur Titel.
+7. Vorlage bei neuem Projekt vorschlagen und auf deren Gerüst planen.
+8. Nur Label-Schlüssel des Projekts; bei neuen Projekten neue Labels mit `names` erlaubt.
+9. Neue Tasks `planned`, zum Festhalten `idea`.
+10. Unerlaubtes Markdown wird Klartext mit Warnung, kein zweiter Aufruf.
+
+## 13. Szenarien
+
+1. **Idee ohne Projekthinweis:** „Ausschilderung fürs Sommerfest.“ → Auswahl „Sommerfest 2027“, „Neues Projekt“, „In Ideen ablegen“.
+2. **Große Idee:** „Relaunch mit Blog und Newsletter“ → drei ToDos mit je zwei bis vier Tasks (`planned`), Milestone-Auswahl einmal für alle.
+3. **Seite gibt Projekt vor:** keine Projekt-Rückfrage, Milestone-Auswahl bleibt.
+4. **Projekt ohne Milestone:** Hinweis, Vorschlag für einen neuen Milestone, die anderen Optionen daneben.
+5. **Neues Projekt:** „Podcast-Staffel 3 planen“ → Vorschlag Vorlage „Podcast“, Gerüst und Labels übernommen, angepasst.
+6. **Mitglied mit `task.assignSelf`:** Zuweisung an sich selbst, andere als Hinweis.
+7. **Duplikat:** Trockenlauf meldet gleichen Titel, Angebot „an bestehendes ToDo anhängen“.
+8. **Datum in der Idee:** „bis Freitag“ → konkretes Datum im Entwurf, sichtbar in der Vorschau.
+9. **Unerlaubte Formatierung:** Claude liefert eine Tabelle → Klartext, Warnung in der Vorschau.
+10. **Nur festhalten:** „Merk dir, dass wir irgendwann Sponsoring prüfen“ → Task mit `idea` im passenden ToDo oder private Idee, je nach Auswahl.
+11. **Archiviertes Projekt:** nicht in der Auswahl; ausdrücklich genannt → Hinweis und „In Ideen ablegen“.
+12. **Keine Rechte:** freundliche Absage, „In Ideen ablegen“.
+13. **Idee später einplanen:** Ideen-Seite → „Einplanen“ → Assistent mit gespeichertem Entwurf, Anker neu geprüft.
+14. **KI-Kontext:** „Sie-Form, Budget max. 2000 CHF“ → beachtet in Titeln und Beschreibungen.
+15. **Externes Tool:** Connector ruft `export_plan`, ändert, `import_plan` mit `partial`; mit Freigabe zusätzlich `get_project_ai_context`.
+
+## 14. Tests (zusätzlich zu I2)
+
+- Entwurf mit Ankern: Ergänzung an der richtigen Stelle, Anker unverändert.
+- Anker im Papierkorb, in anderem Projekt oder nicht vorhanden: Abbruch ohne Änderung.
+- Zuweisung bei `task.assignSelf` ohne `task.assign`: im Entwurf geleert, Import mit fremder Zuweisung schlägt fehl.
+- Unerlaubtes Markdown: Klartext und Warnung, kein Fehler.
+- Unbekannter Label-Schlüssel bei bestehendem Projekt: Fehler im Trockenlauf.
+- Prompt ohne `users.manage` enthält keine E-Mail-Adressen außerhalb des Projekts.
+- Gleicher Ausschnitt über `importPlan` (GraphQL) und `import_plan` (MCP) ergibt denselben Datenbankstand.
+- Ein über den Assistenten angelegtes Projekt exportiert als gültiges `planer/2`.

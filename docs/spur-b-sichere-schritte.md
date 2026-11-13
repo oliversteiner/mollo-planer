@@ -104,6 +104,14 @@ Details in `docs/planer-abgleich.md`, Abschnitt 1a.
 - Lesen über `Project.planerRevision`.
 - Tests: jede Art von Änderung erhöht um genau 1, Kommentar nicht, Lesen nicht.
 
+## S3f. Neuladen über `planerRevision` (ersetzt C1, entschieden 2026-11-13)
+
+Nach S3c. Details: `docs/planer-abgleich.md` §10.
+- Jede Mutation, die ein Projekt ändert, liefert die neue `planerRevision` mit (Feld am Rückgabetyp oder über `project { planerRevision }`).
+- Frontend merkt sich je Projekt die zuletzt geladene Revision. +1 nach eigener Mutation: nur Projektbaum und Fortschritt neu laden. Mehr als +1: alles neu laden, Hinweis „Das Projekt wurde inzwischen geändert“.
+- Zeitachse und Kanban fragen alle 30 Sekunden nur `planerRevision` ab (kleine Abfrage) und laden bei Änderung neu. Keine Abfrage, wenn der Tab nicht sichtbar ist.
+- Ersetzt das heutige Neuladen aller aktiven Abfragen (`projectContentQueries`). C1 (Payloads) entfällt.
+
 ## S3d. Datei-IDs (entfällt, ersetzt durch T5)
 
 Details in `docs/planer-abgleich.md`, Abschnitt 2.3.
@@ -127,23 +135,24 @@ Details: `docs/planer-abgleich.md` §9. Nur PHP, keine neue Abhängigkeit.
 
 Details: `docs/planer-abgleich.md` §9.3 und §9.7. Kanonische Markdown-Form in `spec/format-v2.md`. `validate`: Konstrukte aus §9.6 sind Fehler (wie bisher), Schreibweisen aus §9.5 ein Hinweis. `json` schreibt Beschreibungen kanonisch. Testfälle aus `spec/fixtures/richtext/` gegen die Whitelist und die kanonische Form.
 
-## S4. Rechte (Schema-Review Schritt 2) — ZURÜCKGESTELLT
+## R1. Rollen, Funktionen, Rechte (ersetzt S4, entschieden 2026-11-13)
 
-**Nicht umsetzen.** Wird ersetzt durch das Rollen-System in `docs/rollen-funktionen-rechte.md` (Vorschlag, Entscheidung offen). Schritte, die vorher ein neues Recht brauchen (z. B. S5 `project.archive`, `trash.purge`), tragen es vorläufig in `ProjectPermissions`/`SystemPermissions` nach der Standardbelegung in `docs/rollen-funktionen-rechte.md` §5 ein.
+Details: `docs/rollen-funktionen-rechte.md` (verbindlich). Breaking Change, `migrate:fresh` lokal.
 
-Ursprünglicher Inhalt (nur noch als Standardbelegung relevant):
+- **Rechte** als feste Liste im Code (Enum `Right`, §4) mit Bereich (System/Projekt) und Kurztext DE/EN. Test: jedes Recht wird verwendet, jede Prüfung nutzt ein Recht aus der Liste.
+- **Tabellen** `roles`, `functions`, `function_rights`, `role_functions` (§8). `users.role` → `users.role_id`, `project_user.role` → `project_user.role_id`.
+- **Standardbelegung** (§5) als Datei im Code, wird beim Seeden und mit `php artisan permissions:sync-defaults` eingespielt; „Standard wiederherstellen“ je Rolle/Funktion. Projektrolle **Gast** (nur lesen) dabei. Test: Standardbelegung ergibt die erwartete Matrix.
+- **Dienst `App\Support\Rights`** ersetzt `ProjectPermissions` und `SystemPermissions` (`allows`, `rightsOf`, Cache je Request, Cache-Leeren bei Änderung). Obergrenze der Systemrolle (§3), `projects.manageAny`.
+- **Policies** fragen nur `Rights::allows`. Grundregeln §7 bleiben im Code (Policies, `ProjectMembership`), mit Tests je Regel.
+- **GraphQL:** Enum `Right` statt `ProjectAbility`/`SystemAbility`, `Project.viewerRights`, `viewerRights` (System), Typen `Role`, `RoleFunction`, Mutationen zum Verwalten (Recht `roles.manage`). `permissionMatrix` wird zur berechneten Übersicht.
+- **Neue Rechte** aus der bisherigen Planung sind darin enthalten: `task.updateOwn`, `task.assignSelf`, `project.archive`, `trash.restore`, `trash.purge`, `owner.manage`, `assistant.use`, `ideas.create`, `ideas.viewAny`, `templates.manage`, `templates.manageAny`, `planer.export`, `planer.import`, `aiContext.update`, `roles.manage`, `settings.manage`, `system.view`, `database.view`.
+- **Tätigkeit:** `job_function` → `activity` (Spalte, GraphQL, Frontend, Texte „Tätigkeit“/„Activity“).
+- **Oberfläche:** Seite `/admin/roles` (Rollen je Bereich, Funktionen, Übersicht Rolle × Recht), Rollenauswahl in Benutzerverwaltung und Mitgliederseite aus der Liste, Knöpfe nach `viewerRights`.
+- **`planer/2`:** `members[].role` ist der Schlüssel einer Projektrolle (`owner`, `manager`, `member`, `guest` oder eigene). Validator prüft nur die Form (`spec/`, `tools/planer`), der Import prüft die Existenz.
+- `docs/rollen-plan.md` als ersetzt markieren (Verweis auf `docs/rollen-funktionen-rechte.md`).
+- `OutsiderAccessTest`, `MutationTest`, `PolicyTest` auf Rechte statt Rollen umstellen.
 
-In `ProjectPermissions` und `SystemPermissions`, mit Tests in `ProjectPermissionsTableTest`, `SystemPermissionsTableTest`, `PolicyTest`:
-
-- `task.create` zusätzlich für Mitglied.
-- `task.updateOwn` (Owner, Manager, Mitglied): Ändern eigener Tasks (`created_by` = Person).
-- `task.assignSelf` (Owner, Manager, Mitglied): eigenen Task sich selbst zuweisen oder diese Zuweisung aufheben. Gilt auch beim Anlegen (`createTask`).
-- `project.archive` (Owner, Manager).
-- `trash.purge` (Owner).
-- Systemfähigkeiten `assistant.use` (alle außer `lesend`), `ideas.create` (alle außer `lesend`), `ideas.viewAny` (Admin).
-- **Wichtig:** `assistant.use` wird nur angelegt. `draftProjectPlan`, `importProjectPlan` und die Seite `/assistant` bleiben vorerst bei `projects.create`. Grund: Der Prompt des Assistenten enthält heute alle Konten mit E-Mail. Die Öffnung kommt mit dem Assistenten-Umbau (B5a), nicht vorher.
-- Frontend: Knöpfe nach `viewerAbilities` (Task bearbeiten bei eigenen Tasks, Zuweisen an sich selbst).
-- `OutsiderAccessTest` und `MutationTest` wo nötig ergänzen.
+**Reihenfolge:** R1 direkt nach S3 (vor S3b), damit alle weiteren Schritte schon gegen `Rights` bauen. Bis dahin tragen Schritte neue Rechte nicht mehr in die alten Tabellen ein.
 
 ## S5. Archiv und Papierkorb (Schema-Review Schritt 3, A5)
 
@@ -224,6 +233,31 @@ Details: `docs/planer-abgleich.md` §1a, §2, §5, §7 V1 und V2, §9.
 - Datei-Import mit Vorschau (`dry_run` in `PlanerTree`), dann Eintragen.
 - Vorlagen: „Als Vorlage speichern“ (Export + `template`), Upload einer `.planer.json` als Vorlage, Download einer Vorlage, Ansicht des Gerüsts mit `PlanerTree`.
 
+## W1. Webhook für GitHub Actions (entschieden 2026-11-13)
+
+Nach T3. Details: `docs/planer-abgleich.md` §1a und §10.
+- Projekteinstellung „Export-Webhook“: URL und Geheimnis, einrichten mit Recht `project.update`. Geheimnis verschlüsselt gespeichert (`encrypted` cast), nach dem Speichern nie wieder angezeigt, nur ersetzbar.
+- Queue-Job nach Änderungen (`planer_revision` gestiegen), gebündelt höchstens einmal pro 5 Minuten je Projekt, POST mit Projekt-ID und Revision, signiert mit dem Geheimnis (HMAC-SHA256 im Header). Format passend für GitHub `repository_dispatch`.
+- Fehler: drei weitere Versuche mit wachsendem Abstand, danach Hinweis „Letzte Benachrichtigung fehlgeschlagen“ mit Datum in den Projekteinstellungen. Keine Mail.
+- Tests mit gefälschtem HTTP-Client.
+
+## B5a. KI-Assistent auf `planer/2` (entschieden 2026-11-13)
+
+Details: `docs/assistent-ideen-konzept.md` (Fassung 3, verbindlich). Nach I2, I3 und I5 (`PlanerTree`).
+- GraphQL `PlanerDocument`, `PlanDraft`, `PlanPreview`, `draftPlan`, `importPlan` (§9.1). Entfernen: `plan.graphql`-Typen, `draftProjectPlan`, `importProjectPlan`, `ReadsProjectPlanInput`, `PlainTextDocument`, `ProjectPlanAssistant::clean()`.
+- `ProjectPlanAssistant`: Prompt nach §8 (Personen nach Rechten, kompakter Baum, Labels, Vorlagen, KI-Kontext als Datenblock), Structured-Output-Schema aus `spec/planer-2.schema.json` erzeugt, Entwurf als Ausschnitt nach §6, `-new-`-IDs vom Server, Vorschau über den Trockenlauf des Importers.
+- `/assistant` öffnen für `assistant.use` (bisher nur `projects.create`).
+- Oberfläche: Projekt- und Milestone-Auswahl mit Buttons (§4, §5), Vorschlag einer Vorlage bei neuem Projekt, Vorschau mit `PlanerTree`.
+- MCP `list_users` nach §8 einschränken.
+- Tests nach §14.
+
+## B6. Ideen und KI-Kontext (entschieden 2026-11-13)
+
+Details: `docs/assistent-ideen-konzept.md` §10 und §11, `docs/schema-review.md` B1 und B2.
+- Ideen: Tabelle mit `draft` (`planer/2`-Ausschnitt), Status `open`/`adopted`/`discarded`, `todos.idea_id`, Papierkorb, Seite `/ideas`, „Einplanen“ über den Assistenten oder `importPlan`. Rechte `ideas.create`, `ideas.viewAny`.
+- KI-Kontext: Tabelle `project_ai_contexts`, Upload `.txt`/`.md`, 20 000 Zeichen, Freigabe für externe Tools, Recht `aiContext.update`. Einbindung in den Prompt (B5a).
+- MCP `create_idea`, `list_ideas`, `get_project_ai_context`.
+
 ## T2, T3. `pull`/`push`/`sync` und GitHub Action (nach I2)
 
 Wie `docs/planer-abgleich.md` §1a (A-S2, A-S3), in `tools/planer/`. Tests gegen den echten MCP-Server der App (lokal), nicht gegen eine Nachbildung.
@@ -232,11 +266,8 @@ Wie `docs/planer-abgleich.md` §1a (A-S2, A-S3), in `tools/planer/`. Tests gegen
 
 ## Reihenfolge
 
-U0 → T1 → T4 (Rest) → T5 → T6 → S2 → S3 → S3b → S3c → S3e → S4 → S5 → S6 → S7 → I1 → I2 → I3 → I4 → I5 → T2 → T3. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
+U0 → T1 → T4 (Rest) → T5 → T6 → S2 → S3 → R1 → S3b → S3c → S3f → S3e → S5 → S6 → S7 → I1 → I2 → I3 → I4 → I5 → T2 → T3 → W1 → B5a → B6. (S1 erledigt.) S3c braucht die Zählung beim Papierkorb erst mit S5. S2 und S6 können auch dazwischen laufen.
 
 ## Nicht in diesem Auftrag (wird in der Planung geklärt)
 
-- Webhook für GitHub Actions (`docs/planer-abgleich.md` §1a): nach T3.
-- B5a Assistent nach `docs/assistent-ideen-konzept.md`: Entscheidungen Abschnitt 12 offen.
-- B6 Ideen (mit Entwurf als `planer/2`-Ausschnitt, V5), KI-Kontext, MCP `create_idea`, `list_ideas`, `get_project_ai_context`.
-- C1 Payloads (eventuell ersetzt durch Neuladen nach `planerRevision`, §7 V7).
+- Keine offenen Punkte.

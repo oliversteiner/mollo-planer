@@ -14,6 +14,7 @@ Hier werden die Punkte geklärt, die unter „Nicht in diesem Auftrag“ in `doc
 | 6 | Entscheidungen zum Assistenten (`docs/assistent-ideen-konzept.md` §12) | Empfehlungen vorgelegt, offen |
 | 7 | Vereinfachungen durch das neue Konzept | **entschieden:** V1 bis V5 angenommen, V6 abgelehnt (§7, §9) |
 | 8 | Task-Status `idea` und `planned` | **entschieden** (§8) |
+| 10 | Webhook-Details, Neuladen über `planerRevision` statt C1 | **entschieden** (§10) |
 | 9 | Rich Text: TipTap bleibt, Konverter Markdown ↔ TipTap-JSON | **entschieden: TipTap bleibt** (V6 abgelehnt), Umsetzung als Vorschlag (§9) |
 
 ---
@@ -644,3 +645,18 @@ Wenn `planer/2` stabil ist (Import, Export, Vorlagen, Assistent laufen, Roundtri
 2. **Keine Altlasten, keine Abhängigkeiten:** Niemand nutzt die v1-Versionsseite, `app_versions` oder die Vue-Vorlage. Sie werden **nicht** übernommen. `mollo-version` wird nach dem Umzug archiviert (README-Hinweis, keine weiteren Commits). Übernommen werden nur der v1-Parser und `convert v1-zu-v2`, damit vorhandene `version-*.md` (z. B. `version-club-db.md` im Club-DB-Repository) einmalig umgewandelt werden können.
 3. **Ordner und Namen** wie in 4.4: `spec/`, `tools/planer/` (mit `core/` und `cli/`), `backend/app/Planer/`, Befehl `mollo-planer`.
 4. **Umzug sofort.** Kein Agent arbeitet gerade im Code. Es gibt nur noch **eine Spur** in `mollo-planer`. Die Arbeitspakete A-S1 bis A-S4 heißen dort T1 bis T4 (`docs/spur-b-sichere-schritte.md`).
+
+---
+
+## 10. Webhook-Details und Neuladen (entschieden 2026-11-13)
+
+**Webhook (W1 in `docs/spur-b-sichere-schritte.md`):**
+- Einrichten mit Recht `project.update`.
+- Geheimnis verschlüsselt in der Datenbank, nach dem Speichern nie wieder angezeigt, nur ersetzbar. Signatur HMAC-SHA256.
+- Bei Fehlern drei weitere Versuche mit wachsendem Abstand, danach Hinweis in den Projekteinstellungen mit Datum, keine Mail.
+- Umsetzung nach T3.
+
+**Neuladen über `planerRevision` (S3f), ersetzt C1:**
+- Mutationen liefern die neue `planerRevision`. +1 = eigene Änderung, nur Projektbaum und Fortschritt neu laden. Mehr als +1 = jemand anderes hat geändert, alles neu laden und Hinweis zeigen.
+- Zeitachse und Kanban fragen alle 30 Sekunden nur `planerRevision` ab (nicht bei verborgenem Tab). Keine WebSockets nötig (Hostpoint).
+- C1 (Payloads mit Elternteilen) entfällt.
