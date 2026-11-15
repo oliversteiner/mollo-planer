@@ -138,6 +138,8 @@ Details in `docs/planer-abgleich.md`, Abschnitt 1. Eigene Migration nach S3.
 
 ## S3c. Zählung der Planer-Revision (entschieden 2026-11-13)
 
+**Vorher bzw. dabei: `docs/refactoring-m1-m3.md` RF1 bis RF3 (Dienst `PlanerRevision`). Mitglieder (`project_user`) zählen auch, weil `project.members` in der Datei steht.**
+
 Details in `docs/planer-abgleich.md`, Abschnitt 1a.
 
 - `projects.planer_revision` +1 bei jeder Änderung an Projekt, Milestone, ToDo oder Task: Felder, Status, Reihenfolge, Zuweisung, Labels, Release, Commit, User-Story, Papierkorb und Wiederherstellen (sobald S5 steht). Kommentare zählen nicht.
