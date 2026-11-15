@@ -19,7 +19,7 @@ type LabelSet = LabelSetsQuery['labelSets'][number]
 
 const { result, loading } = useQuery(labelSetsQuery, null, { fetchPolicy: 'cache-and-network' })
 const sets = computed(() => result.value?.labelSets ?? [])
-const canManage = computed(() => (result.value?.viewerSystemAbilities ?? []).includes('LABEL_SETS_MANAGE'))
+const canManage = computed(() => (result.value?.viewerRights ?? []).includes('LABEL_SETS_MANAGE'))
 
 const editing = ref<LabelSetFormTarget | null>(null)
 

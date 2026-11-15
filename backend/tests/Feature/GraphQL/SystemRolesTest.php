@@ -49,9 +49,9 @@ class SystemRolesTest extends GraphQLTestCase
 
         $this->assertFalse($this->users['lesend']->can('update', $this->project));
         $this->assertFalse($this->users['lesend']->can('createMilestone', $this->project));
-        $this->as('lesend')->gql('{ project(id: '.$this->project->id.') { name viewerAbilities } }')
+        $this->as('lesend')->gql('{ project(id: '.$this->project->id.') { name viewerRights } }')
             ->assertJsonPath('data.project.name', 'Mollo Planer')
-            ->assertJsonPath('data.project.viewerAbilities', []);
+            ->assertJsonPath('data.project.viewerRights', []);
     }
 
     public function test_member_search_gives_names_only_to_member_managers(): void

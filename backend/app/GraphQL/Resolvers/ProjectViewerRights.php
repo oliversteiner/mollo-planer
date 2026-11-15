@@ -2,25 +2,25 @@
 
 namespace App\GraphQL\Resolvers;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Project;
 use App\Support\Rights;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
- * Project.viewerAbilities: what the viewer may do, from the permission table.
+ * Project.viewerRights: what the viewer may do in this project.
  */
-class ViewerAbilities
+class ProjectViewerRights
 {
     use ResolvesViewer;
 
     /**
      * @param  array<string, mixed>  $args
-     * @return list<ProjectAbility>
+     * @return list<Right>
      */
     public function __invoke(Project $project, array $args, GraphQLContext $context): array
     {
-        return Rights::projectRightsOf($this->viewer($context), $project);
+        return Rights::rightsOf($this->viewer($context), $project);
     }
 }

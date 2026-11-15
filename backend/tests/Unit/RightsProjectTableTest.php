@@ -2,16 +2,16 @@
 
 namespace Tests\Unit;
 
-use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Support\Rights;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Checks the permission table against the matrix confirmed by the client
- * (docs/graphql-kontext.md, "Rechte-Tabelle"). Order: owner, manager, member.
+ * Checks the standard rights against the matrix of
+ * docs/rollen-funktionen-rechte.md, §5. Order: owner, manager, member, guest.
  */
 class RightsProjectTableTest extends TestCase
 {
@@ -20,7 +20,9 @@ class RightsProjectTableTest extends TestCase
     private const CONFIRMED_MATRIX = [
         'project.update' => [true, true, false, false],
         'project.delete' => [true, false, false, false],
+        'project.archive' => [true, true, false, false],
         'members.manage' => [true, true, false, false],
+        'owner.manage' => [true, false, false, false],
         'milestone.create' => [true, true, true, false],
         'milestone.update' => [true, true, true, false],
         'milestone.delete' => [true, true, false, false],
@@ -29,18 +31,22 @@ class RightsProjectTableTest extends TestCase
         'todo.delete' => [true, true, false, false],
         'task.create' => [true, true, true, false],
         'task.update' => [true, true, false, false],
+        'task.updateOwn' => [true, true, true, false],
         'task.assign' => [true, true, false, false],
+        'task.assignSelf' => [true, true, true, false],
         'task.move' => [true, true, true, false],
         'task.delete' => [true, true, false, false],
         'comment.create' => [true, true, true, false],
         'comment.moderate' => [true, true, false, false],
-        'task.updateOwn' => [true, true, true, false],
-        'task.assignSelf' => [true, true, true, false],
-        'owner.manage' => [true, false, false, false],
+        'trash.restore' => [true, true, false, false],
+        'trash.purge' => [true, false, false, false],
+        'planer.export' => [true, true, true, false],
+        'planer.import' => [true, true, false, false],
+        'aiContext.update' => [true, true, false, false],
     ];
 
     /**
-     * @return iterable<string, array{ProjectAbility, ProjectRole, bool}>
+     * @return iterable<string, array{Right, ProjectRole, bool}>
      */
     public static function matrix(): iterable
     {
@@ -48,13 +54,13 @@ class RightsProjectTableTest extends TestCase
 
         foreach (self::CONFIRMED_MATRIX as $ability => $allowed) {
             foreach ($roles as $i => $role) {
-                yield "{$ability} as {$role->value}" => [ProjectAbility::from($ability), $role, $allowed[$i]];
+                yield "{$ability} as {$role->value}" => [Right::from($ability), $role, $allowed[$i]];
             }
         }
     }
 
     #[DataProvider('matrix')]
-    public function test_role_has_exactly_the_confirmed_abilities(ProjectAbility $ability, ProjectRole $role, bool $expected): void
+    public function test_role_has_exactly_the_confirmed_abilities(Right $ability, ProjectRole $role, bool $expected): void
     {
         $this->assertSame($expected, Rights::projectRoleAllows($role, $ability));
     }
@@ -63,13 +69,13 @@ class RightsProjectTableTest extends TestCase
     {
         $this->assertEqualsCanonicalizing(
             array_keys(self::CONFIRMED_MATRIX),
-            array_map(fn (ProjectAbility $a) => $a->value, ProjectAbility::cases()),
+            array_map(fn (Right $a) => $a->value, Right::ofScope(Right::SCOPE_PROJECT)),
         );
     }
 
     public function test_without_role_nothing_is_allowed(): void
     {
-        foreach (ProjectAbility::cases() as $ability) {
+        foreach (Right::ofScope(Right::SCOPE_PROJECT) as $ability) {
             $this->assertFalse(Rights::projectRoleAllows(null, $ability));
         }
 
@@ -79,15 +85,16 @@ class RightsProjectTableTest extends TestCase
     public function test_abilities_of_member(): void
     {
         $this->assertSame([
-            ProjectAbility::MILESTONE_CREATE,
-            ProjectAbility::MILESTONE_UPDATE,
-            ProjectAbility::TODO_CREATE,
-            ProjectAbility::TODO_UPDATE,
-            ProjectAbility::TASK_CREATE,
-            ProjectAbility::TASK_MOVE,
-            ProjectAbility::TASK_UPDATE_OWN,
-            ProjectAbility::TASK_ASSIGN_SELF,
-            ProjectAbility::COMMENT_CREATE,
+            Right::MILESTONE_CREATE,
+            Right::MILESTONE_UPDATE,
+            Right::TODO_CREATE,
+            Right::TODO_UPDATE,
+            Right::TASK_CREATE,
+            Right::TASK_UPDATE_OWN,
+            Right::TASK_ASSIGN_SELF,
+            Right::TASK_MOVE,
+            Right::COMMENT_CREATE,
+            Right::PLANER_EXPORT,
         ], Rights::projectRightsOfRole(ProjectRole::MEMBER));
     }
 }

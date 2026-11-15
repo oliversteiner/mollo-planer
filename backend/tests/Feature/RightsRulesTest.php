@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
@@ -92,8 +92,8 @@ class RightsRulesTest extends TestCase
     public function test_guest_reads_and_changes_nothing(): void
     {
         $this->assertTrue(Rights::canView($this->guest, $this->project));
-        $this->assertSame([], Rights::projectRightsOf($this->guest, $this->project));
-        $this->assertFalse(Rights::projectAllows($this->guest, $this->project, ProjectAbility::TASK_CREATE));
+        $this->assertSame([], Rights::rightsOf($this->guest, $this->project));
+        $this->assertFalse(Rights::allows($this->guest, Right::TASK_CREATE, $this->project));
         $this->assertFalse($this->guest->can('update', $this->foreignTask));
         $this->assertFalse($this->guest->can('move', $this->foreignTask));
         $this->assertFalse($this->guest->can('createComment', $this->foreignTask));
@@ -117,7 +117,7 @@ class RightsRulesTest extends TestCase
 
     public function test_owner_manage_is_a_right_of_the_owner_role(): void
     {
-        $this->assertTrue(Rights::projectRoleAllows(ProjectRole::OWNER, ProjectAbility::OWNER_MANAGE));
-        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::MANAGER, ProjectAbility::OWNER_MANAGE));
+        $this->assertTrue(Rights::projectRoleAllows(ProjectRole::OWNER, Right::OWNER_MANAGE));
+        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::MANAGER, Right::OWNER_MANAGE));
     }
 }

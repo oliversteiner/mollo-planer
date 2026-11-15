@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\Models\Todo;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
@@ -13,16 +13,16 @@ class TodoPolicy
 
     public function update(User $user, Todo $todo): bool
     {
-        return $this->allows($user, $todo, ProjectAbility::TODO_UPDATE);
+        return $this->allows($user, $todo, Right::TODO_UPDATE);
     }
 
     public function delete(User $user, Todo $todo): bool
     {
-        return $this->allows($user, $todo, ProjectAbility::TODO_DELETE);
+        return $this->allows($user, $todo, Right::TODO_DELETE);
     }
 
     public function createTask(User $user, Todo $todo): bool
     {
-        return $this->allows($user, $todo, ProjectAbility::TASK_CREATE);
+        return $this->allows($user, $todo, Right::TASK_CREATE);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\GraphQL;
 
-use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Enums\TaskStatus;
 use App\Models\Comment;
 use App\Models\Milestone;
@@ -47,15 +47,15 @@ class QueryTest extends GraphQLTestCase
     {
         $response = $this->as('member')->gql('query ($id: ID!) {
             project(id: $id) {
-                locale viewerRole viewerAbilities
+                locale viewerRole viewerRights
                 members { user { name } role }
             }
         }', ['id' => $this->project->id]);
 
         $response->assertJsonPath('data.project.locale', 'DE')
             ->assertJsonPath('data.project.viewerRole', 'MEMBER')
-            ->assertJsonPath('data.project.viewerAbilities', [
-                'MILESTONE_CREATE', 'MILESTONE_UPDATE', 'TODO_CREATE', 'TODO_UPDATE', 'TASK_CREATE', 'TASK_MOVE', 'TASK_UPDATE_OWN', 'TASK_ASSIGN_SELF', 'COMMENT_CREATE',
+            ->assertJsonPath('data.project.viewerRights', [
+                'MILESTONE_CREATE', 'MILESTONE_UPDATE', 'TODO_CREATE', 'TODO_UPDATE', 'TASK_CREATE', 'TASK_UPDATE_OWN', 'TASK_ASSIGN_SELF', 'TASK_MOVE', 'COMMENT_CREATE', 'PLANER_EXPORT',
             ])
             ->assertJsonPath('data.project.members', [
                 ['user' => ['name' => 'Ben Owner'], 'role' => 'OWNER'],
@@ -66,10 +66,10 @@ class QueryTest extends GraphQLTestCase
 
     public function test_admin_without_membership_has_no_role_but_all_abilities(): void
     {
-        $response = $this->as('admin')->gql('query ($id: ID!) { project(id: $id) { viewerRole viewerAbilities } }', ['id' => $this->project->id]);
+        $response = $this->as('admin')->gql('query ($id: ID!) { project(id: $id) { viewerRole viewerRights } }', ['id' => $this->project->id]);
 
         $response->assertJsonPath('data.project.viewerRole', null)
-            ->assertJsonCount(count(ProjectAbility::cases()), 'data.project.viewerAbilities');
+            ->assertJsonCount(count(Right::ofScope(Right::SCOPE_PROJECT)), 'data.project.viewerRights');
     }
 
     public function test_progress_on_all_levels(): void
@@ -123,7 +123,7 @@ class QueryTest extends GraphQLTestCase
     public function test_list_queries_do_not_grow_with_the_number_of_rows(): void
     {
         $query = '{
-            projects { members { user { name } role } viewerRole viewerAbilities progress { percent } milestones { progress { done } todos { progress { done } } } }
+            projects { members { user { name } role } viewerRole viewerRights progress { percent } milestones { progress { done } todos { progress { done } } } }
             dashboard { upcomingTodos(limit: 50) { progress { done } } myOpenTasks { todo { milestone { project { viewerRole } } } } }
             myTasks { comments { author { name } viewerCanEdit viewerCanDelete } }
         }';

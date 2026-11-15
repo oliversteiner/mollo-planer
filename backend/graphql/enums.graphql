@@ -22,11 +22,14 @@ enum ItemStatus {
   DONE @enum(value: "done")
 }
 
-"Fähigkeiten innerhalb eines Projekts. Welche Rolle sie hat, steht in der Rechte-Tabelle."
-enum ProjectAbility {
+"Rechte, die der Code prüft (docs/rollen-funktionen-rechte.md, §4). Projektrechte gelten in einem Projekt, Systemrechte in der ganzen App. Welche Rolle ein Recht hat, steht in den Einstellungen (Rollen und Funktionen)."
+enum Right {
+  # Projekt
   PROJECT_UPDATE @enum(value: "project.update")
   PROJECT_DELETE @enum(value: "project.delete")
+  PROJECT_ARCHIVE @enum(value: "project.archive")
   MEMBERS_MANAGE @enum(value: "members.manage")
+  OWNER_MANAGE @enum(value: "owner.manage")
   MILESTONE_CREATE @enum(value: "milestone.create")
   MILESTONE_UPDATE @enum(value: "milestone.update")
   MILESTONE_DELETE @enum(value: "milestone.delete")
@@ -35,17 +38,37 @@ enum ProjectAbility {
   TODO_DELETE @enum(value: "todo.delete")
   TASK_CREATE @enum(value: "task.create")
   TASK_UPDATE @enum(value: "task.update")
+  TASK_UPDATE_OWN @enum(value: "task.updateOwn")
   TASK_ASSIGN @enum(value: "task.assign")
+  TASK_ASSIGN_SELF @enum(value: "task.assignSelf")
   TASK_MOVE @enum(value: "task.move")
   TASK_DELETE @enum(value: "task.delete")
-  TASK_UPDATE_OWN @enum(value: "task.updateOwn")
-  TASK_ASSIGN_SELF @enum(value: "task.assignSelf")
   COMMENT_CREATE @enum(value: "comment.create")
   COMMENT_MODERATE @enum(value: "comment.moderate")
-  OWNER_MANAGE @enum(value: "owner.manage")
+  TRASH_RESTORE @enum(value: "trash.restore")
+  TRASH_PURGE @enum(value: "trash.purge")
+  PLANER_EXPORT @enum(value: "planer.export")
+  PLANER_IMPORT @enum(value: "planer.import")
+  AI_CONTEXT_UPDATE @enum(value: "aiContext.update")
+  # System
+  PROJECTS_CREATE @enum(value: "projects.create")
+  PROJECTS_VIEW_ALL @enum(value: "projects.viewAll")
+  PROJECTS_MANAGE_ANY @enum(value: "projects.manageAny")
+  USERS_MANAGE @enum(value: "users.manage")
+  ROLES_MANAGE @enum(value: "roles.manage")
+  TEMPLATES_MANAGE @enum(value: "templates.manage")
+  TEMPLATES_MANAGE_ANY @enum(value: "templates.manageAny")
+  LABEL_SETS_MANAGE @enum(value: "labelSets.manage")
+  LABEL_SETS_MANAGE_ANY @enum(value: "labelSets.manageAny")
+  ASSISTANT_USE @enum(value: "assistant.use")
+  IDEAS_CREATE @enum(value: "ideas.create")
+  IDEAS_VIEW_ANY @enum(value: "ideas.viewAny")
+  SETTINGS_MANAGE @enum(value: "settings.manage")
+  SYSTEM_VIEW @enum(value: "system.view")
+  DATABASE_VIEW @enum(value: "database.view")
 }
 
-"Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\Rights)."
+"Globale Berechtigungsrolle eines Benutzers. Welche Rechte sie hat, steht in den Einstellungen (Rollen und Funktionen)."
 enum UserRole {
   ADMIN @enum(value: "admin")
   PROJEKTLEITUNG @enum(value: "projektleitung")
@@ -62,16 +85,6 @@ enum UserFunction {
   CONTENT @enum(value: "content")
   TECHNIK @enum(value: "technik")
   VOLUNTEER @enum(value: "volunteer")
-}
-
-"Fähigkeiten über die ganze App, gegeben durch die globale Rolle."
-enum SystemAbility {
-  PROJECTS_CREATE @enum(value: "projects.create")
-  PROJECTS_VIEW_ALL @enum(value: "projects.viewAll")
-  PROJECTS_MANAGE_ANY @enum(value: "projects.manageAny")
-  USERS_MANAGE @enum(value: "users.manage")
-  LABEL_SETS_MANAGE @enum(value: "labelSets.manage")
-  LABEL_SETS_MANAGE_ANY @enum(value: "labelSets.manageAny")
 }
 
 "Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"

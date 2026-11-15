@@ -5,64 +5,76 @@
  * seed for the tables roles, functions, function_rights and role_functions.
  * App\Support\RightsDefaults writes it; App\Support\Rights reads the tables.
  *
- * A right is a value of ProjectAbility or SystemAbility. A function is a named
- * set of rights of one scope. A role is a named set of functions of one scope.
+ * A right is a value of App\Enums\Right. A function is a named set of rights
+ * of one scope. A role is a named set of functions of one scope.
  * 'project_cap' limits the project rights of a system role (null = all, [] =
- * none). Projects.manageAny overrides the cap.
+ * none). projects.manageAny overrides the cap.
+ *
+ * labelSets.manage and labelSets.manageAny are today's rights for label
+ * sets. They ride along with the template functions until step S7 replaces
+ * them by templates.manage and templates.manageAny.
  */
 return [
     'functions' => [
         'system' => [
-            'projekte-anlegen' => [
+            'create-projects' => [
                 'names' => ['de' => 'Projekte anlegen', 'en' => 'Create projects'],
                 'rights' => ['projects.create'],
             ],
-            'alle-projekte' => [
+            'all-projects' => [
                 'names' => ['de' => 'Alle Projekte', 'en' => 'All projects'],
                 'rights' => ['projects.viewAll', 'projects.manageAny'],
             ],
-            'benutzer' => [
-                'names' => ['de' => 'Benutzer verwalten', 'en' => 'Manage users'],
-                'rights' => ['users.manage'],
+            'users-and-roles' => [
+                'names' => ['de' => 'Benutzer und Rollen', 'en' => 'Users and roles'],
+                'rights' => ['users.manage', 'roles.manage'],
             ],
-            'labelsets' => [
-                'names' => ['de' => 'Labelsets verwalten', 'en' => 'Manage label sets'],
-                'rights' => ['labelSets.manage'],
+            'templates' => [
+                'names' => ['de' => 'Vorlagen', 'en' => 'Templates'],
+                'rights' => ['templates.manage', 'labelSets.manage'],
             ],
-            'labelsets-alle' => [
-                'names' => ['de' => 'Alle Labelsets verwalten', 'en' => 'Manage all label sets'],
-                'rights' => ['labelSets.manageAny'],
+            'all-templates' => [
+                'names' => ['de' => 'Alle Vorlagen', 'en' => 'All templates'],
+                'rights' => ['templates.manageAny', 'labelSets.manageAny'],
+            ],
+            'ai-and-ideas' => [
+                'names' => ['de' => 'KI und Ideen', 'en' => 'AI and ideas'],
+                'rights' => ['assistant.use', 'ideas.create'],
+            ],
+            'all-ideas' => [
+                'names' => ['de' => 'Alle Ideen', 'en' => 'All ideas'],
+                'rights' => ['ideas.viewAny'],
+            ],
+            'operations' => [
+                'names' => ['de' => 'Betrieb', 'en' => 'Operations'],
+                'rights' => ['settings.manage', 'database.view'],
+            ],
+            'status' => [
+                'names' => ['de' => 'Status', 'en' => 'Status'],
+                'rights' => ['system.view'],
             ],
         ],
 
         'project' => [
-            'planen' => [
+            'plan' => [
                 'names' => ['de' => 'Planen', 'en' => 'Plan'],
                 'rights' => ['milestone.create', 'milestone.update', 'todo.create', 'todo.update'],
             ],
-            'aufgaben-bewegen' => [
-                'names' => ['de' => 'Aufgaben verschieben', 'en' => 'Move tasks'],
-                'rights' => ['task.move', 'comment.create'],
+            'contribute' => [
+                'names' => ['de' => 'Mitarbeiten', 'en' => 'Contribute'],
+                'rights' => ['task.create', 'task.updateOwn', 'task.assignSelf', 'task.move', 'comment.create', 'planer.export'],
             ],
-            'aufgaben-bearbeiten' => [
-                'names' => ['de' => 'Aufgaben bearbeiten', 'en' => 'Edit tasks'],
-                'rights' => ['task.create', 'task.update', 'task.assign'],
+            'manage-tasks' => [
+                'names' => ['de' => 'Aufgaben verwalten', 'en' => 'Manage tasks'],
+                'rights' => ['task.update', 'task.assign', 'task.delete', 'milestone.delete', 'todo.delete', 'comment.moderate', 'trash.restore'],
             ],
-            'loeschen' => [
-                'names' => ['de' => 'Löschen', 'en' => 'Delete'],
-                'rights' => ['milestone.delete', 'todo.delete', 'task.delete', 'comment.moderate'],
-            ],
-            'projekt-verwalten' => [
+            'manage-project' => [
                 'names' => ['de' => 'Projekt verwalten', 'en' => 'Manage project'],
-                'rights' => ['project.update', 'members.manage'],
+                'rights' => ['project.update', 'project.archive', 'members.manage', 'aiContext.update', 'planer.import'],
             ],
-            'projekt-besitzen' => [
+            'own-project' => [
                 'names' => ['de' => 'Projekt besitzen', 'en' => 'Own project'],
-                'rights' => ['project.delete', 'owner.manage'],
-            ],
-            'aufgaben-eigene' => [
-                'names' => ['de' => 'Eigene Aufgaben', 'en' => 'Own tasks'],
-                'rights' => ['task.create', 'task.updateOwn', 'task.assignSelf'],
+                'rights' => ['project.delete', 'owner.manage', 'trash.purge'],
             ],
         ],
     ],
@@ -71,27 +83,27 @@ return [
         'system' => [
             'admin' => [
                 'names' => ['de' => 'Admin', 'en' => 'Admin'],
-                'functions' => ['projekte-anlegen', 'alle-projekte', 'benutzer', 'labelsets', 'labelsets-alle'],
+                'functions' => ['create-projects', 'all-projects', 'users-and-roles', 'templates', 'all-templates', 'ai-and-ideas', 'all-ideas', 'operations', 'status'],
                 'project_cap' => null,
             ],
             'projektleitung' => [
                 'names' => ['de' => 'Projektleitung', 'en' => 'Project lead'],
-                'functions' => ['projekte-anlegen', 'labelsets'],
+                'functions' => ['create-projects', 'templates', 'ai-and-ideas', 'status'],
                 'project_cap' => null,
             ],
             'koordination' => [
                 'names' => ['de' => 'Koordination', 'en' => 'Coordination'],
-                'functions' => ['projekte-anlegen'],
+                'functions' => ['create-projects', 'ai-and-ideas', 'status'],
                 'project_cap' => null,
             ],
             'mitglied' => [
                 'names' => ['de' => 'Mitglied', 'en' => 'Member'],
-                'functions' => [],
+                'functions' => ['ai-and-ideas', 'status'],
                 'project_cap' => null,
             ],
             'lesend' => [
                 'names' => ['de' => 'Lesend', 'en' => 'Read only'],
-                'functions' => [],
+                'functions' => ['status'],
                 'project_cap' => [],
             ],
         ],
@@ -99,15 +111,15 @@ return [
         'project' => [
             'owner' => [
                 'names' => ['de' => 'Owner', 'en' => 'Owner'],
-                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-eigene', 'aufgaben-bearbeiten', 'loeschen', 'projekt-verwalten', 'projekt-besitzen'],
+                'functions' => ['plan', 'contribute', 'manage-tasks', 'manage-project', 'own-project'],
             ],
             'manager' => [
                 'names' => ['de' => 'Manager', 'en' => 'Manager'],
-                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-eigene', 'aufgaben-bearbeiten', 'loeschen', 'projekt-verwalten'],
+                'functions' => ['plan', 'contribute', 'manage-tasks', 'manage-project'],
             ],
             'member' => [
                 'names' => ['de' => 'Mitglied', 'en' => 'Member'],
-                'functions' => ['planen', 'aufgaben-bewegen', 'aufgaben-eigene'],
+                'functions' => ['plan', 'contribute'],
             ],
             'guest' => [
                 'names' => ['de' => 'Gast', 'en' => 'Guest'],

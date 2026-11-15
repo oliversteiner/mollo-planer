@@ -24,7 +24,7 @@ export const projectHeaderQuery = graphql(`
       description
       icon
       viewerRole
-      viewerAbilities
+      viewerRights
       labelSet { id name labels { id name category color position } }
     }
   }

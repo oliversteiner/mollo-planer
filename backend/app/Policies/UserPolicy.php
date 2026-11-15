@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Support\Rights;
@@ -16,7 +16,7 @@ class UserPolicy
 {
     public function viewAny(User $user): bool
     {
-        return Rights::systemAllows($user, SystemAbility::USERS_MANAGE);
+        return Rights::allows($user, Right::USERS_MANAGE);
     }
 
     /**
@@ -26,12 +26,12 @@ class UserPolicy
      */
     public function viewSecurity(User $user, User $target): bool
     {
-        return $user->is($target) || Rights::systemAllows($user, SystemAbility::USERS_MANAGE);
+        return $user->is($target) || Rights::allows($user, Right::USERS_MANAGE);
     }
 
     public function create(User $user): bool
     {
-        return Rights::systemAllows($user, SystemAbility::USERS_MANAGE);
+        return Rights::allows($user, Right::USERS_MANAGE);
     }
 
     /**
@@ -42,7 +42,7 @@ class UserPolicy
      */
     public function update(User $user, User $target, array $input = []): bool
     {
-        if (! Rights::systemAllows($user, SystemAbility::USERS_MANAGE)) {
+        if (! Rights::allows($user, Right::USERS_MANAGE)) {
             return false;
         }
 
@@ -60,16 +60,16 @@ class UserPolicy
      */
     public function deleteAvatar(User $user, User $target): bool
     {
-        return $user->is($target) || Rights::systemAllows($user, SystemAbility::USERS_MANAGE);
+        return $user->is($target) || Rights::allows($user, Right::USERS_MANAGE);
     }
 
     /**
      * Settings of the whole application (for example two-factor
-     * authentication) are for users who manage users.
+     * authentication) need the right settings.manage.
      */
     public function updateAppSettings(User $user): bool
     {
-        return Rights::systemAllows($user, SystemAbility::USERS_MANAGE);
+        return Rights::allows($user, Right::SETTINGS_MANAGE);
     }
 
     /**
@@ -79,7 +79,7 @@ class UserPolicy
      */
     public function approve(User $user, User $target): bool
     {
-        return Rights::systemAllows($user, SystemAbility::USERS_MANAGE)
+        return Rights::allows($user, Right::USERS_MANAGE)
             && $target->hasVerifiedEmail()
             && ! $target->isApproved()
             && ! $user->is($target);
@@ -91,7 +91,7 @@ class UserPolicy
      */
     public function reject(User $user, User $target): bool
     {
-        return Rights::systemAllows($user, SystemAbility::USERS_MANAGE)
+        return Rights::allows($user, Right::USERS_MANAGE)
             && ! $target->isApproved()
             && ! $user->is($target);
     }
@@ -101,7 +101,7 @@ class UserPolicy
      */
     public function delete(User $user, User $target): bool
     {
-        return Rights::systemAllows($user, SystemAbility::USERS_MANAGE) && ! $user->is($target);
+        return Rights::allows($user, Right::USERS_MANAGE) && ! $user->is($target);
     }
 
     /**

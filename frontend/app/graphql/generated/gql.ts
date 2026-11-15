@@ -27,7 +27,7 @@ type Documents = {
     "\n  mutation ImportProjectPlan($plan: ProjectPlanInput!, $notifyAssignees: Boolean) {\n    importProjectPlan(plan: $plan, notifyAssignees: $notifyAssignees) {\n      id\n      name\n    }\n  }\n": typeof types.ImportProjectPlanDocument,
     "\n  query AssistantPeople {\n    users { id name email avatarUrl }\n  }\n": typeof types.AssistantPeopleDocument,
     "\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n": typeof types.DashboardDocument,
-    "\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": typeof types.LabelSetsDocument,
+    "\n  query LabelSets {\n    viewerRights\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": typeof types.LabelSetsDocument,
     "\n  mutation SetProjectLabelSet($projectId: ID!, $labelSetId: ID) {\n    setProjectLabelSet(projectId: $projectId, labelSetId: $labelSetId) {\n      id\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.SetProjectLabelSetDocument,
     "\n  mutation SetTaskLabels($taskId: ID!, $labelIds: [ID!]!) {\n    setTaskLabels(taskId: $taskId, labelIds: $labelIds) {\n      id\n      labels { id name color position }\n    }\n  }\n": typeof types.SetTaskLabelsDocument,
     "\n  mutation CreateLabelSet($input: LabelSetInput!) {\n    createLabelSet(input: $input) { id name }\n  }\n": typeof types.CreateLabelSetDocument,
@@ -48,10 +48,10 @@ type Documents = {
     "\n  mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {\n    updateTodo(id: $id, input: $input) { id title description icon dueDate }\n  }\n": typeof types.UpdateTodoDocument,
     "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n": typeof types.DeleteTodoDocument,
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
-    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerAbilities\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.ProjectHeaderDocument,
+    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": typeof types.SidebarProjectsDocument,
-    "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n": typeof types.PermissionMatrixDocument,
+    "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles }\n      project { right roles }\n    }\n  }\n": typeof types.PermissionMatrixDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": typeof types.SecurityDocument,
     "\n  query ApiTokens {\n    me {\n      id\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n    }\n  }\n": typeof types.ApiTokensDocument,
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": typeof types.CreateApiTokenDocument,
@@ -74,7 +74,7 @@ type Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": typeof types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": typeof types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": typeof types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": typeof types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
     "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
@@ -90,7 +90,7 @@ const documents: Documents = {
     "\n  mutation ImportProjectPlan($plan: ProjectPlanInput!, $notifyAssignees: Boolean) {\n    importProjectPlan(plan: $plan, notifyAssignees: $notifyAssignees) {\n      id\n      name\n    }\n  }\n": types.ImportProjectPlanDocument,
     "\n  query AssistantPeople {\n    users { id name email avatarUrl }\n  }\n": types.AssistantPeopleDocument,
     "\n  query Dashboard($limit: Int) {\n    dashboard {\n      upcomingTodos(limit: $limit) {\n        id\n        title\n        icon\n        dueDate\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n      myOpenTasks {\n        id\n        title\n        icon\n        status\n        dueDate\n        todo {\n          id\n          title\n          milestone {\n            project { id name }\n          }\n        }\n      }\n      projects {\n        id\n        name\n        viewerRole\n        progress { done total percent }\n      }\n    }\n  }\n": types.DashboardDocument,
-    "\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": types.LabelSetsDocument,
+    "\n  query LabelSets {\n    viewerRights\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n": types.LabelSetsDocument,
     "\n  mutation SetProjectLabelSet($projectId: ID!, $labelSetId: ID) {\n    setProjectLabelSet(projectId: $projectId, labelSetId: $labelSetId) {\n      id\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.SetProjectLabelSetDocument,
     "\n  mutation SetTaskLabels($taskId: ID!, $labelIds: [ID!]!) {\n    setTaskLabels(taskId: $taskId, labelIds: $labelIds) {\n      id\n      labels { id name color position }\n    }\n  }\n": types.SetTaskLabelsDocument,
     "\n  mutation CreateLabelSet($input: LabelSetInput!) {\n    createLabelSet(input: $input) { id name }\n  }\n": types.CreateLabelSetDocument,
@@ -111,10 +111,10 @@ const documents: Documents = {
     "\n  mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {\n    updateTodo(id: $id, input: $input) { id title description icon dueDate }\n  }\n": types.UpdateTodoDocument,
     "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n": types.DeleteTodoDocument,
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole\n      progress { done total percent }\n      members {\n        role\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
-    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerAbilities\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.ProjectHeaderDocument,
+    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.ProjectHeaderDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": types.SidebarProjectsDocument,
-    "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n": types.PermissionMatrixDocument,
+    "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles }\n      project { right roles }\n    }\n  }\n": types.PermissionMatrixDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": types.SecurityDocument,
     "\n  query ApiTokens {\n    me {\n      id\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n    }\n  }\n": types.ApiTokensDocument,
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": types.CreateApiTokenDocument,
@@ -137,7 +137,7 @@ const documents: Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n": types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": types.ViewerDocument,
 };
 
 /**
@@ -209,7 +209,7 @@ export function graphql(source: "\n  query Dashboard($limit: Int) {\n    dashboa
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"): (typeof documents)["\n  query LabelSets {\n    viewerSystemAbilities\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"];
+export function graphql(source: "\n  query LabelSets {\n    viewerRights\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"): (typeof documents)["\n  query LabelSets {\n    viewerRights\n    labelSets {\n      id\n      name\n      description\n      isBuiltin\n      usedByProjects\n      viewerCanUpdate\n      viewerCanDelete\n      labels { id name category color position }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -293,7 +293,7 @@ export function graphql(source: "\n  query Projects {\n    projects {\n      id\
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerAbilities\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"): (typeof documents)["\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerAbilities\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"];
+export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"): (typeof documents)["\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      viewerRole\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -305,7 +305,7 @@ export function graphql(source: "\n  query SidebarProjects {\n    projects { id 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n"): (typeof documents)["\n  query PermissionMatrix {\n    permissionMatrix {\n      system { ability roles }\n      project { ability roles }\n    }\n  }\n"];
+export function graphql(source: "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles }\n      project { right roles }\n    }\n  }\n"): (typeof documents)["\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles }\n      project { right roles }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -397,7 +397,7 @@ export function graphql(source: "\n  mutation DeleteComment($id: ID!) {\n    del
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerSystemAbilities\n  }\n"];
+export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

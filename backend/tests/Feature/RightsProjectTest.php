@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\Rights;
@@ -40,8 +40,8 @@ class RightsProjectTest extends TestCase
         Project::factory()->withMember($owner, ProjectRole::OWNER)->create();
         $other = Project::factory()->create();
 
-        $this->assertFalse(Rights::projectAllows($owner, $other, ProjectAbility::MILESTONE_CREATE));
-        $this->assertSame([], Rights::projectRightsOf($owner, $other));
+        $this->assertFalse(Rights::allows($owner, Right::MILESTONE_CREATE, $other));
+        $this->assertSame([], Rights::rightsOf($owner, $other));
     }
 
     public function test_member_and_manager_get_abilities_from_the_table(): void
@@ -53,14 +53,14 @@ class RightsProjectTest extends TestCase
             ->withMember($member)
             ->create();
 
-        $this->assertTrue(Rights::projectAllows($member, $project, ProjectAbility::TASK_MOVE));
-        $this->assertTrue(Rights::projectAllows($member, $project, ProjectAbility::TASK_CREATE));
-        $this->assertFalse(Rights::projectAllows($member, $project, ProjectAbility::TASK_UPDATE));
-        $this->assertTrue(Rights::projectAllows($manager, $project, ProjectAbility::TASK_CREATE));
-        $this->assertFalse(Rights::projectAllows($manager, $project, ProjectAbility::PROJECT_DELETE));
+        $this->assertTrue(Rights::allows($member, Right::TASK_MOVE, $project));
+        $this->assertTrue(Rights::allows($member, Right::TASK_CREATE, $project));
+        $this->assertFalse(Rights::allows($member, Right::TASK_UPDATE, $project));
+        $this->assertTrue(Rights::allows($manager, Right::TASK_CREATE, $project));
+        $this->assertFalse(Rights::allows($manager, Right::PROJECT_DELETE, $project));
         $this->assertSame(
             Rights::projectRightsOfRole(ProjectRole::MANAGER),
-            Rights::projectRightsOf($manager, $project),
+            Rights::rightsOf($manager, $project),
         );
     }
 
@@ -69,11 +69,11 @@ class RightsProjectTest extends TestCase
         $admin = User::factory()->admin()->create();
         $project = Project::factory()->create();
 
-        foreach (ProjectAbility::cases() as $ability) {
-            $this->assertTrue(Rights::projectAllows($admin, $project, $ability));
+        foreach (Right::ofScope(Right::SCOPE_PROJECT) as $ability) {
+            $this->assertTrue(Rights::allows($admin, $ability, $project));
         }
 
-        $this->assertSame(ProjectAbility::cases(), Rights::projectRightsOf($admin, $project));
+        $this->assertSame(Right::ofScope(Right::SCOPE_PROJECT), Rights::rightsOf($admin, $project));
     }
 
     public function test_loaded_members_avoid_extra_queries(): void
@@ -81,10 +81,10 @@ class RightsProjectTest extends TestCase
         $member = User::factory()->create();
         $project = Project::factory()->withMember($member)->create()->load('members');
 
-        Rights::projectRightsOf($member, $project);
+        Rights::rightsOf($member, $project);
 
         DB::enableQueryLog();
-        Rights::projectRightsOf($member, $project);
+        Rights::rightsOf($member, $project);
 
         $this->assertSame([], DB::getQueryLog());
     }

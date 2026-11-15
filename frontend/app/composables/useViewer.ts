@@ -13,7 +13,7 @@ export function useViewer() {
   const { $apollo, $backend } = useNuxtApp()
   const viewer = useState<Viewer | null>('viewer', () => null)
   const twoFactorEnabled = useState<boolean>('twoFactorEnabled', () => true)
-  const systemAbilities = useState<string[]>('systemAbilities', () => [])
+  const systemRights = useState<string[]>('systemRights', () => [])
 
   /**
    * Asks the API who is logged in. Returns null on success, otherwise why
@@ -32,12 +32,12 @@ export function useViewer() {
       const waiting = readinessKind(data.me)
 
       viewer.value = waiting ? null : data.me
-      systemAbilities.value = waiting ? [] : [...data.viewerSystemAbilities]
+      systemRights.value = waiting ? [] : [...data.viewerRights]
 
       return waiting
     } catch (error) {
       viewer.value = null
-      systemAbilities.value = []
+      systemRights.value = []
 
       return classifyApolloError(error).kind
     }
@@ -49,16 +49,16 @@ export function useViewer() {
       await $backend('/logout', { method: 'POST' })
     } finally {
       viewer.value = null
-      systemAbilities.value = []
+      systemRights.value = []
       await $apollo.clearStore()
       await navigateTo('/login')
     }
   }
 
-  /** Whether the logged-in user has a system-wide ability, for example USERS_MANAGE. */
-  function can(ability: string): boolean {
-    return systemAbilities.value.includes(ability)
+  /** Whether the logged-in user has a system right, for example USERS_MANAGE. */
+  function can(right: string): boolean {
+    return systemRights.value.includes(right)
   }
 
-  return { viewer, twoFactorEnabled, systemAbilities, can, load, logout }
+  return { viewer, twoFactorEnabled, systemRights, can, load, logout }
 }

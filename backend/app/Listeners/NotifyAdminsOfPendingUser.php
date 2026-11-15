@@ -2,7 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Notifications\UserAwaitingApproval;
@@ -28,7 +28,7 @@ class NotifyAdminsOfPendingUser
         $roles = array_filter(
             UserRole::cases(),
             fn (UserRole $role): bool => in_array(
-                SystemAbility::USERS_MANAGE,
+                Right::USERS_MANAGE,
                 Rights::systemRightsOf($role),
                 true,
             ),

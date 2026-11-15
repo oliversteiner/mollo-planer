@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\Models\Comment;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
@@ -28,7 +28,7 @@ class CommentPolicy
     public function delete(User $user, Comment $comment): bool
     {
         return $this->isAuthorWithAccess($user, $comment)
-            || $this->allows($user, $comment, ProjectAbility::COMMENT_MODERATE);
+            || $this->allows($user, $comment, Right::COMMENT_MODERATE);
     }
 
     private function isAuthorWithAccess(User $user, Comment $comment): bool

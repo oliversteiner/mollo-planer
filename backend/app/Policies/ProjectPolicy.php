@@ -2,8 +2,7 @@
 
 namespace App\Policies;
 
-use App\Enums\ProjectAbility;
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
@@ -18,26 +17,26 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        return Rights::systemAllows($user, SystemAbility::PROJECTS_CREATE);
+        return Rights::allows($user, Right::PROJECTS_CREATE);
     }
 
     public function update(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::PROJECT_UPDATE);
+        return $this->allows($user, $project, Right::PROJECT_UPDATE);
     }
 
     public function delete(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::PROJECT_DELETE);
+        return $this->allows($user, $project, Right::PROJECT_DELETE);
     }
 
     public function manageMembers(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::MEMBERS_MANAGE);
+        return $this->allows($user, $project, Right::MEMBERS_MANAGE);
     }
 
     public function createMilestone(User $user, Project $project): bool
     {
-        return $this->allows($user, $project, ProjectAbility::MILESTONE_CREATE);
+        return $this->allows($user, $project, Right::MILESTONE_CREATE);
     }
 }

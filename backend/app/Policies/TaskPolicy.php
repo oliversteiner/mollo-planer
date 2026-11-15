@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\Models\Task;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
@@ -17,12 +17,12 @@ class TaskPolicy
      */
     public function update(User $user, Task $task): bool
     {
-        if ($this->allows($user, $task, ProjectAbility::TASK_UPDATE)) {
+        if ($this->allows($user, $task, Right::TASK_UPDATE)) {
             return true;
         }
 
         return (string) $task->created_by === (string) $user->getKey()
-            && $this->allows($user, $task, ProjectAbility::TASK_UPDATE_OWN);
+            && $this->allows($user, $task, Right::TASK_UPDATE_OWN);
     }
 
     /**
@@ -31,22 +31,22 @@ class TaskPolicy
      */
     public function assign(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::TASK_ASSIGN)
-            || $this->allows($user, $task, ProjectAbility::TASK_ASSIGN_SELF);
+        return $this->allows($user, $task, Right::TASK_ASSIGN)
+            || $this->allows($user, $task, Right::TASK_ASSIGN_SELF);
     }
 
     public function move(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::TASK_MOVE);
+        return $this->allows($user, $task, Right::TASK_MOVE);
     }
 
     public function delete(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::TASK_DELETE);
+        return $this->allows($user, $task, Right::TASK_DELETE);
     }
 
     public function createComment(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::COMMENT_CREATE);
+        return $this->allows($user, $task, Right::COMMENT_CREATE);
     }
 }

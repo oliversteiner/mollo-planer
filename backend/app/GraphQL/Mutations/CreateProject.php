@@ -4,7 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\Locale;
 use App\Enums\ProjectRole;
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\Rights;
@@ -33,7 +33,7 @@ class CreateProject
                 'locale' => $args['locale'] ?? Locale::DE->value,
             ]);
 
-            if ($creator instanceof User && ! Rights::systemAllows($creator, SystemAbility::PROJECTS_MANAGE_ANY)) {
+            if ($creator instanceof User && ! Rights::allows($creator, Right::PROJECTS_MANAGE_ANY)) {
                 $project->members()->attach($creator->getKey(), ['role' => ProjectRole::OWNER->value]);
             }
 

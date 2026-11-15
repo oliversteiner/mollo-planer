@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\Models\Milestone;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
@@ -13,16 +13,16 @@ class MilestonePolicy
 
     public function update(User $user, Milestone $milestone): bool
     {
-        return $this->allows($user, $milestone, ProjectAbility::MILESTONE_UPDATE);
+        return $this->allows($user, $milestone, Right::MILESTONE_UPDATE);
     }
 
     public function delete(User $user, Milestone $milestone): bool
     {
-        return $this->allows($user, $milestone, ProjectAbility::MILESTONE_DELETE);
+        return $this->allows($user, $milestone, Right::MILESTONE_DELETE);
     }
 
     public function createTodo(User $user, Milestone $milestone): bool
     {
-        return $this->allows($user, $milestone, ProjectAbility::TODO_CREATE);
+        return $this->allows($user, $milestone, Right::TODO_CREATE);
     }
 }

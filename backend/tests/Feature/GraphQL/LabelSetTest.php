@@ -4,6 +4,7 @@ namespace Tests\Feature\GraphQL;
 
 use App\Enums\LabelColor;
 use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\Label;
 use App\Models\LabelSet;
@@ -78,14 +79,16 @@ class LabelSetTest extends GraphQLTestCase
         $this->assertSame($this->users['projektleitung']->id, LabelSet::query()->where('name', 'Bau')->value('created_by'));
     }
 
-    public function test_the_viewer_learns_their_system_abilities(): void
+    public function test_the_viewer_learns_their_system_rights(): void
     {
-        $query = 'query { viewerSystemAbilities }';
+        $query = 'query { viewerRights }';
 
-        $this->as('projektleitung')->gql($query)->assertJsonPath('data.viewerSystemAbilities', ['PROJECTS_CREATE', 'LABEL_SETS_MANAGE']);
-        $this->as('manager')->gql($query)->assertJsonPath('data.viewerSystemAbilities', []);
-        $this->as('lesend')->gql($query)->assertJsonPath('data.viewerSystemAbilities', []);
-        $this->as('admin')->gql($query)->assertJsonCount(6, 'data.viewerSystemAbilities');
+        $this->as('projektleitung')->gql($query)->assertJsonPath('data.viewerRights', [
+            'PROJECTS_CREATE', 'TEMPLATES_MANAGE', 'LABEL_SETS_MANAGE', 'ASSISTANT_USE', 'IDEAS_CREATE', 'SYSTEM_VIEW',
+        ]);
+        $this->as('manager')->gql($query)->assertJsonPath('data.viewerRights', ['ASSISTANT_USE', 'IDEAS_CREATE', 'SYSTEM_VIEW']);
+        $this->as('lesend')->gql($query)->assertJsonPath('data.viewerRights', ['SYSTEM_VIEW']);
+        $this->as('admin')->gql($query)->assertJsonCount(count(Right::ofScope(Right::SCOPE_SYSTEM)), 'data.viewerRights');
     }
 
     public function test_duplicating_copies_a_set_as_own_set_in_the_language_of_the_request(): void

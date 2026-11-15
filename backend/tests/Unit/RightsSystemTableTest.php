@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Support\Rights;
@@ -12,8 +12,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Checks the system permission table against the matrix confirmed for the
- * roles (rollen-plan.md). Any change of the table must change this matrix too.
+ * Checks the standard system rights against the matrix of
+ * docs/rollen-funktionen-rechte.md, §5. Any change of the standard must
+ * change this matrix too.
  */
 class RightsSystemTableTest extends TestCase
 {
@@ -23,20 +24,24 @@ class RightsSystemTableTest extends TestCase
      * @var array<string, list<string>>
      */
     private const CONFIRMED = [
-        'admin' => ['projects.create', 'projects.viewAll', 'projects.manageAny', 'users.manage', 'labelSets.manage', 'labelSets.manageAny'],
-        'projektleitung' => ['projects.create', 'labelSets.manage'],
-        'koordination' => ['projects.create'],
-        'mitglied' => [],
-        'lesend' => [],
+        'admin' => [
+            'projects.create', 'projects.viewAll', 'projects.manageAny', 'users.manage', 'roles.manage',
+            'templates.manage', 'templates.manageAny', 'labelSets.manage', 'labelSets.manageAny',
+            'assistant.use', 'ideas.create', 'ideas.viewAny', 'settings.manage', 'system.view', 'database.view',
+        ],
+        'projektleitung' => ['projects.create', 'templates.manage', 'labelSets.manage', 'assistant.use', 'ideas.create', 'system.view'],
+        'koordination' => ['projects.create', 'assistant.use', 'ideas.create', 'system.view'],
+        'mitglied' => ['assistant.use', 'ideas.create', 'system.view'],
+        'lesend' => ['system.view'],
     ];
 
     /**
-     * @return iterable<string, array{UserRole, SystemAbility, bool}>
+     * @return iterable<string, array{UserRole, Right, bool}>
      */
     public static function matrix(): iterable
     {
         foreach (UserRole::cases() as $role) {
-            foreach (SystemAbility::cases() as $ability) {
+            foreach (Right::ofScope(Right::SCOPE_SYSTEM) as $ability) {
                 yield "{$ability->value} as {$role->value}" => [
                     $role,
                     $ability,
@@ -47,9 +52,9 @@ class RightsSystemTableTest extends TestCase
     }
 
     #[DataProvider('matrix')]
-    public function test_role_has_exactly_the_confirmed_abilities(UserRole $role, SystemAbility $ability, bool $expected): void
+    public function test_role_has_exactly_the_confirmed_abilities(UserRole $role, Right $ability, bool $expected): void
     {
-        $this->assertSame($expected, Rights::systemAllows(new User(['role' => $role]), $ability));
+        $this->assertSame($expected, Rights::allows(new User(['role' => $role]), $ability));
     }
 
     public function test_matrix_covers_every_role(): void
@@ -62,7 +67,7 @@ class RightsSystemTableTest extends TestCase
 
     public function test_guests_have_no_system_ability(): void
     {
-        $this->assertFalse(Rights::systemAllows(null, SystemAbility::PROJECTS_CREATE));
+        $this->assertFalse(Rights::allows(null, Right::PROJECTS_CREATE));
     }
 
     public function test_only_the_lesend_role_has_an_empty_project_cap(): void

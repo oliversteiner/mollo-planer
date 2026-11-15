@@ -2,9 +2,8 @@
 
 namespace App\Support;
 
-use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\User;
@@ -36,110 +35,115 @@ final class Rights
     }
 
     /**
-     * Does this user have the system-wide right? Guests have none.
+     * May this person do this? A system right needs no project. A project
+     * right needs the project it is asked for; without one the answer is no.
+     * Guests (no user) have no right.
      */
-    public static function systemAllows(?User $user, SystemAbility $ability): bool
+    public static function allows(?User $user, Right $right, ?Project $project = null): bool
     {
         if ($user === null) {
             return false;
         }
 
-        return in_array($ability, self::systemRightsOf($user->role), true);
+        if ($right->isSystem()) {
+            return in_array($right, self::systemRightsOf($user->role), true);
+        }
+
+        if ($project === null) {
+            return false;
+        }
+
+        if (self::allows($user, Right::PROJECTS_MANAGE_ANY)) {
+            return true;
+        }
+
+        return self::withinCap($user, $right)
+            && self::projectRoleAllows($project->roleOf($user), $right);
+    }
+
+    /**
+     * Everything this person may do: the system rights without a project
+     * (viewerRights), the project rights within one (Project.viewerRights).
+     *
+     * @return list<Right>
+     */
+    public static function rightsOf(User $user, ?Project $project = null): array
+    {
+        if ($project === null) {
+            return self::systemRightsOf($user->role);
+        }
+
+        if (self::allows($user, Right::PROJECTS_MANAGE_ANY)) {
+            return Right::ofScope(Right::SCOPE_PROJECT);
+        }
+
+        return array_values(array_filter(
+            self::projectRightsOfRole($project->roleOf($user)),
+            fn (Right $right): bool => self::withinCap($user, $right),
+        ));
     }
 
     /**
      * System rights of a role, in the order of the enum.
      *
-     * @return list<SystemAbility>
+     * @return list<Right>
      */
     public static function systemRightsOf(?UserRole $role): array
     {
-        if ($role === null) {
-            return [];
-        }
-
-        $granted = self::grantOf('system', $role->value)['rights'];
-
-        return array_values(array_filter(
-            SystemAbility::cases(),
-            fn (SystemAbility $ability): bool => in_array($ability->value, $granted, true),
-        ));
+        return $role === null ? [] : self::rightsOfRole(Right::SCOPE_SYSTEM, $role->value);
     }
 
     /**
      * Does this project role have the project right? A missing role has none.
      */
-    public static function projectRoleAllows(?ProjectRole $role, ProjectAbility $ability): bool
+    public static function projectRoleAllows(?ProjectRole $role, Right $right): bool
     {
-        return in_array($ability, self::projectRightsOfRole($role), true);
+        return in_array($right, self::projectRightsOfRole($role), true);
     }
 
     /**
      * Project rights of a role, in the order of the enum.
      *
-     * @return list<ProjectAbility>
+     * @return list<Right>
      */
     public static function projectRightsOfRole(?ProjectRole $role): array
     {
-        if ($role === null) {
-            return [];
-        }
-
-        $granted = self::grantOf('project', $role->value)['rights'];
-
-        return array_values(array_filter(
-            ProjectAbility::cases(),
-            fn (ProjectAbility $ability): bool => in_array($ability->value, $granted, true),
-        ));
+        return $role === null ? [] : self::rightsOfRole(Right::SCOPE_PROJECT, $role->value);
     }
 
     /**
-     * May this user do this in this project?
+     * Rights of the role with this key, in the order of the enum. Rights of
+     * the other scope and unknown texts in the table grant nothing.
+     *
+     * @return list<Right>
      */
-    public static function projectAllows(User $user, Project $project, ProjectAbility $ability): bool
+    public static function rightsOfRole(string $scope, string $key): array
     {
-        if (self::systemAllows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
-            return true;
-        }
+        $granted = self::grantOf($scope, $key)['rights'];
 
-        return self::withinCap($user, $ability)
-            && self::projectRoleAllows($project->roleOf($user), $ability);
+        return array_values(array_filter(
+            Right::ofScope($scope),
+            fn (Right $right): bool => in_array($right->value, $granted, true),
+        ));
     }
 
     /**
      * Does the user have this project right in at least one project?
      * Used for things outside a single project, such as the member search.
      */
-    public static function projectAllowsInAnyProject(User $user, ProjectAbility $ability): bool
+    public static function allowsInAnyProject(User $user, Right $right): bool
     {
-        if (self::systemAllows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
+        if (self::allows($user, Right::PROJECTS_MANAGE_ANY)) {
             return true;
         }
 
-        if (! self::withinCap($user, $ability)) {
+        if (! self::withinCap($user, $right)) {
             return false;
         }
 
         return $user->projects()
             ->pluck('project_user.role')
-            ->contains(fn (string $role) => self::projectRoleAllows(ProjectRole::tryFrom($role), $ability));
-    }
-
-    /**
-     * Everything this user may do in this project (Project.viewerAbilities).
-     *
-     * @return list<ProjectAbility>
-     */
-    public static function projectRightsOf(User $user, Project $project): array
-    {
-        if (self::systemAllows($user, SystemAbility::PROJECTS_MANAGE_ANY)) {
-            return ProjectAbility::cases();
-        }
-
-        return array_values(array_filter(
-            self::projectRightsOfRole($project->roleOf($user)),
-            fn (ProjectAbility $ability): bool => self::withinCap($user, $ability),
-        ));
+            ->contains(fn (string $role) => self::projectRoleAllows(ProjectRole::tryFrom($role), $right));
     }
 
     /**
@@ -149,13 +153,13 @@ final class Rights
      */
     public static function canChangeMembership(User $actor, Project $project, ?ProjectRole $currentRole, ?ProjectRole $newRole): bool
     {
-        if (! self::projectAllows($actor, $project, ProjectAbility::MEMBERS_MANAGE)) {
+        if (! self::allows($actor, Right::MEMBERS_MANAGE, $project)) {
             return false;
         }
 
         $touchesOwner = $currentRole === ProjectRole::OWNER || $newRole === ProjectRole::OWNER;
 
-        return ! $touchesOwner || self::projectAllows($actor, $project, ProjectAbility::OWNER_MANAGE);
+        return ! $touchesOwner || self::allows($actor, Right::OWNER_MANAGE, $project);
     }
 
     /**
@@ -165,11 +169,11 @@ final class Rights
      */
     public static function mayAssignTask(User $actor, Project $project, int|string|null $assigneeId, int|string|null $currentAssigneeId): bool
     {
-        if (self::projectAllows($actor, $project, ProjectAbility::TASK_ASSIGN)) {
+        if (self::allows($actor, Right::TASK_ASSIGN, $project)) {
             return true;
         }
 
-        if (! self::projectAllows($actor, $project, ProjectAbility::TASK_ASSIGN_SELF)) {
+        if (! self::allows($actor, Right::TASK_ASSIGN_SELF, $project)) {
             return false;
         }
 
@@ -185,7 +189,7 @@ final class Rights
      */
     public static function canRemoveLastOwner(User $actor): bool
     {
-        return self::systemAllows($actor, SystemAbility::PROJECTS_MANAGE_ANY);
+        return self::allows($actor, Right::PROJECTS_MANAGE_ANY);
     }
 
     /**
@@ -194,7 +198,7 @@ final class Rights
      */
     public static function canView(User $user, Project $project): bool
     {
-        return self::systemAllows($user, SystemAbility::PROJECTS_VIEW_ALL)
+        return self::allows($user, Right::PROJECTS_VIEW_ALL)
             || $project->roleOf($user) !== null;
     }
 
@@ -212,7 +216,7 @@ final class Rights
             return;
         }
 
-        if (self::systemAllows($user, SystemAbility::PROJECTS_VIEW_ALL)) {
+        if (self::allows($user, Right::PROJECTS_VIEW_ALL)) {
             return;
         }
 
@@ -220,11 +224,11 @@ final class Rights
     }
 
     /** The project cap of the user's system role allows this right (null cap = all). */
-    private static function withinCap(User $user, ProjectAbility $ability): bool
+    private static function withinCap(User $user, Right $right): bool
     {
         $cap = self::grantOf('system', $user->role?->value ?? '')['cap'];
 
-        return $cap === null || in_array($ability->value, $cap, true);
+        return $cap === null || in_array($right->value, $cap, true);
     }
 
     /**

@@ -3,7 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { permissionMatrixQuery } from '~/graphql/rights'
 
 /**
- * The rights table: rows are abilities, columns are roles. Read from the
+ * The rights table: rows are rights, columns are roles. Read from the
  * backend (the same rules the policies use). Admins only.
  */
 definePageMeta({ middleware: 'admin' })
@@ -20,7 +20,7 @@ const PROJECT_ROLES = ['OWNER', 'MANAGER', 'MEMBER', 'GUEST'] as const
 const system = computed(() => result.value?.permissionMatrix.system ?? [])
 const project = computed(() => result.value?.permissionMatrix.project ?? [])
 
-/** Whether a role has the ability in the row (the rows are the backend answer). */
+/** Whether a role has the right in the row (the rows are the backend answer). */
 function has(roles: readonly string[], role: string): boolean {
   return roles.includes(role)
 }
@@ -53,7 +53,7 @@ function has(roles: readonly string[], role: string): boolean {
             <thead>
               <tr>
                 <th scope="col">
-                  {{ t('rights.ability') }}
+                  {{ t('rights.right') }}
                 </th>
                 <th
                   v-for="role in SYSTEM_ROLES"
@@ -67,10 +67,10 @@ function has(roles: readonly string[], role: string): boolean {
             <tbody>
               <tr
                 v-for="row in system"
-                :key="row.ability"
+                :key="row.right"
               >
                 <th scope="row">
-                  {{ t(`rights.abilities.${row.ability}`) }}
+                  {{ t(`rights.names.${row.right}`) }}
                 </th>
                 <td
                   v-for="role in SYSTEM_ROLES"
@@ -109,7 +109,7 @@ function has(roles: readonly string[], role: string): boolean {
             <thead>
               <tr>
                 <th scope="col">
-                  {{ t('rights.ability') }}
+                  {{ t('rights.right') }}
                 </th>
                 <th
                   v-for="role in PROJECT_ROLES"
@@ -123,10 +123,10 @@ function has(roles: readonly string[], role: string): boolean {
             <tbody>
               <tr
                 v-for="row in project"
-                :key="row.ability"
+                :key="row.right"
               >
                 <th scope="row">
-                  {{ t(`rights.abilities.${row.ability}`) }}
+                  {{ t(`rights.names.${row.right}`) }}
                 </th>
                 <td
                   v-for="role in PROJECT_ROLES"

@@ -2,7 +2,7 @@
 
 namespace App\Models\Concerns;
 
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Models\User;
 use App\Support\Rights;
 use Illuminate\Database\Eloquent\Builder;
@@ -43,7 +43,7 @@ trait VisibleToViewer
      */
     public function scopeVisibleTo(Builder $query, ?User $user): void
     {
-        if (Rights::systemAllows($user, SystemAbility::PROJECTS_VIEW_ALL)) {
+        if (Rights::allows($user, Right::PROJECTS_VIEW_ALL)) {
             return;
         }
 

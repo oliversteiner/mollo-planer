@@ -77,7 +77,7 @@ type Project {
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
   viewerRole: ProjectRole @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
   "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
-  viewerAbilities: [ProjectAbility!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerAbilities")
+  viewerRights: [Right!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectViewerRights")
   createdAt: DateTime! @rename(attribute: "created_at")
 }
 
@@ -232,20 +232,20 @@ type Dashboard {
   projects: [Project!]! @all(scopes: ["visibleToViewer"])
 }
 
-"Rechte-Tabelle (nur Admin): globale Fähigkeiten und Projektfähigkeiten, je mit den Rollen, die sie haben."
+"Berechnete Übersicht Rolle × Recht: Systemrechte und Projektrechte, je mit den Rollen, die sie haben."
 type PermissionMatrix {
-  system: [SystemAbilityRow!]!
-  project: [ProjectAbilityRow!]!
+  system: [SystemRightRow!]!
+  project: [ProjectRightRow!]!
 }
 
-"Eine globale Fähigkeit und die Rollen, die sie haben."
-type SystemAbilityRow {
-  ability: SystemAbility!
+"Ein Systemrecht und die Systemrollen, die es haben."
+type SystemRightRow {
+  right: Right!
   roles: [UserRole!]!
 }
 
-"Eine Projektfähigkeit und die Projektrollen, die sie haben. Admins dürfen alle Projektfähigkeiten, siehe Systemfähigkeit projects.manageAny."
-type ProjectAbilityRow {
-  ability: ProjectAbility!
+"Ein Projektrecht und die Projektrollen, die es haben. Wer das Systemrecht projects.manageAny hat, hat in jedem Projekt alle Projektrechte."
+type ProjectRightRow {
+  right: Right!
   roles: [ProjectRole!]!
 }

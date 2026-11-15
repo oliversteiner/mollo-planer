@@ -2,8 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Enums\ProjectAbility;
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use Tests\TestCase;
 
 /**
@@ -13,20 +12,15 @@ use Tests\TestCase;
  */
 class RightsConfigTest extends TestCase
 {
-    public function test_every_configured_right_is_a_known_right(): void
+    public function test_every_configured_right_is_a_known_right_of_its_scope(): void
     {
-        $systemValues = array_column(SystemAbility::cases(), 'value');
-        $projectValues = array_column(ProjectAbility::cases(), 'value');
+        foreach ([Right::SCOPE_SYSTEM, Right::SCOPE_PROJECT] as $scope) {
+            $values = array_column(Right::ofScope($scope), 'value');
 
-        foreach ((array) config('permissions.functions.system') as $key => $function) {
-            foreach ($function['rights'] as $right) {
-                $this->assertContains($right, $systemValues, "functions.system.{$key}: {$right}");
-            }
-        }
-
-        foreach ((array) config('permissions.functions.project') as $key => $function) {
-            foreach ($function['rights'] as $right) {
-                $this->assertContains($right, $projectValues, "functions.project.{$key}: {$right}");
+            foreach ((array) config("permissions.functions.{$scope}") as $key => $function) {
+                foreach ($function['rights'] as $right) {
+                    $this->assertContains($right, $values, "functions.{$scope}.{$key}: {$right}");
+                }
             }
         }
     }
@@ -50,8 +44,8 @@ class RightsConfigTest extends TestCase
             ...array_map(fn (array $function): array => $function['rights'], array_values((array) config('permissions.functions.project'))),
         );
 
-        foreach (array_merge(SystemAbility::cases(), ProjectAbility::cases()) as $ability) {
-            $this->assertContains($ability->value, $granted, "{$ability->value} is in no function");
+        foreach (Right::cases() as $right) {
+            $this->assertContains($right->value, $granted, "{$right->value} is in no function");
         }
     }
 }

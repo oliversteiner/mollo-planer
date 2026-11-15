@@ -4,8 +4,8 @@ namespace Tests\Unit;
 
 use App\Enums\ItemStatus;
 use App\Enums\Locale;
-use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Enums\TaskStatus;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +23,7 @@ class GraphqlEnumBindingTest extends TestCase
     {
         return [
             'ProjectRole' => [ProjectRole::class],
-            'ProjectAbility' => [ProjectAbility::class],
+            'Right' => [Right::class],
             'ItemStatus' => [ItemStatus::class],
             'TaskStatus' => [TaskStatus::class],
             'Locale' => [Locale::class],

@@ -1,6 +1,6 @@
 query GetProject($id: ID!) {
     project(id: $id) {
-        id name description viewerRole viewerAbilities
+        id name description viewerRole viewerRights
         members { role user { id name email } }
         milestones {
             id title dueDate status

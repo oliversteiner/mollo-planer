@@ -9,17 +9,10 @@
 #  Schreiben  Eine Policy prüft per @can. Ohne Recht gibt es den Fehler
 #             "This action is unauthorized."
 #
-#  Rechte     Die Rechte stehen in Tabellen (roles, functions, function_rights,
-#             role_functions), Standard in config/permissions.php. Alle Policies
-#             fragen nur App\Support\Rights. Wer was darf, steht in
-#             docs/rollen-funktionen-rechte.md (§5). Admins (Rolle admin,
-#             Recht projects.manageAny) dürfen immer alles.
-#
-#             Eigene Kommentare ändern und löschen darf jede Person,
-#             solange sie das Projekt sehen darf.
-#             Fremde Kommentare ändert niemand, auch kein Admin.
-#             Im Standard dürfen Projekte anlegen: Admin, Projektleitung, Koordination.
-#             Benutzer verwalten dürfen im Standard nur Admins.
+#  Rechte     Der Code prüft nur Rechte (Enum Right). Welche Rolle welches
+#             Recht hat, steht in den Einstellungen (Rollen, Funktionen) und
+#             ist in docs/rollen-funktionen-rechte.md beschrieben. Die
+#             Abfrage permissionMatrix zeigt, was gerade gilt.
 #  Login      läuft nicht über GraphQL, sondern über Fortify (REST):
 #             Login, Logout, Passwort-Reset, 2FA und Passkeys
 #  2FA-Pflicht  Eine Middleware in config/lighthouse.php (route.middleware)
@@ -59,7 +52,7 @@
 #  Aufbau     Dieses Schema ist in Dateien geteilt, Lighthouse fügt sie per
 #             #import zusammen (Reihenfolge egal):
 #             scalars.graphql    Skalare (Date, DateTime, RichText, Upload)
-#             enums.graphql      Enums (Rollen, Status, Fähigkeiten, Farben)
+#             enums.graphql      Enums (Rollen, Status, Rechte, Farben)
 #             types.graphql      Typen (Benutzer, Projekt, Milestone … Rechte-Tabelle)
 #             inputs.graphql     Eingaben (CreateTaskInput …)
 #             queries.graphql    Abfragen (type Query)

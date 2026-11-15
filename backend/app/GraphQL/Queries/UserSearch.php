@@ -2,7 +2,7 @@
 
 namespace App\GraphQL\Queries;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\User;
 use App\Support\Rights;
@@ -27,7 +27,7 @@ class UserSearch
     {
         $viewer = $this->viewer($context);
 
-        if (! Rights::projectAllowsInAnyProject($viewer, ProjectAbility::MEMBERS_MANAGE)) {
+        if (! Rights::allowsInAnyProject($viewer, Right::MEMBERS_MANAGE)) {
             return [];
         }
 
