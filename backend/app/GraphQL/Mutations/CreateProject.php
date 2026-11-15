@@ -3,18 +3,19 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\Locale;
-use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\AppSettings;
 use App\Support\Rights;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Creates a project (checked by @can: projects.create). Someone who may
- * manage any project (admin) does not become a member. Everyone else who
- * creates a project becomes its owner, otherwise they could not see it.
+ * manage any project does not become a member. Everyone else who creates a
+ * project becomes a member with the creator role of the settings (standard:
+ * owner), otherwise they could not see it.
  */
 class CreateProject
 {
@@ -34,7 +35,7 @@ class CreateProject
             ]);
 
             if ($creator instanceof User && ! Rights::allows($creator, Right::PROJECTS_MANAGE_ANY)) {
-                $project->members()->attach($creator->getKey(), ['role' => ProjectRole::OWNER->value]);
+                $project->members()->attach($creator->getKey(), ['role' => AppSettings::projectCreatorRole()->value]);
             }
 
             return $project;

@@ -27,7 +27,6 @@ class RightUsageTest extends TestCase
         'planer.export' => 'I1',
         'planer.import' => 'I2',
         'aiContext.update' => 'B6',
-        'roles.manage' => 'R1 stage 3b (roles in the settings)',
         'templates.manage' => 'S7',
         'templates.manageAny' => 'S7',
         'assistant.use' => 'B5a',

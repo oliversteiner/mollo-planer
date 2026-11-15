@@ -3,10 +3,13 @@
 namespace App\Providers;
 
 use App\Services\TaskNotifier;
+use App\Support\Rights;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,6 +37,10 @@ class AppServiceProvider extends ServiceProvider
         // Escape Markdown links and HTML in values echoed into mails, so a
         // task title like "[Click](https://evil.example)" stays plain text.
         Markdown::withSecuredEncoding();
+
+        // A queue worker lives longer than a request: read the rights anew
+        // for every job, so a change in the settings reaches it.
+        Event::listen(JobProcessing::class, fn () => Rights::clearCache());
 
         // MCP requests (Claude) per minute and token owner; a project plan is
         // one request, reading a project another.

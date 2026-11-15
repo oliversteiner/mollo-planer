@@ -101,7 +101,7 @@ class MutationTest extends GraphQLTestCase
             'p' => $this->project->id, 'u' => $this->users['owner']->id,
         ])->assertJsonMissingPath('errors');
 
-        $this->assertSame(0, $this->project->countMembersWithRole(ProjectRole::OWNER));
+        $this->assertSame(0, $this->project->members()->wherePivot('role', ProjectRole::OWNER->value)->count());
     }
 
     public function test_removed_member_loses_task_assignments_in_this_project(): void

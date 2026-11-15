@@ -13,9 +13,12 @@ use Illuminate\Validation\ValidationException;
 /**
  * Adds, changes and removes project members.
  *
- * Rules on top of "members.manage" (checked by the policy):
- * - Only owners and admins grant the owner role or change/remove an owner.
- * - The last owner cannot be removed or demoted, except by an admin.
+ * Rules on top of "members.manage" (checked by the policy), see
+ * docs/rollen-funktionen-rechte.md, §7. They follow rights, not role names:
+ * - A role with project.delete or owner.manage is granted, changed or
+ *   removed only with owner.manage (or projects.manageAny).
+ * - The project keeps at least one member who may delete it. Only someone
+ *   with projects.manageAny may break this.
  * - Removing a member unassigns their tasks in this project.
  *
  * Call inside a transaction: changes lock the project row, so two changes
@@ -36,8 +39,8 @@ class ProjectMembership
 
         $this->authorize($actor, $project, $current, $role);
 
-        if ($current === ProjectRole::OWNER && $role !== ProjectRole::OWNER) {
-            $this->guardLastOwner($actor, $project, 'role');
+        if (Rights::holdsProject($user, $current) && ! Rights::holdsProject($user, $role)) {
+            $this->guardLastHolder($actor, $project, $user, 'role');
         }
 
         if ($current === null) {
@@ -65,8 +68,8 @@ class ProjectMembership
 
         $this->authorize($actor, $project, $current, null);
 
-        if ($current === ProjectRole::OWNER) {
-            $this->guardLastOwner($actor, $project, 'userId');
+        if (Rights::holdsProject($user, $current)) {
+            $this->guardLastHolder($actor, $project, $user, 'userId');
         }
 
         $project->members()->detach($user);
@@ -109,9 +112,9 @@ class ProjectMembership
     /**
      * @throws ValidationException
      */
-    private function guardLastOwner(User $actor, Project $project, string $field): void
+    private function guardLastHolder(User $actor, Project $project, User $leaving, string $field): void
     {
-        if ($project->countMembersWithRole(ProjectRole::OWNER) <= 1 && ! Rights::canRemoveLastOwner($actor)) {
+        if (Rights::countHolders($project, $leaving) === 0 && ! Rights::canLeaveProjectWithoutHolder($actor)) {
             throw ValidationException::withMessages([$field => __('projects.last_owner')]);
         }
     }

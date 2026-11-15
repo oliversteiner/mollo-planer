@@ -148,8 +148,10 @@ final class Rights
 
     /**
      * May the actor change a membership from $currentRole to $newRole?
-     * Null means "not a member" (add) or "remove". Touching the owner role
-     * needs owner.manage.
+     * Null means "not a member" (add) or "remove". A role that carries
+     * project.delete or owner.manage is granted or taken away only with
+     * owner.manage (docs/rollen-funktionen-rechte.md, §7.4). The rule looks
+     * at the rights of the roles, never at their names.
      */
     public static function canChangeMembership(User $actor, Project $project, ?ProjectRole $currentRole, ?ProjectRole $newRole): bool
     {
@@ -157,9 +159,62 @@ final class Rights
             return false;
         }
 
-        $touchesOwner = $currentRole === ProjectRole::OWNER || $newRole === ProjectRole::OWNER;
+        $touchesOwnership = self::isOwnershipRole($currentRole) || self::isOwnershipRole($newRole);
 
-        return ! $touchesOwner || self::allows($actor, Right::OWNER_MANAGE, $project);
+        return ! $touchesOwnership || self::allows($actor, Right::OWNER_MANAGE, $project);
+    }
+
+    /**
+     * Does the role carry project.delete or owner.manage? Such a role is
+     * handled only by people with owner.manage.
+     */
+    public static function isOwnershipRole(?ProjectRole $role): bool
+    {
+        return self::projectRoleAllows($role, Right::PROJECT_DELETE)
+            || self::projectRoleAllows($role, Right::OWNER_MANAGE);
+    }
+
+    /**
+     * Would this member keep the project alive, that is: may they delete it
+     * through their project role (within the cap of their system role)?
+     * projects.manageAny does not count, it is no membership.
+     */
+    public static function holdsProject(User $member, ?ProjectRole $role): bool
+    {
+        return self::projectRoleAllows($role, Right::PROJECT_DELETE)
+            && self::withinCap($member, Right::PROJECT_DELETE);
+    }
+
+    /**
+     * How many members hold the project (see holdsProject), not counting
+     * $except. Every project keeps at least one (§7.3).
+     */
+    public static function countHolders(Project $project, ?User $except = null): int
+    {
+        return $project->members()
+            ->get()
+            ->reject(fn (User $member): bool => $except !== null && $member->is($except))
+            ->filter(fn (User $member): bool => self::holdsProject($member, $member->membership->role))
+            ->count();
+    }
+
+    /**
+     * How many approved people have this system right, not counting $except.
+     * Used for the rule that somebody always keeps users.manage and
+     * roles.manage (§7.1).
+     */
+    public static function countUsersWith(Right $right, ?User $except = null): int
+    {
+        $roles = array_values(array_filter(
+            UserRole::cases(),
+            fn (UserRole $role): bool => in_array($right, self::systemRightsOf($role), true),
+        ));
+
+        return User::query()
+            ->whereIn('role', array_map(fn (UserRole $role): string => $role->value, $roles))
+            ->whereNotNull('approved_at')
+            ->when($except !== null, fn (Builder $users) => $users->whereKeyNot($except->getKey()))
+            ->count();
     }
 
     /**
@@ -184,10 +239,10 @@ final class Rights
     }
 
     /**
-     * May the actor remove or demote the last owner? Only users who may
-     * manage any project.
+     * May the actor leave a project without anybody who holds it? Only
+     * people who may manage any project (§7.3).
      */
-    public static function canRemoveLastOwner(User $actor): bool
+    public static function canLeaveProjectWithoutHolder(User $actor): bool
     {
         return self::allows($actor, Right::PROJECTS_MANAGE_ANY);
     }

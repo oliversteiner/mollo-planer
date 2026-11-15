@@ -8,12 +8,15 @@ use App\Models\User;
 use App\Support\Rights;
 
 /**
- * Managing users is for users with users.manage (the admin role). The full
+ * Managing users is for users with the right users.manage. The full
  * user list is for them too. Everyone who manages members somewhere uses the
  * narrow member search instead, which shows only names.
  */
 class UserPolicy
 {
+    /** Rights that somebody must always keep, so the settings stay reachable. */
+    private const PROTECTED_RIGHTS = [Right::USERS_MANAGE, Right::ROLES_MANAGE];
+
     public function viewAny(User $user): bool
     {
         return Rights::allows($user, Right::USERS_MANAGE);
@@ -35,8 +38,10 @@ class UserPolicy
     }
 
     /**
-     * Also used by resetUserTwoFactor. Nobody can take the admin role away
-     * from themselves, so the last admin cannot lock themselves out.
+     * Also used by resetUserTwoFactor. Two rules protect against locking
+     * everybody out (docs/rollen-funktionen-rechte.md, §7.1 and §7.2):
+     * nobody takes users.manage or roles.manage away from themselves, and
+     * the last person with one of these rights keeps it.
      *
      * @param  array<string, mixed>  $input  Mutation input (Lighthouse injectArgs), snake_case keys
      */
@@ -46,11 +51,21 @@ class UserPolicy
             return false;
         }
 
-        $removesOwnAdminRole = $user->is($target)
-            && array_key_exists('role', $input)
-            && $this->roleOf($input['role']) !== UserRole::ADMIN;
+        if (! array_key_exists('role', $input)) {
+            return true;
+        }
 
-        return ! $removesOwnAdminRole;
+        $newRights = Rights::systemRightsOf($this->roleOf($input['role']));
+
+        foreach (self::PROTECTED_RIGHTS as $right) {
+            $loses = Rights::allows($target, $right) && ! in_array($right, $newRights, true);
+
+            if ($loses && ($user->is($target) || Rights::countUsersWith($right, $target) === 0)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -97,11 +112,22 @@ class UserPolicy
     }
 
     /**
-     * Nobody deletes their own account.
+     * Nobody deletes their own account, and the last person with
+     * users.manage or roles.manage stays (§7.1).
      */
     public function delete(User $user, User $target): bool
     {
-        return Rights::allows($user, Right::USERS_MANAGE) && ! $user->is($target);
+        if (! Rights::allows($user, Right::USERS_MANAGE) || $user->is($target)) {
+            return false;
+        }
+
+        foreach (self::PROTECTED_RIGHTS as $right) {
+            if (Rights::allows($target, $right) && Rights::countUsersWith($right, $target) === 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
