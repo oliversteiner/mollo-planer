@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Locale;
 use App\Enums\UserActivity;
 use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
 use App\Notifications\UserInvited;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class UserInvitation
      * Create the user with a random password nobody knows and send the
      * invitation in the given language.
      */
-    public function invite(string $name, string $email, UserRole $role, Locale $locale, ?UserActivity $activity = null): User
+    public function invite(string $name, string $email, Role|UserRole|null $role, Locale $locale, ?UserActivity $activity = null): User
     {
         return DB::transaction(function () use ($name, $email, $role, $locale, $activity): User {
             $user = $this->create($name, $email, $role, Str::password(64), $activity);
@@ -38,7 +39,7 @@ class UserInvitation
      * Create the user with a password chosen right away (no mail). Created by
      * an admin, so the account is verified and approved at once.
      */
-    public function create(string $name, string $email, UserRole $role, string $password, ?UserActivity $activity = null): User
+    public function create(string $name, string $email, Role|UserRole|null $role, string $password, ?UserActivity $activity = null): User
     {
         $user = User::create([
             'name' => $name,

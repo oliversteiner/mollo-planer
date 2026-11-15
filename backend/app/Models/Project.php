@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\Locale;
-use App\Enums\ProjectRole;
 use App\Models\Concerns\VisibleToViewer;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -48,7 +47,7 @@ class Project extends Model
         return $this->belongsToMany(User::class)
             ->using(ProjectMember::class)
             ->as('membership')
-            ->withPivot('id', 'role')
+            ->withPivot('id', 'role_id')
             ->withTimestamps();
     }
 
@@ -77,13 +76,20 @@ class Project extends Model
      * This only looks up the role; what it allows is decided by
      * App\Support\Rights.
      */
-    public function roleOf(User $user): ?ProjectRole
+    public function roleOf(User $user): ?Role
+    {
+        return Role::cached($this->roleIdOf($user));
+    }
+
+    public function roleIdOf(User $user): ?int
     {
         $member = $this->relationLoaded('members')
             ? $this->members->firstWhere('id', $user->getKey())
             : $this->members()->whereKey($user->getKey())->first();
 
-        return $member?->membership->role;
+        $roleId = $member?->membership->role_id;
+
+        return $roleId === null ? null : (int) $roleId;
     }
 
     protected static function projectPath(): ?string

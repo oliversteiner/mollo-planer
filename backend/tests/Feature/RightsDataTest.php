@@ -6,6 +6,7 @@ use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Rights;
 use App\Support\RightsDefaults;
@@ -42,7 +43,7 @@ class RightsDataTest extends TestCase
     {
         $user = User::factory()->create(['role' => UserRole::LESEND]);
         $project = Project::factory()->create();
-        $project->members()->attach($user, ['role' => ProjectRole::OWNER->value]);
+        $project->members()->attach($user, ['role_id' => Role::idOf(Role::SCOPE_PROJECT, ProjectRole::OWNER)]);
 
         $this->assertFalse(Rights::allows($user, Right::TASK_MOVE, $project));
         $this->assertSame([], Rights::rightsOf($user, $project));

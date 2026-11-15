@@ -2,9 +2,9 @@
 
 namespace App\GraphQL\Resolvers;
 
-use App\Enums\ProjectRole;
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Project;
+use App\Models\Role;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -17,7 +17,7 @@ class ViewerRole
     /**
      * @param  array<string, mixed>  $args
      */
-    public function __invoke(Project $project, array $args, GraphQLContext $context): ?ProjectRole
+    public function __invoke(Project $project, array $args, GraphQLContext $context): ?Role
     {
         return $project->roleOf($this->viewer($context));
     }

@@ -4,7 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\Locale;
 use App\Enums\UserActivity;
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\UserInvitation;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +23,9 @@ class CreateUser
      */
     public function __invoke(mixed $root, array $args): User
     {
-        $role = UserRole::from($args['role'] ?? UserRole::MITGLIED->value);
+        $role = isset($args['role'])
+            ? Role::resolveOrFail(Role::SCOPE_SYSTEM, $args['role'])
+            : Role::defaultOf(Role::SCOPE_SYSTEM);
         $activity = isset($args['activity']) ? UserActivity::from($args['activity']) : null;
 
         return DB::transaction(fn (): User => $this->invitation->invite(

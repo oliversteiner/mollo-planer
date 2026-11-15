@@ -1,7 +1,7 @@
 query ListProjects {
     projects {
-        id name description locale viewerRole viewerRights
+        id name description locale viewerRole { key } viewerRights
         progress { done total percent }
-        members { role user { id name email } }
+        members { role { key } user { id name email } }
     }
 }

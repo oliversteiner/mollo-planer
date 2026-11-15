@@ -14,15 +14,17 @@ useHead({ title: () => t('rights.title') })
 
 const { result, loading } = useQuery(permissionMatrixQuery, null, { fetchPolicy: 'cache-and-network' })
 
-const SYSTEM_ROLES = ['ADMIN', 'PROJEKTLEITUNG', 'KOORDINATION', 'MITGLIED', 'LESEND'] as const
-const PROJECT_ROLES = ['OWNER', 'MANAGER', 'MEMBER', 'GUEST'] as const
+/** The columns are the roles of the backend, shipped ones and those made in the settings. */
+const { roles: systemRoles } = useRoles('SYSTEM')
+const { roles: projectRoles } = useRoles('PROJECT')
+const roleName = useRoleName()
 
 const system = computed(() => result.value?.permissionMatrix.system ?? [])
 const project = computed(() => result.value?.permissionMatrix.project ?? [])
 
 /** Whether a role has the right in the row (the rows are the backend answer). */
-function has(roles: readonly string[], role: string): boolean {
-  return roles.includes(role)
+function has(roles: readonly { key: string }[], role: { key: string }): boolean {
+  return roles.some(other => other.key === role.key)
 }
 </script>
 
@@ -56,11 +58,11 @@ function has(roles: readonly string[], role: string): boolean {
                   {{ t('rights.right') }}
                 </th>
                 <th
-                  v-for="role in SYSTEM_ROLES"
-                  :key="role"
+                  v-for="role in systemRoles"
+                  :key="role.key"
                   scope="col"
                 >
-                  {{ t(`userRole.${role}`) }}
+                  {{ roleName(role) }}
                 </th>
               </tr>
             </thead>
@@ -73,8 +75,8 @@ function has(roles: readonly string[], role: string): boolean {
                   {{ t(`rights.names.${row.right}`) }}
                 </th>
                 <td
-                  v-for="role in SYSTEM_ROLES"
-                  :key="role"
+                  v-for="role in systemRoles"
+                  :key="role.key"
                   class="rights-cell"
                 >
                   <wa-icon
@@ -112,11 +114,11 @@ function has(roles: readonly string[], role: string): boolean {
                   {{ t('rights.right') }}
                 </th>
                 <th
-                  v-for="role in PROJECT_ROLES"
-                  :key="role"
+                  v-for="role in projectRoles"
+                  :key="role.key"
                   scope="col"
                 >
-                  {{ t(`role.${role}`) }}
+                  {{ roleName(role) }}
                 </th>
               </tr>
             </thead>
@@ -129,8 +131,8 @@ function has(roles: readonly string[], role: string): boolean {
                   {{ t(`rights.names.${row.right}`) }}
                 </th>
                 <td
-                  v-for="role in PROJECT_ROLES"
-                  :key="role"
+                  v-for="role in projectRoles"
+                  :key="role.key"
                   class="rights-cell"
                 >
                   <wa-icon

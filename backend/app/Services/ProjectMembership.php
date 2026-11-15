@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Enums\ProjectRole;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Rights;
@@ -31,7 +31,7 @@ class ProjectMembership
      * @throws AuthorizationException
      * @throws ValidationException
      */
-    public function set(User $actor, Project $project, User $user, ProjectRole $role): void
+    public function set(User $actor, Project $project, User $user, Role $role): void
     {
         $this->lockProject($project);
 
@@ -44,9 +44,9 @@ class ProjectMembership
         }
 
         if ($current === null) {
-            $project->members()->attach($user, ['role' => $role->value]);
+            $project->members()->attach($user, ['role_id' => $role->id]);
         } else {
-            $project->members()->updateExistingPivot($user->getKey(), ['role' => $role->value]);
+            $project->members()->updateExistingPivot($user->getKey(), ['role_id' => $role->id]);
         }
     }
 
@@ -89,7 +89,7 @@ class ProjectMembership
     {
         $user = User::find($userId);
 
-        if ($user === null || $project->roleOf($user) === null) {
+        if ($user === null || $project->roleIdOf($user) === null) {
             throw ValidationException::withMessages([$field => __('projects.assignee_not_member')]);
         }
     }
@@ -102,7 +102,7 @@ class ProjectMembership
     /**
      * @throws AuthorizationException
      */
-    private function authorize(User $actor, Project $project, ?ProjectRole $current, ?ProjectRole $new): void
+    private function authorize(User $actor, Project $project, ?Role $current, ?Role $new): void
     {
         if (! Rights::canChangeMembership($actor, $project, $current, $new)) {
             throw new AuthorizationException;

@@ -32,7 +32,7 @@ export const projectMembersQuery = graphql(`
     project(id: $id) {
       id
       members {
-        role
+        role { key }
         user { id name avatarUrl }
       }
     }

@@ -11,6 +11,7 @@ use App\Models\Comment;
 use App\Models\LabelSet;
 use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
@@ -192,7 +193,7 @@ class DemoSeeder extends Seeder
         $project->forceFill(['created_at' => $createdAt, 'updated_at' => $createdAt])->save();
 
         foreach ($members as $key => $role) {
-            $project->members()->attach($this->users[$key], ['role' => $role->value]);
+            $project->members()->attach($this->users[$key], ['role_id' => Role::idOf(Role::SCOPE_PROJECT, $role)]);
         }
 
         return $project;

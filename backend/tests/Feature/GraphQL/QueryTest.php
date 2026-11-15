@@ -22,8 +22,8 @@ class QueryTest extends GraphQLTestCase
 
     public function test_me_with_enum_and_boolean_fields(): void
     {
-        $this->as('admin')->gql('{ me { name role notifyByEmail } }')
-            ->assertExactJson(['data' => ['me' => ['name' => 'Anna Admin', 'role' => 'ADMIN', 'notifyByEmail' => true]]]);
+        $this->as('admin')->gql('{ me { name role { key } notifyByEmail } }')
+            ->assertExactJson(['data' => ['me' => ['name' => 'Anna Admin', 'role' => ['key' => 'admin'], 'notifyByEmail' => true]]]);
     }
 
     public function test_projects_are_filtered_by_visibility(): void
@@ -47,26 +47,26 @@ class QueryTest extends GraphQLTestCase
     {
         $response = $this->as('member')->gql('query ($id: ID!) {
             project(id: $id) {
-                locale viewerRole viewerRights
-                members { user { name } role }
+                locale viewerRole { key } viewerRights
+                members { user { name } role { key } }
             }
         }', ['id' => $this->project->id]);
 
         $response->assertJsonPath('data.project.locale', 'DE')
-            ->assertJsonPath('data.project.viewerRole', 'MEMBER')
+            ->assertJsonPath('data.project.viewerRole.key', 'member')
             ->assertJsonPath('data.project.viewerRights', [
                 'MILESTONE_CREATE', 'MILESTONE_UPDATE', 'TODO_CREATE', 'TODO_UPDATE', 'TASK_CREATE', 'TASK_UPDATE_OWN', 'TASK_ASSIGN_SELF', 'TASK_MOVE', 'COMMENT_CREATE', 'PLANER_EXPORT',
             ])
             ->assertJsonPath('data.project.members', [
-                ['user' => ['name' => 'Ben Owner'], 'role' => 'OWNER'],
-                ['user' => ['name' => 'Chiara Manager'], 'role' => 'MANAGER'],
-                ['user' => ['name' => 'David Member'], 'role' => 'MEMBER'],
+                ['user' => ['name' => 'Ben Owner'], 'role' => ['key' => 'owner']],
+                ['user' => ['name' => 'Chiara Manager'], 'role' => ['key' => 'manager']],
+                ['user' => ['name' => 'David Member'], 'role' => ['key' => 'member']],
             ]);
     }
 
     public function test_admin_without_membership_has_no_role_but_all_abilities(): void
     {
-        $response = $this->as('admin')->gql('query ($id: ID!) { project(id: $id) { viewerRole viewerRights } }', ['id' => $this->project->id]);
+        $response = $this->as('admin')->gql('query ($id: ID!) { project(id: $id) { viewerRole { key } viewerRights } }', ['id' => $this->project->id]);
 
         $response->assertJsonPath('data.project.viewerRole', null)
             ->assertJsonCount(count(Right::ofScope(Right::SCOPE_PROJECT)), 'data.project.viewerRights');
@@ -123,8 +123,8 @@ class QueryTest extends GraphQLTestCase
     public function test_list_queries_do_not_grow_with_the_number_of_rows(): void
     {
         $query = '{
-            projects { members { user { name } role } viewerRole viewerRights progress { percent } milestones { progress { done } todos { progress { done } } } }
-            dashboard { upcomingTodos(limit: 50) { progress { done } } myOpenTasks { todo { milestone { project { viewerRole } } } } }
+            projects { members { user { name } role { key } } viewerRole { key } viewerRights progress { percent } milestones { progress { done } todos { progress { done } } } }
+            dashboard { upcomingTodos(limit: 50) { progress { done } } myOpenTasks { todo { milestone { project { viewerRole { key } } } } } }
             myTasks { comments { author { name } viewerCanEdit viewerCanDelete } }
         }';
 

@@ -7,6 +7,7 @@ use App\Enums\Right;
 use App\Enums\UserRole;
 use App\GraphQL\Mutations\CreateProject;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\ProjectMembership;
 use App\Support\AppSettings;
@@ -60,7 +61,7 @@ class RightsGroundRulesTest extends TestCase
     public function test_the_last_member_with_project_delete_cannot_be_demoted_or_removed(): void
     {
         try {
-            $this->membership->set($this->owner, $this->project, $this->owner, ProjectRole::MANAGER);
+            $this->membership->set($this->owner, $this->project, $this->owner, Role::resolveOrFail(Role::SCOPE_PROJECT, ProjectRole::MANAGER));
             $this->fail('Demoting the last holder must fail.');
         } catch (ValidationException $e) {
             $this->assertArrayHasKey('role', $e->errors());
@@ -74,9 +75,9 @@ class RightsGroundRulesTest extends TestCase
     {
         $this->grant('project', 'manager', 'own-project');
 
-        $this->membership->set($this->owner, $this->project, $this->owner, ProjectRole::MEMBER);
+        $this->membership->set($this->owner, $this->project, $this->owner, Role::resolveOrFail(Role::SCOPE_PROJECT, ProjectRole::MEMBER));
 
-        $this->assertSame(ProjectRole::MEMBER, $this->project->fresh()->roleOf($this->owner));
+        $this->assertSame(ProjectRole::MEMBER->value, $this->project->fresh()->roleOf($this->owner)?->key);
         $this->assertSame(1, Rights::countHolders($this->project));
     }
 
@@ -95,7 +96,7 @@ class RightsGroundRulesTest extends TestCase
     public function test_a_holder_whose_system_role_caps_all_project_rights_does_not_count(): void
     {
         $readOnly = User::factory()->role(UserRole::LESEND)->create();
-        $this->project->members()->attach($readOnly, ['role' => ProjectRole::OWNER->value]);
+        $this->project->members()->attach($readOnly, ['role_id' => Role::idOf(Role::SCOPE_PROJECT, ProjectRole::OWNER)]);
 
         $this->assertSame(1, Rights::countHolders($this->project));
 
@@ -140,14 +141,14 @@ class RightsGroundRulesTest extends TestCase
 
         $this->grant('project', 'manager', 'own-project');
 
-        $this->membership->set($this->manager, $this->project, $this->member, ProjectRole::OWNER);
+        $this->membership->set($this->manager, $this->project, $this->member, Role::resolveOrFail(Role::SCOPE_PROJECT, ProjectRole::OWNER));
     }
 
     public function test_without_owner_manage_the_owner_role_is_refused(): void
     {
         $this->expectException(AuthorizationException::class);
 
-        $this->membership->set($this->manager, $this->project, $this->member, ProjectRole::OWNER);
+        $this->membership->set($this->manager, $this->project, $this->member, Role::resolveOrFail(Role::SCOPE_PROJECT, ProjectRole::OWNER));
     }
 
     // §7.1 and §7.2: users.manage and roles.manage never get lost
@@ -201,19 +202,73 @@ class RightsGroundRulesTest extends TestCase
         $this->assertSame(0, Rights::countUsersWith(Right::ROLES_MANAGE, $admin));
     }
 
+    // Roles of one's own (made in the settings)
+
+    public function test_a_role_of_ones_own_with_project_delete_holds_the_project(): void
+    {
+        $steward = $this->customRole(Role::SCOPE_PROJECT, 'steward', ['plan', 'manage-project', 'own-project']);
+        $this->project->members()->updateExistingPivot($this->member->id, ['role_id' => $steward->id]);
+
+        $this->assertSame('steward', $this->project->fresh()->roleOf($this->member)?->key);
+        $this->assertTrue(Rights::allows($this->member, Right::PROJECT_DELETE, $this->project));
+        $this->assertFalse(Rights::allows($this->member, Right::TASK_UPDATE, $this->project));
+        $this->assertSame(2, Rights::countHolders($this->project));
+
+        // The owner may leave now, the steward keeps the project alive.
+        $this->membership->remove($this->owner, $this->project, $this->owner);
+        $this->assertSame(1, Rights::countHolders($this->project));
+
+        $this->expectException(ValidationException::class);
+        $this->membership->remove($this->member, $this->project, $this->member);
+    }
+
+    public function test_a_role_of_ones_own_with_ownership_rights_needs_owner_manage(): void
+    {
+        $steward = $this->customRole(Role::SCOPE_PROJECT, 'steward', ['own-project']);
+
+        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, null, $steward));
+        $this->assertTrue(Rights::canChangeMembership($this->owner, $this->project, null, $steward));
+    }
+
+    public function test_a_system_role_of_ones_own_keeps_users_and_roles_manageable(): void
+    {
+        $office = $this->customRole(Role::SCOPE_SYSTEM, 'office', ['users-and-roles', 'status']);
+        $admin = User::factory()->admin()->create();
+        $clerk = User::factory()->role($office)->create();
+
+        $this->assertTrue(Rights::allows($clerk, Right::ROLES_MANAGE));
+        $this->assertFalse(Rights::allows($clerk, Right::PROJECTS_CREATE));
+
+        // Changing to the role of one's own keeps both rights: allowed.
+        $this->assertTrue($admin->can('update', [$admin, ['role' => 'office']]));
+        // The clerk keeps the settings reachable, so the admin may be demoted or deleted.
+        $this->assertTrue($clerk->can('update', [$admin, ['role' => 'mitglied']]));
+        $this->assertTrue($clerk->can('delete', $admin));
+        // An unknown role would take the rights away.
+        $this->assertFalse($clerk->can('update', [$clerk, ['role' => 'nobody']]));
+    }
+
+    public function test_a_project_role_is_no_system_role(): void
+    {
+        $this->assertNull(Role::resolve(Role::SCOPE_SYSTEM, 'owner'));
+
+        $this->expectException(ValidationException::class);
+        User::factory()->create(['role' => 'owner']);
+    }
+
     // Creator role and cache
 
     public function test_the_creator_gets_the_creator_role_of_the_settings(): void
     {
-        $this->assertSame(ProjectRole::OWNER, AppSettings::projectCreatorRole());
+        $this->assertSame('owner', AppSettings::projectCreatorRole()->key);
 
-        AppSettings::setProjectCreatorRole(ProjectRole::MANAGER);
+        AppSettings::setProjectCreatorRole(Role::resolveOrFail(Role::SCOPE_PROJECT, ProjectRole::MANAGER));
         $creator = User::factory()->role(UserRole::KOORDINATION)->create();
         $this->actingAs($creator);
 
         $project = (new CreateProject)(null, ['name' => 'Made by a coordinator']);
 
-        $this->assertSame(ProjectRole::MANAGER, $project->roleOf($creator));
+        $this->assertSame(ProjectRole::MANAGER->value, $project->roleOf($creator)?->key);
     }
 
     public function test_the_rights_are_read_anew_for_every_queue_job(): void
@@ -271,6 +326,24 @@ class RightsGroundRulesTest extends TestCase
         }
 
         $this->grant($scope, $role, $function);
+    }
+
+    /**
+     * A role as made in the settings: not in config/permissions.php.
+     *
+     * @param  list<string>  $functions  Keys of functions of the scope
+     */
+    private function customRole(string $scope, string $key, array $functions): Role
+    {
+        $role = Role::create(['scope' => $scope, 'key' => $key, 'names' => ['de' => $key, 'en' => $key]]);
+
+        foreach ($functions as $function) {
+            $this->grant($scope, $key, $function);
+        }
+
+        Rights::clearCache();
+
+        return Role::resolveOrFail($scope, $key);
     }
 
     private function roleId(string $scope, string $role): int

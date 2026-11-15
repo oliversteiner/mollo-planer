@@ -31,7 +31,7 @@ export const dashboardQuery = graphql(`
       projects {
         id
         name
-        viewerRole
+        viewerRole { key names { de en } }
         progress { done total percent }
       }
     }

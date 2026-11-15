@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\ProjectRole;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -29,8 +30,8 @@ class ProjectFactory extends Factory
     /**
      * Add a user to the project with the given role.
      */
-    public function withMember(User $user, ProjectRole $role = ProjectRole::MEMBER): static
+    public function withMember(User $user, Role|ProjectRole|string $role = ProjectRole::MEMBER): static
     {
-        return $this->hasAttached($user, ['role' => $role->value], 'members');
+        return $this->hasAttached($user, ['role_id' => Role::idOf(Role::SCOPE_PROJECT, $role)], 'members');
     }
 }

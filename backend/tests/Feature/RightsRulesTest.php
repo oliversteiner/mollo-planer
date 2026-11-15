@@ -6,6 +6,7 @@ use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
@@ -112,7 +113,7 @@ class RightsRulesTest extends TestCase
     {
         $this->expectException(AuthorizationException::class);
 
-        app(ProjectMembership::class)->set($this->manager, $this->project, $this->member, ProjectRole::OWNER);
+        app(ProjectMembership::class)->set($this->manager, $this->project, $this->member, Role::resolveOrFail(Role::SCOPE_PROJECT, ProjectRole::OWNER));
     }
 
     public function test_owner_manage_is_a_right_of_the_owner_role(): void

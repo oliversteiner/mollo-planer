@@ -26,7 +26,7 @@ class ProjectPlanAssistantTest extends GraphQLTestCase
     }';
 
     private const IMPORT = 'mutation ($plan: ProjectPlanInput!, $notify: Boolean) {
-        importProjectPlan(plan: $plan, notifyAssignees: $notify) { id name members { role user { email } } }
+        importProjectPlan(plan: $plan, notifyAssignees: $notify) { id name members { role { key } user { email } } }
     }';
 
     protected function setUp(): void
@@ -116,8 +116,8 @@ class ProjectPlanAssistantTest extends GraphQLTestCase
             ->json('data.importProjectPlan.id');
 
         $project = Project::findOrFail($id);
-        $this->assertSame(ProjectRole::OWNER, $project->roleOf($this->users['owner']));
-        $this->assertSame(ProjectRole::MEMBER, $project->roleOf($this->users['member']));
+        $this->assertSame(ProjectRole::OWNER->value, $project->roleOf($this->users['owner'])?->key);
+        $this->assertSame(ProjectRole::MEMBER->value, $project->roleOf($this->users['member'])?->key);
         $milestone = Milestone::where('project_id', $id)->sole();
         $this->assertSame('2027-01-31', $milestone->due_date->toDateString());
         $this->assertSame('bulletList', $milestone->description['content'][1]['type']);

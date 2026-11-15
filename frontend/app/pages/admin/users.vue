@@ -10,6 +10,7 @@ type User = AdminUsersQuery['users'][number]
 definePageMeta({ middleware: 'admin' })
 
 const { t } = useI18n()
+const roleName = useRoleName()
 const toast = useToast()
 const { viewer } = useViewer()
 
@@ -198,11 +199,11 @@ function factorLabel(user: User): string {
             <span class="users-name">
               <span class="users-name-text">{{ user.name }}</span>
               <wa-badge
-                v-if="user.role !== 'MITGLIED'"
+                v-if="!user.role.isDefault"
                 variant="brand"
                 appearance="filled"
               >
-                {{ t(`userRole.${user.role}`) }}
+                {{ roleName(user.role) }}
               </wa-badge>
               <span
                 v-if="user.id === viewer?.id"

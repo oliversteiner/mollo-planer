@@ -8,6 +8,7 @@ import type { Crumb } from '~/components/PageFrame.vue'
  * <Teleport to="#page-actions" defer>.
  */
 const { t } = useI18n()
+const roleName = useRoleName()
 const route = useRoute()
 const { project, loaded, can } = useProject()
 
@@ -45,7 +46,7 @@ useHead({ title: () => (project.value ? `${project.value.name} · ${pageName.val
         variant="neutral"
         appearance="outlined"
       >
-        {{ t(`role.${project.viewerRole}`) }}
+        {{ roleName(project.viewerRole) }}
       </wa-badge>
     </template>
 

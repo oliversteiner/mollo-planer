@@ -2,9 +2,8 @@
 
 namespace App\Support;
 
-use App\Enums\ProjectRole;
 use App\Enums\Right;
-use App\Enums\UserRole;
+use App\Models\Role;
 
 /**
  * The computed overview role × right. Read from the same tables the
@@ -14,31 +13,30 @@ use App\Enums\UserRole;
 final class PermissionMatrix
 {
     /**
-     * @return array{system: list<array{right: Right, roles: list<UserRole>}>, project: list<array{right: Right, roles: list<ProjectRole>}>}
+     * @return array{system: list<array{right: Right, roles: list<Role>}>, project: list<array{right: Right, roles: list<Role>}>}
      */
     public static function build(): array
     {
         return [
-            'system' => array_map(
-                fn (Right $right): array => [
-                    'right' => $right,
-                    'roles' => array_values(array_filter(
-                        UserRole::cases(),
-                        fn (UserRole $role): bool => in_array($right, Rights::systemRightsOf($role), true),
-                    )),
-                ],
-                Right::ofScope(Right::SCOPE_SYSTEM),
-            ),
-            'project' => array_map(
-                fn (Right $right): array => [
-                    'right' => $right,
-                    'roles' => array_values(array_filter(
-                        ProjectRole::cases(),
-                        fn (ProjectRole $role): bool => Rights::projectRoleAllows($role, $right),
-                    )),
-                ],
-                Right::ofScope(Right::SCOPE_PROJECT),
-            ),
+            'system' => self::rows(Right::SCOPE_SYSTEM),
+            'project' => self::rows(Right::SCOPE_PROJECT),
         ];
+    }
+
+    /**
+     * @return list<array{right: Right, roles: list<Role>}>
+     */
+    private static function rows(string $scope): array
+    {
+        return array_map(
+            fn (Right $right): array => [
+                'right' => $right,
+                'roles' => array_values(array_filter(
+                    Role::ofScope($scope),
+                    fn (Role $role): bool => Rights::roleAllows($role, $right),
+                )),
+            ],
+            Right::ofScope($scope),
+        );
     }
 }

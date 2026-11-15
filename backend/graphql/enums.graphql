@@ -2,7 +2,7 @@
 
 # ─── Enums ──────────────────────────────────────────────────────
 
-"Rolle einer Person innerhalb eines Projekts"
+"Schlüssel der mitgelieferten Projektrollen. Nur noch im alten Projektplan (plan.graphql) verwendet, sonst gilt der Typ Role."
 enum ProjectRole {
   OWNER @enum(value: "owner")
   MANAGER @enum(value: "manager")
@@ -68,13 +68,10 @@ enum Right {
   DATABASE_VIEW @enum(value: "database.view")
 }
 
-"Globale Berechtigungsrolle eines Benutzers. Welche Rechte sie hat, steht in den Einstellungen (Rollen und Funktionen)."
-enum UserRole {
-  ADMIN @enum(value: "admin")
-  PROJEKTLEITUNG @enum(value: "projektleitung")
-  KOORDINATION @enum(value: "koordination")
-  MITGLIED @enum(value: "mitglied")
-  LESEND @enum(value: "lesend")
+"Bereich einer Rolle: System (ganze App) oder Projekt (eine Mitgliedschaft)"
+enum RoleScope {
+  SYSTEM @enum(value: "system")
+  PROJECT @enum(value: "project")
 }
 
 "Tätigkeit eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."

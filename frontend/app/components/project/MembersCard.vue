@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { ProjectRole } from '~/graphql/generated/graphql'
 import { removeProjectMemberMutation, setProjectMemberMutation, userSearchQuery } from '~/graphql/settings'
+import type { NamedRole } from '~/composables/useRoles'
 import { classifyApolloError } from '~/utils/api'
 
 /**
@@ -10,7 +10,7 @@ import { classifyApolloError } from '~/utils/api'
  */
 const props = defineProps<{
   projectId: string
-  members: { role: ProjectRole, user: { id: string, name: string, email: string, avatarUrl?: string | null } }[]
+  members: { role: NamedRole, user: { id: string, name: string, email: string, avatarUrl?: string | null } }[]
   canManage: boolean
 }>()
 
@@ -18,8 +18,9 @@ const { t } = useI18n()
 const toast = useToast()
 const { viewer } = useViewer()
 
-const roles: ProjectRole[] = ['OWNER', 'MANAGER', 'MEMBER', 'GUEST']
-const roleItems = computed(() => roles.map(role => ({ label: t(`role.${role}`), value: role })))
+/** The project roles come from the backend (shipped ones and those made in the settings). */
+const { items: roleItems, defaultKey: defaultRole } = useRoles('PROJECT')
+const roleName = useRoleName()
 
 const sortedMembers = computed(() => [...props.members].sort((a, b) => a.user.name.localeCompare(b.user.name)))
 
@@ -36,7 +37,13 @@ const candidates = computed(() => {
     .map(user => ({ label: user.name, value: user.id }))
 })
 
-const newMember = reactive<{ userId: string, role: ProjectRole }>({ userId: '', role: 'MEMBER' })
+const newMember = reactive<{ userId: string, role: string }>({ userId: '', role: '' })
+
+watch(defaultRole, (key) => {
+  if (!newMember.role) {
+    newMember.role = key
+  }
+}, { immediate: true })
 const pending = ref(false)
 const removing = ref<{ id: string, name: string } | null>(null)
 
@@ -66,7 +73,7 @@ async function change(action: () => Promise<unknown>, success: string): Promise<
   }
 }
 
-async function setRole(userId: string, role: ProjectRole): Promise<void> {
+async function setRole(userId: string, role: string): Promise<void> {
   await change(() => setMember({ projectId: props.projectId, userId, role }), t('settings.members.roleChanged'))
 }
 
@@ -123,20 +130,20 @@ async function confirmRemove(): Promise<void> {
         </span>
         <FormSelect
           v-if="canManage"
-          :model-value="member.role"
+          :model-value="member.role.key"
           :items="roleItems"
           :disabled="pending"
           :label="t('settings.members.roleOf', { name: member.user.name })"
           hide-label
           class="members-role"
-          @update:model-value="role => role && setRole(member.user.id, role as ProjectRole)"
+          @update:model-value="role => role && setRole(member.user.id, String(role))"
         />
         <wa-badge
           v-else
           variant="neutral"
           appearance="outlined"
         >
-          {{ t(`role.${member.role}`) }}
+          {{ roleName(member.role) }}
         </wa-badge>
         <wa-button
           v-if="canManage"

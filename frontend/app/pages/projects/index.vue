@@ -3,6 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { projectsQuery } from '~/graphql/projects'
 
 const { t } = useI18n()
+const roleName = useRoleName()
 const { can } = useViewer()
 
 useHead({ title: () => t('projects.title') })
@@ -64,7 +65,7 @@ const creating = ref(false)
               variant="neutral"
               appearance="outlined"
             >
-              {{ t(`role.${project.viewerRole}`) }}
+              {{ roleName(project.viewerRole) }}
             </wa-badge>
           </span>
           <span

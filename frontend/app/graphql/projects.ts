@@ -6,10 +6,10 @@ export const projectsQuery = graphql(`
       id
       name
       description
-      viewerRole
+      viewerRole { key names { de en } }
       progress { done total percent }
       members {
-        role
+        role { key names { de en } }
         user { id name avatarUrl }
       }
     }
@@ -23,7 +23,7 @@ export const projectHeaderQuery = graphql(`
       name
       description
       icon
-      viewerRole
+      viewerRole { key names { de en } }
       viewerRights
       labelSet { id name labels { id name category color position } }
     }

@@ -60,7 +60,7 @@ class OutsiderAccessTest extends GraphQLTestCase
         return [
             'updateProject' => ['stranger', 'mutation ($id: ID!) { updateProject(id: $id, input: {name: "Hack"}) { id } }', $project],
             'deleteProject' => ['stranger', 'mutation ($id: ID!) { deleteProject(id: $id) { id } }', $project],
-            'setProjectMember (join as owner)' => ['stranger', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: OWNER) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
+            'setProjectMember (join as owner)' => ['stranger', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "owner") { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
             'removeProjectMember' => ['stranger', 'mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],
             'createMilestone' => ['stranger', 'mutation ($p: ID!) { createMilestone(input: {projectId: $p, title: "Hack"}) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'updateMilestone' => ['stranger', 'mutation ($id: ID!) { updateMilestone(id: $id, input: {title: "Hack"}) { id } }', $milestone],
@@ -81,7 +81,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'draftProjectPlan' => ['owner', 'mutation { draftProjectPlan(messages: [{role: USER, content: "Ein Podcast"}]) { reply } }', fn (self $test) => []],
             'importProjectPlan' => ['owner', 'mutation { importProjectPlan(plan: {name: "Eigenes", members: [], milestones: [{title: "Start", todos: []}]}) { id } }', fn (self $test) => []],
             'createUser' => ['owner', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
-            'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {role: ADMIN}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
+            'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {role: "admin"}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],
             'updateAppSettings (2FA off)' => ['owner', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],

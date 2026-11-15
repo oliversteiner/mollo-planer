@@ -8,7 +8,7 @@ type User {
   name: String!
   email: String!
   "Globale Berechtigungsrolle, unabhängig von Projekten"
-  role: UserRole!
+  role: Role!
   "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
   activity: UserActivity
   "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
@@ -75,7 +75,7 @@ type Project {
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
   progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
-  viewerRole: ProjectRole @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
+  viewerRole: Role @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
   "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
   viewerRights: [Right!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectViewerRights")
   createdAt: DateTime! @rename(attribute: "created_at")
@@ -84,7 +84,7 @@ type Project {
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
   user: User!
-  role: ProjectRole!
+  role: Role!
 }
 
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
@@ -241,11 +241,32 @@ type PermissionMatrix {
 "Ein Systemrecht und die Systemrollen, die es haben."
 type SystemRightRow {
   right: Right!
-  roles: [UserRole!]!
+  roles: [Role!]!
 }
 
 "Ein Projektrecht und die Projektrollen, die es haben. Wer das Systemrecht projects.manageAny hat, hat in jedem Projekt alle Projektrechte."
 type ProjectRightRow {
   right: Right!
-  roles: [ProjectRole!]!
+  roles: [Role!]!
+}
+
+"Eine Rolle: ein benanntes Bündel von Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft. Siehe docs/rollen-funktionen-rechte.md."
+type Role {
+  id: ID!
+  scope: RoleScope!
+  "Fester Schlüssel, zum Beispiel manager. Eingaben und die Planer-Datei (members[].role) nennen die Rolle damit."
+  key: String!
+  names: LocalizedName!
+  "Rolle für neue Personen (System) bzw. neue Mitglieder (Projekt)"
+  isDefault: Boolean! @rename(attribute: "is_default")
+  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+  isStandard: Boolean! @rename(attribute: "is_standard")
+  "Die Rechte, die die Rolle über ihre Funktionen gibt"
+  rights: [Right!]!
+}
+
+"Ein Name in beiden Sprachen der Oberfläche"
+type LocalizedName {
+  de: String!
+  en: String!
 }

@@ -4,8 +4,8 @@ import { graphql } from '~/graphql/generated'
 export const permissionMatrixQuery = graphql(`
   query PermissionMatrix {
     permissionMatrix {
-      system { right roles }
-      project { right roles }
+      system { right roles { key } }
+      project { right roles { key } }
     }
   }
 `)

@@ -7,7 +7,7 @@ export const viewerQuery = graphql(`
       id
       name
       email
-      role
+      role { key names { de en } }
       activity
       avatarUrl
       notifyByEmail

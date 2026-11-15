@@ -19,9 +19,9 @@ class DatabaseSchemaTest extends TestCase
     public static function expectedColumns(): array
     {
         return [
-            'users' => ['users', ['role', 'activity', 'notify_by_email', 'avatar_path', 'two_factor_secret', 'two_factor_confirmed_at']],
+            'users' => ['users', ['role_id', 'activity', 'notify_by_email', 'avatar_path', 'two_factor_secret', 'two_factor_confirmed_at']],
             'projects' => ['projects', ['name', 'description', 'icon', 'locale']],
-            'project_user' => ['project_user', ['project_id', 'user_id', 'role']],
+            'project_user' => ['project_user', ['project_id', 'user_id', 'role_id']],
             'milestones' => ['milestones', ['project_id', 'title', 'description', 'icon', 'due_date', 'status']],
             'todos' => ['todos', ['milestone_id', 'title', 'description', 'icon', 'due_date', 'status']],
             'tasks' => ['tasks', ['todo_id', 'assigned_user_id', 'title', 'description', 'icon', 'status', 'board_position', 'due_date']],
@@ -46,10 +46,8 @@ class DatabaseSchemaTest extends TestCase
         $projectId = DB::table('projects')->insertGetId(['name' => 'Project']);
         DB::table('project_user')->insert(['project_id' => $projectId, 'user_id' => $userId]);
 
-        $this->assertSame('mitglied', DB::table('users')->value('role'));
         $this->assertSame(1, (int) DB::table('users')->value('notify_by_email'));
         $this->assertSame('de', DB::table('projects')->value('locale'));
-        $this->assertSame('member', DB::table('project_user')->value('role'));
     }
 
     public function test_comments_are_deleted_with_task_and_kept_without_author(): void
@@ -78,6 +76,6 @@ class DatabaseSchemaTest extends TestCase
         DB::table('project_user')->insert(['project_id' => $projectId, 'user_id' => $userId]);
 
         $this->expectException(QueryException::class);
-        DB::table('project_user')->insert(['project_id' => $projectId, 'user_id' => $userId, 'role' => 'owner']);
+        DB::table('project_user')->insert(['project_id' => $projectId, 'user_id' => $userId, 'role_id' => DB::table('roles')->where(['scope' => 'project', 'key' => 'owner'])->value('id')]);
     }
 }

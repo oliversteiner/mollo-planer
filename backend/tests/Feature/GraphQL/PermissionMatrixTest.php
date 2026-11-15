@@ -10,7 +10,7 @@ use App\Enums\Right;
  */
 class PermissionMatrixTest extends GraphQLTestCase
 {
-    private const QUERY = '{ permissionMatrix { system { right roles } project { right roles } } }';
+    private const QUERY = '{ permissionMatrix { system { right roles { key } } project { right roles { key } } } }';
 
     public function test_only_user_managers_see_the_rights_table(): void
     {
@@ -23,22 +23,22 @@ class PermissionMatrixTest extends GraphQLTestCase
     public function test_admin_sees_the_roles_of_each_system_ability(): void
     {
         $system = collect($this->as('admin')->gql(self::QUERY)->json('data.permissionMatrix.system'))
-            ->keyBy('right');
+            ->mapWithKeys(fn (array $row): array => [$row['right'] => array_column($row['roles'], 'key')]);
 
-        $this->assertSame(['ADMIN'], $system['USERS_MANAGE']['roles']);
-        $this->assertEqualsCanonicalizing(['ADMIN', 'PROJEKTLEITUNG', 'KOORDINATION'], $system['PROJECTS_CREATE']['roles']);
-        $this->assertEqualsCanonicalizing(['ADMIN', 'PROJEKTLEITUNG'], $system['LABEL_SETS_MANAGE']['roles']);
-        $this->assertSame(['ADMIN'], $system['PROJECTS_MANAGE_ANY']['roles']);
+        $this->assertSame(['admin'], $system['USERS_MANAGE']);
+        $this->assertEqualsCanonicalizing(['admin', 'projektleitung', 'koordination'], $system['PROJECTS_CREATE']);
+        $this->assertEqualsCanonicalizing(['admin', 'projektleitung'], $system['LABEL_SETS_MANAGE']);
+        $this->assertSame(['admin'], $system['PROJECTS_MANAGE_ANY']);
     }
 
     public function test_admin_sees_the_roles_of_each_project_ability(): void
     {
         $project = collect($this->as('admin')->gql(self::QUERY)->json('data.permissionMatrix.project'))
-            ->keyBy('right');
+            ->mapWithKeys(fn (array $row): array => [$row['right'] => array_column($row['roles'], 'key')]);
 
-        $this->assertEqualsCanonicalizing(['OWNER', 'MANAGER'], $project['MEMBERS_MANAGE']['roles']);
-        $this->assertSame(['OWNER'], $project['PROJECT_DELETE']['roles']);
-        $this->assertEqualsCanonicalizing(['OWNER', 'MANAGER', 'MEMBER'], $project['TODO_CREATE']['roles']);
+        $this->assertEqualsCanonicalizing(['owner', 'manager'], $project['MEMBERS_MANAGE']);
+        $this->assertSame(['owner'], $project['PROJECT_DELETE']);
+        $this->assertEqualsCanonicalizing(['owner', 'manager', 'member'], $project['TODO_CREATE']);
     }
 
     public function test_every_ability_appears_once(): void

@@ -9,7 +9,7 @@ export const projectSettingsQuery = graphql(`
       icon
       locale
       members {
-        role
+        role { key names { de en } }
         user { id name email avatarUrl }
       }
     }
@@ -30,10 +30,10 @@ export const updateProjectMutation = graphql(`
 `)
 
 export const setProjectMemberMutation = graphql(`
-  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {
+  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {
     setProjectMember(projectId: $projectId, userId: $userId, role: $role) {
       id
-      members { role user { id name email avatarUrl } }
+      members { role { key names { de en } } user { id name email avatarUrl } }
     }
   }
 `)
@@ -42,7 +42,7 @@ export const removeProjectMemberMutation = graphql(`
   mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {
     removeProjectMember(projectId: $projectId, userId: $userId) {
       id
-      members { role user { id name email avatarUrl } }
+      members { role { key names { de en } } user { id name email avatarUrl } }
     }
   }
 `)

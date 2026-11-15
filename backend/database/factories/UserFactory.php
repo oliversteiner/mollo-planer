@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -46,7 +47,7 @@ class UserFactory extends Factory
     /**
      * Indicate that the user has the given global role.
      */
-    public function role(UserRole $role): static
+    public function role(Role|UserRole|string $role): static
     {
         return $this->state(fn (array $attributes) => [
             'role' => $role,

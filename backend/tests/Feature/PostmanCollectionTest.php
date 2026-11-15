@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Support\StrongAuthentication;
 use Database\Seeders\DemoSeeder;
@@ -33,7 +34,7 @@ class PostmanCollectionTest extends TestCase
         Notification::fake();
         $this->artisan('db:seed', ['--class' => DemoSeeder::class, '--no-interaction' => true])->assertSuccessful();
         // As the admin, so the admin folder runs too. Permissions are tested elsewhere.
-        $user = User::where('role', 'admin')->firstOrFail();
+        $user = User::where('role_id', Role::idOf(Role::SCOPE_SYSTEM, 'admin'))->firstOrFail();
         $requests = self::graphqlRequests();
         $this->assertNotEmpty($requests);
 

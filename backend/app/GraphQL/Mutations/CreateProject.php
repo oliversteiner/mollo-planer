@@ -35,7 +35,7 @@ class CreateProject
             ]);
 
             if ($creator instanceof User && ! Rights::allows($creator, Right::PROJECTS_MANAGE_ANY)) {
-                $project->members()->attach($creator->getKey(), ['role' => AppSettings::projectCreatorRole()->value]);
+                $project->members()->attach($creator->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
             }
 
             return $project;

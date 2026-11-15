@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\Right;
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Rights;
 
@@ -55,7 +55,7 @@ class UserPolicy
             return true;
         }
 
-        $newRights = Rights::systemRightsOf($this->roleOf($input['role']));
+        $newRights = Rights::rightsOfRole(Role::resolve(Role::SCOPE_SYSTEM, $input['role']));
 
         foreach (self::PROTECTED_RIGHTS as $right) {
             $loses = Rights::allows($target, $right) && ! in_array($right, $newRights, true);
@@ -128,13 +128,5 @@ class UserPolicy
         }
 
         return true;
-    }
-
-    /**
-     * The mutation input may carry the role as enum case or as its value.
-     */
-    private function roleOf(mixed $value): ?UserRole
-    {
-        return $value instanceof UserRole ? $value : UserRole::tryFrom((string) $value);
     }
 }

@@ -106,7 +106,7 @@ type Mutation @guard {
     @can(ability: "create", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\ImportProjectPlan")
   "Fügt eine Person hinzu oder ändert ihre Rolle"
-  setProjectMember(projectId: ID!, userId: ID!, role: ProjectRole!): Project!
+  setProjectMember(projectId: ID!, userId: ID!, role: String! @rules(apply: ["max:64"])): Project!
     @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\SetProjectMember")
   removeProjectMember(projectId: ID!, userId: ID!): Project!

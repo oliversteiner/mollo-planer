@@ -6,6 +6,7 @@ use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ final class Rights
     /**
      * Rights and project cap per role, read once per request.
      *
-     * @var array<string, array{rights: list<string>, cap: list<string>|null}>
+     * @var array<int, array{rights: list<string>, cap: list<string>|null}>
      */
     private static array $grants = [];
 
@@ -32,6 +33,7 @@ final class Rights
     public static function clearCache(): void
     {
         self::$grants = [];
+        Role::forgetRegistry();
     }
 
     /**
@@ -46,7 +48,7 @@ final class Rights
         }
 
         if ($right->isSystem()) {
-            return in_array($right, self::systemRightsOf($user->role), true);
+            return in_array($right->value, self::grantOf($user->role_id)['rights'], true);
         }
 
         if ($project === null) {
@@ -58,7 +60,7 @@ final class Rights
         }
 
         return self::withinCap($user, $right)
-            && self::projectRoleAllows($project->roleOf($user), $right);
+            && self::roleAllows($project->roleOf($user), $right);
     }
 
     /**
@@ -70,7 +72,7 @@ final class Rights
     public static function rightsOf(User $user, ?Project $project = null): array
     {
         if ($project === null) {
-            return self::systemRightsOf($user->role);
+            return self::rightsOfRole($user->role);
         }
 
         if (self::allows($user, Right::PROJECTS_MANAGE_ANY)) {
@@ -78,52 +80,78 @@ final class Rights
         }
 
         return array_values(array_filter(
-            self::projectRightsOfRole($project->roleOf($user)),
+            self::rightsOfRole($project->roleOf($user)),
             fn (Right $right): bool => self::withinCap($user, $right),
         ));
     }
 
     /**
-     * System rights of a role, in the order of the enum.
+     * The rights a role grants, in the order of the enum. Rights of the
+     * other scope and unknown texts in the table grant nothing. A missing
+     * role has none.
      *
      * @return list<Right>
      */
-    public static function systemRightsOf(?UserRole $role): array
+    public static function rightsOfRole(?Role $role): array
     {
-        return $role === null ? [] : self::rightsOfRole(Right::SCOPE_SYSTEM, $role->value);
-    }
+        if ($role === null) {
+            return [];
+        }
 
-    /**
-     * Does this project role have the project right? A missing role has none.
-     */
-    public static function projectRoleAllows(?ProjectRole $role, Right $right): bool
-    {
-        return in_array($right, self::projectRightsOfRole($role), true);
-    }
-
-    /**
-     * Project rights of a role, in the order of the enum.
-     *
-     * @return list<Right>
-     */
-    public static function projectRightsOfRole(?ProjectRole $role): array
-    {
-        return $role === null ? [] : self::rightsOfRole(Right::SCOPE_PROJECT, $role->value);
-    }
-
-    /**
-     * Rights of the role with this key, in the order of the enum. Rights of
-     * the other scope and unknown texts in the table grant nothing.
-     *
-     * @return list<Right>
-     */
-    public static function rightsOfRole(string $scope, string $key): array
-    {
-        $granted = self::grantOf($scope, $key)['rights'];
+        $granted = self::grantOf($role->id)['rights'];
 
         return array_values(array_filter(
-            Right::ofScope($scope),
+            Right::ofScope($role->scope),
             fn (Right $right): bool => in_array($right->value, $granted, true),
+        ));
+    }
+
+    /** Does the role grant the right? A missing role grants nothing. */
+    public static function roleAllows(?Role $role, Right $right): bool
+    {
+        return $role !== null
+            && $right->scope() === $role->scope
+            && in_array($right->value, self::grantOf($role->id)['rights'], true);
+    }
+
+    /**
+     * System rights of a system role. Takes the role or the enum of a
+     * shipped key (seeders, tests).
+     *
+     * @return list<Right>
+     */
+    public static function systemRightsOf(Role|UserRole|null $role): array
+    {
+        return self::rightsOfRole(Role::resolve(Role::SCOPE_SYSTEM, $role));
+    }
+
+    /**
+     * Does this project role have the project right? Takes the role or the
+     * enum of a shipped key (seeders, tests).
+     */
+    public static function projectRoleAllows(Role|ProjectRole|null $role, Right $right): bool
+    {
+        return self::roleAllows(Role::resolve(Role::SCOPE_PROJECT, $role), $right);
+    }
+
+    /**
+     * @return list<Right>
+     */
+    public static function projectRightsOfRole(Role|ProjectRole|null $role): array
+    {
+        return self::rightsOfRole(Role::resolve(Role::SCOPE_PROJECT, $role));
+    }
+
+    /**
+     * Ids of the roles that grant the right.
+     *
+     * @return list<int>
+     */
+    public static function roleIdsWith(Right $right): array
+    {
+        return array_values(array_map(
+            fn (Role $role): int => $role->id,
+            array_filter(Role::ofScope($right->scope()), fn (Role $role): bool => self::roleAllows($role, $right)),
         ));
     }
 
@@ -142,8 +170,8 @@ final class Rights
         }
 
         return $user->projects()
-            ->pluck('project_user.role')
-            ->contains(fn (string $role) => self::projectRoleAllows(ProjectRole::tryFrom($role), $right));
+            ->whereIn('project_user.role_id', self::roleIdsWith($right))
+            ->exists();
     }
 
     /**
@@ -153,7 +181,7 @@ final class Rights
      * owner.manage (docs/rollen-funktionen-rechte.md, §7.4). The rule looks
      * at the rights of the roles, never at their names.
      */
-    public static function canChangeMembership(User $actor, Project $project, ?ProjectRole $currentRole, ?ProjectRole $newRole): bool
+    public static function canChangeMembership(User $actor, Project $project, Role|ProjectRole|null $currentRole, Role|ProjectRole|null $newRole): bool
     {
         if (! self::allows($actor, Right::MEMBERS_MANAGE, $project)) {
             return false;
@@ -168,7 +196,7 @@ final class Rights
      * Does the role carry project.delete or owner.manage? Such a role is
      * handled only by people with owner.manage.
      */
-    public static function isOwnershipRole(?ProjectRole $role): bool
+    public static function isOwnershipRole(Role|ProjectRole|null $role): bool
     {
         return self::projectRoleAllows($role, Right::PROJECT_DELETE)
             || self::projectRoleAllows($role, Right::OWNER_MANAGE);
@@ -179,7 +207,7 @@ final class Rights
      * through their project role (within the cap of their system role)?
      * projects.manageAny does not count, it is no membership.
      */
-    public static function holdsProject(User $member, ?ProjectRole $role): bool
+    public static function holdsProject(User $member, Role|ProjectRole|null $role): bool
     {
         return self::projectRoleAllows($role, Right::PROJECT_DELETE)
             && self::withinCap($member, Right::PROJECT_DELETE);
@@ -205,13 +233,8 @@ final class Rights
      */
     public static function countUsersWith(Right $right, ?User $except = null): int
     {
-        $roles = array_values(array_filter(
-            UserRole::cases(),
-            fn (UserRole $role): bool => in_array($right, self::systemRightsOf($role), true),
-        ));
-
         return User::query()
-            ->whereIn('role', array_map(fn (UserRole $role): string => $role->value, $roles))
+            ->whereIn('role_id', self::roleIdsWith($right))
             ->whereNotNull('approved_at')
             ->when($except !== null, fn (Builder $users) => $users->whereKeyNot($except->getKey()))
             ->count();
@@ -254,7 +277,7 @@ final class Rights
     public static function canView(User $user, Project $project): bool
     {
         return self::allows($user, Right::PROJECTS_VIEW_ALL)
-            || $project->roleOf($user) !== null;
+            || $project->roleIdOf($user) !== null;
     }
 
     /**
@@ -281,7 +304,7 @@ final class Rights
     /** The project cap of the user's system role allows this right (null cap = all). */
     private static function withinCap(User $user, Right $right): bool
     {
-        $cap = self::grantOf('system', $user->role?->value ?? '')['cap'];
+        $cap = self::grantOf($user->role_id)['cap'];
 
         return $cap === null || in_array($right->value, $cap, true);
     }
@@ -289,16 +312,21 @@ final class Rights
     /**
      * Rights and cap of one role. All roles are read in one query the first
      * time, so the number of queries does not grow with the number of roles.
+     * No role, or an unknown one: no rights and a cap that allows nothing.
      *
      * @return array{rights: list<string>, cap: list<string>|null}
      */
-    private static function grantOf(string $scope, string $key): array
+    private static function grantOf(int|string|null $roleId): array
     {
+        if ($roleId === null) {
+            return ['rights' => [], 'cap' => []];
+        }
+
         if (self::$grants === []) {
             self::loadGrants();
         }
 
-        return self::$grants[$scope.':'.$key] ?? ['rights' => [], 'cap' => []];
+        return self::$grants[(int) $roleId] ?? ['rights' => [], 'cap' => []];
     }
 
     private static function loadGrants(): void
@@ -306,23 +334,22 @@ final class Rights
         $rows = DB::table('roles')
             ->leftJoin('role_functions', 'role_functions.role_id', '=', 'roles.id')
             ->leftJoin('function_rights', 'function_rights.function_id', '=', 'role_functions.function_id')
-            ->select(['roles.scope', 'roles.key', 'roles.project_cap', 'function_rights.right'])
+            ->select(['roles.id', 'roles.project_cap', 'function_rights.right'])
             ->get();
 
         $grants = [];
         foreach ($rows as $row) {
-            $cacheKey = $row->scope.':'.$row->key;
-            $grants[$cacheKey] ??= [
+            $grants[$row->id] ??= [
                 'rights' => [],
                 'cap' => $row->project_cap === null ? null : json_decode($row->project_cap, true),
             ];
             if ($row->right !== null) {
-                $grants[$cacheKey]['rights'][] = $row->right;
+                $grants[$row->id]['rights'][] = $row->right;
             }
         }
 
-        foreach ($grants as $cacheKey => $grant) {
-            $grants[$cacheKey]['rights'] = array_values(array_unique($grant['rights']));
+        foreach ($grants as $id => $grant) {
+            $grants[$id]['rights'] = array_values(array_unique($grant['rights']));
         }
 
         self::$grants = $grants;

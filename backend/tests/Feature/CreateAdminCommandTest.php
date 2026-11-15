@@ -28,7 +28,7 @@ class CreateAdminCommandTest extends TestCase
             ->assertSuccessful();
 
         $admin = User::where('email', self::EMAIL)->firstOrFail();
-        $this->assertSame(UserRole::ADMIN, $admin->role);
+        $this->assertSame(UserRole::ADMIN->value, $admin->role?->key);
         $this->assertSame('Anna Admin', $admin->name);
         Notification::assertSentTo($admin, UserInvited::class, fn (UserInvited $notification) => $notification->locale === 'de'
             && Password::broker('invitations')->tokenExists($admin, $notification->token));
@@ -53,7 +53,7 @@ class CreateAdminCommandTest extends TestCase
             ->expectsQuestion(__('console.create_admin.email'), self::EMAIL)
             ->assertSuccessful();
 
-        $this->assertSame(UserRole::ADMIN, User::where('email', self::EMAIL)->firstOrFail()->role);
+        $this->assertSame(UserRole::ADMIN->value, User::where('email', self::EMAIL)->firstOrFail()->role?->key);
     }
 
     public function test_password_option_asks_for_the_password_and_sends_no_mail(): void
@@ -66,7 +66,7 @@ class CreateAdminCommandTest extends TestCase
             ->assertSuccessful();
 
         $admin = User::where('email', self::EMAIL)->firstOrFail();
-        $this->assertSame(UserRole::ADMIN, $admin->role);
+        $this->assertSame(UserRole::ADMIN->value, $admin->role?->key);
         $this->assertTrue(Hash::check(self::PASSWORD, $admin->password));
         Notification::assertNothingSent();
     }
@@ -87,7 +87,7 @@ class CreateAdminCommandTest extends TestCase
         $this->artisan('app:create-admin', ['name' => 'Anna Admin', 'email' => self::EMAIL])
             ->assertFailed();
 
-        $this->assertSame(UserRole::MITGLIED, $existing->fresh()->role);
+        $this->assertSame(UserRole::MITGLIED->value, $existing->fresh()->role?->key);
         $this->assertSame(1, User::count());
         Notification::assertNothingSent();
     }

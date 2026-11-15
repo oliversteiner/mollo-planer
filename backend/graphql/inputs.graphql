@@ -5,14 +5,16 @@
 input CreateUserInput {
   name: String! @rules(apply: ["min:2", "max:120"])
   email: String! @rules(apply: ["email", "unique:users,email"])
-  role: UserRole = MITGLIED
+  "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
+  role: String @rules(apply: ["max:64"])
   activity: UserActivity
 }
 
 input UpdateUserInput {
   name: String @rules(apply: ["min:2", "max:120"])
   email: String @rules(apply: ["email"])
-  role: UserRole
+  "Schlüssel einer Systemrolle (siehe roles)"
+  role: String @rules(apply: ["max:64"])
   activity: UserActivity
 }
 

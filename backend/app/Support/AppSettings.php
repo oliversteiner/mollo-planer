@@ -2,8 +2,8 @@
 
 namespace App\Support;
 
-use App\Enums\ProjectRole;
 use App\Models\AppSetting;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -54,17 +54,21 @@ final class AppSettings
 
     /**
      * The project role somebody gets in a project they create (standard:
-     * owner). A stored key that is no role any more falls back to owner.
+     * owner). A stored key that is no role any more falls back to owner,
+     * then to the default project role.
      */
-    public static function projectCreatorRole(): ProjectRole
+    public static function projectCreatorRole(): Role
     {
         $key = AppSetting::query()->where('key', self::PROJECT_CREATOR_ROLE)->value('value');
 
-        return ProjectRole::tryFrom((string) $key) ?? ProjectRole::OWNER;
+        return Role::byKey(Role::SCOPE_PROJECT, (string) $key)
+            ?? Role::byKey(Role::SCOPE_PROJECT, 'owner')
+            ?? Role::defaultOf(Role::SCOPE_PROJECT)
+            ?? throw new \RuntimeException('There is no project role.');
     }
 
-    public static function setProjectCreatorRole(ProjectRole $role): void
+    public static function setProjectCreatorRole(Role $role): void
     {
-        AppSetting::query()->updateOrCreate(['key' => self::PROJECT_CREATOR_ROLE], ['value' => $role->value]);
+        AppSetting::query()->updateOrCreate(['key' => self::PROJECT_CREATOR_ROLE], ['value' => $role->key]);
     }
 }

@@ -41,7 +41,7 @@ class SelfRegistrationTest extends TestCase
 
         $user = User::where('email', 'eva@example.com')->firstOrFail();
 
-        $this->assertSame(UserRole::MITGLIED, $user->role);
+        $this->assertSame(UserRole::MITGLIED->value, $user->role?->key);
         $this->assertNull($user->email_verified_at);
         $this->assertFalse($user->isApproved());
         Notification::assertSentTo($user, VerifyRegistrationEmail::class);

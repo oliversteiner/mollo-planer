@@ -92,7 +92,9 @@ input CreateUserInput {
   activity: UserActivity
   email: String!
   name: String!
-  role: UserRole = MITGLIED
+
+  "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
+  role: String
 }
 
 "Alles für die Startseite in einem Aufruf"
@@ -194,6 +196,12 @@ input LabelSetInput {
 enum Locale {
   DE
   EN
+}
+
+"Ein Name in beiden Sprachen der Oberfläche"
+type LocalizedName {
+  de: String!
+  en: String!
 }
 
 "Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."
@@ -305,7 +313,7 @@ type Mutation {
   setProjectLabelSet(labelSetId: ID, projectId: ID!): Project!
 
   "Fügt eine Person hinzu oder ändert ihre Rolle"
-  setProjectMember(projectId: ID!, role: ProjectRole!, userId: ID!): Project!
+  setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
 
   "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
   setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
@@ -437,12 +445,12 @@ type Project {
   viewerRights: [Right!]!
 
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
-  viewerRole: ProjectRole
+  viewerRole: Role
 }
 
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
-  role: ProjectRole!
+  role: Role!
   user: User!
 }
 
@@ -525,10 +533,10 @@ input ProjectPlanTodoInput {
 "Ein Projektrecht und die Projektrollen, die es haben. Wer das Systemrecht projects.manageAny hat, hat in jedem Projekt alle Projektrechte."
 type ProjectRightRow {
   right: Right!
-  roles: [ProjectRole!]!
+  roles: [Role!]!
 }
 
-"Rolle einer Person innerhalb eines Projekts"
+"Schlüssel der mitgelieferten Projektrollen. Nur noch im alten Projektplan (plan.graphql) verwendet, sonst gilt der Typ Role."
 enum ProjectRole {
   GUEST
   MANAGER
@@ -567,6 +575,9 @@ type Query {
 
   "Deine Projekte. Admins sehen alle."
   projects: [Project!]!
+
+  "Alle Rollen, auf Wunsch nur eines Bereichs. Für die Rollenauswahl bei Benutzern und Mitgliedern."
+  roles(scope: RoleScope): [Role!]!
 
   "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
   task(id: ID!): Task
@@ -639,6 +650,33 @@ enum Right {
   USERS_MANAGE
 }
 
+"Eine Rolle: ein benanntes Bündel von Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft. Siehe docs/rollen-funktionen-rechte.md."
+type Role {
+  id: ID!
+
+  "Rolle für neue Personen (System) bzw. neue Mitglieder (Projekt)"
+  isDefault: Boolean!
+
+  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+  isStandard: Boolean!
+
+  "Fester Schlüssel, zum Beispiel manager. Eingaben und die Planer-Datei (members[].role) nennen die Rolle damit."
+  key: String!
+
+  names: LocalizedName!
+
+  "Die Rechte, die die Rolle über ihre Funktionen gibt"
+  rights: [Right!]!
+
+  scope: RoleScope!
+}
+
+"Bereich einer Rolle: System (ganze App) oder Projekt (eine Mitgliedschaft)"
+enum RoleScope {
+  PROJECT
+  SYSTEM
+}
+
 "Directions for ordering a list of records."
 enum SortOrder {
   "Sort records in ascending order."
@@ -651,7 +689,7 @@ enum SortOrder {
 "Ein Systemrecht und die Systemrollen, die es haben."
 type SystemRightRow {
   right: Right!
-  roles: [UserRole!]!
+  roles: [Role!]!
 }
 
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
@@ -775,7 +813,9 @@ input UpdateUserInput {
   activity: UserActivity
   email: String
   name: String
-  role: UserRole
+
+  "Schlüssel einer Systemrolle (siehe roles)"
+  role: String
 }
 
 "Datei-Upload (GraphQL multipart request), zum Beispiel mit apollo-upload-client"
@@ -820,7 +860,7 @@ type User {
   projects: [Project!]!
 
   "Globale Berechtigungsrolle, unabhängig von Projekten"
-  role: UserRole!
+  role: Role!
 
   "Hat die Person eine bestätigte 2FA-App? Nur für dich selbst und für Admins, sonst null."
   twoFactorConfirmed: Boolean
@@ -834,15 +874,6 @@ enum UserActivity {
   TECHNIK
   TESTER
   VOLUNTEER
-}
-
-"Globale Berechtigungsrolle eines Benutzers. Welche Rechte sie hat, steht in den Einstellungen (Rollen und Funktionen)."
-enum UserRole {
-  ADMIN
-  KOORDINATION
-  LESEND
-  MITGLIED
-  PROJEKTLEITUNG
 }
 
 "Die Story eines Tasks, Klartext in drei Teilen."

@@ -28,9 +28,9 @@ class RightsProjectTest extends TestCase
             ->withMember($member)
             ->create();
 
-        $this->assertSame(ProjectRole::OWNER, $project->roleOf($owner));
-        $this->assertSame(ProjectRole::MANAGER, $project->roleOf($manager));
-        $this->assertSame(ProjectRole::MEMBER, $project->roleOf($member));
+        $this->assertSame(ProjectRole::OWNER->value, $project->roleOf($owner)?->key);
+        $this->assertSame(ProjectRole::MANAGER->value, $project->roleOf($manager)?->key);
+        $this->assertSame(ProjectRole::MEMBER->value, $project->roleOf($member)?->key);
         $this->assertNull($project->roleOf($stranger));
     }
 

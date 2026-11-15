@@ -11,6 +11,7 @@ use App\Mcp\Tools\GetProjectTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
@@ -68,8 +69,8 @@ class MolloPlanerServerTest extends McpTestCase
         ])->assertOk()->assertSee('Podcast Migration');
 
         $project = Project::where('name', 'Podcast Migration')->firstOrFail();
-        $this->assertSame(ProjectRole::OWNER, $project->roleOf($this->owner));
-        $this->assertSame(ProjectRole::MEMBER, $project->roleOf($this->member));
+        $this->assertSame(ProjectRole::OWNER->value, $project->roleOf($this->owner)?->key);
+        $this->assertSame(ProjectRole::MEMBER->value, $project->roleOf($this->member)?->key);
     }
 
     public function test_an_unknown_member_creates_no_project(): void
@@ -112,7 +113,7 @@ class MolloPlanerServerTest extends McpTestCase
 
     public function test_a_guest_may_not_create_tasks_and_then_nothing_is_created(): void
     {
-        $this->project->members()->updateExistingPivot($this->member->id, ['role' => ProjectRole::GUEST->value]);
+        $this->project->members()->updateExistingPivot($this->member->id, ['role_id' => Role::idOf(Role::SCOPE_PROJECT, ProjectRole::GUEST)]);
 
         MolloPlanerServer::actingAs($this->member)->tool(CreateProjectPlanTool::class, $this->plan())
             ->assertHasErrors(['Milestone "Konzept steht": This action is unauthorized.']);

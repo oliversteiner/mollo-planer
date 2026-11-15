@@ -8,6 +8,7 @@ use App\Enums\TaskStatus;
 use App\Models\Comment;
 use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
@@ -31,12 +32,12 @@ class DemoSeederTest extends TestCase
         $this->seedDemo();
 
         $this->assertSame([4, 2, 5, 6, 8, 3], [User::count(), Project::count(), Milestone::count(), Todo::count(), Task::count(), Comment::count()]);
-        $this->assertSame(['anna.keller@example.ch'], User::where('role', 'admin')->pluck('email')->all());
+        $this->assertSame(['anna.keller@example.ch'], User::where('role_id', Role::idOf(Role::SCOPE_SYSTEM, 'admin'))->pluck('email')->all());
 
         $relaunch = Project::where('name', 'Website-Relaunch')->firstOrFail();
         $chiara = User::where('email', 'chiara.rossi@example.ch')->firstOrFail();
-        $this->assertSame(ProjectRole::MANAGER, $relaunch->roleOf($chiara));
-        $this->assertSame(ProjectRole::OWNER, Project::where('name', 'Sommerfest 2027')->firstOrFail()->roleOf($chiara));
+        $this->assertSame(ProjectRole::MANAGER->value, $relaunch->roleOf($chiara)?->key);
+        $this->assertSame(ProjectRole::OWNER->value, Project::where('name', 'Sommerfest 2027')->firstOrFail()->roleOf($chiara)?->key);
 
         $this->assertSame(
             ['Mockup Desktop', 'Veraltete Seiten markieren', 'Hosting bestellen'],
@@ -59,9 +60,9 @@ class DemoSeederTest extends TestCase
         $this->postJson('/login', ['email' => $ben->email, 'password' => self::PASSWORD])
             ->assertOk()->assertJsonPath('two_factor', false);
 
-        $this->postJson('/api', ['query' => '{ projects { name viewerRole } }'])
+        $this->postJson('/api', ['query' => '{ projects { name viewerRole { key } } }'])
             ->assertOk()
-            ->assertJsonPath('data.projects', [['name' => 'Website-Relaunch', 'viewerRole' => 'OWNER']]);
+            ->assertJsonPath('data.projects', [['name' => 'Website-Relaunch', 'viewerRole' => ['key' => 'owner']]]);
     }
 
     public function test_after_switching_two_factor_on_the_seeded_totp_code_works(): void

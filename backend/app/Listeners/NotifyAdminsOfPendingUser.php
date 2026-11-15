@@ -3,7 +3,6 @@
 namespace App\Listeners;
 
 use App\Enums\Right;
-use App\Enums\UserRole;
 use App\Models\User;
 use App\Notifications\UserAwaitingApproval;
 use App\Support\Rights;
@@ -12,8 +11,8 @@ use Illuminate\Support\Facades\Notification;
 
 /**
  * After the mail address is confirmed, the admins hear about the account
- * that waits for approval. Only users who manage users get the mail, the
- * roles come from App\Support\Rights.
+ * that waits for approval. Only people with the right users.manage get the
+ * mail.
  */
 class NotifyAdminsOfPendingUser
 {
@@ -25,17 +24,8 @@ class NotifyAdminsOfPendingUser
             return;
         }
 
-        $roles = array_filter(
-            UserRole::cases(),
-            fn (UserRole $role): bool => in_array(
-                Right::USERS_MANAGE,
-                Rights::systemRightsOf($role),
-                true,
-            ),
-        );
-
         $admins = User::query()
-            ->whereIn('role', array_map(fn (UserRole $role): string => $role->value, $roles))
+            ->whereIn('role_id', Rights::roleIdsWith(Right::USERS_MANAGE))
             ->whereNotNull('approved_at')
             ->get();
 

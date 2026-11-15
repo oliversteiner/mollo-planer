@@ -4,6 +4,7 @@ namespace Tests\Feature\GraphQL;
 
 use App\Enums\ProjectRole;
 use App\Models\Project;
+use App\Models\Role;
 
 /**
  * What the global roles change in practice: who creates projects, what a
@@ -29,7 +30,7 @@ class SystemRolesTest extends GraphQLTestCase
         $this->as('projektleitung')->gql(self::CREATE);
 
         $project = Project::query()->where('name', 'Neues Projekt')->firstOrFail();
-        $this->assertSame(ProjectRole::OWNER, $project->roleOf($this->users['projektleitung']));
+        $this->assertSame(ProjectRole::OWNER->value, $project->roleOf($this->users['projektleitung'])?->key);
 
         $this->as('projektleitung')->gql('{ projects { name } }')
             ->assertJsonPath('data.projects.0.name', 'Neues Projekt');
@@ -45,7 +46,7 @@ class SystemRolesTest extends GraphQLTestCase
 
     public function test_read_only_users_may_change_nothing_even_as_owner(): void
     {
-        $this->project->members()->attach($this->users['lesend']->id, ['role' => ProjectRole::OWNER->value]);
+        $this->project->members()->attach($this->users['lesend']->id, ['role_id' => Role::idOf(Role::SCOPE_PROJECT, ProjectRole::OWNER)]);
 
         $this->assertFalse($this->users['lesend']->can('update', $this->project));
         $this->assertFalse($this->users['lesend']->can('createMilestone', $this->project));
@@ -68,5 +69,29 @@ class SystemRolesTest extends GraphQLTestCase
     public function test_projektleitung_may_not_see_the_user_list(): void
     {
         $this->assertUnauthorized($this->as('projektleitung')->gql('{ users { name } }'));
+    }
+
+    public function test_everybody_signed_in_reads_the_roles_for_the_selection(): void
+    {
+        $roles = $this->as('member')->gql('{ roles(scope: PROJECT) { key scope isDefault isStandard names { de en } rights } }')
+            ->assertJsonMissingPath('errors')
+            ->json('data.roles');
+
+        $this->assertSame(['owner', 'manager', 'member', 'guest'], array_column($roles, 'key'));
+        $this->assertSame([false, false, true, false], array_column($roles, 'isDefault'));
+        $this->assertSame(['de' => 'Gast', 'en' => 'Guest'], $roles[3]['names']);
+        $this->assertSame([], $roles[3]['rights']);
+        $this->assertContains('PROJECT_DELETE', $roles[0]['rights']);
+
+        $this->assertCount(9, $this->as('member')->gql('{ roles { key } }')->json('data.roles'));
+    }
+
+    public function test_an_unknown_role_key_is_a_validation_error(): void
+    {
+        $this->as('admin')->gql('mutation ($id: ID!) { updateUser(id: $id, input: {role: "king"}) { id } }', ['id' => $this->users['member']->id])
+            ->assertGraphQLValidationKeys(['role']);
+
+        $this->as('owner')->gql('mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "admin") { id } }', ['p' => $this->project->id, 'u' => $this->users['stranger']->id])
+            ->assertGraphQLValidationKeys(['role']);
     }
 }

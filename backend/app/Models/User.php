@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserActivity;
-use App\Enums\UserRole;
+use App\Models\Concerns\HasRole;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyRegistrationEmail;
 use App\Observers\UserObserver;
@@ -30,8 +30,10 @@ use Laravel\Sanctum\HasApiTokens;
 #[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, MustVerifyEmail, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    /** @use HasFactory<UserFactory> */
+    use HasRole;
 
     /**
      * Same defaults as the database, so new instances never hold null.
@@ -39,9 +41,21 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'role' => 'mitglied',
         'notify_by_email' => true,
     ];
+
+    protected static function roleScope(): string
+    {
+        return Role::SCOPE_SYSTEM;
+    }
+
+    protected static function booted(): void
+    {
+        // Somebody created without a role gets the default role of the settings.
+        static::creating(function (self $user): void {
+            $user->role_id ??= Role::defaultOf(Role::SCOPE_SYSTEM)?->id;
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -55,7 +69,6 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             'approved_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
-            'role' => UserRole::class,
             'activity' => UserActivity::class,
             'notify_by_email' => 'boolean',
         ];
@@ -71,7 +84,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
         return $this->belongsToMany(Project::class)
             ->using(ProjectMember::class)
             ->as('membership')
-            ->withPivot('id', 'role')
+            ->withPivot('id', 'role_id')
             ->withTimestamps();
     }
 
