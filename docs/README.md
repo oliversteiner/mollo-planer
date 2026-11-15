@@ -4,7 +4,7 @@ Stand: 2026-11-13 (D1). Wer neu einsteigt, Mensch oder Agent, liest zuerst diese
 
 ## Was gilt (Vorrang von oben nach unten)
 
-1. **`umsetzung.md`**: Arbeitsschritte, Reihenfolge, Meilensteine M1 bis M6, Stand. Was dort steht, wird gebaut.
+1. **`umsetzung.md`**: Arbeitsschritte, Reihenfolge, Meilensteine M1 bis M6, Stand. Was dort steht, wird gebaut. Dazu je Meilenstein `auftrag-m<N>.md` (präzisierter Auftrag) und `abnahme-m<N>.md` (Checkliste für Oliver).
 2. **`planer-abgleich.md`**: Entscheidungen zu Format Planer v2, Import/Export, Labels, Vorlagen, Werten, Status, Rich Text, Webhook.
 3. **`rollen-funktionen-rechte.md`**: Rechte, Funktionen, Rollen, Grundregeln.
 4. **`assistent-ideen-konzept.md`**: KI-Assistent, Ideen, KI-Kontext.

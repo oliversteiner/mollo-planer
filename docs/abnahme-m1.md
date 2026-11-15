@@ -1,0 +1,69 @@
+# Abnahme Meilenstein M1 „Fundament“
+
+Stand: 2026-11-15. Rolle: Checkliste für Oliver, nach Abschluss von M1 durch die Umsetzung.
+Vorher durch die Umsetzung: alle Prüfungen grün (`php artisan test`, `composer test:mariadb`, `npm test` in `frontend/` und `tools/planer/`, Lint, Typecheck, Build), dann lokal `php artisan migrate:fresh --seed --seeder=DemoSeeder`.
+
+Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ passt, ❌ mit kurzer Notiz.
+
+---
+
+## 1. Rollen, Funktionen, Rechte (`/admin/roles`)
+
+- [ ] Als Anna `/admin/roles` öffnen: Systemrollen, Projektrollen und Funktionen sind getrennt aufgelistet, Namen in DE und EN.
+- [ ] Die Übersicht Rolle × Recht zeigt die Standardbelegung (Owner, Manager, Mitglied, Gast; Admin, Projektleitung, Koordination, Mitglied, Lesend).
+- [ ] Eigene Projektrolle „Redaktion“ anlegen mit den Funktionen „Planen“ und „Mitarbeiten“. Ben in einem Projekt diese Rolle geben. Ben kann ToDos und eigene Tasks anlegen, aber keine fremden Tasks löschen.
+- [ ] Eigene Funktion anlegen, einer Rolle zuordnen, wieder entfernen. Löschen einer Funktion, die noch eine Rolle nutzt, wird verhindert.
+- [ ] „Standard wiederherstellen“ bei einer geänderten mitgelieferten Rolle stellt die Standardbelegung her.
+- [ ] Ersteller-Rolle in den Einstellungen festlegen. Ein neues Projekt (als Person mit `projects.create`) gibt dem Ersteller diese Rolle.
+- [ ] Ohne `roles.manage` (z. B. als Ben) ist `/admin/roles` nicht im Menü und beim direkten Aufruf gesperrt.
+
+## 2. Grundregeln (dürfen nicht aushebelbar sein)
+
+- [ ] Anna kann sich `users.manage`/`roles.manage` nicht selbst entziehen (Rolle ändern auf sich selbst wird abgelehnt).
+- [ ] Der letzten Person mit `users.manage`/`roles.manage` lässt sich die Rolle nicht wegnehmen.
+- [ ] Im Projekt: Die letzte Person mit „Projekt löschen“ lässt sich nicht entfernen oder herabstufen (auch wenn ihre Rolle eine eigene Rolle mit diesem Recht ist, nicht „Owner“).
+- [ ] Nur wer `owner.manage` hat, kann eine Rolle mit „Projekt löschen“ vergeben.
+- [ ] Systemrolle „Lesend“: Person ist Owner eines Projekts und kann dort trotzdem nichts ändern (Obergrenze).
+- [ ] Projektrolle „Gast“: sieht das Projekt, kann nichts ändern, nicht kommentieren.
+- [ ] Mitglied: legt einen Task an, ändert ihn, weist ihn sich selbst zu; einen fremden Task kann es nicht ändern; einen eigenen Task kann es nicht einer anderen Person zuweisen.
+- [ ] Fremde Kommentare: niemand kann sie ändern, auch Anna nicht.
+
+## 3. Tätigkeit
+
+- [ ] Profil und Benutzerverwaltung zeigen „Tätigkeit“ (EN „Activity“), nicht mehr „Funktion“.
+
+## 4. Task-Status `idea` und `planned`
+
+- [ ] Kanban zeigt sechs Spalten in der Reihenfolge Idee, Geplant, Offen, In Arbeit, Prüfung, Erledigt.
+- [ ] Schalter „Ideen und Geplantes anzeigen“ blendet die zwei Spalten aus und bleibt nach dem Neuladen gleich.
+- [ ] Ein ToDo mit einem erledigten Task und einem Task in „Idee“ ist erledigt; der Fortschritt zählt die Idee nicht.
+- [ ] „Meine Tasks“ und Dashboard zeigen unter „offen“ keine Ideen, aber geplante Tasks.
+- [ ] Zuweisungs-Mail: Ein zugewiesener Task in „Idee“ schickt keine Mail (Mailpit). Wechsel auf „Geplant“ schickt sie dann.
+
+## 5. Release und Commit (S3b)
+
+- [ ] Milestone bekommt Version `1.4` und Status „geplant“; der Zeitstrahl zeigt die Version.
+- [ ] Auf „veröffentlicht“ setzen geht nur, wenn alle Tasks erledigt sind und jeder erledigte Task einen Commit oder „ohne“ hat. Die Meldung nennt, was fehlt.
+- [ ] Task-Detail: Commit eintragen (Kurz-Hash sichtbar), ungültiger Hash wird abgelehnt.
+- [ ] Englische Oberfläche zeigt „planned“/„released“ bzw. „none“.
+
+## 6. Revision und Neuladen (S3c, S3f)
+
+- [ ] Zwei Browserfenster (Anna und Ben im selben Projekt, Zeitachse bzw. Kanban). Änderung in einem Fenster erscheint im anderen nach höchstens etwa 30 Sekunden, mit Hinweis „Das Projekt wurde inzwischen geändert“.
+- [ ] Eigene Änderung lädt nicht die ganze Seite neu (kein Flackern, Scrollposition bleibt).
+- [ ] Ein Kommentar ändert die Revision nicht (kein Hinweis im anderen Fenster).
+- [ ] Tab im Hintergrund: keine Abfragen (Netzwerk-Tab der Entwicklerwerkzeuge).
+
+## 7. Allgemein
+
+- [ ] Hell und dunkel, Deutsch und Englisch auf den neuen Seiten (`/admin/roles`, Task-Detail, Kanban, Milestone-Formular).
+- [ ] Tastatur: `/admin/roles` vollständig ohne Maus bedienbar, Fokus sichtbar.
+- [ ] Telefonbreite: `/admin/roles` und Kanban ohne seitliches Scrollen der Seite.
+- [ ] Menü zeigt nur Einträge, für die die Person Rechte hat (Ben, Chiara, David vergleichen).
+
+---
+
+## Ergebnis
+
+- Abgenommen am: ____ durch: Oliver
+- Offene Punkte (gehen als Fix vor M2 an die Umsetzung):

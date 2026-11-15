@@ -197,6 +197,8 @@ Details: `docs/rollen-funktionen-rechte.md` (verbindlich). Breaking Change, `mig
 
 ## S5. Archiv und Papierkorb (Schema-Review Schritt 3, A5)
 
+**Präzisiert in `docs/auftrag-m2.md` (2026-11-15), dort gilt der Stand für S5 und S6.**
+
 Vollständig nach `docs/schema-review.md` A5:
 
 - Archiv: zentral in `ProjectPermissions::allows`, Ausnahmen `project.archive` und Wiederherstellen. `archiveProject`, `unarchiveProject`, Filter `projects(archived:)`. Ausblenden in Dashboard, Seitenleiste, `myTasks`. Test mit der Liste aus S1.
