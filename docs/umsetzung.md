@@ -164,6 +164,8 @@ Details in `docs/planer-abgleich.md`, Abschnitt 2.3.
 
 ## S3e. Rich-Text-Konverter Markdown ↔ TipTap-JSON (entschieden 2026-11-13)
 
+**Präzisiert in `docs/auftrag-m3.md` (2026-11-15), dort gilt der Stand für S3e und S7.**
+
 Details: `docs/planer-abgleich.md` §9. Nur PHP, keine neue Abhängigkeit.
 
 - `App\Planer\RichText\MarkdownToTiptap` auf Basis von `league/commonmark` (AST, kein HTML), `App\Planer\RichText\TiptapToMarkdown` als eigener Serialisierer in kanonischer Form (§9.3).
@@ -214,6 +216,8 @@ Vollständig nach `docs/schema-review.md` A5:
 - C3: `updateMyNotifications(notifyByEmail:)`, einheitliche Rückgabe von `rejectUser`/`deleteUser`, `MemberCandidate` nach `types.graphql`, Kopfkommentar in `schema.graphql` auf Verweis zu `permissionMatrix` kürzen.
 
 ## S7. Vorlagen und Projekt-Labels (entschieden 2026-11-13)
+
+**Präzisiert in `docs/auftrag-m3.md` (2026-11-15).**
 
 Details in `docs/planer-abgleich.md`, Abschnitt 3. Ersetzt das heutige Label-Set-Modell. Breaking Change, `migrate:fresh` lokal.
 
