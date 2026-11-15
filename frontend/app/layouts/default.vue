@@ -26,6 +26,7 @@ const adminItems = computed<NavItem[]>(() => [
   { label: t('nav.status'), icon: 'heart-pulse', to: '/system/status' },
   { label: t('nav.version'), icon: 'code-branch', to: '/system/version' },
   ...(can('USERS_MANAGE') ? [{ label: t('nav.users'), icon: 'users', to: '/admin/users' }] : []),
+  ...(can('ROLES_MANAGE') ? [{ label: t('nav.roles'), icon: 'user-shield', to: '/admin/roles' }] : []),
   ...(can('LABEL_SETS_MANAGE') ? [{ label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' }] : []),
   ...(can('USERS_MANAGE') ? [{ label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }] : [])
 ])

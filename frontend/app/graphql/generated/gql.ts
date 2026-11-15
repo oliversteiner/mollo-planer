@@ -53,6 +53,18 @@ type Documents = {
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": typeof types.SidebarProjectsDocument,
     "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles { key } }\n      project { right roles { key } }\n    }\n  }\n": typeof types.PermissionMatrixDocument,
     "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n": typeof types.RolesDocument,
+    "\n  query RoleSettings {\n    roles {\n      id\n      key\n      scope\n      isDefault\n      isStandard\n      names { de en }\n      functions { id key names { de en } }\n      projectCap\n      usageCount\n    }\n    roleFunctions {\n      id\n      key\n      scope\n      isStandard\n      names { de en }\n      rights\n      usageCount\n    }\n    systemRights: rights(scope: SYSTEM)\n    projectRights: rights(scope: PROJECT)\n  }\n": typeof types.RoleSettingsDocument,
+    "\n  mutation CreateRole($input: CreateRoleInput!) {\n    createRole(input: $input) { id key names { de en } }\n  }\n": typeof types.CreateRoleDocument,
+    "\n  mutation UpdateRole($id: ID!, $input: UpdateRoleInput!) {\n    updateRole(id: $id, input: $input) { id key names { de en } }\n  }\n": typeof types.UpdateRoleDocument,
+    "\n  mutation DuplicateRole($id: ID!) {\n    duplicateRole(id: $id) { id key names { de en } }\n  }\n": typeof types.DuplicateRoleDocument,
+    "\n  mutation DeleteRole($id: ID!) {\n    deleteRole(id: $id) { id }\n  }\n": typeof types.DeleteRoleDocument,
+    "\n  mutation SetDefaultRole($id: ID!) {\n    setDefaultRole(id: $id) { id key names { de en } }\n  }\n": typeof types.SetDefaultRoleDocument,
+    "\n  mutation ResetRole($id: ID!) {\n    resetRole(id: $id) { id key names { de en } }\n  }\n": typeof types.ResetRoleDocument,
+    "\n  mutation CreateRoleFunction($input: CreateRoleFunctionInput!) {\n    createRoleFunction(input: $input) { id key names { de en } }\n  }\n": typeof types.CreateRoleFunctionDocument,
+    "\n  mutation UpdateRoleFunction($id: ID!, $input: UpdateRoleFunctionInput!) {\n    updateRoleFunction(id: $id, input: $input) { id key names { de en } }\n  }\n": typeof types.UpdateRoleFunctionDocument,
+    "\n  mutation DuplicateRoleFunction($id: ID!) {\n    duplicateRoleFunction(id: $id) { id key names { de en } }\n  }\n": typeof types.DuplicateRoleFunctionDocument,
+    "\n  mutation DeleteRoleFunction($id: ID!) {\n    deleteRoleFunction(id: $id) { id }\n  }\n": typeof types.DeleteRoleFunctionDocument,
+    "\n  mutation ResetRoleFunction($id: ID!) {\n    resetRoleFunction(id: $id) { id key names { de en } }\n  }\n": typeof types.ResetRoleFunctionDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": typeof types.SecurityDocument,
     "\n  query ApiTokens {\n    me {\n      id\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n    }\n  }\n": typeof types.ApiTokensDocument,
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": typeof types.CreateApiTokenDocument,
@@ -117,6 +129,18 @@ const documents: Documents = {
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": types.SidebarProjectsDocument,
     "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles { key } }\n      project { right roles { key } }\n    }\n  }\n": types.PermissionMatrixDocument,
     "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n": types.RolesDocument,
+    "\n  query RoleSettings {\n    roles {\n      id\n      key\n      scope\n      isDefault\n      isStandard\n      names { de en }\n      functions { id key names { de en } }\n      projectCap\n      usageCount\n    }\n    roleFunctions {\n      id\n      key\n      scope\n      isStandard\n      names { de en }\n      rights\n      usageCount\n    }\n    systemRights: rights(scope: SYSTEM)\n    projectRights: rights(scope: PROJECT)\n  }\n": types.RoleSettingsDocument,
+    "\n  mutation CreateRole($input: CreateRoleInput!) {\n    createRole(input: $input) { id key names { de en } }\n  }\n": types.CreateRoleDocument,
+    "\n  mutation UpdateRole($id: ID!, $input: UpdateRoleInput!) {\n    updateRole(id: $id, input: $input) { id key names { de en } }\n  }\n": types.UpdateRoleDocument,
+    "\n  mutation DuplicateRole($id: ID!) {\n    duplicateRole(id: $id) { id key names { de en } }\n  }\n": types.DuplicateRoleDocument,
+    "\n  mutation DeleteRole($id: ID!) {\n    deleteRole(id: $id) { id }\n  }\n": types.DeleteRoleDocument,
+    "\n  mutation SetDefaultRole($id: ID!) {\n    setDefaultRole(id: $id) { id key names { de en } }\n  }\n": types.SetDefaultRoleDocument,
+    "\n  mutation ResetRole($id: ID!) {\n    resetRole(id: $id) { id key names { de en } }\n  }\n": types.ResetRoleDocument,
+    "\n  mutation CreateRoleFunction($input: CreateRoleFunctionInput!) {\n    createRoleFunction(input: $input) { id key names { de en } }\n  }\n": types.CreateRoleFunctionDocument,
+    "\n  mutation UpdateRoleFunction($id: ID!, $input: UpdateRoleFunctionInput!) {\n    updateRoleFunction(id: $id, input: $input) { id key names { de en } }\n  }\n": types.UpdateRoleFunctionDocument,
+    "\n  mutation DuplicateRoleFunction($id: ID!) {\n    duplicateRoleFunction(id: $id) { id key names { de en } }\n  }\n": types.DuplicateRoleFunctionDocument,
+    "\n  mutation DeleteRoleFunction($id: ID!) {\n    deleteRoleFunction(id: $id) { id }\n  }\n": types.DeleteRoleFunctionDocument,
+    "\n  mutation ResetRoleFunction($id: ID!) {\n    resetRoleFunction(id: $id) { id key names { de en } }\n  }\n": types.ResetRoleFunctionDocument,
     "\n  query Security {\n    me {\n      id\n      twoFactorConfirmed\n      hasPasskey\n      passkeys {\n        id\n        name\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": types.SecurityDocument,
     "\n  query ApiTokens {\n    me {\n      id\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n    }\n  }\n": types.ApiTokensDocument,
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": types.CreateApiTokenDocument,
@@ -312,6 +336,54 @@ export function graphql(source: "\n  query PermissionMatrix {\n    permissionMat
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n"): (typeof documents)["\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query RoleSettings {\n    roles {\n      id\n      key\n      scope\n      isDefault\n      isStandard\n      names { de en }\n      functions { id key names { de en } }\n      projectCap\n      usageCount\n    }\n    roleFunctions {\n      id\n      key\n      scope\n      isStandard\n      names { de en }\n      rights\n      usageCount\n    }\n    systemRights: rights(scope: SYSTEM)\n    projectRights: rights(scope: PROJECT)\n  }\n"): (typeof documents)["\n  query RoleSettings {\n    roles {\n      id\n      key\n      scope\n      isDefault\n      isStandard\n      names { de en }\n      functions { id key names { de en } }\n      projectCap\n      usageCount\n    }\n    roleFunctions {\n      id\n      key\n      scope\n      isStandard\n      names { de en }\n      rights\n      usageCount\n    }\n    systemRights: rights(scope: SYSTEM)\n    projectRights: rights(scope: PROJECT)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateRole($input: CreateRoleInput!) {\n    createRole(input: $input) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation CreateRole($input: CreateRoleInput!) {\n    createRole(input: $input) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateRole($id: ID!, $input: UpdateRoleInput!) {\n    updateRole(id: $id, input: $input) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation UpdateRole($id: ID!, $input: UpdateRoleInput!) {\n    updateRole(id: $id, input: $input) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DuplicateRole($id: ID!) {\n    duplicateRole(id: $id) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation DuplicateRole($id: ID!) {\n    duplicateRole(id: $id) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteRole($id: ID!) {\n    deleteRole(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteRole($id: ID!) {\n    deleteRole(id: $id) { id }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SetDefaultRole($id: ID!) {\n    setDefaultRole(id: $id) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation SetDefaultRole($id: ID!) {\n    setDefaultRole(id: $id) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ResetRole($id: ID!) {\n    resetRole(id: $id) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation ResetRole($id: ID!) {\n    resetRole(id: $id) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateRoleFunction($input: CreateRoleFunctionInput!) {\n    createRoleFunction(input: $input) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation CreateRoleFunction($input: CreateRoleFunctionInput!) {\n    createRoleFunction(input: $input) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateRoleFunction($id: ID!, $input: UpdateRoleFunctionInput!) {\n    updateRoleFunction(id: $id, input: $input) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation UpdateRoleFunction($id: ID!, $input: UpdateRoleFunctionInput!) {\n    updateRoleFunction(id: $id, input: $input) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DuplicateRoleFunction($id: ID!) {\n    duplicateRoleFunction(id: $id) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation DuplicateRoleFunction($id: ID!) {\n    duplicateRoleFunction(id: $id) { id key names { de en } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteRoleFunction($id: ID!) {\n    deleteRoleFunction(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteRoleFunction($id: ID!) {\n    deleteRoleFunction(id: $id) { id }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ResetRoleFunction($id: ID!) {\n    resetRoleFunction(id: $id) { id key names { de en } }\n  }\n"): (typeof documents)["\n  mutation ResetRoleFunction($id: ID!) {\n    resetRoleFunction(id: $id) { id key names { de en } }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

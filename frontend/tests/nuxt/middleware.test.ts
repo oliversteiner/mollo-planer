@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RouteLocationNormalized } from 'vue-router'
 import adminMiddleware from '~/middleware/admin'
 import authMiddleware from '~/middleware/auth.global'
+import rolesMiddleware from '~/middleware/roles'
 
 const { viewerState, abilities, load, redirect, abort } = vi.hoisted(() => ({
   viewerState: { value: null as null | { role: string } },
@@ -79,5 +80,15 @@ describe('admin middleware', () => {
 
     abilities.value = ['PROJECTS_CREATE']
     expect(adminMiddleware(route('/admin/users'), route('/'))).toEqual({ redirectedTo: '/' })
+  })
+})
+
+describe('roles middleware', () => {
+  it('lets only viewers with roles.manage to the settings of roles', async () => {
+    abilities.value = ['USERS_MANAGE']
+    expect(await rolesMiddleware(route('/admin/roles'), route('/'))).toEqual({ redirectedTo: '/' })
+
+    abilities.value = ['ROLES_MANAGE']
+    expect(await rolesMiddleware(route('/admin/roles'), route('/'))).toBeUndefined()
   })
 })

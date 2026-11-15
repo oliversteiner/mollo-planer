@@ -635,6 +635,9 @@ type Query {
   "Deine Projekte. Admins sehen alle."
   projects: [Project!]!
 
+  "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
+  rights(scope: RoleScope!): [Right!]!
+
   "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."
   roleFunctions(scope: RoleScope): [RoleFunction!]!
 

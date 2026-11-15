@@ -18,7 +18,8 @@
     "database": "Datenbank",
     "status": "Status",
     "version": "Version",
-    "rights": "Rechte"
+    "rights": "Rechte",
+    "roles": "Rollen"
   },
   "settings": {
     "language": "Sprache",
@@ -1273,5 +1274,71 @@
       "SYSTEM_VIEW": "Status-Seite sehen",
       "DATABASE_VIEW": "Datenbank-Doku sehen"
     }
+  },
+  "roleSettings": {
+    "title": "Rollen und Funktionen",
+    "intro": "Rechte gibt der Code vor. Eine Funktion bündelt Rechte, eine Rolle bündelt Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft.",
+    "scopes": {
+      "SYSTEM": "System",
+      "PROJECT": "Projekt"
+    },
+    "roles": {
+      "SYSTEM": "Systemrollen",
+      "PROJECT": "Projektrollen"
+    },
+    "functions": {
+      "SYSTEM": "Systemfunktionen",
+      "PROJECT": "Projektfunktionen"
+    },
+    "createRole": "Rolle anlegen",
+    "editRole": "Rolle ändern",
+    "createFunction": "Funktion anlegen",
+    "editFunction": "Funktion ändern",
+    "standard": "Mitgeliefert",
+    "default": "Standardrolle",
+    "duplicate": "Duplizieren",
+    "makeDefault": "Als Standardrolle setzen",
+    "reset": "Standard wiederherstellen",
+    "inUse": "wird noch verwendet",
+    "isDefault": "ist die Standardrolle",
+    "actionsOf": "Aktionen für «{name}»",
+    "functionsOf": "Funktionen",
+    "noFunctions": "Keine Funktionen (nur lesen)",
+    "rightsOf": "Rechte",
+    "noRights": "Keine Rechte",
+    "capAll": "Projektrechte: alle",
+    "capNone": "Projektrechte: keine, die Person liest in Projekten nur",
+    "capSome": "Projektrechte: begrenzt auf {count} von {total}",
+    "roleUsage": {
+      "SYSTEM": "Niemand hat die Rolle | 1 Person | {count} Personen",
+      "PROJECT": "In keinem Projekt vergeben | 1 Mitgliedschaft | {count} Mitgliedschaften"
+    },
+    "functionUsage": "In keiner Rolle | In 1 Rolle | In {count} Rollen",
+    "scope": "Bereich",
+    "scopeHint": "Der Bereich lässt sich später nicht ändern.",
+    "nameDe": "Name (Deutsch)",
+    "nameEn": "Name (Englisch)",
+    "keyHint": "Der Schlüssel entsteht aus dem englischen Namen und bleibt danach fest.",
+    "cap": "Obergrenze für Projektrechte",
+    "capHint": "Legt fest, welche Projektrechte für Personen mit dieser Rolle überhaupt wirken, egal welche Projektrolle sie haben.",
+    "capModes": {
+      "ALL": "Alle Projektrechte",
+      "NONE": "Keine (in Projekten nur lesen)",
+      "SOME": "Nur ausgewählte"
+    },
+    "capRights": "Projektrechte, die wirken dürfen",
+    "saved": "Gespeichert.",
+    "duplicated": "«{name}» angelegt. Du kannst es jetzt anpassen.",
+    "deleted": "Gelöscht.",
+    "defaultSet": "«{name}» ist jetzt die Standardrolle.",
+    "resetDone": "«{name}» ist wieder im Standard.",
+    "deleteTitle": "«{name}» löschen?",
+    "deleteRoleDescription": "Die Rolle wird gelöscht. Das lässt sich nicht rückgängig machen.",
+    "deleteFunctionDescription": "Die Funktion wird gelöscht. Das lässt sich nicht rückgängig machen.",
+    "resetTitle": "«{name}» auf den Standard zurücksetzen?",
+    "resetRoleDescription": "Name, Funktionen und Obergrenze werden wieder wie mitgeliefert. Das gilt sofort für alle, die die Rolle haben.",
+    "resetFunctionDescription": "Name und Rechte werden wieder wie mitgeliefert. Das gilt sofort für alle Rollen mit dieser Funktion.",
+    "matrixHint": "Was am Ende gilt, zeigt die Rechte-Tabelle: jede Rolle mit ihren Rechten.",
+    "matrixLink": "Rechte-Tabelle öffnen"
   }
 }

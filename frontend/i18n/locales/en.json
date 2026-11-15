@@ -18,7 +18,8 @@
     "database": "Database",
     "status": "Status",
     "version": "Version",
-    "rights": "Rights"
+    "rights": "Rights",
+    "roles": "Roles"
   },
   "settings": {
     "language": "Language",
@@ -1273,5 +1274,71 @@
       "SYSTEM_VIEW": "See the status page",
       "DATABASE_VIEW": "See the database documentation"
     }
+  },
+  "roleSettings": {
+    "title": "Roles and functions",
+    "intro": "Rights are fixed by the code. A function bundles rights, a role bundles functions. System roles hold for a person in the whole app, project roles for a membership.",
+    "scopes": {
+      "SYSTEM": "System",
+      "PROJECT": "Project"
+    },
+    "roles": {
+      "SYSTEM": "System roles",
+      "PROJECT": "Project roles"
+    },
+    "functions": {
+      "SYSTEM": "System functions",
+      "PROJECT": "Project functions"
+    },
+    "createRole": "Create role",
+    "editRole": "Edit role",
+    "createFunction": "Create function",
+    "editFunction": "Edit function",
+    "standard": "Built-in",
+    "default": "Default role",
+    "duplicate": "Duplicate",
+    "makeDefault": "Set as default role",
+    "reset": "Reset to standard",
+    "inUse": "still in use",
+    "isDefault": "is the default role",
+    "actionsOf": "Actions for “{name}”",
+    "functionsOf": "Functions",
+    "noFunctions": "No functions (read only)",
+    "rightsOf": "Rights",
+    "noRights": "No rights",
+    "capAll": "Project rights: all",
+    "capNone": "Project rights: none, the person only reads in projects",
+    "capSome": "Project rights: limited to {count} of {total}",
+    "roleUsage": {
+      "SYSTEM": "Nobody has the role | 1 person | {count} people",
+      "PROJECT": "Given in no project | 1 membership | {count} memberships"
+    },
+    "functionUsage": "In no role | In 1 role | In {count} roles",
+    "scope": "Scope",
+    "scopeHint": "The scope cannot be changed later.",
+    "nameDe": "Name (German)",
+    "nameEn": "Name (English)",
+    "keyHint": "The key is made from the English name and stays fixed afterwards.",
+    "cap": "Cap for project rights",
+    "capHint": "Sets which project rights can take effect at all for people with this role, whatever their project role.",
+    "capModes": {
+      "ALL": "All project rights",
+      "NONE": "None (read only in projects)",
+      "SOME": "Selected ones only"
+    },
+    "capRights": "Project rights that may take effect",
+    "saved": "Saved.",
+    "duplicated": "“{name}” created. You can adjust it now.",
+    "deleted": "Deleted.",
+    "defaultSet": "“{name}” is now the default role.",
+    "resetDone": "“{name}” is back to the standard.",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteRoleDescription": "The role will be deleted. This cannot be undone.",
+    "deleteFunctionDescription": "The function will be deleted. This cannot be undone.",
+    "resetTitle": "Reset “{name}” to the standard?",
+    "resetRoleDescription": "Name, functions and cap go back to what ships with the app. This holds at once for everyone with the role.",
+    "resetFunctionDescription": "Name and rights go back to what ships with the app. This holds at once for every role with this function.",
+    "matrixHint": "What holds in the end is shown by the rights table: every role with its rights.",
+    "matrixLink": "Open rights table"
   }
 }

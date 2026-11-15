@@ -53,6 +53,15 @@ class RoleAdministrationTest extends GraphQLTestCase
         $this->assertUnauthorized($this->as('owner')->gql('{ roleFunctions { key } }'));
     }
 
+    public function test_the_rights_of_a_scope_are_listed_in_the_order_of_the_code(): void
+    {
+        $rights = $this->as('member')->gql('{ system: rights(scope: SYSTEM) project: rights(scope: PROJECT) }')->json('data');
+
+        $this->assertSame(array_map(fn (Right $right): string => $right->name, Right::ofScope(Right::SCOPE_SYSTEM)), $rights['system']);
+        $this->assertSame('PROJECT_UPDATE', $rights['project'][0]);
+        $this->assertCount(25, $rights['project']);
+    }
+
     public function test_functions_are_listed_by_scope_with_their_use(): void
     {
         $functions = collect($this->as('admin')->gql('{ roleFunctions(scope: PROJECT) { '.self::FUNCTION.' } }')->json('data.roleFunctions'))->keyBy('key');

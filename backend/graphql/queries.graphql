@@ -44,6 +44,8 @@ type Query @guard {
   viewerRights: [Right!]! @field(resolver: "App\\GraphQL\\Queries\\ViewerRights")
   "Alle Rollen, auf Wunsch nur eines Bereichs. Für die Rollenauswahl bei Benutzern und Mitgliedern."
   roles(scope: RoleScope): [Role!]! @field(resolver: "App\\GraphQL\\Queries\\Roles")
+  "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
+  rights(scope: RoleScope!): [Right!]! @field(resolver: "App\\GraphQL\\Queries\\RightsOfScope")
   "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."
   roleFunctions(scope: RoleScope): [RoleFunction!]!
     @can(ability: "manageRoles", model: "App\\Models\\User")
