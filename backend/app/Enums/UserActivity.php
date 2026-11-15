@@ -3,10 +3,10 @@
 namespace App\Enums;
 
 /**
- * Job function of a user (users.job_function). Display only: it grants no
+ * Activity of a user (users.activity). Display only: it grants no
  * rights. The rights come from UserRole and the project role.
  */
-enum UserFunction: string
+enum UserActivity: string
 {
     case DESIGNER = 'designer';
     case ENTWICKLUNG = 'entwicklung';

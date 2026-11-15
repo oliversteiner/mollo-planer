@@ -6,14 +6,14 @@ input CreateUserInput {
   name: String! @rules(apply: ["min:2", "max:120"])
   email: String! @rules(apply: ["email", "unique:users,email"])
   role: UserRole = MITGLIED
-  jobFunction: UserFunction @rename(attribute: "job_function")
+  activity: UserActivity
 }
 
 input UpdateUserInput {
   name: String @rules(apply: ["min:2", "max:120"])
   email: String @rules(apply: ["email"])
   role: UserRole
-  jobFunction: UserFunction @rename(attribute: "job_function")
+  activity: UserActivity
 }
 
 "Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."

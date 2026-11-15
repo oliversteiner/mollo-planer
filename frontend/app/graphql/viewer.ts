@@ -8,7 +8,7 @@ export const viewerQuery = graphql(`
       name
       email
       role
-      jobFunction
+      activity
       avatarUrl
       notifyByEmail
       approved

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useMutation } from '@vue/apollo-composable'
 import { createUserMutation, updateUserMutation } from '~/graphql/admin'
-import type { UserFunction, UserRole } from '~/graphql/generated/graphql'
+import type { UserActivity, UserRole } from '~/graphql/generated/graphql'
 
 const USER_ROLES: UserRole[] = ['ADMIN', 'PROJEKTLEITUNG', 'KOORDINATION', 'MITGLIED', 'LESEND']
-const USER_FUNCTIONS: UserFunction[] = ['DESIGNER', 'ENTWICKLUNG', 'TESTER', 'CONTENT', 'TECHNIK', 'VOLUNTEER']
+const USER_ACTIVITIES: UserActivity[] = ['DESIGNER', 'ENTWICKLUNG', 'TESTER', 'CONTENT', 'TECHNIK', 'VOLUNTEER']
 
 /**
  * Invite a new person (they get a mail to set their password, valid 7
@@ -12,7 +12,7 @@ const USER_FUNCTIONS: UserFunction[] = ['DESIGNER', 'ENTWICKLUNG', 'TESTER', 'CO
  */
 const props = defineProps<{
   /** null: closed; {}: new person; { user }: change this person. */
-  target: { user?: { id: string, name: string, email: string, role: UserRole, jobFunction?: UserFunction | null } } | null
+  target: { user?: { id: string, name: string, email: string, role: UserRole, activity?: UserActivity | null } } | null
 }>()
 
 const emit = defineEmits<{ close: [] }>()
@@ -31,11 +31,11 @@ const open = computed({
   }
 })
 
-const state = reactive<{ name: string, email: string, role: UserRole, jobFunction: UserFunction | '' }>({ name: '', email: '', role: 'MITGLIED', jobFunction: '' })
+const state = reactive<{ name: string, email: string, role: UserRole, activity: UserActivity | '' }>({ name: '', email: '', role: 'MITGLIED', activity: '' })
 
 watch(() => props.target, (target) => {
   errors.value = {}
-  Object.assign(state, { name: target?.user?.name ?? '', email: target?.user?.email ?? '', role: target?.user?.role ?? 'MITGLIED', jobFunction: target?.user?.jobFunction ?? '' })
+  Object.assign(state, { name: target?.user?.name ?? '', email: target?.user?.email ?? '', role: target?.user?.role ?? 'MITGLIED', activity: target?.user?.activity ?? '' })
 }, { immediate: true })
 
 const isNew = computed(() => !props.target?.user)
@@ -44,7 +44,7 @@ const isSelf = computed(() => props.target?.user?.id === viewer.value?.id)
 const roleItems = computed(() => USER_ROLES.map(role => ({ label: t(`userRole.${role}`), value: role })))
 const functionItems = computed(() => [
   { label: t('admin.users.noFunction'), value: '' },
-  ...USER_FUNCTIONS.map(fn => ({ label: t(`jobFunction.${fn}`), value: fn }))
+  ...USER_ACTIVITIES.map(fn => ({ label: t(`activity.${fn}`), value: fn }))
 ])
 
 const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
@@ -56,7 +56,7 @@ async function submit(): Promise<void> {
     name: state.name.trim(),
     email: state.email.trim(),
     role: state.role,
-    jobFunction: state.jobFunction || null
+    activity: state.activity || null
   }
   const user = props.target?.user
   const result = await run<unknown>(() => user ? updateUser({ id: user.id, input }) : createUser({ input }))
@@ -105,9 +105,9 @@ async function submit(): Promise<void> {
         :disabled="isSelf"
       />
       <FormSelect
-        v-model="state.jobFunction"
+        v-model="state.activity"
         :items="functionItems"
-        :label="t('admin.users.jobFunction')"
+        :label="t('admin.users.activity')"
       />
     </form>
 

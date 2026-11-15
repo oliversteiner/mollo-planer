@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\UserFunction;
+use App\Enums\UserActivity;
 use App\Enums\UserRole;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyRegistrationEmail;
@@ -25,7 +25,7 @@ use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role', 'job_function'])]
+#[Fillable(['name', 'email', 'password', 'role', 'activity'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 #[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
@@ -56,7 +56,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'role' => UserRole::class,
-            'job_function' => UserFunction::class,
+            'activity' => UserActivity::class,
             'notify_by_email' => 'boolean',
         ];
     }

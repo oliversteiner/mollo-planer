@@ -7,7 +7,7 @@ export const adminUsersQuery = graphql(`
       name
       email
       role
-      jobFunction
+      activity
       avatarUrl
       twoFactorConfirmed
       hasPasskey
@@ -38,7 +38,7 @@ export const createUserMutation = graphql(`
 
 export const updateUserMutation = graphql(`
   mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
-    updateUser(id: $id, input: $input) { id name email role jobFunction }
+    updateUser(id: $id, input: $input) { id name email role activity }
   }
 `)
 

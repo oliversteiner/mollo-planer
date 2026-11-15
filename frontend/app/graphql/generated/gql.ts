@@ -14,11 +14,11 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": typeof types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": typeof types.AdminUsersDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": typeof types.ApproveUserDocument,
     "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n": typeof types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": typeof types.CreateUserDocument,
-    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n": typeof types.UpdateUserDocument,
+    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role activity }\n  }\n": typeof types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": typeof types.ResetUserTwoFactorDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": typeof types.DeleteUserDocument,
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n": typeof types.AppSettingsDocument,
@@ -74,14 +74,14 @@ type Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": typeof types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": typeof types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": typeof types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": typeof types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": types.ApproveUserDocument,
     "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n": types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": types.CreateUserDocument,
-    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n": types.UpdateUserDocument,
+    "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role activity }\n  }\n": types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": types.ResetUserTwoFactorDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": types.DeleteUserDocument,
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n": types.AppSettingsDocument,
@@ -137,7 +137,7 @@ const documents: Documents = {
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": types.UpdateCommentDocument,
     "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": types.DeleteCommentDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": types.ViewerDocument,
 };
 
 /**
@@ -157,7 +157,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"];
+export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -173,7 +173,7 @@ export function graphql(source: "\n  mutation CreateUser($input: CreateUserInput
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n"): (typeof documents)["\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role jobFunction }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role activity }\n  }\n"): (typeof documents)["\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role activity }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -397,7 +397,7 @@ export function graphql(source: "\n  mutation DeleteComment($id: ID!) {\n    del
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      jobFunction\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"];
+export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

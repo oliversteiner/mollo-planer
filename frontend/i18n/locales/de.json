@@ -479,8 +479,8 @@
       "deleted": "{name} gelöscht.",
       "role": "Rolle",
       "roleHint": "Bestimmt, was die Person in der ganzen App darf.",
-      "jobFunction": "Funktion",
-      "jobFunctionHint": "Nur zur Anzeige, ohne Rechte.",
+      "activity": "Tätigkeit",
+      "activityHint": "Nur zur Anzeige, ohne Rechte.",
       "noFunction": "Keine",
       "pending": {
         "title": "Wartet auf Freigabe ({count})",
@@ -638,7 +638,7 @@
     "MITGLIED": "Mitglied",
     "LESEND": "Lesend"
   },
-  "jobFunction": {
+  "activity": {
     "DESIGNER": "Designer",
     "ENTWICKLUNG": "Entwicklung",
     "TESTER": "Tests",
@@ -769,9 +769,9 @@
           "label": "Rolle",
           "description": "Globale Berechtigungsrolle. Bestimmt, was die Person in der ganzen App darf."
         },
-        "job_function": {
-          "label": "Funktion",
-          "description": "Funktion der Person, zum Beispiel Designer. Nur zur Anzeige, ohne Rechte."
+        "activity": {
+          "label": "Tätigkeit",
+          "description": "Tätigkeit der Person, zum Beispiel Designer. Nur zur Anzeige, ohne Rechte."
         },
         "notify_by_email": {
           "label": "Benachrichtigung per E-Mail",

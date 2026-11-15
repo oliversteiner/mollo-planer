@@ -9,8 +9,8 @@ type User {
   email: String!
   "Globale Berechtigungsrolle, unabhängig von Projekten"
   role: UserRole!
-  "Funktion, zum Beispiel Designer. Nur zur Anzeige."
-  jobFunction: UserFunction @rename(attribute: "job_function")
+  "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
+  activity: UserActivity
   "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
   notifyByEmail: Boolean! @rename(attribute: "notify_by_email")
   "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."

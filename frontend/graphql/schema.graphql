@@ -89,8 +89,8 @@ input CreateTodoInput {
 }
 
 input CreateUserInput {
+  activity: UserActivity
   email: String!
-  jobFunction: UserFunction
   name: String!
   role: UserRole = MITGLIED
 }
@@ -772,8 +772,8 @@ input UpdateTodoInput {
 }
 
 input UpdateUserInput {
+  activity: UserActivity
   email: String
-  jobFunction: UserFunction
   name: String
   role: UserRole
 }
@@ -783,6 +783,9 @@ scalar Upload
 
 "Eine Person mit Zugang. Anlegen und Löschen nur durch Admins."
 type User {
+  "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
+  activity: UserActivity
+
   "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
   apiTokens: [ApiToken!]
 
@@ -805,10 +808,6 @@ type User {
   hasPasskey: Boolean
 
   id: ID!
-
-  "Funktion, zum Beispiel Designer. Nur zur Anzeige."
-  jobFunction: UserFunction
-
   name: String!
 
   "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
@@ -827,8 +826,8 @@ type User {
   twoFactorConfirmed: Boolean
 }
 
-"Funktion eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
-enum UserFunction {
+"Tätigkeit eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
+enum UserActivity {
   CONTENT
   DESIGNER
   ENTWICKLUNG

@@ -77,8 +77,8 @@ enum UserRole {
   LESEND @enum(value: "lesend")
 }
 
-"Funktion eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
-enum UserFunction {
+"Tätigkeit eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
+enum UserActivity {
   DESIGNER @enum(value: "designer")
   ENTWICKLUNG @enum(value: "entwicklung")
   TESTER @enum(value: "tester")

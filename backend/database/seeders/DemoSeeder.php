@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Enums\Locale;
 use App\Enums\ProjectRole;
 use App\Enums\TaskStatus;
-use App\Enums\UserFunction;
+use App\Enums\UserActivity;
 use App\Enums\UserRole;
 use App\Models\Comment;
 use App\Models\LabelSet;
@@ -48,13 +48,13 @@ use RuntimeException;
 class DemoSeeder extends Seeder
 {
     /**
-     * @var array<string, array{name: string, email: string, role: UserRole, job_function: UserFunction|null}>
+     * @var array<string, array{name: string, email: string, role: UserRole, activity: UserActivity|null}>
      */
     private const USERS = [
-        'anna' => ['name' => 'Anna Keller', 'email' => 'anna.keller@example.ch', 'role' => UserRole::ADMIN, 'job_function' => null],
-        'ben' => ['name' => 'Ben Müller', 'email' => 'ben.mueller@example.ch', 'role' => UserRole::MITGLIED, 'job_function' => UserFunction::ENTWICKLUNG],
-        'chiara' => ['name' => 'Chiara Rossi', 'email' => 'chiara.rossi@example.ch', 'role' => UserRole::PROJEKTLEITUNG, 'job_function' => null],
-        'david' => ['name' => 'David Frei', 'email' => 'david.frei@example.ch', 'role' => UserRole::MITGLIED, 'job_function' => UserFunction::DESIGNER],
+        'anna' => ['name' => 'Anna Keller', 'email' => 'anna.keller@example.ch', 'role' => UserRole::ADMIN, 'activity' => null],
+        'ben' => ['name' => 'Ben Müller', 'email' => 'ben.mueller@example.ch', 'role' => UserRole::MITGLIED, 'activity' => UserActivity::ENTWICKLUNG],
+        'chiara' => ['name' => 'Chiara Rossi', 'email' => 'chiara.rossi@example.ch', 'role' => UserRole::PROJEKTLEITUNG, 'activity' => null],
+        'david' => ['name' => 'David Frei', 'email' => 'david.frei@example.ch', 'role' => UserRole::MITGLIED, 'activity' => UserActivity::DESIGNER],
     ];
 
     /** @var array<string, User> */
@@ -101,7 +101,7 @@ class DemoSeeder extends Seeder
 
             $user = new User(['name' => $person['name'], 'email' => $email, 'password' => $password]);
             $user->role = $person['role'];
-            $user->job_function = $person['job_function'];
+            $user->activity = $person['activity'];
             $user->forceFill([
                 'email_verified_at' => $createdAt,
                 'approved_at' => $createdAt,
