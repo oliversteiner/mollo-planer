@@ -54,6 +54,56 @@ type Mutation @guard {
     @can(ability: "updateAppSettings", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateAppSettings")
 
+  # Rollen und Funktionen (Einstellungen, Recht roles.manage). Jede Änderung
+  # wird gegen die Grundregeln geprüft (docs/rollen-funktionen-rechte.md, §7):
+  # jemand behält users.manage und roles.manage, niemand nimmt sie sich
+  # selbst, kein Projekt verliert die letzte Person mit project.delete.
+  # Mitgeliefertes lässt sich ändern und zurücksetzen, aber nicht löschen.
+  "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
+  createRole(input: CreateRoleInput!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@create")
+  "Ändert Namen, Funktionen oder Obergrenze einer Rolle. Der Schlüssel bleibt."
+  updateRole(id: ID!, input: UpdateRoleInput!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@update")
+  "Kopiert eine Rolle mit ihren Funktionen als eigene Rolle."
+  duplicateRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@duplicate")
+  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
+  deleteRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@delete")
+  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
+  setDefaultRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@setDefault")
+  "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
+  resetRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@reset")
+  "Legt eine eigene Funktion an. Der Schlüssel entsteht aus dem englischen Namen."
+  createRoleFunction(input: CreateRoleFunctionInput!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@create")
+  "Ändert Namen oder Rechte einer Funktion. Wirkt sofort für alle Rollen, die sie verwenden."
+  updateRoleFunction(id: ID!, input: UpdateRoleFunctionInput!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@update")
+  "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
+  duplicateRoleFunction(id: ID!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@duplicate")
+  "Löscht eine eigene Funktion, die keine Rolle mehr verwendet."
+  deleteRoleFunction(id: ID!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@delete")
+  "Standard wiederherstellen: Namen und Rechte einer mitgelieferten Funktion."
+  resetRoleFunction(id: ID!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@reset")
+
   # Label-Sets: app-weit. Anlegen mit labelSets.manage (Rolle); eigene Sets
   # ändert und löscht der Ersteller mit dieser Fähigkeit, fremde mit
   # labelSets.manageAny (Admin), mitgelieferte niemand.

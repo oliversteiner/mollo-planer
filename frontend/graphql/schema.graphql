@@ -62,6 +62,24 @@ input CreateProjectInput {
   name: String!
 }
 
+input CreateRoleFunctionInput {
+  names: LocalizedNameInput!
+
+  "Rechte desselben Bereichs"
+  rights: [Right!]!
+  scope: RoleScope!
+}
+
+input CreateRoleInput {
+  "Funktionen desselben Bereichs"
+  functionIds: [ID!]!
+  names: LocalizedNameInput!
+
+  "Nur Systemrollen: die Projektrechte, die wirken dürfen. Ohne Angabe oder null: alle. Leere Liste: keine."
+  projectCap: [Right!]
+  scope: RoleScope!
+}
+
 input CreateTaskInput {
   assigneeId: ID
   description: RichText
@@ -204,6 +222,12 @@ type LocalizedName {
   en: String!
 }
 
+"Ein Name in beiden Sprachen der Oberfläche"
+input LocalizedNameInput {
+  de: String!
+  en: String!
+}
+
 "Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."
 type MemberCandidate {
   id: ID!
@@ -253,6 +277,12 @@ type Mutation {
   createMilestone(input: CreateMilestoneInput!): Milestone!
   createProject(input: CreateProjectInput!): Project!
 
+  "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
+  createRole(input: CreateRoleInput!): Role!
+
+  "Legt eine eigene Funktion an. Der Schlüssel entsteht aus dem englischen Namen."
+  createRoleFunction(input: CreateRoleFunctionInput!): RoleFunction!
+
   "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
   createTask(input: CreateTaskInput!): Task!
 
@@ -269,6 +299,13 @@ type Mutation {
 
   deleteMilestone(id: ID!): Milestone!
   deleteProject(id: ID!): Project!
+
+  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
+  deleteRole(id: ID!): Role!
+
+  "Löscht eine eigene Funktion, die keine Rolle mehr verwendet."
+  deleteRoleFunction(id: ID!): RoleFunction!
+
   deleteTask(id: ID!): Task!
   deleteTodo(id: ID!): Todo!
   deleteUser(id: ID!): User!
@@ -286,6 +323,12 @@ type Mutation {
 
   "Kopiert ein Set (auch ein mitgeliefertes) als eigenes Set, um es anzupassen."
   duplicateLabelSet(id: ID!): LabelSet!
+
+  "Kopiert eine Rolle mit ihren Funktionen als eigene Rolle."
+  duplicateRole(id: ID!): Role!
+
+  "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
+  duplicateRoleFunction(id: ID!): RoleFunction!
 
   "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
   importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
@@ -306,8 +349,17 @@ type Mutation {
 
   removeProjectMember(projectId: ID!, userId: ID!): Project!
 
+  "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
+  resetRole(id: ID!): Role!
+
+  "Standard wiederherstellen: Namen und Rechte einer mitgelieferten Funktion."
+  resetRoleFunction(id: ID!): RoleFunction!
+
   "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
   resetUserTwoFactor(id: ID!): User!
+
+  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
+  setDefaultRole(id: ID!): Role!
 
   "Wählt das Label-Set eines Projekts (null: keins). Tasks behalten ihre bisherigen Labels."
   setProjectLabelSet(labelSetId: ID, projectId: ID!): Project!
@@ -335,6 +387,13 @@ type Mutation {
   updateMyNotifications(emailEnabled: Boolean!): User!
 
   updateProject(id: ID!, input: UpdateProjectInput!): Project!
+
+  "Ändert Namen, Funktionen oder Obergrenze einer Rolle. Der Schlüssel bleibt."
+  updateRole(id: ID!, input: UpdateRoleInput!): Role!
+
+  "Ändert Namen oder Rechte einer Funktion. Wirkt sofort für alle Rollen, die sie verwenden."
+  updateRoleFunction(id: ID!, input: UpdateRoleFunctionInput!): RoleFunction!
+
   updateTask(id: ID!, input: UpdateTaskInput!): Task!
   updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
 
@@ -576,6 +635,9 @@ type Query {
   "Deine Projekte. Admins sehen alle."
   projects: [Project!]!
 
+  "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."
+  roleFunctions(scope: RoleScope): [RoleFunction!]!
+
   "Alle Rollen, auf Wunsch nur eines Bereichs. Für die Rollenauswahl bei Benutzern und Mitgliedern."
   roles(scope: RoleScope): [Role!]!
 
@@ -652,6 +714,9 @@ enum Right {
 
 "Eine Rolle: ein benanntes Bündel von Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft. Siehe docs/rollen-funktionen-rechte.md."
 type Role {
+  "Die Funktionen der Rolle"
+  functions: [RoleFunction!]!
+
   id: ID!
 
   "Rolle für neue Personen (System) bzw. neue Mitglieder (Projekt)"
@@ -665,10 +730,34 @@ type Role {
 
   names: LocalizedName!
 
+  "Obergrenze einer Systemrolle: die Projektrechte, die für die Person überhaupt wirken dürfen. null: alle (auch bei Projektrollen). Leere Liste: keine, die Person liest nur."
+  projectCap: [Right!]
+
   "Die Rechte, die die Rolle über ihre Funktionen gibt"
   rights: [Right!]!
 
   scope: RoleScope!
+
+  "Wie oft die Rolle vergeben ist (Personen bzw. Mitgliedschaften). Eine vergebene Rolle lässt sich nicht löschen. Nur mit dem Recht roles.manage."
+  usageCount: Int!
+}
+
+"Eine Funktion: ein benanntes Bündel von Rechten eines Bereichs. Rollen bestehen aus Funktionen. Siehe docs/rollen-funktionen-rechte.md."
+type RoleFunction {
+  id: ID!
+
+  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+  isStandard: Boolean!
+
+  "Fester Schlüssel, zum Beispiel manage-tasks"
+  key: String!
+
+  names: LocalizedName!
+  rights: [Right!]!
+  scope: RoleScope!
+
+  "Wie viele Rollen die Funktion verwenden. Eine verwendete Funktion lässt sich nicht löschen."
+  usageCount: Int!
 }
 
 "Bereich einer Rolle: System (ganze App) oder Projekt (eine Mitgliedschaft)"
@@ -790,6 +879,21 @@ input UpdateProjectInput {
   icon: String
   locale: Locale
   name: String
+}
+
+"Nur was angegeben ist, ändert sich."
+input UpdateRoleFunctionInput {
+  names: LocalizedNameInput
+  rights: [Right!]
+}
+
+"Nur was angegeben ist, ändert sich."
+input UpdateRoleInput {
+  functionIds: [ID!]
+  names: LocalizedNameInput
+
+  "Nur Systemrollen. null: alle Projektrechte. Leere Liste: keine. Ohne Angabe bleibt die Obergrenze."
+  projectCap: [Right!]
 }
 
 input UpdateTaskInput {

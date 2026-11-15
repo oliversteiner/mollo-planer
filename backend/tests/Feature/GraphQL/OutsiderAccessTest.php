@@ -56,6 +56,8 @@ class OutsiderAccessTest extends GraphQLTestCase
         $comment = fn (self $test) => ['id' => $test->comment->id];
         $member = fn (self $test) => ['id' => $test->users['member']->id];
         $labelSet = fn (self $test) => ['id' => LabelSet::factory()->create()->id];
+        $anyRole = fn (self $test) => ['id' => DB::table('roles')->where(['scope' => 'project', 'key' => 'member'])->value('id')];
+        $anyFunction = fn (self $test) => ['id' => DB::table('functions')->where(['scope' => 'project', 'key' => 'contribute'])->value('id')];
 
         return [
             'updateProject' => ['stranger', 'mutation ($id: ID!) { updateProject(id: $id, input: {name: "Hack"}) { id } }', $project],
@@ -92,6 +94,17 @@ class OutsiderAccessTest extends GraphQLTestCase
             'moveMilestone' => ['stranger', 'mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
             'setProjectLabelSet (member)' => ['member', 'mutation ($p: ID!) { setProjectLabelSet(projectId: $p, labelSetId: null) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'setTaskLabels (member)' => ['member', 'mutation ($t: ID!) { setTaskLabels(taskId: $t, labelIds: []) { id } }', fn (self $test) => ['t' => $test->task->id]],
+            'createRole' => ['owner', 'mutation { createRole(input: {scope: PROJECT, names: {de: "Hack", en: "Hack"}, functionIds: []}) { id } }', fn (self $test) => []],
+            'updateRole' => ['owner', 'mutation ($id: ID!) { updateRole(id: $id, input: {names: {de: "Hack", en: "Hack"}}) { id } }', $anyRole],
+            'duplicateRole' => ['owner', 'mutation ($id: ID!) { duplicateRole(id: $id) { id } }', $anyRole],
+            'deleteRole' => ['owner', 'mutation ($id: ID!) { deleteRole(id: $id) { id } }', $anyRole],
+            'setDefaultRole' => ['owner', 'mutation ($id: ID!) { setDefaultRole(id: $id) { id } }', $anyRole],
+            'resetRole' => ['owner', 'mutation ($id: ID!) { resetRole(id: $id) { id } }', $anyRole],
+            'createRoleFunction' => ['owner', 'mutation { createRoleFunction(input: {scope: PROJECT, names: {de: "Hack", en: "Hack"}, rights: [PROJECT_DELETE]}) { id } }', fn (self $test) => []],
+            'updateRoleFunction (owner gives members everything)' => ['owner', 'mutation ($id: ID!) { updateRoleFunction(id: $id, input: {rights: [PROJECT_DELETE]}) { id } }', $anyFunction],
+            'duplicateRoleFunction' => ['owner', 'mutation ($id: ID!) { duplicateRoleFunction(id: $id) { id } }', $anyFunction],
+            'deleteRoleFunction' => ['owner', 'mutation ($id: ID!) { deleteRoleFunction(id: $id) { id } }', $anyFunction],
+            'resetRoleFunction' => ['owner', 'mutation ($id: ID!) { resetRoleFunction(id: $id) { id } }', $anyFunction],
             'createLabelSet (member)' => ['member', 'mutation { createLabelSet(input: {name: "Bau", labels: []}) { id } }', fn (self $test) => []],
             'updateLabelSet (member)' => ['member', 'mutation ($id: ID!) { updateLabelSet(id: $id, input: {name: "Hack", labels: []}) { id } }', $labelSet],
             'deleteLabelSet (member)' => ['member', 'mutation ($id: ID!) { deleteLabelSet(id: $id) { id } }', $labelSet],

@@ -88,6 +88,16 @@ class UserPolicy
     }
 
     /**
+     * Roles and functions in the settings (/admin/roles) need the right
+     * roles.manage. The ground rules that keep the settings reachable are
+     * checked by App\Services\RoleAdministration.
+     */
+    public function manageRoles(User $user): bool
+    {
+        return Rights::allows($user, Right::ROLES_MANAGE);
+    }
+
+    /**
      * Releases a self-registered account. Only accounts whose mail address is
      * confirmed and that are still waiting can be approved; nobody approves
      * themselves.

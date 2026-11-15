@@ -7,6 +7,7 @@ use App\Enums\Right;
 use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\Role;
+use App\Models\RoleFunction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -29,10 +30,18 @@ final class Rights
      */
     private static array $grants = [];
 
+    /**
+     * Rights per function, read once per request.
+     *
+     * @var array<int, list<string>>|null
+     */
+    private static ?array $functionRights = null;
+
     /** Forget what was read, after the rights changed. */
     public static function clearCache(): void
     {
         self::$grants = [];
+        self::$functionRights = null;
         Role::forgetRegistry();
     }
 
@@ -103,6 +112,29 @@ final class Rights
         return array_values(array_filter(
             Right::ofScope($role->scope),
             fn (Right $right): bool => in_array($right->value, $granted, true),
+        ));
+    }
+
+    /**
+     * The rights of a function, in the order of the enum. Rights of the
+     * other scope and unknown texts in the table are left out.
+     *
+     * @return list<Right>
+     */
+    public static function rightsOfFunction(RoleFunction $function): array
+    {
+        if (self::$functionRights === null) {
+            self::$functionRights = [];
+            foreach (DB::table('function_rights')->get(['function_id', 'right']) as $row) {
+                self::$functionRights[(int) $row->function_id][] = $row->right;
+            }
+        }
+
+        $stored = self::$functionRights[$function->id] ?? [];
+
+        return array_values(array_filter(
+            Right::ofScope($function->scope),
+            fn (Right $right): bool => in_array($right->value, $stored, true),
         ));
     }
 
@@ -224,6 +256,35 @@ final class Rights
             ->reject(fn (User $member): bool => $except !== null && $member->is($except))
             ->filter(fn (User $member): bool => self::holdsProject($member, $member->membership->role))
             ->count();
+    }
+
+    /**
+     * Ids of the projects somebody holds (see holdsProject), in one query.
+     * The settings compare this before and after a change of roles or
+     * functions, so no project loses its last holder that way (§7.3).
+     *
+     * @return list<int>
+     */
+    public static function projectIdsWithHolder(): array
+    {
+        $uncapped = array_map(
+            fn (Role $role): int => $role->id,
+            array_filter(Role::ofScope(Role::SCOPE_SYSTEM), function (Role $role): bool {
+                $cap = self::grantOf($role->id)['cap'];
+
+                return $cap === null || in_array(Right::PROJECT_DELETE->value, $cap, true);
+            }),
+        );
+
+        return DB::table('project_user')
+            ->join('users', 'users.id', '=', 'project_user.user_id')
+            ->whereIn('project_user.role_id', self::roleIdsWith(Right::PROJECT_DELETE))
+            ->whereIn('users.role_id', $uncapped)
+            ->distinct()
+            ->orderBy('project_user.project_id')
+            ->pluck('project_user.project_id')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->all();
     }
 
     /**

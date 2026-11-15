@@ -123,3 +123,39 @@ input AddCommentInput {
 input UpdateCommentInput {
   body: RichText! @rules(apply: ["App\\Rules\\RichTextRule", "required"])
 }
+
+"Ein Name in beiden Sprachen der Oberfläche"
+input LocalizedNameInput {
+  de: String! @rules(apply: ["min:1", "max:60"])
+  en: String! @rules(apply: ["min:1", "max:60"])
+}
+
+input CreateRoleInput {
+  scope: RoleScope!
+  names: LocalizedNameInput!
+  "Funktionen desselben Bereichs"
+  functionIds: [ID!]!
+  "Nur Systemrollen: die Projektrechte, die wirken dürfen. Ohne Angabe oder null: alle. Leere Liste: keine."
+  projectCap: [Right!]
+}
+
+"Nur was angegeben ist, ändert sich."
+input UpdateRoleInput {
+  names: LocalizedNameInput
+  functionIds: [ID!]
+  "Nur Systemrollen. null: alle Projektrechte. Leere Liste: keine. Ohne Angabe bleibt die Obergrenze."
+  projectCap: [Right!]
+}
+
+input CreateRoleFunctionInput {
+  scope: RoleScope!
+  names: LocalizedNameInput!
+  "Rechte desselben Bereichs"
+  rights: [Right!]!
+}
+
+"Nur was angegeben ist, ändert sich."
+input UpdateRoleFunctionInput {
+  names: LocalizedNameInput
+  rights: [Right!]
+}

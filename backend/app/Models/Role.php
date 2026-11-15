@@ -7,6 +7,8 @@ use App\Support\Rights;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -147,6 +149,43 @@ class Role extends Model
     public function getRightsAttribute(): array
     {
         return Rights::rightsOfRole($this);
+    }
+
+    /**
+     * @return BelongsToMany<RoleFunction, $this>
+     */
+    public function functions(): BelongsToMany
+    {
+        return $this->belongsToMany(RoleFunction::class, 'role_functions', 'role_id', 'function_id')->orderBy('functions.id');
+    }
+
+    /**
+     * The project rights a system role lets through (null = all). Rights
+     * the app does not know any more are left out.
+     *
+     * @return list<Right>|null
+     */
+    public function getProjectCapRightsAttribute(): ?array
+    {
+        if ($this->project_cap === null) {
+            return null;
+        }
+
+        return array_values(array_filter(
+            Right::ofScope(Right::SCOPE_PROJECT),
+            fn (Right $right): bool => in_array($right->value, $this->project_cap, true),
+        ));
+    }
+
+    /**
+     * How many people (system) or memberships (project) have the role. A
+     * role in use is not deleted.
+     */
+    public function getUsageCountAttribute(): int
+    {
+        return DB::table($this->scope === self::SCOPE_SYSTEM ? 'users' : 'project_user')
+            ->where('role_id', $this->id)
+            ->count();
     }
 
     public function name(?string $locale = null): string

@@ -44,6 +44,10 @@ type Query @guard {
   viewerRights: [Right!]! @field(resolver: "App\\GraphQL\\Queries\\ViewerRights")
   "Alle Rollen, auf Wunsch nur eines Bereichs. Für die Rollenauswahl bei Benutzern und Mitgliedern."
   roles(scope: RoleScope): [Role!]! @field(resolver: "App\\GraphQL\\Queries\\Roles")
+  "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."
+  roleFunctions(scope: RoleScope): [RoleFunction!]!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Queries\\RoleFunctions")
   "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
   permissionMatrix: PermissionMatrix! @can(ability: "viewAny", model: "App\\Models\\User") @field(resolver: "App\\GraphQL\\Queries\\PermissionMatrixQuery")
   "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"

@@ -428,7 +428,28 @@ class MutationTest extends GraphQLTestCase
             'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
             'moveTaskToTodo' => ['manager', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => Todo::factory()->for($test->milestone)->create()->id]],
             'addComment' => ['member', 'mutation ($t: ID!, $body: RichText!) { addComment(input: {taskId: $t, body: $body}) { id } }', fn (self $test) => ['t' => $test->task->id, 'body' => $test->doc('Hallo')]],
+            'createRole' => ['admin', 'mutation ($f: ID!) { createRole(input: {scope: PROJECT, names: {de: "Prüferin", en: "Reviewer"}, functionIds: [$f]}) { id } }', fn (self $test) => ['f' => self::functionId('contribute')]],
+            'updateRole' => ['admin', 'mutation ($id: ID!, $f: ID!) { updateRole(id: $id, input: {names: {de: "Gast", en: "Guest"}, functionIds: [$f]}) { id } }', fn (self $test) => ['id' => self::roleId('guest'), 'f' => self::functionId('contribute')]],
+            'duplicateRole' => ['admin', 'mutation ($id: ID!) { duplicateRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('manager')]],
+            'deleteRole' => ['admin', 'mutation ($id: ID!) { deleteRole(id: $id) { id } }', fn (self $test) => ['id' => DB::table('roles')->insertGetId(['scope' => 'project', 'key' => 'own', 'names' => '{"de":"Eigene","en":"Own"}'])]],
+            'setDefaultRole' => ['admin', 'mutation ($id: ID!) { setDefaultRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('guest')]],
+            'resetRole' => ['admin', 'mutation ($id: ID!) { resetRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('manager')]],
+            'createRoleFunction' => ['admin', 'mutation { createRoleFunction(input: {scope: PROJECT, names: {de: "Aufräumen", en: "Tidy up"}, rights: [TASK_DELETE]}) { id } }', fn (self $test) => []],
+            'updateRoleFunction' => ['admin', 'mutation ($id: ID!) { updateRoleFunction(id: $id, input: {names: {de: "Planen", en: "Plan"}, rights: [TODO_CREATE]}) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
+            'duplicateRoleFunction' => ['admin', 'mutation ($id: ID!) { duplicateRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
+            'deleteRoleFunction' => ['admin', 'mutation ($id: ID!) { deleteRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => DB::table('functions')->insertGetId(['scope' => 'project', 'key' => 'own', 'names' => '{"de":"Eigene","en":"Own"}'])]],
+            'resetRoleFunction' => ['admin', 'mutation ($id: ID!) { resetRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
             'deleteApiToken' => ['owner', 'mutation ($id: ID!) { deleteApiToken(id: $id) { name } }', fn (self $test) => ['id' => McpTokens::create($test->users['owner'], 'Meins')->accessToken->id]],
         ];
+    }
+
+    private static function roleId(string $key): int
+    {
+        return (int) DB::table('roles')->where(['scope' => 'project', 'key' => $key])->value('id');
+    }
+
+    private static function functionId(string $key): int
+    {
+        return (int) DB::table('functions')->where(['scope' => 'project', 'key' => $key])->value('id');
     }
 }

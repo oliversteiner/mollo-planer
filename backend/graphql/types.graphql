@@ -263,6 +263,26 @@ type Role {
   isStandard: Boolean! @rename(attribute: "is_standard")
   "Die Rechte, die die Rolle über ihre Funktionen gibt"
   rights: [Right!]!
+  "Die Funktionen der Rolle"
+  functions: [RoleFunction!]! @belongsToMany
+  "Obergrenze einer Systemrolle: die Projektrechte, die für die Person überhaupt wirken dürfen. null: alle (auch bei Projektrollen). Leere Liste: keine, die Person liest nur."
+  projectCap: [Right!] @rename(attribute: "project_cap_rights")
+  "Wie oft die Rolle vergeben ist (Personen bzw. Mitgliedschaften). Eine vergebene Rolle lässt sich nicht löschen. Nur mit dem Recht roles.manage."
+  usageCount: Int! @rename(attribute: "usage_count") @can(ability: "manageRoles", model: "App\\Models\\User")
+}
+
+"Eine Funktion: ein benanntes Bündel von Rechten eines Bereichs. Rollen bestehen aus Funktionen. Siehe docs/rollen-funktionen-rechte.md."
+type RoleFunction {
+  id: ID!
+  scope: RoleScope!
+  "Fester Schlüssel, zum Beispiel manage-tasks"
+  key: String!
+  names: LocalizedName!
+  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+  isStandard: Boolean! @rename(attribute: "is_standard")
+  rights: [Right!]!
+  "Wie viele Rollen die Funktion verwenden. Eine verwendete Funktion lässt sich nicht löschen."
+  usageCount: Int! @rename(attribute: "usage_count")
 }
 
 "Ein Name in beiden Sprachen der Oberfläche"
