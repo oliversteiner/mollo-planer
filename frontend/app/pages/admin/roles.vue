@@ -5,6 +5,17 @@ import type { RoleFormTarget } from '~/components/role/FormModal.vue'
 import type { RoleFunctionFormTarget } from '~/components/role/FunctionFormModal.vue'
 import type { RoleSettingsQuery } from '~/graphql/generated/graphql'
 import {
+  EMPTY_ROLE_FILTER,
+  filterFunctions,
+  filterMatrix,
+  filterRoles,
+  parseRolePageState,
+  toRoleQuery,
+  type RolePageState
+} from '~/composables/useRoleFilters'
+import { appSettingsQuery } from '~/graphql/admin'
+import { permissionMatrixQuery } from '~/graphql/rights'
+import {
   deleteRoleFunctionMutation,
   deleteRoleMutation,
   duplicateRoleFunctionMutation,
@@ -30,8 +41,6 @@ useHead({ title: () => t('roleSettings.title') })
 
 type Role = RoleSettingsQuery['roles'][number]
 type RoleFunction = RoleSettingsQuery['roleFunctions'][number]
-
-const SCOPES = ['SYSTEM', 'PROJECT'] as const
 
 const { result, loading } = useQuery(roleSettingsQuery, null, { fetchPolicy: 'cache-and-network' })
 const roles = computed(() => result.value?.roles ?? [])
@@ -147,14 +156,72 @@ function functionActions(entry: RoleFunction): ActionMenuItem[][] {
   ]
 }
 
-function capText(role: Role): string {
-  if (role.projectCap == null) {
-    return t('roleSettings.capAll')
-  }
+const route = useRoute()
+const router = useRouter()
 
-  return role.projectCap.length === 0
-    ? t('roleSettings.capNone')
-    : t('roleSettings.capSome', { count: role.projectCap.length, total: projectRights.value.length })
+/** Tab, view and filters live in the URL, so reloading and the back button keep them. */
+const state = computed(() => parseRolePageState(route.query as Record<string, string | string[] | null>))
+
+function setState(change: Partial<RolePageState>): void {
+  void router.replace({ query: toRoleQuery({ ...state.value, ...change }) })
+}
+
+const VIEWS = ['roles', 'functions', 'matrix'] as const
+
+const { result: matrixResult } = useQuery(permissionMatrixQuery, null, { fetchPolicy: 'cache-and-network' })
+const { result: settingsResult } = useQuery(appSettingsQuery)
+const creatorKey = computed(() => settingsResult.value?.appSettings.projectCreatorRole.key ?? null)
+
+const rightText = (right: string): string => t(`rights.names.${right}`)
+
+const scopeRoles = computed(() => roles.value.filter(role => role.scope === state.value.scope))
+const scopeFunctions = computed(() => functions.value.filter(entry => entry.scope === state.value.scope))
+const scopeRights = computed(() => (state.value.scope === 'SYSTEM' ? systemRights.value : projectRights.value))
+const scopeMatrix = computed(() => (state.value.scope === 'SYSTEM' ? matrixResult.value?.permissionMatrix.system : matrixResult.value?.permissionMatrix.project) ?? [])
+
+const shownRoles = computed(() => filterRoles(scopeRoles.value, scopeFunctions.value, state.value.filter, rightText))
+const shownFunctions = computed(() => filterFunctions(scopeFunctions.value, state.value.filter, rightText))
+const shownMatrix = computed(() => filterMatrix(scopeMatrix.value, scopeRoles.value, state.value.filter, rightText))
+
+/** "3 of 9": what the current view shows of all of the scope. */
+const counts = computed(() => {
+  switch (state.value.view) {
+    case 'functions':
+      return { shown: shownFunctions.value.length, total: scopeFunctions.value.length }
+    case 'matrix':
+      return { shown: shownMatrix.value.rows.length, total: scopeMatrix.value.length }
+    default:
+      return { shown: shownRoles.value.length, total: scopeRoles.value.length }
+  }
+})
+
+const nothingShown = computed(() => counts.value.total > 0 && counts.value.shown === 0)
+
+function onTab(event: Event): void {
+  const name = (event as CustomEvent<{ name: string }>).detail?.name
+  if (name === 'system' || name === 'project') {
+    setState({ scope: name === 'system' ? 'SYSTEM' : 'PROJECT' })
+  }
+}
+
+function onView(event: Event): void {
+  const value = (event.target as HTMLInputElement).value
+  if ((VIEWS as readonly string[]).includes(value)) {
+    setState({ view: value as RolePageState['view'] })
+  }
+}
+
+function resetFilters(): void {
+  setState({ filter: { ...EMPTY_ROLE_FILTER } })
+}
+
+/** The button follows the view; the scope of the tab is preset in the form. */
+function create(): void {
+  if (state.value.view === 'functions') {
+    editingFunction.value = { scope: state.value.scope }
+  } else {
+    editingRole.value = { scope: state.value.scope }
+  }
 }
 </script>
 
@@ -166,155 +233,116 @@ function capText(role: Role): string {
   >
     <template #actions>
       <wa-button
-        appearance="outlined"
-        variant="neutral"
-        @click="editingFunction = {}"
-      >
-        <wa-icon
-          slot="start"
-          name="plus"
-        ></wa-icon>
-        {{ t('roleSettings.createFunction') }}
-      </wa-button>
-      <wa-button
+        v-if="state.view !== 'matrix'"
         variant="brand"
-        @click="editingRole = {}"
+        @click="create"
       >
         <wa-icon
           slot="start"
           name="plus"
         ></wa-icon>
-        {{ t('roleSettings.createRole') }}
+        {{ state.view === 'functions' ? t('roleSettings.createFunction') : t('roleSettings.createRole') }}
       </wa-button>
     </template>
 
-    <wa-skeleton
-      v-if="loading && !result"
-      effect="sheen"
-      class="role-settings-skeleton"
-    ></wa-skeleton>
-    <div
-      v-else
-      class="wa-stack wa-gap-l"
+    <wa-tab-group
+      :active="state.scope === 'SYSTEM' ? 'system' : 'project'"
+      class="role-settings-tabs"
+      @wa-tab-show="onTab"
     >
-      <section
-        v-for="scope in SCOPES"
-        :key="`roles-${scope}`"
-        class="wa-stack wa-gap-s"
+      <wa-tab
+        slot="nav"
+        panel="system"
       >
-        <h2 class="wa-heading-m">
-          {{ t(`roleSettings.roles.${scope}`) }}
-        </h2>
-        <ul class="role-settings-list wa-list-plain">
-          <li
-            v-for="role in roles.filter(entry => entry.scope === scope)"
-            :key="role.id"
-          >
-            <wa-card class="role-settings-card">
-              <div
-                slot="header"
-                class="role-settings-head"
-              >
-                <div class="role-settings-title">
-                  <h3 class="wa-heading-s">
-                    {{ roleName(role) }}
-                  </h3>
-                  <wa-badge
-                    v-if="role.isStandard"
-                    variant="neutral"
-                    appearance="outlined"
-                  >
-                    {{ t('roleSettings.standard') }}
-                  </wa-badge>
-                  <wa-badge
-                    v-if="role.isDefault"
-                    variant="brand"
-                    appearance="outlined"
-                  >
-                    {{ t('roleSettings.default') }}
-                  </wa-badge>
-                </div>
-                <ActionMenu
-                  :items="roleActions(role)"
-                  :label="t('roleSettings.actionsOf', { name: roleName(role) })"
-                />
-              </div>
-              <div class="wa-stack wa-gap-s">
-                <p class="role-settings-text">
-                  {{ role.functions.length ? role.functions.map(roleName).join(', ') : t('roleSettings.noFunctions') }}
-                </p>
-                <p
-                  v-if="scope === 'SYSTEM'"
-                  class="role-settings-text"
-                >
-                  {{ capText(role) }}
-                </p>
-                <p class="role-settings-usage">
-                  {{ t(`roleSettings.roleUsage.${scope}`, role.usageCount) }}
-                </p>
-              </div>
-            </wa-card>
-          </li>
-        </ul>
-      </section>
+        {{ t('roleSettings.scopes.SYSTEM') }}
+      </wa-tab>
+      <wa-tab
+        slot="nav"
+        panel="project"
+      >
+        {{ t('roleSettings.scopes.PROJECT') }}
+      </wa-tab>
 
-      <section
-        v-for="scope in SCOPES"
-        :key="`functions-${scope}`"
-        class="wa-stack wa-gap-s"
+      <wa-tab-panel
+        v-for="panel in ['system', 'project']"
+        :key="panel"
+        :name="panel"
       >
-        <h2 class="wa-heading-m">
-          {{ t(`roleSettings.functions.${scope}`) }}
-        </h2>
-        <ul class="role-settings-list wa-list-plain">
-          <li
-            v-for="entry in functions.filter(other => other.scope === scope)"
-            :key="entry.id"
+        <div
+          v-if="panel === (state.scope === 'SYSTEM' ? 'system' : 'project')"
+          class="wa-stack wa-gap-m"
+        >
+          <wa-radio-group
+            :value="state.view"
+            orientation="horizontal"
+            :label="t('roleSettings.viewLabel')"
+            class="role-settings-view wa-visually-hidden-label"
+            @change="onView"
           >
-            <wa-card class="role-settings-card">
-              <div
-                slot="header"
-                class="role-settings-head"
-              >
-                <div class="role-settings-title">
-                  <h3 class="wa-heading-s">
-                    {{ roleName(entry) }}
-                  </h3>
-                  <wa-badge
-                    v-if="entry.isStandard"
-                    variant="neutral"
-                    appearance="outlined"
-                  >
-                    {{ t('roleSettings.standard') }}
-                  </wa-badge>
-                </div>
-                <ActionMenu
-                  :items="functionActions(entry)"
-                  :label="t('roleSettings.actionsOf', { name: roleName(entry) })"
-                />
-              </div>
-              <div class="wa-stack wa-gap-s">
-                <p class="role-settings-text">
-                  {{ entry.rights.length ? entry.rights.map(right => t(`rights.names.${right}`)).join(', ') : t('roleSettings.noRights') }}
-                </p>
-                <p class="role-settings-usage">
-                  {{ t('roleSettings.functionUsage', entry.usageCount) }}
-                </p>
-              </div>
-            </wa-card>
-          </li>
-        </ul>
-      </section>
+            <wa-radio
+              v-for="view in VIEWS"
+              :key="view"
+              :value="view"
+              appearance="button"
+            >
+              {{ t(`roleSettings.views.${view}`) }}
+            </wa-radio>
+          </wa-radio-group>
 
-      <AppCallout
-        variant="neutral"
-        :title="t('roleSettings.matrixHint')"
-      >
-        <NuxtLink to="/system/rechte">
-          {{ t('roleSettings.matrixLink') }}
-        </NuxtLink>
-      </AppCallout>
-    </div>
+          <RoleFilters
+            :filter="state.filter"
+            :rights="scopeRights"
+            :shown="counts.shown"
+            :total="counts.total"
+            @update:filter="filter => setState({ filter })"
+          />
+
+          <wa-skeleton
+            v-if="loading && !result"
+            effect="sheen"
+            class="role-settings-skeleton"
+          ></wa-skeleton>
+          <EmptyState
+            v-else-if="nothingShown"
+            icon="filter-circle-xmark"
+            :title="t(`roleSettings.empty.${state.view}`)"
+            size="sm"
+          >
+            <wa-button
+              appearance="outlined"
+              variant="neutral"
+              @click="resetFilters"
+            >
+              {{ t('roleSettings.filters.reset') }}
+            </wa-button>
+          </EmptyState>
+          <RoleList
+            v-else-if="state.view === 'roles'"
+            :roles="shownRoles"
+            :functions="scopeFunctions"
+            :scope="state.scope"
+            :creator-key="creatorKey"
+            :project-rights-total="projectRights.length"
+            :query="state.filter.q"
+            :actions="roleActions"
+          />
+          <RoleFunctionList
+            v-else-if="state.view === 'functions'"
+            :functions="shownFunctions"
+            :roles="scopeRoles"
+            :query="state.filter.q"
+            :actions="functionActions"
+          />
+          <RoleRightsMatrix
+            v-else
+            :scope="state.scope"
+            :rows="shownMatrix.rows"
+            :roles="shownMatrix.roles"
+            :query="state.filter.q"
+          />
+        </div>
+      </wa-tab-panel>
+    </wa-tab-group>
 
     <RoleFormModal
       :target="editingRole"
@@ -368,44 +396,7 @@ function capText(role: Role): string {
   block-size: 12rem;
 }
 
-.role-settings-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
-  gap: var(--wa-space-l);
-  margin: 0;
-  padding: 0;
-}
-
-.role-settings-card {
-  block-size: 100%;
-}
-
-.role-settings-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--wa-space-s);
-}
-
-.role-settings-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--wa-space-xs);
-}
-
-.role-settings-title h3 {
-  margin: 0;
-}
-
-.role-settings-text,
-.role-settings-usage {
-  margin: 0;
-  color: var(--wa-color-text-quiet);
-  font-size: var(--wa-font-size-s);
-}
-
-.role-settings-usage {
-  font-size: var(--wa-font-size-xs);
+.role-settings-tabs::part(body) {
+  padding-block-start: var(--wa-space-m);
 }
 </style>

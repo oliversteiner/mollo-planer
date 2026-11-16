@@ -23,6 +23,8 @@ export interface RoleFormTarget {
     functions: readonly { id: string }[]
     projectCap?: readonly Right[] | null
   }
+  /** Scope of a new role (the tab it was started from). */
+  scope?: RoleScope
 }
 
 type CapMode = 'ALL' | 'NONE' | 'SOME'
@@ -64,7 +66,7 @@ watch(() => props.target, (target) => {
   const cap = role?.projectCap
 
   errors.value = {}
-  state.scope = role?.scope ?? 'PROJECT'
+  state.scope = role?.scope ?? target?.scope ?? 'PROJECT'
   state.de = role?.names.de ?? ''
   state.en = role?.names.en ?? ''
   state.functionIds = (role?.functions ?? []).map(entry => entry.id)
@@ -195,18 +197,12 @@ async function save(): Promise<void> {
           v-if="state.capMode === 'SOME'"
           :label="t('roleSettings.capRights')"
         >
-          <ul class="role-choices role-choices-columns wa-list-plain">
-            <li
-              v-for="right in projectRights"
-              :key="right"
-            >
-              <FormCheckbox
-                :model-value="state.capRights.includes(right)"
-                :label="t(`rights.names.${right}`)"
-                @update:model-value="toggle(state.capRights, right, $event)"
-              />
-            </li>
-          </ul>
+          <RoleRightGroups
+            :model-value="state.capRights"
+            :rights="projectRights"
+            selectable
+            @update:model-value="value => (state.capRights = value as Right[])"
+          />
         </FormField>
       </template>
     </form>
@@ -242,9 +238,5 @@ async function save(): Promise<void> {
   inline-size: 100%;
   margin: 0;
   padding: 0;
-}
-
-.role-choices-columns {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 }
 </style>

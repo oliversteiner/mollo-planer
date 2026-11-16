@@ -18,7 +18,6 @@
     "database": "Database",
     "status": "Status",
     "version": "Version",
-    "rights": "Rights",
     "roles": "Roles"
   },
   "settings": {
@@ -1404,7 +1403,7 @@
     }
   },
   "roleSettings": {
-    "title": "Roles and functions",
+    "title": "Roles and rights",
     "intro": "Rights are fixed by the code. A function bundles rights, a role bundles functions. System roles hold for a person in the whole app, project roles for a membership.",
     "scopes": {
       "SYSTEM": "System",
@@ -1466,8 +1465,67 @@
     "resetTitle": "Reset “{name}” to the standard?",
     "resetRoleDescription": "Name, functions and cap go back to what ships with the app. This holds at once for everyone with the role.",
     "resetFunctionDescription": "Name and rights go back to what ships with the app. This holds at once for every role with this function.",
-    "matrixHint": "What holds in the end is shown by the rights table: every role with its rights.",
-    "matrixLink": "Open rights table"
+    "views": {
+      "roles": "Roles",
+      "functions": "Functions",
+      "matrix": "Overview"
+    },
+    "viewLabel": "View",
+    "own": "Own",
+    "creator": "Creator",
+    "more": "+{count}",
+    "capShort": {
+      "ALL": "Project rights: all",
+      "NONE": "Project rights: none",
+      "SOME": "{count} of {total} project rights"
+    },
+    "rightsCount": "No rights | 1 right | {count} rights",
+    "usedBy": "Used by {names}",
+    "showRights": "Show the rights of “{name}”",
+    "via": "via {names}",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search role, function or right",
+      "originLabel": "Origin",
+      "origin": {
+        "all": "Origin: all",
+        "standard": "Shipped only",
+        "own": "Own only"
+      },
+      "usageLabel": "Use",
+      "usage": {
+        "all": "Use: all",
+        "used": "In use",
+        "unused": "Unused"
+      },
+      "rights": "Has right",
+      "rightsPlaceholder": "Has right …",
+      "count": "{shown} of {total}",
+      "reset": "Reset filters"
+    },
+    "empty": {
+      "roles": "No role matches the filters.",
+      "functions": "No function matches the filters.",
+      "matrix": "No right matches the filters."
+    },
+    "groups": {
+      "PROJECT": "Project",
+      "MEMBERS": "Members",
+      "MILESTONE": "Milestones",
+      "TODO": "To-dos",
+      "TASK": "Tasks",
+      "COMMENT": "Comments",
+      "TRASH": "Trash",
+      "PLANER": "Planer file",
+      "AI_CONTEXT": "AI context",
+      "PROJECTS": "Projects",
+      "USERS": "Users",
+      "ROLES": "Roles",
+      "TEMPLATES": "Templates and labels",
+      "ASSISTANT": "Assistant and ideas",
+      "OPERATIONS": "Operations",
+      "OTHER": "More"
+    }
   },
   "release": {
     "none": "No version",

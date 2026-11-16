@@ -30,7 +30,6 @@ const mainItems = computed<NavItem[]>(() => [
 /** The section "System": the database documentation (admins), the status and the version (everyone), then administration. */
 const adminItems = computed<NavItem[]>(() => [
   { label: t('nav.database'), icon: 'database', to: '/system/db' },
-  { label: t('nav.rights'), icon: 'list-check', to: '/system/rechte' },
   { label: t('nav.status'), icon: 'heart-pulse', to: '/system/status' },
   { label: t('nav.version'), icon: 'code-branch', to: '/system/version' },
   { label: t('nav.users'), icon: 'users', to: '/admin/users' },

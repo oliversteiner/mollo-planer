@@ -7,7 +7,6 @@
 export const ROUTE_RIGHTS: Readonly<Record<string, string>> = {
   '/assistant': 'USERS_MANAGE',
   '/system/db': 'USERS_MANAGE',
-  '/system/rechte': 'ROLES_MANAGE',
   '/admin/users': 'USERS_MANAGE',
   '/admin/roles': 'ROLES_MANAGE',
   '/admin/settings': 'SETTINGS_MANAGE',

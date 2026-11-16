@@ -15,6 +15,8 @@ export interface RoleFunctionFormTarget {
     names: { de: string, en: string }
     rights: readonly Right[]
   }
+  /** Scope of a new function (the tab it was started from). */
+  scope?: RoleScope
 }
 
 const props = defineProps<{
@@ -45,7 +47,7 @@ watch(() => props.target, (target) => {
   const entry = target?.function
 
   errors.value = {}
-  state.scope = entry?.scope ?? 'PROJECT'
+  state.scope = entry?.scope ?? target?.scope ?? 'PROJECT'
   state.de = entry?.names.de ?? ''
   state.en = entry?.names.en ?? ''
   state.rights = [...(entry?.rights ?? [])]
@@ -59,16 +61,6 @@ const choices = computed(() => (state.scope === 'SYSTEM' ? props.systemRights : 
 function setScope(scope: string | null): void {
   state.scope = scope === 'SYSTEM' ? 'SYSTEM' : 'PROJECT'
   state.rights = []
-}
-
-function toggle(right: Right, on: boolean): void {
-  const index = state.rights.indexOf(right)
-
-  if (on && index < 0) {
-    state.rights.push(right)
-  } else if (!on && index >= 0) {
-    state.rights.splice(index, 1)
-  }
 }
 
 /** A refusal that belongs to no single field: a ground rule, or the function itself. */
@@ -137,18 +129,12 @@ async function save(): Promise<void> {
       />
 
       <FormField :label="t('roleSettings.rightsOf')">
-        <ul class="role-function-rights wa-list-plain">
-          <li
-            v-for="right in choices"
-            :key="right"
-          >
-            <FormCheckbox
-              :model-value="state.rights.includes(right)"
-              :label="t(`rights.names.${right}`)"
-              @update:model-value="toggle(right, $event)"
-            />
-          </li>
-        </ul>
+        <RoleRightGroups
+          :model-value="state.rights"
+          :rights="choices"
+          selectable
+          @update:model-value="value => (state.rights = value as Right[])"
+        />
       </FormField>
     </form>
 
@@ -175,14 +161,5 @@ async function save(): Promise<void> {
 <style scoped>
 .role-function-dialog {
   --width: 48rem;
-}
-
-.role-function-rights {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-  gap: var(--wa-space-s);
-  inline-size: 100%;
-  margin: 0;
-  padding: 0;
 }
 </style>

@@ -18,7 +18,6 @@
     "database": "Datenbank",
     "status": "Status",
     "version": "Version",
-    "rights": "Rechte",
     "roles": "Rollen"
   },
   "settings": {
@@ -1404,7 +1403,7 @@
     }
   },
   "roleSettings": {
-    "title": "Rollen und Funktionen",
+    "title": "Rollen und Rechte",
     "intro": "Rechte gibt der Code vor. Eine Funktion bündelt Rechte, eine Rolle bündelt Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft.",
     "scopes": {
       "SYSTEM": "System",
@@ -1466,8 +1465,67 @@
     "resetTitle": "«{name}» auf den Standard zurücksetzen?",
     "resetRoleDescription": "Name, Funktionen und Obergrenze werden wieder wie mitgeliefert. Das gilt sofort für alle, die die Rolle haben.",
     "resetFunctionDescription": "Name und Rechte werden wieder wie mitgeliefert. Das gilt sofort für alle Rollen mit dieser Funktion.",
-    "matrixHint": "Was am Ende gilt, zeigt die Rechte-Tabelle: jede Rolle mit ihren Rechten.",
-    "matrixLink": "Rechte-Tabelle öffnen"
+    "views": {
+      "roles": "Rollen",
+      "functions": "Funktionen",
+      "matrix": "Übersicht"
+    },
+    "viewLabel": "Ansicht",
+    "own": "Eigene",
+    "creator": "Ersteller",
+    "more": "+{count}",
+    "capShort": {
+      "ALL": "Projektrechte: alle",
+      "NONE": "Projektrechte: keine",
+      "SOME": "{count} von {total} Projektrechten"
+    },
+    "rightsCount": "Keine Rechte | 1 Recht | {count} Rechte",
+    "usedBy": "Verwendet von {names}",
+    "showRights": "Rechte von «{name}» zeigen",
+    "via": "über {names}",
+    "filters": {
+      "search": "Suchen",
+      "searchPlaceholder": "Rolle, Funktion oder Recht suchen",
+      "originLabel": "Herkunft",
+      "origin": {
+        "all": "Herkunft: alle",
+        "standard": "Nur mitgelieferte",
+        "own": "Nur eigene"
+      },
+      "usageLabel": "Gebrauch",
+      "usage": {
+        "all": "Gebrauch: alle",
+        "used": "In Gebrauch",
+        "unused": "Ungenutzt"
+      },
+      "rights": "Hat Recht",
+      "rightsPlaceholder": "Hat Recht …",
+      "count": "{shown} von {total}",
+      "reset": "Filter zurücksetzen"
+    },
+    "empty": {
+      "roles": "Keine Rolle passt zu den Filtern.",
+      "functions": "Keine Funktion passt zu den Filtern.",
+      "matrix": "Kein Recht passt zu den Filtern."
+    },
+    "groups": {
+      "PROJECT": "Projekt",
+      "MEMBERS": "Mitglieder",
+      "MILESTONE": "Milestones",
+      "TODO": "ToDos",
+      "TASK": "Tasks",
+      "COMMENT": "Kommentare",
+      "TRASH": "Papierkorb",
+      "PLANER": "Planer-Datei",
+      "AI_CONTEXT": "KI-Kontext",
+      "PROJECTS": "Projekte",
+      "USERS": "Benutzer",
+      "ROLES": "Rollen",
+      "TEMPLATES": "Vorlagen und Labels",
+      "ASSISTANT": "Assistent und Ideen",
+      "OPERATIONS": "Betrieb",
+      "OTHER": "Weitere"
+    }
   },
   "release": {
     "none": "Keine Version",

@@ -9,7 +9,6 @@ const knownRights = new Set([...rightsEnum.matchAll(/case (\w+) = '/g)].map(matc
 describe('route rights (RF5)', () => {
   it('maps the admin pages to their rights', () => {
     expect(routeRight('/admin/roles')).toBe('ROLES_MANAGE')
-    expect(routeRight('/system/rechte')).toBe('ROLES_MANAGE')
     expect(routeRight('/admin/settings')).toBe('SETTINGS_MANAGE')
     expect(routeRight('/admin/users')).toBe('USERS_MANAGE')
     expect(routeRight('/system/db')).toBe('USERS_MANAGE')
