@@ -56,6 +56,7 @@ class CreateTask
                 'icon' => $args['icon'] ?? null,
                 'due_date' => $args['due_date'] ?? null,
                 'user_story' => $args['user_story'] ?? null,
+                'commit' => $args['commit'] ?? null,
             ]);
             $task->todo()->associate($todo);
             $task->assigned_user_id = $assigneeId;

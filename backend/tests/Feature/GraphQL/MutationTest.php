@@ -185,6 +185,13 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.createTask', ['status' => 'OPEN', 'boardPosition' => 1, 'assignee' => ['name' => 'David Member']]);
     }
 
+    public function test_create_task_takes_the_commit_from_the_input(): void
+    {
+        $this->as('manager')->gql('mutation ($in: CreateTaskInput!) { createTask(input: $in) { commit } }', ['in' => [
+            'todoId' => $this->todo->id, 'title' => 'Mit Commit', 'commit' => 'a1b2c3d',
+        ]])->assertJsonPath('data.createTask.commit', 'a1b2c3d');
+    }
+
     public function test_task_cannot_be_assigned_to_non_members(): void
     {
         $this->as('manager')->gql('mutation ($in: CreateTaskInput!) { createTask(input: $in) { id } }', ['in' => [
