@@ -98,6 +98,12 @@ enum LabelColor {
   PINK @enum(value: "pink")
 }
 
+"Freigabe einer Version: geplant oder veröffentlicht"
+enum ReleaseStatus {
+  PLANNED @enum(value: "planned")
+  RELEASED @enum(value: "released")
+}
+
 "Spalten im Kanban-Board"
 enum TaskStatus {
   IDEA @enum(value: "idea")

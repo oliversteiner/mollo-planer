@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
+use App\Enums\ReleaseStatus;
 use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Services\Ordering;
+use App\Services\ReleaseRules;
 use Database\Factories\MilestoneFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Status is computed by the status observer, never set from input.
  */
-#[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position'])]
+#[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position', 'release_version', 'release_status'])]
 class Milestone extends Model implements BelongsToProject
 {
     /** @use HasFactory<MilestoneFactory> */
@@ -34,6 +36,21 @@ class Milestone extends Model implements BelongsToProject
     ];
 
     /**
+     * The release as the API shows it: version and status, or null when the
+     * milestone has no version.
+     *
+     * @return array{version: string, status: string}|null
+     */
+    public function getReleaseAttribute(): ?array
+    {
+        if ($this->release_version === null) {
+            return null;
+        }
+
+        return ['version' => $this->release_version, 'status' => $this->release_status?->value];
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -42,6 +59,7 @@ class Milestone extends Model implements BelongsToProject
             'description' => RichTextCast::class,
             'status' => ItemStatus::class,
             'due_date' => 'date',
+            'release_status' => ReleaseStatus::class,
         ];
     }
 
@@ -97,6 +115,10 @@ class Milestone extends Model implements BelongsToProject
             }
 
             $ordering->openSlot($milestone->project_id, $group, $milestone->position);
+        });
+
+        static::saving(function (Milestone $milestone): void {
+            ReleaseRules::checkMilestone($milestone);
         });
 
         static::deleted(function (Milestone $milestone): void {

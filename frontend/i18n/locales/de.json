@@ -887,6 +887,10 @@
         "deletion_id": {
           "label": "Löschvorgang",
           "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
+        },
+        "planer_revision": {
+          "label": "Revision",
+          "description": "Zählt jede Änderung an der Planer-Datei. Nur die App erhöht sie."
         }
       },
       "project_user": {
@@ -967,6 +971,14 @@
         "deletion_id": {
           "label": "Löschvorgang",
           "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
+        },
+        "release_version": {
+          "label": "Version",
+          "description": "Version des Milestones, im Format M.m, zum Beispiel 1.4. Leer, wenn keine Version geplant ist."
+        },
+        "release_status": {
+          "label": "Freigabe",
+          "description": "geplant oder veröffentlicht. Veröffentlicht heißt: nur erledigte Tasks, jeder mit Commit."
         }
       },
       "todos": {
@@ -1091,6 +1103,10 @@
         "user_story": {
           "label": "Story",
           "description": "Story des Tasks: Als Rolle möchte ich Ziel, damit Nutzen. Drei Teile, alle oder keiner."
+        },
+        "commit": {
+          "label": "Commit",
+          "description": "Hash der Umsetzung (7 bis 40 Zeichen), none für erledigte Tasks ohne Commit, leer wenn noch keiner eingetragen ist."
         }
       },
       "comments": {

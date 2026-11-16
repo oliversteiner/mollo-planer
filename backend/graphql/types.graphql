@@ -72,6 +72,8 @@ type Project {
   labelSet: LabelSet @belongsTo
   members: [ProjectMember!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
   milestones: [Milestone!]! @hasMany
+  "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
+  planerRevision: Int! @rename(attribute: "planer_revision")
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
   progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
@@ -87,6 +89,13 @@ type ProjectMember {
   role: Role!
 }
 
+"Version eines Milestones und ihre Freigabe"
+type Release {
+  "Version im Format M.m, zum Beispiel 1.4"
+  version: String!
+  status: ReleaseStatus!
+}
+
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
   id: ID!
@@ -99,6 +108,8 @@ type Milestone {
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
   icon: String
   dueDate: Date @rename(attribute: "due_date")
+  "Version und Freigabe, null wenn der Milestone keine Version hat"
+  release: Release
   "DONE, sobald alle ToDos erledigt sind"
   status: ItemStatus!
   todos: [Todo!]! @hasMany
@@ -146,6 +157,8 @@ type Task {
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
   icon: String
   status: TaskStatus!
+  "Commit der Umsetzung: Hash (7 bis 40 Zeichen), none (ohne Commit, nur bei erledigten Tasks) oder null"
+  commit: String
   "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
   boardPosition: Int! @rename(attribute: "board_position")
   dueDate: Date @rename(attribute: "due_date")

@@ -42,6 +42,9 @@ input CreateMilestoneInput {
  "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
  position: Int
  projectId: ID!
+ releaseStatus: ReleaseStatus
+ "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+ releaseVersion: String
  title: String!
 }
 input CreateProjectInput {
@@ -66,6 +69,8 @@ input CreateRoleInput {
 }
 input CreateTaskInput {
  assigneeId: ID
+ "Commit: Hash oder none, siehe Typ Task"
+ commit: String
  description: RichText
  dueDate: Date
  icon: String
@@ -198,6 +203,8 @@ type Milestone {
  position: Int!
  progress: Progress!
  project: Project!
+ "Version und Freigabe, null wenn der Milestone keine Version hat"
+ release: Release
  "DONE, sobald alle ToDos erledigt sind"
  status: ItemStatus!
  title: String!
@@ -371,6 +378,8 @@ type Project {
  members: [ProjectMember!]!
  milestones: [Milestone!]!
  name: String!
+ "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
+ planerRevision: Int!
  "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
  progress: Progress!
  "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
@@ -498,6 +507,17 @@ type Query {
  "Welche Systemrechte du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
  viewerRights: [Right!]!
 }
+"Version eines Milestones und ihre Freigabe"
+type Release {
+ status: ReleaseStatus!
+ "Version im Format M.m, zum Beispiel 1.4"
+ version: String!
+}
+"Freigabe einer Version: geplant oder veröffentlicht"
+enum ReleaseStatus {
+ PLANNED
+ RELEASED
+}
 """
 Formatierter Text als TipTap-Dokument (JSON-Objekt mit type "doc"). Der Server
 speichert nie HTML, sondern prüft das Dokument gegen eine Whitelist:
@@ -607,6 +627,8 @@ type Task {
  commentCount: Int!
  "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
  comments: [Comment!]!
+ "Commit der Umsetzung: Hash (7 bis 40 Zeichen), none (ohne Commit, nur bei erledigten Tasks) oder null"
+ commit: String
  createdAt: DateTime!
  createdBy: User
  description: RichText
@@ -667,6 +689,9 @@ input UpdateMilestoneInput {
  description: RichText
  dueDate: Date
  icon: String
+ releaseStatus: ReleaseStatus
+ "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+ releaseVersion: String
  title: String
 }
 input UpdateProjectInput {
@@ -688,6 +713,8 @@ input UpdateRoleInput {
  projectCap: [Right!]
 }
 input UpdateTaskInput {
+ "Commit: Hash oder none, siehe Typ Task"
+ commit: String
  description: RichText
  dueDate: Date
  icon: String

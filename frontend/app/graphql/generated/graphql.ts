@@ -16,6 +16,9 @@ export type CreateMilestoneInput = {
   /** Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende. */
   position?: number | null | undefined;
   projectId: string | number;
+  releaseStatus?: ReleaseStatus | null | undefined;
+  /** Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren. */
+  releaseVersion?: string | null | undefined;
   title: string;
 };
 
@@ -44,6 +47,8 @@ export type CreateRoleInput = {
 
 export type CreateTaskInput = {
   assigneeId?: string | number | null | undefined;
+  /** Commit: Hash oder none, siehe Typ Task */
+  commit?: string | null | undefined;
   description?: Record<string, unknown> | null | undefined;
   dueDate?: string | null | undefined;
   icon?: string | null | undefined;
@@ -167,6 +172,11 @@ export type ProjectRole =
   | 'MEMBER'
   | 'OWNER';
 
+/** Freigabe einer Version: geplant oder veröffentlicht */
+export type ReleaseStatus =
+  | 'PLANNED'
+  | 'RELEASED';
+
 /** Rechte, die der Code prüft (docs/rollen-funktionen-rechte.md, §4). Projektrechte gelten in einem Projekt, Systemrechte in der ganzen App. Welche Rolle ein Recht hat, steht in den Einstellungen (Rollen und Funktionen). */
 export type Right =
   | 'AI_CONTEXT_UPDATE'
@@ -232,6 +242,9 @@ export type UpdateMilestoneInput = {
   description?: Record<string, unknown> | null | undefined;
   dueDate?: string | null | undefined;
   icon?: string | null | undefined;
+  releaseStatus?: ReleaseStatus | null | undefined;
+  /** Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren. */
+  releaseVersion?: string | null | undefined;
   title?: string | null | undefined;
 };
 
@@ -257,6 +270,8 @@ export type UpdateRoleInput = {
 };
 
 export type UpdateTaskInput = {
+  /** Commit: Hash oder none, siehe Typ Task */
+  commit?: string | null | undefined;
   description?: Record<string, unknown> | null | undefined;
   dueDate?: string | null | undefined;
   icon?: string | null | undefined;

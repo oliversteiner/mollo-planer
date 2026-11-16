@@ -46,6 +46,9 @@ input CreateMilestoneInput {
   description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
+  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+  releaseVersion: String @rename(attribute: "release_version") @rules(apply: ["max:20"])
+  releaseStatus: ReleaseStatus @rename(attribute: "release_status")
 }
 
 input UpdateMilestoneInput {
@@ -53,6 +56,9 @@ input UpdateMilestoneInput {
   description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
+  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+  releaseVersion: String @rename(attribute: "release_version") @rules(apply: ["max:20"])
+  releaseStatus: ReleaseStatus @rename(attribute: "release_status")
 }
 
 input CreateTodoInput {
@@ -104,6 +110,8 @@ input CreateTaskInput {
   dueDate: Date @rename(attribute: "due_date")
   "Labels aus dem Set des Projekts"
   labelIds: [ID!] @rename(attribute: "label_ids")
+  "Commit: Hash oder none, siehe Typ Task"
+  commit: String @rules(apply: ["max:40"])
 }
 
 input UpdateTaskInput {
@@ -113,6 +121,8 @@ input UpdateTaskInput {
   userStory: UserStoryInput @rename(attribute: "user_story")
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
+  "Commit: Hash oder none, siehe Typ Task"
+  commit: String @rules(apply: ["max:40"])
 }
 
 input AddCommentInput {

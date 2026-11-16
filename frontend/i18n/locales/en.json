@@ -887,6 +887,10 @@
         "deletion_id": {
           "label": "Deletion",
           "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "planer_revision": {
+          "label": "Revision",
+          "description": "Counts every change to the planer file. Only the app increases it."
         }
       },
       "project_user": {
@@ -967,6 +971,14 @@
         "deletion_id": {
           "label": "Deletion",
           "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "release_version": {
+          "label": "Version",
+          "description": "Version of the milestone, in the form M.m, for example 1.4. Empty when no version is planned."
+        },
+        "release_status": {
+          "label": "Release",
+          "description": "planned or released. Released means: only done tasks, each with a commit."
         }
       },
       "todos": {
@@ -1091,6 +1103,10 @@
         "user_story": {
           "label": "User story",
           "description": "User story of the task: As role I want goal, so that benefit. Three parts, all or none."
+        },
+        "commit": {
+          "label": "Commit",
+          "description": "Hash of the implementation (7 to 40 characters), none for done tasks without a commit, empty when none is recorded yet."
         }
       },
       "comments": {
