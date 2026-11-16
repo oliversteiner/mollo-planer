@@ -29,6 +29,8 @@ const props = defineProps<{
   error?: string
   placeholder?: string
   disabled?: boolean
+  /** A button to clear the choice (for example "nobody"). */
+  clearable?: boolean
 }>()
 
 const model = defineModel<string | null>({ default: null })
@@ -69,6 +71,7 @@ watch(model, (value, previous) => {
     :disabled="disabled || !hasPeople"
     :aria-invalid="error ? 'true' : undefined"
     :data-invalid="error ? '' : undefined"
+    :with-clear="clearable"
     :filter.prop="matcher"
     @change="onChange"
   >

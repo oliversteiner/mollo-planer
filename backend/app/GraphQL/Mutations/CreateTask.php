@@ -47,7 +47,7 @@ class CreateTask
             }
 
             if ($assigneeId !== null) {
-                $this->membership->ensureAssignable($project, $assigneeId, 'input.assigneeId');
+                $this->membership->ensureMember($viewer, $project, $assigneeId, 'input.assigneeId');
             }
 
             $task = new Task([

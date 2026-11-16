@@ -364,7 +364,13 @@
     "commit": {
       "label": "Commit",
       "hint": "Hash der Umsetzung oder „none“ für erledigte Tasks ohne Commit. Leer lassen, solange es keinen gibt."
-    }
+    },
+    "assigneeGroups": {
+      "members": "Mitglieder",
+      "others": "Weitere Personen (werden Mitglied)"
+    },
+    "onlyMembers": "Nur Projektmitglieder lassen sich zuweisen.",
+    "joined": "{name} ist jetzt Mitglied (Rolle {role})."
   },
   "comments": {
     "title": "Kommentare ({count})",

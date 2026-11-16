@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Right;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
@@ -86,17 +87,29 @@ class ProjectMembership
     }
 
     /**
-     * Throws a validation error unless the user is a member of the project.
+     * The assignee of a task is a member of its project (ground rule §7.10).
+     * Someone who may manage the members takes an approved person in with the
+     * default project role first, in the same transaction
+     * (docs/fix-m1-mitglieder.md §1.3); everyone else gets the refusal.
      *
+     * @throws AuthorizationException
      * @throws ValidationException
      */
-    public function ensureAssignable(Project $project, int|string $userId, string $field): void
+    public function ensureMember(User $actor, Project $project, int|string $userId, string $field): void
     {
         $user = User::find($userId);
 
-        if ($user === null || $project->roleIdOf($user) === null) {
+        if ($user !== null && $project->roleIdOf($user) !== null) {
+            return;
+        }
+
+        $role = Role::defaultOf(Role::SCOPE_PROJECT);
+
+        if ($user === null || $user->approved_at === null || $role === null || ! Rights::allows($actor, Right::MEMBERS_MANAGE, $project)) {
             throw ValidationException::withMessages([$field => __('projects.assignee_not_member')]);
         }
+
+        $this->set($actor, $project, $user, $role);
     }
 
     private function lockProject(Project $project): void

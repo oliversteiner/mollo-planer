@@ -41,7 +41,7 @@ class AssignTask
             }
 
             if ($assigneeId !== null) {
-                $this->membership->ensureAssignable($task->owningProject(), $assigneeId, 'assigneeId');
+                $this->membership->ensureMember($viewer, $task->owningProject(), $assigneeId, 'assigneeId');
             }
 
             if ((string) $task->assigned_user_id === (string) $assigneeId) {

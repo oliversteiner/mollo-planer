@@ -46,7 +46,7 @@ const open = computed({
 
 const state = reactive<{
   todoId: string
-  assigneeId: string
+  assigneeId: string | null
   title: string
   dueDate: string
   icon: string | null
@@ -54,7 +54,7 @@ const state = reactive<{
   labelIds: string[]
   story: { role: string, goal: string, benefit: string }
   commit: string
-}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null, labelIds: [], story: { role: '', goal: '', benefit: '' }, commit: '' })
+}>({ todoId: '', assigneeId: null, title: '', dueDate: '', icon: null, description: null, labelIds: [], story: { role: '', goal: '', benefit: '' }, commit: '' })
 
 /** Labels of the project's set, for a new task (an existing one gets its labels in the details). */
 const { project } = useProject()
@@ -63,7 +63,7 @@ const setLabels = computed(() => project.value?.labelSet?.labels ?? [])
 watch(() => props.target, (target) => {
   errors.value = {}
   state.todoId = target?.todoId ?? props.todos[0]?.id ?? ''
-  state.assigneeId = 'none'
+  state.assigneeId = null
   state.title = target?.task?.title ?? ''
   state.dueDate = target?.task?.dueDate ?? ''
   state.icon = target?.task?.icon ?? null
@@ -84,10 +84,8 @@ function storyInput(): { role: string, goal: string, benefit: string } | null {
   return parts.role || parts.goal || parts.benefit ? parts : null
 }
 const todoItems = computed(() => props.todos.map(todo => ({ label: `${todo.milestone.title} · ${todo.title}`, value: todo.id })))
-const memberItems = computed(() => [
-  { label: t('task.nobody'), value: 'none' },
-  ...props.members.map(member => ({ label: member.name, value: member.id }))
-])
+/** Members first; people who may manage members can also take somebody in. */
+const assignee = useAssigneeChoice(() => props.members)
 
 const { mutate: createTask } = useProjectMutation(createTaskMutation)
 const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
@@ -102,12 +100,16 @@ async function submit(): Promise<void> {
     ...(commitEditable.value ? { commit: state.commit.trim() || null } : {})
   }
   const task = props.target?.task
+  const joining = !task && assignee.willJoin(state.assigneeId)
   const result = await run<unknown>(() => task
     ? updateTask({ id: task.id, input: fields })
-    : createTask({ input: { ...fields, todoId: state.todoId, assigneeId: state.assigneeId === 'none' ? null : state.assigneeId, labelIds: state.labelIds } }))
+    : createTask({ input: { ...fields, todoId: state.todoId, assigneeId: state.assigneeId, labelIds: state.labelIds } }))
 
   if (result) {
     toast.add({ title: t('task.saved'), color: 'success' })
+    if (joining && state.assigneeId) {
+      assignee.announceJoined(state.assigneeId)
+    }
     emit('close')
   }
 }
@@ -160,13 +162,14 @@ async function submit(): Promise<void> {
           :label="t('item.fields.dueDate')"
           :error="errors.dueDate"
         />
-        <FormSelect
+        <FormPersonSelect
           v-if="isNew"
           v-model="state.assigneeId"
-          name="assigneeId"
-          :items="memberItems"
+          :groups="assignee.groups.value"
           :label="t('task.assignee')"
+          :hint="assignee.hint.value"
           :error="errors.assigneeId"
+          clearable
         />
       </div>
 

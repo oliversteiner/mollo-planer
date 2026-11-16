@@ -44,10 +44,8 @@ const { result, loading } = useQuery(taskQuery, () => ({ id: props.taskId ?? '' 
 const task = computed(() => (props.taskId ? result.value?.task ?? null : null))
 
 const statusItems = computed(() => TASK_STATUSES.map(status => ({ label: t(`status.${status}`), value: status })))
-const memberItems = computed(() => [
-  { label: t('task.nobody'), value: 'none' },
-  ...props.members.map(member => ({ label: member.name, value: member.id }))
-])
+/** Members first; people who may manage members can also take somebody in. */
+const assignee = useAssigneeChoice(() => props.members)
 
 const { mutate: moveTask } = useProjectMutation(moveTaskMutation)
 const { mutate: assignTask } = useProjectMutation(assignTaskMutation)
@@ -106,12 +104,16 @@ async function changeCommit(value: string): Promise<void> {
   await runCommit(() => updateTask({ id: task.value!.id, input: { commit } }))
 }
 
-async function changeAssignee(value: string): Promise<void> {
-  if (task.value) {
-    const result = await assignTask({ id: task.value.id, assigneeId: value === 'none' ? null : value }).catch(() => null)
+async function changeAssignee(value: string | null): Promise<void> {
+  if (task.value && value !== (task.value.assignee?.id ?? null)) {
+    const joining = assignee.willJoin(value)
+    const result = await assignTask({ id: task.value.id, assigneeId: value }).catch(() => null)
 
-    if (result && value !== 'none') {
+    if (result && value) {
       toast.add({ title: t('task.assigned'), description: t('task.assignedMail'), color: 'success' })
+      if (joining) {
+        assignee.announceJoined(value)
+      }
     }
   }
 }
@@ -208,12 +210,14 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
           @change="(event: Event) => changeCommit((event.target as HTMLInputElement).value)"
         />
 
-        <FormSelect
+        <FormPersonSelect
           v-if="can.assign"
-          :model-value="task.assignee?.id ?? 'none'"
-          :items="memberItems"
+          :model-value="task.assignee?.id ?? null"
+          :groups="assignee.groups.value"
           :label="t('task.assignee')"
-          @update:model-value="value => value && changeAssignee(value)"
+          :hint="assignee.hint.value"
+          clearable
+          @update:model-value="changeAssignee"
         />
         <FormField
           v-else

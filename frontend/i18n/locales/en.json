@@ -364,7 +364,13 @@
     "commit": {
       "label": "Commit",
       "hint": "Hash of the implementation, or “none” for done tasks without a commit. Leave empty while there is none."
-    }
+    },
+    "assigneeGroups": {
+      "members": "Members",
+      "others": "Other people (will join)"
+    },
+    "onlyMembers": "Only project members can be assigned.",
+    "joined": "{name} is a member now (role {role})."
   },
   "comments": {
     "title": "Comments ({count})",

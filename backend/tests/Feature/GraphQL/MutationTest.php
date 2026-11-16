@@ -192,14 +192,18 @@ class MutationTest extends GraphQLTestCase
         ]])->assertJsonPath('data.createTask.commit', 'a1b2c3d');
     }
 
-    public function test_task_cannot_be_assigned_to_non_members(): void
+    public function test_task_cannot_be_assigned_to_people_who_cannot_become_members(): void
     {
+        // Non-members join when someone with members.manage assigns them (AssignNonMemberTest);
+        // a person who is not approved never can.
+        $pending = User::factory()->unapproved()->create();
+
         $this->as('manager')->gql('mutation ($in: CreateTaskInput!) { createTask(input: $in) { id } }', ['in' => [
-            'todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $this->users['stranger']->id,
+            'todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $pending->id,
         ]])->assertGraphQLValidationKeys(['input.assigneeId']);
 
         $this->as('manager')->gql('mutation ($id: ID!, $u: ID) { assignTask(id: $id, assigneeId: $u) { id } }', [
-            'id' => $this->task->id, 'u' => $this->users['stranger']->id,
+            'id' => $this->task->id, 'u' => $pending->id,
         ])->assertGraphQLValidationKeys(['assigneeId']);
     }
 
