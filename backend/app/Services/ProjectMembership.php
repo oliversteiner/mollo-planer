@@ -42,7 +42,7 @@ class ProjectMembership
         $this->authorize($actor, $project, $current, $role);
 
         if (Rights::holdsProject($user, $current) && ! Rights::holdsProject($user, $role)) {
-            $this->guardLastHolder($actor, $project, $user, 'role');
+            $this->guardLastHolder($project, $user, 'role');
         }
 
         if ($current === null) {
@@ -74,7 +74,7 @@ class ProjectMembership
         $this->authorize($actor, $project, $current, null);
 
         if (Rights::holdsProject($user, $current)) {
-            $this->guardLastHolder($actor, $project, $user, 'userId');
+            $this->guardLastHolder($project, $user, 'userId');
         }
 
         $project->members()->detach($user);
@@ -130,9 +130,10 @@ class ProjectMembership
     /**
      * @throws ValidationException
      */
-    private function guardLastHolder(User $actor, Project $project, User $leaving, string $field): void
+    private function guardLastHolder(Project $project, User $leaving, string $field): void
     {
-        if (Rights::countHolders($project, $leaving) === 0 && ! Rights::canLeaveProjectWithoutHolder($actor)) {
+        // Admins too (§7.3): every project keeps a member who may delete it.
+        if (Rights::countHolders($project, $leaving) === 0) {
             throw ValidationException::withMessages([$field => __('projects.last_owner')]);
         }
     }

@@ -309,12 +309,31 @@ final class Rights
     }
 
     /**
-     * May the actor leave a project without anybody who holds it? Only
-     * people who may manage any project (§7.3).
+     * The projects that would be left without a holder if this person had
+     * the system role $systemRole (null: the person is deleted). These are
+     * the projects the person holds alone, when the cap of the new role
+     * takes project.delete away. Every project keeps a holder, whoever acts
+     * (§7.3, docs/fix-m1-abnahme.md F3.4).
+     *
+     * @return list<Project>
      */
-    public static function canLeaveProjectWithoutHolder(User $actor): bool
+    public static function projectsOnlyHeldBy(User $user, ?Role $systemRole): array
     {
-        return self::allows($actor, Right::PROJECTS_MANAGE_ANY);
+        if ($systemRole !== null) {
+            $cap = self::grantOf($systemRole->id)['cap'];
+
+            if ($cap === null || in_array(Right::PROJECT_DELETE->value, $cap, true)) {
+                return [];
+            }
+        }
+
+        return $user->projects()
+            ->whereIn('project_user.role_id', self::roleIdsWith(Right::PROJECT_DELETE))
+            ->orderBy('name')
+            ->get()
+            ->filter(fn (Project $project): bool => self::withinCap($user, Right::PROJECT_DELETE) && self::countHolders($project, $user) === 0)
+            ->values()
+            ->all();
     }
 
     /**

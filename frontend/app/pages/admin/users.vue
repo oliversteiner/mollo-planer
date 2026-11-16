@@ -106,7 +106,17 @@ async function confirm(): Promise<void> {
     }
     toast.add({ title: t('admin.users.pending.rejected', { name: target.user.name }), color: 'success' })
   } else {
-    await deleteUser({ id })
+    try {
+      await deleteUser({ id })
+    } catch (error) {
+      // For example: the only person who may delete a project (§7.3).
+      const reason = refusalMessage(error)
+
+      if (reason) {
+        toast.add({ title: reason, color: 'error', duration: 0 })
+      }
+      return
+    }
     toast.add({ title: t('admin.users.deleted', { name: target.user.name }), color: 'success' })
   }
 }

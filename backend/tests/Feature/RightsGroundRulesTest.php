@@ -104,13 +104,16 @@ class RightsGroundRulesTest extends TestCase
         $this->membership->remove($this->owner, $this->project, $this->owner);
     }
 
-    public function test_someone_who_manages_any_project_may_remove_the_last_holder(): void
+    public function test_someone_who_manages_any_project_may_not_remove_the_last_holder_either(): void
     {
         $admin = User::factory()->admin()->create();
 
-        $this->membership->remove($admin, $this->project, $this->owner);
-
-        $this->assertSame(0, Rights::countHolders($this->project));
+        try {
+            $this->membership->remove($admin, $this->project, $this->owner);
+            $this->fail('The last holder was removed.');
+        } catch (ValidationException) {
+            $this->assertSame(1, Rights::countHolders($this->project));
+        }
     }
 
     // §7.4: roles with project.delete or owner.manage need owner.manage

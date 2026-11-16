@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'only_holder' => ':name is the only person with “:right” in :projects. Give the role to someone else there first.',
+    'list_and' => ' and ',
     'last_owner' => 'The project needs at least one owner. Make someone else an owner first.',
     'assignee_not_member' => 'Tasks can only be assigned to members of the project.',
     'todo_other_project' => 'A task can only be moved to a todo of the same project.',

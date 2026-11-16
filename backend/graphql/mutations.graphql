@@ -27,6 +27,7 @@ type Mutation @guard {
     @field(resolver: "App\\GraphQL\\Mutations\\RejectUser")
   deleteUser(id: ID! @whereKey): User!
     @can(ability: "delete", find: "id")
+    @validator
     @delete
   "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
   updateMyNotifications(emailEnabled: Boolean!): User!

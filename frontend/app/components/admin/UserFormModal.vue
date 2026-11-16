@@ -110,6 +110,7 @@ async function submit(): Promise<void> {
         v-model="state.role"
         :items="roleItems"
         :label="t('admin.users.role')"
+        :error="errors.role"
         :disabled="isSelf"
       />
       <FormSelect

@@ -96,13 +96,13 @@ class MutationTest extends GraphQLTestCase
         $this->assertNull($this->project->roleOf($owner));
     }
 
-    public function test_admin_may_remove_the_last_owner(): void
+    public function test_admin_may_not_remove_the_last_owner_either(): void
     {
         $this->as('admin')->gql('mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', [
             'p' => $this->project->id, 'u' => $this->users['owner']->id,
-        ])->assertJsonMissingPath('errors');
+        ])->assertGraphQLValidationKeys(['userId']);
 
-        $this->assertSame(0, $this->project->members()->wherePivot('role_id', Role::idOf(Role::SCOPE_PROJECT, ProjectRole::OWNER))->count());
+        $this->assertSame(1, $this->project->members()->wherePivot('role_id', Role::idOf(Role::SCOPE_PROJECT, ProjectRole::OWNER))->count());
     }
 
     public function test_removed_member_loses_task_assignments_in_this_project(): void
