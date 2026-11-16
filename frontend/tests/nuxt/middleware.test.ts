@@ -1,9 +1,8 @@
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RouteLocationNormalized } from 'vue-router'
-import adminMiddleware from '~/middleware/admin'
 import authMiddleware from '~/middleware/auth.global'
-import rolesMiddleware from '~/middleware/roles'
+import rightsMiddleware from '~/middleware/rights.global'
 
 const { viewerState, abilities, load, redirect, abort } = vi.hoisted(() => ({
   viewerState: { value: null as null | { role: string } },
@@ -73,22 +72,24 @@ describe('auth middleware', () => {
   })
 })
 
-describe('admin middleware', () => {
+describe('rights middleware (utils/route-rights.ts)', () => {
   it('lets admins in and sends everyone else to the dashboard', () => {
     abilities.value = ['USERS_MANAGE']
-    expect(adminMiddleware(route('/admin/users'), route('/'))).toBeUndefined()
+    expect(rightsMiddleware(route('/admin/users'), route('/'))).toBeUndefined()
 
     abilities.value = ['PROJECTS_CREATE']
-    expect(adminMiddleware(route('/admin/users'), route('/'))).toEqual({ redirectedTo: '/' })
+    expect(rightsMiddleware(route('/admin/users'), route('/'))).toEqual({ redirectedTo: '/' })
   })
-})
 
-describe('roles middleware', () => {
-  it('lets only viewers with roles.manage to the settings of roles', async () => {
+  it('lets only viewers with roles.manage to the settings of roles', () => {
     abilities.value = ['USERS_MANAGE']
-    expect(await rolesMiddleware(route('/admin/roles'), route('/'))).toEqual({ redirectedTo: '/' })
+    expect(rightsMiddleware(route('/admin/roles'), route('/'))).toEqual({ redirectedTo: '/' })
 
     abilities.value = ['ROLES_MANAGE']
-    expect(await rolesMiddleware(route('/admin/roles'), route('/'))).toBeUndefined()
+    expect(rightsMiddleware(route('/admin/roles'), route('/'))).toBeUndefined()
+  })
+
+  it('leaves pages without a right open to everyone who is logged in', () => {
+    expect(rightsMiddleware(route('/projects/1'), route('/'))).toBeUndefined()
   })
 })

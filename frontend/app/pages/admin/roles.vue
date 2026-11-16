@@ -21,7 +21,6 @@ import {
  * The backend refuses changes that would lock everybody out or leave a
  * project without anybody who may delete it; the reason is shown.
  */
-definePageMeta({ middleware: 'roles' })
 
 const { t } = useI18n()
 const toast = useToast()

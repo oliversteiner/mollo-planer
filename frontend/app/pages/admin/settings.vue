@@ -2,8 +2,6 @@
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { appSettingsQuery, updateAppSettingsMutation } from '~/graphql/admin'
 
-definePageMeta({ middleware: 'admin' })
-
 const { t } = useI18n()
 const toast = useToast()
 const { load } = useViewer()

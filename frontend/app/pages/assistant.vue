@@ -10,7 +10,6 @@ import { toPlanInput, type ProjectPlan } from '~/utils/plan'
  * Claude drafts name, description and the timeline of milestones, todos
  * and tasks. The preview shows the draft, "Jetzt eintragen" saves it.
  */
-definePageMeta({ middleware: 'admin' })
 
 const { t } = useI18n()
 const toast = useToast()

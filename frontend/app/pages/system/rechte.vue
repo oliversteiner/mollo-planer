@@ -6,7 +6,6 @@ import { permissionMatrixQuery } from '~/graphql/rights'
  * The rights table: rows are rights, columns are roles. Read from the
  * backend (the same rules the policies use). Admins only.
  */
-definePageMeta({ middleware: 'admin' })
 
 const { t } = useI18n()
 

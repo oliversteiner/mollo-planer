@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { NavItem } from '~/components/NavList.vue'
 import versionData from '~/data/versions.json'
+import { routeRight } from '~/utils/route-rights'
 import { currentVersion, type VersionFile } from '~/utils/versions'
 
 /**
@@ -13,23 +14,30 @@ const { viewer, can, logout } = useViewer()
 /** The current (highest released) version, shown under the user menu. */
 const appVersion = currentVersion((versionData as VersionFile).versions)
 
+/** A menu entry is shown when its route needs no right or the viewer has it (utils/route-rights.ts). */
+function allowed(item: NavItem): boolean {
+  const right = routeRight(item.to)
+
+  return right === null || can(right)
+}
+
 const mainItems = computed<NavItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
   { label: t('nav.myTasks'), icon: 'square-check', to: '/my-tasks' },
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
-])
+  { label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }
+].filter(allowed))
 
 /** The section "System": the database documentation (admins), the status and the version (everyone), then administration. */
 const adminItems = computed<NavItem[]>(() => [
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.database'), icon: 'database', to: '/system/db' }] : []),
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.rights'), icon: 'list-check', to: '/system/rechte' }] : []),
+  { label: t('nav.database'), icon: 'database', to: '/system/db' },
+  { label: t('nav.rights'), icon: 'list-check', to: '/system/rechte' },
   { label: t('nav.status'), icon: 'heart-pulse', to: '/system/status' },
   { label: t('nav.version'), icon: 'code-branch', to: '/system/version' },
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.users'), icon: 'users', to: '/admin/users' }] : []),
-  ...(can('ROLES_MANAGE') ? [{ label: t('nav.roles'), icon: 'user-shield', to: '/admin/roles' }] : []),
-  ...(can('LABEL_SETS_MANAGE') ? [{ label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' }] : []),
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }] : [])
-])
+  { label: t('nav.users'), icon: 'users', to: '/admin/users' },
+  { label: t('nav.roles'), icon: 'user-shield', to: '/admin/roles' },
+  { label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' },
+  { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }
+].filter(allowed))
 
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   if (event.detail.item.value === 'profile') {

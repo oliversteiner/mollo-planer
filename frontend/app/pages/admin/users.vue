@@ -7,8 +7,6 @@ import { deleteUserAvatarMutation } from '~/graphql/profile'
 
 type User = AdminUsersQuery['users'][number]
 
-definePageMeta({ middleware: 'admin' })
-
 const { t } = useI18n()
 const roleName = useRoleName()
 const toast = useToast()
