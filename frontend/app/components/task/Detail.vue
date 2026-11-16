@@ -2,7 +2,7 @@
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { ShareTask } from '~/utils/share'
 import { setTaskLabelsMutation } from '~/graphql/labels'
-import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES, taskQuery } from '~/graphql/task'
+import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES, taskQuery, updateTaskMutation } from '~/graphql/task'
 
 /**
  * Details of a task in a side panel: status, assignee, due date,
@@ -54,6 +54,8 @@ const { mutate: moveTask } = useMutation(moveTaskMutation, options)
 const { mutate: assignTask } = useMutation(assignTaskMutation, options)
 const { mutate: deleteTask } = useMutation(deleteTaskMutation, options)
 const { mutate: setTaskLabels } = useMutation(setTaskLabelsMutation, options)
+const { mutate: updateTask } = useMutation(updateTaskMutation, options)
+const { errors: commitErrors, run: runCommit } = useGraphqlForm()
 
 /** Labels of the project's set; the task's labels outside it can only be removed. */
 const setLabels = computed(() => task.value?.todo.milestone.project.labelSet?.labels ?? [])
@@ -88,6 +90,21 @@ async function changeStatus(status: (typeof TASK_STATUSES)[number]): Promise<voi
   if (task.value && status !== task.value.status) {
     await moveTask({ id: task.value.id, status, position: 100000 }).catch(() => null)
   }
+}
+
+/**
+ * The commit of a done task: a hash, or none. Saved when the field loses focus;
+ * an empty field clears it. The backend checks the format and the release rules.
+ */
+async function changeCommit(value: string): Promise<void> {
+  if (!task.value) {
+    return
+  }
+  const commit = value.trim() || null
+  if (commit === (task.value.commit ?? null)) {
+    return
+  }
+  await runCommit(() => updateTask({ id: task.value!.id, input: { commit } }))
 }
 
 async function changeAssignee(value: string): Promise<void> {
@@ -181,6 +198,16 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
         >
           <StatusBadge :status="task.status" />
         </FormField>
+
+        <FormInput
+          v-if="can.update"
+          :model-value="task.commit ?? ''"
+          name="commit"
+          :label="t('task.commit.label')"
+          :hint="t('task.commit.hint')"
+          :error="commitErrors.commit"
+          @change="(event: Event) => changeCommit((event.target as HTMLInputElement).value)"
+        />
 
         <FormSelect
           v-if="can.assign"

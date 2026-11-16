@@ -49,6 +49,7 @@ export const taskQuery = graphql(`
       status
       boardPosition
       dueDate
+      commit
       userStory { role goal benefit }
       assignee { id name avatarUrl }
       labels { id name color position }

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ItemStatus;
 use App\Enums\ProjectRole;
+use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Models\Comment;
 use App\Models\Milestone;
@@ -31,7 +32,7 @@ class DemoSeederTest extends TestCase
     {
         $this->seedDemo();
 
-        $this->assertSame([4, 2, 5, 6, 8, 3], [User::count(), Project::count(), Milestone::count(), Todo::count(), Task::count(), Comment::count()]);
+        $this->assertSame([4, 2, 6, 7, 10, 3], [User::count(), Project::count(), Milestone::count(), Todo::count(), Task::count(), Comment::count()]);
         $this->assertSame(['anna.keller@example.ch'], User::where('role_id', Role::idOf(Role::SCOPE_SYSTEM, 'admin'))->pluck('email')->all());
 
         $relaunch = Project::where('name', 'Website-Relaunch')->firstOrFail();
@@ -43,7 +44,13 @@ class DemoSeederTest extends TestCase
             ['Mockup Desktop', 'Veraltete Seiten markieren', 'Hosting bestellen'],
             Task::query()->inProject($relaunch->id)->where('status', TaskStatus::OPEN)->orderBy('board_position')->pluck('title')->all(),
         );
-        $this->assertSame([ItemStatus::OPEN], Todo::pluck('status')->unique()->values()->all());
+        $this->assertSame(['Gäste einladen'], Todo::where('status', ItemStatus::DONE)->pluck('title')->all());
+        $this->assertSame([ItemStatus::OPEN], Todo::where('status', ItemStatus::OPEN)->get()->pluck('status')->unique()->values()->all());
+
+        $released = Milestone::where('title', 'Einladung versendet')->firstOrFail();
+        $this->assertSame(['1.0', ReleaseStatus::RELEASED], [$released->release_version, $released->release_status]);
+        $planned = Milestone::where('title', 'Design freigegeben')->firstOrFail();
+        $this->assertSame(['1.1', ReleaseStatus::PLANNED], [$planned->release_version, $planned->release_status]);
         $this->assertSame('bulletList', Todo::where('title', 'Styleguide erstellen')->firstOrFail()->description['content'][1]['type']);
 
         $this->assertSame('software_dev', $relaunch->labelSet?->key);

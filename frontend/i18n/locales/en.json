@@ -356,6 +356,10 @@
         "todo": "To-do",
         "due": "Due"
       }
+    },
+    "commit": {
+      "label": "Commit",
+      "hint": "Hash of the implementation, or “none” for done tasks without a commit. Leave empty while there is none."
     }
   },
   "comments": {

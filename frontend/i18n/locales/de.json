@@ -356,6 +356,10 @@
         "todo": "ToDo",
         "due": "Fällig"
       }
+    },
+    "commit": {
+      "label": "Commit",
+      "hint": "Hash der Umsetzung oder „none“ für erledigte Tasks ohne Commit. Leer lassen, solange es keinen gibt."
     }
   },
   "comments": {

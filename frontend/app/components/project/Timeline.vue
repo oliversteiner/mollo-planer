@@ -215,6 +215,12 @@ function toggleAll() {
           <span class="timeline-title-row">
             <MilestoneNumber :number="item.number" />
             {{ item.title }}
+            <span
+              v-if="item.milestone.release"
+              class="timeline-release wa-caption-s"
+            >
+              {{ item.milestone.release.version }} · {{ t(`release.${item.milestone.release.status.toLowerCase()}`) }}
+            </span>
             <StatusBadge :status="item.milestone.status" />
             <ActionMenu
               v-if="menu('milestone', item.milestone).length"

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\Locale;
 use App\Enums\ProjectRole;
+use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Enums\UserActivity;
 use App\Enums\UserRole;
@@ -135,6 +136,7 @@ class DemoSeeder extends Seeder
         $this->useLabelSet($project, 'software_dev');
 
         $design = $this->milestone($project, 'Design freigegeben', 'Styleguide und Entwürfe sind abgenommen.', 'palette', '2026-11-20');
+        $design->update(['release_version' => '1.1', 'release_status' => ReleaseStatus::PLANNED]);
         $content = $this->milestone($project, 'Inhalte migriert', 'Alle Seiten und Texte sind im neuen System.', 'file-import', '2026-12-18');
         $goLive = $this->milestone($project, 'Go-live', 'Die neue Website ist online.', 'rocket', '2027-01-29');
 
@@ -182,6 +184,13 @@ class DemoSeeder extends Seeder
         $estimate = $this->todo($budget, 'Budget aufstellen', $this->plain('Kosten schätzen und Freigabe einholen.'), 'calculator', '2026-11-25');
 
         $this->label($this->task($estimate, 'Kostenschätzung', TaskStatus::IN_PROGRESS, 0, 'chiara', '2026-11-24'), 'location');
+
+        // A released version (1.0): its done tasks have a commit or none (spec/format-v2.md, 5.3).
+        $invitation = $this->milestone($project, 'Einladung versendet', 'Alle Gäste haben Datum, Ort und Programm erhalten.', 'envelope', '2027-01-15');
+        $guests = $this->todo($invitation, 'Gäste einladen', $this->plain('Liste schreiben und verschicken.'), null, '2027-01-10');
+        $this->task($guests, 'Einladungsliste schreiben', TaskStatus::DONE, 0, 'chiara', '2026-12-20')->forceFill(['commit' => 'none'])->save();
+        $this->task($guests, 'Einladung verschicken', TaskStatus::DONE, 1, 'chiara', '2027-01-05')->forceFill(['commit' => 'b7e4c21'])->save();
+        $invitation->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]);
     }
 
     /**
