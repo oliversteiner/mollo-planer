@@ -53,8 +53,8 @@ class ReleaseRulesTest extends TestCase
 
     public function test_version_and_status_belong_together(): void
     {
-        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.4']), 'release_status');
-        $this->refusedWith(fn () => $this->milestone->update(['release_status' => ReleaseStatus::PLANNED]), 'release_status');
+        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.4']), 'input.releaseStatus');
+        $this->refusedWith(fn () => $this->milestone->update(['release_status' => ReleaseStatus::PLANNED]), 'input.releaseStatus');
 
         $this->milestone->update(['release_version' => '1.4', 'release_status' => ReleaseStatus::PLANNED]);
         $this->assertSame(ReleaseStatus::PLANNED, $this->milestone->fresh()->release_status);
@@ -62,22 +62,22 @@ class ReleaseRulesTest extends TestCase
 
     public function test_version_has_the_form_major_dot_minor(): void
     {
-        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1', 'release_status' => ReleaseStatus::PLANNED]), 'release_version');
-        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.4.2', 'release_status' => ReleaseStatus::PLANNED]), 'release_version');
+        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1', 'release_status' => ReleaseStatus::PLANNED]), 'input.releaseVersion');
+        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.4.2', 'release_status' => ReleaseStatus::PLANNED]), 'input.releaseVersion');
     }
 
     public function test_a_released_version_has_only_done_tasks(): void
     {
         Task::factory()->for($this->todo)->create(['status' => TaskStatus::OPEN]);
 
-        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]), 'release_status');
+        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]), 'input.releaseStatus');
     }
 
     public function test_done_tasks_of_a_released_version_need_a_commit_or_none(): void
     {
         Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'commit' => null]);
 
-        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]), 'release_status');
+        $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]), 'input.releaseStatus');
 
         Task::query()->update(['commit' => 'none']);
         $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]);
@@ -90,7 +90,7 @@ class ReleaseRulesTest extends TestCase
         $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]);
 
         $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['status' => TaskStatus::OPEN]), 'status');
-        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'commit' => null]), 'commit');
+        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'commit' => null]), 'input.commit');
     }
 
     public function test_a_task_cannot_be_moved_into_a_released_version_while_open(): void
@@ -104,9 +104,9 @@ class ReleaseRulesTest extends TestCase
 
     public function test_commit_is_a_lower_case_hash_or_none_and_none_is_only_for_done(): void
     {
-        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['commit' => 'ABC1234']), 'commit');
-        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['commit' => 'abc']), 'commit');
-        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['status' => TaskStatus::OPEN, 'commit' => 'none']), 'commit');
+        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['commit' => 'ABC1234']), 'input.commit');
+        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['commit' => 'abc']), 'input.commit');
+        $this->refusedWith(fn () => Task::factory()->for($this->todo)->create(['status' => TaskStatus::OPEN, 'commit' => 'none']), 'input.commit');
 
         $task = Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'commit' => 'a1b2c3d']);
         $this->assertSame('a1b2c3d', $task->fresh()->commit);

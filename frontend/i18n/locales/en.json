@@ -255,7 +255,10 @@
       "dueDate": "Due on",
       "icon": "Icon",
       "description": "Description",
-      "descriptionPlaceholder": "What does it involve? Lists, links and emphasis are possible."
+      "descriptionPlaceholder": "What does it involve? Lists, links and emphasis are possible.",
+      "releaseVersion": "Version",
+      "releaseVersionHint": "Form M.m, for example 1.4. Empty when no version is planned.",
+      "releaseStatus": "Release"
     },
     "milestone": {
       "create": "New milestone",
@@ -1460,5 +1463,10 @@
     "resetFunctionDescription": "Name and rights go back to what ships with the app. This holds at once for every role with this function.",
     "matrixHint": "What holds in the end is shown by the rights table: every role with its rights.",
     "matrixLink": "Open rights table"
+  },
+  "release": {
+    "none": "No version",
+    "planned": "Planned",
+    "released": "Released"
   }
 }

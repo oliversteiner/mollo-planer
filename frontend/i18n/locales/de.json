@@ -255,7 +255,10 @@
       "dueDate": "Fällig am",
       "icon": "Icon",
       "description": "Beschreibung",
-      "descriptionPlaceholder": "Was gehört dazu? Listen, Links und Hervorhebungen sind möglich."
+      "descriptionPlaceholder": "Was gehört dazu? Listen, Links und Hervorhebungen sind möglich.",
+      "releaseVersion": "Version",
+      "releaseVersionHint": "Form M.m, zum Beispiel 1.4. Leer, wenn keine Version geplant ist.",
+      "releaseStatus": "Freigabe"
     },
     "milestone": {
       "create": "Milestone anlegen",
@@ -1460,5 +1463,10 @@
     "resetFunctionDescription": "Name und Rechte werden wieder wie mitgeliefert. Das gilt sofort für alle Rollen mit dieser Funktion.",
     "matrixHint": "Was am Ende gilt, zeigt die Rechte-Tabelle: jede Rolle mit ihren Rechten.",
     "matrixLink": "Rechte-Tabelle öffnen"
+  },
+  "release": {
+    "none": "Keine Version",
+    "planned": "Geplant",
+    "released": "Veröffentlicht"
   }
 }

@@ -31,20 +31,20 @@ final class ReleaseRules
         $status = $milestone->release_status;
 
         if (($version === null) !== ($status === null)) {
-            $errors['release_status'] = __('release.pair');
+            $errors['input.releaseStatus'] = __('release.pair');
         }
 
         if ($version !== null && preg_match(self::VERSION, $version) !== 1) {
-            $errors['release_version'] = __('release.version_format');
+            $errors['input.releaseVersion'] = __('release.version_format');
         }
 
         if ($status === ReleaseStatus::RELEASED && $milestone->exists) {
             $tasks = Task::query()->whereIn('todo_id', Todo::query()->where('milestone_id', $milestone->getKey())->select('id'));
 
             if ($tasks->clone()->where('status', '!=', TaskStatus::DONE->value)->exists()) {
-                $errors['release_status'] = __('release.not_done');
+                $errors['input.releaseStatus'] = __('release.not_done');
             } elseif ($tasks->clone()->where('status', TaskStatus::DONE->value)->whereNull('commit')->exists()) {
-                $errors['release_status'] = __('release.commit_missing');
+                $errors['input.releaseStatus'] = __('release.commit_missing');
             }
         }
 
@@ -62,11 +62,11 @@ final class ReleaseRules
         $commit = $task->commit;
 
         if ($commit !== null && $commit !== 'none' && preg_match(self::HASH, $commit) !== 1) {
-            $errors['commit'] = __('release.commit_format');
+            $errors['input.commit'] = __('release.commit_format');
         }
 
         if ($commit === 'none' && $task->status !== TaskStatus::DONE) {
-            $errors['commit'] = __('release.none_only_done');
+            $errors['input.commit'] = __('release.none_only_done');
         }
 
         $milestoneStatus = DB::table('todos')
@@ -78,7 +78,7 @@ final class ReleaseRules
             if ($task->status !== TaskStatus::DONE) {
                 $errors['status'] = __('release.task_not_done');
             } elseif ($commit === null) {
-                $errors['commit'] = __('release.commit_missing');
+                $errors['input.commit'] = __('release.commit_missing');
             }
         }
 
