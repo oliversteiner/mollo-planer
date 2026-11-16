@@ -754,6 +754,22 @@
       "app_settings": {
         "title": "App-Einstellungen",
         "description": "Einstellungen der ganzen App, zum Beispiel die Pflicht zur 2FA."
+      },
+      "roles": {
+        "title": "Rollen",
+        "description": "Rollen der App (system und project) mit ihren Namen. Die Rechte einer Rolle kommen aus ihren Funktionen."
+      },
+      "functions": {
+        "title": "Funktionen",
+        "description": "Benannte Bündel von Rechten, je Bereich. Eine Rolle hat mehrere Funktionen."
+      },
+      "function_rights": {
+        "title": "Rechte in Funktionen",
+        "description": "Welches Recht eine Funktion gibt."
+      },
+      "role_functions": {
+        "title": "Funktionen je Rolle",
+        "description": "Welche Funktionen eine Rolle hat."
       }
     },
     "columns": {
@@ -769,10 +785,6 @@
         "email": {
           "label": "E-Mail",
           "description": "Adresse zum Anmelden und für Benachrichtigungen."
-        },
-        "role": {
-          "label": "Rolle",
-          "description": "Globale Berechtigungsrolle. Bestimmt, was die Person in der ganzen App darf."
         },
         "activity": {
           "label": "Tätigkeit",
@@ -821,6 +833,10 @@
         "approved_at": {
           "label": "Freigegeben am",
           "description": "Zeitpunkt, an dem ein Admin das Konto freigegeben hat. Leer bei Konten, die sich selbst registriert haben und noch warten."
+        },
+        "role_id": {
+          "label": "Rolle",
+          "description": "Globale Rolle der Person. Bestimmt, was sie in der ganzen App darf."
         }
       },
       "projects": {
@@ -886,10 +902,6 @@
           "label": "Person",
           "description": "Mitglied des Projekts."
         },
-        "role": {
-          "label": "Projektrolle",
-          "description": "Rolle im Projekt: Owner, Manager oder Mitglied."
-        },
         "created_at": {
           "label": "Angelegt am",
           "description": "Zeitpunkt der Anlage, von Laravel gesetzt."
@@ -897,6 +909,10 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "role_id": {
+          "label": "Projektrolle",
+          "description": "Rolle der Person im Projekt. Bestimmt, was sie im Projekt darf."
         }
       },
       "milestones": {
@@ -1213,6 +1229,90 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        }
+      },
+      "roles": {
+        "id": {
+          "label": "ID",
+          "description": "Eindeutige Nummer der Rolle."
+        },
+        "scope": {
+          "label": "Bereich",
+          "description": "system: gilt in der ganzen App. project: gilt in einem Projekt."
+        },
+        "key": {
+          "label": "Schlüssel",
+          "description": "Technischer Name der Rolle, klein und englisch. Bleibt unverändert."
+        },
+        "names": {
+          "label": "Namen",
+          "description": "Name der Rolle auf Deutsch und Englisch."
+        },
+        "project_cap": {
+          "label": "Obergrenze",
+          "description": "Nur bei Systemrollen: Welche Projektrechte die Rolle wirken lässt. Leer heißt alle, eine leere Liste heißt keine."
+        },
+        "is_default": {
+          "label": "Standard",
+          "description": "Standardrolle für neue Personen (system) oder neue Mitglieder (project)."
+        },
+        "created_at": {
+          "label": "Angelegt am",
+          "description": "Zeitpunkt der Anlage, von Laravel gesetzt."
+        },
+        "updated_at": {
+          "label": "Geändert am",
+          "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        }
+      },
+      "functions": {
+        "id": {
+          "label": "ID",
+          "description": "Eindeutige Nummer der Funktion."
+        },
+        "scope": {
+          "label": "Bereich",
+          "description": "system oder project, wie bei den Rollen."
+        },
+        "key": {
+          "label": "Schlüssel",
+          "description": "Technischer Name der Funktion, klein und englisch."
+        },
+        "names": {
+          "label": "Namen",
+          "description": "Name der Funktion auf Deutsch und Englisch."
+        },
+        "created_at": {
+          "label": "Angelegt am",
+          "description": "Zeitpunkt der Anlage, von Laravel gesetzt."
+        },
+        "updated_at": {
+          "label": "Geändert am",
+          "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        }
+      },
+      "function_rights": {
+        "id": {
+          "label": "ID",
+          "description": "Eindeutige Nummer des Eintrags."
+        },
+        "function_id": {
+          "label": "Funktion",
+          "description": "Funktion, die das Recht gibt."
+        },
+        "right": {
+          "label": "Recht",
+          "description": "Name des Rechts, zum Beispiel task.update."
+        }
+      },
+      "role_functions": {
+        "role_id": {
+          "label": "Rolle",
+          "description": "Rolle, die die Funktion hat."
+        },
+        "function_id": {
+          "label": "Funktion",
+          "description": "Funktion der Rolle."
         }
       }
     }

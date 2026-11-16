@@ -69,7 +69,7 @@ type Locale = typeof de
 
 describe('db documentation', () => {
   it('has a navigation entry and a title and description in both languages for every table', () => {
-    expect(DB_TABLE_NAMES).toHaveLength(11)
+    expect(DB_TABLE_NAMES).toHaveLength(15)
 
     for (const name of DB_TABLE_NAMES) {
       for (const locale of [de, en] as Locale[]) {

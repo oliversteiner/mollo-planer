@@ -25,23 +25,36 @@ return new class extends Migration
             DB::table('roles')->where(['scope' => $scope, 'key' => $key])->update(['is_default' => true]);
         }
 
-        foreach (['users' => 'system', 'project_user' => 'project'] as $tableName => $scope) {
-            Schema::table($tableName, function (Blueprint $table): void {
-                $table->foreignId('role_id')->nullable()->constrained('roles')->restrictOnDelete();
-            });
+        // One block per table, with the table name written out, so that the
+        // schema documentation (frontend tests) can read the columns.
+        Schema::table('users', function (Blueprint $table): void {
+            $table->foreignId('role_id')->nullable()->constrained('roles')->restrictOnDelete();
+        });
+        Schema::table('project_user', function (Blueprint $table): void {
+            $table->foreignId('role_id')->nullable()->constrained('roles')->restrictOnDelete();
+        });
 
-            $fallback = DB::table('roles')->where(['scope' => $scope, 'is_default' => true])->value('id');
+        $this->fillRoleIds('users', 'system');
+        $this->fillRoleIds('project_user', 'project');
 
-            foreach (DB::table('roles')->where('scope', $scope)->pluck('id', 'key') as $key => $id) {
-                DB::table($tableName)->where('role', $key)->update(['role_id' => $id]);
-            }
+        Schema::table('users', function (Blueprint $table): void {
+            $table->dropColumn('role');
+        });
+        Schema::table('project_user', function (Blueprint $table): void {
+            $table->dropColumn('role');
+        });
+    }
 
-            DB::table($tableName)->whereNull('role_id')->update(['role_id' => $fallback]);
+    /** Points every row to the role of its old role text; without one, to the default role of its scope. */
+    private function fillRoleIds(string $tableName, string $scope): void
+    {
+        $fallback = DB::table('roles')->where(['scope' => $scope, 'is_default' => true])->value('id');
 
-            Schema::table($tableName, function (Blueprint $table): void {
-                $table->dropColumn('role');
-            });
+        foreach (DB::table('roles')->where('scope', $scope)->pluck('id', 'key') as $key => $id) {
+            DB::table($tableName)->where('role', $key)->update(['role_id' => $id]);
         }
+
+        DB::table($tableName)->whereNull('role_id')->update(['role_id' => $fallback]);
     }
 
     public function down(): void

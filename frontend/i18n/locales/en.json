@@ -754,6 +754,22 @@
       "app_settings": {
         "title": "App settings",
         "description": "Settings of the whole app, for example whether 2FA is required."
+      },
+      "roles": {
+        "title": "Roles",
+        "description": "Roles of the app (system and project) with their names. The rights of a role come from its functions."
+      },
+      "functions": {
+        "title": "Functions",
+        "description": "Named sets of rights, per scope. A role has several functions."
+      },
+      "function_rights": {
+        "title": "Rights in functions",
+        "description": "Which right a function gives."
+      },
+      "role_functions": {
+        "title": "Functions per role",
+        "description": "Which functions a role has."
       }
     },
     "columns": {
@@ -769,10 +785,6 @@
         "email": {
           "label": "E-Mail",
           "description": "Adresse zum Anmelden und für Benachrichtigungen."
-        },
-        "role": {
-          "label": "Rolle",
-          "description": "Globale Berechtigungsrolle. Bestimmt, was die Person in der ganzen App darf."
         },
         "activity": {
           "label": "Tätigkeit",
@@ -821,6 +833,10 @@
         "approved_at": {
           "label": "Approved at",
           "description": "When an admin approved the account. Empty for self-registered accounts that still wait."
+        },
+        "role_id": {
+          "label": "Role",
+          "description": "Global role of the person. Decides what they may do in the whole app."
         }
       },
       "projects": {
@@ -886,10 +902,6 @@
           "label": "Person",
           "description": "Mitglied des Projekts."
         },
-        "role": {
-          "label": "Projektrolle",
-          "description": "Rolle im Projekt: Owner, Manager oder Mitglied."
-        },
         "created_at": {
           "label": "Created at",
           "description": "When the record was created, set by Laravel."
@@ -897,6 +909,10 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "role_id": {
+          "label": "Project role",
+          "description": "Role of the person in the project. Decides what they may do in the project."
         }
       },
       "milestones": {
@@ -1213,6 +1229,90 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        }
+      },
+      "roles": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the role."
+        },
+        "scope": {
+          "label": "Scope",
+          "description": "system: applies to the whole app. project: applies inside a project."
+        },
+        "key": {
+          "label": "Key",
+          "description": "Technical name of the role, lower case and English. Stays unchanged."
+        },
+        "names": {
+          "label": "Names",
+          "description": "Name of the role in German and English."
+        },
+        "project_cap": {
+          "label": "Cap",
+          "description": "System roles only: which project rights the role lets take effect. Empty means all, an empty list means none."
+        },
+        "is_default": {
+          "label": "Default",
+          "description": "Default role for new people (system) or new members (project)."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "Time of creation, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "Time of the last change, set by Laravel."
+        }
+      },
+      "functions": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the function."
+        },
+        "scope": {
+          "label": "Scope",
+          "description": "system or project, as for the roles."
+        },
+        "key": {
+          "label": "Key",
+          "description": "Technical name of the function, lower case and English."
+        },
+        "names": {
+          "label": "Names",
+          "description": "Name of the function in German and English."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "Time of creation, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "Time of the last change, set by Laravel."
+        }
+      },
+      "function_rights": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the entry."
+        },
+        "function_id": {
+          "label": "Function",
+          "description": "Function that gives the right."
+        },
+        "right": {
+          "label": "Right",
+          "description": "Name of the right, for example task.update."
+        }
+      },
+      "role_functions": {
+        "role_id": {
+          "label": "Role",
+          "description": "Role that has the function."
+        },
+        "function_id": {
+          "label": "Function",
+          "description": "Function of the role."
         }
       }
     }

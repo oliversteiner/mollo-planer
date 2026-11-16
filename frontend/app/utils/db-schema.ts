@@ -43,6 +43,10 @@ export const DB_TABLE_NAMES = [
   'label_sets',
   'labels',
   'label_task',
+  'roles',
+  'functions',
+  'function_rights',
+  'role_functions',
   'app_settings'
 ] as const
 
@@ -59,7 +63,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'id', type: 'bigint', primary: true },
       { name: 'name', type: 'varchar' },
       { name: 'email', type: 'varchar', private: true },
-      { name: 'role', type: 'varchar', default: 'mitglied', values: ['admin', 'projektleitung', 'koordination', 'mitglied', 'lesend'] },
+      { name: 'role_id', type: 'bigint', nullable: true, references: 'roles' },
       { name: 'activity', type: 'varchar', nullable: true, values: ['designer', 'entwicklung', 'tester', 'content', 'technik', 'volunteer'] },
       { name: 'notify_by_email', type: 'tinyint', default: '1' },
       { name: 'avatar_path', type: 'varchar', nullable: true, private: true },
@@ -104,7 +108,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'id', type: 'bigint', primary: true },
       { name: 'project_id', type: 'bigint', references: 'projects' },
       { name: 'user_id', type: 'bigint', references: 'users' },
-      { name: 'role', type: 'varchar', default: 'member', values: ['owner', 'manager', 'member'] },
+      { name: 'role_id', type: 'bigint', nullable: true, references: 'roles' },
       { name: 'created_at', type: 'timestamp', nullable: true },
       { name: 'updated_at', type: 'timestamp', nullable: true }
     ],
@@ -170,7 +174,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'description', type: 'longtext', nullable: true },
       { name: 'user_story', type: 'json', nullable: true },
       { name: 'icon', type: 'varchar', nullable: true },
-      { name: 'status', type: 'varchar', default: 'open', values: ['open', 'in_progress', 'review', 'done'] },
+      { name: 'status', type: 'varchar', default: 'open', values: ['idea', 'planned', 'open', 'in_progress', 'review', 'done'] },
       { name: 'board_position', type: 'int', default: '0' },
       { name: 'due_date', type: 'date', nullable: true },
       { name: 'created_at', type: 'timestamp', nullable: true },
@@ -247,6 +251,57 @@ const TABLES: Record<DbTableName, DbTable> = {
     ],
     indexes: [
       { kind: 'index', columns: ['task_id'] }
+    ]
+  },
+  roles: {
+    name: 'roles',
+    columns: [
+      { name: 'id', type: 'bigint', primary: true },
+      { name: 'scope', type: 'varchar', values: ['system', 'project'] },
+      { name: 'key', type: 'varchar' },
+      { name: 'names', type: 'json' },
+      { name: 'project_cap', type: 'json', nullable: true },
+      { name: 'is_default', type: 'tinyint', default: '0' },
+      { name: 'created_at', type: 'timestamp', nullable: true },
+      { name: 'updated_at', type: 'timestamp', nullable: true }
+    ],
+    indexes: [
+      { kind: 'unique', columns: ['scope', 'key'] }
+    ]
+  },
+  functions: {
+    name: 'functions',
+    columns: [
+      { name: 'id', type: 'bigint', primary: true },
+      { name: 'scope', type: 'varchar', values: ['system', 'project'] },
+      { name: 'key', type: 'varchar' },
+      { name: 'names', type: 'json' },
+      { name: 'created_at', type: 'timestamp', nullable: true },
+      { name: 'updated_at', type: 'timestamp', nullable: true }
+    ],
+    indexes: [
+      { kind: 'unique', columns: ['scope', 'key'] }
+    ]
+  },
+  function_rights: {
+    name: 'function_rights',
+    columns: [
+      { name: 'id', type: 'bigint', primary: true },
+      { name: 'function_id', type: 'bigint', references: 'functions' },
+      { name: 'right', type: 'varchar' }
+    ],
+    indexes: [
+      { kind: 'unique', columns: ['function_id', 'right'] }
+    ]
+  },
+  role_functions: {
+    name: 'role_functions',
+    columns: [
+      { name: 'role_id', type: 'bigint', primary: true, references: 'roles' },
+      { name: 'function_id', type: 'bigint', primary: true, references: 'functions' }
+    ],
+    indexes: [
+      { kind: 'index', columns: ['function_id'] }
     ]
   },
   app_settings: {
