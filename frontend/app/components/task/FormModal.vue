@@ -16,6 +16,8 @@ export interface TaskFormTarget {
     description?: Record<string, unknown> | null
     /** Only present when the caller loaded the story; without it the story is left as it is. */
     userStory?: { role: string, goal: string, benefit: string } | null
+    /** Only present when the caller loaded the commit; without it the commit is left as it is. */
+    commit?: string | null
   }
 }
 
@@ -53,7 +55,8 @@ const state = reactive<{
   description: Record<string, unknown> | null
   labelIds: string[]
   story: { role: string, goal: string, benefit: string }
-}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null, labelIds: [], story: { role: '', goal: '', benefit: '' } })
+  commit: string
+}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null, labelIds: [], story: { role: '', goal: '', benefit: '' }, commit: '' })
 
 /** Labels of the project's set, for a new task (an existing one gets its labels in the details). */
 const { project } = useProject()
@@ -67,6 +70,7 @@ watch(() => props.target, (target) => {
   state.dueDate = target?.task?.dueDate ?? ''
   state.icon = target?.task?.icon ?? null
   state.description = target?.task?.description ?? null
+  state.commit = target?.task?.commit ?? ''
   state.story = { role: target?.task?.userStory?.role ?? '', goal: target?.task?.userStory?.goal ?? '', benefit: target?.task?.userStory?.benefit ?? '' }
   state.labelIds = []
 }, { immediate: true })
@@ -74,6 +78,7 @@ watch(() => props.target, (target) => {
 const isNew = computed(() => !props.target?.task)
 /** The story is edited only where the caller passed the story along (see TaskFormTarget). */
 const storyEditable = computed(() => !props.target?.task || 'userStory' in props.target.task)
+const commitEditable = computed(() => !props.target?.task || 'commit' in props.target.task)
 
 /** All three parts, trimmed; null when all are empty. A partial story is refused by the server. */
 function storyInput(): { role: string, goal: string, benefit: string } | null {
@@ -96,7 +101,8 @@ async function submit(): Promise<void> {
     dueDate: state.dueDate || null,
     icon: state.icon,
     description: isEmptyDocument(state.description) ? null : state.description,
-    ...(storyEditable.value ? { userStory: storyInput() } : {})
+    ...(storyEditable.value ? { userStory: storyInput() } : {}),
+    ...(commitEditable.value ? { commit: state.commit.trim() || null } : {})
   }
   const task = props.target?.task
   const result = await run<unknown>(() => task
@@ -207,6 +213,15 @@ async function submit(): Promise<void> {
           :error="errors['userStory.benefit']"
         />
       </section>
+
+      <FormInput
+        v-if="commitEditable"
+        v-model="state.commit"
+        name="commit"
+        :label="t('task.commit.label')"
+        :hint="t('task.commit.hint')"
+        :error="errors.commit"
+      />
 
       <FormField
         :label="t('item.fields.description')"

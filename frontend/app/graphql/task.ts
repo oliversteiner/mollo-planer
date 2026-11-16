@@ -11,6 +11,7 @@ export const kanbanQuery = graphql(`
         status
         boardPosition
         dueDate
+        commit
         userStory { role goal benefit }
         commentCount
         labels { id name color position }
