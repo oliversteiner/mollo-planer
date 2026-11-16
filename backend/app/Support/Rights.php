@@ -186,25 +186,6 @@ final class Rights
     }
 
     /**
-     * Does the user have this project right in at least one project?
-     * Used for things outside a single project, such as the member search.
-     */
-    public static function allowsInAnyProject(User $user, Right $right): bool
-    {
-        if (self::allows($user, Right::PROJECTS_MANAGE_ANY)) {
-            return true;
-        }
-
-        if (! self::withinCap($user, $right)) {
-            return false;
-        }
-
-        return $user->projects()
-            ->whereIn('project_user.role_id', self::roleIdsWith($right))
-            ->exists();
-    }
-
-    /**
      * May the actor change a membership from $currentRole to $newRole?
      * Null means "not a member" (add) or "remove". A role that carries
      * project.delete or owner.manage is granted or taken away only with

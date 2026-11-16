@@ -55,17 +55,6 @@ class SystemRolesTest extends GraphQLTestCase
             ->assertJsonPath('data.project.viewerRights', []);
     }
 
-    public function test_member_search_gives_names_only_to_member_managers(): void
-    {
-        $search = '{ userSearch(term: "Ben") { id name } }';
-
-        $this->as('manager')->gql($search)->assertJsonPath('data.userSearch', [
-            ['id' => (string) $this->users['owner']->id, 'name' => 'Ben Owner'],
-        ]);
-        $this->as('member')->gql($search)->assertJsonPath('data.userSearch', []);
-        $this->as('projektleitung')->gql($search)->assertJsonPath('data.userSearch', []);
-    }
-
     public function test_projektleitung_may_not_see_the_user_list(): void
     {
         $this->assertUnauthorized($this->as('projektleitung')->gql('{ users { name } }'));

@@ -8,8 +8,8 @@ type Query @guard {
 
   "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
   users: [User!]! @can(ability: "viewAny", model: "App\\Models\\User") @all
-  "Namen suchen, um Mitglieder in ein Projekt zu setzen. Ohne E-Mail und Sicherheitsstatus. Für alle, die in einem Projekt Mitglieder verwalten dürfen."
-  userSearch(term: String!): [MemberCandidate!]! @field(resolver: "App\\GraphQL\\Queries\\UserSearch")
+  "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
+  memberCandidates(projectId: ID): [MemberCandidate!]! @field(resolver: "App\\GraphQL\\Queries\\MemberCandidates")
 
   "Deine Projekte. Admins sehen alle."
   projects: [Project!]! @all(scopes: ["visibleToViewer"])

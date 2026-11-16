@@ -47,7 +47,8 @@
       "removed": "Member removed.",
       "removeTitle": "Remove {name} from the project?",
       "removeDescription": "They will no longer see the project. Their tasks in this project are then assigned to nobody.",
-      "removeConfirm": "Remove"
+      "removeConfirm": "Remove",
+      "alreadyMember": "already a member"
     },
     "danger": {
       "title": "Delete project",

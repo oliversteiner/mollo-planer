@@ -4,6 +4,10 @@
  * is shown. The data is small, so everything is filtered in the browser.
  */
 
+import { matchesSearch, normalizeText } from '../utils/text-search'
+
+export { matchesSearch, normalizeText }
+
 export type RoleScopeKey = 'SYSTEM' | 'PROJECT'
 export type RoleView = 'roles' | 'functions' | 'matrix'
 export type OriginFilter = 'all' | 'standard' | 'own'
@@ -56,24 +60,6 @@ export const EMPTY_ROLE_FILTER: RoleFilter = { q: '', origin: 'all', rights: [],
 const VIEWS: readonly RoleView[] = ['roles', 'functions', 'matrix']
 const ORIGINS: readonly OriginFilter[] = ['all', 'standard', 'own']
 const USAGES: readonly UsageFilter[] = ['all', 'used', 'unused']
-
-/** Lower case and without accents, so "Ubersicht" finds "Übersicht". */
-export function normalizeText(text: string): string {
-  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-}
-
-/** Every word of the search appears somewhere in the texts. An empty search matches. */
-export function matchesSearch(query: string, texts: readonly string[]): boolean {
-  const words = normalizeText(query).split(/\s+/).filter(Boolean)
-
-  if (words.length === 0) {
-    return true
-  }
-
-  const haystack = normalizeText(texts.join(' '))
-
-  return words.every(word => haystack.includes(word))
-}
 
 export function isRoleFilterActive(filter: RoleFilter): boolean {
   return filter.q.trim() !== '' || filter.origin !== 'all' || filter.rights.length > 0 || filter.usage !== 'all'

@@ -185,9 +185,12 @@ input LocalizedNameInput {
  de: String!
  en: String!
 }
-"Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."
+"Eine Person für die Auswahl von Mitgliedern: nur Name und Bild, ohne E-Mail und Sicherheitsstatus."
 type MemberCandidate {
+ avatarUrl: String
  id: ID!
+ "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
+ isMember: Boolean!
  name: String!
 }
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
@@ -479,6 +482,8 @@ type Query {
  labelSets: [LabelSet!]!
  "Der angemeldete Benutzer"
  me: User!
+ "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
+ memberCandidates(projectId: ID): [MemberCandidate!]!
  milestone(id: ID!): Milestone
  "Milestones eines Projekts (Seite Milestones)"
  milestones(projectId: ID!): [Milestone!]!
@@ -500,8 +505,6 @@ type Query {
  todo(id: ID!): Todo
  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
  todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
- "Namen suchen, um Mitglieder in ein Projekt zu setzen. Ohne E-Mail und Sicherheitsstatus. Für alle, die in einem Projekt Mitglieder verwalten dürfen."
- userSearch(term: String!): [MemberCandidate!]!
  "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
  users: [User!]!
  "Welche Systemrechte du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."

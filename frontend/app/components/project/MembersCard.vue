@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@vue/apollo-composable'
-import { removeProjectMemberMutation, setProjectMemberMutation, userSearchQuery } from '~/graphql/settings'
+import { memberCandidatesQuery, removeProjectMemberMutation, setProjectMemberMutation } from '~/graphql/settings'
 import type { NamedRole } from '~/composables/useRoles'
 import { classifyApolloError } from '~/utils/api'
 
@@ -24,20 +24,21 @@ const roleName = useRoleName()
 
 const sortedMembers = computed(() => [...props.members].sort((a, b) => a.user.name.localeCompare(b.user.name)))
 
-/** Names only, from the narrow search (no e-mail, no security status). Starts at two letters. */
-const search = ref('')
-const searchTerm = computed(() => search.value.trim())
-const { result: searchResult } = useQuery(userSearchQuery, () => ({ term: searchTerm.value }), () => ({ enabled: props.canManage && searchTerm.value.length >= 2 }))
-const candidates = computed(() => {
-  const memberIds = new Set(props.members.map(member => member.user.id))
+/**
+ * Everybody who can join, shown at once; members stay in the list but cannot
+ * be chosen, so nobody wonders why a person is missing.
+ */
+const { result: candidatesResult } = useQuery(memberCandidatesQuery, () => ({ projectId: props.projectId }), () => ({ enabled: props.canManage, fetchPolicy: 'cache-and-network' }))
+const personGroups = computed(() => [{
+  people: (candidatesResult.value?.memberCandidates ?? []).map(person => ({
+    id: person.id,
+    name: person.name,
+    avatarUrl: person.avatarUrl,
+    disabledReason: person.isMember ? t('settings.members.alreadyMember') : null
+  }))
+}])
 
-  return (searchResult.value?.userSearch ?? [])
-    .filter(user => !memberIds.has(user.id))
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(user => ({ label: user.name, value: user.id }))
-})
-
-const newMember = reactive<{ userId: string, role: string }>({ userId: '', role: '' })
+const newMember = reactive<{ userId: string | null, role: string }>({ userId: null, role: '' })
 
 watch(defaultRole, (key) => {
   if (!newMember.role) {
@@ -77,13 +78,15 @@ async function setRole(userId: string, role: string): Promise<void> {
 }
 
 async function add(): Promise<void> {
-  if (!newMember.userId) {
+  const userId = newMember.userId
+
+  if (!userId) {
     return
   }
-  const added = await change(() => setMember({ projectId: props.projectId, userId: newMember.userId, role: newMember.role }), t('settings.members.added'))
+  const added = await change(() => setMember({ projectId: props.projectId, userId, role: newMember.role }), t('settings.members.added'))
 
   if (added) {
-    Object.assign(newMember, { userId: '', role: 'MEMBER' })
+    Object.assign(newMember, { userId: null, role: defaultRole.value })
   }
 }
 
@@ -164,17 +167,9 @@ async function confirmRemove(): Promise<void> {
       class="members-add"
       @submit.prevent="add"
     >
-      <FormInput
-        v-model="search"
-        name="memberSearch"
-        type="search"
-        :label="t('settings.members.search')"
-        class="members-person"
-      />
-      <FormSelect
+      <FormPersonSelect
         v-model="newMember.userId"
-        :items="candidates"
-        searchable
+        :groups="personGroups"
         :label="t('settings.members.person')"
         class="members-person"
       />

@@ -89,6 +89,15 @@ type ProjectMember {
   role: Role!
 }
 
+"Eine Person für die Auswahl von Mitgliedern: nur Name und Bild, ohne E-Mail und Sicherheitsstatus."
+type MemberCandidate {
+  id: ID!
+  name: String!
+  avatarUrl: String
+  "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
+  isMember: Boolean!
+}
+
 "Version eines Milestones und ihre Freigabe"
 type Release {
   "Version im Format M.m, zum Beispiel 1.4"

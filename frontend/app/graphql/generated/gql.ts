@@ -72,7 +72,7 @@ type Documents = {
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": typeof types.CreateApiTokenDocument,
     "\n  mutation DeleteApiToken($id: ID!) {\n    deleteApiToken(id: $id) { id }\n  }\n": typeof types.DeleteApiTokenDocument,
     "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      locale\n      members {\n        role { key names { de en } }\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectSettingsDocument,
-    "\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n": typeof types.UserSearchDocument,
+    "\n  query MemberCandidates($projectId: ID) {\n    memberCandidates(projectId: $projectId) { id name avatarUrl isMember }\n  }\n": typeof types.MemberCandidatesDocument,
     "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description icon locale }\n  }\n": typeof types.UpdateProjectDocument,
     "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": typeof types.SetProjectMemberDocument,
     "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": typeof types.RemoveProjectMemberDocument,
@@ -150,7 +150,7 @@ const documents: Documents = {
     "\n  mutation CreateApiToken($name: String!) {\n    createApiToken(name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": types.CreateApiTokenDocument,
     "\n  mutation DeleteApiToken($id: ID!) {\n    deleteApiToken(id: $id) { id }\n  }\n": types.DeleteApiTokenDocument,
     "\n  query ProjectSettings($id: ID!) {\n    project(id: $id) {\n      id\n      name\n      description\n      icon\n      locale\n      members {\n        role { key names { de en } }\n        user { id name email avatarUrl }\n      }\n    }\n  }\n": types.ProjectSettingsDocument,
-    "\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n": types.UserSearchDocument,
+    "\n  query MemberCandidates($projectId: ID) {\n    memberCandidates(projectId: $projectId) { id name avatarUrl isMember }\n  }\n": types.MemberCandidatesDocument,
     "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description icon locale }\n  }\n": types.UpdateProjectDocument,
     "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": types.SetProjectMemberDocument,
     "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": types.RemoveProjectMemberDocument,
@@ -419,7 +419,7 @@ export function graphql(source: "\n  query ProjectSettings($id: ID!) {\n    proj
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n"): (typeof documents)["\n  query UserSearch($term: String!) {\n    userSearch(term: $term) { id name }\n  }\n"];
+export function graphql(source: "\n  query MemberCandidates($projectId: ID) {\n    memberCandidates(projectId: $projectId) { id name avatarUrl isMember }\n  }\n"): (typeof documents)["\n  query MemberCandidates($projectId: ID) {\n    memberCandidates(projectId: $projectId) { id name avatarUrl isMember }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

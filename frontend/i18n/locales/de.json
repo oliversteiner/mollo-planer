@@ -47,7 +47,8 @@
       "removed": "Mitglied entfernt.",
       "removeTitle": "{name} aus dem Projekt entfernen?",
       "removeDescription": "Die Person sieht das Projekt danach nicht mehr. Ihre Tasks in diesem Projekt sind dann niemandem mehr zugewiesen.",
-      "removeConfirm": "Entfernen"
+      "removeConfirm": "Entfernen",
+      "alreadyMember": "bereits Mitglied"
     },
     "danger": {
       "title": "Projekt löschen",
