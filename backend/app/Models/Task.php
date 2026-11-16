@@ -9,7 +9,6 @@ use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TaskObserver;
-use App\Services\ReleaseRules;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -39,13 +38,6 @@ class Task extends Model implements BelongsToProject
     protected $attributes = [
         'status' => 'open',
     ];
-
-    protected static function booted(): void
-    {
-        static::saving(function (Task $task): void {
-            ReleaseRules::checkTask($task);
-        });
-    }
 
     /**
      * @return array<string, string>

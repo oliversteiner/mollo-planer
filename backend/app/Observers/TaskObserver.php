@@ -4,13 +4,20 @@ namespace App\Observers;
 
 use App\Models\Task;
 use App\Services\ItemStatusSync;
+use App\Services\ReleaseRules;
 
 /**
- * Keeps the todo status in line with its tasks.
+ * Lifecycle of a task in one place: the rules of releases and commits, and
+ * the todo status, which follows its tasks.
  */
 class TaskObserver
 {
     public function __construct(private readonly ItemStatusSync $statusSync) {}
+
+    public function saving(Task $task): void
+    {
+        ReleaseRules::checkTask($task);
+    }
 
     public function created(Task $task): void
     {

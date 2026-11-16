@@ -8,10 +8,10 @@ use App\Enums\ReleaseStatus;
 use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
-use App\Services\Ordering;
-use App\Services\ReleaseRules;
+use App\Observers\MilestoneObserver;
 use Database\Factories\MilestoneFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Status is computed by the status observer, never set from input.
  */
 #[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position', 'release_version', 'release_status'])]
+#[ObservedBy(MilestoneObserver::class)]
 class Milestone extends Model implements BelongsToProject
 {
     /** @use HasFactory<MilestoneFactory> */
@@ -95,37 +96,5 @@ class Milestone extends Model implements BelongsToProject
     protected static function projectPath(): ?string
     {
         return 'project';
-    }
-
-    /**
-     * A new milestone goes to the end of its project, or to the given position;
-     * the milestones from there on move one place back. A deleted milestone
-     * leaves no gap.
-     */
-    protected static function booted(): void
-    {
-        static::creating(function (Milestone $milestone): void {
-            $ordering = app(Ordering::class);
-            $group = self::query()->where('project_id', $milestone->project_id);
-
-            if ($milestone->position === null) {
-                $milestone->position = $ordering->nextPosition($milestone->project_id, $group);
-
-                return;
-            }
-
-            $ordering->openSlot($milestone->project_id, $group, $milestone->position);
-        });
-
-        static::saving(function (Milestone $milestone): void {
-            ReleaseRules::checkMilestone($milestone);
-        });
-
-        static::deleted(function (Milestone $milestone): void {
-            app(Ordering::class)->close(
-                $milestone->project_id,
-                self::query()->where('project_id', $milestone->project_id),
-            );
-        });
     }
 }

@@ -9,7 +9,6 @@ use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TodoObserver;
-use App\Services\Ordering;
 use Database\Factories\TodoFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -48,33 +47,6 @@ class Todo extends Model implements BelongsToProject
             'due_date' => 'date',
             'position' => 'integer',
         ];
-    }
-
-    /**
-     * A new todo goes to the end of its milestone, or to the given position;
-     * the todos from there on move one place back. A deleted todo leaves no gap.
-     */
-    protected static function booted(): void
-    {
-        static::creating(function (Todo $todo): void {
-            $ordering = app(Ordering::class);
-            $group = self::query()->where('milestone_id', $todo->milestone_id);
-
-            if ($todo->position === null) {
-                $todo->position = $ordering->nextPosition($todo->project_id, $group);
-
-                return;
-            }
-
-            $ordering->openSlot($todo->project_id, $group, $todo->position);
-        });
-
-        static::deleted(function (Todo $todo): void {
-            app(Ordering::class)->close(
-                $todo->project_id,
-                self::query()->where('milestone_id', $todo->milestone_id),
-            );
-        });
     }
 
     /**
