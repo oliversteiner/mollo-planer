@@ -75,6 +75,17 @@ class AssignNonMemberTest extends GraphQLTestCase
             ->assertGraphQLValidationKeys(['assigneeId']);
     }
 
+    public function test_a_member_creates_tasks_without_assignee_or_for_themselves_but_not_for_others(): void
+    {
+        $create = 'mutation ($t: ID!, $u: ID) { createTask(input: {todoId: $t, title: "Neu", assigneeId: $u}) { assignee { name } } }';
+
+        $this->as('member')->gql($create, ['t' => $this->todo->id, 'u' => null])
+            ->assertJsonPath('data.createTask.assignee', null);
+        $this->as('member')->gql($create, ['t' => $this->todo->id, 'u' => $this->users['member']->id])
+            ->assertJsonPath('data.createTask.assignee.name', 'David Member');
+        $this->assertUnauthorized($this->as('member')->gql($create, ['t' => $this->todo->id, 'u' => $this->users['manager']->id]));
+    }
+
     public function test_assigning_oneself_is_unchanged(): void
     {
         $this->as('member')->gql(self::ASSIGN, ['id' => $this->task->id, 'u' => $this->users['member']->id])

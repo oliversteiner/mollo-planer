@@ -284,9 +284,16 @@ final class Rights
      * May the actor assign the task to $assigneeId? With task.assign any
      * assignment is allowed. With only task.assignSelf the actor may assign
      * the task to themselves, or remove the assignment if it is theirs.
+     * Leaving the assignment as it is needs no right (a new task without
+     * assignee, docs/fix-m1-abnahme.md F3.1); creating or changing the task
+     * is checked by its policy.
      */
     public static function mayAssignTask(User $actor, Project $project, int|string|null $assigneeId, int|string|null $currentAssigneeId): bool
     {
+        if ((string) $assigneeId === (string) $currentAssigneeId) {
+            return true;
+        }
+
         if (self::allows($actor, Right::TASK_ASSIGN, $project)) {
             return true;
         }

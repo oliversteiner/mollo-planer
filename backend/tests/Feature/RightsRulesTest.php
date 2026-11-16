@@ -85,6 +85,12 @@ class RightsRulesTest extends TestCase
         $this->assertFalse(Rights::mayAssignTask($this->member, $this->project, null, $this->otherMember->id));
     }
 
+    public function test_leaving_the_assignment_as_it_is_needs_no_assign_right(): void
+    {
+        $this->assertTrue(Rights::mayAssignTask($this->member, $this->project, null, null));
+        $this->assertTrue(Rights::mayAssignTask($this->member, $this->project, $this->otherMember->id, $this->otherMember->id));
+    }
+
     public function test_manager_assigns_anyone(): void
     {
         $this->assertTrue(Rights::mayAssignTask($this->manager, $this->project, $this->otherMember->id, null));

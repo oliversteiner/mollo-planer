@@ -144,8 +144,21 @@ class PlanExtensionTest extends McpTestCase
         ])->assertHasErrors(['Give either milestone_id or todo_id, not both.']);
     }
 
-    public function test_a_member_may_not_add_tasks_and_nothing_changes(): void
+    public function test_a_member_adds_unassigned_tasks(): void
     {
+        MolloPlanerServer::actingAs($this->member)->tool(AddToPlanTool::class, [
+            'project_id' => (string) $this->project->id,
+            'todo_id' => (string) $this->todo->id,
+            'tasks' => [['title' => 'Antworten formulieren']],
+        ])->assertOk();
+
+        $this->assertSame(2, $this->todo->tasks()->count());
+    }
+
+    public function test_a_guest_may_not_add_tasks_and_nothing_changes(): void
+    {
+        $this->project->members()->updateExistingPivot($this->member->id, ['role_id' => $this->projectRole(ProjectRole::GUEST)->id]);
+
         MolloPlanerServer::actingAs($this->member)->tool(AddToPlanTool::class, [
             'project_id' => (string) $this->project->id,
             'todo_id' => (string) $this->todo->id,
