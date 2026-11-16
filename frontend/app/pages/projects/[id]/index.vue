@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
-import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectTodosQuery } from '~/graphql/project'
+import { deleteMilestoneMutation, deleteTodoMutation, projectTodosQuery } from '~/graphql/project'
 import { projectMembersQuery } from '~/graphql/task'
 
 /**
@@ -87,9 +87,8 @@ type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
 
-const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: true }
-const { mutate: deleteMilestone } = useMutation(deleteMilestoneMutation, options)
-const { mutate: deleteTodo } = useMutation(deleteTodoMutation, options)
+const { mutate: deleteMilestone } = useProjectMutation(deleteMilestoneMutation)
+const { mutate: deleteTodo } = useProjectMutation(deleteTodoMutation)
 
 const deletion = useDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
   target.kind === 'milestone' ? deleteMilestone({ id: target.item.id }) : deleteTodo({ id: target.item.id })

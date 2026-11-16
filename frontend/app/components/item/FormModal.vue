@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
 import {
   createMilestoneMutation,
   createTodoMutation,
-  projectContentQueries,
   updateMilestoneMutation,
   updateTodoMutation
 } from '~/graphql/project'
@@ -81,11 +79,10 @@ const releaseItems = computed(() => [
 ])
 const milestoneItems = computed(() => (props.milestones ?? []).map(milestone => ({ label: milestone.title, value: milestone.id })))
 
-const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: true }
-const { mutate: createMilestone } = useMutation(createMilestoneMutation, options)
-const { mutate: updateMilestone } = useMutation(updateMilestoneMutation, options)
-const { mutate: createTodo } = useMutation(createTodoMutation, options)
-const { mutate: updateTodo } = useMutation(updateTodoMutation, options)
+const { mutate: createMilestone } = useProjectMutation(createMilestoneMutation)
+const { mutate: updateMilestone } = useProjectMutation(updateMilestoneMutation)
+const { mutate: createTodo } = useProjectMutation(createTodoMutation)
+const { mutate: updateTodo } = useProjectMutation(updateTodoMutation)
 
 async function submit(): Promise<void> {
   const target = props.target

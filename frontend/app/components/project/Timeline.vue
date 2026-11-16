@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TimelineEntry } from '~/components/StepTimeline.vue'
@@ -115,7 +115,7 @@ function fillTaskLists() {
 
 watch(milestones, fillTaskLists, { immediate: true })
 
-const { mutate: moveTaskToTodo } = useMutation(moveTaskToTodoMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
+const { mutate: moveTaskToTodo } = useProjectMutation(moveTaskToTodoMutation)
 
 async function onDrop(event: SortableEvent) {
   dragging.value = false

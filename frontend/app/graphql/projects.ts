@@ -20,6 +20,7 @@ export const projectHeaderQuery = graphql(`
   query ProjectHeader($id: ID!) {
     project(id: $id) {
       id
+      planerRevision
       name
       description
       icon

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { VueDraggable } from 'vue-draggable-plus'
 import type { SortableEvent } from 'sortablejs'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
@@ -77,14 +77,15 @@ watch(() => result.value?.kanban, (kanban) => {
   columns.value = (kanban ?? []).map(column => ({ ...column, tasks: [...column.tasks] }))
 }, { immediate: true })
 
-const { mutate: moveTask } = useMutation(moveTaskMutation)
+const { mutate: moveTask } = useProjectMutation(moveTaskMutation)
 
+/** The board shows the move at once; after a refused move it loads the server's state again. */
 async function move(taskId: string, status: Status, position: number): Promise<void> {
   columns.value = moveInColumns(columns.value, taskId, status, position)
 
   try {
     await moveTask({ id: taskId, status, position })
-  } finally {
+  } catch {
     await refetch()
   }
 }

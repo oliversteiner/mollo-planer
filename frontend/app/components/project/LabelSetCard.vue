@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { labelSetsQuery, setProjectLabelSetMutation } from '~/graphql/labels'
 
 /**
@@ -24,7 +24,7 @@ const items = computed(() => [
 
 const chosen = computed(() => sets.value.find(set => set.id === props.labelSetId) ?? null)
 
-const { mutate, loading } = useMutation(setProjectLabelSetMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
+const { mutate, loading } = useProjectMutation(setProjectLabelSetMutation)
 
 async function choose(value: string | null): Promise<void> {
   const labelSetId = !value || value === 'none' ? null : value

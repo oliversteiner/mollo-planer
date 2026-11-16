@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import type { ShareTask } from '~/utils/share'
 import { setTaskLabelsMutation } from '~/graphql/labels'
 import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES, taskQuery, updateTaskMutation } from '~/graphql/task'
@@ -49,12 +49,11 @@ const memberItems = computed(() => [
   ...props.members.map(member => ({ label: member.name, value: member.id }))
 ])
 
-const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
-const { mutate: moveTask } = useMutation(moveTaskMutation, options)
-const { mutate: assignTask } = useMutation(assignTaskMutation, options)
-const { mutate: deleteTask } = useMutation(deleteTaskMutation, options)
-const { mutate: setTaskLabels } = useMutation(setTaskLabelsMutation, options)
-const { mutate: updateTask } = useMutation(updateTaskMutation, options)
+const { mutate: moveTask } = useProjectMutation(moveTaskMutation)
+const { mutate: assignTask } = useProjectMutation(assignTaskMutation)
+const { mutate: deleteTask } = useProjectMutation(deleteTaskMutation)
+const { mutate: setTaskLabels } = useProjectMutation(setTaskLabelsMutation)
+const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
 const { errors: commitErrors, run: runCommit } = useGraphqlForm()
 
 /** Labels of the project's set; the task's labels outside it can only be removed. */

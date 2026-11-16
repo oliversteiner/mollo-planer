@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
 import type { Locale } from '~/graphql/generated/graphql'
 import { updateProjectMutation } from '~/graphql/settings'
 
@@ -23,7 +22,7 @@ const locales = computed(() => [
   { label: t('locale.EN'), value: 'EN' }
 ])
 
-const { mutate } = useMutation(updateProjectMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
+const { mutate } = useProjectMutation(updateProjectMutation)
 
 async function submit(): Promise<void> {
   const result = await run(() => mutate({

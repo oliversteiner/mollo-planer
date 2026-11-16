@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
 import { addCommentMutation, deleteCommentMutation, updateCommentMutation } from '~/graphql/task'
 import { formatDateTime } from '~/utils/dates'
 import { isEmptyDocument } from '~/utils/rich-text'
@@ -30,10 +29,9 @@ const editingId = ref<string | null>(null)
 const editDraft = ref<Record<string, unknown> | null>(null)
 
 const { errors, pending, run } = useGraphqlForm()
-const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
-const { mutate: addComment } = useMutation(addCommentMutation, options)
-const { mutate: updateComment } = useMutation(updateCommentMutation, options)
-const { mutate: deleteComment } = useMutation(deleteCommentMutation, options)
+const { mutate: addComment } = useProjectMutation(addCommentMutation)
+const { mutate: updateComment } = useProjectMutation(updateCommentMutation)
+const { mutate: deleteComment } = useProjectMutation(deleteCommentMutation)
 
 const deletion = useDelete<string>(id => deleteComment({ id }))
 

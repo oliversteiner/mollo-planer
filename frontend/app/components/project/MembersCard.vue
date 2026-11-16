@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { removeProjectMemberMutation, setProjectMemberMutation, userSearchQuery } from '~/graphql/settings'
 import type { NamedRole } from '~/composables/useRoles'
 import { classifyApolloError } from '~/utils/api'
@@ -47,9 +47,8 @@ watch(defaultRole, (key) => {
 const pending = ref(false)
 const removing = ref<{ id: string, name: string } | null>(null)
 
-const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
-const { mutate: setMember } = useMutation(setProjectMemberMutation, options)
-const { mutate: removeMember } = useMutation(removeProjectMemberMutation, options)
+const { mutate: setMember } = useProjectMutation(setProjectMemberMutation)
+const { mutate: removeMember } = useProjectMutation(removeProjectMemberMutation)
 
 /** Runs a change; a validation message (for example "last owner") becomes a toast. */
 async function change(action: () => Promise<unknown>, success: string): Promise<boolean> {

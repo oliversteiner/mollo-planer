@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
-import { deleteTodoMutation, projectContentQueries, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
+import { deleteTodoMutation, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
 import { withoutNulls } from '~/utils/api'
 
 const { t } = useI18n()
@@ -41,7 +41,7 @@ type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
 
-const { mutate: deleteTodo } = useMutation(deleteTodoMutation, { refetchQueries: projectContentQueries, awaitRefetchQueries: true })
+const { mutate: deleteTodo } = useProjectMutation(deleteTodoMutation)
 
 const deletion = useDelete<Item>(todo => deleteTodo({ id: todo.id }))
 

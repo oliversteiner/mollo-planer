@@ -117,10 +117,3 @@ export const deleteTodoMutation = graphql(`
     deleteTodo(id: $id) { id }
   }
 `)
-
-/**
- * After a change, reload every query on screen ('active'): statuses and
- * progress are derived by the backend. Queries not on screen use
- * cache-and-network and fetch fresh data when they are shown again.
- */
-export const projectContentQueries = 'active' as const

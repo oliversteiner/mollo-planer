@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
-import { projectContentQueries } from '~/graphql/project'
 import { createTaskMutation, updateTaskMutation } from '~/graphql/task'
 import { isEmptyDocument } from '~/utils/rich-text'
 
@@ -91,9 +89,8 @@ const memberItems = computed(() => [
   ...props.members.map(member => ({ label: member.name, value: member.id }))
 ])
 
-const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: true }
-const { mutate: createTask } = useMutation(createTaskMutation, options)
-const { mutate: updateTask } = useMutation(updateTaskMutation, options)
+const { mutate: createTask } = useProjectMutation(createTaskMutation)
+const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
 
 async function submit(): Promise<void> {
   const fields = {
