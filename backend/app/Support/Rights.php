@@ -2,9 +2,7 @@
 
 namespace App\Support;
 
-use App\Enums\ProjectRole;
 use App\Enums\Right;
-use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\RoleFunction;
@@ -152,26 +150,26 @@ final class Rights
      *
      * @return list<Right>
      */
-    public static function systemRightsOf(Role|UserRole|null $role): array
+    public static function systemRightsOf(?Role $role): array
     {
-        return self::rightsOfRole(Role::resolve(Role::SCOPE_SYSTEM, $role));
+        return self::rightsOfRole($role);
     }
 
     /**
      * Does this project role have the project right? Takes the role or the
      * enum of a shipped key (seeders, tests).
      */
-    public static function projectRoleAllows(Role|ProjectRole|null $role, Right $right): bool
+    public static function projectRoleAllows(?Role $role, Right $right): bool
     {
-        return self::roleAllows(Role::resolve(Role::SCOPE_PROJECT, $role), $right);
+        return self::roleAllows($role, $right);
     }
 
     /**
      * @return list<Right>
      */
-    public static function projectRightsOfRole(Role|ProjectRole|null $role): array
+    public static function projectRightsOfRole(?Role $role): array
     {
-        return self::rightsOfRole(Role::resolve(Role::SCOPE_PROJECT, $role));
+        return self::rightsOfRole($role);
     }
 
     /**
@@ -213,7 +211,7 @@ final class Rights
      * owner.manage (docs/rollen-funktionen-rechte.md, §7.4). The rule looks
      * at the rights of the roles, never at their names.
      */
-    public static function canChangeMembership(User $actor, Project $project, Role|ProjectRole|null $currentRole, Role|ProjectRole|null $newRole): bool
+    public static function canChangeMembership(User $actor, Project $project, ?Role $currentRole, ?Role $newRole): bool
     {
         if (! self::allows($actor, Right::MEMBERS_MANAGE, $project)) {
             return false;
@@ -228,7 +226,7 @@ final class Rights
      * Does the role carry project.delete or owner.manage? Such a role is
      * handled only by people with owner.manage.
      */
-    public static function isOwnershipRole(Role|ProjectRole|null $role): bool
+    public static function isOwnershipRole(?Role $role): bool
     {
         return self::projectRoleAllows($role, Right::PROJECT_DELETE)
             || self::projectRoleAllows($role, Right::OWNER_MANAGE);
@@ -239,7 +237,7 @@ final class Rights
      * through their project role (within the cap of their system role)?
      * projects.manageAny does not count, it is no membership.
      */
-    public static function holdsProject(User $member, Role|ProjectRole|null $role): bool
+    public static function holdsProject(User $member, ?Role $role): bool
     {
         return self::projectRoleAllows($role, Right::PROJECT_DELETE)
             && self::withinCap($member, Right::PROJECT_DELETE);

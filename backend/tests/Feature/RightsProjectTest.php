@@ -59,7 +59,7 @@ class RightsProjectTest extends TestCase
         $this->assertTrue(Rights::allows($manager, Right::TASK_CREATE, $project));
         $this->assertFalse(Rights::allows($manager, Right::PROJECT_DELETE, $project));
         $this->assertSame(
-            Rights::projectRightsOfRole(ProjectRole::MANAGER),
+            Rights::projectRightsOfRole($this->projectRole(ProjectRole::MANAGER)),
             Rights::rightsOf($manager, $project),
         );
     }

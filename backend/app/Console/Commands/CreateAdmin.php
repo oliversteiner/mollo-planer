@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Enums\Locale;
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Services\UserInvitation;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -51,7 +51,7 @@ class CreateAdmin extends Command implements PromptsForMissingInput
         }
 
         if (! $this->option('password')) {
-            $invitation->invite($input['name'], $input['email'], UserRole::ADMIN, $locale);
+            $invitation->invite($input['name'], $input['email'], Role::resolveOrFail(Role::SCOPE_SYSTEM, 'admin'), $locale);
             $this->components->info(__('console.create_admin.invited', ['email' => $input['email']]));
 
             return self::SUCCESS;
@@ -63,7 +63,7 @@ class CreateAdmin extends Command implements PromptsForMissingInput
             return self::FAILURE;
         }
 
-        $invitation->create($input['name'], $input['email'], UserRole::ADMIN, $this->askForPassword());
+        $invitation->create($input['name'], $input['email'], Role::resolveOrFail(Role::SCOPE_SYSTEM, 'admin'), $this->askForPassword());
         $this->components->info(__('console.create_admin.created', ['email' => $input['email']]));
 
         return self::SUCCESS;

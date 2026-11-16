@@ -86,8 +86,8 @@ class RightsGroundRulesTest extends TestCase
         $this->revoke('project', 'owner', 'own-project');
         $this->grant('project', 'manager', 'own-project');
 
-        $this->assertFalse(Rights::holdsProject($this->owner, ProjectRole::OWNER));
-        $this->assertTrue(Rights::holdsProject($this->manager, ProjectRole::MANAGER));
+        $this->assertFalse(Rights::holdsProject($this->owner, $this->projectRole(ProjectRole::OWNER)));
+        $this->assertTrue(Rights::holdsProject($this->manager, $this->projectRole(ProjectRole::MANAGER)));
 
         $this->expectException(ValidationException::class);
         $this->membership->remove($this->manager, $this->project, $this->manager);
@@ -117,22 +117,22 @@ class RightsGroundRulesTest extends TestCase
 
     public function test_a_role_that_gains_project_delete_becomes_protected(): void
     {
-        $this->assertTrue(Rights::canChangeMembership($this->manager, $this->project, null, ProjectRole::MEMBER));
+        $this->assertTrue(Rights::canChangeMembership($this->manager, $this->project, null, $this->projectRole(ProjectRole::MEMBER)));
 
         $this->grant('project', 'member', 'own-project');
 
-        $this->assertTrue(Rights::isOwnershipRole(ProjectRole::MEMBER));
-        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, null, ProjectRole::MEMBER));
-        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, ProjectRole::MEMBER, ProjectRole::GUEST));
-        $this->assertTrue(Rights::canChangeMembership($this->owner, $this->project, null, ProjectRole::MEMBER));
+        $this->assertTrue(Rights::isOwnershipRole($this->projectRole(ProjectRole::MEMBER)));
+        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, null, $this->projectRole(ProjectRole::MEMBER)));
+        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, $this->projectRole(ProjectRole::MEMBER), $this->projectRole(ProjectRole::GUEST)));
+        $this->assertTrue(Rights::canChangeMembership($this->owner, $this->project, null, $this->projectRole(ProjectRole::MEMBER)));
     }
 
     public function test_the_owner_role_without_ownership_rights_is_handled_with_members_manage(): void
     {
         $this->revoke('project', 'owner', 'own-project');
 
-        $this->assertFalse(Rights::isOwnershipRole(ProjectRole::OWNER));
-        $this->assertTrue(Rights::canChangeMembership($this->manager, $this->project, ProjectRole::MEMBER, ProjectRole::OWNER));
+        $this->assertFalse(Rights::isOwnershipRole($this->projectRole(ProjectRole::OWNER)));
+        $this->assertTrue(Rights::canChangeMembership($this->manager, $this->project, $this->projectRole(ProjectRole::MEMBER), $this->projectRole(ProjectRole::OWNER)));
     }
 
     public function test_a_manager_with_owner_manage_grants_the_owner_role(): void
@@ -273,15 +273,15 @@ class RightsGroundRulesTest extends TestCase
 
     public function test_the_rights_are_read_anew_for_every_queue_job(): void
     {
-        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::GUEST, Right::TASK_MOVE));
+        $this->assertFalse(Rights::projectRoleAllows($this->projectRole(ProjectRole::GUEST), Right::TASK_MOVE));
 
         // Changed behind the back of the cache, as another process would.
         $this->grant('project', 'guest', 'contribute', clearCache: false);
-        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::GUEST, Right::TASK_MOVE));
+        $this->assertFalse(Rights::projectRoleAllows($this->projectRole(ProjectRole::GUEST), Right::TASK_MOVE));
 
         event(new JobProcessing('sync', $this->createStub(Job::class)));
 
-        $this->assertTrue(Rights::projectRoleAllows(ProjectRole::GUEST, Right::TASK_MOVE));
+        $this->assertTrue(Rights::projectRoleAllows($this->projectRole(ProjectRole::GUEST), Right::TASK_MOVE));
     }
 
     private function grant(string $scope, string $role, string $function, bool $clearCache = true): void

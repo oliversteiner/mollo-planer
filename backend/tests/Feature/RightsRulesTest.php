@@ -103,10 +103,10 @@ class RightsRulesTest extends TestCase
 
     public function test_only_owners_change_owner_memberships(): void
     {
-        $this->assertTrue(Rights::canChangeMembership($this->owner, $this->project, ProjectRole::MEMBER, ProjectRole::OWNER));
-        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, ProjectRole::MEMBER, ProjectRole::OWNER));
-        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, ProjectRole::OWNER, ProjectRole::MEMBER));
-        $this->assertTrue(Rights::canChangeMembership($this->manager, $this->project, ProjectRole::MEMBER, ProjectRole::GUEST));
+        $this->assertTrue(Rights::canChangeMembership($this->owner, $this->project, $this->projectRole(ProjectRole::MEMBER), $this->projectRole(ProjectRole::OWNER)));
+        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, $this->projectRole(ProjectRole::MEMBER), $this->projectRole(ProjectRole::OWNER)));
+        $this->assertFalse(Rights::canChangeMembership($this->manager, $this->project, $this->projectRole(ProjectRole::OWNER), $this->projectRole(ProjectRole::MEMBER)));
+        $this->assertTrue(Rights::canChangeMembership($this->manager, $this->project, $this->projectRole(ProjectRole::MEMBER), $this->projectRole(ProjectRole::GUEST)));
     }
 
     public function test_a_manager_cannot_make_himself_owner_through_membership_service(): void
@@ -118,7 +118,7 @@ class RightsRulesTest extends TestCase
 
     public function test_owner_manage_is_a_right_of_the_owner_role(): void
     {
-        $this->assertTrue(Rights::projectRoleAllows(ProjectRole::OWNER, Right::OWNER_MANAGE));
-        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::MANAGER, Right::OWNER_MANAGE));
+        $this->assertTrue(Rights::projectRoleAllows($this->projectRole(ProjectRole::OWNER), Right::OWNER_MANAGE));
+        $this->assertFalse(Rights::projectRoleAllows($this->projectRole(ProjectRole::MANAGER), Right::OWNER_MANAGE));
     }
 }

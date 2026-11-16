@@ -62,8 +62,8 @@ class RightsDataTest extends TestCase
         DB::table('role_functions')->delete();
         RightsDefaults::apply();
 
-        $this->assertTrue(Rights::projectRoleAllows(ProjectRole::MEMBER, Right::TASK_MOVE));
-        $this->assertFalse(Rights::projectRoleAllows(ProjectRole::GUEST, Right::TASK_CREATE));
+        $this->assertTrue(Rights::projectRoleAllows($this->projectRole(ProjectRole::MEMBER), Right::TASK_MOVE));
+        $this->assertFalse(Rights::projectRoleAllows($this->projectRole(ProjectRole::GUEST), Right::TASK_CREATE));
     }
 
     public function test_sync_command_restores_the_standard_rows(): void
@@ -72,6 +72,6 @@ class RightsDataTest extends TestCase
 
         $this->artisan('permissions:sync-defaults')->assertSuccessful();
 
-        $this->assertTrue(Rights::projectRoleAllows(ProjectRole::MEMBER, Right::TASK_MOVE));
+        $this->assertTrue(Rights::projectRoleAllows($this->projectRole(ProjectRole::MEMBER), Right::TASK_MOVE));
     }
 }

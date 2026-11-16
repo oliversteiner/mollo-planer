@@ -87,7 +87,7 @@ class PolicyTest extends TestCase
 
         foreach (ProjectRole::cases() as $role) {
             $this->assertSame(
-                Rights::projectRoleAllows($role, $ability),
+                Rights::projectRoleAllows($this->projectRole($role), $ability),
                 $this->users[$role->value]->can($method, $target),
                 "{$role->value} {$method} {$model}",
             );

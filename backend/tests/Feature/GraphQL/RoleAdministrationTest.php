@@ -349,7 +349,7 @@ class RoleAdministrationTest extends GraphQLTestCase
         ]])->assertJsonMissingPath('errors');
         $this->as('admin')->gql(self::UPDATE_ROLE, ['id' => $owner, 'input' => $withoutOwnership])->assertJsonMissingPath('errors');
 
-        $this->assertFalse(Rights::holdsProject($this->users['owner'], ProjectRole::OWNER));
+        $this->assertFalse(Rights::holdsProject($this->users['owner'], $this->projectRole(ProjectRole::OWNER)));
         $this->assertSame(1, Rights::countHolders($this->project));
     }
 

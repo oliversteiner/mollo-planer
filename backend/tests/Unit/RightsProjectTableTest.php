@@ -62,7 +62,7 @@ class RightsProjectTableTest extends TestCase
     #[DataProvider('matrix')]
     public function test_role_has_exactly_the_confirmed_abilities(Right $ability, ProjectRole $role, bool $expected): void
     {
-        $this->assertSame($expected, Rights::projectRoleAllows($role, $ability));
+        $this->assertSame($expected, Rights::projectRoleAllows($this->projectRole($role), $ability));
     }
 
     public function test_matrix_covers_every_ability(): void
@@ -95,6 +95,6 @@ class RightsProjectTableTest extends TestCase
             Right::TASK_MOVE,
             Right::COMMENT_CREATE,
             Right::PLANER_EXPORT,
-        ], Rights::projectRightsOfRole(ProjectRole::MEMBER));
+        ], Rights::projectRightsOfRole($this->projectRole(ProjectRole::MEMBER)));
     }
 }
