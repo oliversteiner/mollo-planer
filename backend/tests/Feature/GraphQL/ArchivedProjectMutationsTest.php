@@ -43,6 +43,7 @@ class ArchivedProjectMutationsTest extends TestCase
     /** Not a write into one project, so the archive rule does not apply. */
     private const EXCLUDED = [
         'approveUser' => 'user administration',
+        'setProjectCreatorRole' => 'app settings, belong to no project',
         'createApiToken' => 'personal token',
         'createLabelSet' => 'label sets belong to no project',
         'createProject' => 'a new project is not archived',

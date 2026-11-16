@@ -21,7 +21,8 @@ type Documents = {
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": typeof types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": typeof types.ResetUserTwoFactorDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": typeof types.DeleteUserDocument,
-    "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n": typeof types.AppSettingsDocument,
+    "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n": typeof types.AppSettingsDocument,
+    "\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n": typeof types.SetProjectCreatorRoleDocument,
     "\n  mutation UpdateAppSettings($twoFactorEnabled: Boolean!) {\n    updateAppSettings(twoFactorEnabled: $twoFactorEnabled) { twoFactorEnabled twoFactorSwitchable }\n  }\n": typeof types.UpdateAppSettingsDocument,
     "\n  mutation DraftProjectPlan($messages: [PlanChatMessageInput!]!, $currentPlan: ProjectPlanInput) {\n    draftProjectPlan(messages: $messages, currentPlan: $currentPlan) {\n      reply\n      plan {\n        name\n        description\n        locale\n        members { email role }\n        milestones {\n          title\n          description\n          dueDate\n          todos {\n            title\n            description\n            dueDate\n            tasks { title description dueDate assigneeEmail }\n          }\n        }\n      }\n    }\n  }\n": typeof types.DraftProjectPlanDocument,
     "\n  mutation ImportProjectPlan($plan: ProjectPlanInput!, $notifyAssignees: Boolean) {\n    importProjectPlan(plan: $plan, notifyAssignees: $notifyAssignees) {\n      id\n      name\n    }\n  }\n": typeof types.ImportProjectPlanDocument,
@@ -97,7 +98,8 @@ const documents: Documents = {
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": types.ResetUserTwoFactorDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": types.DeleteUserDocument,
-    "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n": types.AppSettingsDocument,
+    "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n": types.AppSettingsDocument,
+    "\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n": types.SetProjectCreatorRoleDocument,
     "\n  mutation UpdateAppSettings($twoFactorEnabled: Boolean!) {\n    updateAppSettings(twoFactorEnabled: $twoFactorEnabled) { twoFactorEnabled twoFactorSwitchable }\n  }\n": types.UpdateAppSettingsDocument,
     "\n  mutation DraftProjectPlan($messages: [PlanChatMessageInput!]!, $currentPlan: ProjectPlanInput) {\n    draftProjectPlan(messages: $messages, currentPlan: $currentPlan) {\n      reply\n      plan {\n        name\n        description\n        locale\n        members { email role }\n        milestones {\n          title\n          description\n          dueDate\n          todos {\n            title\n            description\n            dueDate\n            tasks { title description dueDate assigneeEmail }\n          }\n        }\n      }\n    }\n  }\n": types.DraftProjectPlanDocument,
     "\n  mutation ImportProjectPlan($plan: ProjectPlanInput!, $notifyAssignees: Boolean) {\n    importProjectPlan(plan: $plan, notifyAssignees: $notifyAssignees) {\n      id\n      name\n    }\n  }\n": types.ImportProjectPlanDocument,
@@ -211,7 +213,11 @@ export function graphql(source: "\n  mutation DeleteUser($id: ID!) {\n    delete
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n"): (typeof documents)["\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable }\n  }\n"];
+export function graphql(source: "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n"): (typeof documents)["\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n"): (typeof documents)["\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

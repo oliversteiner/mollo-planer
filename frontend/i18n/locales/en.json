@@ -499,6 +499,10 @@
     "settings": {
       "title": "App settings",
       "twoFactorTitle": "Two-factor authentication",
+      "creatorRoleTitle": "Creating projects",
+      "creatorRoleLabel": "Role of the person who creates a project",
+      "creatorRoleHint": "This role is given to whoever creates a new project. It must have the right “Own project”.",
+      "creatorRoleSaved": "Role for new projects saved",
       "twoFactorLabel": "Require a second factor",
       "twoFactorDescription": "When on, every sign-in also needs an authenticator app or a passkey. When off, the password is enough.",
       "twoFactorOn": "2FA is on.",

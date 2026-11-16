@@ -432,6 +432,7 @@ class MutationTest extends GraphQLTestCase
             'updateRole' => ['admin', 'mutation ($id: ID!, $f: ID!) { updateRole(id: $id, input: {names: {de: "Gast", en: "Guest"}, functionIds: [$f]}) { id } }', fn (self $test) => ['id' => self::roleId('guest'), 'f' => self::functionId('contribute')]],
             'duplicateRole' => ['admin', 'mutation ($id: ID!) { duplicateRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('manager')]],
             'deleteRole' => ['admin', 'mutation ($id: ID!) { deleteRole(id: $id) { id } }', fn (self $test) => ['id' => DB::table('roles')->insertGetId(['scope' => 'project', 'key' => 'own', 'names' => '{"de":"Eigene","en":"Own"}'])]],
+            'setProjectCreatorRole' => ['admin', 'mutation ($key: String!) { setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key } } }', fn (self $test) => ['key' => 'owner']],
             'setDefaultRole' => ['admin', 'mutation ($id: ID!) { setDefaultRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('guest')]],
             'resetRole' => ['admin', 'mutation ($id: ID!) { resetRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('manager')]],
             'createRoleFunction' => ['admin', 'mutation { createRoleFunction(input: {scope: PROJECT, names: {de: "Aufräumen", en: "Tidy up"}, rights: [TASK_DELETE]}) { id } }', fn (self $test) => []],

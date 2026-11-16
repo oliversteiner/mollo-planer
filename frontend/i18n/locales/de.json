@@ -499,6 +499,10 @@
     "settings": {
       "title": "App-Einstellungen",
       "twoFactorTitle": "Zwei-Faktor-Authentifizierung",
+      "creatorRoleTitle": "Projekte anlegen",
+      "creatorRoleLabel": "Rolle der Person, die ein Projekt anlegt",
+      "creatorRoleHint": "Diese Rolle bekommt, wer ein neues Projekt anlegt. Sie muss das Recht „Projekt besitzen“ haben.",
+      "creatorRoleSaved": "Rolle für neue Projekte gespeichert",
       "twoFactorLabel": "Zweiten Faktor verlangen",
       "twoFactorDescription": "Eingeschaltet braucht jede Anmeldung zusätzlich eine Authenticator-App oder einen Passkey. Ausgeschaltet genügt das Passwort.",
       "twoFactorOn": "2FA ist eingeschaltet.",

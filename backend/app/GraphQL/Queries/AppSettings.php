@@ -10,13 +10,14 @@ use App\Support\AppSettings as Settings;
 class AppSettings
 {
     /**
-     * @return array{twoFactorEnabled: bool, twoFactorSwitchable: bool}
+     * @return array{twoFactorEnabled: bool, twoFactorSwitchable: bool, projectCreatorRole: Role}
      */
     public function __invoke(): array
     {
         return [
             'twoFactorEnabled' => Settings::twoFactorEnabled(),
             'twoFactorSwitchable' => Settings::twoFactorSwitchable(),
+            'projectCreatorRole' => Settings::projectCreatorRole(),
         ];
     }
 }

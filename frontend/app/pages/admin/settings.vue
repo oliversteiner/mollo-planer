@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { appSettingsQuery, updateAppSettingsMutation } from '~/graphql/admin'
+import { appSettingsQuery, setProjectCreatorRoleMutation, updateAppSettingsMutation } from '~/graphql/admin'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -12,6 +12,21 @@ const { result } = useQuery(appSettingsQuery, null, { fetchPolicy: 'network-only
 const settings = computed(() => result.value?.appSettings)
 
 const { mutate, loading } = useMutation(updateAppSettingsMutation)
+const { mutate: mutateCreatorRole, loading: savingCreatorRole } = useMutation(setProjectCreatorRoleMutation)
+const { items: projectRoleItems } = useRoles('PROJECT')
+
+const creatorRoleKey = computed({
+  get: () => settings.value?.projectCreatorRole.key ?? '',
+  set: (key: string) => void setCreatorRole(key)
+})
+
+async function setCreatorRole(key: string): Promise<void> {
+  const saved = await mutateCreatorRole({ key }).catch(() => null)
+
+  if (saved) {
+    toast.add({ title: t('admin.settings.creatorRoleSaved'), color: 'success' })
+  }
+}
 
 async function setTwoFactor(enabled: boolean): Promise<void> {
   const saved = await mutate({ twoFactorEnabled: enabled }).catch(() => null)
@@ -64,6 +79,29 @@ async function setTwoFactor(enabled: boolean): Promise<void> {
           :title="t('admin.settings.offWarning')"
         />
       </div>
+    </wa-card>
+
+    <wa-card class="admin-settings-card">
+      <h2
+        slot="header"
+        class="wa-heading-m"
+      >
+        {{ t('admin.settings.creatorRoleTitle') }}
+      </h2>
+
+      <wa-skeleton
+        v-if="!settings"
+        effect="sheen"
+        class="admin-settings-skeleton"
+      ></wa-skeleton>
+      <FormSelect
+        v-else
+        v-model="creatorRoleKey"
+        :items="projectRoleItems"
+        :label="t('admin.settings.creatorRoleLabel')"
+        :hint="t('admin.settings.creatorRoleHint')"
+        :disabled="savingCreatorRole"
+      />
     </wa-card>
   </PageFrame>
 </template>

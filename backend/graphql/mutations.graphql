@@ -53,6 +53,10 @@ type Mutation @guard {
   updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
     @can(ability: "updateAppSettings", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateAppSettings")
+  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
+  setProjectCreatorRole(roleKey: String!): AppSettings!
+    @can(ability: "updateAppSettings", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectCreatorRole")
 
   # Rollen und Funktionen (Einstellungen, Recht roles.manage). Jede Änderung
   # wird gegen die Grundregeln geprüft (docs/rollen-funktionen-rechte.md, §7):

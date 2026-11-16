@@ -56,7 +56,13 @@ export const deleteUserMutation = graphql(`
 
 export const appSettingsQuery = graphql(`
   query AppSettings {
-    appSettings { twoFactorEnabled twoFactorSwitchable }
+    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }
+  }
+`)
+
+export const setProjectCreatorRoleMutation = graphql(`
+  mutation SetProjectCreatorRole($key: String!) {
+    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }
   }
 `)
 
