@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Planer\PlanerRevision;
 use App\Services\TaskNotifier;
 use App\Support\Rights;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -23,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
         // One instance per request, so withoutAssignmentMails() reaches the
         // notifier the GraphQL mutations use.
         $this->app->scoped(TaskNotifier::class);
+
+        // Remembers the projects of one transaction; per request and per queued job.
+        $this->app->scoped(PlanerRevision::class);
     }
 
     /**

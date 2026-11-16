@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Todo;
+use App\Observers\Concerns\TouchesPlanerRevision;
 use App\Services\ItemStatusSync;
 use App\Services\Ordering;
 
@@ -15,6 +16,8 @@ use App\Services\Ordering;
  */
 class TodoObserver
 {
+    use TouchesPlanerRevision;
+
     public function __construct(
         private readonly ItemStatusSync $statusSync,
         private readonly Ordering $ordering,
@@ -43,10 +46,13 @@ class TodoObserver
     public function created(Todo $todo): void
     {
         $this->statusSync->syncMilestone($todo->milestone_id);
+        $this->touchRevision($todo->project_id);
     }
 
     public function updated(Todo $todo): void
     {
+        $this->touchRevision($todo->project_id);
+
         if ($todo->wasChanged('milestone_id')) {
             $this->statusSync->syncMilestone($todo->getOriginal('milestone_id'));
             $this->statusSync->syncMilestone($todo->milestone_id);
@@ -61,5 +67,6 @@ class TodoObserver
     {
         $this->ordering->close($todo->project_id, Todo::query()->where('milestone_id', $todo->milestone_id));
         $this->statusSync->syncMilestone($todo->milestone_id);
+        $this->touchRevision($todo->project_id);
     }
 }

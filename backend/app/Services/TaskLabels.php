@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Planer\PlanerRevision;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -23,6 +24,8 @@ class TaskLabels
     public function set(Task $task, array $labelIds, string $field = 'labelIds'): void
     {
         $task->labels()->sync($this->validated($task->owningProject(), $labelIds, $task, $field));
+        // Pivot changes fire no model events; the labels are in the planer file.
+        app(PlanerRevision::class)->touch($task->project_id);
     }
 
     /**

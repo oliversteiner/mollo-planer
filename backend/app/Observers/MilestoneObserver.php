@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Milestone;
+use App\Observers\Concerns\TouchesPlanerRevision;
 use App\Services\Ordering;
 use App\Services\ReleaseRules;
 
@@ -12,6 +13,8 @@ use App\Services\ReleaseRules;
  */
 class MilestoneObserver
 {
+    use TouchesPlanerRevision;
+
     public function __construct(private readonly Ordering $ordering) {}
 
     /**
@@ -36,11 +39,23 @@ class MilestoneObserver
         ReleaseRules::checkMilestone($milestone);
     }
 
+    public function created(Milestone $milestone): void
+    {
+        $this->touchRevision($milestone->project_id);
+    }
+
+    public function updated(Milestone $milestone): void
+    {
+        $this->touchRevision($milestone->project_id);
+    }
+
     /**
-     * A deleted milestone leaves no gap.
+     * A deleted milestone leaves no gap. Its todos and tasks go with it
+     * (cascade, without events); the whole deletion counts once.
      */
     public function deleted(Milestone $milestone): void
     {
         $this->ordering->close($milestone->project_id, Milestone::query()->where('project_id', $milestone->project_id));
+        $this->touchRevision($milestone->project_id);
     }
 }

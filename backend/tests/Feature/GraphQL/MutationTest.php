@@ -404,7 +404,9 @@ class MutationTest extends GraphQLTestCase
         $levelOutside = DB::transactionLevel();
         $writesOutside = [];
         DB::listen(function (QueryExecuted $query) use ($levelOutside, &$writesOutside): void {
-            if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) && $query->connection->transactionLevel() <= $levelOutside) {
+            // The planer revision is counted on purpose after the commit (App\Planer\PlanerRevision).
+            $countsRevision = str_contains($query->sql, 'planer_revision');
+            if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) && $query->connection->transactionLevel() <= $levelOutside && ! $countsRevision) {
                 $writesOutside[] = $query->sql;
             }
         });

@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
+use App\Planer\PlanerRevision;
 use App\Support\Rights;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -48,6 +49,9 @@ class ProjectMembership
         } else {
             $project->members()->updateExistingPivot($user->getKey(), ['role_id' => $role->id]);
         }
+
+        // Members are in the planer file (project.members); pivot changes fire no model events.
+        app(PlanerRevision::class)->touch($project->getKey());
     }
 
     /**
@@ -73,6 +77,7 @@ class ProjectMembership
         }
 
         $project->members()->detach($user);
+        app(PlanerRevision::class)->touch($project->getKey());
 
         Task::query()
             ->inProject($project->getKey())
