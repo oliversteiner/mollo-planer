@@ -15,6 +15,9 @@ type Status = (typeof TASK_STATUSES)[number]
 
 const { t } = useI18n()
 const route = useRoute()
+
+// Someone else's changes show up within 30 seconds (S3f).
+useProjectRevisionPolling()
 const router = useRouter()
 const { projectId, project, can } = useProject()
 

@@ -12,7 +12,24 @@ export function useProjectMutation<TResult, TVariables extends OperationVariable
   document: TypedDocumentNode<TResult, TVariables>,
   options: Omit<UseMutationOptions<TResult, TVariables>, 'refetchQueries' | 'awaitRefetchQueries'> = {}
 ) {
-  return useMutation(document, { ...options, refetchQueries: 'active', awaitRefetchQueries: true })
+  const mutation = useMutation(document, { ...options, refetchQueries: 'active', awaitRefetchQueries: true })
+  const revision = useProjectRevision()
+
+  /** The own change moves the known revision on, so the polling does not report it. */
+  const mutate: typeof mutation.mutate = async (...args) => {
+    const before = revision.beforeOwnChange()
+
+    try {
+      const result = await mutation.mutate(...args)
+      revision.afterOwnChange(before)
+
+      return result
+    } finally {
+      revision.ownChangeFinished()
+    }
+  }
+
+  return { ...mutation, mutate }
 }
 
 /**

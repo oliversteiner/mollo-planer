@@ -50,6 +50,7 @@ type Documents = {
     "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n": typeof types.DeleteTodoDocument,
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.ProjectHeaderDocument,
+    "\n  query ProjectRevision($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n    }\n  }\n": typeof types.ProjectRevisionDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": typeof types.SidebarProjectsDocument,
     "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles { key } }\n      project { right roles { key } }\n    }\n  }\n": typeof types.PermissionMatrixDocument,
@@ -127,6 +128,7 @@ const documents: Documents = {
     "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n": types.DeleteTodoDocument,
     "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
     "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.ProjectHeaderDocument,
+    "\n  query ProjectRevision($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n    }\n  }\n": types.ProjectRevisionDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": types.SidebarProjectsDocument,
     "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles { key } }\n      project { right roles { key } }\n    }\n  }\n": types.PermissionMatrixDocument,
@@ -326,6 +328,10 @@ export function graphql(source: "\n  query Projects {\n    projects {\n      id\
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"): (typeof documents)["\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProjectRevision($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n    }\n  }\n"): (typeof documents)["\n  query ProjectRevision($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -62,7 +62,9 @@ const { moveTaskToTodo } = vi.hoisted(() => ({ moveTaskToTodo: vi.fn() }))
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({ result: ref({ project }), loading: ref(false), refetch: vi.fn() }),
-  useMutation: () => ({ mutate: moveTaskToTodo })
+  useMutation: () => ({ mutate: moveTaskToTodo }),
+  // The revision of the planer file (S3f): nothing in the cache, nothing changed.
+  useApolloClient: () => ({ resolveClient: () => ({ readQuery: () => null, query: async () => ({ data: null }), refetchQueries: async () => [] }) })
 }))
 
 beforeAll(async () => {

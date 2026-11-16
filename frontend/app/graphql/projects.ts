@@ -31,6 +31,16 @@ export const projectHeaderQuery = graphql(`
   }
 `)
 
+/** Only the revision of the planer file, for the polling of timeline and kanban (S3f). */
+export const projectRevisionQuery = graphql(`
+  query ProjectRevision($id: ID!) {
+    project(id: $id) {
+      id
+      planerRevision
+    }
+  }
+`)
+
 export const createProjectMutation = graphql(`
   mutation CreateProject($input: CreateProjectInput!) {
     createProject(input: $input) {

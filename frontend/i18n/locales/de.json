@@ -240,7 +240,8 @@
       "openTask": "Task «{title}» öffnen"
     },
     "milestoneNumber": "M{number}",
-    "milestoneNumberLabel": "Milestone {number}"
+    "milestoneNumberLabel": "Milestone {number}",
+    "changedElsewhere": "Das Projekt wurde inzwischen geändert."
   },
   "todos": {
     "milestone": "Milestone",

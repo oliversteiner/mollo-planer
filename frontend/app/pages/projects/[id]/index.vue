@@ -12,6 +12,9 @@ import { projectMembersQuery } from '~/graphql/task'
  */
 const { t } = useI18n()
 const route = useRoute()
+
+// Someone else's changes show up within 30 seconds (S3f).
+useProjectRevisionPolling()
 const router = useRouter()
 const { projectId, can } = useProject()
 
