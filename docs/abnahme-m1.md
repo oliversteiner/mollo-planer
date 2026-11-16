@@ -1,6 +1,6 @@
 # Abnahme Meilenstein M1 „Fundament“
 
-Stand: 2026-11-15. Rolle: Checkliste für Oliver, nach Abschluss von M1 durch die Umsetzung.
+Stand: 2026-11-16 (ergänzt nach RF5, S3c, S3f; Code bis `8e2bf87`). Rolle: Checkliste für Oliver, nach Abschluss von M1 durch die Umsetzung.
 Vorher durch die Umsetzung: alle Prüfungen grün (`php artisan test`, `composer test:mariadb`, `npm test` in `frontend/` und `tools/planer/`, Lint, Typecheck, Build), dann lokal `php artisan migrate:fresh --seed --seeder=DemoSeeder`.
 
 Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ passt, ❌ mit kurzer Notiz.
@@ -9,13 +9,16 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 
 ## 1. Rollen, Funktionen, Rechte (`/admin/roles`)
 
-- [ ] Als Anna `/admin/roles` öffnen: Systemrollen, Projektrollen und Funktionen sind getrennt aufgelistet, Namen in DE und EN.
-- [ ] Die Übersicht Rolle × Recht zeigt die Standardbelegung (Owner, Manager, Mitglied, Gast; Admin, Projektleitung, Koordination, Mitglied, Lesend).
+- [ ] Als Anna `/admin/roles` öffnen: Reiter System | Projekt, je Reiter Rollen / Funktionen / Übersicht als kompakte Zeilen, Namen in DE und EN (Fix F1).
+- [ ] Ansicht Übersicht zeigt die Standardbelegung (Owner, Manager, Mitglied, Gast; Admin, Projektleitung, Koordination, Mitglied, Lesend). `/system/rechte` leitet dorthin um.
+- [ ] Filter: Textsuche, Mitgeliefert/Eigene, „Hat Recht …“, In Gebrauch/ungenutzt wirken in allen drei Ansichten; Zustand bleibt nach Neuladen (URL).
 - [ ] Eigene Projektrolle „Redaktion“ anlegen mit den Funktionen „Planen“ und „Mitarbeiten“. Ben in einem Projekt diese Rolle geben. Ben kann ToDos und eigene Tasks anlegen, aber keine fremden Tasks löschen.
 - [ ] Eigene Funktion anlegen, einer Rolle zuordnen, wieder entfernen. Löschen einer Funktion, die noch eine Rolle nutzt, wird verhindert.
 - [ ] „Standard wiederherstellen“ bei einer geänderten mitgelieferten Rolle stellt die Standardbelegung her.
 - [ ] Ersteller-Rolle in den Einstellungen festlegen. Ein neues Projekt (als Person mit `projects.create`) gibt dem Ersteller diese Rolle.
 - [ ] Ohne `roles.manage` (z. B. als Ben) ist `/admin/roles` nicht im Menü und beim direkten Aufruf gesperrt.
+- [ ] `/admin/roles` (auch Übersicht) nur mit `roles.manage`, `/admin/settings` nur mit `settings.manage` erreichbar (Menü und direkter Aufruf).
+- [ ] Ersteller-Rolle (`/admin/settings`): Auswahl bietet nur Projektrollen mit „Projekt löschen“ an.
 
 ## 2. Grundregeln (dürfen nicht aushebelbar sein)
 
@@ -52,6 +55,8 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 - [ ] Zwei Browserfenster (Anna und Ben im selben Projekt, Zeitachse bzw. Kanban). Änderung in einem Fenster erscheint im anderen nach höchstens etwa 30 Sekunden, mit Hinweis „Das Projekt wurde inzwischen geändert“.
 - [ ] Eigene Änderung lädt nicht die ganze Seite neu (kein Flackern, Scrollposition bleibt).
 - [ ] Ein Kommentar ändert die Revision nicht (kein Hinweis im anderen Fenster).
+- [ ] Eigene Änderung zeigt im eigenen Fenster keinen Hinweis „inzwischen geändert“.
+- [ ] Labels eines Tasks ändern und ein Mitglied hinzufügen erscheinen im anderen Fenster (Revision zählt auch diese).
 - [ ] Tab im Hintergrund: keine Abfragen (Netzwerk-Tab der Entwicklerwerkzeuge).
 
 ## 7. Allgemein
