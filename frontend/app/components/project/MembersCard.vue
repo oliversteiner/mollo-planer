@@ -3,6 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { memberCandidatesQuery, removeProjectMemberMutation, setProjectMemberMutation } from '~/graphql/settings'
 import type { NamedRole } from '~/composables/useRoles'
 import { classifyApolloError } from '~/utils/api'
+import { assignableRoles, isOwnershipRole } from '~/utils/role-rights'
 
 /**
  * Members and their roles. Who may grant or take the owner role, and that
@@ -19,8 +20,28 @@ const toast = useToast()
 const { viewer } = useViewer()
 
 /** The project roles come from the backend (shipped ones and those made in the settings). */
-const { items: roleItems, defaultKey: defaultRole } = useRoles('PROJECT')
+const { roles, defaultKey: defaultRole } = useRoles('PROJECT')
 const roleName = useRoleName()
+const { project, can } = useProject()
+
+/**
+ * Roles with project.delete or owner.manage are offered only to people with
+ * owner.manage (§7.4, docs/fix-m1-abnahme.md F3.9); the current role of a
+ * member is always shown.
+ */
+function roleItemsFor(currentKey?: string): { label: string, value: string }[] {
+  return assignableRoles(roles.value, project.value?.viewerRights ?? [], currentKey)
+    .map(role => ({ label: roleName(role), value: role.key }))
+}
+
+const newRoleItems = computed(() => roleItemsFor())
+
+/** A member with an ownership role is changed only with owner.manage. */
+function mayChangeRole(roleKey: string): boolean {
+  const role = roles.value.find(entry => entry.key === roleKey)
+
+  return can('OWNER_MANAGE') || !role || !isOwnershipRole(role)
+}
 
 const sortedMembers = computed(() => [...props.members].sort((a, b) => a.user.name.localeCompare(b.user.name)))
 
@@ -133,8 +154,8 @@ async function confirmRemove(): Promise<void> {
         <FormSelect
           v-if="canManage"
           :model-value="member.role.key"
-          :items="roleItems"
-          :disabled="pending"
+          :items="roleItemsFor(member.role.key)"
+          :disabled="pending || !mayChangeRole(member.role.key)"
           :label="t('settings.members.roleOf', { name: member.user.name })"
           hide-label
           class="members-role"
@@ -175,7 +196,7 @@ async function confirmRemove(): Promise<void> {
       />
       <FormSelect
         v-model="newMember.role"
-        :items="roleItems"
+        :items="newRoleItems"
         :label="t('settings.members.role')"
         class="members-role"
       />

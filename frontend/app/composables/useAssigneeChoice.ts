@@ -11,20 +11,32 @@ interface Member {
 /**
  * The choice "assignee" of a task (docs/fix-m1-mitglieder.md §2.3): the
  * members first and, for people who may manage the members, everybody else
- * below; choosing one of them takes the person into the project.
+ * below; choosing one of them takes the person into the project. Who may
+ * only assign themselves (task.assignSelf without task.assign) sees only
+ * themselves (docs/fix-m1-abnahme.md F3.9).
  */
 export function useAssigneeChoice(members: () => readonly Member[]) {
   const { t } = useI18n()
   const toast = useToast()
   const { projectId, can } = useProject()
+  const { viewer } = useViewer()
   const roleName = useRoleName()
   const { roles } = useRoles('PROJECT')
 
   const canBringIn = computed(() => can('MEMBERS_MANAGE'))
   const { result } = useQuery(memberCandidatesQuery, () => ({ projectId: projectId.value }), () => ({ enabled: canBringIn.value }))
 
+  const onlySelf = computed(() => !can('TASK_ASSIGN'))
+
   const groups = computed<PersonGroup[]>(() => {
-    const own: PersonGroup = { label: t('task.assigneeGroups.members'), people: members().map(member => ({ ...member })) }
+    const people = onlySelf.value
+      ? members().filter(member => member.id === viewer.value?.id)
+      : members()
+    const own: PersonGroup = { label: t('task.assigneeGroups.members'), people: people.map(member => ({ ...member })) }
+
+    if (onlySelf.value) {
+      return [own]
+    }
 
     if (!canBringIn.value) {
       return [own]
@@ -38,7 +50,13 @@ export function useAssigneeChoice(members: () => readonly Member[]) {
     return [own, { label: t('task.assigneeGroups.others'), people: others }]
   })
 
-  const hint = computed(() => (canBringIn.value ? undefined : t('task.onlyMembers')))
+  const hint = computed(() => {
+    if (onlySelf.value) {
+      return t('task.onlySelf')
+    }
+
+    return canBringIn.value ? undefined : t('task.onlyMembers')
+  })
 
   /** Asked before saving: the members are loaded again afterwards. */
   function willJoin(userId: string | null): boolean {

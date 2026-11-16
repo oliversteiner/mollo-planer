@@ -370,6 +370,7 @@
       "others": "Weitere Personen (werden Mitglied)"
     },
     "onlyMembers": "Nur Projektmitglieder lassen sich zuweisen.",
+    "onlySelf": "Du kannst Tasks nur dir selbst zuweisen.",
     "joined": "{name} ist jetzt Mitglied (Rolle {role})."
   },
   "comments": {

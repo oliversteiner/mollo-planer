@@ -370,6 +370,7 @@
       "others": "Other people (will join)"
     },
     "onlyMembers": "Only project members can be assigned.",
+    "onlySelf": "You can assign tasks only to yourself.",
     "joined": "{name} is a member now (role {role})."
   },
   "comments": {
