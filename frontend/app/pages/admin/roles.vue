@@ -183,6 +183,14 @@ const shownRoles = computed(() => filterRoles(scopeRoles.value, scopeFunctions.v
 const shownFunctions = computed(() => filterFunctions(scopeFunctions.value, state.value.filter, rightText))
 const shownMatrix = computed(() => filterMatrix(scopeMatrix.value, scopeRoles.value, state.value.filter, rightText))
 
+/** Hints under the system overview, with the names of the roles they are about (F3.10). */
+const manageAnyRoles = computed(() => {
+  const keys = (matrixResult.value?.permissionMatrix.system ?? []).find(row => row.right === 'PROJECTS_MANAGE_ANY')?.roles.map(role => role.key) ?? []
+
+  return roles.value.filter(role => role.scope === 'SYSTEM' && keys.includes(role.key))
+})
+const readOnlyRoles = computed(() => roles.value.filter(role => role.scope === 'SYSTEM' && role.projectCap?.length === 0))
+
 /** "3 of 9": what the current view shows of all of the scope. */
 const counts = computed(() => {
   switch (state.value.view) {
@@ -339,6 +347,8 @@ function create(): void {
             :rows="shownMatrix.rows"
             :roles="shownMatrix.roles"
             :query="state.filter.q"
+            :manage-any-roles="manageAnyRoles"
+            :read-only-roles="readOnlyRoles"
           />
         </div>
       </wa-tab-panel>

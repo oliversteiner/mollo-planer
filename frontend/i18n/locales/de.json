@@ -1367,8 +1367,9 @@
     "projectHint": "Gelten innerhalb eines Projekts, je nach Projektrolle.",
     "yes": "ja",
     "no": "nein",
-    "readOnly": "Die Rolle „lesend“ darf nichts ändern, auch nicht als Owner in einem Projekt.",
-    "admin": "Die Rolle „Administration“ darf alles, auch in Projekten, in denen sie kein Mitglied ist.",
+    "readOnly": "Die Rolle {roles} darf nichts ändern, auch nicht als Owner in einem Projekt. | Die Rollen {roles} dürfen nichts ändern, auch nicht als Owner in einem Projekt.",
+    "admin": "Die Rolle {roles} darf alles, auch in Projekten, in denen sie kein Mitglied ist. | Die Rollen {roles} dürfen alles, auch in Projekten, in denen sie kein Mitglied sind.",
+    "quoted": "„{name}“",
     "role": "Rolle",
     "right": "Recht",
     "names": {

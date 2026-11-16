@@ -1367,8 +1367,9 @@
     "projectHint": "Apply inside a project, depending on the project role.",
     "yes": "yes",
     "no": "no",
-    "readOnly": "The role “read only” may change nothing, not even as owner of a project.",
-    "admin": "The role “administration” may do everything, also in projects it is not a member of.",
+    "readOnly": "The role {roles} may change nothing, not even as owner of a project. | The roles {roles} may change nothing, not even as owner of a project.",
+    "admin": "The role {roles} may do everything, also in projects it is not a member of. | The roles {roles} may do everything, also in projects they are not members of.",
+    "quoted": "“{name}”",
     "role": "Role",
     "right": "Right",
     "names": {

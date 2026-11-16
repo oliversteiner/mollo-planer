@@ -27,6 +27,14 @@ describe('FormInput', () => {
     expect(field(input).required).toBe(true)
   })
 
+  it('gives date fields an empty placeholder, so the label stays above the browser placeholder', async () => {
+    const date = await mountSuspended(FormInput, { props: { modelValue: '', label: 'Fällig' }, attrs: { type: 'date' } })
+    const text = await mountSuspended(FormInput, { props: { modelValue: '', label: 'Titel' }, attrs: { type: 'text' } })
+
+    expect(date.element.getAttribute('placeholder')).toBe('')
+    expect(text.element.hasAttribute('placeholder')).toBe(false)
+  })
+
   it('writes what the user types back with v-model', async () => {
     const input = await mountSuspended(FormInput, { props: { modelValue: '' } })
 

@@ -6,15 +6,28 @@ import type { MatrixRow, RoleScopeKey } from '~/composables/useRoleFilters'
  * its own page, now /admin/roles?view=matrix). Read from the backend, the same rules the policies use.
  * The table scrolls sideways in its frame; the column of the rights stays.
  */
-defineProps<{
+type NamedRole = { key: string, names: { de: string, en: string } }
+
+const props = defineProps<{
   scope: RoleScopeKey
   rows: readonly MatrixRow[]
-  roles: readonly { key: string, names: { de: string, en: string } }[]
+  roles: readonly NamedRole[]
   query: string
+  /** System roles that may act in every project, and those that only read: named in the hints. */
+  manageAnyRoles?: readonly NamedRole[]
+  readOnlyRoles?: readonly NamedRole[]
 }>()
 
 const { t } = useI18n()
 const roleName = useRoleName()
+
+/** „Administration“, „Lesend“: the names from the backend, quoted. */
+function quoted(roles: readonly NamedRole[]): string {
+  return roles.map(role => t('rights.quoted', { name: roleName(role) })).join(', ')
+}
+
+const manageAnyHint = computed(() => (props.manageAnyRoles?.length ? t('rights.admin', { roles: quoted(props.manageAnyRoles) }, props.manageAnyRoles.length) : null))
+const readOnlyHint = computed(() => (props.readOnlyRoles?.length ? t('rights.readOnly', { roles: quoted(props.readOnlyRoles) }, props.readOnlyRoles.length) : null))
 
 function has(row: MatrixRow, role: { key: string }): boolean {
   return row.roles.some(other => other.key === role.key)
@@ -77,11 +90,15 @@ function has(row: MatrixRow, role: { key: string }): boolean {
       </table>
     </div>
     <wa-callout
-      v-if="scope === 'SYSTEM'"
+      v-if="scope === 'SYSTEM' && (manageAnyHint || readOnlyHint)"
       variant="neutral"
     >
-      <p>{{ t('rights.admin') }}</p>
-      <p>{{ t('rights.readOnly') }}</p>
+      <p v-if="manageAnyHint">
+        {{ manageAnyHint }}
+      </p>
+      <p v-if="readOnlyHint">
+        {{ readOnlyHint }}
+      </p>
     </wa-callout>
   </div>
 </template>
@@ -93,11 +110,22 @@ function has(row: MatrixRow, role: { key: string }): boolean {
   font-size: var(--wa-font-size-s);
 }
 
+/*
+ * Scrolls sideways in its frame. A shadow at the right edge shows that more
+ * columns follow (scroll bars are hidden on macOS, docs/fix-m1-abnahme.md
+ * F3.10): the covers move with the content, the shadow stays at the edge.
+ */
 .rights-matrix-scroll {
+  --rights-matrix-cover: var(--wa-color-surface-default);
+  --rights-matrix-shadow: color-mix(in oklab, var(--wa-color-text-normal) 25%, transparent);
+
   overflow-x: auto;
   border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
   border-radius: var(--wa-border-radius-l);
-  background-color: var(--wa-color-surface-default);
+  background:
+    linear-gradient(to left, var(--rights-matrix-cover) 30%, transparent) right center / var(--wa-space-2xl) 100% no-repeat local,
+    radial-gradient(farthest-side at 100% 50%, var(--rights-matrix-shadow), transparent) right center / var(--wa-space-s) 100% no-repeat scroll,
+    var(--rights-matrix-cover);
 }
 
 .rights-matrix {

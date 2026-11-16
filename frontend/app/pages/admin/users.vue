@@ -167,7 +167,10 @@ function factorLabel(user: User): string {
       v-model="query"
       :placeholder="t('settings.members.search')"
       type="search"
+      name="people-filter"
       autocomplete="off"
+      data-1p-ignore
+      data-lpignore="true"
       :label="t('settings.members.search')"
       hide-label
       class="users-search"
