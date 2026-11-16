@@ -19,6 +19,9 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 - [ ] Ohne `roles.manage` (z. B. als Ben) ist `/admin/roles` nicht im Menü und beim direkten Aufruf gesperrt.
 - [ ] `/admin/roles` (auch Übersicht) nur mit `roles.manage`, `/admin/settings` nur mit `settings.manage` erreichbar (Menü und direkter Aufruf).
 - [ ] Ersteller-Rolle (`/admin/settings`): Auswahl bietet nur Projektrollen mit „Projekt löschen“ an.
+- [ ] Projekteinstellungen > Mitglieder: ein Feld „Person“ zeigt sofort alle freigegebenen Personen; Mitglieder stehen deaktiviert mit „bereits Mitglied“ (Fix F2).
+- [ ] Neues Projekt: Mitglieder mit Rolle gleich im Dialog wählen; Anna bleibt mit der Ersteller-Rolle (Fix F2).
+- [ ] Task zuweisen als Anna: „Weitere Personen (werden Mitglied)“ wählbar, die Person ist danach Mitglied mit Standardrolle. Als Ben (ohne Mitglieder verwalten) nur Mitglieder (Fix F2).
 
 ## 2. Grundregeln (dürfen nicht aushebelbar sein)
 
