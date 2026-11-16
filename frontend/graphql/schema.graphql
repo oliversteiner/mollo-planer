@@ -51,6 +51,8 @@ input CreateProjectInput {
  description: String
  icon: String
  locale: Locale = DE
+ "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
+ members: [ProjectMemberInput!]
  name: String!
 }
 input CreateRoleFunctionInput {
@@ -394,6 +396,12 @@ type Project {
 type ProjectMember {
  role: Role!
  user: User!
+}
+"Ein Mitglied beim Anlegen eines Projekts"
+input ProjectMemberInput {
+ "Schlüssel einer Projektrolle (siehe roles)"
+ role: String!
+ userId: ID!
 }
 type ProjectPlan {
  description: String

@@ -19,4 +19,7 @@ return [
         'duplicate_task' => 'The task “:subject” already exists in “:detail”. Nothing was created.',
         'duplicate_todo' => 'The todo “:subject” already exists in the milestone “:detail”. Nothing was created.',
     ],
+    'member_twice' => 'This person is in the list already.',
+    'member_unknown' => 'This person does not exist or has not been approved yet.',
+    'member_role_refused' => 'You may not give this role here.',
 ];

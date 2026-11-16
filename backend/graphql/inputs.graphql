@@ -23,6 +23,15 @@ input CreateProjectInput {
   description: String
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale = DE
+  "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
+  members: [ProjectMemberInput!]
+}
+
+"Ein Mitglied beim Anlegen eines Projekts"
+input ProjectMemberInput {
+  userId: ID!
+  "Schlüssel einer Projektrolle (siehe roles)"
+  role: String! @rules(apply: ["max:64"])
 }
 
 input UpdateProjectInput {

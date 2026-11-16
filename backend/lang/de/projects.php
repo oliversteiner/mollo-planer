@@ -19,4 +19,7 @@ return [
         'duplicate_task' => 'Die Aufgabe „:subject“ gibt es in „:detail“ schon. Es wurde nichts angelegt.',
         'duplicate_todo' => 'Das ToDo „:subject“ gibt es im Milestone „:detail“ schon. Es wurde nichts angelegt.',
     ],
+    'member_twice' => 'Diese Person steht schon in der Liste.',
+    'member_unknown' => 'Diese Person gibt es nicht oder sie ist noch nicht freigegeben.',
+    'member_role_refused' => 'Diese Rolle darfst du hier nicht vergeben.',
 ];

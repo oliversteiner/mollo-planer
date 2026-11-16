@@ -172,7 +172,10 @@
       "open": "Projekt anlegen",
       "title": "Neues Projekt",
       "submit": "Anlegen",
-      "done": "Projekt «{name}» angelegt."
+      "done": "Projekt «{name}» angelegt.",
+      "members": "Mitglieder (optional)",
+      "membersHint": "Weitere Personen gleich mit ihrer Rolle aufnehmen. Später geht das auch unter „Mitglieder“.",
+      "inList": "schon in der Liste"
     },
     "fields": {
       "name": "Name",

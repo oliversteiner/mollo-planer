@@ -266,7 +266,7 @@ class RightsGroundRulesTest extends TestCase
         $creator = User::factory()->role(UserRole::KOORDINATION)->create();
         $this->actingAs($creator);
 
-        $project = (new CreateProject)(null, ['name' => 'Made by a coordinator']);
+        $project = app(CreateProject::class)(null, ['name' => 'Made by a coordinator']);
 
         $this->assertSame(ProjectRole::MANAGER->value, $project->roleOf($creator)?->key);
     }

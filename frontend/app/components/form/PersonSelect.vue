@@ -45,10 +45,22 @@ function onChange(event: Event): void {
 }
 
 const hasPeople = computed(() => props.groups.some(group => group.people.length > 0))
+
+/**
+ * The combobox keeps its typed text when its value is emptied from outside
+ * (for example after "add"); a new element starts empty.
+ */
+const resetKey = ref(0)
+watch(model, (value, previous) => {
+  if (!value && previous) {
+    resetKey.value += 1
+  }
+})
 </script>
 
 <template>
   <wa-combobox
+    :key="resetKey"
     :value="model ?? ''"
     :label="label"
     :class="{ 'wa-visually-hidden-label': hideLabel }"

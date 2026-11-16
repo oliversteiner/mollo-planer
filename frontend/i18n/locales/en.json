@@ -172,7 +172,10 @@
       "open": "New project",
       "title": "New project",
       "submit": "Create",
-      "done": "Project “{name}” created."
+      "done": "Project “{name}” created.",
+      "members": "Members (optional)",
+      "membersHint": "Add more people with their role right away. You can also do this later under “Members”.",
+      "inList": "in the list already"
     },
     "fields": {
       "name": "Name",

@@ -26,6 +26,8 @@ export type CreateProjectInput = {
   description?: string | null | undefined;
   icon?: string | null | undefined;
   locale?: Locale | null | undefined;
+  /** Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht. */
+  members?: Array<ProjectMemberInput> | null | undefined;
   name: string;
 };
 
@@ -130,6 +132,13 @@ export type PlanChatMessageInput = {
 export type PlanChatRole =
   | 'ASSISTANT'
   | 'USER';
+
+/** Ein Mitglied beim Anlegen eines Projekts */
+export type ProjectMemberInput = {
+  /** Schlüssel einer Projektrolle (siehe roles) */
+  role: string;
+  userId: string | number;
+};
 
 export type ProjectPlanInput = {
   description?: string | null | undefined;
