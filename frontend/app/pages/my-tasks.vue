@@ -26,9 +26,16 @@ const { result, loading } = useQuery(myTasksQuery, () => withoutNulls({
 const project = ref<string | null>(null)
 const projects = computed(() => projectOptions(result.value?.myTasks ?? [], task => task.todo.milestone.project))
 
+/**
+ * Ideas are hidden unless switched on (docs/fix-m1-abnahme.md F3.6), or
+ * chosen in the status filter. Planned tasks stay.
+ */
+const showIdeas = useStoredSwitch('mollo.myTasks.showIdeas')
+
 /** By due date (without date last), then by title. */
 const tasks = computed(() => [...filterByProject(result.value?.myTasks ?? [], project.value, task => task.todo.milestone.project.id)]
   .filter(task => filter.value !== 'open' || task.status !== 'DONE')
+  .filter(task => showIdeas.value || filter.value === 'IDEA' || task.status !== 'IDEA')
   .sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || a.title.localeCompare(b.title)))
 
 /** The shown (filtered) tasks in the form the share functions expect. */
@@ -67,6 +74,10 @@ const shareTasks = computed<ShareTask[]>(() => tasks.value.map(task => ({
         hide-label
         class="my-tasks-filter"
         @update:model-value="filter = $event as typeof filter"
+      />
+      <FormSwitch
+        v-model="showIdeas"
+        :label="t('myTasks.showIdeas')"
       />
     </template>
 

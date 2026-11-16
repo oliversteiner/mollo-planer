@@ -385,7 +385,8 @@
   "myTasks": {
     "title": "Meine Tasks",
     "notDone": "Nicht erledigt",
-    "none": "Keine Tasks."
+    "none": "Keine Tasks.",
+    "showIdeas": "Ideen anzeigen"
   },
   "profile": {
     "title": "Profil",

@@ -385,7 +385,8 @@
   "myTasks": {
     "title": "My tasks",
     "notDone": "Not done",
-    "none": "No tasks."
+    "none": "No tasks.",
+    "showIdeas": "Show ideas"
   },
   "profile": {
     "title": "Profile",
