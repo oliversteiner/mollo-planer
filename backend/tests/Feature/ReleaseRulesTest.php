@@ -73,6 +73,47 @@ class ReleaseRulesTest extends TestCase
         $this->refusedWith(fn () => $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]), 'input.releaseStatus');
     }
 
+    /**
+     * @return list<string>
+     */
+    private function releaseMessages(): array
+    {
+        try {
+            $this->milestone->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]);
+        } catch (ValidationException $error) {
+            $this->milestone->refresh();
+
+            return $error->errors()['input.releaseStatus'];
+        }
+
+        $this->fail('Expected the release to be refused.');
+    }
+
+    public function test_the_messages_name_the_tasks_by_reason_with_the_status_of_ideas_and_planned_ones(): void
+    {
+        Task::factory()->for($this->todo)->create(['title' => 'Mockup Desktop', 'status' => TaskStatus::OPEN]);
+        Task::factory()->for($this->todo)->create(['title' => 'Task Idee', 'status' => TaskStatus::IDEA]);
+        Task::factory()->for($this->todo)->create(['title' => 'Farben festlegen', 'status' => TaskStatus::DONE, 'commit' => null]);
+        Task::factory()->for($this->todo)->create(['title' => 'Logo', 'status' => TaskStatus::DONE, 'commit' => 'none']);
+
+        $this->assertSame([
+            'Noch nicht erledigt: Mockup Desktop, Task Idee (Idee). Erledige sie oder verschiebe sie in einen anderen Milestone.',
+            'Ohne Commit: Farben festlegen. Trage einen Commit oder „none“ ein.',
+        ], $this->releaseMessages());
+    }
+
+    public function test_the_messages_name_at_most_five_tasks(): void
+    {
+        foreach (range(1, 8) as $number) {
+            Task::factory()->for($this->todo)->create(['title' => "Task {$number}", 'status' => TaskStatus::OPEN]);
+        }
+
+        $this->assertSame(
+            ['Noch nicht erledigt: Task 1, Task 2, Task 3, Task 4, Task 5 und 3 weitere. Erledige sie oder verschiebe sie in einen anderen Milestone.'],
+            $this->releaseMessages(),
+        );
+    }
+
     public function test_done_tasks_of_a_released_version_need_a_commit_or_none(): void
     {
         Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'commit' => null]);

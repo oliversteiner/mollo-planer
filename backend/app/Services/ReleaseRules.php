@@ -6,7 +6,6 @@ use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Models\Milestone;
 use App\Models\Task;
-use App\Models\Todo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -20,6 +19,9 @@ final class ReleaseRules
     private const VERSION = '/^\d+\.\d+$/';
 
     private const HASH = '/^[a-z0-9]{7,40}$/';
+
+    /** How many task titles a message names. */
+    private const LISTED = 5;
 
     /**
      * @throws ValidationException
@@ -39,18 +41,63 @@ final class ReleaseRules
         }
 
         if ($status === ReleaseStatus::RELEASED && $milestone->exists) {
-            $tasks = Task::query()->whereIn('todo_id', Todo::query()->where('milestone_id', $milestone->getKey())->select('id'));
+            $messages = self::releaseBlockers($milestone);
 
-            if ($tasks->clone()->where('status', '!=', TaskStatus::DONE->value)->exists()) {
-                $errors['input.releaseStatus'] = __('release.not_done');
-            } elseif ($tasks->clone()->where('status', TaskStatus::DONE->value)->whereNull('commit')->exists()) {
-                $errors['input.releaseStatus'] = __('release.commit_missing');
+            if ($messages !== []) {
+                $errors['input.releaseStatus'] = $messages;
             }
         }
 
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
         }
+    }
+
+    /**
+     * Why the milestone cannot be released, one message per reason, each
+     * naming the tasks (docs/fix-m1-abnahme.md F3.8).
+     *
+     * @return list<string>
+     */
+    private static function releaseBlockers(Milestone $milestone): array
+    {
+        $tasks = Task::query()
+            ->join('todos', 'todos.id', '=', 'tasks.todo_id')
+            ->where('todos.milestone_id', $milestone->getKey())
+            ->orderBy('todos.position')
+            ->orderBy('tasks.id')
+            ->get(['tasks.title', 'tasks.status', 'tasks.commit']);
+
+        $messages = [];
+
+        $open = $tasks->filter(fn (Task $task): bool => $task->status !== TaskStatus::DONE)
+            ->map(fn (Task $task): string => in_array($task->status, [TaskStatus::IDEA, TaskStatus::PLANNED], true)
+                ? $task->title.' ('.__('release.status.'.$task->status->value).')'
+                : $task->title);
+        if ($open->isNotEmpty()) {
+            $messages[] = __('release.not_done', ['tasks' => self::listOf($open->values()->all())]);
+        }
+
+        $withoutCommit = $tasks->filter(fn (Task $task): bool => $task->status === TaskStatus::DONE && $task->commit === null)
+            ->map(fn (Task $task): string => $task->title);
+        if ($withoutCommit->isNotEmpty()) {
+            $messages[] = __('release.commit_missing_tasks', ['tasks' => self::listOf($withoutCommit->values()->all())]);
+        }
+
+        return $messages;
+    }
+
+    /**
+     * At most five titles, then "and 3 more".
+     *
+     * @param  list<string>  $titles
+     */
+    private static function listOf(array $titles): string
+    {
+        $shown = implode(', ', array_slice($titles, 0, self::LISTED));
+        $more = count($titles) - self::LISTED;
+
+        return $more > 0 ? __('release.and_more', ['list' => $shown, 'count' => $more]) : $shown;
     }
 
     /**
