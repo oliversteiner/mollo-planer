@@ -9,49 +9,49 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 
 ## 1. Rollen, Funktionen, Rechte (`/admin/roles`)
 
-- [ ] Als Anna `/admin/roles` öffnen: Reiter System | Projekt, je Reiter Rollen / Funktionen / Übersicht als kompakte Zeilen, Namen in DE und EN (Fix F1).
-- [ ] Ansicht Übersicht zeigt die Standardbelegung (Owner, Manager, Mitglied, Gast; Admin, Projektleitung, Koordination, Mitglied, Lesend). `/system/rechte` leitet dorthin um.
-- [ ] Filter: Textsuche, Mitgeliefert/Eigene, „Hat Recht …“, In Gebrauch/ungenutzt wirken in allen drei Ansichten; Zustand bleibt nach Neuladen (URL).
+- [x] ✅ Als Anna `/admin/roles` öffnen: Reiter System | Projekt, je Reiter Rollen / Funktionen / Übersicht als kompakte Zeilen, Namen in DE und EN (Fix F1).
+- [ ] ❌ Ansicht Übersicht zeigt die Standardbelegung (Owner, Manager, Mitglied, Gast; Admin, Projektleitung, Koordination, Mitglied, Lesend). `/system/rechte` leitet dorthin um. → F3
+- [x] ✅ Filter: Textsuche, Mitgeliefert/Eigene, „Hat Recht …“, In Gebrauch/ungenutzt wirken in allen drei Ansichten; Zustand bleibt nach Neuladen (URL).
 - [ ] Eigene Projektrolle „Redaktion“ anlegen mit den Funktionen „Planen“ und „Mitarbeiten“. Ben in einem Projekt diese Rolle geben. Ben kann ToDos und eigene Tasks anlegen, aber keine fremden Tasks löschen.
 - [ ] Eigene Funktion anlegen, einer Rolle zuordnen, wieder entfernen. Löschen einer Funktion, die noch eine Rolle nutzt, wird verhindert.
 - [ ] „Standard wiederherstellen“ bei einer geänderten mitgelieferten Rolle stellt die Standardbelegung her.
 - [ ] Ersteller-Rolle in den Einstellungen festlegen. Ein neues Projekt (als Person mit `projects.create`) gibt dem Ersteller diese Rolle.
-- [ ] Ohne `roles.manage` (z. B. als Ben) ist `/admin/roles` nicht im Menü und beim direkten Aufruf gesperrt.
-- [ ] `/admin/roles` (auch Übersicht) nur mit `roles.manage`, `/admin/settings` nur mit `settings.manage` erreichbar (Menü und direkter Aufruf).
-- [ ] Ersteller-Rolle (`/admin/settings`): Auswahl bietet nur Projektrollen mit „Projekt löschen“ an.
-- [ ] Projekteinstellungen > Mitglieder: ein Feld „Person“ zeigt sofort alle freigegebenen Personen; Mitglieder stehen deaktiviert mit „bereits Mitglied“ (Fix F2).
-- [ ] Neues Projekt: Mitglieder mit Rolle gleich im Dialog wählen; Anna bleibt mit der Ersteller-Rolle (Fix F2).
-- [ ] Task zuweisen als Anna: „Weitere Personen (werden Mitglied)“ wählbar, die Person ist danach Mitglied mit Standardrolle. Als Ben (ohne Mitglieder verwalten) nur Mitglieder (Fix F2).
+- [x] ✅ Ohne `roles.manage` (z. B. als Ben) ist `/admin/roles` nicht im Menü und beim direkten Aufruf gesperrt.
+- [x] ✅ `/admin/roles` (auch Übersicht) nur mit `roles.manage`, `/admin/settings` nur mit `settings.manage` erreichbar (Menü und direkter Aufruf).
+- [ ] ❌ Ersteller-Rolle (`/admin/settings`): Auswahl bietet nur Projektrollen mit „Projekt löschen“ an. → F3
+- [x] ✅ Projekteinstellungen > Mitglieder: ein Feld „Person“ zeigt sofort alle freigegebenen Personen; Mitglieder stehen deaktiviert mit „bereits Mitglied“ (Fix F2).
+- [ ] ❌ Neues Projekt: Mitglieder mit Rolle gleich im Dialog wählen; Anna bleibt mit der Ersteller-Rolle (Fix F2). → F3
+- [x] ✅ Task zuweisen als Anna: „Weitere Personen (werden Mitglied)“ wählbar, die Person ist danach Mitglied mit Standardrolle. Als Ben (ohne Mitglieder verwalten) nur Mitglieder (Fix F2).
 
 ## 2. Grundregeln (dürfen nicht aushebelbar sein)
 
-- [ ] Anna kann sich `users.manage`/`roles.manage` nicht selbst entziehen (Rolle ändern auf sich selbst wird abgelehnt).
+- [x] ✅ Anna kann sich `users.manage`/`roles.manage` nicht selbst entziehen (Rolle ändern auf sich selbst wird abgelehnt).
 - [ ] Der letzten Person mit `users.manage`/`roles.manage` lässt sich die Rolle nicht wegnehmen.
-- [ ] Im Projekt: Die letzte Person mit „Projekt löschen“ lässt sich nicht entfernen oder herabstufen (auch wenn ihre Rolle eine eigene Rolle mit diesem Recht ist, nicht „Owner“).
-- [ ] Nur wer `owner.manage` hat, kann eine Rolle mit „Projekt löschen“ vergeben.
-- [ ] Systemrolle „Lesend“: Person ist Owner eines Projekts und kann dort trotzdem nichts ändern (Obergrenze).
-- [ ] Projektrolle „Gast“: sieht das Projekt, kann nichts ändern, nicht kommentieren.
-- [ ] Mitglied: legt einen Task an, ändert ihn, weist ihn sich selbst zu; einen fremden Task kann es nicht ändern; einen eigenen Task kann es nicht einer anderen Person zuweisen.
+- [x] ✅ Im Projekt: Die letzte Person mit „Projekt löschen“ lässt sich nicht entfernen oder herabstufen (auch wenn ihre Rolle eine eigene Rolle mit diesem Recht ist, nicht „Owner“).
+- [x] ✅ Nur wer `owner.manage` hat, kann eine Rolle mit „Projekt löschen“ vergeben.
+- [x] ✅ Systemrolle „Lesend“: Person ist Owner eines Projekts und kann dort trotzdem nichts ändern (Obergrenze).
+- [x] ✅ Projektrolle „Gast“: sieht das Projekt, kann nichts ändern, nicht kommentieren.
+- [x] ✅ Mitglied: legt einen Task an, ändert ihn, weist ihn sich selbst zu; einen fremden Task kann es nicht ändern; einen eigenen Task kann es nicht einer anderen Person zuweisen.
 - [ ] Fremde Kommentare: niemand kann sie ändern, auch Anna nicht.
 
 ## 3. Tätigkeit
 
-- [ ] Profil und Benutzerverwaltung zeigen „Tätigkeit“ (EN „Activity“), nicht mehr „Funktion“.
+- [x] ✅ Profil und Benutzerverwaltung zeigen „Tätigkeit“ (EN „Activity“), nicht mehr „Funktion“.
 
 ## 4. Task-Status `idea` und `planned`
 
-- [ ] Kanban zeigt sechs Spalten in der Reihenfolge Idee, Geplant, Offen, In Arbeit, Prüfung, Erledigt.
-- [ ] Schalter „Ideen und Geplantes anzeigen“ blendet die zwei Spalten aus und bleibt nach dem Neuladen gleich.
-- [ ] Ein ToDo mit einem erledigten Task und einem Task in „Idee“ ist erledigt; der Fortschritt zählt die Idee nicht.
-- [ ] „Meine Tasks“ und Dashboard zeigen unter „offen“ keine Ideen, aber geplante Tasks.
+- [x] ✅ Kanban zeigt sechs Spalten in der Reihenfolge Idee, Geplant, Offen, In Arbeit, Prüfung, Erledigt.
+- [x] ✅ Schalter „Ideen und Geplantes anzeigen“ blendet die zwei Spalten aus und bleibt nach dem Neuladen gleich.
+- [x] ✅ Ein ToDo mit einem erledigten Task und einem Task in „Idee“ ist erledigt; der Fortschritt zählt die Idee nicht.
+- [ ] ❌ „Meine Tasks“ und Dashboard zeigen unter „offen“ keine Ideen, aber geplante Tasks. → F3
 - [ ] Zuweisungs-Mail: Ein zugewiesener Task in „Idee“ schickt keine Mail (Mailpit). Wechsel auf „Geplant“ schickt sie dann.
 
 ## 5. Release und Commit (S3b)
 
-- [ ] Milestone bekommt Version `1.4` und Status „geplant“; der Zeitstrahl zeigt die Version.
-- [ ] Auf „veröffentlicht“ setzen geht nur, wenn alle Tasks erledigt sind und jeder erledigte Task einen Commit oder „ohne“ hat. Die Meldung nennt, was fehlt.
-- [ ] Task-Detail: Commit eintragen (Kurz-Hash sichtbar), ungültiger Hash wird abgelehnt.
-- [ ] Englische Oberfläche zeigt „planned“/„released“ bzw. „none“.
+- [x] ✅ Milestone bekommt Version `1.4` und Status „geplant“; der Zeitstrahl zeigt die Version.
+- [ ] ❌ Auf „veröffentlicht“ setzen geht nur, wenn alle Tasks erledigt sind und jeder erledigte Task einen Commit oder „ohne“ hat. Die Meldung nennt, was fehlt. → F3
+- [x] ✅ Task-Detail: Commit eintragen (Kurz-Hash sichtbar), ungültiger Hash wird abgelehnt.
+- [x] ✅ Englische Oberfläche zeigt „planned“/„released“ bzw. „none“.
 
 ## 6. Revision und Neuladen (S3c, S3f)
 
@@ -64,14 +64,18 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 
 ## 7. Allgemein
 
-- [ ] Hell und dunkel, Deutsch und Englisch auf den neuen Seiten (`/admin/roles`, Task-Detail, Kanban, Milestone-Formular).
+- [x] ✅ Hell und dunkel, Deutsch und Englisch auf den neuen Seiten (`/admin/roles`, Task-Detail, Kanban, Milestone-Formular).
 - [ ] Tastatur: `/admin/roles` vollständig ohne Maus bedienbar, Fokus sichtbar.
 - [ ] Telefonbreite: `/admin/roles` und Kanban ohne seitliches Scrollen der Seite.
-- [ ] Menü zeigt nur Einträge, für die die Person Rechte hat (Ben, Chiara, David vergleichen).
+- [x] ✅ Menü zeigt nur Einträge, für die die Person Rechte hat (Ben, Chiara, David vergleichen).
 
 ---
 
 ## Ergebnis
 
+- Teilabnahme am 2026-11-16 (Oliver und Claude in Chrome). 26 von 41 Punkten geprüft: 21 ✅, 5 ❌. Offene Punkte ohne Zeichen prüft Oliver noch.
 - Abgenommen am: ____ durch: Oliver
 - Offene Punkte (gehen als Fix vor M2 an die Umsetzung):
+  - F1 Rollenseite unübersichtlich (2026-11-16) → `docs/fix-m1-rollenseite.md`, umgesetzt in `bb3c782`, Abschnitt 1 neu prüfen.
+  - F2 Mitglieder: Auswahl zeigt nur Ben (2026-11-16) → `docs/fix-m1-mitglieder.md`, umgesetzt in `3ae8bb3`, `41ef213`, `9e8f503`.
+  - F3 aus der Teilabnahme: `docs/fix-m1-abnahme.md` (Task ohne Zuständige, Ersteller-Rolle, Admin wird nicht Mitglied, Grundregel §7.3 über Systemrolle, Ideen in „Meine Tasks“, Meldungen beim Veröffentlichen, Auswahlen, Kleinigkeiten).

@@ -120,7 +120,7 @@ Diese Regeln schützen vor Aussperren und vor Missbrauch. Sie sind keine Rechte,
 
 1. **Mindestens eine Person** hat die Systemrechte `roles.manage` und `users.manage`. Die letzte Rolle bzw. Person mit diesen Rechten kann nicht entfernt oder herabgestuft werden.
 2. Niemand entzieht **sich selbst** `roles.manage` oder `users.manage`.
-3. **Jedes Projekt** behält mindestens eine Person mit `project.delete` (heute „letzter Owner“). Ausnahme: Personen mit `projects.manageAny`.
+3. **Jedes Projekt** behält unter seinen Mitgliedern mindestens eine Person mit `project.delete` (heute „letzter Owner“), auch nach Änderungen an Systemrollen (Obergrenze) und auch wenn ein Admin handelt. Die Erstellerin wird immer Mitglied mit der Ersteller-Rolle, auch als Admin. Personen mit `projects.manageAny` dürfen in jedem Projekt handeln, aber kein Projekt ohne Owner hinterlassen (geändert 2026-11-16, `docs/fix-m1-abnahme.md` F3.5).
 4. Eine Projektrolle mit `owner.manage`-relevanten Rechten (`project.delete`, `owner.manage`) vergibt oder entzieht nur, wer selbst `owner.manage` hat (oder `projects.manageAny`).
 5. **Fremde Kommentare** ändert niemand. Eigene Kommentare ändern und löschen darf die Autorin oder der Autor, solange sie das Projekt sieht.
 6. **Eigene Tasks** (`task.updateOwn`, `task.assignSelf`): „eigen“ heißt `created_by` = Person; `assignSelf` nur an sich selbst.
