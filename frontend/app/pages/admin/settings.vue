@@ -13,7 +13,10 @@ const settings = computed(() => result.value?.appSettings)
 
 const { mutate, loading } = useMutation(updateAppSettingsMutation)
 const { mutate: mutateCreatorRole, loading: savingCreatorRole } = useMutation(setProjectCreatorRoleMutation)
-const { items: projectRoleItems } = useRoles('PROJECT')
+const roleName = useRoleName()
+const { roles: projectRoles } = useRoles('PROJECT')
+// Only roles that may delete the project: the creator must keep it (§7.3).
+const creatorRoleItems = computed(() => creatorRoles(projectRoles.value).map(role => ({ label: roleName(role), value: role.key })))
 
 const creatorRoleKey = computed({
   get: () => settings.value?.projectCreatorRole.key ?? '',
@@ -97,7 +100,7 @@ async function setTwoFactor(enabled: boolean): Promise<void> {
       <FormSelect
         v-else
         v-model="creatorRoleKey"
-        :items="projectRoleItems"
+        :items="creatorRoleItems"
         :label="t('admin.settings.creatorRoleLabel')"
         :hint="t('admin.settings.creatorRoleHint')"
         :disabled="savingCreatorRole"

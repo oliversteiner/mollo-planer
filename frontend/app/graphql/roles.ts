@@ -9,6 +9,7 @@ export const rolesQuery = graphql(`
       scope
       isDefault
       names { de en }
+      rights
     }
   }
 `)

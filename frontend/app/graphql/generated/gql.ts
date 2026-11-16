@@ -54,7 +54,7 @@ type Documents = {
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": typeof types.SidebarProjectsDocument,
     "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles { key } }\n      project { right roles { key } }\n    }\n  }\n": typeof types.PermissionMatrixDocument,
-    "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n": typeof types.RolesDocument,
+    "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n      rights\n    }\n  }\n": typeof types.RolesDocument,
     "\n  query RoleSettings {\n    roles {\n      id\n      key\n      scope\n      isDefault\n      isStandard\n      names { de en }\n      functions { id key names { de en } }\n      projectCap\n      usageCount\n    }\n    roleFunctions {\n      id\n      key\n      scope\n      isStandard\n      names { de en }\n      rights\n      usageCount\n    }\n    systemRights: rights(scope: SYSTEM)\n    projectRights: rights(scope: PROJECT)\n  }\n": typeof types.RoleSettingsDocument,
     "\n  mutation CreateRole($input: CreateRoleInput!) {\n    createRole(input: $input) { id key names { de en } }\n  }\n": typeof types.CreateRoleDocument,
     "\n  mutation UpdateRole($id: ID!, $input: UpdateRoleInput!) {\n    updateRole(id: $id, input: $input) { id key names { de en } }\n  }\n": typeof types.UpdateRoleDocument,
@@ -132,7 +132,7 @@ const documents: Documents = {
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": types.SidebarProjectsDocument,
     "\n  query PermissionMatrix {\n    permissionMatrix {\n      system { right roles { key } }\n      project { right roles { key } }\n    }\n  }\n": types.PermissionMatrixDocument,
-    "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n": types.RolesDocument,
+    "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n      rights\n    }\n  }\n": types.RolesDocument,
     "\n  query RoleSettings {\n    roles {\n      id\n      key\n      scope\n      isDefault\n      isStandard\n      names { de en }\n      functions { id key names { de en } }\n      projectCap\n      usageCount\n    }\n    roleFunctions {\n      id\n      key\n      scope\n      isStandard\n      names { de en }\n      rights\n      usageCount\n    }\n    systemRights: rights(scope: SYSTEM)\n    projectRights: rights(scope: PROJECT)\n  }\n": types.RoleSettingsDocument,
     "\n  mutation CreateRole($input: CreateRoleInput!) {\n    createRole(input: $input) { id key names { de en } }\n  }\n": types.CreateRoleDocument,
     "\n  mutation UpdateRole($id: ID!, $input: UpdateRoleInput!) {\n    updateRole(id: $id, input: $input) { id key names { de en } }\n  }\n": types.UpdateRoleDocument,
@@ -347,7 +347,7 @@ export function graphql(source: "\n  query PermissionMatrix {\n    permissionMat
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n"): (typeof documents)["\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n    }\n  }\n"];
+export function graphql(source: "\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n      rights\n    }\n  }\n"): (typeof documents)["\n  query Roles($scope: RoleScope) {\n    roles(scope: $scope) {\n      id\n      key\n      scope\n      isDefault\n      names { de en }\n      rights\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
