@@ -5,6 +5,7 @@ namespace Tests\Feature\GraphQL;
 use App\Enums\ProjectRole;
 use App\Models\Project;
 use App\Models\Role;
+use App\Support\Rights;
 
 /**
  * What the global roles change in practice: who creates projects, what a
@@ -36,12 +37,13 @@ class SystemRolesTest extends GraphQLTestCase
             ->assertJsonPath('data.projects.0.name', 'Neues Projekt');
     }
 
-    public function test_an_admin_creates_a_project_without_becoming_a_member(): void
+    public function test_an_admin_creates_a_project_and_becomes_a_member_with_the_creator_role(): void
     {
         $this->as('admin')->gql(self::CREATE)->assertJsonPath('data.createProject.name', 'Neues Projekt');
 
         $project = Project::query()->where('name', 'Neues Projekt')->firstOrFail();
-        $this->assertNull($project->roleOf($this->users['admin']));
+        $this->assertSame(ProjectRole::OWNER->value, $project->roleOf($this->users['admin'])?->key);
+        $this->assertSame(1, Rights::countHolders($project));
     }
 
     public function test_read_only_users_may_change_nothing_even_as_owner(): void

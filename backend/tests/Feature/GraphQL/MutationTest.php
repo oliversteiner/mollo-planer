@@ -23,14 +23,14 @@ class MutationTest extends GraphQLTestCase
 {
     // ─── Projects ────────────────────────────────────────────────
 
-    public function test_only_admins_create_projects_without_becoming_members(): void
+    public function test_admins_create_projects_and_become_members_with_the_creator_role(): void
     {
         $mutation = 'mutation { createProject(input: {name: "Neu", locale: EN}) { name locale viewerRole { key } } }';
 
         $this->assertUnauthorized($this->as('owner')->gql($mutation));
 
         $this->as('admin')->gql($mutation)
-            ->assertJsonPath('data.createProject', ['name' => 'Neu', 'locale' => 'EN', 'viewerRole' => null]);
+            ->assertJsonPath('data.createProject', ['name' => 'Neu', 'locale' => 'EN', 'viewerRole' => ['key' => 'owner']]);
     }
 
     public function test_project_has_an_icon_that_follows_the_icon_rule(): void

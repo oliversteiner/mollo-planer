@@ -3,23 +3,21 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\Locale;
-use App\Enums\Right;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\ProjectMembership;
 use App\Support\AppSettings;
-use App\Support\Rights;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Creates a project (checked by @can: projects.create). Someone who may
- * manage any project does not become a member. Everyone else who creates a
- * project becomes a member with the creator role of the settings (standard:
- * owner), otherwise they could not see it.
+ * Creates a project (checked by @can: projects.create). Whoever creates it
+ * becomes a member with the creator role of the settings (standard: owner),
+ * admins too: every project keeps a member who may delete it
+ * (docs/rollen-funktionen-rechte.md §7.3, docs/fix-m1-abnahme.md F3.3).
  *
  * Further members come in the same transaction, each through
  * ProjectMembership, so the ground rules hold (docs/fix-m1-mitglieder.md §1.2).
@@ -45,11 +43,8 @@ class CreateProject
                 'locale' => $args['locale'] ?? Locale::DE->value,
             ]);
 
-            if ($creator instanceof User && ! Rights::allows($creator, Right::PROJECTS_MANAGE_ANY)) {
-                $project->members()->attach($creator->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
-            }
-
             if ($creator instanceof User) {
+                $project->members()->attach($creator->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
                 $this->addMembers($project, $creator, $args['members'] ?? []);
             }
 

@@ -43,6 +43,18 @@ class CreateProjectMembersTest extends GraphQLTestCase
         $this->assertSame(1, $project->fresh()->planer_revision, 'creating with members is one change');
     }
 
+    public function test_an_admin_in_the_members_is_there_once_with_the_creator_role(): void
+    {
+        $id = $this->create('admin', [
+            ['userId' => $this->users['admin']->id, 'role' => 'guest'],
+            ['userId' => $this->users['member']->id, 'role' => 'member'],
+        ])->assertJsonMissingPath('errors')->json('data.createProject.id');
+
+        $project = Project::findOrFail($id);
+        $this->assertSame('owner', $this->roleIn($project, $this->users['admin']));
+        $this->assertSame(2, $project->members()->count());
+    }
+
     public function test_a_person_twice_is_refused_and_nothing_is_created(): void
     {
         $before = Project::count();

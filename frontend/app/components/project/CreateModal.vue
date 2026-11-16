@@ -28,20 +28,24 @@ const members = ref<NewMember[]>([])
 const person = ref<string | null>(null)
 const personRole = ref('')
 
-const { viewer, can } = useViewer()
+const { viewer } = useViewer()
 const roleName = useRoleName()
 const { items: roleItems, defaultKey: defaultRole } = useRoles('PROJECT')
 const { result: candidatesResult } = useQuery(memberCandidatesQuery, () => ({ projectId: null }), () => ({ enabled: open.value }))
 const { result: settingsResult } = useQuery(appSettingsQuery, null, () => ({ enabled: open.value }))
 
-/** The person who creates the project becomes a member with the creator role, unless they may manage every project. */
-const creatorRole = computed(() => (can('PROJECTS_MANAGE_ANY') ? null : settingsResult.value?.appSettings.projectCreatorRole ?? null))
+/**
+ * The person who creates the project becomes a member with the creator role,
+ * admins too (docs/fix-m1-abnahme.md F3.3): fixed at the top of the list.
+ */
+const creatorRole = computed(() => settingsResult.value?.appSettings.projectCreatorRole ?? null)
 
 const personGroups = computed(() => {
-  const taken = new Set([...members.value.map(member => member.userId), ...(creatorRole.value && viewer.value ? [viewer.value.id] : [])])
+  const taken = new Set(members.value.map(member => member.userId))
 
   return [{
-    people: (candidatesResult.value?.memberCandidates ?? []).map(candidate => ({
+    // The creator is in the list already and cannot be chosen.
+    people: (candidatesResult.value?.memberCandidates ?? []).filter(candidate => candidate.id !== viewer.value?.id).map(candidate => ({
       id: candidate.id,
       name: candidate.name,
       avatarUrl: candidate.avatarUrl,
