@@ -20,9 +20,7 @@ class SetTaskLabels
     {
         return DB::transaction(function () use ($args): Task {
             $task = Task::findOrFail($args['taskId']);
-            $ids = $this->labels->validated($task->owningProject(), $args['labelIds'], $task, 'labelIds');
-
-            $task->labels()->sync($ids);
+            $this->labels->set($task, $args['labelIds'], 'labelIds');
 
             return $task->load('labels');
         });

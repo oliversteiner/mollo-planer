@@ -9,6 +9,7 @@ use App\Enums\UserRole;
 use App\Models\Label;
 use App\Models\LabelSet;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 
 class LabelSetTest extends GraphQLTestCase
@@ -241,6 +242,8 @@ class LabelSetTest extends GraphQLTestCase
 
         $this->as('manager')->gql($mutation, ['in' => ['todoId' => $this->todo->id, 'title' => 'Folge 2', 'labelIds' => [Label::factory()->create()->id]]])
             ->assertGraphQLValidationKeys(['input.labelIds']);
+        // The labels are checked after the task is saved, in the same transaction: nothing stays.
+        $this->assertFalse(Task::where('title', 'Folge 2')->exists());
     }
 
     public function test_label_sets_need_a_login_and_only_some_global_roles_may_create_them(): void

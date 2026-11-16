@@ -7,12 +7,24 @@ use App\Models\Task;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Which labels a task may get: new ones only from the label set of its
- * project. Labels the task already has may stay after the project changed
- * its set (they are shown, but cannot be chosen again).
+ * The only place that writes the labels of a task. New labels come only from
+ * the label set of its project. Labels the task already has may stay after
+ * the project changed its set (they are shown, but cannot be chosen again).
  */
 class TaskLabels
 {
+    /**
+     * Checks the ids and gives the task exactly these labels.
+     *
+     * @param  list<int|string>  $labelIds
+     *
+     * @throws ValidationException
+     */
+    public function set(Task $task, array $labelIds, string $field = 'labelIds'): void
+    {
+        $task->labels()->sync($this->validated($task->owningProject(), $labelIds, $task, $field));
+    }
+
     /**
      * Checks the ids and returns them as integers, without duplicates.
      *
@@ -21,7 +33,7 @@ class TaskLabels
      *
      * @throws ValidationException
      */
-    public function validated(Project $project, array $labelIds, ?Task $task, string $field): array
+    private function validated(Project $project, array $labelIds, Task $task, string $field): array
     {
         $ids = array_values(array_unique(array_map('intval', $labelIds)));
 
@@ -33,9 +45,7 @@ class TaskLabels
             ? collect()
             : $project->labelSet()->firstOrFail()->labels()->pluck('labels.id');
 
-        if ($task !== null) {
-            $allowed = $allowed->merge($task->labels()->pluck('labels.id'));
-        }
+        $allowed = $allowed->merge($task->labels()->pluck('labels.id'));
 
         $allowed = $allowed->map(fn ($id) => (int) $id)->all();
 

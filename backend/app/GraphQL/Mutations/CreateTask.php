@@ -50,8 +50,6 @@ class CreateTask
                 $this->membership->ensureAssignable($project, $assigneeId, 'input.assigneeId');
             }
 
-            $labelIds = $this->labels->validated($project, $args['label_ids'] ?? [], null, 'input.labelIds');
-
             $task = new Task([
                 'title' => $args['title'],
                 'description' => $args['description'] ?? null,
@@ -64,7 +62,8 @@ class CreateTask
             $task->status = TaskStatus::OPEN;
             $task->board_position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
             $task->save();
-            $task->labels()->sync($labelIds);
+            // In the same transaction: refused labels take the new task back.
+            $this->labels->set($task, $args['label_ids'] ?? [], 'input.labelIds');
 
             if ($assigneeId !== null) {
                 $this->notifier->assigned($task, $viewer);
