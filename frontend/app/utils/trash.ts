@@ -15,3 +15,12 @@ export function trashSummary(counts: readonly { type: TrashType, count: number }
     .map(entry => name(entry.type, entry.count))
     .join(', ')
 }
+
+/**
+ * Apollo identifies objects by type and id. The id of a trash entry is the
+ * id of its element, which a task and a comment can share; one entry per
+ * deletion, so the deletion is its key.
+ */
+export const trashTypePolicies = {
+  TrashItem: { keyFields: ['deletionId'] }
+}
