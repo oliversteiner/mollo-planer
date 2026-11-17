@@ -76,6 +76,8 @@ type Project {
   planerRevision: Int! @rename(attribute: "planer_revision")
   "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
   archivedAt: DateTime @rename(attribute: "archived_at")
+  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
+  deletionId: ID @rename(attribute: "deletion_id")
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
   progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
@@ -110,6 +112,8 @@ type Release {
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   project: Project! @belongsTo
   createdBy: User @belongsTo
   "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
@@ -131,6 +135,8 @@ type Milestone {
 "Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
 type Todo {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   milestone: Milestone! @belongsTo
   "Reihenfolge im Milestone, von 0 an. Die ToDos kommen in dieser Reihenfolge."
   position: Int!
@@ -158,6 +164,8 @@ type UserStory {
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
 type Task {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   todo: Todo! @belongsTo
   project: Project! @belongsTo
   createdBy: User @belongsTo
@@ -220,6 +228,8 @@ type Label {
 "Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
 type Comment {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   task: Task! @belongsTo
   "null, wenn die Person inzwischen gelöscht wurde"
   author: User @belongsTo(relation: "author")
@@ -323,4 +333,31 @@ type RoleFunction {
 type LocalizedName {
   de: String!
   en: String!
+}
+
+"Ein Vorgang im Papierkorb: das Element, mit dem das Löschen begann. Die anderen Elemente gingen mit (childCount)."
+type TrashItem {
+  "Kennung des Vorgangs für restoreFromTrash und purgeFromTrash"
+  deletionId: ID!
+  type: TrashItemType!
+  id: ID!
+  "Titel bzw. Name; bei Kommentaren ein Auszug, höchstens 80 Zeichen Klartext"
+  title: String!
+  "Das Projekt, auch wenn es selbst gelöscht ist"
+  project: Project
+  "null, wenn die Person inzwischen gelöscht wurde"
+  deletedBy: User
+  deletedAt: DateTime!
+  "Wie viele weitere Elemente im selben Vorgang"
+  childCount: Int!
+  "Dieselben je Art, zum Beispiel 3 ToDos und 12 Tasks"
+  childCounts: [TrashChildCount!]!
+  viewerCanRestore: Boolean!
+  viewerCanPurge: Boolean!
+}
+
+"Anzahl mitgelöschter Elemente einer Art"
+type TrashChildCount {
+  type: TrashItemType!
+  count: Int!
 }

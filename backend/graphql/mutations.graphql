@@ -239,4 +239,16 @@ type Mutation @guard {
   deleteComment(id: ID! @whereKey): Comment!
     @can(ability: "delete", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteComment")
+
+  # Papierkorb: Wer was darf, entscheidet die Policy des Elements, mit dem der Vorgang begann.
+  "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
+  restoreFromTrash(deletionId: ID!): TrashItem!
+    @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@restore")
+  "Löscht einen Vorgang endgültig."
+  purgeFromTrash(deletionId: ID!): Boolean!
+    @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@purge")
+  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
+  emptyProjectTrash(projectId: ID!): Int!
+    @can(ability: "emptyTrash", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@emptyProjectTrash")
 }

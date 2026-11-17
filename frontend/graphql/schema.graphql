@@ -27,6 +27,8 @@ type Comment {
  "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
  body: RichText!
  createdAt: DateTime!
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
  id: ID!
  task: Task!
  updatedAt: DateTime!
@@ -199,6 +201,8 @@ type MemberCandidate {
 type Milestone {
  createdAt: DateTime!
  createdBy: User
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
  description: RichText
  dueDate: Date
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -265,6 +269,8 @@ type Mutation {
  duplicateRole(id: ID!): Role!
  "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
  duplicateRoleFunction(id: ID!): RoleFunction!
+ "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
+ emptyProjectTrash(projectId: ID!): Int!
  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
  importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
@@ -274,6 +280,8 @@ type Mutation {
  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
  moveTaskToTodo(id: ID!, todoId: ID!): Task!
  moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
+ "Löscht einen Vorgang endgültig."
+ purgeFromTrash(deletionId: ID!): Boolean!
  "Lehnt ein wartendes Konto ab und löscht es. Freigegebene Konten löscht deleteUser."
  rejectUser(id: ID!): Boolean!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
@@ -283,6 +291,8 @@ type Mutation {
  resetRoleFunction(id: ID!): RoleFunction!
  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
  resetUserTwoFactor(id: ID!): User!
+ "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
+ restoreFromTrash(deletionId: ID!): TrashItem!
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
@@ -378,6 +388,8 @@ type Project {
  "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
  archivedAt: DateTime
  createdAt: DateTime!
+ "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
+ deletionId: ID
  description: String
  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
  icon: String
@@ -519,6 +531,8 @@ type Query {
  todo(id: ID!): Todo
  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
  todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
+ "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst."
+ trash(projectId: ID): [TrashItem!]!
  "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
  users: [User!]!
  "Welche Systemrechte du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
@@ -648,6 +662,8 @@ type Task {
  commit: String
  createdAt: DateTime!
  createdBy: User
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
  description: RichText
  dueDate: Date
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -683,6 +699,8 @@ enum TaskStatus {
 type Todo {
  createdAt: DateTime!
  createdBy: User
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
  description: RichText
  dueDate: Date
  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -697,6 +715,39 @@ type Todo {
  status: ItemStatus!
  tasks: [Task!]!
  title: String!
+}
+"Anzahl mitgelöschter Elemente einer Art"
+type TrashChildCount {
+ count: Int!
+ type: TrashItemType!
+}
+"Ein Vorgang im Papierkorb: das Element, mit dem das Löschen begann. Die anderen Elemente gingen mit (childCount)."
+type TrashItem {
+ "Wie viele weitere Elemente im selben Vorgang"
+ childCount: Int!
+ "Dieselben je Art, zum Beispiel 3 ToDos und 12 Tasks"
+ childCounts: [TrashChildCount!]!
+ deletedAt: DateTime!
+ "null, wenn die Person inzwischen gelöscht wurde"
+ deletedBy: User
+ "Kennung des Vorgangs für restoreFromTrash und purgeFromTrash"
+ deletionId: ID!
+ id: ID!
+ "Das Projekt, auch wenn es selbst gelöscht ist"
+ project: Project
+ "Titel bzw. Name; bei Kommentaren ein Auszug, höchstens 80 Zeichen Klartext"
+ title: String!
+ type: TrashItemType!
+ viewerCanPurge: Boolean!
+ viewerCanRestore: Boolean!
+}
+"Art eines Elements im Papierkorb"
+enum TrashItemType {
+ COMMENT
+ MILESTONE
+ PROJECT
+ TASK
+ TODO
 }
 "Specify if you want to include or exclude trashed results from a query."
 enum Trashed {

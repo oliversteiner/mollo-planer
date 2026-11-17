@@ -13,6 +13,7 @@ use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Services\Deletion;
 use App\Support\McpTokens;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
@@ -427,6 +428,9 @@ class MutationTest extends GraphQLTestCase
     {
         return [
             'createProject' => ['admin', 'mutation { createProject(input: {name: "Neu"}) { id } }', fn (self $test) => []],
+            'restoreFromTrash' => ['manager', 'mutation ($id: ID!) { restoreFromTrash(deletionId: $id) { id type } }', fn (self $test) => ['id' => app(Deletion::class)->delete(Task::factory()->for($test->todo)->create())->deletion_id]],
+            'purgeFromTrash' => ['owner', 'mutation ($id: ID!) { purgeFromTrash(deletionId: $id) }', fn (self $test) => ['id' => app(Deletion::class)->delete(Task::factory()->for($test->todo)->create())->deletion_id]],
+            'emptyProjectTrash' => ['owner', 'mutation ($p: ID!) { emptyProjectTrash(projectId: $p) }', fn (self $test) => ['p' => $test->project->id]],
             'archiveProject' => ['manager', 'mutation ($id: ID!) { archiveProject(id: $id) { archivedAt } }', fn (self $test) => ['id' => $test->project->id]],
             'unarchiveProject' => ['owner', 'mutation ($id: ID!) { unarchiveProject(id: $id) { archivedAt } }', fn (self $test) => ['id' => $test->project->id]],
             'importProjectPlan' => ['admin', 'mutation ($u: String!) { importProjectPlan(plan: {name: "Plan", members: [{email: $u, role: OWNER}], milestones: [{title: "Start", todos: [{title: "Vorbereiten", tasks: [{title: "Los", assigneeEmail: $u}]}]}]}) { id } }', fn (self $test) => ['u' => $test->users['member']->email]],

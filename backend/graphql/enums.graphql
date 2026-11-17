@@ -104,6 +104,15 @@ enum ReleaseStatus {
   RELEASED @enum(value: "released")
 }
 
+"Art eines Elements im Papierkorb"
+enum TrashItemType {
+  PROJECT
+  MILESTONE
+  TODO
+  TASK
+  COMMENT
+}
+
 "Spalten im Kanban-Board"
 enum TaskStatus {
   IDEA @enum(value: "idea")

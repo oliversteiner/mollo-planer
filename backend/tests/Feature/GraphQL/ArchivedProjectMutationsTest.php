@@ -3,6 +3,8 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
+use App\Models\Task;
+use App\Services\Deletion;
 use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Schema\SchemaBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -21,6 +23,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
     private const EXCLUDED = [
         'archiveProject' => 'allowed in the archive (project.archive)',
         'unarchiveProject' => 'brings the project back (project.archive)',
+        'restoreFromTrash' => 'allowed in the archive (trash.restore, §7.7)',
         'approveUser' => 'user administration',
         'setProjectCreatorRole' => 'app settings, belong to no project',
         'createApiToken' => 'personal token',
@@ -59,11 +62,15 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
 
     private Comment $comment;
 
+    /** A task in the trash, deleted before the project was archived. */
+    private string $deletionId;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->comment = Comment::factory()->for($this->task)->for($this->users['owner'], 'author')->create();
+        $this->deletionId = (string) app(Deletion::class)->delete(Task::factory()->for($this->todo)->create())->deletion_id;
         $this->project->forceFill(['archived_at' => now()])->save();
     }
 
@@ -111,6 +118,8 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
             'deleteMilestone' => ['mutation ($id: ID!) { deleteMilestone(id: $id) { id } }', $milestone],
             'deleteProject' => ['mutation ($id: ID!) { deleteProject(id: $id) { id } }', $project],
             'deleteTask' => ['mutation ($id: ID!) { deleteTask(id: $id) { id } }', $task],
+            'emptyProjectTrash' => ['mutation ($p: ID!) { emptyProjectTrash(projectId: $p) }', fn (self $test) => ['p' => $test->project->id]],
+            'purgeFromTrash' => ['mutation ($id: ID!) { purgeFromTrash(deletionId: $id) }', fn (self $test) => ['id' => $test->deletionId]],
             'deleteTodo' => ['mutation ($id: ID!) { deleteTodo(id: $id) { id } }', $todo],
             'moveMilestone' => ['mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
             'moveTask' => ['mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', $task],

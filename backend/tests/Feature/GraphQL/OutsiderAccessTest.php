@@ -4,6 +4,8 @@ namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
 use App\Models\LabelSet;
+use App\Models\Task;
+use App\Services\Deletion;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -21,11 +23,15 @@ class OutsiderAccessTest extends GraphQLTestCase
 
     private Comment $comment;
 
+    /** A task in the project's trash. */
+    private string $deletionId;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->comment = Comment::factory()->for($this->task)->for($this->users['owner'], 'author')->create();
+        $this->deletionId = (string) app(Deletion::class)->delete(Task::factory()->for($this->todo)->create())->deletion_id;
     }
 
     /**
@@ -62,6 +68,9 @@ class OutsiderAccessTest extends GraphQLTestCase
         return [
             'updateProject' => ['stranger', 'mutation ($id: ID!) { updateProject(id: $id, input: {name: "Hack"}) { id } }', $project],
             'deleteProject' => ['stranger', 'mutation ($id: ID!) { deleteProject(id: $id) { id } }', $project],
+            'restoreFromTrash' => ['stranger', 'mutation ($id: ID!) { restoreFromTrash(deletionId: $id) { id } }', fn (self $test) => ['id' => $test->deletionId]],
+            'purgeFromTrash (manager, without trash.purge)' => ['manager', 'mutation ($id: ID!) { purgeFromTrash(deletionId: $id) }', fn (self $test) => ['id' => $test->deletionId]],
+            'emptyProjectTrash (manager, without trash.purge)' => ['manager', 'mutation ($p: ID!) { emptyProjectTrash(projectId: $p) }', fn (self $test) => ['p' => $test->project->id]],
             'archiveProject (member)' => ['member', 'mutation ($id: ID!) { archiveProject(id: $id) { id } }', $project],
             'unarchiveProject (member)' => ['member', 'mutation ($id: ID!) { unarchiveProject(id: $id) { id } }', $project],
             'setProjectMember (join as owner)' => ['stranger', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "owner") { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],

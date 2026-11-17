@@ -61,4 +61,10 @@ class ProjectPolicy
     {
         return $this->allows($user, $project, Right::TRASH_PURGE);
     }
+
+    /** Delete everything in the project's trash for good. */
+    public function emptyTrash(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::TRASH_PURGE);
+    }
 }

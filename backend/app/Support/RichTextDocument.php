@@ -96,6 +96,19 @@ final class RichTextDocument
     }
 
     /**
+     * The document as one line of plain text, at most $length characters
+     * (with "…" when cut), for example a comment in the trash.
+     *
+     * @param  array<string, mixed>|null  $document
+     */
+    public static function excerpt(?array $document, int $length = 80): string
+    {
+        $text = trim((string) preg_replace('/\s+/u', ' ', $document === null ? '' : self::lineText($document)));
+
+        return mb_strlen($text) <= $length ? $text : rtrim(mb_substr($text, 0, $length - 1)).'…';
+    }
+
+    /**
      * Prepare a valid document for storage: empty documents become null,
      * links keep only their href (rel and target are set by the frontend).
      *
@@ -125,6 +138,30 @@ final class RichTextDocument
         }
 
         return $text;
+    }
+
+    /**
+     * Plain text with a space between blocks and at line breaks; the text
+     * inside a block stays together (marks split it into nodes).
+     *
+     * @param  array<string, mixed>  $node
+     */
+    private static function lineText(array $node): string
+    {
+        if (($node['type'] ?? null) === 'hardBreak') {
+            return ' ';
+        }
+
+        $inline = in_array($node['type'] ?? null, ['paragraph', 'heading', 'codeBlock'], true);
+        $parts = [];
+
+        foreach (is_array($node['content'] ?? null) ? $node['content'] : [] as $child) {
+            if (is_array($child)) {
+                $parts[] = self::lineText($child);
+            }
+        }
+
+        return (is_string($node['text'] ?? null) ? $node['text'] : '').implode($inline ? '' : ' ', $parts);
     }
 
     /**
