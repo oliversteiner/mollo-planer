@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -28,7 +29,7 @@ use Illuminate\Support\Facades\Auth;
 class Task extends Model implements BelongsToProject
 {
     /** @use HasFactory<TaskFactory> */
-    use DerivesProject, HasFactory, RecordsCreator, VisibleToViewer;
+    use DerivesProject, HasFactory, RecordsCreator, SoftDeletes, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -58,7 +59,7 @@ class Task extends Model implements BelongsToProject
      */
     public function todo(): BelongsTo
     {
-        return $this->belongsTo(Todo::class);
+        return $this->belongsTo(Todo::class)->withTrashed();
     }
 
     /**
@@ -94,7 +95,7 @@ class Task extends Model implements BelongsToProject
      */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class)->withTrashed();
     }
 
     /**

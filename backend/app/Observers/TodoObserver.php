@@ -60,13 +60,35 @@ class TodoObserver
     }
 
     /**
-     * A deleted todo leaves no gap in its milestone. Its tasks are removed by
-     * the database (cascade), without events.
+     * A todo moved to the trash leaves no gap in its milestone, and the
+     * milestone status follows. Its tasks and comments went with it
+     * (App\Services\Deletion, without events).
      */
     public function deleted(Todo $todo): void
     {
+        if ($todo->isForceDeleting()) {
+            return;
+        }
+
         $this->ordering->close($todo->project_id, Todo::query()->where('milestone_id', $todo->milestone_id));
         $this->statusSync->syncMilestone($todo->milestone_id);
         $this->touchRevision($todo->project_id);
     }
+
+    /** Back from the trash: at the end of its milestone. */
+    public function restoring(Todo $todo): void
+    {
+        $todo->position = $this->ordering->nextPosition($todo->project_id, Todo::query()->where('milestone_id', $todo->milestone_id));
+    }
+
+    /** Its status and the milestone's follow the tasks that came back. */
+    public function restored(Todo $todo): void
+    {
+        $this->statusSync->syncTodo($todo->getKey());
+        $this->statusSync->syncMilestone($todo->milestone_id);
+        $this->touchRevision($todo->project_id);
+    }
+
+    /** Gone for good, with its tasks (cascade): nothing to order, nothing in the file. */
+    public function forceDeleted(Todo $todo): void {}
 }

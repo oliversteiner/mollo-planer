@@ -45,4 +45,20 @@ class ProjectPolicy
     {
         return $this->allows($user, $project, Right::MILESTONE_CREATE);
     }
+
+    /**
+     * A deleted project comes back with whoever may delete it there, or with
+     * projects.manageAny (Rights answers both). The rights come from the
+     * membership as always; the project is read withTrashed.
+     */
+    public function restore(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::PROJECT_DELETE);
+    }
+
+    /** A deleted project for good: trash.purge there, or projects.manageAny. */
+    public function forceDelete(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::TRASH_PURGE);
+    }
 }

@@ -25,4 +25,16 @@ class TodoPolicy
     {
         return $this->allows($user, $todo, Right::TASK_CREATE);
     }
+
+    /** Back from the trash (in an archived project too). */
+    public function restore(User $user, Todo $todo): bool
+    {
+        return $this->allows($user, $todo, Right::TRASH_RESTORE);
+    }
+
+    /** Out of the trash for good. */
+    public function forceDelete(User $user, Todo $todo): bool
+    {
+        return $this->allows($user, $todo, Right::TRASH_PURGE);
+    }
 }

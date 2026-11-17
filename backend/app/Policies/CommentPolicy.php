@@ -32,6 +32,18 @@ class CommentPolicy
             || $this->allows($user, $comment, Right::COMMENT_MODERATE);
     }
 
+    /** Back from the trash: the author, or someone who may moderate. */
+    public function restore(User $user, Comment $comment): bool
+    {
+        return $this->delete($user, $comment);
+    }
+
+    /** Out of the trash for good, like the other elements. */
+    public function forceDelete(User $user, Comment $comment): bool
+    {
+        return $this->allows($user, $comment, Right::TRASH_PURGE);
+    }
+
     private function isAuthorWithAccess(User $user, Comment $comment): bool
     {
         $project = $comment->owningProject();

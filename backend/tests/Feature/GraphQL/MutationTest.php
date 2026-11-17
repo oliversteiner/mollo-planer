@@ -59,7 +59,7 @@ class MutationTest extends GraphQLTestCase
 
         $this->assertUnauthorized($this->as('manager')->gql($delete, $id));
         $this->as('owner')->gql($delete, $id)->assertJsonPath('data.deleteProject.id', (string) $this->project->id);
-        $this->assertModelMissing($this->project);
+        $this->assertSoftDeleted($this->project);
     }
 
     // ─── Members ─────────────────────────────────────────────────
@@ -310,7 +310,7 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.updateComment.body', $this->doc('Neu'));
 
         $this->as('manager')->gql($delete, ['id' => $comment->id])->assertJsonMissingPath('errors');
-        $this->assertModelMissing($comment);
+        $this->assertSoftDeleted($comment);
     }
 
     // ─── Users ───────────────────────────────────────────────────

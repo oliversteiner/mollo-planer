@@ -25,4 +25,16 @@ class MilestonePolicy
     {
         return $this->allows($user, $milestone, Right::TODO_CREATE);
     }
+
+    /** Back from the trash (in an archived project too). */
+    public function restore(User $user, Milestone $milestone): bool
+    {
+        return $this->allows($user, $milestone, Right::TRASH_RESTORE);
+    }
+
+    /** Out of the trash for good. */
+    public function forceDelete(User $user, Milestone $milestone): bool
+    {
+        return $this->allows($user, $milestone, Right::TRASH_PURGE);
+    }
 }

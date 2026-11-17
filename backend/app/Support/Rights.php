@@ -238,6 +238,7 @@ final class Rights
      * Ids of the projects somebody holds (see holdsProject), in one query.
      * The settings compare this before and after a change of roles or
      * functions, so no project loses its last holder that way (§7.3).
+     * Projects in the trash do not count (docs/auftrag-m2.md §0a.3).
      *
      * @return list<int>
      */
@@ -254,6 +255,8 @@ final class Rights
 
         return DB::table('project_user')
             ->join('users', 'users.id', '=', 'project_user.user_id')
+            ->join('projects', 'projects.id', '=', 'project_user.project_id')
+            ->whereNull('projects.deleted_at')
             ->whereIn('project_user.role_id', self::roleIdsWith(Right::PROJECT_DELETE))
             ->whereIn('users.role_id', $uncapped)
             ->distinct()
@@ -310,7 +313,8 @@ final class Rights
      * the system role $systemRole (null: the person is deleted). These are
      * the projects the person holds alone, when the cap of the new role
      * takes project.delete away. Every project keeps a holder, whoever acts
-     * (§7.3, docs/fix-m1-abnahme.md F3.4).
+     * (§7.3, docs/fix-m1-abnahme.md F3.4). Projects in the trash do not count
+     * (SoftDeletes): restoring one takes care of its holder (Deletion).
      *
      * @return list<Project>
      */

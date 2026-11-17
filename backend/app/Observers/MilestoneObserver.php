@@ -9,7 +9,9 @@ use App\Services\ReleaseRules;
 
 /**
  * Lifecycle of a milestone in one place: its position in the project and the
- * rules of its release.
+ * rules of its release. Deleting moves it to the trash (App\Services\Deletion
+ * takes its todos, tasks and comments along); restoring puts it at the end of
+ * the project; deleting it for good changes neither order nor planer file.
  */
 class MilestoneObserver
 {
@@ -50,12 +52,30 @@ class MilestoneObserver
     }
 
     /**
-     * A deleted milestone leaves no gap. Its todos and tasks go with it
-     * (cascade, without events); the whole deletion counts once.
+     * A milestone moved to the trash leaves no gap. Its todos and tasks went
+     * with it (Deletion); the whole deletion counts once.
      */
     public function deleted(Milestone $milestone): void
     {
+        if ($milestone->isForceDeleting()) {
+            return;
+        }
+
         $this->ordering->close($milestone->project_id, Milestone::query()->where('project_id', $milestone->project_id));
         $this->touchRevision($milestone->project_id);
     }
+
+    /** Back from the trash: at the end of the project. */
+    public function restoring(Milestone $milestone): void
+    {
+        $milestone->position = $this->ordering->nextPosition($milestone->project_id, Milestone::query()->where('project_id', $milestone->project_id));
+    }
+
+    public function restored(Milestone $milestone): void
+    {
+        $this->touchRevision($milestone->project_id);
+    }
+
+    /** Gone for good, with its children (cascade): the planer file showed none of it. */
+    public function forceDeleted(Milestone $milestone): void {}
 }

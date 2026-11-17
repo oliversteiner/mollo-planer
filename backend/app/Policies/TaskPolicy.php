@@ -49,4 +49,16 @@ class TaskPolicy
     {
         return $this->allows($user, $task, Right::COMMENT_CREATE);
     }
+
+    /** Back from the trash (in an archived project too). */
+    public function restore(User $user, Task $task): bool
+    {
+        return $this->allows($user, $task, Right::TRASH_RESTORE);
+    }
+
+    /** Out of the trash for good. */
+    public function forceDelete(User $user, Task $task): bool
+    {
+        return $this->allows($user, $task, Right::TRASH_PURGE);
+    }
 }

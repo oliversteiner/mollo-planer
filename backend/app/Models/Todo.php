@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Status is computed by the status observer, never set from input.
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Todo extends Model implements BelongsToProject
 {
     /** @use HasFactory<TodoFactory> */
-    use DerivesProject, HasFactory, RecordsCreator, VisibleToViewer;
+    use DerivesProject, HasFactory, RecordsCreator, SoftDeletes, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -54,7 +55,7 @@ class Todo extends Model implements BelongsToProject
      */
     public function milestone(): BelongsTo
     {
-        return $this->belongsTo(Milestone::class);
+        return $this->belongsTo(Milestone::class)->withTrashed();
     }
 
     /**
@@ -62,7 +63,7 @@ class Todo extends Model implements BelongsToProject
      */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class)->withTrashed();
     }
 
     /**

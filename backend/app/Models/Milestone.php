@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Status is computed by the status observer, never set from input.
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Milestone extends Model implements BelongsToProject
 {
     /** @use HasFactory<MilestoneFactory> */
-    use HasFactory, RecordsCreator, VisibleToViewer;
+    use HasFactory, RecordsCreator, SoftDeletes, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -69,7 +70,7 @@ class Milestone extends Model implements BelongsToProject
      */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class)->withTrashed();
     }
 
     /**

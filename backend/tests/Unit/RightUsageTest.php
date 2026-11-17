@@ -21,8 +21,6 @@ class RightUsageTest extends TestCase
      * @var array<string, string>
      */
     private const PENDING = [
-        'trash.restore' => 'S5',
-        'trash.purge' => 'S5',
         'planer.export' => 'I1',
         'planer.import' => 'I2',
         'aiContext.update' => 'B6',
