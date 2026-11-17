@@ -1,6 +1,6 @@
 # Auftrag: Rest M4 nach Rückfragen
 
-Status: offen
+Status: erledigt (f19cc17)
 Stand: 2026-11-17, `dev` bis `7970dd4`.
 Dokument: `docs/auftrag-m4.md` §7a (Entscheidungen von Oliver).
 
