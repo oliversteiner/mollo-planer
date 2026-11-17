@@ -116,7 +116,7 @@ async function saveEdit(): Promise<void> {
                 variant="neutral"
                 size="s"
                 :aria-label="t('common.delete')"
-                @click="deletion.ask(comment.id)"
+                @click="deletion.remove(comment.id)"
               >
                 <wa-icon name="trash"></wa-icon>
               </wa-button>
@@ -198,15 +198,6 @@ async function saveEdit(): Promise<void> {
         </wa-button>
       </div>
     </form>
-
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t('comments.deleteTitle')"
-      :description="t('comments.deleteDescription')"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
-    />
   </section>
 </template>
 

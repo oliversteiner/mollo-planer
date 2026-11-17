@@ -99,7 +99,7 @@ function startEditing(target: ItemFormTarget): void {
 }
 
 function startDeleting(target: { kind: 'milestone' | 'todo', item: Item }): void {
-  deletion.ask(target)
+  void deletion.remove(target)
 }
 
 /** Menu "Ändern / Löschen" of a milestone or todo, by the viewer's rights. */
@@ -167,14 +167,6 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
       :todos="todos"
       :members="members"
       @close="closeTaskForm"
-    />
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t(`item.${deletion.target?.kind ?? 'todo'}.deleteTitle`)"
-      :description="t(`item.${deletion.target?.kind ?? 'todo'}.deleteDescription`, { title: deletion.target?.item.title ?? '' })"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
     />
   </div>
 </template>

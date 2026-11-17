@@ -1,8 +1,8 @@
 import { graphql } from '~/graphql/generated'
 
 export const projectsQuery = graphql(`
-  query Projects {
-    projects {
+  query Projects($archived: Boolean = false) {
+    projects(archived: $archived) {
       id
       name
       description
@@ -24,6 +24,7 @@ export const projectHeaderQuery = graphql(`
       name
       description
       icon
+      archivedAt
       viewerRole { key names { de en } }
       viewerRights
       labelSet { id name labels { id name category color position } }

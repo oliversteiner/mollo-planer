@@ -176,7 +176,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
             variant="danger"
             size="s"
             :aria-label="t('common.delete')"
-            @click="task && deletion.ask(task.id)"
+            @click="task && deletion.remove(task.id)"
           >
             <wa-icon name="trash"></wa-icon>
           </wa-button>
@@ -279,15 +279,6 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
         :can-comment="can.comment"
       />
     </div>
-
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t('task.deleteTitle')"
-      :description="t('task.deleteDescription', { title: task?.title ?? '' })"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
-    />
   </AppDrawer>
 </template>
 

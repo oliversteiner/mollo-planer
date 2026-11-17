@@ -11,6 +11,12 @@ export interface ToastOptions {
   color?: 'success' | 'error' | 'warning' | 'info' | 'primary' | 'neutral'
   /** Milliseconds until it disappears; 0: stays until closed. */
   duration?: number
+  /**
+   * A button in the message, for example „Rückgängig“. Clicking it runs the
+   * action and closes the message. The message stops counting down while the
+   * pointer or the focus is on it (wa-toast-item).
+   */
+  action?: { label: string, run: () => unknown }
 }
 
 type Variant = 'success' | 'danger' | 'warning' | 'brand' | 'neutral'
@@ -60,6 +66,21 @@ export function useToast() {
       const description = document.createElement('div')
       description.textContent = options.description
       item.append(description)
+    }
+
+    if (options.action) {
+      const { label, run } = options.action
+      const button = document.createElement('wa-button')
+      button.setAttribute('size', 's')
+      button.setAttribute('appearance', 'outlined')
+      button.setAttribute('variant', 'neutral')
+      button.classList.add('toast-action')
+      button.textContent = label
+      button.addEventListener('click', () => {
+        void (item as HTMLElement & { hide?: () => Promise<void> }).hide?.()
+        run()
+      }, { once: true })
+      item.append(button)
     }
 
     stack().append(item)

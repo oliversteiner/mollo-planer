@@ -97,7 +97,7 @@ export const updateMilestoneMutation = graphql(`
 
 export const deleteMilestoneMutation = graphql(`
   mutation DeleteMilestone($id: ID!) {
-    deleteMilestone(id: $id) { id }
+    deleteMilestone(id: $id) { id deletionId }
   }
 `)
 
@@ -115,6 +115,6 @@ export const updateTodoMutation = graphql(`
 
 export const deleteTodoMutation = graphql(`
   mutation DeleteTodo($id: ID!) {
-    deleteTodo(id: $id) { id }
+    deleteTodo(id: $id) { id deletionId }
   }
 `)

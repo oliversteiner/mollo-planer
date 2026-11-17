@@ -50,7 +50,7 @@ function startEditing(todo: Item): void {
 }
 
 function startDeleting(todo: Item): void {
-  deletion.ask(todo)
+  void deletion.remove(todo)
 }
 
 function actions(todo: Item): ActionMenuItem[] {
@@ -148,14 +148,6 @@ function actions(todo: Item): ActionMenuItem[] {
       :target="editing"
       :milestones="milestones"
       @close="editing = null"
-    />
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t('item.todo.deleteTitle')"
-      :description="t('item.todo.deleteDescription', { title: deletion.target?.title ?? '' })"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
     />
   </div>
 </template>

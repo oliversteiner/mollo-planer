@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { installElementInternals } from './support/element-internals'
+
+installElementInternals()
 
 afterEach(() => {
   document.querySelectorAll('wa-toast').forEach(element => element.remove())
@@ -31,6 +34,23 @@ describe('useToast', () => {
     expect(item.querySelector('img')).toBeNull()
     expect(item.querySelector('b')).toBeNull()
     expect(item.textContent).toContain('<img src=x onerror=alert(1)>')
+  })
+
+  it('can carry one button that runs its action and closes the message', () => {
+    const run = vi.fn()
+    const item = useToast().add({ title: 'Gelöscht', duration: 8000, action: { label: 'Rückgängig', run } }) as HTMLElement & { hide: () => Promise<void> }
+    item.hide = vi.fn(async () => {})
+
+    const button = [...item.children].find(child => child.classList.contains('toast-action')) as HTMLElement
+    expect(button.tagName).toBe('WA-BUTTON')
+    expect(button.textContent).toBe('Rückgängig')
+    expect(item.getAttribute('duration')).toBe('8000')
+
+    button.dispatchEvent(new MouseEvent('click'))
+    button.dispatchEvent(new MouseEvent('click'))
+
+    expect(run).toHaveBeenCalledTimes(1)
+    expect(item.hide).toHaveBeenCalledTimes(1)
   })
 
   it('is the toast the app uses (the former Nuxt UI one is replaced)', () => {

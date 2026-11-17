@@ -44,12 +44,12 @@ type Documents = {
     "\n  query ProjectTodos($projectId: ID!, $milestoneId: ID, $status: ItemStatus) {\n    todos(projectId: $projectId, milestoneId: $milestoneId, status: $status) {\n      id\n      title\n      description\n      icon\n      dueDate\n      status\n      progress { done total percent }\n      milestone { id title }\n    }\n  }\n": typeof types.ProjectTodosDocument,
     "\n  mutation CreateMilestone($input: CreateMilestoneInput!) {\n    createMilestone(input: $input) { id }\n  }\n": typeof types.CreateMilestoneDocument,
     "\n  mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {\n    updateMilestone(id: $id, input: $input) { id title description icon dueDate release { version status } }\n  }\n": typeof types.UpdateMilestoneDocument,
-    "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id }\n  }\n": typeof types.DeleteMilestoneDocument,
+    "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id deletionId }\n  }\n": typeof types.DeleteMilestoneDocument,
     "\n  mutation CreateTodo($input: CreateTodoInput!) {\n    createTodo(input: $input) { id }\n  }\n": typeof types.CreateTodoDocument,
     "\n  mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {\n    updateTodo(id: $id, input: $input) { id title description icon dueDate }\n  }\n": typeof types.UpdateTodoDocument,
-    "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n": typeof types.DeleteTodoDocument,
-    "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
-    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.ProjectHeaderDocument,
+    "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id deletionId }\n  }\n": typeof types.DeleteTodoDocument,
+    "\n  query Projects($archived: Boolean = false) {\n    projects(archived: $archived) {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectsDocument,
+    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      archivedAt\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": typeof types.ProjectHeaderDocument,
     "\n  query ProjectRevision($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n    }\n  }\n": typeof types.ProjectRevisionDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": typeof types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": typeof types.SidebarProjectsDocument,
@@ -76,7 +76,9 @@ type Documents = {
     "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description icon locale }\n  }\n": typeof types.UpdateProjectDocument,
     "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": typeof types.SetProjectMemberDocument,
     "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": typeof types.RemoveProjectMemberDocument,
-    "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n": typeof types.DeleteProjectDocument,
+    "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id deletionId }\n  }\n": typeof types.DeleteProjectDocument,
+    "\n  mutation ArchiveProject($id: ID!) {\n    archiveProject(id: $id) { id archivedAt viewerRights }\n  }\n": typeof types.ArchiveProjectDocument,
+    "\n  mutation UnarchiveProject($id: ID!) {\n    unarchiveProject(id: $id) { id archivedAt viewerRights }\n  }\n": typeof types.UnarchiveProjectDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        boardPosition\n        dueDate\n        commit\n        userStory { role goal benefit }\n        commentCount\n        labels { id name color position }\n        assignee { id name avatarUrl }\n        todo { id title }\n        viewerCanUpdate\n      }\n    }\n  }\n": typeof types.KanbanDocument,
     "\n  mutation MoveTaskToTodo($id: ID!, $todoId: ID!) {\n    moveTaskToTodo(id: $id, todoId: $todoId) { id }\n  }\n": typeof types.MoveTaskToTodoDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role { key }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectMembersDocument,
@@ -85,10 +87,14 @@ type Documents = {
     "\n  mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) { id title description icon dueDate userStory { role goal benefit } }\n  }\n": typeof types.UpdateTaskDocument,
     "\n  mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {\n    moveTask(id: $id, status: $status, position: $position) { id status boardPosition }\n  }\n": typeof types.MoveTaskDocument,
     "\n  mutation AssignTask($id: ID!, $assigneeId: ID) {\n    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl } }\n  }\n": typeof types.AssignTaskDocument,
-    "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n": typeof types.DeleteTaskDocument,
+    "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id deletionId }\n  }\n": typeof types.DeleteTaskDocument,
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": typeof types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": typeof types.UpdateCommentDocument,
-    "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": typeof types.DeleteCommentDocument,
+    "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id deletionId }\n  }\n": typeof types.DeleteCommentDocument,
+    "\n  query Trash($projectId: ID) {\n    trash(projectId: $projectId) {\n      deletionId\n      type\n      id\n      title\n      deletedAt\n      deletedBy { id name avatarUrl }\n      project { id name icon }\n      childCount\n      childCounts { type count }\n      viewerCanRestore\n      viewerCanPurge\n    }\n  }\n": typeof types.TrashDocument,
+    "\n  mutation RestoreFromTrash($deletionId: ID!) {\n    restoreFromTrash(deletionId: $deletionId) { deletionId type id title }\n  }\n": typeof types.RestoreFromTrashDocument,
+    "\n  mutation PurgeFromTrash($deletionId: ID!) {\n    purgeFromTrash(deletionId: $deletionId)\n  }\n": typeof types.PurgeFromTrashDocument,
+    "\n  mutation EmptyProjectTrash($projectId: ID!) {\n    emptyProjectTrash(projectId: $projectId)\n  }\n": typeof types.EmptyProjectTrashDocument,
     "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": typeof types.ViewerDocument,
 };
 const documents: Documents = {
@@ -122,12 +128,12 @@ const documents: Documents = {
     "\n  query ProjectTodos($projectId: ID!, $milestoneId: ID, $status: ItemStatus) {\n    todos(projectId: $projectId, milestoneId: $milestoneId, status: $status) {\n      id\n      title\n      description\n      icon\n      dueDate\n      status\n      progress { done total percent }\n      milestone { id title }\n    }\n  }\n": types.ProjectTodosDocument,
     "\n  mutation CreateMilestone($input: CreateMilestoneInput!) {\n    createMilestone(input: $input) { id }\n  }\n": types.CreateMilestoneDocument,
     "\n  mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {\n    updateMilestone(id: $id, input: $input) { id title description icon dueDate release { version status } }\n  }\n": types.UpdateMilestoneDocument,
-    "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id }\n  }\n": types.DeleteMilestoneDocument,
+    "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id deletionId }\n  }\n": types.DeleteMilestoneDocument,
     "\n  mutation CreateTodo($input: CreateTodoInput!) {\n    createTodo(input: $input) { id }\n  }\n": types.CreateTodoDocument,
     "\n  mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {\n    updateTodo(id: $id, input: $input) { id title description icon dueDate }\n  }\n": types.UpdateTodoDocument,
-    "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n": types.DeleteTodoDocument,
-    "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
-    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.ProjectHeaderDocument,
+    "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id deletionId }\n  }\n": types.DeleteTodoDocument,
+    "\n  query Projects($archived: Boolean = false) {\n    projects(archived: $archived) {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectsDocument,
+    "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      archivedAt\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n": types.ProjectHeaderDocument,
     "\n  query ProjectRevision($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n    }\n  }\n": types.ProjectRevisionDocument,
     "\n  mutation CreateProject($input: CreateProjectInput!) {\n    createProject(input: $input) {\n      id\n      name\n    }\n  }\n": types.CreateProjectDocument,
     "\n  query SidebarProjects {\n    projects { id name icon }\n  }\n": types.SidebarProjectsDocument,
@@ -154,7 +160,9 @@ const documents: Documents = {
     "\n  mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {\n    updateProject(id: $id, input: $input) { id name description icon locale }\n  }\n": types.UpdateProjectDocument,
     "\n  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {\n    setProjectMember(projectId: $projectId, userId: $userId, role: $role) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": types.SetProjectMemberDocument,
     "\n  mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {\n    removeProjectMember(projectId: $projectId, userId: $userId) {\n      id\n      members { role { key names { de en } } user { id name email avatarUrl } }\n    }\n  }\n": types.RemoveProjectMemberDocument,
-    "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n": types.DeleteProjectDocument,
+    "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id deletionId }\n  }\n": types.DeleteProjectDocument,
+    "\n  mutation ArchiveProject($id: ID!) {\n    archiveProject(id: $id) { id archivedAt viewerRights }\n  }\n": types.ArchiveProjectDocument,
+    "\n  mutation UnarchiveProject($id: ID!) {\n    unarchiveProject(id: $id) { id archivedAt viewerRights }\n  }\n": types.UnarchiveProjectDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        boardPosition\n        dueDate\n        commit\n        userStory { role goal benefit }\n        commentCount\n        labels { id name color position }\n        assignee { id name avatarUrl }\n        todo { id title }\n        viewerCanUpdate\n      }\n    }\n  }\n": types.KanbanDocument,
     "\n  mutation MoveTaskToTodo($id: ID!, $todoId: ID!) {\n    moveTaskToTodo(id: $id, todoId: $todoId) { id }\n  }\n": types.MoveTaskToTodoDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role { key }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectMembersDocument,
@@ -163,10 +171,14 @@ const documents: Documents = {
     "\n  mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) { id title description icon dueDate userStory { role goal benefit } }\n  }\n": types.UpdateTaskDocument,
     "\n  mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {\n    moveTask(id: $id, status: $status, position: $position) { id status boardPosition }\n  }\n": types.MoveTaskDocument,
     "\n  mutation AssignTask($id: ID!, $assigneeId: ID) {\n    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl } }\n  }\n": types.AssignTaskDocument,
-    "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n": types.DeleteTaskDocument,
+    "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id deletionId }\n  }\n": types.DeleteTaskDocument,
     "\n  mutation AddComment($input: AddCommentInput!) {\n    addComment(input: $input) { id }\n  }\n": types.AddCommentDocument,
     "\n  mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {\n    updateComment(id: $id, input: $input) { id body updatedAt }\n  }\n": types.UpdateCommentDocument,
-    "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n": types.DeleteCommentDocument,
+    "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id deletionId }\n  }\n": types.DeleteCommentDocument,
+    "\n  query Trash($projectId: ID) {\n    trash(projectId: $projectId) {\n      deletionId\n      type\n      id\n      title\n      deletedAt\n      deletedBy { id name avatarUrl }\n      project { id name icon }\n      childCount\n      childCounts { type count }\n      viewerCanRestore\n      viewerCanPurge\n    }\n  }\n": types.TrashDocument,
+    "\n  mutation RestoreFromTrash($deletionId: ID!) {\n    restoreFromTrash(deletionId: $deletionId) { deletionId type id title }\n  }\n": types.RestoreFromTrashDocument,
+    "\n  mutation PurgeFromTrash($deletionId: ID!) {\n    purgeFromTrash(deletionId: $deletionId)\n  }\n": types.PurgeFromTrashDocument,
+    "\n  mutation EmptyProjectTrash($projectId: ID!) {\n    emptyProjectTrash(projectId: $projectId)\n  }\n": types.EmptyProjectTrashDocument,
     "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": types.ViewerDocument,
 };
 
@@ -307,7 +319,7 @@ export function graphql(source: "\n  mutation UpdateMilestone($id: ID!, $input: 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id }\n  }\n"];
+export function graphql(source: "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id deletionId }\n  }\n"): (typeof documents)["\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id deletionId }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -319,15 +331,15 @@ export function graphql(source: "\n  mutation UpdateTodo($id: ID!, $input: Updat
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id }\n  }\n"];
+export function graphql(source: "\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id deletionId }\n  }\n"): (typeof documents)["\n  mutation DeleteTodo($id: ID!) {\n    deleteTodo(id: $id) { id deletionId }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Projects {\n    projects {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query Projects($archived: Boolean = false) {\n    projects(archived: $archived) {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Projects($archived: Boolean = false) {\n    projects(archived: $archived) {\n      id\n      name\n      description\n      viewerRole { key names { de en } }\n      progress { done total percent }\n      members {\n        role { key names { de en } }\n        user { id name avatarUrl }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"): (typeof documents)["\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"];
+export function graphql(source: "\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      archivedAt\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"): (typeof documents)["\n  query ProjectHeader($id: ID!) {\n    project(id: $id) {\n      id\n      planerRevision\n      name\n      description\n      icon\n      archivedAt\n      viewerRole { key names { de en } }\n      viewerRights\n      labelSet { id name labels { id name category color position } }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -435,7 +447,15 @@ export function graphql(source: "\n  mutation RemoveProjectMember($projectId: ID
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id }\n  }\n"];
+export function graphql(source: "\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id deletionId }\n  }\n"): (typeof documents)["\n  mutation DeleteProject($id: ID!) {\n    deleteProject(id: $id) { id deletionId }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ArchiveProject($id: ID!) {\n    archiveProject(id: $id) { id archivedAt viewerRights }\n  }\n"): (typeof documents)["\n  mutation ArchiveProject($id: ID!) {\n    archiveProject(id: $id) { id archivedAt viewerRights }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UnarchiveProject($id: ID!) {\n    unarchiveProject(id: $id) { id archivedAt viewerRights }\n  }\n"): (typeof documents)["\n  mutation UnarchiveProject($id: ID!) {\n    unarchiveProject(id: $id) { id archivedAt viewerRights }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -471,7 +491,7 @@ export function graphql(source: "\n  mutation AssignTask($id: ID!, $assigneeId: 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id }\n  }\n"];
+export function graphql(source: "\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id deletionId }\n  }\n"): (typeof documents)["\n  mutation DeleteTask($id: ID!) {\n    deleteTask(id: $id) { id deletionId }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -483,7 +503,23 @@ export function graphql(source: "\n  mutation UpdateComment($id: ID!, $input: Up
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id }\n  }\n"];
+export function graphql(source: "\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id deletionId }\n  }\n"): (typeof documents)["\n  mutation DeleteComment($id: ID!) {\n    deleteComment(id: $id) { id deletionId }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Trash($projectId: ID) {\n    trash(projectId: $projectId) {\n      deletionId\n      type\n      id\n      title\n      deletedAt\n      deletedBy { id name avatarUrl }\n      project { id name icon }\n      childCount\n      childCounts { type count }\n      viewerCanRestore\n      viewerCanPurge\n    }\n  }\n"): (typeof documents)["\n  query Trash($projectId: ID) {\n    trash(projectId: $projectId) {\n      deletionId\n      type\n      id\n      title\n      deletedAt\n      deletedBy { id name avatarUrl }\n      project { id name icon }\n      childCount\n      childCounts { type count }\n      viewerCanRestore\n      viewerCanPurge\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RestoreFromTrash($deletionId: ID!) {\n    restoreFromTrash(deletionId: $deletionId) { deletionId type id title }\n  }\n"): (typeof documents)["\n  mutation RestoreFromTrash($deletionId: ID!) {\n    restoreFromTrash(deletionId: $deletionId) { deletionId type id title }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation PurgeFromTrash($deletionId: ID!) {\n    purgeFromTrash(deletionId: $deletionId)\n  }\n"): (typeof documents)["\n  mutation PurgeFromTrash($deletionId: ID!) {\n    purgeFromTrash(deletionId: $deletionId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation EmptyProjectTrash($projectId: ID!) {\n    emptyProjectTrash(projectId: $projectId)\n  }\n"): (typeof documents)["\n  mutation EmptyProjectTrash($projectId: ID!) {\n    emptyProjectTrash(projectId: $projectId)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

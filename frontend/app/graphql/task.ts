@@ -107,7 +107,7 @@ export const assignTaskMutation = graphql(`
 
 export const deleteTaskMutation = graphql(`
   mutation DeleteTask($id: ID!) {
-    deleteTask(id: $id) { id }
+    deleteTask(id: $id) { id deletionId }
   }
 `)
 
@@ -125,7 +125,7 @@ export const updateCommentMutation = graphql(`
 
 export const deleteCommentMutation = graphql(`
   mutation DeleteComment($id: ID!) {
-    deleteComment(id: $id) { id }
+    deleteComment(id: $id) { id deletionId }
   }
 `)
 

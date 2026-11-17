@@ -49,6 +49,18 @@ export const removeProjectMemberMutation = graphql(`
 
 export const deleteProjectMutation = graphql(`
   mutation DeleteProject($id: ID!) {
-    deleteProject(id: $id) { id }
+    deleteProject(id: $id) { id deletionId }
+  }
+`)
+
+export const archiveProjectMutation = graphql(`
+  mutation ArchiveProject($id: ID!) {
+    archiveProject(id: $id) { id archivedAt viewerRights }
+  }
+`)
+
+export const unarchiveProjectMutation = graphql(`
+  mutation UnarchiveProject($id: ID!) {
+    unarchiveProject(id: $id) { id archivedAt viewerRights }
   }
 `)

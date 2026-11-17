@@ -18,7 +18,8 @@
     "database": "Database",
     "status": "Status",
     "version": "Version",
-    "roles": "Roles"
+    "roles": "Roles",
+    "trash": "Trash"
   },
   "settings": {
     "language": "Language",
@@ -52,11 +53,22 @@
     },
     "danger": {
       "title": "Delete project",
-      "description": "Deletes the project with all milestones, todos, tasks and comments.",
+      "description": "Moves the project with all milestones, todos, tasks and comments to the trash.",
       "delete": "Delete project",
-      "confirmTitle": "Delete “{name}” for good?",
-      "confirmDescription": "All milestones, todos, tasks and comments of this project are deleted. This cannot be undone.",
+      "confirmTitle": "Delete “{name}”?",
+      "confirmDescription": "The project disappears from the list with all milestones, todos, tasks and comments. It can be restored from the “Trash”.",
       "deleted": "Project “{name}” deleted."
+    },
+    "archive": {
+      "title": "Archive",
+      "description": "Archived projects are kept, but can only be read and are left out of the dashboard, the sidebar and “My tasks”.",
+      "archivedText": "The project is archived and read only. Brought back, it is visible and editable everywhere again.",
+      "archive": "Archive",
+      "unarchive": "Bring back",
+      "confirmTitle": "Archive “{name}”?",
+      "confirmDescription": "The project can then only be read. You can bring it back here at any time.",
+      "done": "Project “{name}” archived.",
+      "back": "Project “{name}” brought back."
     }
   },
   "dashboard": {
@@ -183,6 +195,9 @@
       "iconHint": "Shown in the sidebar before the project name.",
       "locale": "Language of the emails",
       "localeHint": "Notifications about this project are sent in this language."
+    },
+    "archive": {
+      "title": "Archive ({count})"
     }
   },
   "status": {
@@ -220,7 +235,8 @@
       "todos": "Todos",
       "tasks": "Tasks",
       "members": "Members",
-      "settings": "Settings"
+      "settings": "Settings",
+      "trash": "Trash"
     },
     "noMilestones": "No milestones yet",
     "noMilestonesHint": "Create the first milestone, for example “Design approved”.",
@@ -244,7 +260,11 @@
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}",
-    "changedElsewhere": "The project was changed in the meantime."
+    "changedElsewhere": "The project was changed in the meantime.",
+    "archived": {
+      "title": "Archived, read only",
+      "description": "This project is archived. Changing, creating, deleting and commenting are locked until someone with the right “Archive” brings it back in the settings."
+    }
   },
   "todos": {
     "milestone": "Milestone",
@@ -267,17 +287,13 @@
     "milestone": {
       "create": "New milestone",
       "edit": "Edit milestone",
-      "saved": "Milestone saved.",
-      "deleteTitle": "Delete milestone?",
-      "deleteDescription": "“{title}” is deleted with all its todos, tasks and comments. This cannot be undone."
+      "saved": "Milestone saved."
     },
     "todo": {
       "create": "New todo",
       "edit": "Edit todo",
       "saved": "Todo saved.",
-      "milestone": "Milestone",
-      "deleteTitle": "Delete todo?",
-      "deleteDescription": "“{title}” is deleted with all its tasks and comments. This cannot be undone."
+      "milestone": "Milestone"
     }
   },
   "richText": {
@@ -341,8 +357,6 @@
     },
     "assigned": "Assigned.",
     "assignedMail": "They get an email if they receive notifications.",
-    "deleteTitle": "Delete task?",
-    "deleteDescription": "“{title}” is deleted with all its comments. This cannot be undone.",
     "share": {
       "shareTitle": "Share",
       "menu": "Share",
@@ -379,9 +393,7 @@
     "deletedAuthor": "Deleted person",
     "edited": "edited",
     "placeholder": "Write a comment …",
-    "add": "Comment",
-    "deleteTitle": "Delete comment?",
-    "deleteDescription": "The comment is deleted for good."
+    "add": "Comment"
   },
   "myTasks": {
     "title": "My tasks",
@@ -1551,5 +1563,44 @@
     "none": "No version",
     "planned": "Planned",
     "released": "Released"
+  },
+  "trash": {
+    "deleted": "Deleted",
+    "undo": "Undo",
+    "restored": "Restored",
+    "restoreFailed": "Cannot restore",
+    "projectsTitle": "Trash",
+    "projectsHint": "Deleted projects you may restore.",
+    "hint": "What was deleted stays here until someone deletes it for good. Restored items go to the end of their list.",
+    "empty": "The trash is empty.",
+    "restore": "Restore",
+    "purge": "Delete for good",
+    "purgeTitle": "Delete for good?",
+    "purgeDescription": "“{title}” is deleted for good, with everything that went with it. This cannot be undone.",
+    "purged": "Deleted for good.",
+    "emptyTrash": "Empty trash",
+    "emptyTitle": "Empty the trash?",
+    "emptyDescription": "{count} entry is deleted for good. This cannot be undone. | {count} entries are deleted for good. This cannot be undone.",
+    "emptied": "Trash emptied.",
+    "projectPurgeTitle": "Delete “{name}” for good?",
+    "projectPurgeDescription": "All milestones, todos, tasks and comments of this project are deleted for good. This cannot be undone.",
+    "projectPurged": "Project “{name}” deleted for good.",
+    "deletedBy": "Deleted by {name}, {at}",
+    "deletedAt": "Deleted {at}",
+    "with": "with {list}",
+    "types": {
+      "PROJECT": "Project",
+      "MILESTONE": "Milestone",
+      "TODO": "Todo",
+      "TASK": "Task",
+      "COMMENT": "Comment"
+    },
+    "count": {
+      "PROJECT": "{count} project | {count} projects",
+      "MILESTONE": "{count} milestone | {count} milestones",
+      "TODO": "{count} todo | {count} todos",
+      "TASK": "{count} task | {count} tasks",
+      "COMMENT": "{count} comment | {count} comments"
+    }
   }
 }

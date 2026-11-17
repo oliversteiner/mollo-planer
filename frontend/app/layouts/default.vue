@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useQuery } from '@vue/apollo-composable'
 import type { NavItem } from '~/components/NavList.vue'
+import { trashQuery } from '~/graphql/trash'
 import versionData from '~/data/versions.json'
 import { routeRight } from '~/utils/route-rights'
 import { currentVersion, type VersionFile } from '~/utils/versions'
@@ -22,10 +24,15 @@ function allowed(item: NavItem): boolean {
   return right === null || can(right)
 }
 
+/** Deleted projects the viewer may bring back: „Papierkorb“ shows when there are some, or always with projects.manageAny. */
+const { result: deletedProjects } = useQuery(trashQuery, { projectId: null }, { fetchPolicy: 'cache-and-network' })
+const withTrash = computed(() => can('PROJECTS_MANAGE_ANY') || (deletedProjects.value?.trash.length ?? 0) > 0)
+
 const mainItems = computed<NavItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
   { label: t('nav.myTasks'), icon: 'square-check', to: '/my-tasks' },
-  { label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }
+  { label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' },
+  ...(withTrash.value ? [{ label: t('nav.trash'), icon: 'trash-can', to: '/trash' }] : [])
 ].filter(allowed))
 
 /** The section "System": the database documentation (admins), the status and the version (everyone), then administration. */

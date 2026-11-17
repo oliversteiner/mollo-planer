@@ -18,7 +18,8 @@
     "database": "Datenbank",
     "status": "Status",
     "version": "Version",
-    "roles": "Rollen"
+    "roles": "Rollen",
+    "trash": "Papierkorb"
   },
   "settings": {
     "language": "Sprache",
@@ -52,11 +53,22 @@
     },
     "danger": {
       "title": "Projekt löschen",
-      "description": "Löscht das Projekt mit allen Milestones, ToDo, Tasks und Kommentaren.",
+      "description": "Verschiebt das Projekt mit allen Milestones, ToDo, Tasks und Kommentaren in den Papierkorb.",
       "delete": "Projekt löschen",
-      "confirmTitle": "«{name}» endgültig löschen?",
-      "confirmDescription": "Alle Milestones, ToDo, Tasks und Kommentare dieses Projekts werden gelöscht. Das lässt sich nicht rückgängig machen.",
+      "confirmTitle": "«{name}» löschen?",
+      "confirmDescription": "Das Projekt verschwindet mit allen Milestones, ToDo, Tasks und Kommentaren aus der Liste. Unter „Papierkorb“ lässt es sich wiederherstellen.",
       "deleted": "Projekt «{name}» gelöscht."
+    },
+    "archive": {
+      "title": "Archiv",
+      "description": "Archivierte Projekte bleiben erhalten, sind aber nur noch lesbar und fehlen in Dashboard, Seitenleiste und „Meine Tasks“.",
+      "archivedText": "Das Projekt ist archiviert und nur lesbar. Zurückgeholt ist es wieder überall sichtbar und bearbeitbar.",
+      "archive": "Archivieren",
+      "unarchive": "Zurückholen",
+      "confirmTitle": "«{name}» archivieren?",
+      "confirmDescription": "Danach ist das Projekt nur noch lesbar. Du kannst es hier jederzeit zurückholen.",
+      "done": "Projekt «{name}» archiviert.",
+      "back": "Projekt «{name}» zurückgeholt."
     }
   },
   "dashboard": {
@@ -183,6 +195,9 @@
       "iconHint": "Erscheint in der Seitenleiste vor dem Projektnamen.",
       "locale": "Sprache der Mails",
       "localeHint": "Benachrichtigungen zu diesem Projekt kommen in dieser Sprache."
+    },
+    "archive": {
+      "title": "Archiv ({count})"
     }
   },
   "status": {
@@ -220,7 +235,8 @@
       "todos": "ToDo",
       "tasks": "Tasks",
       "members": "Mitglieder",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "trash": "Papierkorb"
     },
     "noMilestones": "Noch keine Milestones",
     "noMilestonesHint": "Lege den ersten Milestone an, zum Beispiel «Design freigegeben».",
@@ -244,7 +260,11 @@
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}",
-    "changedElsewhere": "Das Projekt wurde inzwischen geändert."
+    "changedElsewhere": "Das Projekt wurde inzwischen geändert.",
+    "archived": {
+      "title": "Archiviert, nur lesbar",
+      "description": "Dieses Projekt ist archiviert. Ändern, Anlegen, Löschen und Kommentieren sind gesperrt, bis es jemand mit dem Recht „Archivieren“ in den Einstellungen zurückholt."
+    }
   },
   "todos": {
     "milestone": "Milestone",
@@ -267,17 +287,13 @@
     "milestone": {
       "create": "Milestone anlegen",
       "edit": "Milestone ändern",
-      "saved": "Milestone gespeichert.",
-      "deleteTitle": "Milestone löschen?",
-      "deleteDescription": "«{title}» wird mit allen ToDo, Tasks und Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+      "saved": "Milestone gespeichert."
     },
     "todo": {
       "create": "ToDo anlegen",
       "edit": "ToDo ändern",
       "saved": "ToDo gespeichert.",
-      "milestone": "Milestone",
-      "deleteTitle": "ToDo löschen?",
-      "deleteDescription": "«{title}» wird mit allen Tasks und Kommentaren gelöscht. Das lässt sich nicht rückgängig machen."
+      "milestone": "Milestone"
     }
   },
   "richText": {
@@ -341,8 +357,6 @@
     },
     "assigned": "Zugewiesen.",
     "assignedMail": "Die Person bekommt eine E-Mail, falls sie Benachrichtigungen erhält.",
-    "deleteTitle": "Task löschen?",
-    "deleteDescription": "«{title}» wird mit allen Kommentaren gelöscht. Das lässt sich nicht rückgängig machen.",
     "share": {
       "shareTitle": "Teilen",
       "menu": "Share",
@@ -379,9 +393,7 @@
     "deletedAuthor": "Gelöschte Person",
     "edited": "bearbeitet",
     "placeholder": "Kommentar schreiben …",
-    "add": "Kommentieren",
-    "deleteTitle": "Kommentar löschen?",
-    "deleteDescription": "Der Kommentar wird endgültig gelöscht."
+    "add": "Kommentieren"
   },
   "myTasks": {
     "title": "Meine Tasks",
@@ -1551,5 +1563,44 @@
     "none": "Keine Version",
     "planned": "Geplant",
     "released": "Veröffentlicht"
+  },
+  "trash": {
+    "deleted": "Gelöscht",
+    "undo": "Rückgängig",
+    "restored": "Wiederhergestellt",
+    "restoreFailed": "Wiederherstellen nicht möglich",
+    "projectsTitle": "Papierkorb",
+    "projectsHint": "Gelöschte Projekte, die du wiederherstellen darfst.",
+    "hint": "Gelöschtes bleibt hier, bis es jemand endgültig löscht. Wiederhergestelltes steht am Ende seiner Liste.",
+    "empty": "Der Papierkorb ist leer.",
+    "restore": "Wiederherstellen",
+    "purge": "Endgültig löschen",
+    "purgeTitle": "Endgültig löschen?",
+    "purgeDescription": "«{title}» wird mit allem, was mitgelöscht wurde, endgültig gelöscht. Das lässt sich nicht rückgängig machen.",
+    "purged": "Endgültig gelöscht.",
+    "emptyTrash": "Papierkorb leeren",
+    "emptyTitle": "Papierkorb leeren?",
+    "emptyDescription": "{count} Eintrag wird endgültig gelöscht. Das lässt sich nicht rückgängig machen. | {count} Einträge werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.",
+    "emptied": "Papierkorb geleert.",
+    "projectPurgeTitle": "«{name}» endgültig löschen?",
+    "projectPurgeDescription": "Alle Milestones, ToDo, Tasks und Kommentare dieses Projekts werden endgültig gelöscht. Das lässt sich nicht rückgängig machen.",
+    "projectPurged": "Projekt «{name}» endgültig gelöscht.",
+    "deletedBy": "Gelöscht von {name}, {at}",
+    "deletedAt": "Gelöscht {at}",
+    "with": "mit {list}",
+    "types": {
+      "PROJECT": "Projekt",
+      "MILESTONE": "Milestone",
+      "TODO": "ToDo",
+      "TASK": "Task",
+      "COMMENT": "Kommentar"
+    },
+    "count": {
+      "PROJECT": "{count} Projekt | {count} Projekte",
+      "MILESTONE": "{count} Milestone | {count} Milestones",
+      "TODO": "{count} ToDo | {count} ToDos",
+      "TASK": "{count} Task | {count} Tasks",
+      "COMMENT": "{count} Kommentar | {count} Kommentare"
+    }
   }
 }

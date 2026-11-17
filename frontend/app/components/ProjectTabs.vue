@@ -6,8 +6,10 @@
  */
 const props = defineProps<{
   projectId: string
-  /** Show "Settings" (only when the viewer may change or delete the project). */
+  /** Show "Settings" (only when the viewer may change, archive or delete the project). */
   withSettings?: boolean
+  /** Show "Trash" (only with trash.restore or trash.purge). */
+  withTrash?: boolean
 }>()
 
 const { t } = useI18n()
@@ -21,6 +23,7 @@ const tabs = computed(() => {
     { label: t('project.tabs.todos'), to: `${base}/todos` },
     { label: t('project.tabs.tasks'), to: `${base}/kanban` },
     { label: t('project.tabs.members'), to: `${base}/members` },
+    ...(props.withTrash ? [{ label: t('project.tabs.trash'), to: `${base}/trash` }] : []),
     ...(props.withSettings ? [{ label: t('project.tabs.settings'), to: `${base}/settings` }] : [])
   ]
 })
