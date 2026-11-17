@@ -41,8 +41,19 @@ Zusätzlich: Beim Löschen des Tasks im Detail schließt sich der Drawer und der
 **Befund:** Fehlende Rechte (z. B. `purgeFromTrash`/`emptyProjectTrash` als Manager, `deleteTask` als Gast) liefern das englische Standard-`AuthorizationException`-Text von Laravel/Lighthouse.
 **Umsetzung:** Standardtext über `lang/{de,en}` übersetzen (z. B. „Dafür fehlt dir das Recht.“ / „You are not allowed to do this.“), Sprache wie bei den übrigen Meldungen. Spezifische Meldungen (archiviert, Elternteil im Papierkorb, Grundregeln) bleiben. Test: eine abgelehnte Mutation liefert den deutschen Satz.
 
+## F5.6 Wiederhergestellter Kommentar zeigt „bearbeitet“ (Fehler, Nachprüfung 2026-11-17)
+
+**Befund:** Kommentar löschen und wiederherstellen (Rückgängig oder Papierkorb): danach steht „bearbeitet“ daneben, obwohl der Text unverändert ist. `Comments.vue` zeigt „bearbeitet“, wenn `updatedAt !== createdAt`; Löschen (`deleted_at`, `deletion_id`) und Wiederherstellen setzen `updated_at` neu.
+**Umsetzung:** Eigene Spalte `comments.edited_at` (nullable), gesetzt nur von `updateComment` bei geändertem Text; GraphQL `Comment.editedAt: DateTime`; `Comments.vue` zeigt „bearbeitet“ nur bei `editedAt`. Migration: `edited_at = updated_at` wo `updated_at > created_at` und `deleted_at is null` (bestehende Daten; durch Papierkorb verfälschte Einzelfälle sind hinnehmbar). Seeder: die zwei Demo-Kommentare wie bisher als bearbeitet markieren, wenn gewollt. `db-schema.ts` ergänzen. Test: löschen und wiederherstellen ändert `editedAt` nicht; `updateComment` setzt es.
+
+---
+
+## Nachprüfung 2026-11-17 (Code bis `304991f`, frische Demo-Daten)
+
+F5.1 ✅ (Toast über offenem Detail klickbar, Fokus auf „Rückgängig“ nach Löschen im Detail und aus dem Karten-Menü, Enter holt zurück), F5.2 ✅, F5.3 ✅, F5.4 ✅ (Reihenfolge nach Position, „Nach oben“ wirkt, Nummern folgen), F5.5 ✅ („Dafür fehlt dir die Berechtigung.“), Zusatz Papierkorb-Cache (`5b1f1d2`) ✅ (Task und Kommentar mit derselben Id erscheinen getrennt). Neu: F5.6.
+
 ---
 
 ## Ablauf
 
-F5.2 → F5.5 → F5.3 → F5.1 → F5.4. Danach alle Prüfungen, im Browser ansehen (F5.1 mit Maus und Tastatur), dann anhalten für die Nachprüfung.
+F5.2 → F5.5 → F5.3 → F5.1 → F5.4 (erledigt), dann F5.6. Danach alle Prüfungen, im Browser ansehen (F5.1 mit Maus und Tastatur), dann anhalten für die Nachprüfung.
