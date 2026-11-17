@@ -1,6 +1,30 @@
 <?php
 
 return [
+    'validation' => [
+        'required' => 'Required field is missing.',
+        'unknown_field' => 'Unknown field.',
+        'type' => 'Wrong type, expected: :expected.',
+        'enum' => 'Invalid value.',
+        'pattern' => 'Wrong format.',
+        'min_length' => 'At least :min characters (found: :length).',
+        'max_length' => 'At most :max characters (found: :length).',
+        'min_items' => 'At least :min entries (found: :count).',
+        'max_items' => 'At most :max entries (found: :count).',
+        'minimum' => 'At least :min.',
+        'date' => 'Not a valid date (YYYY-MM-DD).',
+        'email' => 'Not a valid e-mail address.',
+        'id_twice' => 'The ID :id is used twice (first at :first).',
+        'label_key_twice' => 'The key :key is used twice.',
+        'label_name_missing' => 'The name in the language of the project (:language) is missing.',
+        'label_name_twice' => 'The name :name is used twice in :language.',
+        'assignee_not_member' => ':email is not a member of the project.',
+        'label_unknown' => ':key is not a label of the project.',
+        'commit_none' => '“none” is only allowed for tasks that are done.',
+        'commit_missing' => 'A done task in the released version :version needs a hash or “none”.',
+        'release_open' => 'The version :version is released but has :count tasks that are not done.',
+        'markdown' => 'Description (line :line): :kind – :excerpt',
+    ],
     'import' => [
         'invalid' => 'The file is not valid: :message',
         'revision' => 'The file has revision :file, the project is at :project. Export it again first.',

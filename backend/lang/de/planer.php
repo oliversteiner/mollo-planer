@@ -1,6 +1,30 @@
 <?php
 
 return [
+    'validation' => [
+        'required' => 'Pflichtfeld fehlt.',
+        'unknown_field' => 'Unbekanntes Feld.',
+        'type' => 'Falscher Typ, erwartet: :expected.',
+        'enum' => 'Ungültiger Wert.',
+        'pattern' => 'Falsches Format.',
+        'min_length' => 'Mindestens :min Zeichen (gefunden: :length).',
+        'max_length' => 'Höchstens :max Zeichen (gefunden: :length).',
+        'min_items' => 'Mindestens :min Einträge (gefunden: :count).',
+        'max_items' => 'Höchstens :max Einträge (gefunden: :count).',
+        'minimum' => 'Mindestens :min.',
+        'date' => 'Kein gültiges Datum (JJJJ-MM-TT).',
+        'email' => 'Keine gültige E-Mail-Adresse.',
+        'id_twice' => 'Die ID :id kommt doppelt vor (zuerst bei :first).',
+        'label_key_twice' => 'Der Schlüssel :key kommt doppelt vor.',
+        'label_name_missing' => 'Der Name in der Sprache des Projekts (:language) fehlt.',
+        'label_name_twice' => 'Der Name :name kommt in :language doppelt vor.',
+        'assignee_not_member' => ':email ist kein Mitglied des Projekts.',
+        'label_unknown' => ':key ist kein Label des Projekts.',
+        'commit_none' => '„none“ ist nur bei erledigten Tasks erlaubt.',
+        'commit_missing' => 'Ein erledigter Task in der veröffentlichten Version :version braucht einen Hash oder „none“.',
+        'release_open' => 'Die Version :version ist veröffentlicht, hat aber :count nicht erledigte Tasks.',
+        'markdown' => 'Beschreibung (Zeile :line): :kind – :excerpt',
+    ],
     'import' => [
         'invalid' => 'Die Datei ist ungültig: :message',
         'revision' => 'Die Datei hat die Revision :file, das Projekt ist bei :project. Exportiere es zuerst neu.',

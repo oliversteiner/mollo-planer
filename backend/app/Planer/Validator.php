@@ -124,9 +124,32 @@ final class Validator
         }
     }
 
+    /**
+     * The message in the language of the request. A kind that has no text here keeps the original text of the library.
+     */
     private static function message(ValidationError $error): string
     {
-        return (new ErrorFormatter)->formatErrorMessage($error);
+        $args = $error->args();
+
+        return match ($error->keyword()) {
+            'required' => __('planer.validation.required'),
+            'additionalProperties' => __('planer.validation.unknown_field'),
+            'type' => __('planer.validation.type', ['expected' => implode(' / ', (array) ($args['expected'] ?? []))]),
+            'enum' => __('planer.validation.enum'),
+            'const' => __('planer.validation.enum'),
+            'pattern' => __('planer.validation.pattern'),
+            'minLength' => __('planer.validation.min_length', ['min' => $args['min'] ?? '', 'length' => $args['length'] ?? '']),
+            'maxLength' => __('planer.validation.max_length', ['max' => $args['max'] ?? '', 'length' => $args['length'] ?? '']),
+            'minItems' => __('planer.validation.min_items', ['min' => $args['min'] ?? '', 'count' => $args['count'] ?? '']),
+            'maxItems' => __('planer.validation.max_items', ['max' => $args['max'] ?? '', 'count' => $args['count'] ?? '']),
+            'minimum' => __('planer.validation.minimum', ['min' => $args['min'] ?? '']),
+            'format' => match ($args['format'] ?? null) {
+                'date' => __('planer.validation.date'),
+                'email' => __('planer.validation.email'),
+                default => (new ErrorFormatter)->formatErrorMessage($error),
+            },
+            default => (new ErrorFormatter)->formatErrorMessage($error),
+        };
     }
 
     /**
@@ -162,7 +185,7 @@ final class Validator
         $firstSeen = [];
         $claimId = function (string $id, string $path) use (&$firstSeen, $add): void {
             if (isset($firstSeen[$id])) {
-                $add($path, "ID {$id} is used twice (first at {$firstSeen[$id]})");
+                $add($path, __('planer.validation.id_twice', ['id' => $id, 'first' => $firstSeen[$id]]));
             } else {
                 $firstSeen[$id] = $path;
             }
@@ -178,19 +201,19 @@ final class Validator
             $lp = "project.labels[{$li}]";
 
             if (isset($labelKeys[$label['key']])) {
-                $add("{$lp}.key", "Key {$label['key']} is used twice");
+                $add("{$lp}.key", __('planer.validation.label_key_twice', ['key' => $label['key']]));
             }
             $labelKeys[$label['key']] = true;
 
             if (! isset($label['names'][$project['locale']])) {
-                $add("{$lp}.names", "The name in the language of the project ({$project['locale']}) is missing");
+                $add("{$lp}.names", __('planer.validation.label_name_missing', ['language' => $project['locale']]));
             }
 
             foreach ($label['names'] as $lang => $name) {
                 $seen = "{$lang}:{$name}";
 
                 if (isset($labelNames[$seen])) {
-                    $add("{$lp}.names.{$lang}", "The name {$name} is used twice in {$lang}");
+                    $add("{$lp}.names.{$lang}", __('planer.validation.label_name_twice', ['name' => $name, 'language' => $lang]));
                 }
                 $labelNames[$seen] = true;
             }
@@ -218,29 +241,29 @@ final class Validator
                     $assignee = $task['assigneeEmail'] ?? null;
 
                     if ($assignee !== null && $assignee !== '' && ! isset($members[mb_strtolower($assignee)])) {
-                        $add("{$kp}.assigneeEmail", "{$assignee} is not a member of the project");
+                        $add("{$kp}.assigneeEmail", __('planer.validation.assignee_not_member', ['email' => $assignee]));
                     }
 
                     foreach ($task['labels'] ?? [] as $li => $key) {
                         if (! isset($labelKeys[$key])) {
-                            $add("{$kp}.labels[{$li}]", "{$key} is not a label of the project");
+                            $add("{$kp}.labels[{$li}]", __('planer.validation.label_unknown', ['key' => $key]));
                         }
                     }
 
                     $commit = $task['commit'] ?? null;
 
                     if ($commit === 'none' && $task['status'] !== 'done') {
-                        $add("{$kp}.commit", '"none" is only allowed for tasks that are done');
+                        $add("{$kp}.commit", __('planer.validation.commit_none'));
                     }
 
                     if ($released && $task['status'] === 'done' && $commit === null) {
-                        $add("{$kp}.commit", "A done task in the released version {$milestone['release']['version']} needs a hash or \"none\"");
+                        $add("{$kp}.commit", __('planer.validation.commit_missing', ['version' => $milestone['release']['version']]));
                     }
                 }
             }
 
             if ($released && $open > 0) {
-                $add($mp, "Version {$milestone['release']['version']} is released but has {$open} task(s) that are not done");
+                $add($mp, __('planer.validation.release_open', ['version' => $milestone['release']['version'], 'count' => $open]));
             }
         }
 
@@ -263,7 +286,7 @@ final class Validator
                 MarkdownToTiptap::convert($text, Mode::Strict);
             } catch (InvalidMarkdown $error) {
                 foreach ($error->errors as $warning) {
-                    $issues[] = ['path' => $path, 'severity' => 'error', 'message' => "{$warning->kind} (line {$warning->line}): {$warning->excerpt}"];
+                    $issues[] = ['path' => $path, 'severity' => 'error', 'message' => __('planer.validation.markdown', ['kind' => $warning->kind, 'line' => $warning->line, 'excerpt' => $warning->excerpt])];
                 }
             }
         };
