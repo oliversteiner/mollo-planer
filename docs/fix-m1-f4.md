@@ -26,7 +26,8 @@ Nicht gewählt (später möglich): Projekte der Person mit Projektrolle direkt i
 - Ursache: Die Layouts halten den Dialog „Passwort bestätigen“ (`PasswordPromptModal`) auf jeder Seite bereit, auch geschlossen mit seinem Feld `current-password`. Chrome bildet aus allen Feldern ohne Formular ein Formular und nimmt das erste Textfeld davor, die Suche, als Benutzernamen.
 - Fix: Das Passwortfeld gibt es nur, solange der Dialog offen ist (bis er ausgeblendet ist), und dann in einem eigenen Formular mit verstecktem Feld `autocomplete="username"` (E-Mail der angemeldeten Person). Test `tests/nuxt/password-prompt.test.ts`. Im Browser: Suchfeld bleibt leer, auch bei offenem Dialog.
 
-## F4.3 Seitenleiste: Systemrolle unter der E-Mail-Adresse (offen)
+## F4.3 Seitenleiste: Systemrolle unter der E-Mail-Adresse (erledigt 2026-11-17)
 
 - Gewünscht (Oliver, 2026-11-17): In der Seitenleiste unten (Benutzerknopf, `layouts/default.vue`, `UserLine`) unter Name und E-Mail-Adresse auch die Systemrolle der angemeldeten Person anzeigen.
 - Fix (nur Frontend): Rollenname über `useRoleName(viewer.role)` (der Viewer liefert `role { key names }` bereits), DE/EN aus dem Backend. Form (eigene Zeile oder Badge wie in `/admin/users`) bei der Umsetzung im Browser festlegen.
+- Umgesetzt: eigene Zeile unter der E-Mail-Adresse (`UserLine` mit `detail`), Name aus dem Backend. Name, E-Mail und Rolle werden mit „…“ gekürzt, damit der Pfeil des Menüknopfs nichts mehr überdeckt (vorher lief die E-Mail-Adresse darunter). Test `tests/nuxt/user-line.test.ts`.

@@ -10,6 +10,7 @@ import { currentVersion, type VersionFile } from '~/utils/versions'
  */
 const { t, localeProperties } = useI18n()
 const { viewer, can, logout } = useViewer()
+const roleName = useRoleName()
 
 /** The current (highest released) version, shown under the user menu. */
 const appVersion = currentVersion((versionData as VersionFile).versions)
@@ -140,6 +141,7 @@ function skipToContent(): void {
             :name="viewer.name"
             :src="viewer.avatarUrl"
             :description="viewer.email"
+            :detail="roleName(viewer.role)"
             size="sm"
           />
         </wa-button>
