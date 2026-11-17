@@ -31,3 +31,20 @@ Nicht gewählt (später möglich): Projekte der Person mit Projektrolle direkt i
 - Gewünscht (Oliver, 2026-11-17): In der Seitenleiste unten (Benutzerknopf, `layouts/default.vue`, `UserLine`) unter Name und E-Mail-Adresse auch die Systemrolle der angemeldeten Person anzeigen.
 - Fix (nur Frontend): Rollenname über `useRoleName(viewer.role)` (der Viewer liefert `role { key names }` bereits), DE/EN aus dem Backend. Form (eigene Zeile oder Badge wie in `/admin/users`) bei der Umsetzung im Browser festlegen.
 - Umgesetzt: eigene Zeile unter der E-Mail-Adresse (`UserLine` mit `detail`), Name aus dem Backend. Name, E-Mail und Rolle werden mit „…“ gekürzt, damit der Pfeil des Menüknopfs nichts mehr überdeckt (vorher lief die E-Mail-Adresse darunter). Test `tests/nuxt/user-line.test.ts`.
+
+## F4.4 Rechte-Übersicht: abgeschnittene Spalten ohne Hinweis (Olivers Befund 1.2, offen)
+
+- Gefunden (Oliver 2026-11-16, Claude 2026-11-17 nach F3.10): Bei einer Fensterbreite um 1036 px ist die letzte Rollen-Spalte rechts abgeschnitten („te…“). Man sieht nicht, dass die Tabelle seitlich scrollt; die Scrollleiste sitzt erst am Ende der langen Tabelle (25 Zeilen). Daher „ganze Rollen-Spalten fehlen“.
+- Fix (nur Frontend, `components/role/RightsMatrix.vue`):
+  - Spaltenköpfe kompakt: Rollenname höchstens zwei Zeilen, Spalten schmal (Inhalt ist nur ✓/–), damit 6 bis 8 Rollen ohne Scrollen passen.
+  - Wenn es trotzdem nicht passt: sichtbarer Hinweis am Rand (Schatten rechts/links, solange weitergescrollt werden kann) und Kopfzeile `position: sticky` beim senkrechten Scrollen; erste Spalte bleibt stehen (wie geplant).
+  - Optional: Scrollleiste oben zusätzlich (oder die Tabelle in einem Rahmen mit fester Höhe, damit die untere Scrollleiste sichtbar ist). Lösung im Browser bei 1024, 1280 und Telefonbreite prüfen.
+
+## F4.5 Eigene Tasks lassen sich in der Oberfläche nicht ändern (offen, Fehler)
+
+- Gefunden (Claude 2026-11-17, Abnahme 1.4 und 2.7): Ben mit Projektrolle „redaktor - test“ (Planen, Mitarbeiten) legt in Sommerfest 2027 einen Task an. Danach gibt es für ihn weder im Karten-Menü noch im Task-Detail „Ändern“, und „Zugewiesen an“ ist nur Anzeige. Gleiches gilt für Mitglieder.
+- Ursache: Das Frontend fragt nur Projektrechte ab (`can('TASK_UPDATE')`, `can('TASK_ASSIGN')` in `kanban.vue`, `projects/[id]/index.vue`, `task/Detail.vue`). `task.updateOwn` und `task.assignSelf` gelten aber **je Task** (eigener Task = `created_by`), das kann `viewerRights` des Projekts nicht ausdrücken. Das Backend erlaubt es (Policy), die Oberfläche bietet es nicht an.
+- Fix:
+  - Backend: Felder am Typ `Task`: `viewerCanUpdate: Boolean!`, `viewerCanAssign: Boolean!` (darf andere zuweisen), `viewerCanAssignSelf: Boolean!`, `viewerCanDelete: Boolean!` — aus denselben Policies (`TaskPolicy::update`, `Rights::mayAssignTask`), ohne N+1 (Rechte je Projekt sind im Request zwischengespeichert; `created_by` ist am Task).
+  - Frontend: Karten-Menü, Task-Detail und Formular nutzen diese Felder statt `can('TASK_UPDATE')`/`can('TASK_ASSIGN')`. `useAssigneeChoice` nimmt `viewerCanAssign`/`viewerCanAssignSelf` des Tasks (beim Anlegen weiterhin die Projektrechte).
+- Tests: Feature-Test der Felder für Owner, Mitglied (eigener und fremder Task), Gast, Lesend; Komponententest: Mitglied sieht „Ändern“ beim eigenen Task, nicht beim fremden.
