@@ -100,6 +100,16 @@ enum Right: string
         return in_array($this, self::SYSTEM, true) ? self::SCOPE_SYSTEM : self::SCOPE_PROJECT;
     }
 
+    /**
+     * Still holds in an archived project (rollen-funktionen-rechte.md §7.7):
+     * reading (the export is reading), bringing it back, restoring from its
+     * trash. Every other project right ends with the archive.
+     */
+    public function holdsWhenArchived(): bool
+    {
+        return in_array($this, [self::PROJECT_ARCHIVE, self::TRASH_RESTORE, self::PLANER_EXPORT], true);
+    }
+
     public function isSystem(): bool
     {
         return $this->scope() === self::SCOPE_SYSTEM;

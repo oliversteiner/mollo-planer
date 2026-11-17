@@ -2,46 +2,25 @@
 
 namespace Tests\Feature\GraphQL;
 
+use App\Models\Comment;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Schema\SchemaBuilder;
-use Tests\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
- * The mutations an archived project refuses (schema-review A5: archived means
- * read only). The archive logic comes later; this list is fixed now, and every
- * mutation of the schema must be either on it or excluded with a reason. A new
- * mutation therefore gets a decision here, and nobody forgets the archive rule.
+ * The mutations an archived project refuses (rollen-funktionen-rechte.md
+ * §7.7: archived means read only). Every mutation of the schema is either
+ * one of the cases below or excluded with a reason, so a new mutation gets
+ * a decision here. Each case is sent in an archived project by the owner
+ * and by an admin (projects.manageAny), and must be refused with the
+ * message for the archive.
  */
-class ArchivedProjectMutationsTest extends TestCase
+class ArchivedProjectMutationsTest extends GraphQLTestCase
 {
-    /** Writes into a project: refused while the project is archived. */
-    private const REFUSED_WHEN_ARCHIVED = [
-        'addComment',
-        'assignTask',
-        'createMilestone',
-        'createTask',
-        'createTodo',
-        'deleteComment',
-        'deleteMilestone',
-        'deleteProject',
-        'deleteTask',
-        'deleteTodo',
-        'moveMilestone',
-        'moveTask',
-        'moveTodo',
-        'moveTaskToTodo',
-        'removeProjectMember',
-        'setProjectLabelSet',
-        'setProjectMember',
-        'setTaskLabels',
-        'updateComment',
-        'updateMilestone',
-        'updateProject',
-        'updateTask',
-        'updateTodo',
-    ];
-
-    /** Not a write into one project, so the archive rule does not apply. */
+    /** Not a write into one project, or allowed in the archive. */
     private const EXCLUDED = [
+        'archiveProject' => 'allowed in the archive (project.archive)',
+        'unarchiveProject' => 'brings the project back (project.archive)',
         'approveUser' => 'user administration',
         'setProjectCreatorRole' => 'app settings, belong to no project',
         'createApiToken' => 'personal token',
@@ -75,11 +54,83 @@ class ArchivedProjectMutationsTest extends TestCase
         'updateUser' => 'user administration',
     ];
 
+    /** Tables a refused mutation must leave unchanged. */
+    private const TABLES = ['projects', 'project_user', 'milestones', 'todos', 'tasks', 'comments', 'label_task'];
+
+    private Comment $comment;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->comment = Comment::factory()->for($this->task)->for($this->users['owner'], 'author')->create();
+        $this->project->forceFill(['archived_at' => now()])->save();
+    }
+
+    /**
+     * @param  \Closure(self): array<string, mixed>  $variables
+     */
+    #[DataProvider('refusedWhenArchived')]
+    public function test_the_owner_cannot_write_into_an_archived_project(string $mutation, \Closure $variables): void
+    {
+        $this->assertRefused('owner', $mutation, $variables);
+    }
+
+    /**
+     * @param  \Closure(self): array<string, mixed>  $variables
+     */
+    #[DataProvider('refusedWhenArchived')]
+    public function test_an_admin_cannot_write_into_an_archived_project_either(string $mutation, \Closure $variables): void
+    {
+        // Only the author edits a comment, archived or not.
+        $message = $this->dataName() === 'updateComment' ? 'This action is unauthorized.' : null;
+
+        $this->assertRefused('admin', $mutation, $variables, $message);
+    }
+
+    /**
+     * One case per mutation, keyed by its name, written as the owner (who is
+     * also the author of the comment) would send it in an active project.
+     *
+     * @return array<string, array{string, \Closure(self): array<string, mixed>}>
+     */
+    public static function refusedWhenArchived(): array
+    {
+        $project = fn (self $test) => ['id' => $test->project->id];
+        $milestone = fn (self $test) => ['id' => $test->milestone->id];
+        $todo = fn (self $test) => ['id' => $test->todo->id];
+        $task = fn (self $test) => ['id' => $test->task->id];
+
+        return [
+            'addComment' => ['mutation ($t: ID!, $b: RichText!) { addComment(input: {taskId: $t, body: $b}) { id } }', fn (self $test) => ['t' => $test->task->id, 'b' => $test->doc('Neu')]],
+            'assignTask' => ['mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $test) => ['id' => $test->task->id, 'u' => $test->users['member']->id]],
+            'createMilestone' => ['mutation ($p: ID!) { createMilestone(input: {projectId: $p, title: "Neu"}) { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'createTask' => ['mutation ($t: ID!) { createTask(input: {todoId: $t, title: "Neu"}) { id } }', fn (self $test) => ['t' => $test->todo->id]],
+            'createTodo' => ['mutation ($m: ID!) { createTodo(input: {milestoneId: $m, title: "Neu"}) { id } }', fn (self $test) => ['m' => $test->milestone->id]],
+            'deleteComment' => ['mutation ($id: ID!) { deleteComment(id: $id) { id } }', fn (self $test) => ['id' => $test->comment->id]],
+            'deleteMilestone' => ['mutation ($id: ID!) { deleteMilestone(id: $id) { id } }', $milestone],
+            'deleteProject' => ['mutation ($id: ID!) { deleteProject(id: $id) { id } }', $project],
+            'deleteTask' => ['mutation ($id: ID!) { deleteTask(id: $id) { id } }', $task],
+            'deleteTodo' => ['mutation ($id: ID!) { deleteTodo(id: $id) { id } }', $todo],
+            'moveMilestone' => ['mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
+            'moveTask' => ['mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', $task],
+            'moveTaskToTodo' => ['mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => $test->todo->id]],
+            'moveTodo' => ['mutation ($id: ID!, $m: ID!) { moveTodo(id: $id, milestoneId: $m, position: 0) { id } }', fn (self $test) => ['id' => $test->todo->id, 'm' => $test->milestone->id]],
+            'removeProjectMember' => ['mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],
+            'setProjectLabelSet' => ['mutation ($p: ID!) { setProjectLabelSet(projectId: $p, labelSetId: null) { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'setProjectMember' => ['mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "member") { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
+            'setTaskLabels' => ['mutation ($t: ID!) { setTaskLabels(taskId: $t, labelIds: []) { id } }', fn (self $test) => ['t' => $test->task->id]],
+            'updateComment' => ['mutation ($id: ID!, $b: RichText!) { updateComment(id: $id, input: {body: $b}) { id } }', fn (self $test) => ['id' => $test->comment->id, 'b' => $test->doc('Neu')]],
+            'updateMilestone' => ['mutation ($id: ID!) { updateMilestone(id: $id, input: {title: "Neu"}) { id } }', $milestone],
+            'updateProject' => ['mutation ($id: ID!) { updateProject(id: $id, input: {name: "Neu"}) { id } }', $project],
+            'updateTask' => ['mutation ($id: ID!) { updateTask(id: $id, input: {title: "Neu"}) { id } }', $task],
+            'updateTodo' => ['mutation ($id: ID!) { updateTodo(id: $id, input: {title: "Neu"}) { id } }', $todo],
+        ];
+    }
+
     public function test_every_schema_mutation_is_either_refused_when_archived_or_excluded(): void
     {
-        $schemaMutations = $this->app->make(SchemaBuilder::class)->schema()->getMutationType()->getFieldNames();
-
-        $unclassified = array_values(array_diff($schemaMutations, self::REFUSED_WHEN_ARCHIVED, array_keys(self::EXCLUDED)));
+        $unclassified = array_values(array_diff($this->schemaMutations(), array_keys(self::refusedWhenArchived()), array_keys(self::EXCLUDED)));
         sort($unclassified);
 
         $this->assertSame([], $unclassified, 'Mutations without an archive decision: '.implode(', ', $unclassified));
@@ -87,15 +138,52 @@ class ArchivedProjectMutationsTest extends TestCase
 
     public function test_the_lists_name_only_mutations_of_the_schema(): void
     {
-        $schemaMutations = $this->app->make(SchemaBuilder::class)->schema()->getMutationType()->getFieldNames();
-
-        $unknown = array_values(array_diff([...self::REFUSED_WHEN_ARCHIVED, ...array_keys(self::EXCLUDED)], $schemaMutations));
+        $unknown = array_values(array_diff([...array_keys(self::refusedWhenArchived()), ...array_keys(self::EXCLUDED)], $this->schemaMutations()));
 
         $this->assertSame([], $unknown, 'Listed mutations the schema does not have: '.implode(', ', $unknown));
     }
 
     public function test_a_mutation_is_never_on_both_lists(): void
     {
-        $this->assertSame([], array_values(array_intersect(self::REFUSED_WHEN_ARCHIVED, array_keys(self::EXCLUDED))));
+        $this->assertSame([], array_values(array_intersect(array_keys(self::refusedWhenArchived()), array_keys(self::EXCLUDED))));
+    }
+
+    public function test_each_case_sends_the_mutation_it_is_named_after(): void
+    {
+        foreach (self::refusedWhenArchived() as $name => [$mutation]) {
+            preg_match('/mutation\b[^{]*\{\s*(\w+)/', $mutation, $match);
+            $this->assertSame($name, $match[1] ?? null);
+        }
+    }
+
+    /**
+     * @param  \Closure(self): array<string, mixed>  $variables
+     */
+    private function assertRefused(string $actor, string $mutation, \Closure $variables, ?string $message = null): void
+    {
+        $before = $this->snapshot();
+
+        $this->as($actor)->withHeader('Accept-Language', 'de')->gql($mutation, $variables($this))
+            ->assertGraphQLErrorMessage($message ?? trans('projects.archived', [], 'de'));
+
+        $this->assertEquals($before, $this->snapshot());
+    }
+
+    /**
+     * @return array<string, list<array<string, mixed>>>
+     */
+    private function snapshot(): array
+    {
+        return collect(self::TABLES)
+            ->mapWithKeys(fn (string $table) => [$table => DB::table($table)->get()->map(fn (object $row) => (array) $row)->all()])
+            ->all();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function schemaMutations(): array
+    {
+        return $this->app->make(SchemaBuilder::class)->schema()->getMutationType()->getFieldNames();
     }
 }

@@ -8,6 +8,7 @@ use App\Observers\ProjectObserver;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,7 +38,24 @@ class Project extends Model
     {
         return [
             'locale' => Locale::class,
+            'archived_at' => 'datetime',
         ];
+    }
+
+    /** Archived: read only, except bringing it back and the trash (Rights). */
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    /**
+     * Archived projects, or (false) the others.
+     *
+     * @param  Builder<static>  $query
+     */
+    public function scopeArchived(Builder $query, bool $archived = true): void
+    {
+        $archived ? $query->whereNotNull('projects.archived_at') : $query->whereNull('projects.archived_at');
     }
 
     /**

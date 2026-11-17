@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'archived' => 'The project is archived and read only. Bring it back first.',
     'only_holder' => ':name is the only person with “:right” in :projects. Give the role to someone else there first.',
     'list_and' => ' and ',
     'last_owner' => 'The project needs at least one owner. Make someone else an owner first.',

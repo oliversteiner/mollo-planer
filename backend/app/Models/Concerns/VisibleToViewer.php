@@ -57,4 +57,23 @@ trait VisibleToViewer
 
         $query->whereHas($path, fn (Builder $projects) => Rights::constrainToVisibleProjects($projects, $user));
     }
+
+    /**
+     * Only what lies in projects that are not archived: lists across
+     * projects (dashboard, myTasks) leave the archive out.
+     *
+     * @param  Builder<static>  $query
+     */
+    public function scopeInActiveProjects(Builder $query): void
+    {
+        $path = static::projectPath();
+
+        if ($path === null) {
+            $query->whereNull($query->qualifyColumn('archived_at'));
+
+            return;
+        }
+
+        $query->whereHas($path, fn (Builder $projects) => $projects->whereNull('projects.archived_at'));
+    }
 }

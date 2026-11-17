@@ -11,8 +11,8 @@ type Query @guard {
   "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
   memberCandidates(projectId: ID): [MemberCandidate!]! @field(resolver: "App\\GraphQL\\Queries\\MemberCandidates")
 
-  "Deine Projekte. Admins sehen alle."
-  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+  "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
+  projects(archived: Boolean = false @scope(name: "archived")): [Project!]! @all(scopes: ["visibleToViewer"])
   project(id: ID! @eq): Project @find(scopes: ["visibleToViewer"])
 
   "Milestones eines Projekts (Seite Milestones)"
@@ -33,8 +33,8 @@ type Query @guard {
   "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
   kanban(projectId: ID!): [KanbanColumn!]! @field(resolver: "App\\GraphQL\\Queries\\Kanban")
 
-  "Tasks, die dir zugewiesen sind"
-  myTasks(status: TaskStatus @filter): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer"])
+  "Tasks, die dir zugewiesen sind (ohne archivierte Projekte)"
+  myTasks(status: TaskStatus @filter): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer", "inActiveProjects"])
 
   "Startseite"
   dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")

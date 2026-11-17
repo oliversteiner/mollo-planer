@@ -62,6 +62,8 @@ class OutsiderAccessTest extends GraphQLTestCase
         return [
             'updateProject' => ['stranger', 'mutation ($id: ID!) { updateProject(id: $id, input: {name: "Hack"}) { id } }', $project],
             'deleteProject' => ['stranger', 'mutation ($id: ID!) { deleteProject(id: $id) { id } }', $project],
+            'archiveProject (member)' => ['member', 'mutation ($id: ID!) { archiveProject(id: $id) { id } }', $project],
+            'unarchiveProject (member)' => ['member', 'mutation ($id: ID!) { unarchiveProject(id: $id) { id } }', $project],
             'setProjectMember (join as owner)' => ['stranger', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "owner") { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
             'removeProjectMember' => ['stranger', 'mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],
             'createMilestone' => ['stranger', 'mutation ($p: ID!) { createMilestone(input: {projectId: $p, title: "Hack"}) { id } }', fn (self $test) => ['p' => $test->project->id]],

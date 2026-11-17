@@ -74,6 +74,8 @@ type Project {
   milestones: [Milestone!]! @hasMany
   "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
   planerRevision: Int! @rename(attribute: "planer_revision")
+  "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
+  archivedAt: DateTime @rename(attribute: "archived_at")
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
   progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."

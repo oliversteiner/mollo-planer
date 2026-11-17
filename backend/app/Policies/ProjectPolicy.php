@@ -30,6 +30,12 @@ class ProjectPolicy
         return $this->allows($user, $project, Right::PROJECT_DELETE);
     }
 
+    /** Archive the project and bring it back (allowed in the archive too). */
+    public function archive(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::PROJECT_ARCHIVE);
+    }
+
     public function manageMembers(User $user, Project $project): bool
     {
         return $this->allows($user, $project, Right::MEMBERS_MANAGE);

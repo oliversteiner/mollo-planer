@@ -58,7 +58,7 @@ final class Rights
             return in_array($right->value, self::grantOf($user->role_id)['rights'], true);
         }
 
-        if ($project === null) {
+        if ($project === null || ! self::withinArchive($project, $right)) {
             return false;
         }
 
@@ -82,14 +82,11 @@ final class Rights
             return self::rightsOfRole($user->role);
         }
 
-        if (self::allows($user, Right::PROJECTS_MANAGE_ANY)) {
-            return Right::ofScope(Right::SCOPE_PROJECT);
-        }
+        $rights = self::allows($user, Right::PROJECTS_MANAGE_ANY)
+            ? Right::ofScope(Right::SCOPE_PROJECT)
+            : array_filter(self::rightsOfRole($project->roleOf($user)), fn (Right $right): bool => self::withinCap($user, $right));
 
-        return array_values(array_filter(
-            self::rightsOfRole($project->roleOf($user)),
-            fn (Right $right): bool => self::withinCap($user, $right),
-        ));
+        return array_values(array_filter($rights, fn (Right $right): bool => self::withinArchive($project, $right)));
     }
 
     /**
@@ -365,6 +362,25 @@ final class Rights
         }
 
         $projects->whereHas('members', fn (Builder $members) => $members->whereKey($user->getKey()));
+    }
+
+    /**
+     * Refused only because the project is archived: the person sees the
+     * project, and the right ends with the archive. The policies then say
+     * so instead of a plain "unauthorized"; strangers learn nothing.
+     */
+    public static function refusedByArchive(User $user, Right $right, Project $project): bool
+    {
+        return ! self::withinArchive($project, $right) && self::canView($user, $project);
+    }
+
+    /**
+     * An archived project allows only the rights that hold when archived
+     * (Right::holdsWhenArchived), for projects.manageAny too.
+     */
+    private static function withinArchive(Project $project, Right $right): bool
+    {
+        return ! $project->isArchived() || $right->holdsWhenArchived();
     }
 
     /** The project cap of the user's system role allows this right (null cap = all). */

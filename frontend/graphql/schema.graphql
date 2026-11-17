@@ -219,6 +219,8 @@ type Mutation {
  addComment(input: AddCommentInput!): Comment!
  "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
  approveUser(id: ID!): User!
+ "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
+ archiveProject(id: ID!): Project!
  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
  assignTask(assigneeId: ID, id: ID!): Task!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
@@ -291,6 +293,8 @@ type Mutation {
  setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
  "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
  setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
+ "Holt ein archiviertes Projekt zurück."
+ unarchiveProject(id: ID!): Project!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
@@ -371,6 +375,8 @@ type Progress {
 }
 "Ein Projekt mit Mitgliedern und Milestones"
 type Project {
+ "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
+ archivedAt: DateTime
  createdAt: DateTime!
  description: String
  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
@@ -495,13 +501,13 @@ type Query {
  milestone(id: ID!): Milestone
  "Milestones eines Projekts (Seite Milestones)"
  milestones(projectId: ID!): [Milestone!]!
- "Tasks, die dir zugewiesen sind"
+ "Tasks, die dir zugewiesen sind (ohne archivierte Projekte)"
  myTasks(status: TaskStatus): [Task!]!
  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
  permissionMatrix: PermissionMatrix!
  project(id: ID!): Project
- "Deine Projekte. Admins sehen alle."
- projects: [Project!]!
+ "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
+ projects(archived: Boolean = false): [Project!]!
  "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
  rights(scope: RoleScope!): [Right!]!
  "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."

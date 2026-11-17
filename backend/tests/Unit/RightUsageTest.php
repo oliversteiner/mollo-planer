@@ -21,7 +21,6 @@ class RightUsageTest extends TestCase
      * @var array<string, string>
      */
     private const PENDING = [
-        'project.archive' => 'S5',
         'trash.restore' => 'S5',
         'trash.purge' => 'S5',
         'planer.export' => 'I1',

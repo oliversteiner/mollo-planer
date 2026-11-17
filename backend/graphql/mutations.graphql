@@ -147,6 +147,14 @@ type Mutation @guard {
   deleteProject(id: ID! @whereKey): Project!
     @can(ability: "delete", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteProject")
+  "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
+  archiveProject(id: ID!): Project!
+    @can(ability: "archive", find: "id", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ArchiveProject@archive")
+  "Holt ein archiviertes Projekt zurück."
+  unarchiveProject(id: ID!): Project!
+    @can(ability: "archive", find: "id", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ArchiveProject@unarchive")
   "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
   draftProjectPlan(
     messages: [PlanChatMessageInput!]! @rules(apply: ["min:1", "max:40"])

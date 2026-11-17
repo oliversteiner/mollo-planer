@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Notification;
  * - new comment: the assignee and everyone who commented on the task before
  *
  * Never the actor, never someone with mails turned off, never someone who
- * can no longer see the project.
+ * can no longer see the project, never about a task of an archived project.
  */
 class TaskNotifier
 {
@@ -81,6 +81,10 @@ class TaskNotifier
     private function filter(Collection $users, Task $task, User $actor): Collection
     {
         $project = $task->owningProject();
+
+        if ($project->isArchived()) {
+            return collect();
+        }
 
         return $users
             ->filter()
