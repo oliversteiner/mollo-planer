@@ -32,7 +32,7 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 - [x] ✅ Systemrolle „Lesend“: Person ist Owner eines Projekts und kann dort trotzdem nichts ändern (Obergrenze).
 - [x] ✅ Projektrolle „Gast“: sieht das Projekt, kann nichts ändern, nicht kommentieren.
 - [x] ✅ Mitglied: legt einen Task an, ändert ihn, weist ihn sich selbst zu; einen fremden Task kann es nicht ändern; einen eigenen Task kann es nicht einer anderen Person zuweisen.
-- [ ] Fremde Kommentare: niemand kann sie ändern, auch Anna nicht.
+- [ ] Fremde Kommentare: niemand kann sie ändern, auch Anna nicht. Löschen dürfen die Autorin und, wer „Fremde Kommentare löschen“ hat (Standard: Owner, Manager, Admin; entschieden 2026-11-17: so lassen); Mitglied und Gast nicht.
 
 ## 3. Tätigkeit
 
