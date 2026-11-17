@@ -78,4 +78,5 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 - Offene Punkte (gehen als Fix vor M2 an die Umsetzung):
   - F1 Rollenseite unübersichtlich (2026-11-16) → `docs/fix-m1-rollenseite.md`, umgesetzt in `bb3c782`, Abschnitt 1 neu prüfen.
   - F2 Mitglieder: Auswahl zeigt nur Ben (2026-11-16) → `docs/fix-m1-mitglieder.md`, umgesetzt in `3ae8bb3`, `41ef213`, `9e8f503`.
+  - F4 aus Olivers Punkten: `docs/fix-m1-f4.md` (laufend; F4.1 Projektrolle in „Person ändern“ gesucht → Beschriftung).
   - F3 aus der Teilabnahme: `docs/fix-m1-abnahme.md` (Task ohne Zuständige, Ersteller-Rolle, Admin wird nicht Mitglied, Grundregel §7.3 über Systemrolle, Ideen in „Meine Tasks“, Meldungen beim Veröffentlichen, Auswahlen, Kleinigkeiten).
