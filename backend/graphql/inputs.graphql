@@ -20,7 +20,7 @@ input UpdateUserInput {
 
 input CreateProjectInput {
   name: String! @rules(apply: ["min:2", "max:120"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale = DE
   "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
@@ -38,7 +38,7 @@ input ProjectMemberInput {
 
 input UpdateProjectInput {
   name: String @rules(apply: ["min:2", "max:120"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale
 }
@@ -48,7 +48,7 @@ input CreateMilestoneInput {
   "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
   position: Int @rules(apply: ["integer", "min:0"])
   title: String! @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
   "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
@@ -58,7 +58,7 @@ input CreateMilestoneInput {
 
 input UpdateMilestoneInput {
   title: String @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
   "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
@@ -71,14 +71,14 @@ input CreateTodoInput {
   "Stelle im Milestone (0 = erstes ToDo). Ohne Angabe ans Ende."
   position: Int @rules(apply: ["integer", "min:0"])
   title: String! @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
 }
 
 input UpdateTodoInput {
   title: String @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
 }
@@ -125,7 +125,7 @@ input UserStoryInput {
 input CreateTaskInput {
   todoId: ID! @rename(attribute: "todo_id")
   title: String! @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   "Die Story des Tasks, alle drei Teile oder keiner"
   userStory: UserStoryInput @rename(attribute: "user_story")
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
@@ -139,7 +139,7 @@ input CreateTaskInput {
 
 input UpdateTaskInput {
   title: String @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   "Die Story des Tasks, null entfernt sie"
   userStory: UserStoryInput @rename(attribute: "user_story")
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])

@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Task;
 use App\Observers\Concerns\TouchesPlanerRevision;
+use App\Planer\PlanerLimits;
 use App\Services\ItemStatusSync;
 use App\Services\KanbanOrdering;
 use App\Services\ReleaseRules;
@@ -22,6 +23,11 @@ class TaskObserver
         private readonly ItemStatusSync $statusSync,
         private readonly KanbanOrdering $kanban,
     ) {}
+
+    public function creating(Task $task): void
+    {
+        PlanerLimits::assertTaskRoom($task->todo_id);
+    }
 
     public function saving(Task $task): void
     {

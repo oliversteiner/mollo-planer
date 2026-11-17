@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Todo;
 use App\Observers\Concerns\TouchesPlanerRevision;
+use App\Planer\PlanerLimits;
 use App\Services\ItemStatusSync;
 use App\Services\Ordering;
 
@@ -29,6 +30,8 @@ class TodoObserver
      */
     public function creating(Todo $todo): void
     {
+        PlanerLimits::assertTodoRoom($todo->milestone_id);
+
         $group = Todo::query()->where('milestone_id', $todo->milestone_id);
 
         if ($todo->position === null) {

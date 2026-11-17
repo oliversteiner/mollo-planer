@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Planer\PlanerLimits;
 use App\Planer\PlanerRevision;
 use App\Support\AppSettings;
 use App\Support\Rights;
@@ -84,6 +85,7 @@ final class Deletion
         return DB::transaction(function () use ($deletionId, $actor): Model {
             $top = $this->topOf($deletionId);
             $this->assertParentIsBack($top);
+            $this->assertRoom($top);
 
             $taskIds = $top instanceof Task ? [] : Task::onlyTrashed()->where('deletion_id', $deletionId)->pluck('id')->all();
 
@@ -244,6 +246,22 @@ final class Deletion
     /**
      * @throws ValidationException
      */
+    /**
+     * Coming back must not break the limits of the planer file. Only the top
+     * counts: what is below it was inside the limits when it went.
+     *
+     * @throws ValidationException
+     */
+    private function assertRoom(Model $top): void
+    {
+        match (true) {
+            $top instanceof Milestone => PlanerLimits::assertMilestoneRoom($top->project_id),
+            $top instanceof Todo => PlanerLimits::assertTodoRoom($top->milestone_id),
+            $top instanceof Task => PlanerLimits::assertTaskRoom($top->todo_id),
+            default => null,
+        };
+    }
+
     private function assertParentIsBack(Model $top): void
     {
         $parent = match (true) {

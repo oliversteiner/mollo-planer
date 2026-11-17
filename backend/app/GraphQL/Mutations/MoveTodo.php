@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Models\Milestone;
 use App\Models\Todo;
+use App\Planer\PlanerLimits;
 use App\Services\Ordering;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +32,11 @@ class MoveTodo
             }
 
             $sourceMilestoneId = $todo->milestone_id;
+
+            if ((string) $sourceMilestoneId !== (string) $target->getKey()) {
+                PlanerLimits::assertTodoRoom($target->getKey());
+            }
+
             $todo->milestone()->associate($target);
 
             app(Ordering::class)->move(

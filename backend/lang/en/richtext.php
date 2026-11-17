@@ -10,5 +10,6 @@ return [
     'too_long' => 'The :attribute field must not contain more than :max characters.',
     'too_deep' => 'The :attribute field must not be nested more than :max levels deep.',
     'too_large' => 'The :attribute field is too large.',
+    'markdown_too_long' => 'The :attribute field may have at most :max characters as Markdown (now :length).',
     'empty' => 'The :attribute field must not be empty.',
 ];

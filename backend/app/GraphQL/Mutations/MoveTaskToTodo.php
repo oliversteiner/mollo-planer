@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Models\Task;
 use App\Models\Todo;
+use App\Planer\PlanerLimits;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -30,6 +31,8 @@ class MoveTaskToTodo
             if ((string) $task->todo_id === (string) $todo->getKey()) {
                 return $task;
             }
+
+            PlanerLimits::assertTaskRoom($todo->getKey());
 
             $task->todo()->associate($todo);
             $task->save();

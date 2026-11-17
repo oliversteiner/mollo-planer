@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
+use App\Planer\PlanerLimits;
 use App\Planer\PlanerRevision;
 use App\Support\Rights;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -46,6 +47,7 @@ class ProjectMembership
         }
 
         if ($current === null) {
+            PlanerLimits::assertMemberRoom($project);
             $project->members()->attach($user, ['role_id' => $role->id]);
         } else {
             $project->members()->updateExistingPivot($user->getKey(), ['role_id' => $role->id]);

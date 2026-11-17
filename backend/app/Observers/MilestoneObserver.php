@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Milestone;
 use App\Observers\Concerns\TouchesPlanerRevision;
+use App\Planer\PlanerLimits;
 use App\Services\Ordering;
 use App\Services\ReleaseRules;
 
@@ -25,6 +26,8 @@ class MilestoneObserver
      */
     public function creating(Milestone $milestone): void
     {
+        PlanerLimits::assertMilestoneRoom($milestone->project_id);
+
         $group = Milestone::query()->where('project_id', $milestone->project_id);
 
         if ($milestone->position === null) {
