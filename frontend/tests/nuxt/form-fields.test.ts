@@ -106,7 +106,10 @@ describe('FormSelect', () => {
 describe.each([
   ['FormCheckbox', FormCheckbox, 'WA-CHECKBOX'],
   ['FormSwitch', FormSwitch, 'WA-SWITCH']
-] as const)('%s', (_name, component, tag) => {
+] as const)('%s', (_name, anyBox, tag) => {
+  /** Both take the same props; one type keeps TypeScript from a too complex union. */
+  const component = anyBox as typeof FormCheckbox
+
   it('shows the label and the state and writes a change back with v-model', async () => {
     const box = await mountSuspended(component, { props: { modelValue: false, label: 'Mails senden', hint: 'Nur bei Zuweisung' } })
 

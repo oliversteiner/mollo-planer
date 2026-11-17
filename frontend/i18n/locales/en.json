@@ -1370,6 +1370,8 @@
     "readOnly": "The role {roles} may change nothing, not even as owner of a project. | The roles {roles} may change nothing, not even as owner of a project.",
     "admin": "The role {roles} may do everything, also in projects it is not a member of. | The roles {roles} may do everything, also in projects they are not members of.",
     "quoted": "“{name}”",
+    "scrollHint": "Not all roles fit: the table scrolls sideways.",
+    "tableLabel": "Rights per role",
     "role": "Role",
     "right": "Right",
     "names": {
