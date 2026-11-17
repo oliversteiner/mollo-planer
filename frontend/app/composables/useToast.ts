@@ -30,15 +30,58 @@ const variants: Record<NonNullable<ToastOptions['color']>, { variant: Variant, i
   neutral: { variant: 'neutral', icon: 'circle-info' }
 }
 
-/** One stack for the whole app, created at the first message. */
-function stack(): HTMLElement {
-  let element = document.querySelector<HTMLElement>('wa-toast')
+type Overlay = HTMLElement & { open?: boolean }
+
+/**
+ * Open modal overlays (wa-dialog, wa-drawer), in document order. While one
+ * is open, everything outside it is inert.
+ */
+export function openOverlays(): Overlay[] {
+  return [...document.querySelectorAll<Overlay>('wa-dialog, wa-drawer')].filter(overlay => overlay.open === true)
+}
+
+function stackIn(host: HTMLElement): HTMLElement {
+  let element = host.querySelector<HTMLElement>(':scope > wa-toast')
 
   if (!element) {
     element = document.createElement('wa-toast')
     element.setAttribute('placement', 'bottom-end')
-    document.body.append(element)
+    host.append(element)
   }
+
+  return element
+}
+
+/**
+ * The stack for the next message: the page's own, or, while a modal overlay
+ * is open, one inside the topmost overlay, so its buttons can be used (F5.1).
+ * When that overlay closes, its messages move on to the page's stack.
+ */
+function stack(): HTMLElement {
+  const overlay = openOverlays().at(-1)
+
+  if (!overlay) {
+    return stackIn(document.body)
+  }
+
+  const existing = overlay.querySelector<HTMLElement>(':scope > wa-toast')
+  if (existing) {
+    return existing
+  }
+
+  const element = stackIn(overlay)
+  const onHide = (event: Event) => {
+    if (event.target !== overlay) {
+      return
+    }
+    overlay.removeEventListener('wa-hide', onHide)
+    const items = [...element.querySelectorAll(':scope > wa-toast-item')]
+    element.remove()
+    if (items.length) {
+      stackIn(document.body).append(...items)
+    }
+  }
+  overlay.addEventListener('wa-hide', onHide)
 
   return element
 }

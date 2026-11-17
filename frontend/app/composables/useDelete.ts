@@ -21,6 +21,39 @@ export function deletionIdOf(result: unknown): string | null {
   return null
 }
 
+/** How long to wait at most for a closing overlay. */
+const HIDE_TIMEOUT = 1000
+
+/** Resolves when the overlay has finished closing (or after HIDE_TIMEOUT). */
+function afterHide(overlay: HTMLElement): Promise<void> {
+  return new Promise((resolve) => {
+    const done = (event?: Event) => {
+      if (event && event.target !== overlay) {
+        return
+      }
+      overlay.removeEventListener('wa-after-hide', done)
+      clearTimeout(timer)
+      resolve()
+    }
+    const timer = setTimeout(done, HIDE_TIMEOUT)
+    overlay.addEventListener('wa-after-hide', done)
+  })
+}
+
+/** Did the focus leave with the deleted element? */
+function focusLeft(focused: Element | null, closed: HTMLElement[]): boolean {
+  const active = document.activeElement
+
+  if (active === null || active === document.body) {
+    return true
+  }
+  if (focused === null || focused === document.body) {
+    return false
+  }
+
+  return !focused.isConnected || closed.some(overlay => overlay.contains(focused))
+}
+
 /**
  * The one way the app deletes project elements (milestones, todos, tasks,
  * comments): at once, into the trash, then a message „Gelöscht“ with
@@ -30,7 +63,10 @@ export function deletionIdOf(result: unknown): string | null {
  * their confirmation (useConfirmedDelete).
  *
  * When the deleted element held the focus, the focus moves to „Rückgängig“,
- * so the keyboard does not lose its place.
+ * so the keyboard does not lose its place: when the focus is lost, or the
+ * element that had it is gone or was in an overlay that closed. An overlay
+ * that closes on delete (task details) is waited for first, so its focus
+ * return does not win; the message then goes to the page (F5.1).
  */
 export function useDelete<T>(remove: (target: T) => Promise<unknown>, options: DeleteOptions<T> = {}) {
   const { t } = useI18n()
@@ -38,13 +74,18 @@ export function useDelete<T>(remove: (target: T) => Promise<unknown>, options: D
   const restore = useTrashRestore()
 
   async function run(target: T): Promise<void> {
+    const focused = document.activeElement
     const deletionId = deletionIdOf(await remove(target).catch(() => null))
 
     if (deletionId === null) {
       return
     }
 
+    const overlays = openOverlays()
     options.onDeleted?.(target)
+    await nextTick()
+    const closed = overlays.filter(overlay => overlay.open !== true)
+    await Promise.all(closed.map(afterHide))
 
     const item = toast.add({
       title: t('trash.deleted'),
@@ -53,9 +94,13 @@ export function useDelete<T>(remove: (target: T) => Promise<unknown>, options: D
       action: { label: t('trash.undo'), run: () => restore(deletionId) }
     })
 
+    const button = item.querySelector<HTMLElement & { updateComplete?: Promise<unknown> }>('.toast-action')
     await nextTick()
-    if (document.activeElement === null || document.activeElement === document.body) {
-      item.querySelector<HTMLElement>('.toast-action')?.focus()
+    await button?.updateComplete
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    if (button && focusLeft(focused, closed)) {
+      button.focus()
     }
   }
 

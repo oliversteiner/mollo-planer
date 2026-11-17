@@ -1,11 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { installElementInternals } from './support/element-internals'
+import { standInDrawer } from './support/overlay'
 
 installElementInternals()
 
 afterEach(() => {
-  document.querySelectorAll('wa-toast').forEach(element => element.remove())
+  document.querySelectorAll('wa-toast, wa-drawer').forEach(element => element.remove())
 })
+
+/** An open modal side panel; everything outside it is inert. */
+function openDrawer(): HTMLElement & { open: boolean } {
+  const drawer = standInDrawer()
+  document.body.append(drawer)
+
+  return drawer
+}
 
 describe('useToast', () => {
   it('adds a message to one shared stack with the variant of its colour', () => {
@@ -51,6 +60,31 @@ describe('useToast', () => {
 
     expect(run).toHaveBeenCalledTimes(1)
     expect(item.hide).toHaveBeenCalledTimes(1)
+  })
+
+  it('puts the message into an open modal overlay, so its button can be used there', () => {
+    const drawer = openDrawer()
+
+    const item = useToast().add({ title: 'Gelöscht', action: { label: 'Rückgängig', run: vi.fn() } })
+
+    expect(item.parentElement!.parentElement).toBe(drawer)
+    expect(document.body.querySelector(':scope > wa-toast')).toBeNull()
+  })
+
+  it('moves the messages to the page when the overlay closes, not when something inside it does', () => {
+    const drawer = openDrawer()
+    const item = useToast().add({ title: 'Gelöscht' })
+    const inner = document.createElement('wa-select')
+    drawer.append(inner)
+
+    inner.dispatchEvent(new Event('wa-hide', { bubbles: true }))
+    expect(item.parentElement!.parentElement).toBe(drawer)
+
+    drawer.open = false
+    drawer.dispatchEvent(new Event('wa-hide'))
+
+    expect(item.parentElement!.parentElement).toBe(document.body)
+    expect(drawer.querySelector('wa-toast')).toBeNull()
   })
 
   it('is the toast the app uses (the former Nuxt UI one is replaced)', () => {
