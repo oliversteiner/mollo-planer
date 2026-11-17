@@ -2,12 +2,14 @@
 
 namespace App\Mcp\Support;
 
+use App\GraphQL\Errors\TranslatedRefusalHandler;
 use RuntimeException;
 
 /**
  * A GraphQL operation run for an MCP tool failed. The message lists the
  * errors, validation messages per field included. The refusal of an
- * archived project becomes one English sentence the AI client can act on.
+ * archived project and the default refusal become English sentences the
+ * AI client can act on.
  */
 class GraphQLFailed extends RuntimeException
 {
@@ -24,7 +26,7 @@ class GraphQLFailed extends RuntimeException
             $validation = $error['extensions']['validation'] ?? [];
 
             if ($validation === []) {
-                $messages[] = self::isArchiveRefusal($error['message'] ?? null) ? self::ARCHIVED : ($error['message'] ?? 'Unknown error.');
+                $messages[] = self::forClient($error['message'] ?? 'Unknown error.');
 
                 continue;
             }
@@ -37,8 +39,16 @@ class GraphQLFailed extends RuntimeException
         return new self(implode("\n", array_unique($messages)));
     }
 
-    private static function isArchiveRefusal(?string $message): bool
+    /**
+     * The AI client reads English: the archive refusal becomes its own
+     * sentence, the default refusal the English one.
+     */
+    private static function forClient(string $message): string
     {
-        return $message !== null && in_array($message, [trans('projects.archived', [], 'de'), trans('projects.archived', [], 'en')], true);
+        if (in_array($message, [trans('projects.archived', [], 'de'), trans('projects.archived', [], 'en')], true)) {
+            return self::ARCHIVED;
+        }
+
+        return TranslatedRefusalHandler::isDefaultRefusal($message) ? trans('graphql.unauthorized', [], 'en') : $message;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Mcp\Tools;
 
+use App\GraphQL\Errors\TranslatedRefusalHandler;
+
 /**
  * Turns the errors of a GraphQL operation into the wording the AI client
  * reads: a denied right and a missing item each get the tool's own sentence
@@ -15,7 +17,7 @@ trait ExplainsGraphQLErrors
      */
     protected function explain(string $message, string $denied, ?string $missing = null): string
     {
-        if (str_contains($message, 'unauthorized')) {
+        if (TranslatedRefusalHandler::isDefaultRefusal($message)) {
             return $denied;
         }
 

@@ -88,6 +88,6 @@ abstract class GraphQLTestCase extends TestCase
 
     protected function assertUnauthorized(TestResponse $response): void
     {
-        $response->assertGraphQLErrorMessage('This action is unauthorized.');
+        $response->assertGraphQLErrorMessage('You are not allowed to do this.');
     }
 }

@@ -90,7 +90,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
     public function test_an_admin_cannot_write_into_an_archived_project_either(string $mutation, \Closure $variables): void
     {
         // Only the author edits a comment, archived or not.
-        $message = $this->dataName() === 'updateComment' ? 'This action is unauthorized.' : null;
+        $message = $this->dataName() === 'updateComment' ? 'Dafür fehlt dir die Berechtigung.' : null;
 
         $this->assertRefused('admin', $mutation, $variables, $message);
     }

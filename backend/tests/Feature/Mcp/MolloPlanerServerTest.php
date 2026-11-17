@@ -53,7 +53,7 @@ class MolloPlanerServerTest extends McpTestCase
     public function test_only_admins_create_projects(): void
     {
         MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectTool::class, ['name' => 'Neu'])
-            ->assertHasErrors(['This action is unauthorized.']);
+            ->assertHasErrors(['You are not allowed to do this.']);
 
         $this->assertSame(1, Project::count());
     }
@@ -116,7 +116,7 @@ class MolloPlanerServerTest extends McpTestCase
         $this->project->members()->updateExistingPivot($this->member->id, ['role_id' => Role::idOf(Role::SCOPE_PROJECT, ProjectRole::GUEST)]);
 
         MolloPlanerServer::actingAs($this->member)->tool(CreateProjectPlanTool::class, $this->plan())
-            ->assertHasErrors(['Milestone "Konzept steht": This action is unauthorized.']);
+            ->assertHasErrors(['Milestone "Konzept steht": You are not allowed to do this.']);
 
         $this->assertSame([0, 0, 0], [Milestone::count(), Todo::count(), Task::count()]);
     }

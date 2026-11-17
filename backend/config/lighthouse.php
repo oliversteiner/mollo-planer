@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\GraphQL\Errors\TranslatedRefusalHandler;
 use App\Http\Middleware\EnsureApproved;
 use App\Http\Middleware\EnsureEmailVerified;
 use App\Http\Middleware\EnsureStrongAuthentication;
@@ -345,6 +346,7 @@ return [
 
     'error_handlers' => [
         AuthenticationErrorHandler::class,
+        TranslatedRefusalHandler::class,
         AuthorizationErrorHandler::class,
         ValidationErrorHandler::class,
         ReportingErrorHandler::class,
