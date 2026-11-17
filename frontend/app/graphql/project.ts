@@ -61,6 +61,7 @@ export const projectTimelineQuery = graphql(`
             labels { id name color position }
             assignee { id name avatarUrl }
             viewerCanUpdate
+            viewerCanDelete
           }
         }
       }

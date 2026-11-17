@@ -5,7 +5,7 @@ import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TimelineEntry } from '~/components/StepTimeline.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { projectTimelineQuery } from '~/graphql/project'
-import { moveTaskInTodoMutation, moveTaskToTodoMutation } from '~/graphql/task'
+import { deleteTaskMutation, moveTaskInTodoMutation, moveTaskToTodoMutation } from '~/graphql/task'
 import type { ProjectTimelineQuery } from '~/graphql/generated/graphql'
 import { formatDate } from '~/utils/dates'
 import { isEmptyDocument } from '~/utils/rich-text'
@@ -124,20 +124,26 @@ watch(milestones, fillTaskLists, { immediate: true })
 const { mutate: moveTaskToTodo } = useProjectMutation(moveTaskToTodoMutation)
 const { mutate: moveTaskInTodo } = useProjectMutation(moveTaskInTodoMutation)
 
-/** Menu "Move up / Move down" of a task, by its place in the todo. */
+const { mutate: deleteTask } = useProjectMutation(deleteTaskMutation)
+const deletion = useDelete<string>(id => deleteTask({ id }))
+
+/** Menu of a task like the Kanban card: edit (if allowed), then its place in the todo, then delete (if allowed). */
 function taskMenu(task: TimelineTask, todoId: string): ActionMenuItem[] {
   const list = taskLists.value[todoId] ?? []
   const index = list.findIndex(entry => entry.id === task.id)
   const items: ActionMenuItem[] = []
 
-  if (!props.canReorderTask || index < 0) {
-    return items
+  if (task.viewerCanUpdate) {
+    items.push({ label: t('common.edit'), icon: 'pen', onSelect: () => emit('editTask', task) })
   }
-  if (index > 0) {
+  if (props.canReorderTask && index > 0) {
     items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => void moveTaskInTodo({ id: task.id, position: index - 1 }) })
   }
-  if (index < list.length - 1) {
+  if (props.canReorderTask && index >= 0 && index < list.length - 1) {
     items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveTaskInTodo({ id: task.id, position: index + 1 }) })
+  }
+  if (task.viewerCanDelete) {
+    items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => void deletion.remove(task.id) })
   }
 
   return items
