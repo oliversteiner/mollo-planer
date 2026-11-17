@@ -14,7 +14,7 @@ Produktiv-Domain: `planer.mollo.dev` (Frontend und API als getrennte Subdomains,
 Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuerst `umsetzung.md`). `backend-plan.md` und `graphql-kontext.md` sind historisch. Weicht der Code vom Schema oder von den Dokumenten ab, nicht stillschweigend ändern, sondern nachfragen.
 
 ## Stack
-- **Backend:** Laravel 13 headless in `backend/`, Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
+- **Backend:** Laravel 13 headless in `backend/` mit PHP 8.5 (lokal, CI, Test- und Produktionsserver; `composer.json` verlangt `^8.5`), Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
 - **KI-Assistent:** offizielles PHP-SDK `anthropic-ai/sdk` (Claude-API), Schlüssel `ANTHROPIC_API_KEY` nur in `.env`
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)

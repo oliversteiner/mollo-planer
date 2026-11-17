@@ -150,7 +150,7 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
 - **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
 - **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
 - **Docroots:** `~/www/planer.mollo.dev` ist das Frontend. `~/www/api.planer.mollo.dev` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Hostpoint-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.
-- **PHP:** Der Server hat PHP 8.5 unter `/usr/local/php85/bin`. Das Skript nutzt diesen Pfad fest. Die Standard-`php` (8.3) reicht für das Projekt nicht, mindestens 8.4.1 ist nötig.
+- **PHP:** Der Server hat PHP 8.5 unter `/usr/local/php85/bin`. Das Skript nutzt diesen Pfad fest. Die Standard-`php` (8.3) reicht für das Projekt nicht: `composer.json` verlangt PHP 8.5, wie auf Test- und Produktionsserver.
 
 ### Fehlersuche
 
