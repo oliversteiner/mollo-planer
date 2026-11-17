@@ -6,7 +6,7 @@ import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
 import type { KanbanQuery } from '~/graphql/generated/graphql'
 import { projectTodosQuery } from '~/graphql/project'
-import { kanbanQuery, moveTaskMutation, projectMembersQuery, TASK_STATUSES, taskQuery } from '~/graphql/task'
+import { deleteTaskMutation, kanbanQuery, moveTaskMutation, projectMembersQuery, TASK_STATUSES, taskQuery } from '~/graphql/task'
 import { locate, moveInColumns } from '~/utils/kanban'
 
 type Column = KanbanQuery['kanban'][number]
@@ -90,13 +90,19 @@ function onDrop(event: SortableEvent): void {
   void move(taskId, status, event.newIndex)
 }
 
-/** Card menu: edit (if allowed), then moving without dragging. */
+const { mutate: deleteTask } = useProjectMutation(deleteTaskMutation)
+const deletion = useDelete<string>(id => deleteTask({ id }))
+
+/** Card menu: edit (if allowed), moving without dragging, then delete (if allowed). */
 function menuItems(task: Task): ActionMenuItem[] {
   const edit: ActionMenuItem[] = task.viewerCanUpdate
     ? [{ label: t('common.edit'), icon: 'pen', onSelect: () => editTask(task.id) }]
     : []
+  const remove: ActionMenuItem[] = task.viewerCanDelete
+    ? [{ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => void deletion.remove(task.id) }]
+    : []
 
-  return [...edit, ...moveItems(task)]
+  return [...edit, ...moveItems(task), ...remove]
 }
 
 function moveItems(task: Task): ActionMenuItem[] {

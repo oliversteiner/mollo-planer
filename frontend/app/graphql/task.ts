@@ -18,6 +18,7 @@ export const kanbanQuery = graphql(`
         assignee { id name avatarUrl }
         todo { id title }
         viewerCanUpdate
+        viewerCanDelete
       }
     }
   }
