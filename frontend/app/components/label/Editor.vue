@@ -11,7 +11,7 @@ import { LABEL_COLORS, LABEL_LOCALES, MAX_LABELS, lacksName, newRow } from '~/ut
 const props = defineProps<{
   /** The language the labels need a name in (of the project or the template). */
   required: LabelLocale
-  /** A message about the list from the server (keys like "labels" or "labels.2.names"). */
+  /** A message about the list from the server (keys like "labels" or "labels.2.names.de"). */
   errors?: Record<string, string>
 }>()
 
@@ -40,9 +40,13 @@ function label(row: LabelRow, index: number): string {
   return row.names[props.required] || row.key || String(index + 1)
 }
 
-/** The message of the server for one row (labels.N.names, labels.N.key). */
-function rowError(index: number): string | undefined {
-  return props.errors?.[`labels.${index}.names`] ?? props.errors?.[`labels.${index}.key`]
+/**
+ * The message of the server for the name field of one language (labels.N.names.de). A message about the
+ * names of the row without a language, or about its key, goes to the field of the required language.
+ */
+function nameError(index: number, locale: string): string | undefined {
+  return props.errors?.[`labels.${index}.names.${locale.toLowerCase()}`]
+    ?? (locale === props.required ? props.errors?.[`labels.${index}.names`] ?? props.errors?.[`labels.${index}.key`] : undefined)
 }
 
 const listError = computed(() => props.errors?.labels)
@@ -112,7 +116,7 @@ function note(row: LabelRow): string | null {
           :placeholder="t('labels.nameIn', { language: t(`labels.languages.${locale}`) }) + (locale === required ? ' *' : '')"
           maxlength="40"
           :required="locale === required"
-          :error="locale === required ? rowError(index) : undefined"
+          :error="nameError(index, locale)"
           :class="`label-row-name label-row-name-${locale.toLowerCase()}`"
           :data-locale="locale"
         />

@@ -34,6 +34,23 @@ describe('LabelEditor', () => {
     expect(required('EN')).toEqual([false, false])
   })
 
+  it('shows a message about a language at the field of that language (F6.1)', async () => {
+    const { editor } = await mountEditor(rows(), { errors: { 'labels.1.names.en': 'Doppelt', 'labels.0.names.de': 'Fehlt' } })
+    const error = (locale: string, row: number) => editor.findAll('wa-input[data-locale]').filter(input => input.attributes('data-locale') === locale)[row]!.find('[data-form-error]').exists() ? editor.findAll('wa-input[data-locale]').filter(input => input.attributes('data-locale') === locale)[row]!.find('[data-form-error]').text() : undefined
+
+    expect(error('EN', 1)).toBe('Doppelt')
+    expect(error('DE', 1)).toBeUndefined()
+    expect(error('DE', 0)).toBe('Fehlt')
+    expect(error('EN', 0)).toBeUndefined()
+  })
+
+  it('shows a message about the names without a language at the required language', async () => {
+    const { editor } = await mountEditor(rows(), { errors: { 'labels.1.names': 'Etwas' } })
+    const first = editor.findAll('wa-input[data-locale]').filter(input => input.attributes('data-locale') === 'DE')[1]!
+
+    expect(first.find('[data-form-error]').text()).toBe('Etwas')
+  })
+
   it('adds a row in the category of the one above, with a free colour', async () => {
     const { editor, updates } = await mountEditor(rows())
 
@@ -67,7 +84,7 @@ describe('LabelEditor', () => {
     const { editor } = await mountEditor(many, { errors: { 'labels.1.names': 'Jeder Name darf in einer Sprache nur einmal vorkommen.' } })
 
     expect((editor.findAll('wa-button').find(button => button.text() === 'Label hinzufügen')!.element as unknown as { disabled: boolean }).disabled).toBe(true)
-    expect(editor.text()).toContain('Mehr als 30 Labels sind nicht möglich.')
+    expect(editor.text()).toContain('Höchstens 30 Labels.')
     expect(editor.text()).toContain('Jeder Name darf in einer Sprache nur einmal vorkommen.')
   })
 })
