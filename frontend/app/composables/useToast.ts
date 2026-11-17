@@ -14,7 +14,7 @@ export interface ToastOptions {
   /**
    * A button in the message, for example „Rückgängig“. Clicking it runs the
    * action and closes the message. The message stops counting down while the
-   * pointer or the focus is on it (wa-toast-item).
+   * pointer or the focus is on it (holdWhileFocused).
    */
   action?: { label: string, run: () => unknown }
 }
@@ -86,6 +86,34 @@ function stack(): HTMLElement {
   return element
 }
 
+/** The parts of wa-toast-item used to hold the countdown. */
+type ToastItem = HTMLElement & { isFocused?: boolean, pauseTimer?: () => void, resumeTimer?: () => void }
+
+/**
+ * wa-toast-item stops counting down for the pointer and for the focus on
+ * its own close button, not for a button in its content. Here the focus
+ * anywhere in the message holds it, also when the focus came before the
+ * countdown started (after the show animation).
+ */
+function holdWhileFocused(item: ToastItem): void {
+  const hold = () => {
+    if (item.contains(document.activeElement)) {
+      item.isFocused = true
+      item.pauseTimer?.()
+    }
+  }
+
+  item.addEventListener('focusin', hold)
+  // The countdown starts right after this event; hold it once it runs.
+  item.addEventListener('wa-after-show', () => queueMicrotask(hold))
+  item.addEventListener('focusout', (event) => {
+    if (!item.contains(event.relatedTarget as Node | null)) {
+      item.isFocused = false
+      item.resumeTimer?.()
+    }
+  })
+}
+
 export function useToast() {
   function add(options: ToastOptions): HTMLElement {
     const { variant, icon } = variants[options.color ?? 'neutral']
@@ -124,6 +152,7 @@ export function useToast() {
         run()
       }, { once: true })
       item.append(button)
+      holdWhileFocused(item as unknown as ToastItem)
     }
 
     stack().append(item)

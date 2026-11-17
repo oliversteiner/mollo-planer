@@ -108,6 +108,51 @@ describe('useDelete', () => {
     card.remove()
   })
 
+  it('also waits for a panel that closed while the delete was reloading', async () => {
+    const drawer = standInDrawer()
+    const deleteButton = document.createElement('button')
+    const card = document.createElement('button')
+    drawer.append(deleteButton)
+    document.body.append(card, drawer)
+    deleteButton.focus()
+    const deletion = await setup(async () => {
+      // The task is gone after reloading: the details close themselves.
+      drawer.open = false
+      setTimeout(() => {
+        card.focus()
+        drawer.dispatchEvent(new Event('wa-after-hide'))
+      }, 10)
+
+      return { data: { deleteTask: { id: '7', deletionId: 'd-7' } } }
+    })
+
+    await deletion.remove('7')
+
+    expect(document.activeElement?.classList.contains('toast-action')).toBe(true)
+    card.remove()
+  })
+
+  it('takes a panel as closing from wa-hide, though it says open while it animates', async () => {
+    const drawer = standInDrawer()
+    const deleteButton = document.createElement('button')
+    drawer.append(deleteButton)
+    document.body.append(drawer)
+    deleteButton.focus()
+    const deletion = await setup(async () => ({ data: { deleteTask: { id: '7', deletionId: 'd-7' } } }), () => {
+      // Like wa-drawer: `open` stays true until the hide animation is over.
+      drawer.dispatchEvent(new Event('wa-hide'))
+      setTimeout(() => {
+        drawer.open = false
+        drawer.dispatchEvent(new Event('wa-after-hide'))
+      }, 10)
+    })
+
+    await deletion.remove('7')
+
+    expect(drawer.querySelector('wa-toast')).toBeNull()
+    expect(document.activeElement?.classList.contains('toast-action')).toBe(true)
+  })
+
   it('leaves the focus where it is when the deleted element did not hold it', async () => {
     const other = document.createElement('button')
     document.body.append(other)

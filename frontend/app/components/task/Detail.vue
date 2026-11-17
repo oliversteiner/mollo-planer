@@ -27,8 +27,17 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const toast = useToast()
 
+/**
+ * Set when the task is deleted here: the panel closes at once, before the
+ * page has changed the route, so useDelete waits for it (F5.1).
+ */
+const closing = ref(false)
+watch(() => props.taskId, () => {
+  closing.value = false
+})
+
 const open = computed({
-  get: () => props.taskId !== null,
+  get: () => props.taskId !== null && !closing.value,
   set: (value: boolean) => {
     if (!value) {
       emit('close')
@@ -122,7 +131,12 @@ async function changeAssignee(value: string | null): Promise<void> {
   }
 }
 
-const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => emit('close') })
+const deletion = useDelete<string>(id => deleteTask({ id }), {
+  onDeleted: () => {
+    closing.value = true
+    emit('close')
+  }
+})
 </script>
 
 <template>

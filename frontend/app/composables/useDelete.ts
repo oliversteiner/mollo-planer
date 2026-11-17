@@ -2,7 +2,11 @@
 export const UNDO_DURATION = 8000
 
 interface DeleteOptions<T> {
-  /** Runs after a successful delete, for example to close a panel. */
+  /**
+   * Runs after a successful delete, for example to close a panel. A panel
+   * closed here must close by the next tick (its `open` false), so the
+   * message waits for it and goes to the page.
+   */
   onDeleted?: (target: T) => void
 }
 
@@ -24,20 +28,49 @@ export function deletionIdOf(result: unknown): string | null {
 /** How long to wait at most for a closing overlay. */
 const HIDE_TIMEOUT = 1000
 
-/** Resolves when the overlay has finished closing (or after HIDE_TIMEOUT). */
-function afterHide(overlay: HTMLElement): Promise<void> {
-  return new Promise((resolve) => {
-    const done = (event?: Event) => {
-      if (event && event.target !== overlay) {
-        return
-      }
-      overlay.removeEventListener('wa-after-hide', done)
-      clearTimeout(timer)
-      resolve()
+/**
+ * Listens to an overlay from now on: whether it starts to close (wa-hide)
+ * and when it has closed (wa-after-hide), so neither is missed when it
+ * closes early. While its hide animation runs, wa-drawer and wa-dialog
+ * report `open` as true again, so `open` alone cannot tell.
+ */
+function watchHide(overlay: HTMLElement): { closing: () => boolean, done: () => Promise<void>, stop: () => void } {
+  let hiding = false
+  let hidden = false
+  let notify = () => {}
+  const onHide = (event: Event) => {
+    if (event.target === overlay) {
+      hiding = true
     }
-    const timer = setTimeout(done, HIDE_TIMEOUT)
-    overlay.addEventListener('wa-after-hide', done)
-  })
+  }
+  const onAfterHide = (event: Event) => {
+    if (event.target === overlay) {
+      hidden = true
+      notify()
+    }
+  }
+  overlay.addEventListener('wa-hide', onHide)
+  overlay.addEventListener('wa-after-hide', onAfterHide)
+  const stop = () => {
+    overlay.removeEventListener('wa-hide', onHide)
+    overlay.removeEventListener('wa-after-hide', onAfterHide)
+  }
+
+  return {
+    closing: () => hiding || hidden,
+    stop,
+    done: () => new Promise((resolve) => {
+      const timer = setTimeout(() => notify(), HIDE_TIMEOUT)
+      notify = () => {
+        clearTimeout(timer)
+        stop()
+        resolve()
+      }
+      if (hidden) {
+        notify()
+      }
+    })
+  }
 }
 
 /** Did the focus leave with the deleted element? */
@@ -75,17 +108,24 @@ export function useDelete<T>(remove: (target: T) => Promise<unknown>, options: D
 
   async function run(target: T): Promise<void> {
     const focused = document.activeElement
+    // From before the delete: reloading may already close a panel that shows the deleted element.
+    const overlays = openOverlays().map(overlay => ({ overlay, hide: watchHide(overlay) }))
     const deletionId = deletionIdOf(await remove(target).catch(() => null))
 
     if (deletionId === null) {
+      overlays.forEach(({ hide }) => hide.stop())
+
       return
     }
 
-    const overlays = openOverlays()
     options.onDeleted?.(target)
     await nextTick()
-    const closed = overlays.filter(overlay => overlay.open !== true)
-    await Promise.all(closed.map(afterHide))
+    // The overlay starts to close in its own update after Vue's.
+    await new Promise(resolve => requestAnimationFrame(resolve))
+    const isClosing = ({ overlay, hide }: (typeof overlays)[number]) => hide.closing() || overlay.open !== true
+    const closed = overlays.filter(isClosing)
+    overlays.filter(entry => !isClosing(entry)).forEach(({ hide }) => hide.stop())
+    await Promise.all(closed.map(({ hide }) => hide.done()))
 
     const item = toast.add({
       title: t('trash.deleted'),
@@ -99,7 +139,7 @@ export function useDelete<T>(remove: (target: T) => Promise<unknown>, options: D
     await button?.updateComplete
     await new Promise(resolve => requestAnimationFrame(resolve))
 
-    if (button && focusLeft(focused, closed)) {
+    if (button && focusLeft(focused, closed.map(({ overlay }) => overlay))) {
       button.focus()
     }
   }

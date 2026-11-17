@@ -62,6 +62,26 @@ describe('useToast', () => {
     expect(item.hide).toHaveBeenCalledTimes(1)
   })
 
+  it('holds the countdown while the focus is on its button, also when it came before the countdown', async () => {
+    const item = useToast().add({ title: 'Gelöscht', duration: 8000, action: { label: 'Rückgängig', run: vi.fn() } }) as HTMLElement & { isFocused?: boolean, pauseTimer: () => void, resumeTimer: () => void }
+    item.pauseTimer = vi.fn()
+    item.resumeTimer = vi.fn()
+    const button = item.querySelector<HTMLElement & { updateComplete: Promise<unknown> }>('.toast-action')!
+    await button.updateComplete
+
+    button.focus()
+    expect(item.pauseTimer).toHaveBeenCalledTimes(1)
+    expect(item.isFocused).toBe(true)
+
+    item.dispatchEvent(new Event('wa-after-show'))
+    await Promise.resolve()
+    expect(item.pauseTimer).toHaveBeenCalledTimes(2)
+
+    button.blur()
+    expect(item.isFocused).toBe(false)
+    expect(item.resumeTimer).toHaveBeenCalledTimes(1)
+  })
+
   it('puts the message into an open modal overlay, so its button can be used there', () => {
     const drawer = openDrawer()
 
