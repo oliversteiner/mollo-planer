@@ -1,9 +1,9 @@
 # Abnahme Meilenstein M2 „Sicher löschen“ (S5, S6)
 
-Stand: 2026-11-17, Code bis `764304f`, Nachprüfung F5 an `304991f`. Geprüft in Chrome durch die Planung (Claude) mit frischen Demo-Daten; Fixes in `docs/fix-m2.md` (F5). Rolle: Checkliste für Oliver.
+Stand: 2026-11-17, Code bis `764304f`, Nachprüfung F5 an `304991f`, F5.6 an `0bdea9b`. Geprüft in Chrome durch die Planung (Claude) mit frischen Demo-Daten; Fixes in `docs/fix-m2.md` (F5). Rolle: Checkliste für Oliver.
 Personen aus den Demo-Daten: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Manager Website-Relaunch, Owner Sommerfest 2027), David (Mitglied). Je Punkt: ✅ passt, ❌ Fehler (→ F5.x), ⏸ für Oliver.
 
-**Zwischenergebnis:** F5.1–F5.5 nachgeprüft ✅; offen nur F5.6 (Kleinigkeit) und 4 ⏸ für Oliver.
+**Zwischenergebnis:** alle Befunde F5.1–F5.6 behoben und nachgeprüft ✅; offen nur 4 ⏸ für Oliver.
 
 ---
 
@@ -14,7 +14,7 @@ Personen aus den Demo-Daten: Anna (Admin), Ben (Owner Website-Relaunch), Chiara 
 - [x] ✅ Tastatur: nach dem Löschen (Detail und Karten-Menü) liegt der Fokus auf „Rückgängig“, Enter holt zurück. (F5.1 nachgeprüft)
 - [x] ✅ ToDo und Milestone löschen und rückgängig (Milestone-/ToDo-Menü).
 - [x] ✅ Kommentar löschen im offenen Task-Detail: „Rückgängig“ per Maus klickbar, Kommentar zurück. (F5.1 nachgeprüft)
-- [ ] ❌ Wiederhergestellter Kommentar zeigt „bearbeitet“. → F5.6
+- [x] ✅ Wiederhergestellter Kommentar behält `editedAt` (kein neues „bearbeitet“); Text ändern setzt es, gleicher Text nicht. (F5.6 nachgeprüft)
 - [x] ✅ Projekt löschen und „endgültig löschen“ fragen weiter nach (Name bzw. Anzahl).
 - [x] ✅ Lücke schließt sich (Kanban-Positionen, Milestone-Positionen lückenlos).
 - [x] ✅ „Löschen“ im Menü der Kanban-Karte. (F5.3 nachgeprüft)
@@ -86,4 +86,4 @@ Das Backend (`localhost:8000`) fiel während der Abnahme zweimal ohne Eintrag im
 
 ---
 
-Ergebnis: _offen_ (nach F5 Nachprüfung durch die Planung, dann ⏸-Punkte durch Oliver)
+Ergebnis: _offen_ — Planung fertig, es fehlen nur die ⏸-Punkte durch Oliver (MCP lesen/schreiben gegen die Demo-DB, Mail beim Wiederherstellen, Registrierung ablehnen).

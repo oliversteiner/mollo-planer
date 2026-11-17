@@ -52,6 +52,8 @@ Zusätzlich: Beim Löschen des Tasks im Detail schließt sich der Drawer und der
 
 F5.1 ✅ (Toast über offenem Detail klickbar, Fokus auf „Rückgängig“ nach Löschen im Detail und aus dem Karten-Menü, Enter holt zurück), F5.2 ✅, F5.3 ✅, F5.4 ✅ (Reihenfolge nach Position, „Nach oben“ wirkt, Nummern folgen), F5.5 ✅ („Dafür fehlt dir die Berechtigung.“), Zusatz Papierkorb-Cache (`5b1f1d2`) ✅ (Task und Kommentar mit derselben Id erscheinen getrennt). Neu: F5.6.
 
+F5.6 nachgeprüft an `0bdea9b` ✅: Löschen und Wiederherstellen lassen `editedAt` unverändert; `updateComment` setzt es nur bei geändertem Text. F5 damit abgeschlossen.
+
 ---
 
 ## Ablauf
