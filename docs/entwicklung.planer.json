@@ -1,0 +1,1498 @@
+{
+  "format": "planer-v2",
+  "revision": 1,
+  "project": {
+    "name": "Mollo Planer · Entwicklung",
+    "locale": "de",
+    "members": [],
+    "labels": [
+      {
+        "key": "research",
+        "names": {
+          "de": "Recherche",
+          "en": "Research"
+        },
+        "category": "phase",
+        "color": "blue"
+      },
+      {
+        "key": "design",
+        "names": {
+          "de": "Design",
+          "en": "Design"
+        },
+        "category": "phase",
+        "color": "pink"
+      },
+      {
+        "key": "feature",
+        "names": {
+          "de": "Feature",
+          "en": "Feature"
+        },
+        "category": "type",
+        "color": "green"
+      },
+      {
+        "key": "bug",
+        "names": {
+          "de": "Fehler",
+          "en": "Bug"
+        },
+        "category": "type",
+        "color": "red"
+      },
+      {
+        "key": "planning",
+        "names": {
+          "de": "Planung",
+          "en": "Planning"
+        },
+        "category": "type",
+        "color": "indigo"
+      },
+      {
+        "key": "blocked",
+        "names": {
+          "de": "Blockiert",
+          "en": "Blocked"
+        },
+        "category": "status",
+        "color": "yellow"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Backend-Grundlage",
+      "description": "Laravel-Backend: Datenmodell, Rechte, GraphQL-API, Anmeldung, Demo-Daten und Betrieb.",
+      "release": {
+        "version": "0.1",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Datenmodell und Rechte",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Add Laravel backend, docs and migrations (step 1)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "8854922"
+            },
+            {
+              "id": "k-new-2",
+              "title": "Add ProjectAbility enum and ProjectPermissions table (step 2)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "19dbe1a"
+            },
+            {
+              "id": "k-new-3",
+              "title": "Add policies for projects, milestones, todos, tasks, comments and users (step 3)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "b9339a3"
+            },
+            {
+              "id": "k-new-4",
+              "title": "Add visibility scopes, todo builder and status observers (steps 4 and 5)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "e9f108f"
+            }
+          ]
+        },
+        {
+          "id": "t-new-2",
+          "title": "GraphQL-API",
+          "tasks": [
+            {
+              "id": "k-new-5",
+              "title": "Configure Lighthouse, bind enums and lock API until strong auth (step 6)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "753c063"
+            },
+            {
+              "id": "k-new-6",
+              "title": "Add RichText scalar, rich text and icon rules (step 7)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "d14e7ef"
+            },
+            {
+              "id": "k-new-7",
+              "title": "Add GraphQL resolvers and mutations (step 8)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ac2ec02"
+            },
+            {
+              "id": "k-new-8",
+              "title": "Batch-load GraphQL lists to avoid N+1 queries",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ece5cf6"
+            },
+            {
+              "id": "k-new-9",
+              "title": "Run custom mutations in transactions and lock projects for changes",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "2623394"
+            },
+            {
+              "id": "k-new-10",
+              "title": "Add user avatars: upload, crop to 500x500 WebP, remove",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "6b0e35b"
+            }
+          ]
+        },
+        {
+          "id": "t-new-3",
+          "title": "Anmeldung und Benachrichtigungen",
+          "tasks": [
+            {
+              "id": "k-new-11",
+              "title": "Add authentication: strong sessions, passkeys, invitations (step 9)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "214c632"
+            },
+            {
+              "id": "k-new-12",
+              "title": "Add task notifications for assignments and comments (step 10)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "edbfde3"
+            },
+            {
+              "id": "k-new-13",
+              "title": "Add app:create-admin command for the first admin (step 11)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "13d2075"
+            },
+            {
+              "id": "k-new-14",
+              "title": "Add Laravel Boost guidelines, skills and MCP server",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "101396f"
+            },
+            {
+              "id": "k-new-15",
+              "title": "Complete step 12: outsider access, mail escaping, MariaDB test run",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "5b7a003"
+            }
+          ]
+        },
+        {
+          "id": "t-new-4",
+          "title": "Demo-Daten und Postman",
+          "tasks": [
+            {
+              "id": "k-new-16",
+              "title": "Add demo data seeder and README with seeding instructions",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "8440945"
+            },
+            {
+              "id": "k-new-17",
+              "title": "Empty DatabaseSeeder so migrate --seed creates no known-password user",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "40c7c2e"
+            },
+            {
+              "id": "k-new-18",
+              "title": "Add Postman collection (v3 YAML) for the demo data",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "78c48bb"
+            },
+            {
+              "id": "k-new-19",
+              "title": "Ignore Postman environments",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "9b5156e"
+            },
+            {
+              "id": "k-new-20",
+              "title": "Let admins switch two-factor authentication off outside production",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "30ac0d3"
+            },
+            {
+              "id": "k-new-21",
+              "title": "Seed demo data with two-factor authentication switched off",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "f6b734a"
+            }
+          ]
+        },
+        {
+          "id": "t-new-5",
+          "title": "Betrieb",
+          "tasks": [
+            {
+              "id": "k-new-22",
+              "title": "db init",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "1768ff3"
+            },
+            {
+              "id": "k-new-23",
+              "title": "Switch development setup from WSL to macOS and add backend CI",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "4268c4f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-2",
+      "title": "Frontend-Grundlage",
+      "description": "Nuxt-Frontend: Einrichtung, Anbindung, Anmeldung, Dashboard, Projekte, Kanban, Profil, Verwaltung.",
+      "release": {
+        "version": "0.2",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-6",
+          "title": "Einrichtung und Plan",
+          "tasks": [
+            {
+              "id": "k-new-24",
+              "title": "Add confirmed frontend plan",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "4c6bb50"
+            },
+            {
+              "id": "k-new-25",
+              "title": "Set up the frontend: npm, SPA, i18n, layout, CI (frontend step 1)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ad1b4d4"
+            },
+            {
+              "id": "k-new-26",
+              "title": "Use Font Awesome Pro Duotone Light for all icons (frontend step 2)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "6b21828"
+            }
+          ]
+        },
+        {
+          "id": "t-new-7",
+          "title": "Anbindung und Anmeldung",
+          "tasks": [
+            {
+              "id": "k-new-27",
+              "title": "Connect the frontend to the API (frontend step 3)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ef5d9fa"
+            },
+            {
+              "id": "k-new-28",
+              "title": "Add login, password reset and invitation (frontend step 4)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "08afd39"
+            },
+            {
+              "id": "k-new-29",
+              "title": "Retry once with a fresh CSRF cookie after 419",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "3258d43"
+            },
+            {
+              "id": "k-new-30",
+              "title": "Let the login work for sessions that are already logged in",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "1599744"
+            }
+          ]
+        },
+        {
+          "id": "t-new-8",
+          "title": "Dashboard, Projekte und Kanban",
+          "tasks": [
+            {
+              "id": "k-new-31",
+              "title": "Add dashboard and project list (frontend step 5)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "46c6d57"
+            },
+            {
+              "id": "k-new-32",
+              "title": "Add project overview and todo list with editing (frontend step 6)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "c4a3a53"
+            },
+            {
+              "id": "k-new-33",
+              "title": "Add rich text editor and icon picker (frontend step 7)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "445c93c"
+            },
+            {
+              "id": "k-new-34",
+              "title": "Add Kanban board and task details (frontend step 8)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ab7d6bd"
+            },
+            {
+              "id": "k-new-35",
+              "title": "Treat null as \"no filter\" for optional list filters",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "da58889"
+            },
+            {
+              "id": "k-new-36",
+              "title": "Leave out null filters in todo list and my tasks",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "7ac9967"
+            },
+            {
+              "id": "k-new-37",
+              "title": "Edit Kanban tasks by double-click, one overlay at a time",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "68c4c38"
+            },
+            {
+              "id": "k-new-38",
+              "title": "Empty the comment field after sending a comment",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "a2997da"
+            }
+          ]
+        },
+        {
+          "id": "t-new-9",
+          "title": "Profil, Sicherheit und Verwaltung",
+          "tasks": [
+            {
+              "id": "k-new-39",
+              "title": "Add my tasks and profile (frontend step 9)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "58c4e6c"
+            },
+            {
+              "id": "k-new-40",
+              "title": "Add two-factor and passkey management (frontend step 10)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "54bc2a8"
+            },
+            {
+              "id": "k-new-41",
+              "title": "Add project settings and members (frontend step 11)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "e5b411c"
+            },
+            {
+              "id": "k-new-42",
+              "title": "Add admin area: users and app settings (frontend step 12)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "65ae595"
+            },
+            {
+              "id": "k-new-43",
+              "title": "Move language and appearance settings to the profile",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ee72c32"
+            },
+            {
+              "id": "k-new-44",
+              "title": "Add component and middleware tests, polish (frontend step 13)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "0004bb6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-3",
+      "title": "Oberfläche mit Web Awesome",
+      "description": "Umstellung der Oberfläche auf Web Awesome Pro (Theme Matter), Entfernen von Nuxt UI und Tailwind.",
+      "release": {
+        "version": "0.3",
+        "status": "planned"
+      },
+      "todos": [
+        {
+          "id": "t-new-10",
+          "title": "Bausteine",
+          "tasks": [
+            {
+              "id": "k-new-45",
+              "title": "Add Web Awesome Pro next to Nuxt UI (phase A, step 1)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "b1893bf"
+            },
+            {
+              "id": "k-new-46",
+              "title": "Use the fonts of the Web Awesome theme Matter instead of Public Sans",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "93b7e24"
+            },
+            {
+              "id": "k-new-47",
+              "title": "Load all Web Awesome icons as Duotone Light from our own server",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "624d8a9"
+            },
+            {
+              "id": "k-new-48",
+              "title": "Replace the Nuxt UI toast by Web Awesome toasts with the same call",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "336cf92"
+            },
+            {
+              "id": "k-new-49",
+              "title": "Replace UTimeline with a vertical Web Awesome stepper",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "86ec2b9"
+            },
+            {
+              "id": "k-new-50",
+              "title": "Add form field wrappers for Web Awesome with v-model and server messages",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ac94a2b"
+            },
+            {
+              "id": "k-new-51",
+              "title": "Add dialog, empty state and person components for Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "dc7ebfe"
+            }
+          ]
+        },
+        {
+          "id": "t-new-11",
+          "title": "Seiten umgestellt",
+          "tasks": [
+            {
+              "id": "k-new-52",
+              "title": "Move the layouts to wa-page with own navigation",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "317f55b"
+            },
+            {
+              "id": "k-new-53",
+              "title": "Move login, password pages and the security setup to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "c1afcde"
+            },
+            {
+              "id": "k-new-54",
+              "title": "Move the dashboard and the project list to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "8ddbb13"
+            },
+            {
+              "id": "k-new-55",
+              "title": "Move the project overview and the milestone dialog to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "e08a8a6"
+            },
+            {
+              "id": "k-new-56",
+              "title": "Move Kanban, todo list, task details and comments to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "49ad39b"
+            },
+            {
+              "id": "k-new-57",
+              "title": "Fix the status filter binding of the todo list",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "c66fcae"
+            },
+            {
+              "id": "k-new-58",
+              "title": "Move my tasks and the profile to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "102e641"
+            },
+            {
+              "id": "k-new-59",
+              "title": "Move project settings, members and the admin pages to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "39bd8cd"
+            },
+            {
+              "id": "k-new-60",
+              "title": "Move the AI assistant to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "bca6902"
+            },
+            {
+              "id": "k-new-61",
+              "title": "Move the error page to Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "b261b3e"
+            }
+          ]
+        },
+        {
+          "id": "t-new-12",
+          "title": "Rich-Text und Farbmodus",
+          "tasks": [
+            {
+              "id": "k-new-62",
+              "title": "Replace the Nuxt UI editor and icon picker with TipTap and Web Awesome",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "706837e"
+            },
+            {
+              "id": "k-new-63",
+              "title": "Use an own light/dark setting instead of the Nuxt UI colour mode",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "417704d"
+            },
+            {
+              "id": "k-new-64",
+              "title": "Update the Web Awesome plan with the notes of step 5",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "b96e45e"
+            }
+          ]
+        },
+        {
+          "id": "t-new-13",
+          "title": "Nuxt UI entfernt und Feinschliff",
+          "tasks": [
+            {
+              "id": "k-new-65",
+              "title": "Remove Nuxt UI and Tailwind",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "cdf7f66"
+            },
+            {
+              "id": "k-new-66",
+              "title": "Name every form field for screen readers and drop unused texts",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "9fe3917"
+            },
+            {
+              "id": "k-new-67",
+              "title": "Update the docs for the Web Awesome frontend",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "057e4b8"
+            },
+            {
+              "id": "k-new-68",
+              "title": "Put the chat introduction right above the input field",
+              "status": "done",
+              "labels": [
+                "design"
+              ],
+              "commit": "ecee113"
+            },
+            {
+              "id": "k-new-69",
+              "title": "Centre the chat introduction in the free space",
+              "status": "done",
+              "labels": [
+                "design"
+              ],
+              "commit": "ebd9b7d"
+            },
+            {
+              "id": "k-new-70",
+              "title": "Fit the assistant page into the screen without scrolling",
+              "status": "done",
+              "labels": [
+                "design"
+              ],
+              "commit": "bc99f22"
+            },
+            {
+              "id": "k-new-71",
+              "title": "Mark the status of a task card by its left edge",
+              "status": "done",
+              "labels": [
+                "design"
+              ],
+              "commit": "5563879"
+            },
+            {
+              "id": "k-new-72",
+              "title": "Match status colours, widen timeline rows, enlarge card headings",
+              "status": "done",
+              "labels": [
+                "design"
+              ],
+              "commit": "ef03cf4"
+            },
+            {
+              "id": "k-new-73",
+              "title": "Fix findings of the check in the browser",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "945fe0d"
+            }
+          ]
+        },
+        {
+          "id": "t-new-14",
+          "title": "Abschluss der Umstellung",
+          "tasks": [
+            {
+              "id": "k-new-74",
+              "title": "Sichtprüfung jeder Seite in hell und dunkel, de und en",
+              "status": "open",
+              "labels": [
+                "planning"
+              ]
+            },
+            {
+              "id": "k-new-75",
+              "title": "Tastatur, Fokus und Kontrast im Theme Matter prüfen",
+              "status": "open",
+              "labels": [
+                "planning"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-4",
+      "title": "Projektansicht, Timeline und KI-Assistent",
+      "description": "Zeitachse, Kanban-Verbesserungen, Projektnavigation in der Seitenleiste, KI-Assistent und MCP-Zugang.",
+      "release": {
+        "version": "0.4",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-15",
+          "title": "Timeline und Kanban",
+          "tasks": [
+            {
+              "id": "k-new-76",
+              "title": "Add a timeline view to the project overview",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "3fa7f8c"
+            },
+            {
+              "id": "k-new-77",
+              "title": "Show the project overview as timeline only, with editable tasks",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "db61f17"
+            },
+            {
+              "id": "k-new-78",
+              "title": "Move tasks to another todo by drag and drop in the timeline",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ca83336"
+            }
+          ]
+        },
+        {
+          "id": "t-new-16",
+          "title": "Projektnavigation",
+          "tasks": [
+            {
+              "id": "k-new-79",
+              "title": "Move project pages into the sidebar",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "c605f72"
+            },
+            {
+              "id": "k-new-80",
+              "title": "List the projects in the sidebar and let the sidebar stand out",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "87d8306"
+            },
+            {
+              "id": "k-new-81",
+              "title": "Add page header with breadcrumb and tabs for the project pages",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ba1fd96"
+            },
+            {
+              "id": "k-new-82",
+              "title": "Show the logo in the sidebar and on the login pages",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "3ec4030"
+            },
+            {
+              "id": "k-new-83",
+              "title": "Give projects an icon",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "9ad6769"
+            }
+          ]
+        },
+        {
+          "id": "t-new-17",
+          "title": "KI-Assistent und MCP",
+          "tasks": [
+            {
+              "id": "k-new-84",
+              "title": "Add an AI assistant page that drafts projects with Claude",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "cf603a6"
+            },
+            {
+              "id": "k-new-85",
+              "title": "Remove the example prompts from the assistant chat",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "515b86b"
+            },
+            {
+              "id": "k-new-86",
+              "title": "Let Claude fill projects through an MCP server",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "fcdb942"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-5",
+      "title": "Labels",
+      "description": "Labels für Tasks: Label-Sets, Anzeige, Auswahl, Verwaltungsseite und Filter.",
+      "release": {
+        "version": "0.5",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-18",
+          "title": "Label-Sets im Backend",
+          "tasks": [
+            {
+              "id": "k-new-87",
+              "title": "Add the plan for task labels (label sets)",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "20407b4"
+            },
+            {
+              "id": "k-new-88",
+              "title": "Add label sets and task labels to the backend",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "89f4c00"
+            }
+          ]
+        },
+        {
+          "id": "t-new-19",
+          "title": "Labels im Frontend",
+          "tasks": [
+            {
+              "id": "k-new-89",
+              "title": "Show and set task labels, choose the label set of a project",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "be0890c"
+            },
+            {
+              "id": "k-new-90",
+              "title": "Add the label sets page with create, duplicate, edit and delete",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "6504e42"
+            },
+            {
+              "id": "k-new-91",
+              "title": "Filter the Kanban by label and seed demo labels",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "1274af7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-6",
+      "title": "Rollen und Rechte",
+      "description": "Globale Rollen (admin, projektleitung, koordination, mitglied, lesend) und Funktionen, Rechte-Klasse, Umbau.",
+      "release": {
+        "version": "0.6",
+        "status": "planned"
+      },
+      "todos": [
+        {
+          "id": "t-new-20",
+          "title": "Pläne",
+          "tasks": [
+            {
+              "id": "k-new-92",
+              "title": "Add the plan for user roles and permissions",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "60501d1"
+            },
+            {
+              "id": "k-new-93",
+              "title": "Add the status and open decisions to the roles plan",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "8e7a0b9"
+            },
+            {
+              "id": "k-new-94",
+              "title": "Fix the role name in the migration test note",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "b375136"
+            }
+          ]
+        },
+        {
+          "id": "t-new-21",
+          "title": "Umsetzung",
+          "tasks": [
+            {
+              "id": "k-new-95",
+              "title": "Replace the admin flag with global roles and abilities",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "407cdb0"
+            }
+          ]
+        },
+        {
+          "id": "t-new-22",
+          "title": "Dokumentation und Umgebung",
+          "tasks": [
+            {
+              "id": "k-new-96",
+              "title": "Ignore direnv .envrc files in the frontend",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "0c36bec"
+            },
+            {
+              "id": "k-new-97",
+              "title": "Document how to create the first admin in the README",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "4e6d331"
+            }
+          ]
+        },
+        {
+          "id": "t-new-23",
+          "title": "Abschluss",
+          "tasks": [
+            {
+              "id": "k-new-98",
+              "title": "Prüfung im Browser je Rolle (admin, projektleitung, mitglied)",
+              "status": "open",
+              "labels": [
+                "planning"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-7",
+      "title": "System-Bereich und API",
+      "description": "Bereich System in der Seitenleiste, Status, Datenbank-Doku, Rechte-Tabelle und GraphQL unter /api.",
+      "release": {
+        "version": "0.7",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-24",
+          "title": "Systemseiten",
+          "tasks": [
+            {
+              "id": "k-new-99",
+              "title": "Statusendpunkt GET /status mit Tests",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "780a462"
+            },
+            {
+              "id": "k-new-100",
+              "title": "Seitenleiste: Bereich System mit Einträgen Datenbank und Status",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "780a462"
+            },
+            {
+              "id": "k-new-101",
+              "title": "Statusseite /system/status für Backend, Datenbank und GraphQL",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "780a462"
+            },
+            {
+              "id": "k-new-102",
+              "title": "Datenbank-Doku /system/db mit Test gegen die Migrationen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "780a462"
+            },
+            {
+              "id": "k-new-103",
+              "title": "Rechte-Tabelle /system/rechte nur für Admins, gelesen aus den Rechte-Klassen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "780a462"
+            },
+            {
+              "id": "k-new-104",
+              "title": "GraphQL-Endpunkt von /graphql nach /api umgestellt",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "780a462"
+            },
+            {
+              "id": "k-new-105",
+              "title": "Versionen (API, App) und Zugriff auf der Statusseite wie in fcadb",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "17744b7"
+            },
+            {
+              "id": "k-new-106",
+              "title": "Statusseite zeigte „nicht erreichbar“: /status fehlte in der CORS-Liste",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "17744b7"
+            },
+            {
+              "id": "k-new-107",
+              "title": "Prüfung im Browser als Admin und als Mitglied",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "17744b7"
+            },
+            {
+              "id": "k-new-108",
+              "title": "Commit auf feature/system",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "17744b7"
+            },
+            {
+              "id": "k-new-109",
+              "title": "Merge von feature/system nach dev",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "d17115c"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-8",
+      "title": "Desktop-App (Tauri)",
+      "description": "Desktop-App für macOS und Windows mit Anmeldung per Token und Auto-Update. Plan: docs/desktop-plan.md.",
+      "release": {
+        "version": "0.8",
+        "status": "planned"
+      },
+      "todos": [
+        {
+          "id": "t-new-25",
+          "title": "Plan",
+          "tasks": [
+            {
+              "id": "k-new-110",
+              "title": "Plan für die Desktop-App mit den Entscheidungen festgehalten",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "780a462"
+            },
+            {
+              "id": "k-new-111",
+              "title": "GitHub-Milestone „Desktop-App (Tauri)“ angelegt",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "780a462"
+            }
+          ]
+        },
+        {
+          "id": "t-new-26",
+          "title": "Umsetzung",
+          "tasks": [
+            {
+              "id": "k-new-112",
+              "title": "Spike: Tauri-Hülle lädt die lokale Build, Token-Anmeldung gegen die lokale API",
+              "status": "open",
+              "labels": [
+                "research"
+              ]
+            },
+            {
+              "id": "k-new-113",
+              "title": "Anmeldung per Token im Schlüsselbund",
+              "status": "open",
+              "labels": [
+                "feature"
+              ]
+            },
+            {
+              "id": "k-new-114",
+              "title": "Bundle für macOS und Windows, unsigniert",
+              "status": "open",
+              "labels": [
+                "feature"
+              ]
+            },
+            {
+              "id": "k-new-115",
+              "title": "Signierung und Notarisierung (macOS), Code-Signing (Windows)",
+              "status": "open",
+              "labels": [
+                "feature"
+              ]
+            },
+            {
+              "id": "k-new-116",
+              "title": "Auto-Update mit signierten Updates",
+              "status": "open",
+              "labels": [
+                "feature"
+              ]
+            },
+            {
+              "id": "k-new-117",
+              "title": "Release-Prozess über GitHub Actions für macOS und Windows",
+              "status": "open",
+              "labels": [
+                "planning"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-9",
+      "title": "Automatisches Deployment",
+      "description": "Automatischer Deploy von main auf den Hostpoint-Server: Tests, Freigabe, Datenbank-Backup, Migrationen, Frontend. Anleitung in der README, Vorlage für weitere Projekte in docs/deploy-template.md.",
+      "release": {
+        "version": "0.9",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-27",
+          "title": "Workflow und Server",
+          "tasks": [
+            {
+              "id": "k-new-118",
+              "title": "GitHub-Actions-Workflow deploy.yml: Tests, Build, Freigabe im Environment production, Übertragung per SSH",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "793a072"
+            },
+            {
+              "id": "k-new-119",
+              "title": "deploy/deploy.sh auf dem Server: Backup, Wartungsmodus, Migrationen, Caches, Frontend veröffentlichen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "793a072"
+            },
+            {
+              "id": "k-new-120",
+              "title": "Deploy-Schlüssel nur für das Skript: authorized_keys mit command= und restrict",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "793a072"
+            },
+            {
+              "id": "k-new-121",
+              "title": "Backend-Tests in der CI mit PHP 8.5, wie auf dem Server",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "793a072"
+            }
+          ]
+        },
+        {
+          "id": "t-new-28",
+          "title": "Fehler beim ersten Lauf",
+          "tasks": [
+            {
+              "id": "k-new-122",
+              "title": "Lint-Fehler in AppLogo.vue blockierte den Frontend-Test im Deploy",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "c4cc932"
+            },
+            {
+              "id": "k-new-123",
+              "title": "Frontend-Test erwartete role img und currentColor, das Logo auf main war veraltet",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "d07161c"
+            },
+            {
+              "id": "k-new-124",
+              "title": "Platzhalter-Host aus der Anonymisierung ließ den Deploy an der Namensauflösung scheitern; Host und Benutzer jetzt als Repository-Variablen",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "d3fcfa3"
+            }
+          ]
+        },
+        {
+          "id": "t-new-29",
+          "title": "Anonymisierung und Doku",
+          "tasks": [
+            {
+              "id": "k-new-125",
+              "title": "Server-Angaben im Repo anonymisiert: Benutzer, Host und lokaler Pfad",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "5c7ee81"
+            },
+            {
+              "id": "k-new-126",
+              "title": "Anleitung zum automatischen Deployment im README",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "793a072"
+            },
+            {
+              "id": "k-new-127",
+              "title": "Deploy-Vorlage docs/deploy-template.md für weitere Projekte",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "793a072"
+            },
+            {
+              "id": "k-new-128",
+              "title": "Secrets und Variablen in der Vorlage klar getrennt beschrieben",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "32df2ad"
+            }
+          ]
+        },
+        {
+          "id": "t-new-30",
+          "title": "Abschluss",
+          "tasks": [
+            {
+              "id": "k-new-129",
+              "title": "Erster automatischer Deploy erfolgreich, Datenbank-Backup vor den Migrationen",
+              "status": "done",
+              "labels": [
+                "planning"
+              ],
+              "commit": "0968159"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

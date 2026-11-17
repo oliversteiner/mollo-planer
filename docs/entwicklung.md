@@ -1,6 +1,6 @@
 # Entwicklung von Mollo Planer
 
-Dieses Dokument spiegelt die Entwicklung wider. Es ist zugleich der Seed für die Datenbank: `php artisan db:seed --class=DevelopmentHistorySeeder` legt daraus das Projekt „Mollo Planer · Entwicklung“ an (nur lokal).
+Dieses Dokument spiegelt die Entwicklung wider. Der Seed für die Datenbank ist die daraus erzeugte Datei `docs/entwicklung.planer.json` (planer-v2): `php artisan db:seed --class=DevelopmentHistorySeeder` legt daraus das Projekt „Mollo Planer · Entwicklung“ an (nur lokal, braucht einen Admin). Dieses Dokument ist der Text, aus dem die Datei einmal mit `tools/planer convert v1-zu-v2` entstand; gepflegt wird künftig die Datei.
 
 ## Aufbau
 

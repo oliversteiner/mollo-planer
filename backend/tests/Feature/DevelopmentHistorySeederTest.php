@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Enums\TaskStatus;
-use App\Models\Label;
-use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
-use App\Support\DevelopmentHistory\HistoryMarkdown;
+use App\Models\User;
+use App\Planer\Export;
+use App\Planer\Validator;
 use Database\Seeders\DevelopmentHistorySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,50 +15,42 @@ class DevelopmentHistorySeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_creates_the_project_from_the_history_file_once(): void
+    public function test_creates_the_project_from_the_planer_file_once_and_its_export_is_the_file(): void
     {
-        $expected = HistoryMarkdown::parse((string) file_get_contents(base_path('../docs/entwicklung.md')));
-        $taskCount = collect($expected['milestones'])->sum(fn (array $m): int => collect($m['todos'])->sum(fn (array $t): int => count($t['tasks'])));
+        User::factory()->admin()->create();
+        $file = json_decode((string) file_get_contents(base_path('../docs/entwicklung.planer.json')), true, 512, JSON_THROW_ON_ERROR);
+        $taskCount = collect($file['milestones'])->sum(fn (array $m): int => collect($m['todos'])->sum(fn (array $t): int => count($t['tasks'])));
 
         $this->seed(DevelopmentHistorySeeder::class);
         $this->seed(DevelopmentHistorySeeder::class);
 
         $project = Project::query()->where('name', DevelopmentHistorySeeder::PROJECT_NAME)->sole();
-        $this->assertSame(['research', 'design', 'feature', 'bug', 'planning', 'blocked'], $project->labels()->pluck('key')->all());
-        $this->assertSame(count($expected['milestones']), Milestone::query()->where('project_id', $project->id)->count());
         $this->assertSame($taskCount, Task::query()->count());
+        $this->assertSame(['research', 'design', 'feature', 'bug', 'planning', 'blocked'], $project->labels()->pluck('key')->all());
+
+        $exported = app(Export::class)->document($project);
+        $this->assertSame(array_column($file['milestones'], 'title'), array_column($exported['milestones'], 'title'));
+        $this->assertSame(
+            collect($file['milestones'])->flatMap(fn (array $m) => collect($m['todos'])->flatMap(fn (array $t) => array_column($t['tasks'], 'title')))->all(),
+            collect($exported['milestones'])->flatMap(fn (array $m) => collect($m['todos'])->flatMap(fn (array $t) => array_column($t['tasks'], 'title')))->all(),
+        );
     }
 
-    public function test_done_tasks_are_done_and_the_kind_is_a_label(): void
+    public function test_without_an_admin_it_says_so_and_creates_nothing(): void
     {
-        $this->seed(DevelopmentHistorySeeder::class);
-
-        $this->assertSame(TaskStatus::DONE, Task::query()->where('title', 'Add Laravel backend, docs and migrations (step 1)')->firstOrFail()->status);
-
-        $planning = Task::query()->where('title', 'Add confirmed frontend plan')->firstOrFail();
-        $this->assertSame(['planning'], $planning->labels()->pluck('labels.key')->all());
-        $this->assertSame(['Release-Prozess über GitHub Actions für macOS und Windows'], Task::query()->where('title', 'like', 'Release-Prozess%')->pluck('title')->all());
-    }
-
-    public function test_an_invalid_history_stops_the_seed_before_anything_is_created(): void
-    {
-        $path = base_path('../docs/entwicklung.md');
-        $original = (string) file_get_contents($path);
-        file_put_contents($path, $original."\n## v0.0 Kaputt\n");
+        $this->expectExceptionMessage('There is no admin');
 
         try {
-            $this->expectExceptionMessage('docs/entwicklung.md is invalid');
             $this->seed(DevelopmentHistorySeeder::class);
         } finally {
-            file_put_contents($path, $original);
-            $this->assertFalse(Project::query()->where('name', DevelopmentHistorySeeder::PROJECT_NAME)->exists());
+            $this->assertFalse(Project::query()->exists());
         }
     }
 
-    public function test_the_project_has_the_planning_label_of_the_template(): void
+    public function test_the_file_is_valid(): void
     {
-        $this->seed(DevelopmentHistorySeeder::class);
+        $file = json_decode((string) file_get_contents(base_path('../docs/entwicklung.planer.json')), true, 512, JSON_THROW_ON_ERROR);
 
-        $this->assertTrue(Label::query()->where('key', 'planning')->exists());
+        $this->assertSame([], Validator::errors($file));
     }
 }
