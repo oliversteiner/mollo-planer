@@ -28,7 +28,7 @@ final class ProgressBatchLoader
 
     /**
      * @param  Closure(list<int|string>): Builder<Task>  $tasksByKey  Tasks of the given keys, with the key selected as "group_key"
-     * @param  string  $groupColumn  Qualified column the tasks are grouped by
+     * @param  string  $groupColumn  Qualified column (or the alias "group_key") the tasks are grouped by
      */
     public function __construct(
         private readonly Closure $tasksByKey,
