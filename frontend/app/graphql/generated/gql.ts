@@ -16,7 +16,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
 type Documents = {
     "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": typeof types.AdminUsersDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": typeof types.ApproveUserDocument,
-    "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n": typeof types.RejectUserDocument,
+    "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n": typeof types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": typeof types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": typeof types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": typeof types.ResetUserTwoFactorDocument,
@@ -36,7 +36,7 @@ type Documents = {
     "\n  mutation UpdateLabelSet($id: ID!, $input: LabelSetInput!) {\n    updateLabelSet(id: $id, input: $input) { id name }\n  }\n": typeof types.UpdateLabelSetDocument,
     "\n  mutation DeleteLabelSet($id: ID!) {\n    deleteLabelSet(id: $id) { id }\n  }\n": typeof types.DeleteLabelSetDocument,
     "\n  query MyTasks($status: TaskStatus) {\n    myTasks(status: $status) {\n      id\n      title\n      icon\n      status\n      dueDate\n      userStory { role goal benefit }\n      commentCount\n      description\n      assignee { id name }\n      labels { id name color position }\n      todo {\n        id\n        title\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n    }\n  }\n": typeof types.MyTasksDocument,
-    "\n  mutation UpdateMyNotifications($emailEnabled: Boolean!) {\n    updateMyNotifications(emailEnabled: $emailEnabled) { id notifyByEmail }\n  }\n": typeof types.UpdateMyNotificationsDocument,
+    "\n  mutation UpdateMyNotifications($notifyByEmail: Boolean!) {\n    updateMyNotifications(notifyByEmail: $notifyByEmail) { id notifyByEmail }\n  }\n": typeof types.UpdateMyNotificationsDocument,
     "\n  mutation UpdateMyAvatar($avatar: Upload!) {\n    updateMyAvatar(avatar: $avatar) { id avatarUrl }\n  }\n": typeof types.UpdateMyAvatarDocument,
     "\n  mutation DeleteUserAvatar($id: ID!) {\n    deleteUserAvatar(id: $id) { id avatarUrl }\n  }\n": typeof types.DeleteUserAvatarDocument,
     "\n  query ProjectOverview($id: ID!) {\n    project(id: $id) {\n      id\n      milestones {\n        id\n        title\n        description\n        icon\n        dueDate\n        release { version status }\n        status\n        progress { done total percent }\n        todos {\n          id\n          title\n          description\n          icon\n          dueDate\n          status\n          progress { done total percent }\n        }\n      }\n    }\n  }\n": typeof types.ProjectOverviewDocument,
@@ -100,7 +100,7 @@ type Documents = {
 const documents: Documents = {
     "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": types.ApproveUserDocument,
-    "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n": types.RejectUserDocument,
+    "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n": types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": types.ResetUserTwoFactorDocument,
@@ -120,7 +120,7 @@ const documents: Documents = {
     "\n  mutation UpdateLabelSet($id: ID!, $input: LabelSetInput!) {\n    updateLabelSet(id: $id, input: $input) { id name }\n  }\n": types.UpdateLabelSetDocument,
     "\n  mutation DeleteLabelSet($id: ID!) {\n    deleteLabelSet(id: $id) { id }\n  }\n": types.DeleteLabelSetDocument,
     "\n  query MyTasks($status: TaskStatus) {\n    myTasks(status: $status) {\n      id\n      title\n      icon\n      status\n      dueDate\n      userStory { role goal benefit }\n      commentCount\n      description\n      assignee { id name }\n      labels { id name color position }\n      todo {\n        id\n        title\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n    }\n  }\n": types.MyTasksDocument,
-    "\n  mutation UpdateMyNotifications($emailEnabled: Boolean!) {\n    updateMyNotifications(emailEnabled: $emailEnabled) { id notifyByEmail }\n  }\n": types.UpdateMyNotificationsDocument,
+    "\n  mutation UpdateMyNotifications($notifyByEmail: Boolean!) {\n    updateMyNotifications(notifyByEmail: $notifyByEmail) { id notifyByEmail }\n  }\n": types.UpdateMyNotificationsDocument,
     "\n  mutation UpdateMyAvatar($avatar: Upload!) {\n    updateMyAvatar(avatar: $avatar) { id avatarUrl }\n  }\n": types.UpdateMyAvatarDocument,
     "\n  mutation DeleteUserAvatar($id: ID!) {\n    deleteUserAvatar(id: $id) { id avatarUrl }\n  }\n": types.DeleteUserAvatarDocument,
     "\n  query ProjectOverview($id: ID!) {\n    project(id: $id) {\n      id\n      milestones {\n        id\n        title\n        description\n        icon\n        dueDate\n        release { version status }\n        status\n        progress { done total percent }\n        todos {\n          id\n          title\n          description\n          icon\n          dueDate\n          status\n          progress { done total percent }\n        }\n      }\n    }\n  }\n": types.ProjectOverviewDocument,
@@ -207,7 +207,7 @@ export function graphql(source: "\n  mutation ApproveUser($id: ID!) {\n    appro
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n"): (typeof documents)["\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id)\n  }\n"];
+export function graphql(source: "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n"): (typeof documents)["\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -287,7 +287,7 @@ export function graphql(source: "\n  query MyTasks($status: TaskStatus) {\n    m
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateMyNotifications($emailEnabled: Boolean!) {\n    updateMyNotifications(emailEnabled: $emailEnabled) { id notifyByEmail }\n  }\n"): (typeof documents)["\n  mutation UpdateMyNotifications($emailEnabled: Boolean!) {\n    updateMyNotifications(emailEnabled: $emailEnabled) { id notifyByEmail }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateMyNotifications($notifyByEmail: Boolean!) {\n    updateMyNotifications(notifyByEmail: $notifyByEmail) { id notifyByEmail }\n  }\n"): (typeof documents)["\n  mutation UpdateMyNotifications($notifyByEmail: Boolean!) {\n    updateMyNotifications(notifyByEmail: $notifyByEmail) { id notifyByEmail }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

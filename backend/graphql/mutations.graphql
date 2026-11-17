@@ -21,8 +21,8 @@ type Mutation @guard {
   approveUser(id: ID!): User!
     @can(ability: "approve", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\ApproveUser")
-  "Lehnt ein wartendes Konto ab und löscht es. Freigegebene Konten löscht deleteUser."
-  rejectUser(id: ID!): Boolean!
+  "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
+  rejectUser(id: ID!): User!
     @can(ability: "reject", find: "id", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\RejectUser")
   deleteUser(id: ID! @whereKey): User!
@@ -30,7 +30,7 @@ type Mutation @guard {
     @validator
     @delete
   "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
-  updateMyNotifications(emailEnabled: Boolean!): User!
+  updateMyNotifications(notifyByEmail: Boolean!): User!
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateMyNotifications")
 
   "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."

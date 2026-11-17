@@ -15,7 +15,7 @@ class AccountApprovalTest extends GraphQLTestCase
 {
     private const APPROVE = 'mutation ($id: ID!) { approveUser(id: $id) { id } }';
 
-    private const REJECT = 'mutation ($id: ID!) { rejectUser(id: $id) }';
+    private const REJECT = 'mutation ($id: ID!) { rejectUser(id: $id) { id name email } }';
 
     public function test_admin_approves_a_verified_account(): void
     {
@@ -58,7 +58,7 @@ class AccountApprovalTest extends GraphQLTestCase
         $waiting = User::factory()->unapproved()->create();
 
         $this->as('admin')->gql(self::REJECT, ['id' => $waiting->id])
-            ->assertJsonPath('data.rejectUser', true);
+            ->assertJsonPath('data.rejectUser', ['id' => (string) $waiting->id, 'name' => $waiting->name, 'email' => $waiting->email]);
 
         $this->assertNull(User::find($waiting->id));
     }

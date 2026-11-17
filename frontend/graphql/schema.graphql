@@ -282,8 +282,8 @@ type Mutation {
  moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
  "Löscht einen Vorgang endgültig."
  purgeFromTrash(deletionId: ID!): Boolean!
- "Lehnt ein wartendes Konto ab und löscht es. Freigegebene Konten löscht deleteUser."
- rejectUser(id: ID!): Boolean!
+ "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
+ rejectUser(id: ID!): User!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
  "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
  resetRole(id: ID!): Role!
@@ -314,7 +314,7 @@ type Mutation {
  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
  updateMyAvatar(avatar: Upload!): User!
  "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
- updateMyNotifications(emailEnabled: Boolean!): User!
+ updateMyNotifications(notifyByEmail: Boolean!): User!
  updateProject(id: ID!, input: UpdateProjectInput!): Project!
  "Ändert Namen, Funktionen oder Obergrenze einer Rolle. Der Schlüssel bleibt."
  updateRole(id: ID!, input: UpdateRoleInput!): Role!

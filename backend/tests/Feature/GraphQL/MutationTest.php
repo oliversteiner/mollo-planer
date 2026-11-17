@@ -318,7 +318,7 @@ class MutationTest extends GraphQLTestCase
 
     public function test_update_my_notifications_only_changes_the_viewer(): void
     {
-        $this->as('member')->gql('mutation { updateMyNotifications(emailEnabled: false) { id notifyByEmail } }')
+        $this->as('member')->gql('mutation { updateMyNotifications(notifyByEmail: false) { id notifyByEmail } }')
             ->assertJsonPath('data.updateMyNotifications', ['id' => (string) $this->users['member']->id, 'notifyByEmail' => false]);
 
         $this->assertTrue($this->users['owner']->fresh()->notify_by_email);
@@ -439,7 +439,7 @@ class MutationTest extends GraphQLTestCase
             'createApiToken' => ['member', 'mutation { createApiToken(name: "Claude") { plainTextToken } }', fn (self $test) => []],
             'updateAppSettings' => ['admin', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],
             'deleteUserAvatar' => ['admin', 'mutation ($id: ID!) { deleteUserAvatar(id: $id) { id } }', fn (self $test) => ['id' => $test->users['member']->id]],
-            'updateMyNotifications' => ['member', 'mutation { updateMyNotifications(emailEnabled: false) { id } }', fn (self $test) => []],
+            'updateMyNotifications' => ['member', 'mutation { updateMyNotifications(notifyByEmail: false) { id } }', fn (self $test) => []],
             'setProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "member") { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
             'removeProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],
             'createTask' => ['manager', 'mutation ($t: ID!, $u: ID!) { createTask(input: {todoId: $t, title: "Neu", assigneeId: $u}) { id } }', fn (self $test) => ['t' => $test->todo->id, 'u' => $test->users['member']->id]],

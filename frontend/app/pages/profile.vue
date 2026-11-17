@@ -11,7 +11,7 @@ useHead({ title: () => t('profile.title') })
 const { mutate: updateNotifications, loading: savingNotifications } = useMutation(updateMyNotificationsMutation)
 
 async function setNotifications(enabled: boolean): Promise<void> {
-  await updateNotifications({ emailEnabled: enabled }).catch(() => null)
+  await updateNotifications({ notifyByEmail: enabled }).catch(() => null)
   await load()
   toast.add({ title: enabled ? t('profile.notifications.on') : t('profile.notifications.off'), color: 'success' })
 }

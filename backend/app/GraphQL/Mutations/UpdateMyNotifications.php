@@ -15,14 +15,14 @@ class UpdateMyNotifications
     use ResolvesViewer;
 
     /**
-     * @param  array{emailEnabled: bool}  $args
+     * @param  array{notifyByEmail: bool}  $args
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): User
     {
         $viewer = $this->viewer($context);
 
         return DB::transaction(function () use ($args, $viewer): User {
-            $viewer->notify_by_email = $args['emailEnabled'];
+            $viewer->notify_by_email = $args['notifyByEmail'];
             $viewer->save();
 
             return $viewer;

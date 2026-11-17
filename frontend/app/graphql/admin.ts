@@ -26,7 +26,7 @@ export const approveUserMutation = graphql(`
 
 export const rejectUserMutation = graphql(`
   mutation RejectUser($id: ID!) {
-    rejectUser(id: $id)
+    rejectUser(id: $id) { id }
   }
 `)
 
