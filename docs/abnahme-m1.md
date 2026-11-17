@@ -10,9 +10,9 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 ## 1. Rollen, Funktionen, Rechte (`/admin/roles`)
 
 - [x] ✅ Als Anna `/admin/roles` öffnen: Reiter System | Projekt, je Reiter Rollen / Funktionen / Übersicht als kompakte Zeilen, Namen in DE und EN (Fix F1).
-- [ ] ❌ Ansicht Übersicht zeigt die Standardbelegung (Owner, Manager, Mitglied, Gast; Admin, Projektleitung, Koordination, Mitglied, Lesend). `/system/rechte` leitet dorthin um. → F4.4 (Spalten abgeschnitten, kein Scroll-Hinweis)
+- [x] ✅ Ansicht Übersicht zeigt die Standardbelegung (Owner, Manager, Mitglied, Gast; Admin, Projektleitung, Koordination, Mitglied, Lesend). `/system/rechte` leitet dorthin um. → nach F4.4 ✅
 - [x] ✅ Filter: Textsuche, Mitgeliefert/Eigene, „Hat Recht …“, In Gebrauch/ungenutzt wirken in allen drei Ansichten; Zustand bleibt nach Neuladen (URL).
-- [ ] ❌ Eigene Projektrolle „Redaktion“ anlegen mit den Funktionen „Planen“ und „Mitarbeiten“. Ben in einem Projekt diese Rolle geben. Ben kann ToDos und eigene Tasks anlegen, aber keine fremden Tasks löschen. → F4.5 (eigener Task nicht änderbar)
+- [x] ✅ Eigene Projektrolle „Redaktion“ anlegen mit den Funktionen „Planen“ und „Mitarbeiten“. Ben in einem Projekt diese Rolle geben. Ben kann ToDos und eigene Tasks anlegen, aber keine fremden Tasks löschen. → nach F4.5 ✅
 - [x] ✅ Eigene Funktion anlegen, einer Rolle zuordnen, wieder entfernen. Löschen einer Funktion, die noch eine Rolle nutzt, wird verhindert.
 - [x] ✅ „Standard wiederherstellen“ bei einer geänderten mitgelieferten Rolle stellt die Standardbelegung her.
 - [x] ✅ Ersteller-Rolle in den Einstellungen festlegen. Ein neues Projekt (als Person mit `projects.create`) gibt dem Ersteller diese Rolle.
@@ -73,8 +73,8 @@ Personen aus den Demo-Daten: Anna (Admin), Ben, Chiara, David. Je Punkt: ✅ pas
 
 ## Ergebnis
 
-- Teilabnahme am 2026-11-16 (Oliver und Claude in Chrome), fortgesetzt am 2026-11-17 nach F3: alle 41 Punkte geprüft: 38 ✅, 2 ❌ (1.2 → F4.4, 1.4 → F4.5), 1 ⏸ (Mail, auf später verschoben).
-- Abgenommen am: ____ durch: Oliver
+- Teilabnahme am 2026-11-16 (Oliver und Claude in Chrome), fortgesetzt am 2026-11-17 nach F3: alle 41 Punkte geprüft: 40 ✅ (1.2 und 1.4 nach F4 nachgeprüft), 1 ⏸ (Mail, auf später verschoben).
+- **Abgenommen am 2026-11-17 durch Oliver** (Freigabe „weiter“ nach der Nachprüfung von F4 durch Claude in Chrome). Mail-Test (4.5) folgt später.
 - Offene Punkte (gehen als Fix vor M2 an die Umsetzung):
   - F1 Rollenseite unübersichtlich (2026-11-16) → `docs/fix-m1-rollenseite.md`, umgesetzt in `bb3c782`, Abschnitt 1 neu prüfen.
   - F2 Mitglieder: Auswahl zeigt nur Ben (2026-11-16) → `docs/fix-m1-mitglieder.md`, umgesetzt in `3ae8bb3`, `41ef213`, `9e8f503`.

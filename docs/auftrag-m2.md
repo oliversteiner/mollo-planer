@@ -1,9 +1,9 @@
 # Auftrag Meilenstein M2 „Sicher löschen“ (S5, S6)
 
-Stand: 2026-11-15, Planung. Geprüft: `mollo-planer` bis `ca77851`.
+Stand: 2026-11-17, Planung. Geprüft: `mollo-planer` bis `065a2be` (nach Abnahme M1 mit F1 bis F4).
 Rolle: Auftrag für die Umsetzung (Bob). Präzisiert `umsetzung.md` S5 und S6 auf den heutigen Code. Wo sich dieses Dokument und `schema-review.md` A5 widersprechen, gilt dieses Dokument, bei Rechten `rollen-funktionen-rechte.md`.
 
-**Start erst nach der Abnahme von M1** (`docs/abnahme-m1.md`). Offene Punkte aus der Abnahme werden vorher als Fix erledigt.
+**M1 ist abgenommen (2026-11-17).** Der Mail-Test aus M1 (Abnahme 4.5) ist auf später verschoben und kein Hindernis.
 
 ---
 
@@ -16,6 +16,18 @@ Rolle: Auftrag für die Umsetzung (Bob). Präzisiert `umsetzung.md` S5 und S6 au
 - `RightUsageTest`: `project.archive`, `trash.restore`, `trash.purge` stehen als „ausstehend S5“. Nach M2 sind sie geprüft und raus aus `PENDING`.
 - `todos.project_id` und `tasks.project_id` (A1): Abfragen auf den Papierkorb gehen direkt über `project_id`.
 - `planer_revision` und das Neuladen (S3c, S3f) aus M1.
+
+## 0a. Zuerst: Vorarbeiten und Folgen aus M1
+
+1. **RF6** (`docs/refactoring-m1-m3.md`): `GraphQL/Resolvers/Progress.php` und `ProgressBatchLoader` über `tasks.project_id`/`todos.project_id` statt Joins. Eigener Commit vor S5.
+2. **Lebenszyklus (RF1):** Die Observer von Milestone, ToDo, Task (und Project) bekommen mit `SoftDeletes` drei Fälle: `deleted` nur wenn nicht `isForceDeleting()` (Lücke schließen, Status neu, `PlanerRevision::touch`), `restored` (ans Ende, Status neu, `touch`), `forceDeleted` (nichts an Reihenfolge, kein `touch`). Kommentar „tasks are removed by the database (cascade)“ im `TodoObserver` anpassen.
+3. **Grundregel §7.3 (F3.5) und Papierkorb:**
+   - Projekte im Papierkorb zählen bei `Rights::assertNoProjectLosesHolder` nicht mit (sonst blockiert ein gelöschtes Projekt das Ändern einer Person).
+   - Wiederherstellen eines Projekts: Hat es dann keine Person mit „Projekt löschen“ unter den Mitgliedern (z. B. weil die Owner inzwischen gelöscht oder auf „Lesend“ gesetzt wurden), wird die wiederherstellende Person Mitglied mit der Ersteller-Rolle. Test dafür.
+   - Endgültig löschen eines Projekts ist von §7.3 nicht betroffen.
+4. **Rechte je Element (F4.5):** Zu `Task.viewerCanUpdate`/`viewerCanDelete` usw. kommen keine neuen Felder für den Papierkorb am Task; der Papierkorb hat `TrashItem.viewerCanRestore`/`viewerCanPurge`. Im archivierten Projekt liefern alle `viewerCan*` über die Obergrenze in `Rights` automatisch `false`; Test dafür (Task-Felder im archivierten Projekt).
+5. **Aktualisieren (RF4):** Rückgängig und Wiederherstellen laufen über `useProjectMutation`/`refreshProject`; der eigene Vorgang löst keinen Hinweis „inzwischen geändert“ aus (S3f).
+6. **Listen mit Rollen (Apollo):** Wie bei Rollen nach jeder Änderung den Cache der betroffenen Abfragen leeren (`cache.evict`), z. B. Projektliste nach Archivieren/Zurückholen und nach Löschen/Wiederherstellen eines Projekts (Seitenleiste).
 
 ## 1. Archiv (S5 Teil 1)
 
