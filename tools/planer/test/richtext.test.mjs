@@ -43,9 +43,14 @@ test('Konstrukte außerhalb der Whitelist sind Fehler (§9.6)', () => {
   }
 });
 
-test('Gemischte Listen sind Fehler, tiefe Verschachtelung ist erlaubt', () => {
-  assert.match(forbiddenMarkdown(read('mixed-list.error.md')).join('\n'), /Gemischte verschachtelte Listen/);
+test('Gemischt und tief verschachtelte Listen sind erlaubt (Aufzählung in nummerierter Liste und umgekehrt)', () => {
+  assert.deepEqual(forbiddenMarkdown(read('mixed-list.in.md')), []);
   assert.deepEqual(forbiddenMarkdown(read('nested-deep.in.md')), []);
+  const { content } = parseDescription(read('mixed-list.in.md')).doc;
+  assert.equal(content[0].type, 'orderedList');
+  assert.equal(content[0].content[0].content[1].type, 'bulletList');
+  assert.equal(content[1].type, 'bulletList');
+  assert.equal(content[1].content[0].content[1].type, 'orderedList');
 });
 
 test('Validator: Fehler aus der Whitelist führen zur Angabe des Feldes, Schreibweisen nur zum Hinweis', () => {

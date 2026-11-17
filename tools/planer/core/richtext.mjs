@@ -54,7 +54,7 @@ function isBlockStart(line) {
   return BLOCK_START.some((pattern) => pattern.test(line)) || THEMATIC.test(line);
 }
 
-function parseBlocks(lines, depth, st, parentKind = null) {
+function parseBlocks(lines, depth, st) {
   const blocks = [];
   let i = 0;
 
@@ -95,9 +95,6 @@ function parseBlocks(lines, depth, st, parentKind = null) {
       blocks.push({ type: 'blockquote', content: parseBlocks(inner, depth, st) });
     } else if (LIST.test(line)) {
       const list = parseList(lines, i, depth, st);
-      if (parentKind !== null && parentKind !== list.node.type) {
-        st.errors.push('Gemischte verschachtelte Listen sind nicht erlaubt');
-      }
       blocks.push(list.node);
       i = list.next;
     } else {
@@ -156,7 +153,7 @@ function parseList(lines, start, depth, st) {
       }
     }
     while (item.length > 0 && item[item.length - 1].trim() === '') item.pop();
-    node.content.push({ type: 'listItem', content: parseBlocks(item, depth + 1, st, node.type) });
+    node.content.push({ type: 'listItem', content: parseBlocks(item, depth + 1, st) });
   }
 
   return { node, next: i };

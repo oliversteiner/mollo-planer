@@ -230,7 +230,7 @@ Die Whitelist der App gilt auch für die Datei. Sie steht in `backend/app/Suppor
 - **Nicht erlaubt**, der Validator lehnt ab: HTML, Bilder, Tabellen, Code-Blöcke, Überschriften Ebene 1 und ab Ebene 4, Links mit anderem Schema.
 - **Titel** (Milestone, ToDo, Task) und die Felder der User-Story sind Klartext ohne Formatierung.
 - **Roundtrip:** Für alle Konstrukte der Whitelist gilt `Markdown → RichText → Markdown` ohne Verlust (P5).
-- **Grenze:** Verschachtelte Listen mit gemischten Typen gehören nicht zur Whitelist.
+- **Listen:** Aufzählungen und nummerierte Listen dürfen ineinander verschachtelt sein (was der Editor der App speichern kann, ist als Datei gültig). Die Startnummer einer nummerierten Liste geht verloren, sie beginnt in der Datei immer bei 1.
 
 Das Schema prüft nur die Länge der Beschreibung. Die Struktur prüft der Validator.
 
@@ -241,14 +241,14 @@ Der Konverter in `tools/planer/core/richtext.mjs` liest eine Beschreibung in ein
 - Absätze durch eine Leerzeile getrennt. Weiche Zeilenumbrüche innerhalb eines Absatzes werden zu einem Leerzeichen.
 - Harter Umbruch als `\` am Zeilenende (nicht zwei Leerzeichen).
 - Fett `**…**`, kursiv `*…*`, beides `***…***`, Inline-Code `` `…` `` (auch innerhalb von Fett oder Kursiv).
-- Aufzählungen mit `- `, nummerierte Listen mit `1.`, `2.`, … fortlaufend, verschachtelt mit zwei bzw. drei Leerzeichen.
+- Aufzählungen mit `- `, nummerierte Listen mit `1.`, `2.`, … fortlaufend, verschachtelt mit zwei bzw. drei Leerzeichen (der Einzug folgt der Breite des Listenzeichens des Elternteils, auch bei Aufzählung in nummerierter Liste und umgekehrt).
 - Links `[Text](URL)`. Ein Linktitel entfällt. Autolinks `<URL>` werden zu `[URL](URL)`.
 - Zitate `> `, Überschriften `## ` und `### `.
 - Ist eine Beschreibung ungültig, bleibt sie unverändert; der Validator meldet den Fehler.
 
 **Hinweise** (Schreibweisen aus §9.5, Text bleibt gleich): `__fett__` und `_kursiv_` werden zu `**` und `*`, Zeilenumbruch mit zwei Leerzeichen zu `\`, HTML-Entitäten (`&amp;` u. a.) zu Zeichen, Listenzeichen `*` oder `+` zu `-`, fortlaufende Nummerierung, Autolinks, Linktitel. Weicht eine Beschreibung von der kanonischen Form ab, meldet `validate` einen Hinweis.
 
-**Fehler** (§9.6, Text kann nicht übernommen werden): HTML (auch Kommentare und Inline-HTML), Bilder (auch im Text), Tabellen, Code-Blöcke, durchgestrichen `~~`, nicht geschlossenes Fett oder Kursiv, Überschriften außer Ebene 2 und 3, Links mit anderem Schema, gemischte verschachtelte Listen (Aufzählung in nummerierter Liste oder umgekehrt).
+**Fehler** (§9.6, Text kann nicht übernommen werden): HTML (auch Kommentare und Inline-HTML), Bilder (auch im Text), Tabellen, Code-Blöcke, durchgestrichen `~~`, nicht geschlossenes Fett oder Kursiv, Überschriften außer Ebene 2 und 3, Links mit anderem Schema.
 
 Testfälle: `spec/fixtures/richtext/`. Paare `*.in.md` und `*.out.md` prüfen die kanonische Form, `*.error.md` prüft die Fehler, `*.hint.in.md` und die Hinweise.
 
