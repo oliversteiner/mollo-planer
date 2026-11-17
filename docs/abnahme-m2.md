@@ -3,7 +3,7 @@
 Stand: 2026-11-17, Code bis `764304f`, Nachprüfung F5 an `304991f`, F5.6 an `0bdea9b`. Geprüft in Chrome durch die Planung (Claude) mit frischen Demo-Daten; Fixes in `docs/fix-m2.md` (F5). Rolle: Checkliste für Oliver.
 Personen aus den Demo-Daten: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Manager Website-Relaunch, Owner Sommerfest 2027), David (Mitglied). Je Punkt: ✅ passt, ❌ Fehler (→ F5.x), ⏸ für Oliver.
 
-**Zwischenergebnis:** alle Befunde F5.1–F5.6 behoben und nachgeprüft ✅; offen nur 4 ⏸ für Oliver.
+**Ergebnis:** alle Befunde F5.1–F5.6 behoben und nachgeprüft ✅; M2 abgenommen am 2026-11-17.
 
 ---
 
@@ -86,4 +86,4 @@ Das Backend (`localhost:8000`) fiel während der Abnahme zweimal ohne Eintrag im
 
 ---
 
-Ergebnis: _offen_ — Planung fertig, es fehlen nur die ⏸-Punkte durch Oliver (MCP lesen/schreiben gegen die Demo-DB, Mail beim Wiederherstellen, Registrierung ablehnen).
+Ergebnis: **Abgenommen am 2026-11-17 durch Oliver** („m2 ok“), einschließlich der ⏸-Punkte.

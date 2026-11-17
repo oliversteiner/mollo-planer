@@ -1,9 +1,9 @@
 # Auftrag Meilenstein M3 „Vorlagen und Labels“ (S3e, S7)
 
-Stand: 2026-11-15, Planung. Geprüft: `mollo-planer` bis `58ed223`.
+Stand: 2026-11-17, Planung. Geprüft: `mollo-planer` bis `0bdea9b` (nach Abnahme M2 mit Fix F5).
 Rolle: Auftrag für die Umsetzung (Bob). Präzisiert `umsetzung.md` S3e und S7 auf den heutigen Code. Wo sich dieses Dokument und `planer-abgleich.md` §3 bzw. §9 widersprechen, gilt dieses Dokument.
 
-**Start erst nach der Abnahme von M2.** Offene Punkte aus der Abnahme M2 werden vorher erledigt.
+**M2 ist abgenommen (2026-11-17).** M3 kann starten. Zuerst §0a.
 
 ---
 
@@ -15,7 +15,19 @@ Rolle: Auftrag für die Umsetzung (Bob). Präzisiert `umsetzung.md` S3e und S7 a
 - Mitgelieferte Vorlagen als Dateien in `spec/templates/` (T4): `software-development`, `event`, `podcast`, jeweils mit Labels und kleinem Gerüst.
 - Rechte `templates.manage`, `templates.manageAny` gibt es im Enum `Right`; `labelSets.manage`/`labelSets.manageAny` hängen bis S7 an den Funktionen „Vorlagen“ bzw. „Alle Vorlagen“.
 - `projects.locale` gibt es schon.
-- Label-Sets heute: `label_sets`, `labels.label_set_id`, `labels.name`, `labels.key` (nur mitgelieferte), `projects.label_set_id`, `BuiltinLabelSets.php`, Seite `/label-sets`, Komponenten unter `components/label-set/`, `setProjectLabelSet`.
+- Label-Sets heute: `label_sets`, `labels.label_set_id`, `labels.name`, `labels.key` (nur mitgelieferte), `projects.label_set_id`, `BuiltinLabelSets.php`, Seite `/label-sets`, Komponente `components/label-set/FormModal.vue`, `setProjectLabelSet`, Migrationen `2026_11_09_234005`, `2026_11_11_090000`. Das GraphQL-Enum `Right` hat noch `LABEL_SETS_MANAGE`/`LABEL_SETS_MANAGE_ANY`.
+- Aus M1/M2: `App\Planer\PlanerRevision` (zählt einmal je Projekt und Transaktion), `TaskLabels::set` als einziger Weg für Labels am Task (RF3), `useProjectMutation`/`refreshProject` (RF4), `Rights` mit Obergrenze für archivierte Projekte (`Right::holdsWhenArchived`), Papierkorb über `App\Services\Deletion` mit `SoftDeletes` an Project, Milestone, ToDo, Task, Kommentar, Milestones in der Oberfläche nach `position` (F5.4, `moveMilestone`), `createProject` mit `members` (F2) und `description` als Rich Text (S6 C2), übersetzte Standard-Ablehnung (F5.5).
+- `RightUsageTest` (`tests/Unit`): `templates.manage` und `templates.manageAny` stehen als „S7“ in `PENDING`.
+
+## 0a. Zuerst: Vorarbeit und Folgen aus M2
+
+1. **RF8** (`docs/refactoring-m1-m3.md`): `App\Plan\PlanSchema` nach `App\Planer` verschieben, eigener Commit vor S3e. Danach gibt es `App\Plan` nicht mehr.
+2. **Papierkorb und Labels:** Labels kommen nicht in den Papierkorb (endgültig löschen wie heute). Wird ein Projekt-Label gelöscht, verschwindet es auch an Tasks im Papierkorb (`label_task` per Kaskade); ein später wiederhergestellter Task hat es dann nicht mehr. Das ist so gewollt; die Bestätigung beim Löschen eines Labels zählt Tasks im Papierkorb **nicht** mit. Ein Projekt im Papierkorb behält seine Labels. Test dafür.
+3. **Archiv:** `updateProjectLabels` und `applyTemplateLabels` gehören in die Liste von `ArchivedProjectMutationsTest` (im archivierten Projekt abgelehnt). Vorlagen sind app-weit und vom Archiv nicht betroffen; `createProject` mit `templateId` aus einer Vorlage geht immer.
+4. **Revision:** Anlegen aus Vorlage samt Labels, Mitgliedern und Gerüst zählt als eine Änderung (Revision 1, wie F2). `updateProjectLabels` und `applyTemplateLabels` je +1. Labels an Tasks im Papierkorb ändern die Revision beim Löschen eines Labels nicht zusätzlich.
+5. **Reihenfolge des Gerüsts:** `TemplateScaffold` legt Milestones, ToDos und Tasks in der Reihenfolge der Vorlage an (`position`, F5.4) und setzt Tasks in der Kanban-Spalte „Geplant“ der Reihe nach (`board_position`).
+6. **Beschreibungen:** Die Projektbeschreibung ist Rich Text (S6 C2). `TemplateScaffold` wandelt `project.description` und alle anderen Beschreibungen der Vorlage mit `MarkdownToTiptap` (Modus `strict`) um.
+7. **Oberfläche:** Projekt-Labels in den Einstellungen laufen über `useProjectMutation` (der eigene Vorgang löst keinen Hinweis „inzwischen geändert“ aus). Nach Anlegen, Ändern, Duplizieren, Löschen einer Vorlage den Apollo-Cache der Vorlagenliste leeren (`cache.evict`, wie bei Rollen und Projekten). Löschen einer Vorlage mit Bestätigung (`useConfirmedDelete`), nicht über den Papierkorb.
 
 ## 1. Entscheidung vorab: Spezifikation und Editor müssen zusammenpassen
 
@@ -32,11 +44,11 @@ Grundsatz für die Entscheidung: **Was der Editor speichern kann, muss als Datei
 **Vorschlag (gilt, wenn Oliver nicht widerspricht):**
 - Gemischt verschachtelte Listen werden in der Datei **erlaubt**. `tools/planer` (Validator, `richtext.mjs`, §6.1) wird angepasst, `mixed-list.error.md` wird zum Paar `mixed-list.in.md`/`.out.md`.
 - Tiefe und Code in Fett/Kursiv bleiben wie in §6.1 (erlaubt). §9.4/§9.6 gelten an diesen Stellen nicht mehr.
-- Die Startnummer einer nummerierten Liste geht verloren (Liste ab 1), wie in §6.1. Speichert der Editor `orderedList.attrs.start`, wird es beim Export weggelassen; der Validator der App lässt `start` nicht zu.
+- Die Startnummer einer nummerierten Liste geht verloren (Liste ab 1), wie in §6.1. Die App nimmt `orderedList.attrs.start` weiter an (`RichTextDocument` erlaubt es heute, der Editor schreibt es); `TiptapToMarkdown` lässt es weg, `MarkdownToTiptap` setzt es nie. (Korrektur 2026-11-17: Die frühere Aussage „der Validator der App lässt `start` nicht zu“ stimmt nicht mit dem Code überein und gilt nicht.)
 
 ## 2. S3e Rich-Text-Konverter (zuerst, unabhängig)
 
-1. Namensraum **`App\Planer\RichText`** (neu; `App\Plan\PlanSchema` zieht erst in I1 um).
+1. Namensraum **`App\Planer\RichText`** (neu; `PlanSchema` liegt nach RF8 schon in `App\Planer`).
 2. `MarkdownToTiptap::convert(string $markdown, Mode $mode): Result` mit `Result { array $doc; list<Warning> $warnings }`.
    - Modus `strict` (Datei, Import): ein Konstrukt aus der Fehlerliste von §6.1 ist ein Fehler mit Pfad, nichts wird geschrieben.
    - Modus `lenient` (Assistent, Ideen, MCP-Ausschnitte, Einfügen): Klartext nach der Tabelle §9.6, je Fall eine Warnung (Art, Zeile, Auszug).
@@ -128,9 +140,10 @@ applyTemplateLabels(projectId: ID!, templateId: ID!, mode: REPLACE | APPEND): Pr
 - Rechte je Mutation mit Standardrolle und eigener Rolle; Lesend und Gast sehen Vorlagen, ändern nichts.
 - `planer_revision` +1 bei Label-Änderung im Projekt, 0 bei Vorlagen.
 - `OutsiderAccessTest`, `MutationCoverageTest`, `ArchivedProjectMutationsTest` ergänzen.
+- Aus §0a: Label löschen entfernt es auch an Tasks im Papierkorb, Bestätigung zählt sie nicht; Projekt aus Vorlage hat Revision 1; Gerüst in der Reihenfolge der Vorlage; `RightUsageTest`: `templates.*` aus `PENDING`.
 
 ## 5. Ablauf und Abschluss
 
-1. §1 (Spezifikation und `tools/planer`) → S3e → S7 Datenmodell und Sync → S7 Backend/GraphQL → S7 Frontend. Ein Commit je Teil, `umsetzung.md` „Stand“ nachführen.
+1. RF8 → §1 (Spezifikation und `tools/planer`) → S3e → S7 Datenmodell und Sync → S7 Backend/GraphQL → S7 Frontend. Ein Commit je Teil, `umsetzung.md` „Stand“ nachführen.
 2. Stopp und Rückfrage, falls: `league/commonmark` ein Konstrukt aus §9.6 nicht als AST-Knoten liefert und nur über HTML erkennbar wäre; der Editor Inhalte speichert, die der Konverter nicht verlustfrei schreiben kann (außer `start`); die Kanonik in PHP und `richtext.mjs` in einem Fall nicht übereinstimmt.
 3. Am Ende: alle Prüfungen grün (auch `tools/planer`), `migrate:fresh --seed --seeder=DemoSeeder`, im Browser ansehen (hell/dunkel, DE/EN, Tastatur, Telefonbreite), dann anhalten für die Abnahme M3.
