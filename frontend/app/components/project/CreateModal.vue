@@ -3,12 +3,15 @@ import { isEmptyDocument } from '~/utils/rich-text'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { Locale } from '~/graphql/generated/graphql'
 import { appSettingsQuery } from '~/graphql/admin'
+import { templatesQuery } from '~/graphql/labels'
 import { createProjectMutation } from '~/graphql/projects'
 import { memberCandidatesQuery } from '~/graphql/settings'
+import { nameFallbacks } from '~/utils/labels'
 
 /**
  * New project (for people with projects.create; the backend checks it again),
- * optionally with its members right away (docs/fix-m1-mitglieder.md §2.2).
+ * optionally with its members right away (docs/fix-m1-mitglieder.md §2.2) and
+ * from a template (labels and outline, docs/auftrag-m3.md 3.4).
  */
 const open = defineModel<boolean>('open', { default: false })
 
@@ -16,7 +19,7 @@ const { t } = useI18n()
 const toast = useToast()
 const { errors, pending, run } = useGraphqlForm()
 
-const state = reactive<{ name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale }>({ name: '', description: null, icon: null, locale: 'DE' })
+const state = reactive<{ name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale, templateId: string }>({ name: '', description: null, icon: null, locale: 'DE', templateId: 'none' })
 
 interface NewMember {
   userId: string
@@ -34,6 +37,16 @@ const roleName = useRoleName()
 const { items: roleItems, defaultKey: defaultRole } = useRoles('PROJECT')
 const { result: candidatesResult } = useQuery(memberCandidatesQuery, () => ({ projectId: null }), () => ({ enabled: open.value }))
 const { result: settingsResult } = useQuery(appSettingsQuery, null, () => ({ enabled: open.value }))
+const { result: templatesResult } = useQuery(templatesQuery, null, () => ({ enabled: open.value, fetchPolicy: 'cache-and-network' }))
+
+const templateItems = computed(() => [
+  { label: t('projects.create.noTemplate'), value: 'none' },
+  ...(templatesResult.value?.templates ?? []).map(template => ({ label: template.name, value: template.id }))
+])
+const template = computed(() => (templatesResult.value?.templates ?? []).find(entry => entry.id === state.templateId) ?? null)
+const templateTasks = computed(() => (template.value?.outline ?? []).flatMap(milestone => milestone.todos).reduce((sum, todo) => sum + todo.tasks.length, 0))
+const templateTodos = computed(() => (template.value?.outline ?? []).reduce((sum, milestone) => sum + milestone.todos.length, 0))
+const fallbacks = computed(() => (template.value ? nameFallbacks(template.value.labels, state.locale) : 0))
 
 /**
  * The person who creates the project becomes a member with the creator role,
@@ -94,6 +107,7 @@ async function submit(): Promise<void> {
       description: isEmptyDocument(state.description) ? null : state.description,
       icon: state.icon,
       locale: state.locale,
+      templateId: state.templateId === 'none' ? null : state.templateId,
       members: members.value.map(member => ({ userId: member.userId, role: member.role }))
     }
   }))
@@ -108,7 +122,7 @@ async function submit(): Promise<void> {
 
 watch(open, (isOpen) => {
   if (isOpen) {
-    Object.assign(state, { name: '', description: null, icon: null, locale: 'DE' })
+    Object.assign(state, { name: '', description: null, icon: null, locale: 'DE', templateId: 'none' })
     members.value = []
     person.value = null
     personRole.value = defaultRole.value
@@ -136,8 +150,33 @@ watch(open, (isOpen) => {
         required
       />
 
+      <FormSelect
+        v-model="state.templateId"
+        name="templateId"
+        :items="templateItems"
+        :label="t('projects.create.template')"
+        :hint="t('projects.create.templateHint')"
+        :error="errors.templateId"
+      />
+      <div
+        v-if="template"
+        class="create-template wa-stack wa-gap-xs"
+      >
+        <TaskLabels :labels="template.labels.map((label, position) => ({ id: label.key, name: label.name, color: label.color, position }))" />
+        <p class="create-template-note">
+          {{ template.outline.length ? t('templates.size', { milestones: template.outline.length, todos: templateTodos, tasks: templateTasks }) : t('templates.noOutline') }}
+        </p>
+        <p
+          v-if="fallbacks"
+          class="create-template-note"
+        >
+          {{ t('projects.create.templateFallback', { count: fallbacks, language: t(`labels.languages.${state.locale}`) }) }}
+        </p>
+      </div>
+
       <FormField
         :label="t('projects.fields.description')"
+        :hint="template && isEmptyDocument(state.description) ? t('projects.create.templateDescription') : undefined"
         :error="errors.description"
       >
         <RichTextEditor
@@ -274,6 +313,12 @@ watch(open, (isOpen) => {
 </template>
 
 <style scoped>
+.create-template-note {
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+
 .create-members {
   margin: 0;
   padding: 0;

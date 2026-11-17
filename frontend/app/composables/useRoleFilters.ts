@@ -147,7 +147,6 @@ export function filterMatrix<TRole extends { isStandard: boolean, usageCount: nu
 
 /** Prefix of a right → its group. Longer prefixes first (PROJECTS before PROJECT). */
 const GROUP_OF_PREFIX: readonly (readonly [string, string])[] = [
-  ['LABEL_SETS', 'TEMPLATES'],
   ['AI_CONTEXT', 'AI_CONTEXT'],
   ['PROJECTS', 'PROJECTS'],
   ['PROJECT', 'PROJECT'],

@@ -8,7 +8,7 @@ import { DB_TABLE_NAMES, dbTable } from '../../app/utils/db-schema'
 const migrationsDir = fileURLToPath(new URL('../../../backend/database/migrations', import.meta.url))
 
 /** Blueprint methods that do not define a column. */
-const NOT_A_COLUMN = new Set(['index', 'unique', 'primary', 'foreign', 'dropColumn', 'dropIndex', 'dropForeign', 'renameColumn', 'renameIndex'])
+const NOT_A_COLUMN = new Set(['index', 'unique', 'primary', 'foreign', 'dropColumn', 'dropConstrainedForeignId', 'dropIndex', 'dropForeign', 'renameColumn', 'renameIndex'])
 
 /** The "up" part of every migration, in the order the migrations run. */
 function upSources(): string[] {
@@ -19,18 +19,20 @@ function upSources(): string[] {
 }
 
 /**
- * The columns of a table after all migrations: created by Schema::create,
- * added by Schema::table, and removed again by dropColumn. Events are applied
+ * The columns of a table after all migrations: created by Schema::create (again, when it was renamed away first),
+ * added by Schema::table, and removed again by dropColumn or dropConstrainedForeignId. Events are applied
  * in the order they appear in each block.
  */
 function columnsAfterMigrations(table: string): string[] {
   let columns = new Set<string>()
 
   for (const source of upSources()) {
-    const blocks = [...source.matchAll(/Schema::(?:create|table)\('(\w+)'/g)]
+    const blocks = [...source.matchAll(/Schema::(create|table)\('(\w+)'/g)]
 
     blocks.forEach((match, index) => {
-      if (match[1] !== table) return
+      if (match[2] !== table) return
+      // A table that is created again (after it was renamed away) starts empty.
+      if (match[1] === 'create') columns = new Set()
 
       const start = match.index ?? 0
       const end = blocks[index + 1]?.index ?? source.length
@@ -41,7 +43,7 @@ function columnsAfterMigrations(table: string): string[] {
       for (const column of body.matchAll(/\$table->(\w+)\('(\w+)'/g)) {
         if (!NOT_A_COLUMN.has(column[1] ?? '')) events.push({ at: column.index, add: [column[2] ?? ''] })
       }
-      for (const drop of body.matchAll(/\$table->dropColumn\((\[[^\]]*\]|'\w+')\)/g)) {
+      for (const drop of body.matchAll(/\$table->(?:dropColumn|dropConstrainedForeignId)\((\[[^\]]*\]|'\w+')\)/g)) {
         events.push({ at: drop.index, drop: [...(drop[1] ?? '').matchAll(/'(\w+)'/g)].map(name => name[1] ?? '') })
       }
       for (const rename of body.matchAll(/\$table->renameColumn\('(\w+)',\s*'(\w+)'\)/g)) {

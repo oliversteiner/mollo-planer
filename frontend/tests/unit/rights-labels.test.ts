@@ -17,7 +17,7 @@ describe('rights table texts', () => {
   const rights = rightNames()
 
   it('lists the rights of the backend enum', () => {
-    expect(rights.length).toBe(40)
+    expect(rights.length).toBe(38)
     expect(rights).toContain('PROJECTS_CREATE')
   })
 

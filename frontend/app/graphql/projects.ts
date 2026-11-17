@@ -27,7 +27,7 @@ export const projectHeaderQuery = graphql(`
       archivedAt
       viewerRole { key names { de en } }
       viewerRights
-      labelSet { id name labels { id name category color position } }
+      labels { id name category color position }
     }
   }
 `)

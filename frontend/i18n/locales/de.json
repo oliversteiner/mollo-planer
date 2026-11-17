@@ -14,12 +14,12 @@
     "assistant": "KI-Assistent",
     "breadcrumb": "Pfad",
     "workspace": "Arbeitsplatz",
-    "labelSets": "Label-Sets",
     "database": "Datenbank",
     "status": "Status",
     "version": "Version",
     "roles": "Rollen",
-    "trash": "Papierkorb"
+    "trash": "Papierkorb",
+    "templates": "Vorlagen"
   },
   "settings": {
     "language": "Sprache",
@@ -187,7 +187,12 @@
       "done": "Projekt «{name}» angelegt.",
       "members": "Mitglieder (optional)",
       "membersHint": "Weitere Personen gleich mit ihrer Rolle aufnehmen. Später geht das auch unter „Mitglieder“.",
-      "inList": "schon in der Liste"
+      "inList": "schon in der Liste",
+      "template": "Vorlage",
+      "noTemplate": "Ohne Vorlage",
+      "templateHint": "Das Projekt bekommt Kopien der Labels und des Gerüsts der Vorlage.",
+      "templateFallback": "Bei {count} Labels gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage.",
+      "templateDescription": "Ohne eigene Beschreibung gilt die der Vorlage."
     },
     "fields": {
       "name": "Name",
@@ -614,44 +619,12 @@
   },
   "labels": {
     "ofTask": "Labels",
-    "outsideSet": "nicht mehr im Label-Set des Projekts",
     "none": "Keine Labels",
-    "outsideSetGroup": "Nicht mehr im Set",
     "field": "Labels",
-    "noSet": "Für dieses Projekt ist kein Label-Set gewählt.",
-    "noSetChoice": "Kein Label-Set",
-    "setChosen": "Label-Set gespeichert.",
-    "cardTitle": "Labels",
-    "cardIntro": "Das Label-Set bestimmt, mit welchen Labels die Tasks dieses Projekts kategorisiert werden. Bei einem Wechsel behalten Tasks ihre bisherigen Labels.",
-    "set": "Label-Set",
-    "manage": "Label-Sets verwalten",
-    "pageTitle": "Label-Sets",
-    "pageIntro": "Label-Sets gelten für die ganze App. Jedes Projekt wählt in seinen Einstellungen ein Set. Mitgelieferte Sets lassen sich nicht ändern; dupliziere sie, um sie anzupassen.",
-    "create": "Set anlegen",
-    "edit": "Set bearbeiten",
-    "duplicate": "Duplizieren",
-    "builtin": "Mitgeliefert",
-    "usedBy": "In keinem Projekt | In 1 Projekt | In {count} Projekten",
-    "actionsOf": "Aktionen für das Set «{name}»",
-    "empty": "Noch keine Labels.",
-    "name": "Name",
-    "description": "Beschreibung",
-    "labelName": "Label",
-    "category": "Kategorie",
-    "color": "Farbe",
-    "addLabel": "Label hinzufügen",
-    "moveUp": "«{name}» nach oben",
-    "moveDown": "«{name}» nach unten",
-    "removeLabel": "«{name}» entfernen",
-    "saved": "Label-Set gespeichert.",
-    "duplicated": "«{name}» angelegt. Du kannst es jetzt anpassen.",
-    "deleteTitle": "Set «{name}» löschen?",
-    "deleteDescription": "Das Set und seine Labels werden gelöscht, auch an allen Tasks. Das lässt sich nicht rückgängig machen.",
-    "deleted": "Label-Set gelöscht.",
-    "inUse": "Wird noch von Projekten verwendet",
-    "removeTitle": "Labels löschen?",
-    "removeDescription": "Keine Labels | 1 Label wird gelöscht und von allen Tasks entfernt. | {count} Labels werden gelöscht und von allen Tasks entfernt.",
-    "removeConfirm": "Speichern und löschen",
+    "allLabels": "Alle Labels",
+    "filter": "Nach Label filtern",
+    "outsideSet": "nicht mehr unter den Labels des Projekts",
+    "outsideSetGroup": "Nicht mehr im Projekt",
     "colors": {
       "GRAY": "Grau",
       "RED": "Rot",
@@ -664,8 +637,75 @@
       "PURPLE": "Lila",
       "PINK": "Pink"
     },
-    "allLabels": "Alle Labels",
-    "filter": "Nach Label filtern"
+    "languages": {
+      "DE": "Deutsch",
+      "EN": "Englisch"
+    },
+    "nameIn": "Name ({language})",
+    "category": "Kategorie",
+    "color": "Farbe",
+    "addLabel": "Label hinzufügen",
+    "moveUp": "«{name}» nach oben",
+    "moveDown": "«{name}» nach unten",
+    "removeLabel": "«{name}» entfernen",
+    "editorHint": "Der Name in {language} ist Pflicht, weitere Sprachen sind freiwillig. Ein Label behält seinen Schlüssel, auch wenn du es umbenennst.",
+    "requiredNote": "Der Name in {language} fehlt.",
+    "fallbackNote": "Ohne Namen in {language} erscheint das Label dort mit dem Namen in {shown}.",
+    "maxReached": "Mehr als {max} Labels sind nicht möglich.",
+    "cardTitle": "Labels",
+    "cardIntro": "Jedes Projekt hat eigene Labels für seine Tasks. Änderungen betreffen kein anderes Projekt und keine Vorlage.",
+    "cardEmpty": "Dieses Projekt hat noch keine Labels.",
+    "tasksCount": "An keinem Task | An 1 Task | An {count} Tasks",
+    "edit": "Labels bearbeiten",
+    "fromTemplate": "Aus Vorlage übernehmen",
+    "manageTemplates": "Vorlagen verwalten",
+    "saved": "Labels gespeichert.",
+    "editTitle": "Labels des Projekts",
+    "removeTitle": "Labels löschen?",
+    "removeDescription": "Keine Labels werden gelöscht. | 1 Label wird gelöscht und von {tasks} Tasks entfernt. | {count} Labels werden gelöscht und von {tasks} Tasks entfernt.",
+    "removeConfirm": "Speichern und löschen",
+    "applyTitle": "Labels aus einer Vorlage übernehmen",
+    "applyIntro": "Die Labels werden kopiert. Spätere Änderungen an der Vorlage ändern dieses Projekt nicht.",
+    "template": "Vorlage",
+    "mode": "Wie",
+    "replace": "Ersetzen",
+    "append": "Ergänzen",
+    "replaceHint": "Labels mit gleichem Schlüssel werden angepasst, die Tasks behalten sie. Labels, die an Tasks hängen und nicht in der Vorlage stehen, bleiben am Ende; die übrigen werden gelöscht.",
+    "appendHint": "Es kommen nur Labels dazu, deren Schlüssel im Projekt fehlt. Nichts wird geändert oder gelöscht.",
+    "preview": "Was passiert",
+    "previewAdded": "Neu: {count}",
+    "previewUpdated": "Angepasst: {count}",
+    "previewKept": "Bleiben am Ende, weil Tasks sie tragen: {count}",
+    "previewRemoved": "Werden gelöscht: {count}",
+    "previewTotal": "Danach {count} Labels im Projekt.",
+    "tooMany": "Danach wären es mehr als {max} Labels. Wähle «Ergänzen» oder entferne zuerst Labels.",
+    "apply": "Übernehmen",
+    "applied": "Labels übernommen.",
+    "noTemplates": "Es gibt noch keine Vorlagen.",
+    "fallbackTemplate": "Bei {count} Labels der Vorlage gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage."
+  },
+  "templates": {
+    "pageTitle": "Vorlagen",
+    "pageIntro": "Eine Vorlage gibt einem neuen Projekt seine Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks. Das Projekt bekommt Kopien. Mitgelieferte Vorlagen lassen sich nicht ändern; dupliziere sie, um sie anzupassen.",
+    "create": "Vorlage anlegen",
+    "edit": "Vorlage bearbeiten",
+    "duplicate": "Duplizieren",
+    "builtin": "Mitgeliefert",
+    "by": "von {name}",
+    "actionsOf": "Aktionen für die Vorlage «{name}»",
+    "name": "Name",
+    "description": "Beschreibung",
+    "locale": "Sprache",
+    "localeHint": "Die Sprache der Titel und Beschreibungen. Jedes Label braucht einen Namen in dieser Sprache.",
+    "outline": "Gerüst",
+    "size": "{milestones} Milestones, {todos} ToDos, {tasks} Tasks",
+    "noOutline": "Kein Gerüst, nur Labels.",
+    "usedBy": "Noch kein Projekt daraus angelegt | 1 Projekt daraus angelegt | {count} Projekte daraus angelegt",
+    "saved": "Vorlage gespeichert.",
+    "duplicated": "«{name}» angelegt. Du kannst sie jetzt anpassen.",
+    "deleted": "Vorlage gelöscht.",
+    "deleteTitle": "Vorlage «{name}» löschen?",
+    "deleteDescription": "Die Vorlage wird endgültig gelöscht. Projekte, die aus ihr angelegt wurden, behalten ihre Labels und ihr Gerüst."
   },
   "userRole": {
     "ADMIN": "Administration",
@@ -770,13 +810,13 @@
         "title": "Kommentare",
         "description": "Kommentare zu einem Task."
       },
-      "label_sets": {
-        "title": "Label-Sets",
-        "description": "Sammlungen von Labels, die ein Projekt für seine Tasks wählt."
+      "templates": {
+        "title": "Vorlagen",
+        "description": "Vorlagen für neue Projekte: Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks, als Planer-Dokument gespeichert."
       },
       "labels": {
         "title": "Labels",
-        "description": "Einzelne Labels innerhalb eines Label-Sets."
+        "description": "Die Labels eines Projekts. Jedes Projekt hat eigene, kopiert aus einer Vorlage oder selbst angelegt."
       },
       "label_task": {
         "title": "Task-Labels",
@@ -887,10 +927,6 @@
           "label": "Icon",
           "description": "Font-Awesome-Icon des Projekts."
         },
-        "label_set_id": {
-          "label": "Label-Set",
-          "description": "Gewähltes Label-Set. Leer, wenn das Projekt keines gewählt hat."
-        },
         "locale": {
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
@@ -922,6 +958,10 @@
         "planer_revision": {
           "label": "Revision",
           "description": "Zählt jede Änderung an der Planer-Datei. Nur die App erhöht sie."
+        },
+        "template_id": {
+          "label": "Vorlage",
+          "description": "Vorlage, aus der das Projekt angelegt wurde (nur zur Anzeige). Leer, wenn es ohne Vorlage entstand oder die Vorlage gelöscht wurde."
         }
       },
       "project_user": {
@@ -1182,52 +1222,14 @@
           "description": "Wann der Text zuletzt geändert wurde. Leer, solange er unverändert ist; Löschen und Wiederherstellen zählen nicht."
         }
       },
-      "label_sets": {
-        "id": {
-          "label": "ID",
-          "description": "Eindeutige Nummer des Datensatzes."
-        },
-        "key": {
-          "label": "Schlüssel",
-          "description": "Kennung eines mitgelieferten Sets. Leer bei eigenen Sets."
-        },
-        "name": {
-          "label": "Name",
-          "description": "Name des Sets."
-        },
-        "description": {
-          "label": "Beschreibung",
-          "description": "Kurze Beschreibung des Sets."
-        },
-        "created_by": {
-          "label": "Angelegt von",
-          "description": "Ersteller eines eigenen Sets. Leer bei mitgelieferten Sets."
-        },
-        "created_at": {
-          "label": "Angelegt am",
-          "description": "Zeitpunkt der Anlage, von Laravel gesetzt."
-        },
-        "updated_at": {
-          "label": "Geändert am",
-          "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
-        }
-      },
       "labels": {
         "id": {
           "label": "ID",
           "description": "Eindeutige Nummer des Datensatzes."
         },
-        "label_set_id": {
-          "label": "Label-Set",
-          "description": "Set, zu dem das Label gehört."
-        },
         "key": {
           "label": "Schlüssel",
-          "description": "Kennung eines mitgelieferten Labels. Leer bei eigenen Labels."
-        },
-        "name": {
-          "label": "Name",
-          "description": "Name des Labels."
+          "description": "Stabile Kennung im Projekt (a-z, 0-9, _ und -), entsteht aus dem Namen und ändert sich nie."
         },
         "category": {
           "label": "Kategorie",
@@ -1239,7 +1241,7 @@
         },
         "position": {
           "label": "Reihenfolge",
-          "description": "Reihenfolge im Set."
+          "description": "Reihenfolge im Projekt."
         },
         "created_at": {
           "label": "Angelegt am",
@@ -1248,6 +1250,14 @@
         "updated_at": {
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        },
+        "project_id": {
+          "label": "Projekt",
+          "description": "Projekt, zu dem das Label gehört. Wird das Projekt endgültig gelöscht, gehen auch seine Labels."
+        },
+        "names": {
+          "label": "Namen",
+          "description": "Der Name des Labels je Sprache (JSON, de und en). Der Name in der Sprache des Projekts ist Pflicht."
         }
       },
       "label_task": {
@@ -1365,6 +1375,44 @@
           "label": "Funktion",
           "description": "Funktion der Rolle."
         }
+      },
+      "templates": {
+        "id": {
+          "label": "ID",
+          "description": "Eindeutige Nummer des Datensatzes."
+        },
+        "key": {
+          "label": "Schlüssel",
+          "description": "Kennung einer mitgelieferten Vorlage (der Dateiname in spec/templates). Leer bei eigenen Vorlagen."
+        },
+        "name": {
+          "label": "Name",
+          "description": "Name der Vorlage, einmalig."
+        },
+        "description": {
+          "label": "Beschreibung",
+          "description": "Kurze Beschreibung der Vorlage."
+        },
+        "locale": {
+          "label": "Sprache",
+          "description": "Sprache der Titel und Beschreibungen in der Vorlage (de oder en)."
+        },
+        "content": {
+          "label": "Inhalt",
+          "description": "Die Vorlage als Planer-Dokument (spec/format-v2.md) mit den festen Werten einer Vorlage: Labels und Gerüst."
+        },
+        "created_by": {
+          "label": "Angelegt von",
+          "description": "Ersteller einer eigenen Vorlage. Leer bei mitgelieferten Vorlagen und wenn die Person gelöscht wurde."
+        },
+        "created_at": {
+          "label": "Angelegt am",
+          "description": "Zeitpunkt der Anlage, von Laravel gesetzt."
+        },
+        "updated_at": {
+          "label": "Geändert am",
+          "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
+        }
       }
     }
   },
@@ -1423,8 +1471,6 @@
       "ROLES_MANAGE": "Rollen und Funktionen verwalten",
       "TEMPLATES_MANAGE": "Eigene Vorlagen verwalten",
       "TEMPLATES_MANAGE_ANY": "Alle Vorlagen verwalten",
-      "LABEL_SETS_MANAGE": "Label-Sets anlegen und duplizieren",
-      "LABEL_SETS_MANAGE_ANY": "Fremde Label-Sets ändern und löschen",
       "ASSISTANT_USE": "KI-Assistent benutzen",
       "IDEAS_CREATE": "Ideen erfassen",
       "IDEAS_VIEW_ANY": "Alle Ideen sehen",

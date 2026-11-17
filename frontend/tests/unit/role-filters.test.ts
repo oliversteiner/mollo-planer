@@ -116,7 +116,7 @@ describe('groups of rights', () => {
     expect(rightGroup('PROJECTS_CREATE')).toBe('PROJECTS')
     expect(rightGroup('PROJECT_DELETE')).toBe('PROJECT')
     expect(rightGroup('OWNER_MANAGE')).toBe('MEMBERS')
-    expect(rightGroup('LABEL_SETS_MANAGE_ANY')).toBe('TEMPLATES')
+    expect(rightGroup('TEMPLATES_MANAGE_ANY')).toBe('TEMPLATES')
     expect(rightGroup('AI_CONTEXT_UPDATE')).toBe('AI_CONTEXT')
     expect(rightGroup('SOMETHING_NEW')).toBe('OTHER')
   })

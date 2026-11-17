@@ -67,8 +67,8 @@ const { mutate: setTaskLabels } = useProjectMutation(setTaskLabelsMutation)
 const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
 const { errors: commitErrors, run: runCommit } = useGraphqlForm()
 
-/** Labels of the project's set; the task's labels outside it can only be removed. */
-const setLabels = computed(() => task.value?.todo.milestone.project.labelSet?.labels ?? [])
+/** Labels of the project; one the task has that is not among them (any more) can only be removed. */
+const setLabels = computed(() => task.value?.todo.milestone.project.labels ?? [])
 const setLabelIds = computed(() => setLabels.value.map(label => label.id))
 const extraLabels = computed(() => (task.value?.labels ?? []).filter(label => !setLabelIds.value.includes(label.id)))
 

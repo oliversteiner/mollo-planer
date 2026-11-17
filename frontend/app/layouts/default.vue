@@ -42,7 +42,7 @@ const adminItems = computed<NavItem[]>(() => [
   { label: t('nav.version'), icon: 'code-branch', to: '/system/version' },
   { label: t('nav.users'), icon: 'users', to: '/admin/users' },
   { label: t('nav.roles'), icon: 'user-shield', to: '/admin/roles' },
-  { label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' },
+  { label: t('nav.templates'), icon: 'copy', to: '/templates' },
   { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }
 ].filter(allowed))
 

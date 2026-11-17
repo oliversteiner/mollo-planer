@@ -66,7 +66,7 @@ export const taskQuery = graphql(`
         milestone {
           id
           title
-          project { id name labelSet { id labels { id name category color position } } }
+          project { id name labels { id name category color position } }
         }
       }
       comments {

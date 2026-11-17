@@ -22,11 +22,11 @@ describe('TaskLabels', () => {
     expect(items[0]!.find('.task-label-dot').attributes('style')).toContain('var(--wa-color-blue-60)')
   })
 
-  it('marks labels that are no longer in the set of the project', async () => {
+  it('marks labels that are no longer among the labels of the project', async () => {
     const list = await mountSuspended(TaskLabels, { props: { labels, setLabelIds: ['1', '3'] } })
     const outside = list.findAll('li').filter(item => item.attributes('data-outside') !== undefined)
 
-    expect(outside.map(item => item.text())).toEqual(['Fehler (nicht mehr im Label-Set des Projekts)'])
+    expect(outside.map(item => item.text())).toEqual(['Fehler (nicht mehr unter den Labels des Projekts)'])
   })
 
   it('shows nothing without labels', async () => {
@@ -40,7 +40,7 @@ describe('LabelPicker', () => {
       props: { modelValue: ['1'], labels, extra: [{ id: '9', name: 'Location', color: 'PURPLE', position: 0 }] }
     })
 
-    expect(picker.findAll('small').map(group => group.text())).toEqual(['Phase', 'Typ', 'Nicht mehr im Set'])
+    expect(picker.findAll('small').map(group => group.text())).toEqual(['Phase', 'Typ', 'Nicht mehr im Projekt'])
     expect(picker.findAll('wa-option').map(option => option.text())).toEqual(['Recherche', 'Design', 'Fehler', 'Location'])
     expect((picker.element as unknown as { value: string[] }).value).toEqual(['1'])
   })

@@ -28,7 +28,7 @@ const { projectId, project, can } = useProject()
 const labelFilter = ref('all')
 const filterItems = computed(() => [
   { label: t('labels.allLabels'), value: 'all' },
-  ...[...(project.value?.labelSet?.labels ?? [])]
+  ...[...(project.value?.labels ?? [])]
     .sort((a, b) => a.position - b.position)
     .map(label => ({ label: label.name, value: label.id }))
 ])

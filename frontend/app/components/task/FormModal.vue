@@ -56,9 +56,9 @@ const state = reactive<{
   commit: string
 }>({ todoId: '', assigneeId: null, title: '', dueDate: '', icon: null, description: null, labelIds: [], story: { role: '', goal: '', benefit: '' }, commit: '' })
 
-/** Labels of the project's set, for a new task (an existing one gets its labels in the details). */
+/** Labels of the project, for a new task (an existing one gets its labels in the details). */
 const { project } = useProject()
-const setLabels = computed(() => project.value?.labelSet?.labels ?? [])
+const setLabels = computed(() => project.value?.labels ?? [])
 
 watch(() => props.target, (target) => {
   errors.value = {}

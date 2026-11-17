@@ -40,7 +40,7 @@ export const DB_TABLE_NAMES = [
   'todos',
   'tasks',
   'comments',
-  'label_sets',
+  'templates',
   'labels',
   'label_task',
   'roles',
@@ -88,7 +88,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'name', type: 'varchar' },
       { name: 'description', type: 'text', nullable: true },
       { name: 'icon', type: 'varchar', nullable: true },
-      { name: 'label_set_id', type: 'bigint', nullable: true, references: 'label_sets' },
+      { name: 'template_id', type: 'bigint', nullable: true, references: 'templates' },
       { name: 'locale', type: 'varchar', default: 'de' },
       { name: 'planer_revision', type: 'int', default: '0' },
       { name: 'created_at', type: 'timestamp', nullable: true },
@@ -214,29 +214,32 @@ const TABLES: Record<DbTableName, DbTable> = {
       { kind: 'index', columns: ['user_id'] }
     ]
   },
-  label_sets: {
-    name: 'label_sets',
+  templates: {
+    name: 'templates',
     columns: [
       { name: 'id', type: 'bigint', primary: true },
       { name: 'key', type: 'varchar', nullable: true },
       { name: 'name', type: 'varchar' },
-      { name: 'description', type: 'varchar', nullable: true },
+      { name: 'description', type: 'text', nullable: true },
+      { name: 'locale', type: 'varchar' },
+      { name: 'content', type: 'json' },
       { name: 'created_by', type: 'bigint', nullable: true, references: 'users' },
       { name: 'created_at', type: 'timestamp', nullable: true },
       { name: 'updated_at', type: 'timestamp', nullable: true }
     ],
     indexes: [
       { kind: 'index', columns: ['created_by'] },
-      { kind: 'unique', columns: ['key'] }
+      { kind: 'unique', columns: ['key'] },
+      { kind: 'unique', columns: ['name'] }
     ]
   },
   labels: {
     name: 'labels',
     columns: [
       { name: 'id', type: 'bigint', primary: true },
-      { name: 'label_set_id', type: 'bigint', references: 'label_sets' },
-      { name: 'key', type: 'varchar', nullable: true },
-      { name: 'name', type: 'varchar' },
+      { name: 'project_id', type: 'bigint', references: 'projects' },
+      { name: 'key', type: 'varchar' },
+      { name: 'names', type: 'json' },
       { name: 'category', type: 'varchar', nullable: true },
       { name: 'color', type: 'varchar', values: ['gray', 'red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'indigo', 'purple', 'pink'] },
       { name: 'position', type: 'smallint', default: '0' },
@@ -244,8 +247,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'updated_at', type: 'timestamp', nullable: true }
     ],
     indexes: [
-      { kind: 'unique', columns: ['label_set_id', 'key'] },
-      { kind: 'unique', columns: ['label_set_id', 'name'] }
+      { kind: 'unique', columns: ['project_id', 'key'] }
     ]
   },
   label_task: {

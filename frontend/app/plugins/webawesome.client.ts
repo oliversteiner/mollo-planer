@@ -48,6 +48,8 @@ import '@web.awesome.me/webawesome-pro/dist/components/textarea/textarea.js'
 import '@web.awesome.me/webawesome-pro/dist/components/toast/toast.js'
 import '@web.awesome.me/webawesome-pro/dist/components/toast-item/toast-item.js'
 import '@web.awesome.me/webawesome-pro/dist/components/tooltip/tooltip.js'
+import '@web.awesome.me/webawesome-pro/dist/components/tree/tree.js'
+import '@web.awesome.me/webawesome-pro/dist/components/tree-item/tree-item.js'
 
 export default defineNuxtPlugin({
   name: 'webawesome',

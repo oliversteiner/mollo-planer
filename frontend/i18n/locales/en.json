@@ -14,12 +14,12 @@
     "assistant": "AI assistant",
     "breadcrumb": "Breadcrumb",
     "workspace": "Workspace",
-    "labelSets": "Label sets",
     "database": "Database",
     "status": "Status",
     "version": "Version",
     "roles": "Roles",
-    "trash": "Trash"
+    "trash": "Trash",
+    "templates": "Templates"
   },
   "settings": {
     "language": "Language",
@@ -187,7 +187,12 @@
       "done": "Project “{name}” created.",
       "members": "Members (optional)",
       "membersHint": "Add more people with their role right away. You can also do this later under “Members”.",
-      "inList": "in the list already"
+      "inList": "in the list already",
+      "template": "Template",
+      "noTemplate": "No template",
+      "templateHint": "The project gets copies of the labels and the outline of the template.",
+      "templateFallback": "{count} labels have no name in {language}: the name in the language of the template is used there.",
+      "templateDescription": "Without a description of your own, the one of the template is used."
     },
     "fields": {
       "name": "Name",
@@ -614,44 +619,12 @@
   },
   "labels": {
     "ofTask": "Labels",
-    "outsideSet": "no longer in the project’s label set",
     "none": "No labels",
-    "outsideSetGroup": "No longer in the set",
     "field": "Labels",
-    "noSet": "No label set is chosen for this project.",
-    "noSetChoice": "No label set",
-    "setChosen": "Label set saved.",
-    "cardTitle": "Labels",
-    "cardIntro": "The label set decides which labels categorise the tasks of this project. When it changes, tasks keep the labels they have.",
-    "set": "Label set",
-    "manage": "Manage label sets",
-    "pageTitle": "Label sets",
-    "pageIntro": "Label sets apply to the whole app. Each project chooses a set in its settings. Built-in sets cannot be changed; duplicate them to adapt them.",
-    "create": "Create set",
-    "edit": "Edit set",
-    "duplicate": "Duplicate",
-    "builtin": "Built-in",
-    "usedBy": "In no project | In 1 project | In {count} projects",
-    "actionsOf": "Actions for the set “{name}”",
-    "empty": "No labels yet.",
-    "name": "Name",
-    "description": "Description",
-    "labelName": "Label",
-    "category": "Category",
-    "color": "Colour",
-    "addLabel": "Add label",
-    "moveUp": "Move “{name}” up",
-    "moveDown": "Move “{name}” down",
-    "removeLabel": "Remove “{name}”",
-    "saved": "Label set saved.",
-    "duplicated": "“{name}” created. You can adapt it now.",
-    "deleteTitle": "Delete the set “{name}”?",
-    "deleteDescription": "The set and its labels are deleted, also on all tasks. This cannot be undone.",
-    "deleted": "Label set deleted.",
-    "inUse": "Still used by projects",
-    "removeTitle": "Delete labels?",
-    "removeDescription": "No labels | 1 label is deleted and removed from all tasks. | {count} labels are deleted and removed from all tasks.",
-    "removeConfirm": "Save and delete",
+    "allLabels": "All labels",
+    "filter": "Filter by label",
+    "outsideSet": "no longer among the labels of the project",
+    "outsideSetGroup": "No longer in the project",
     "colors": {
       "GRAY": "Grey",
       "RED": "Red",
@@ -664,8 +637,75 @@
       "PURPLE": "Purple",
       "PINK": "Pink"
     },
-    "allLabels": "All labels",
-    "filter": "Filter by label"
+    "languages": {
+      "DE": "German",
+      "EN": "English"
+    },
+    "nameIn": "Name ({language})",
+    "category": "Category",
+    "color": "Colour",
+    "addLabel": "Add label",
+    "moveUp": "Move “{name}” up",
+    "moveDown": "Move “{name}” down",
+    "removeLabel": "Remove “{name}”",
+    "editorHint": "The name in {language} is required, other languages are optional. A label keeps its key, even when you rename it.",
+    "requiredNote": "The name in {language} is missing.",
+    "fallbackNote": "Without a name in {language} the label shows the name in {shown} there.",
+    "maxReached": "More than {max} labels are not possible.",
+    "cardTitle": "Labels",
+    "cardIntro": "Each project has labels of its own for its tasks. Changes affect no other project and no template.",
+    "cardEmpty": "This project has no labels yet.",
+    "tasksCount": "On no task | On 1 task | On {count} tasks",
+    "edit": "Edit labels",
+    "fromTemplate": "Take over from a template",
+    "manageTemplates": "Manage templates",
+    "saved": "Labels saved.",
+    "editTitle": "Labels of the project",
+    "removeTitle": "Delete labels?",
+    "removeDescription": "No labels are deleted. | 1 label is deleted and removed from {tasks} tasks. | {count} labels are deleted and removed from {tasks} tasks.",
+    "removeConfirm": "Save and delete",
+    "applyTitle": "Take over labels from a template",
+    "applyIntro": "The labels are copied. Later changes to the template do not change this project.",
+    "template": "Template",
+    "mode": "How",
+    "replace": "Replace",
+    "append": "Add",
+    "replaceHint": "Labels with the same key are adapted, the tasks keep them. Labels that tasks carry and that are not in the template stay at the end; the others are deleted.",
+    "appendHint": "Only labels whose key is missing in the project are added. Nothing is changed or deleted.",
+    "preview": "What happens",
+    "previewAdded": "New: {count}",
+    "previewUpdated": "Adapted: {count}",
+    "previewKept": "Stay at the end because tasks carry them: {count}",
+    "previewRemoved": "Deleted: {count}",
+    "previewTotal": "Afterwards {count} labels in the project.",
+    "tooMany": "That would make more than {max} labels. Choose “Add” or remove labels first.",
+    "apply": "Take over",
+    "applied": "Labels taken over.",
+    "noTemplates": "There are no templates yet.",
+    "fallbackTemplate": "{count} labels of the template have no name in {language}: the name in the language of the template is used there."
+  },
+  "templates": {
+    "pageTitle": "Templates",
+    "pageIntro": "A template gives a new project its labels and, if wanted, an outline of milestones, todos and tasks. The project gets copies. Built-in templates cannot be changed; duplicate them to adapt them.",
+    "create": "Create template",
+    "edit": "Edit template",
+    "duplicate": "Duplicate",
+    "builtin": "Built-in",
+    "by": "by {name}",
+    "actionsOf": "Actions for the template “{name}”",
+    "name": "Name",
+    "description": "Description",
+    "locale": "Language",
+    "localeHint": "The language of the titles and descriptions. Every label needs a name in this language.",
+    "outline": "Outline",
+    "size": "{milestones} milestones, {todos} todos, {tasks} tasks",
+    "noOutline": "No outline, labels only.",
+    "usedBy": "No project made from it yet | 1 project made from it | {count} projects made from it",
+    "saved": "Template saved.",
+    "duplicated": "“{name}” created. You can adapt it now.",
+    "deleted": "Template deleted.",
+    "deleteTitle": "Delete the template “{name}”?",
+    "deleteDescription": "The template is deleted for good. Projects made from it keep their labels and outline."
   },
   "userRole": {
     "ADMIN": "Administration",
@@ -770,13 +810,13 @@
         "title": "Comments",
         "description": "Comments on a task."
       },
-      "label_sets": {
-        "title": "Label sets",
-        "description": "Collections of labels that a project chooses for its tasks."
+      "templates": {
+        "title": "Templates",
+        "description": "Templates for new projects: labels and, if wanted, an outline of milestones, todos and tasks, stored as a planer document."
       },
       "labels": {
         "title": "Labels",
-        "description": "Single labels within a label set."
+        "description": "The labels of a project. Each project has its own, copied from a template or made by hand."
       },
       "label_task": {
         "title": "Task labels",
@@ -887,10 +927,6 @@
           "label": "Icon",
           "description": "Font-Awesome-Icon des Projekts."
         },
-        "label_set_id": {
-          "label": "Label-Set",
-          "description": "Gewähltes Label-Set. Leer, wenn das Projekt keines gewählt hat."
-        },
         "locale": {
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
@@ -922,6 +958,10 @@
         "planer_revision": {
           "label": "Revision",
           "description": "Counts every change to the planer file. Only the app increases it."
+        },
+        "template_id": {
+          "label": "Template",
+          "description": "Template the project was made from (only to show it). Empty when it was made without one or the template was deleted."
         }
       },
       "project_user": {
@@ -1182,52 +1222,14 @@
           "description": "When the text was last changed. Empty while it is unchanged; deleting and restoring do not count."
         }
       },
-      "label_sets": {
-        "id": {
-          "label": "ID",
-          "description": "Unique number of the record."
-        },
-        "key": {
-          "label": "Schlüssel",
-          "description": "Kennung eines mitgelieferten Sets. Leer bei eigenen Sets."
-        },
-        "name": {
-          "label": "Name",
-          "description": "Name des Sets."
-        },
-        "description": {
-          "label": "Beschreibung",
-          "description": "Kurze Beschreibung des Sets."
-        },
-        "created_by": {
-          "label": "Angelegt von",
-          "description": "Ersteller eines eigenen Sets. Leer bei mitgelieferten Sets."
-        },
-        "created_at": {
-          "label": "Created at",
-          "description": "When the record was created, set by Laravel."
-        },
-        "updated_at": {
-          "label": "Updated at",
-          "description": "When the record last changed, set by Laravel."
-        }
-      },
       "labels": {
         "id": {
           "label": "ID",
           "description": "Unique number of the record."
         },
-        "label_set_id": {
-          "label": "Label-Set",
-          "description": "Set, zu dem das Label gehört."
-        },
         "key": {
-          "label": "Schlüssel",
-          "description": "Kennung eines mitgelieferten Labels. Leer bei eigenen Labels."
-        },
-        "name": {
-          "label": "Name",
-          "description": "Name des Labels."
+          "label": "Key",
+          "description": "Stable identifier in the project (a-z, 0-9, _ and -), made from the name and never changed."
         },
         "category": {
           "label": "Kategorie",
@@ -1238,8 +1240,8 @@
           "description": "Farbton aus der Palette des Themes."
         },
         "position": {
-          "label": "Reihenfolge",
-          "description": "Reihenfolge im Set."
+          "label": "Order",
+          "description": "Order in the project."
         },
         "created_at": {
           "label": "Created at",
@@ -1248,6 +1250,14 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "Project the label belongs to. When the project is deleted for good, so are its labels."
+        },
+        "names": {
+          "label": "Names",
+          "description": "The name of the label per language (JSON, de and en). The name in the language of the project is required."
         }
       },
       "label_task": {
@@ -1365,6 +1375,44 @@
           "label": "Function",
           "description": "Function of the role."
         }
+      },
+      "templates": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "key": {
+          "label": "Key",
+          "description": "Identifier of a built-in template (the file name in spec/templates). Empty for own templates."
+        },
+        "name": {
+          "label": "Name",
+          "description": "Name of the template, unique."
+        },
+        "description": {
+          "label": "Description",
+          "description": "Short description of the template."
+        },
+        "locale": {
+          "label": "Language",
+          "description": "Language of the titles and descriptions in the template (de or en)."
+        },
+        "content": {
+          "label": "Content",
+          "description": "The template as a planer document (spec/format-v2.md) with the fixed values of a template: labels and outline."
+        },
+        "created_by": {
+          "label": "Created by",
+          "description": "Creator of an own template. Empty for built-in templates and when the person was deleted."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When it was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Changed at",
+          "description": "When it was last changed, set by Laravel."
+        }
       }
     }
   },
@@ -1423,8 +1471,6 @@
       "ROLES_MANAGE": "Manage roles and functions",
       "TEMPLATES_MANAGE": "Manage own templates",
       "TEMPLATES_MANAGE_ANY": "Manage all templates",
-      "LABEL_SETS_MANAGE": "Create and duplicate label sets",
-      "LABEL_SETS_MANAGE_ANY": "Change and delete label sets of others",
       "ASSISTANT_USE": "Use the AI assistant",
       "IDEAS_CREATE": "Record ideas",
       "IDEAS_VIEW_ANY": "See all ideas",

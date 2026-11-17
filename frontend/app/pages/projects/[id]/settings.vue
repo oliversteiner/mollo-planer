@@ -3,7 +3,7 @@ import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { archiveProjectMutation, deleteProjectMutation, projectSettingsQuery, unarchiveProjectMutation } from '~/graphql/settings'
 
 /**
- * Settings of the project: details and label set (project.update), archive
+ * Settings of the project: details and labels (project.update), archive
  * and bring back (project.archive, asks before archiving), delete into the
  * trash (project.delete, asks with the name). An archived project shows only
  * what still holds there (Rights in the backend).
@@ -62,10 +62,9 @@ async function bringBack(): Promise<void> {
       v-if="can('PROJECT_UPDATE')"
       :project="project"
     />
-    <ProjectLabelSetCard
+    <ProjectLabelsCard
       v-if="can('PROJECT_UPDATE')"
       :project-id="project.id"
-      :label-set-id="header?.labelSet?.id ?? null"
     />
 
     <wa-card v-if="can('PROJECT_ARCHIVE')">
