@@ -242,17 +242,17 @@ class TemplateTest extends GraphQLTestCase
         $update = fn (array $labels) => $this->as('projektleitung')->gql($mutation, ['id' => $template->id, 'in' => ['name' => 'Eigene Vorlage', 'labels' => $labels]]);
 
         // The same name twice in one language, also in another case.
-        $update([$this->label('Bug'), $this->label('bug ')])->assertGraphQLValidationKeys(['input.labels.1.names']);
+        $update([$this->label('Bug'), $this->label('bug ')])->assertGraphQLValidationKeys(['input.labels.1.names.de']);
         // A key of no label of the template.
         $update([$this->label('Fremd', null, 'RED', 'gibt-es-nicht')])->assertGraphQLValidationKeys(['input.labels.0.key']);
         // A key twice.
         $update([$this->label('Eins', null, 'RED', 'one'), $this->label('Zwei', null, 'RED', 'one')])->assertGraphQLValidationKeys(['input.labels.1.key']);
         // No name in the language of the template.
-        $update([['names' => [['locale' => 'EN', 'name' => 'Only English']], 'color' => 'RED']])->assertGraphQLValidationKeys(['input.labels.0.names']);
+        $update([['names' => [['locale' => 'EN', 'name' => 'Only English']], 'color' => 'RED']])->assertGraphQLValidationKeys(['input.labels.0.names.de']);
         // A language twice at one label.
-        $update([['names' => [['locale' => 'DE', 'name' => 'Eins'], ['locale' => 'DE', 'name' => 'Zwei']], 'color' => 'RED']])->assertGraphQLValidationKeys(['input.labels.0.names']);
+        $update([['names' => [['locale' => 'DE', 'name' => 'Eins'], ['locale' => 'DE', 'name' => 'Zwei']], 'color' => 'RED']])->assertGraphQLValidationKeys(['input.labels.0.names.de']);
         // More than 30, and none at all.
-        $update(array_map(fn (int $i) => $this->label("L{$i}"), range(1, 31)))->assertGraphQLValidationKeys(['input.labels']);
+        $update(array_map(fn (int $i) => $this->label("L{$i}"), range(1, 31)))->assertGraphQLValidationError('input.labels', 'At most 30 labels.');
         $update([])->assertGraphQLValidationKeys(['input.labels']);
     }
 
@@ -274,5 +274,18 @@ class TemplateTest extends GraphQLTestCase
         $this->assertFalse(User::factory()->create()->can('create', Template::class));
         $this->assertTrue(User::factory()->role(UserRole::PROJEKTLEITUNG)->create()->can('create', Template::class));
         $this->assertFalse(User::factory()->role(UserRole::KOORDINATION)->create()->can('create', Template::class));
+    }
+
+    public function test_creating_a_template_names_the_language_and_the_limit_at_the_right_place(): void
+    {
+        $mutation = 'mutation ($in: TemplateInput!) { createTemplate(input: $in) { id } }';
+        $create = fn (array $labels, string $locale = 'DE') => $this->as('projektleitung')->gql($mutation, ['in' => ['name' => 'Neu', 'locale' => $locale, 'labels' => $labels]]);
+
+        // No name in the language of the template: the field of that language.
+        $create([$this->label('Nur Deutsch')], 'EN')->assertGraphQLValidationKeys(['input.labels.0.names.en']);
+        // The same name twice in English.
+        $create([$this->label('Eins', 'Same'), $this->label('Zwei', 'same')])->assertGraphQLValidationKeys(['input.labels.1.names.en']);
+        // More than 30: one clear sentence, no field name in it.
+        $create(array_map(fn (int $i) => $this->label("L{$i}"), range(1, 31)))->assertGraphQLValidationError('input.labels', 'At most 30 labels.');
     }
 }

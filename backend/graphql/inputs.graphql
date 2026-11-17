@@ -106,14 +106,14 @@ input TemplateInput {
   "Sprache der Vorlage; die Labels brauchen einen Namen in dieser Sprache"
   locale: Locale!
   "Mindestens ein, höchstens 30 Labels"
-  labels: [LabelInput!]! @rulesForArray(apply: ["min:1", "max:30"])
+  labels: [LabelInput!]! @rulesForArray(apply: ["min:1"])
 }
 
 "Name, Beschreibung und Labels einer eigenen Vorlage; Sprache und Gerüst bleiben"
 input UpdateTemplateInput {
   name: String! @rules(apply: ["min:2", "max:60"])
   description: String @rules(apply: ["max:500"])
-  labels: [LabelInput!]! @rulesForArray(apply: ["min:1", "max:30"])
+  labels: [LabelInput!]! @rulesForArray(apply: ["min:1"])
 }
 
 input UserStoryInput {

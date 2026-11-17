@@ -135,7 +135,7 @@ type Mutation @guard {
     @can(ability: "delete", find: "id", model: "App\\Models\\Template")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteTemplate")
   "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
-  updateProjectLabels(projectId: ID!, labels: [LabelInput!]! @rulesForArray(apply: ["max:30"])): Project!
+  updateProjectLabels(projectId: ID!, labels: [LabelInput!]!): Project!
     @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateProjectLabels")
   "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."

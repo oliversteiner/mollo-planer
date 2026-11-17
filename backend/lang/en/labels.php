@@ -16,7 +16,7 @@ return [
     ],
     'copy_of' => 'Copy of :name',
     'not_in_set' => 'This label is not one of the labels of the project.',
-    'too_many' => 'At most :max labels are possible.',
+    'too_many' => 'At most :max labels.',
     'at_least_one' => 'A template needs at least one label.',
     'duplicate_name' => 'Each name may appear only once per language.',
     'key_unknown' => 'This label does not exist.',

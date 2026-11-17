@@ -6,6 +6,7 @@ use App\Enums\LabelColor;
 use App\Models\Label;
 use App\Models\Project;
 use App\Models\Template;
+use App\Planer\PlanerLimits;
 use App\Planer\PlanerRevision;
 use App\Planer\TemplateContent;
 use Illuminate\Support\Collection;
@@ -188,7 +189,7 @@ class ProjectLabels
     private function checkTotal(int $count): void
     {
         if ($count > TemplateContent::MAX_LABELS) {
-            throw ValidationException::withMessages(['labels' => __('labels.too_many', ['max' => TemplateContent::MAX_LABELS])]);
+            throw ValidationException::withMessages(['labels' => __('labels.too_many', ['max' => PlanerLimits::LABELS_PER_PROJECT])]);
         }
     }
 }

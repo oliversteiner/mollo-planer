@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\LabelColor;
 use App\Enums\Locale;
+use App\Planer\PlanerLimits;
 use App\Planer\TemplateContent;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +29,7 @@ final class LabelInputs
     public static function normalize(array $labels, array $existingKeys, string $locale, string $field, int $min = 0): array
     {
         if (count($labels) > TemplateContent::MAX_LABELS) {
-            throw ValidationException::withMessages([$field => __('labels.too_many', ['max' => TemplateContent::MAX_LABELS])]);
+            throw ValidationException::withMessages([$field => __('labels.too_many', ['max' => PlanerLimits::LABELS_PER_PROJECT])]);
         }
         if (count($labels) < $min) {
             throw ValidationException::withMessages([$field => __('labels.at_least_one')]);
@@ -46,7 +47,7 @@ final class LabelInputs
                 $lower = mb_strtolower($name);
 
                 if (isset($names[$language][$lower])) {
-                    throw ValidationException::withMessages(["{$where}.names" => __('labels.duplicate_name')]);
+                    throw ValidationException::withMessages(["{$where}.names.{$language}" => __('labels.duplicate_name')]);
                 }
                 $names[$language][$lower] = true;
             }
@@ -116,17 +117,17 @@ final class LabelInputs
             $name = trim((string) $name);
 
             if (Locale::tryFrom($code) === null || $name === '' || mb_strlen($name) > TemplateContent::NAME_MAX) {
-                throw ValidationException::withMessages(["{$where}.names" => __('labels.name_invalid')]);
+                throw ValidationException::withMessages(["{$where}.names.{$code}" => __('labels.name_invalid')]);
             }
             if (isset($names[$code])) {
-                throw ValidationException::withMessages(["{$where}.names" => __('labels.language_twice')]);
+                throw ValidationException::withMessages(["{$where}.names.{$code}" => __('labels.language_twice')]);
             }
 
             $names[$code] = $name;
         }
 
         if (! isset($names[$locale])) {
-            throw ValidationException::withMessages(["{$where}.names" => __('labels.name_missing', ['language' => strtoupper($locale)])]);
+            throw ValidationException::withMessages(["{$where}.names.{$locale}" => __('labels.name_missing', ['language' => strtoupper($locale)])]);
         }
 
         return $names;

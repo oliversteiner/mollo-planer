@@ -105,14 +105,14 @@ class ProjectLabelsTest extends GraphQLTestCase
         $foreign = $this->label('fremd', 'Fremd', 0, Project::factory()->create());
         $set = fn (array $labels) => $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'l' => $labels]);
 
-        $set([$this->input('Bug'), $this->input('bug ')])->assertGraphQLValidationKeys(['labels.1.names']);
+        $set([$this->input('Bug'), $this->input('bug ')])->assertGraphQLValidationKeys(['labels.1.names.de']);
         // The same name in English twice is as wrong as in German.
-        $set([$this->input('Eins', 'Same'), $this->input('Zwei', 'same')])->assertGraphQLValidationKeys(['labels.1.names']);
+        $set([$this->input('Eins', 'Same'), $this->input('Zwei', 'same')])->assertGraphQLValidationKeys(['labels.1.names.en']);
         // The same name in two languages is fine.
         $set([$this->input('Gleich', 'Gleich')])->assertJsonMissingPath('errors');
         $set([$this->input('Fremd', null, 'RED', $foreign->key)])->assertGraphQLValidationKeys(['labels.0.key']);
-        $set([['names' => [['locale' => 'EN', 'name' => 'Only English']], 'color' => 'RED']])->assertGraphQLValidationKeys(['labels.0.names']);
-        $set(array_map(fn (int $i) => $this->input("L{$i}"), range(1, 31)))->assertGraphQLValidationKeys(['labels']);
+        $set([['names' => [['locale' => 'EN', 'name' => 'Only English']], 'color' => 'RED']])->assertGraphQLValidationKeys(['labels.0.names.de']);
+        $set(array_map(fn (int $i) => $this->input("L{$i}"), range(1, 31)))->assertGraphQLValidationError('labels', 'At most 30 labels.');
 
         $this->assertSame(['gleich'], $this->keys());
         $this->assertModelExists($foreign);
@@ -122,7 +122,7 @@ class ProjectLabelsTest extends GraphQLTestCase
     {
         $this->project->forceFill(['locale' => 'en'])->save();
 
-        $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'l' => [$this->input('Nur Deutsch')]])->assertGraphQLValidationKeys(['labels.0.names']);
+        $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'l' => [$this->input('Nur Deutsch')]])->assertGraphQLValidationKeys(['labels.0.names.en']);
         $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'l' => [$this->input('Deutsch', 'English')]])->assertJsonMissingPath('errors');
         $this->assertSame(['english'], $this->keys());
     }

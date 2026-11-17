@@ -16,7 +16,7 @@ return [
     ],
     'copy_of' => 'Kopie von :name',
     'not_in_set' => 'Dieses Label gehört nicht zu den Labels des Projekts.',
-    'too_many' => 'Es sind höchstens :max Labels möglich.',
+    'too_many' => 'Höchstens :max Labels.',
     'at_least_one' => 'Eine Vorlage braucht mindestens ein Label.',
     'duplicate_name' => 'Jeder Name darf in einer Sprache nur einmal vorkommen.',
     'key_unknown' => 'Dieses Label gibt es nicht.',
