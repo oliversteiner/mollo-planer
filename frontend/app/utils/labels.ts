@@ -110,6 +110,14 @@ export function templateLabelsPlan(
   return { added, updated: template.length - added, kept, removed: missing.length - kept, total: template.length + kept }
 }
 
+/** "2 Milestones, 4 ToDos, 7 Tasks" of an outline, with the singular where it is one. */
+export function outlineSize(outline: readonly { todos: readonly { tasks: readonly unknown[] }[] }[], t: (key: string, count: number) => string): string {
+  const todos = outline.flatMap(milestone => milestone.todos)
+  const tasks = todos.reduce((sum, todo) => sum + todo.tasks.length, 0)
+
+  return [t('templates.sizeMilestones', outline.length), t('templates.sizeTodos', todos.length), t('templates.sizeTasks', tasks)].join(', ')
+}
+
 /** The name of a label of a template in the language of the project, else in the language of the template. */
 export function nameFallbacks(labels: readonly { names: readonly { locale: string }[] }[], projectLocale: string): number {
   return labels.filter(label => !label.names.some(entry => entry.locale === projectLocale)).length

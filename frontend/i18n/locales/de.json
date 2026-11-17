@@ -682,7 +682,8 @@
     "apply": "Übernehmen",
     "applied": "Labels übernommen.",
     "noTemplates": "Es gibt noch keine Vorlagen.",
-    "fallbackTemplate": "Bei {count} Labels der Vorlage gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage."
+    "fallbackTemplate": "Bei {count} Labels der Vorlage gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage.",
+    "headColor": "Farbe"
   },
   "templates": {
     "pageTitle": "Vorlagen",
@@ -698,14 +699,16 @@
     "locale": "Sprache",
     "localeHint": "Die Sprache der Titel und Beschreibungen. Jedes Label braucht einen Namen in dieser Sprache.",
     "outline": "Gerüst",
-    "size": "{milestones} Milestones, {todos} ToDos, {tasks} Tasks",
     "noOutline": "Kein Gerüst, nur Labels.",
     "usedBy": "Noch kein Projekt daraus angelegt | 1 Projekt daraus angelegt | {count} Projekte daraus angelegt",
     "saved": "Vorlage gespeichert.",
     "duplicated": "«{name}» angelegt. Du kannst sie jetzt anpassen.",
     "deleted": "Vorlage gelöscht.",
     "deleteTitle": "Vorlage «{name}» löschen?",
-    "deleteDescription": "Die Vorlage wird endgültig gelöscht. Projekte, die aus ihr angelegt wurden, behalten ihre Labels und ihr Gerüst."
+    "deleteDescription": "Die Vorlage wird endgültig gelöscht. Projekte, die aus ihr angelegt wurden, behalten ihre Labels und ihr Gerüst.",
+    "sizeMilestones": "{n} Milestone | {n} Milestones",
+    "sizeTodos": "{n} ToDo | {n} ToDos",
+    "sizeTasks": "{n} Task | {n} Tasks"
   },
   "userRole": {
     "ADMIN": "Administration",

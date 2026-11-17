@@ -6,7 +6,7 @@ import { appSettingsQuery } from '~/graphql/admin'
 import { templatesQuery } from '~/graphql/labels'
 import { createProjectMutation } from '~/graphql/projects'
 import { memberCandidatesQuery } from '~/graphql/settings'
-import { nameFallbacks } from '~/utils/labels'
+import { nameFallbacks, outlineSize } from '~/utils/labels'
 
 /**
  * New project (for people with projects.create; the backend checks it again),
@@ -44,8 +44,6 @@ const templateItems = computed(() => [
   ...(templatesResult.value?.templates ?? []).map(template => ({ label: template.name, value: template.id }))
 ])
 const template = computed(() => (templatesResult.value?.templates ?? []).find(entry => entry.id === state.templateId) ?? null)
-const templateTasks = computed(() => (template.value?.outline ?? []).flatMap(milestone => milestone.todos).reduce((sum, todo) => sum + todo.tasks.length, 0))
-const templateTodos = computed(() => (template.value?.outline ?? []).reduce((sum, milestone) => sum + milestone.todos.length, 0))
 const fallbacks = computed(() => (template.value ? nameFallbacks(template.value.labels, state.locale) : 0))
 
 /**
@@ -164,7 +162,7 @@ watch(open, (isOpen) => {
       >
         <TaskLabels :labels="template.labels.map((label, position) => ({ id: label.key, name: label.name, color: label.color, position }))" />
         <p class="create-template-note">
-          {{ template.outline.length ? t('templates.size', { milestones: template.outline.length, todos: templateTodos, tasks: templateTasks }) : t('templates.noOutline') }}
+          {{ template.outline.length ? outlineSize(template.outline, (key, count) => t(key, { n: count }, count)) : t('templates.noOutline') }}
         </p>
         <p
           v-if="fallbacks"

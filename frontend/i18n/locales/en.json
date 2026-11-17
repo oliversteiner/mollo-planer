@@ -682,7 +682,8 @@
     "apply": "Take over",
     "applied": "Labels taken over.",
     "noTemplates": "There are no templates yet.",
-    "fallbackTemplate": "{count} labels of the template have no name in {language}: the name in the language of the template is used there."
+    "fallbackTemplate": "{count} labels of the template have no name in {language}: the name in the language of the template is used there.",
+    "headColor": "Colour"
   },
   "templates": {
     "pageTitle": "Templates",
@@ -698,14 +699,16 @@
     "locale": "Language",
     "localeHint": "The language of the titles and descriptions. Every label needs a name in this language.",
     "outline": "Outline",
-    "size": "{milestones} milestones, {todos} todos, {tasks} tasks",
     "noOutline": "No outline, labels only.",
     "usedBy": "No project made from it yet | 1 project made from it | {count} projects made from it",
     "saved": "Template saved.",
     "duplicated": "“{name}” created. You can adapt it now.",
     "deleted": "Template deleted.",
     "deleteTitle": "Delete the template “{name}”?",
-    "deleteDescription": "The template is deleted for good. Projects made from it keep their labels and outline."
+    "deleteDescription": "The template is deleted for good. Projects made from it keep their labels and outline.",
+    "sizeMilestones": "{n} milestone | {n} milestones",
+    "sizeTodos": "{n} todo | {n} todos",
+    "sizeTasks": "{n} task | {n} tasks"
   },
   "userRole": {
     "ADMIN": "Administration",

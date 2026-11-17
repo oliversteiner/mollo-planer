@@ -71,6 +71,20 @@ function note(row: LabelRow): string | null {
     :hint="t('labels.editorHint', { language: t(`labels.languages.${required}`) })"
     :error="listError"
   >
+    <div
+      v-if="rows.length"
+      class="label-head"
+      aria-hidden="true"
+    >
+      <span />
+      <span>{{ t('labels.headColor') }}</span>
+      <span
+        v-for="locale in LABEL_LOCALES"
+        :key="locale"
+      >{{ t(`labels.languages.${locale}`) }}{{ locale === required ? ' *' : '' }}</span>
+      <span>{{ t('labels.category') }}</span>
+      <span />
+    </div>
     <ol class="label-rows">
       <li
         v-for="(row, index) in rows"
@@ -183,9 +197,20 @@ function note(row: LabelRow): string | null {
 
 .label-row {
   display: grid;
-  grid-template-columns: auto 8rem repeat(2, minmax(7rem, 1fr)) minmax(6rem, 0.8fr) auto;
+  margin: 0;
+  grid-template-columns: 0.75rem 8rem repeat(2, minmax(7rem, 1fr)) minmax(6rem, 0.8fr) 6.5rem;
   align-items: center;
   gap: var(--wa-space-xs);
+}
+
+.label-head {
+  display: grid;
+  inline-size: 100%;
+  grid-template-columns: 0.75rem 8rem repeat(2, minmax(7rem, 1fr)) minmax(6rem, 0.8fr) 6.5rem;
+  gap: var(--wa-space-xs);
+  margin-block-end: var(--wa-space-2xs);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
 }
 
 .label-row-dot {
@@ -210,6 +235,10 @@ function note(row: LabelRow): string | null {
 }
 
 @media (max-width: 48em) {
+  .label-head {
+    display: none;
+  }
+
   .label-row {
     grid-template-columns: auto 1fr auto;
   }

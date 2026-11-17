@@ -4,6 +4,7 @@ import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TemplateFormTarget } from '~/components/template/FormModal.vue'
 import type { TemplatesQuery } from '~/graphql/generated/graphql'
 import { deleteTemplateMutation, duplicateTemplateMutation, templatesQuery } from '~/graphql/labels'
+import { outlineSize } from '~/utils/labels'
 
 /**
  * Templates of the app: the built-in ones and own ones. Everybody signed in
@@ -70,13 +71,7 @@ function labelNames(template: Template): Record<string, string> {
 
 /** "2 Milestones, 4 ToDos, 7 Tasks" */
 function size(template: Template): string {
-  const todos = template.outline.flatMap(milestone => milestone.todos)
-
-  return t('templates.size', {
-    milestones: template.outline.length,
-    todos: todos.length,
-    tasks: todos.reduce((sum, todo) => sum + todo.tasks.length, 0)
-  })
+  return outlineSize(template.outline, (key, count) => t(key, { n: count }, count))
 }
 </script>
 
