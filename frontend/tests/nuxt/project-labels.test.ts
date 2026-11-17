@@ -96,7 +96,7 @@ describe('ProjectTemplateLabelsModal', () => {
     expect(modal.text()).toContain('Bleiben am Ende, weil Tasks sie tragen: 1')
     expect(modal.text()).toContain('Werden gelöscht: 1')
     expect(modal.text()).toContain('Danach 3 Labels im Projekt.')
-    expect(modal.text()).toContain('Bei 1 Labels der Vorlage gibt es keinen Namen in Englisch')
+    expect(modal.text()).toContain('Bei 1 Label der Vorlage gibt es keinen Namen in Englisch')
   })
 
   it('takes the labels over with the chosen mode', async () => {

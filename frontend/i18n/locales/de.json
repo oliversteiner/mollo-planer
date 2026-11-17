@@ -191,7 +191,7 @@
       "template": "Vorlage",
       "noTemplate": "Ohne Vorlage",
       "templateHint": "Das Projekt bekommt Kopien der Labels und des Gerüsts der Vorlage.",
-      "templateFallback": "Bei {count} Labels gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage.",
+      "templateFallback": "Bei 1 Label gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage. | Bei {count} Labels gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage.",
       "templateDescription": "Ohne eigene Beschreibung gilt die der Vorlage.",
       "fromFile": "Aus Datei"
     },
@@ -653,7 +653,7 @@
     "editorHint": "Der Name in {language} ist Pflicht, weitere Sprachen sind freiwillig. Ein Label behält seinen Schlüssel, auch wenn du es umbenennst.",
     "requiredNote": "Der Name in {language} fehlt.",
     "fallbackNote": "Ohne Namen in {language} erscheint das Label dort mit dem Namen in {shown}.",
-    "maxReached": "Mehr als {max} Labels sind nicht möglich.",
+    "maxReached": "Höchstens {max} Labels.",
     "cardTitle": "Labels",
     "cardIntro": "Jedes Projekt hat eigene Labels für seine Tasks. Änderungen betreffen kein anderes Projekt und keine Vorlage.",
     "cardEmpty": "Dieses Projekt hat noch keine Labels.",
@@ -664,7 +664,6 @@
     "saved": "Labels gespeichert.",
     "editTitle": "Labels des Projekts",
     "removeTitle": "Labels löschen?",
-    "removeDescription": "Keine Labels werden gelöscht. | 1 Label wird gelöscht und von {tasks} Tasks entfernt. | {count} Labels werden gelöscht und von {tasks} Tasks entfernt.",
     "removeConfirm": "Speichern und löschen",
     "applyTitle": "Labels aus einer Vorlage übernehmen",
     "applyIntro": "Die Labels werden kopiert. Spätere Änderungen an der Vorlage ändern dieses Projekt nicht.",
@@ -684,8 +683,11 @@
     "apply": "Übernehmen",
     "applied": "Labels übernommen.",
     "noTemplates": "Es gibt noch keine Vorlagen.",
-    "fallbackTemplate": "Bei {count} Labels der Vorlage gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage.",
-    "headColor": "Farbe"
+    "fallbackTemplate": "Bei 1 Label der Vorlage gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage. | Bei {count} Labels der Vorlage gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage.",
+    "headColor": "Farbe",
+    "removeNone": "Keine Labels werden gelöscht.",
+    "removeLabels": "1 Label wird gelöscht | {count} Labels werden gelöscht",
+    "removeFromTasks": "und von 1 Task entfernt | und von {count} Tasks entfernt"
   },
   "templates": {
     "pageTitle": "Vorlagen",

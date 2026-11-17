@@ -110,6 +110,18 @@ export function templateLabelsPlan(
   return { added, updated: template.length - added, kept, removed: missing.length - kept, total: template.length + kept }
 }
 
+/**
+ * What deleting labels does, in the singular or plural of each number: "1 Label wird gelöscht und von 3 Tasks entfernt."
+ * `t` takes a key and the number it counts.
+ */
+export function removalText(t: (key: string, count: number) => string, removed: { count: number, tasks: number }): string {
+  if (removed.count === 0) {
+    return t('labels.removeNone', 0)
+  }
+
+  return `${[t('labels.removeLabels', removed.count), removed.tasks > 0 ? t('labels.removeFromTasks', removed.tasks) : ''].filter(Boolean).join(' ')}.`
+}
+
 /** "2 Milestones, 4 ToDos, 7 Tasks" of an outline, with the singular where it is one. */
 export function outlineSize(outline: readonly { todos: readonly { tasks: readonly unknown[] }[] }[], t: (key: string, count: number) => string): string {
   const todos = outline.flatMap(milestone => milestone.todos)

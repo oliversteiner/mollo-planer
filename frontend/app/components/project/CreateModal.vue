@@ -175,7 +175,7 @@ watch(open, (isOpen) => {
           v-if="fallbacks"
           class="create-template-note"
         >
-          {{ t('projects.create.templateFallback', { count: fallbacks, language: t(`labels.languages.${state.locale}`) }) }}
+          {{ t('projects.create.templateFallback', { count: fallbacks, language: t(`labels.languages.${state.locale}`) }, fallbacks) }}
         </p>
       </div>
 

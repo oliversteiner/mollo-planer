@@ -133,7 +133,7 @@ async function apply(): Promise<void> {
           v-if="fallbacks"
           class="wa-body-s wa-color-text-quiet"
         >
-          {{ t('labels.fallbackTemplate', { count: fallbacks, language: t(`labels.languages.${locale.toUpperCase()}`) }) }}
+          {{ t('labels.fallbackTemplate', { count: fallbacks, language: t(`labels.languages.${locale.toUpperCase()}`) }, fallbacks) }}
         </p>
         <p
           v-if="tooMany"

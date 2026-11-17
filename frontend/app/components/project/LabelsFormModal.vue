@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { updateProjectLabelsMutation } from '~/graphql/labels'
 import type { LabelRow, LabelLocale, LabelSource } from '~/utils/labels'
-import { labelInputs, removedLabels, rowFromLabel } from '~/utils/labels'
+import { labelInputs, removalText, removedLabels, rowFromLabel } from '~/utils/labels'
 
 /**
  * The labels of a project in the editor (project.update). Labels that are
@@ -42,6 +42,7 @@ const open = computed({
 })
 
 const removed = computed(() => removedLabels(props.labels, rows.value))
+const removeText = computed(() => removalText((key, count) => t(key, { count }, count), removed.value))
 
 function submit(): void {
   if (removed.value.count > 0) {
@@ -101,7 +102,7 @@ async function save(): Promise<void> {
   <ConfirmModal
     :open="confirming"
     :title="t('labels.removeTitle')"
-    :description="t('labels.removeDescription', { count: removed.count, tasks: removed.tasks }, removed.count)"
+    :description="removeText"
     :confirm-label="t('labels.removeConfirm')"
     :action="save"
     @close="confirming = false"

@@ -191,7 +191,7 @@
       "template": "Template",
       "noTemplate": "No template",
       "templateHint": "The project gets copies of the labels and the outline of the template.",
-      "templateFallback": "{count} labels have no name in {language}: the name in the language of the template is used there.",
+      "templateFallback": "1 label has no name in {language}: the name in the language of the template is used there. | {count} labels have no name in {language}: the name in the language of the template is used there.",
       "templateDescription": "Without a description of your own, the one of the template is used.",
       "fromFile": "From file"
     },
@@ -653,7 +653,7 @@
     "editorHint": "The name in {language} is required, other languages are optional. A label keeps its key, even when you rename it.",
     "requiredNote": "The name in {language} is missing.",
     "fallbackNote": "Without a name in {language} the label shows the name in {shown} there.",
-    "maxReached": "More than {max} labels are not possible.",
+    "maxReached": "At most {max} labels.",
     "cardTitle": "Labels",
     "cardIntro": "Each project has labels of its own for its tasks. Changes affect no other project and no template.",
     "cardEmpty": "This project has no labels yet.",
@@ -664,7 +664,6 @@
     "saved": "Labels saved.",
     "editTitle": "Labels of the project",
     "removeTitle": "Delete labels?",
-    "removeDescription": "No labels are deleted. | 1 label is deleted and removed from {tasks} tasks. | {count} labels are deleted and removed from {tasks} tasks.",
     "removeConfirm": "Save and delete",
     "applyTitle": "Take over labels from a template",
     "applyIntro": "The labels are copied. Later changes to the template do not change this project.",
@@ -684,8 +683,11 @@
     "apply": "Take over",
     "applied": "Labels taken over.",
     "noTemplates": "There are no templates yet.",
-    "fallbackTemplate": "{count} labels of the template have no name in {language}: the name in the language of the template is used there.",
-    "headColor": "Colour"
+    "fallbackTemplate": "1 label of the template has no name in {language}: the name in the language of the template is used there. | {count} labels of the template have no name in {language}: the name in the language of the template is used there.",
+    "headColor": "Colour",
+    "removeNone": "No labels are deleted.",
+    "removeLabels": "1 label is deleted | {count} labels are deleted",
+    "removeFromTasks": "and removed from 1 task | and removed from {count} tasks"
   },
   "templates": {
     "pageTitle": "Templates",
