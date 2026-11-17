@@ -72,7 +72,7 @@ test('Verletzungen der Vorlagen-Regeln werden benannt', () => {
   }
 });
 
-test('eine Vorlage ohne Gerüst (nur Labels) besteht validate --template, ohne --template nicht', () => {
+test('eine Vorlage ohne Gerüst (nur Labels) besteht validate --template und auch ohne --template', () => {
   const dir = mkdtempSync(join(tmpdir(), 'template-'));
   try {
     const plan = JSON.parse(read(join(templatesDir, 'event.planer.json')));
@@ -81,7 +81,7 @@ test('eine Vorlage ohne Gerüst (nur Labels) besteht validate --template, ohne -
     writeFileSync(file, JSON.stringify(plan, null, 2));
 
     assert.equal(run(['validate', file, '--template']).status, 0);
-    assert.equal(run(['validate', file]).status, 1);
+    assert.equal(run(['validate', file]).status, 0);
 
     plan.project.labels = [];
     writeFileSync(file, JSON.stringify(plan, null, 2));

@@ -1,6 +1,6 @@
 # Auftrag: M4 „Datei-Abgleich“ (I1–I5)
 
-Status: wartet (erst nach Abnahme M3; die Planung gleicht den Auftrag vorher mit dem Code ab und setzt dann „offen“)
+Status: in Arbeit (Bob, ab 2026-11-17; M3 ist abgenommen. Der Abgleich mit dem Code läuft je Teil mit; Abweichungen werden gemeldet)
 Stand: 2026-11-17.
 Dokument: `docs/auftrag-m4.md` (maßgeblich).
 

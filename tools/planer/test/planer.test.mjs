@@ -185,3 +185,12 @@ test('Labels: Schlüssel und Namen sind je Projekt eindeutig, Tasks verweisen nu
   assert.deepEqual(errorPaths((d) => { d.project.labels.push({ key: 'neu', names: { de: 'Backend', en: 'Twice' }, color: 'red' }); }), ['project.labels[1].names.de']);
   assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].labels = ['gibt-es-nicht']; }), ['milestones[0].todos[0].tasks[0].labels[0]']);
 });
+
+test('M4: leeres Projekt, eigene Rolle und Markdown-Beschreibung sind gültig', () => {
+  assert.deepEqual(errorPaths((d) => { d.milestones = []; }), []);
+  assert.deepEqual(errorPaths((d) => { d.project.members[0].role = 'bar-team'; }), []);
+  assert.deepEqual(errorPaths((d) => { d.project.members[0].role = 'Bar Team'; }), ['project.members[0].role']);
+  assert.deepEqual(errorPaths((d) => { d.project.description = 'x'.repeat(5000); }), []);
+  assert.deepEqual(errorPaths((d) => { d.project.description = 'x'.repeat(5001); }), ['project.description']);
+  assert.deepEqual(errorPaths((d) => { d.project.description = '<b>fett</b>'; }), ['project.description']);
+});

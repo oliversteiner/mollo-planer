@@ -42,7 +42,7 @@ test('Golden: gültige Fixture rendert wie festgelegt', () => {
 });
 
 test('Die Fixtures sind in kanonischer Form', () => {
-  for (const name of ['planer-valid.planer.json', 'planer-invalid.planer.json', 'beispiel-planer.planer.json']) {
+  for (const name of ['planer-valid.planer.json', 'planer-invalid.planer.json', 'beispiel-planer.planer.json', 'planer-leer.planer.json', 'planer-projekt.planer.json']) {
     assert.equal(canonicalText(JSON.parse(fixture(name))), fixture(name), name);
   }
 });
@@ -142,4 +142,20 @@ test('ohne changed: keine Markierung, md2json setzt kein changed', () => {
 
   assert.doesNotMatch(markdown.split('\n')[0], /geändert/);
   assert.equal(planerFromMarkdown(markdown).changed, undefined);
+});
+
+test('M4: leeres Projekt, eigene Rolle und formatierte Projektbeschreibung: Golden und Roundtrip', () => {
+  for (const name of ['planer-leer', 'planer-projekt']) {
+    const document = JSON.parse(fixture(`${name}.planer.json`));
+    const rendered = renderPlaner(document);
+    assert.equal(rendered, golden(`${name}.md`), name);
+    const { $schema, ...withoutHint } = document;
+    assert.equal(canonicalText(planerFromMarkdown(rendered)), canonicalText(withoutHint), name);
+  }
+});
+
+test('M4: Projektbeschreibung mit Strukturzeile wird beim Rendern abgelehnt', () => {
+  const document = plan();
+  document.project.description = 'Text\n\n## Mitglieder';
+  assert.throws(() => renderPlaner(document), /das Projekt/);
 });

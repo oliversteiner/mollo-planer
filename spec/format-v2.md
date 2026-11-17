@@ -60,14 +60,14 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 | `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. |
 | `changed` | nein | Nur `true`, sonst fehlt das Feld. Die Datei wurde lokal geändert und ist noch nicht eingetragen. |
 | `project` | ja | Objekt, Abschnitt 2.2. |
-| `milestones` | ja | Liste mit mindestens 1 und höchstens 30 Milestones. |
+| `milestones` | ja | Liste mit höchstens 30 Milestones. Leer ist erlaubt (leeres Projekt). |
 
 ### 2.2 Projekt
 
 | Feld | Pflicht | Typ und Grenze |
 |---|---|---|
 | `name` | ja | String, 2 bis 120 Zeichen. |
-| `description` | nein | String, höchstens 2000 Zeichen, oder `null`. |
+| `description` | nein | Markdown, höchstens 5000 Zeichen, oder `null`. Siehe Abschnitt 6. |
 | `locale` | ja | `"de"` oder `"en"`. Die App speichert dieselben Werte (Abschnitt 5.1). |
 | `members` | ja | Liste mit höchstens 50 Einträgen. Leer ist erlaubt. |
 | `labels` | nein | Liste mit höchstens 30 Labels, siehe Abschnitt 5.4. Fehlt sie, hat das Projekt keine Labels. |
@@ -77,7 +77,7 @@ Ein Mitglied (`members[]`):
 | Feld | Pflicht | Typ und Grenze |
 |---|---|---|
 | `email` | ja | E-Mail-Adresse. |
-| `role` | ja | `"owner"`, `"manager"` oder `"member"`. Das sind die Werte des GraphQL-Enums `ProjectRole` der App (`backend/graphql/enums.graphql`). |
+| `role` | ja | Schlüssel einer Projektrolle der App: `a-z`, `0-9`, `_` und `-`, 1 bis 40 Zeichen. Standardrollen sind `owner`, `manager`, `member` und `guest`; eigene Rollen haben den Schlüssel, den die App aus ihrem englischen Namen bildet. Ob es die Rolle gibt, prüft der Import, nicht das Schema. |
 
 ### 2.3 Milestone
 
@@ -306,7 +306,7 @@ Unter der Task-Zeile folgen die Blöcke in dieser Reihenfolge, jeweils durch ein
 
 Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels aus `mollo-planer/docs/beispiel-planer.md`. Sie weicht an drei Stellen ab:
 - Kopfzeile: sie nennt Revision und Zweck der Ansicht, nicht den Ort des Beispiels.
-- Rolle: `owner` statt des Platzhalters `OWNER`. Die Werte der Datei sind die `@enum`-Werte der App (Abschnitt 2.2).
+- Rolle: `owner` statt des Platzhalters `OWNER`. Die Werte der Datei sind Rollen-Schlüssel der App (Abschnitt 2.2).
 - Story von k-001: der Wortlaut ist in der Fixture umformuliert. Die Grammatik ist dieselbe.
 
 ---
@@ -316,13 +316,13 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 | Element | Grenze |
 |---|---|
 | Projektname | 2 bis 120 Zeichen |
-| Projektbeschreibung | höchstens 2000 Zeichen |
+| Projektbeschreibung | höchstens 5000 Zeichen |
 | Mitglieder | höchstens 50 |
-| Milestones | mindestens 1, höchstens 30 |
+| Milestones | höchstens 30 (leer erlaubt) |
 | ToDos je Milestone | höchstens 50 |
 | Tasks je ToDo | höchstens 50 |
 | Titel (Milestone, ToDo, Task) | 2 bis 160 Zeichen |
-| Beschreibung (Milestone, ToDo, Task) | höchstens 5000 Zeichen |
+| Beschreibung (Projekt, Milestone, ToDo, Task) | höchstens 5000 Zeichen |
 | Label-Name je Task | 1 bis 40 Zeichen |
 | `userStory.role` | 1 bis 80 Zeichen |
 | `userStory.goal`, `userStory.benefit` | je 1 bis 160 Zeichen |
@@ -361,6 +361,8 @@ Diese Punkte sind entschieden. Sie gelten für planer-v2.
 ---
 
 6. **Inline-Code in Beschreibungen: entschieden, erlaubt.** Das Beispiel aus `mollo-planer/docs/beispiel-planer.md` nutzt Inline-Code. Die Whitelist bekommt den Mark `code`. Die App braucht dafür einen Code-Mark in `RichTextDocument.php` und im Editor (Spur B, offen).
+
+7. **Änderungen für M4 (2026-11-17, Breaking Change vor dem ersten Einsatz).** `milestones` darf leer sein. `members[].role` ist der Schlüssel einer Projektrolle der App (Muster `^[a-z0-9_-]{1,40}$`) statt einer festen Aufzählung. `project.description` ist Markdown nach Abschnitt 6 (bis 5000 Zeichen) statt Klartext (bis 2000). Bestehende Dateien mit Klartext-Beschreibung bleiben gültig, solange der Text keine Markdown-Zeichen enthält, die etwas anderes bedeuten sollen.
 
 ---
 
@@ -402,4 +404,4 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 
 ## 8. Vorlagen
 
-Eine Vorlage ist ein gültiges planer-v2-Dokument mit festen Werten (planer-abgleich §3.8): `revision` 0, nur `-new-`-IDs, `members` leer, keine Zuweisungen, Fälligkeiten und Commits, `release.status` nur `planned`, Task-Status `planned`, mindestens ein Label. `validate --template` prüft die Datei nach diesen Regeln zusätzlich zur normalen Prüfung. Das Gerüst ist optional: eine Vorlage nur mit Labels hat `milestones: []`, das nimmt `validate --template` an (ohne `--template` verlangt das Schema mindestens einen Milestone). `template <datei> [--out <datei>]` setzt die Werte. Die mitgelieferten Vorlagen liegen in `spec/templates/`.
+Eine Vorlage ist ein gültiges planer-v2-Dokument mit festen Werten (planer-abgleich §3.8): `revision` 0, nur `-new-`-IDs, `members` leer, keine Zuweisungen, Fälligkeiten und Commits, `release.status` nur `planned`, Task-Status `planned`, mindestens ein Label. `validate --template` prüft die Datei nach diesen Regeln zusätzlich zur normalen Prüfung. Das Gerüst ist optional: eine Vorlage nur mit Labels hat `milestones: []`, das nimmt `validate --template` an (ein Projekt ohne Milestones ist auch ohne `--template` gültig). `template <datei> [--out <datei>]` setzt die Werte. Die mitgelieferten Vorlagen liegen in `spec/templates/`.

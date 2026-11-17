@@ -20,7 +20,7 @@ const TODO = /^### (.+)$/;
 const TASK = /^- \[( |~|\?|x|i|p)\] (.+?) <!-- id: (k-(?:new-)?\d+) -->$/;
 const ID_LINE = /^<!-- id: ([mt]-(?:new-)?\d+) -->$/;
 const STORY = /^ {2}\*(?:Als (.+?) möchte ich (.+?), damit (.+)|As (.+?) I want (.+?), so that (.+))\.\*$/;
-const MEMBER = /^- (\S+) \| (owner|manager|member)$/;
+const MEMBER = /^- (\S+) \| ([a-z0-9_-]{1,40})$/;
 const MARKS = { i: 'idea', p: 'planned', ' ': 'open', '~': 'in_progress', '?': 'review', x: 'done' };
 /** Feste Wörter der Ansicht in beiden Sprachen auf die Werte der Datei (planer-words.mjs). */
 const STATUS_KEYS = { geplant: 'planned', veröffentlicht: 'released', planned: 'planned', released: 'released' };

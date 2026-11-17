@@ -36,7 +36,7 @@ export function renderPlaner(plan, { lang = plan.project.locale, legendTranslati
   ];
 
   if (plan.project.description) {
-    chunks.push(plan.project.description);
+    chunks.push(plainBlock(plan.project.description, 'das Projekt'));
   }
 
   chunks.push(`## ${words.members}`);
