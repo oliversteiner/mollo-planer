@@ -55,9 +55,13 @@ function readInput(argument) {
 
 function runValidate(argument, { template = false } = {}) {
   const { path, markdown } = readInput(argument);
-  const issues = isPlanerFile(path)
+  let issues = isPlanerFile(path)
     ? validatePlaner(markdown)
     : validate(markdown);
+  if (template && isPlanerFile(path) && hasNoOutline(markdown)) {
+    // Das Gerüst einer Vorlage ist optional (planer-abgleich §3.6): ohne Milestones ist sie gültig.
+    issues = issues.filter((issue) => !(issue.severity === 'error' && issue.path === 'milestones'));
+  }
   if (template && isPlanerFile(path) && issues.every((issue) => issue.severity !== 'error')) {
     issues.push(...templateIssues(JSON.parse(markdown)));
   } else if (template && !isPlanerFile(path)) {
@@ -81,6 +85,16 @@ function runValidate(argument, { template = false } = {}) {
   }
   console.log(`\nKeine Fehler. ${warnings} Hinweise.`);
   return 0;
+}
+
+/** Eine Datei mit `milestones: []`. */
+function hasNoOutline(text) {
+  try {
+    const plan = JSON.parse(text);
+    return Array.isArray(plan.milestones) && plan.milestones.length === 0;
+  } catch {
+    return false;
+  }
 }
 
 /** Liest eine planer-v2-Datei und gibt das Objekt zurück, oder null bei Fehlern (mit Meldung). */

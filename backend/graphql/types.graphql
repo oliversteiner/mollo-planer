@@ -69,8 +69,10 @@ type Project {
   icon: String
   "Sprache der Benachrichtigungsmails dieses Projekts"
   locale: Locale!
-  "Label-Set der Tasks dieses Projekts. null = keins gewählt."
-  labelSet: LabelSet @belongsTo
+  "Die Labels dieses Projekts in ihrer Reihenfolge"
+  labels: [Label!]! @hasMany
+  "Die Vorlage, aus der das Projekt angelegt wurde (nur zur Anzeige; null: ohne Vorlage oder Vorlage gelöscht)"
+  template: Template @belongsTo
   members: [ProjectMember!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
   milestones: [Milestone!]! @hasMany
   "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
@@ -199,31 +201,82 @@ type Task {
   viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@delete")
 }
 
-"Eine Gruppe von Labels, app-weit. Jedes Projekt wählt ein Set."
-type LabelSet {
-  id: ID!
-  "Mitgelieferte Sets: übersetzt nach Accept-Language"
-  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setName")
-  description: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setDescription")
-  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
-  isBuiltin: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@isBuiltin")
-  labels: [Label!]! @hasMany
-  "Wie viele Projekte das Set gewählt haben. Ein Set in Gebrauch lässt sich nicht löschen."
-  usedByProjects: Int! @count(relation: "projects")
-  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@update")
-  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@delete")
+"Der Name eines Labels in einer Sprache"
+type LabelName {
+  locale: Locale!
+  name: String!
 }
 
+"Ein Label eines Projekts. Jedes Projekt hat eigene Labels."
 type Label {
   id: ID!
-  "Labels mitgelieferter Sets: übersetzt nach Accept-Language"
-  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelName")
-  "Gruppe im Set, zum Beispiel Phase oder Typ"
-  category: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelCategory")
+  "Stabiler Schlüssel (a-z, 0-9, _ und -, höchstens 40 Zeichen, eindeutig im Projekt), ändert sich nie"
+  key: String!
+  "Name in der Sprache der Oberfläche, sonst in der des Projekts"
+  name: String! @with(relation: "project") @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelName")
+  "Die Namen in allen Sprachen, die das Label hat"
+  names: [LabelName!]! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelNames")
+  "Gruppe, zum Beispiel `phase` oder `type`, wie geschrieben"
+  category: String
+  "Die Gruppe für die Anzeige: bei mitgelieferten Vorlagen übersetzt, sonst wie geschrieben"
+  categoryLabel: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelCategory")
   color: LabelColor!
-  "Reihenfolge im Set, beginnt bei 0"
+  "Reihenfolge im Projekt, beginnt bei 0"
   position: Int!
-  labelSet: LabelSet! @belongsTo
+  "An wie vielen Tasks das Label hängt (ohne Tasks im Papierkorb)"
+  taskCount: Int! @count(relation: "tasks")
+}
+
+"Eine Vorlage für Projekte: Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks. Alle Angemeldeten sehen alle Vorlagen."
+type Template {
+  id: ID!
+  "Nur mitgelieferte Vorlagen haben einen Schlüssel"
+  key: String
+  "Mitgelieferte Vorlagen: übersetzt nach Accept-Language"
+  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@name")
+  description: String @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@description")
+  "Sprache der Vorlage (ihrer Titel und Beschreibungen)"
+  locale: Locale!
+  labels: [TemplateLabel!]! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@labels")
+  "Das Gerüst zum Ansehen: Milestones, ToDos und Tasks nach Titel"
+  outline: [TemplateOutlineMilestone!]! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@outline")
+  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
+  isBuiltin: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@isBuiltin")
+  "null bei mitgelieferten Vorlagen und wenn die Person gelöscht wurde"
+  createdBy: User @belongsTo(relation: "creator")
+  "Wie viele Projekte aus dieser Vorlage angelegt wurden"
+  projectCount: Int! @count(relation: "projects")
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateViewerCan@update")
+  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateViewerCan@delete")
+}
+
+"Ein Label einer Vorlage"
+type TemplateLabel {
+  key: String!
+  "Name in der Sprache der Oberfläche, sonst in der der Vorlage"
+  name: String!
+  names: [LabelName!]!
+  category: String
+  categoryLabel: String
+  color: LabelColor!
+}
+
+type TemplateOutlineMilestone {
+  title: String!
+  "Version, wenn der Milestone eine hat"
+  version: String
+  todos: [TemplateOutlineTodo!]!
+}
+
+type TemplateOutlineTodo {
+  title: String!
+  tasks: [TemplateOutlineTask!]!
+}
+
+type TemplateOutlineTask {
+  title: String!
+  "Schlüssel der Labels des Tasks"
+  labels: [String!]!
 }
 
 "Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."

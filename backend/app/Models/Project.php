@@ -86,13 +86,23 @@ class Project extends Model
     }
 
     /**
-     * The label set the tasks of this project use (null: none).
+     * The labels of this project, in order.
      *
-     * @return BelongsTo<LabelSet, $this>
+     * @return HasMany<Label, $this>
      */
-    public function labelSet(): BelongsTo
+    public function labels(): HasMany
     {
-        return $this->belongsTo(LabelSet::class);
+        return $this->hasMany(Label::class)->orderBy('position')->orderBy('id')->chaperone('project');
+    }
+
+    /**
+     * The template the project was made from (only to show where it came from).
+     *
+     * @return BelongsTo<Template, $this>
+     */
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(Template::class);
     }
 
     /**

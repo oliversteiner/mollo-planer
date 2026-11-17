@@ -58,8 +58,6 @@ enum Right {
   ROLES_MANAGE @enum(value: "roles.manage")
   TEMPLATES_MANAGE @enum(value: "templates.manage")
   TEMPLATES_MANAGE_ANY @enum(value: "templates.manageAny")
-  LABEL_SETS_MANAGE @enum(value: "labelSets.manage")
-  LABEL_SETS_MANAGE_ANY @enum(value: "labelSets.manageAny")
   ASSISTANT_USE @enum(value: "assistant.use")
   IDEAS_CREATE @enum(value: "ideas.create")
   IDEAS_VIEW_ANY @enum(value: "ideas.viewAny")
@@ -121,4 +119,12 @@ enum TaskStatus {
   IN_PROGRESS @enum(value: "in_progress")
   REVIEW @enum(value: "review")
   DONE @enum(value: "done")
+}
+
+"Wie die Labels einer Vorlage in ein bestehendes Projekt kommen"
+enum TemplateLabelMode {
+  "Die Labels der Vorlage setzen; Labels, die an Tasks hängen und nicht in der Vorlage stehen, bleiben am Ende"
+  REPLACE
+  "Nur Labels ergänzen, deren Schlüssel im Projekt fehlt"
+  APPEND
 }

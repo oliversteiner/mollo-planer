@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -69,5 +69,24 @@ test('Verletzungen der Vorlagen-Regeln werden benannt', () => {
     mutate(doc);
     const paths = templateIssues(doc).map((issue) => issue.path);
     assert.ok(paths.includes(path), `${name}: erwartet ${path}, gefunden ${paths.join(', ')}`);
+  }
+});
+
+test('eine Vorlage ohne Gerüst (nur Labels) besteht validate --template, ohne --template nicht', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'template-'));
+  try {
+    const plan = JSON.parse(read(join(templatesDir, 'event.planer.json')));
+    plan.milestones = [];
+    const file = join(dir, 'leer.planer.json');
+    writeFileSync(file, JSON.stringify(plan, null, 2));
+
+    assert.equal(run(['validate', file, '--template']).status, 0);
+    assert.equal(run(['validate', file]).status, 1);
+
+    plan.project.labels = [];
+    writeFileSync(file, JSON.stringify(plan, null, 2));
+    assert.match(run(['validate', file, '--template']).stdout, /mindestens ein Label/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });

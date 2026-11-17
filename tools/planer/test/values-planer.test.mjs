@@ -75,7 +75,7 @@ test('convert v1 schreibt die Labels der Vorlage in beiden Sprachen und Werte in
   const v1 = '## v1.0 Start\n\n### Arbeit\n\n- [x] [feature] Alt\n  Ohne Commit\n';
   const plan = planerFromV1(v1, { name: 'Demo', locale: 'EN' });
   assert.equal(plan.project.locale, 'en');
-  assert.deepEqual(plan.project.labels.find((label) => label.key === 'feature').names, { de: 'Feature', en: 'feature' });
+  assert.deepEqual(plan.project.labels.find((label) => label.key === 'feature').names, { de: 'Feature', en: 'Feature' });
   assert.equal(plan.milestones[0].release.status, 'planned');
   assert.equal(plan.milestones[0].todos[0].tasks[0].commit, 'none');
   assert.deepEqual(errors(plan), []);

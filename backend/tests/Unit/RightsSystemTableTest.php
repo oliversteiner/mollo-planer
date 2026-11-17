@@ -26,10 +26,10 @@ class RightsSystemTableTest extends TestCase
     private const CONFIRMED = [
         'admin' => [
             'projects.create', 'projects.viewAll', 'projects.manageAny', 'users.manage', 'roles.manage',
-            'templates.manage', 'templates.manageAny', 'labelSets.manage', 'labelSets.manageAny',
+            'templates.manage', 'templates.manageAny',
             'assistant.use', 'ideas.create', 'ideas.viewAny', 'settings.manage', 'system.view', 'database.view',
         ],
-        'projektleitung' => ['projects.create', 'templates.manage', 'labelSets.manage', 'assistant.use', 'ideas.create', 'system.view'],
+        'projektleitung' => ['projects.create', 'templates.manage', 'assistant.use', 'ideas.create', 'system.view'],
         'koordination' => ['projects.create', 'assistant.use', 'ideas.create', 'system.view'],
         'mitglied' => ['assistant.use', 'ideas.create', 'system.view'],
         'lesend' => ['system.view'],

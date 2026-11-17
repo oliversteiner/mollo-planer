@@ -36,8 +36,6 @@ return [
     'roles.manage' => 'Rollen und Funktionen verwalten',
     'templates.manage' => 'Eigene Vorlagen verwalten',
     'templates.manageAny' => 'Alle Vorlagen verwalten',
-    'labelSets.manage' => 'Eigene Labelsets verwalten',
-    'labelSets.manageAny' => 'Alle Labelsets verwalten',
     'assistant.use' => 'KI-Assistent benutzen',
     'ideas.create' => 'Ideen erfassen',
     'ideas.viewAny' => 'Alle Ideen sehen',

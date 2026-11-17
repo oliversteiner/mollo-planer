@@ -58,6 +58,8 @@ input CreateProjectInput {
  "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
  members: [ProjectMemberInput!]
  name: String!
+ "Vorlage: Die Labels und das Gerüst werden übernommen. Ohne eigene Beschreibung gilt die der Vorlage."
+ templateId: ID
 }
 input CreateRoleFunctionInput {
  names: LocalizedNameInput!
@@ -125,16 +127,24 @@ type KanbanColumn {
  status: TaskStatus!
  tasks: [Task!]!
 }
+"Ein Label eines Projekts. Jedes Projekt hat eigene Labels."
 type Label {
- "Gruppe im Set, zum Beispiel Phase oder Typ"
+ "Gruppe, zum Beispiel `phase` oder `type`, wie geschrieben"
  category: String
+ "Die Gruppe für die Anzeige: bei mitgelieferten Vorlagen übersetzt, sonst wie geschrieben"
+ categoryLabel: String
  color: LabelColor!
  id: ID!
- labelSet: LabelSet!
- "Labels mitgelieferter Sets: übersetzt nach Accept-Language"
+ "Stabiler Schlüssel (a-z, 0-9, _ und -, höchstens 40 Zeichen, eindeutig im Projekt), ändert sich nie"
+ key: String!
+ "Name in der Sprache der Oberfläche, sonst in der des Projekts"
  name: String!
- "Reihenfolge im Set, beginnt bei 0"
+ "Die Namen in allen Sprachen, die das Label hat"
+ names: [LabelName!]!
+ "Reihenfolge im Projekt, beginnt bei 0"
  position: Int!
+ "An wie vielen Tasks das Label hängt (ohne Tasks im Papierkorb)"
+ taskCount: Int!
 }
 "Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"
 enum LabelColor {
@@ -149,31 +159,23 @@ enum LabelColor {
  RED
  YELLOW
 }
+"Ein Label eines Projekts oder einer Vorlage"
 input LabelInput {
  category: String
  color: LabelColor!
- "Bestehendes Label dieses Sets; ohne id wird es neu angelegt"
- id: ID
+ "Schlüssel eines bestehenden Labels; fehlt er, ist das Label neu (der Schlüssel entsteht aus dem Namen und ändert sich nie)"
+ key: String
+ "Namen je Sprache; der Name in der Sprache des Projekts bzw. der Vorlage ist Pflicht, einmal je Sprache, je Sprache eindeutig"
+ names: [LabelNameInput!]!
+}
+"Der Name eines Labels in einer Sprache"
+type LabelName {
+ locale: Locale!
  name: String!
 }
-"Eine Gruppe von Labels, app-weit. Jedes Projekt wählt ein Set."
-type LabelSet {
- description: String
- id: ID!
- "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
- isBuiltin: Boolean!
- labels: [Label!]!
- "Mitgelieferte Sets: übersetzt nach Accept-Language"
- name: String!
- "Wie viele Projekte das Set gewählt haben. Ein Set in Gebrauch lässt sich nicht löschen."
- usedByProjects: Int!
- viewerCanDelete: Boolean!
- viewerCanUpdate: Boolean!
-}
-input LabelSetInput {
- description: String
- "Höchstens 30 Labels, Namen innerhalb des Sets eindeutig"
- labels: [LabelInput!]!
+"Der Name eines Labels in einer Sprache"
+input LabelNameInput {
+ locale: Locale!
  name: String!
 }
 "Sprache eines Projekts. Bestimmt die Sprache der Mails."
@@ -223,6 +225,8 @@ type Milestone {
 }
 type Mutation {
  addComment(input: AddCommentInput!): Comment!
+ "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
+ applyTemplateLabels(mode: TemplateLabelMode!, projectId: ID!, templateId: ID!): Project!
  "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
  approveUser(id: ID!): User!
  "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
@@ -231,8 +235,6 @@ type Mutation {
  assignTask(assigneeId: ID, id: ID!): Task!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
- "Legt ein eigenes Label-Set an."
- createLabelSet(input: LabelSetInput!): LabelSet!
  createMilestone(input: CreateMilestoneInput!): Milestone!
  createProject(input: CreateProjectInput!): Project!
  "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
@@ -241,13 +243,13 @@ type Mutation {
  createRoleFunction(input: CreateRoleFunctionInput!): RoleFunction!
  "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
  createTask(input: CreateTaskInput!): Task!
+ "Legt eine eigene Vorlage an: Name, Beschreibung, Sprache und Labels, ohne Gerüst."
+ createTemplate(input: TemplateInput!): Template!
  createTodo(input: CreateTodoInput!): Todo!
  createUser(input: CreateUserInput!): User!
  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
  deleteApiToken(id: ID!): ApiToken
  deleteComment(id: ID!): Comment!
- "Löscht ein eigenes Set, das kein Projekt mehr verwendet."
- deleteLabelSet(id: ID!): LabelSet!
  deleteMilestone(id: ID!): Milestone!
  deleteProject(id: ID!): Project!
  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
@@ -255,6 +257,8 @@ type Mutation {
  "Löscht eine eigene Funktion, die keine Rolle mehr verwendet."
  deleteRoleFunction(id: ID!): RoleFunction!
  deleteTask(id: ID!): Task!
+ "Löscht eine eigene Vorlage endgültig (kein Papierkorb). Projekte aus ihr behalten ihre Kopien."
+ deleteTemplate(id: ID!): Boolean!
  deleteTodo(id: ID!): Todo!
  deleteUser(id: ID!): User!
  "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
@@ -265,12 +269,12 @@ type Mutation {
  currentPlan: ProjectPlanInput
  messages: [PlanChatMessageInput!]!
  ): ProjectPlanDraft!
- "Kopiert ein Set (auch ein mitgeliefertes) als eigenes Set, um es anzupassen."
- duplicateLabelSet(id: ID!): LabelSet!
  "Kopiert eine Rolle mit ihren Funktionen als eigene Rolle."
  duplicateRole(id: ID!): Role!
  "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
  duplicateRoleFunction(id: ID!): RoleFunction!
+ "Kopiert eine Vorlage (auch eine mitgelieferte) mit ihrem Gerüst als eigene Vorlage, um sie anzupassen."
+ duplicateTemplate(id: ID!): Template!
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
@@ -299,30 +303,30 @@ type Mutation {
  setDefaultRole(id: ID!): Role!
  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
  setProjectCreatorRole(roleKey: String!): AppSettings!
- "Wählt das Label-Set eines Projekts (null: keins). Tasks behalten ihre bisherigen Labels."
- setProjectLabelSet(labelSetId: ID, projectId: ID!): Project!
  "Fügt eine Person hinzu oder ändert ihre Rolle"
  setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
- "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
+ "Setzt die Labels eines Tasks. Neue Labels müssen aus den Labels des Projekts stammen; bisherige dürfen bleiben."
  setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
  "Holt ein archiviertes Projekt zurück."
  unarchiveProject(id: ID!): Project!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
- "Ändert Name, Beschreibung und Labels in einem Zug. Labels mit id bleiben (und an ihren Tasks), ohne id kommen neu dazu, fehlende werden gelöscht (auch an den Tasks)."
- updateLabelSet(id: ID!, input: LabelSetInput!): LabelSet!
  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
  updateMyAvatar(avatar: Upload!): User!
  "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
  updateMyNotifications(notifyByEmail: Boolean!): User!
  updateProject(id: ID!, input: UpdateProjectInput!): Project!
+ "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
+ updateProjectLabels(labels: [LabelInput!]!, projectId: ID!): Project!
  "Ändert Namen, Funktionen oder Obergrenze einer Rolle. Der Schlüssel bleibt."
  updateRole(id: ID!, input: UpdateRoleInput!): Role!
  "Ändert Namen oder Rechte einer Funktion. Wirkt sofort für alle Rollen, die sie verwenden."
  updateRoleFunction(id: ID!, input: UpdateRoleFunctionInput!): RoleFunction!
  updateTask(id: ID!, input: UpdateTaskInput!): Task!
+ "Ändert Name, Beschreibung und Labels einer eigenen Vorlage in einem Zug. Labels mit Schlüssel bleiben, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht."
+ updateTemplate(id: ID!, input: UpdateTemplateInput!): Template!
  updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
  "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
  updateUser(id: ID!, input: UpdateUserInput!): User!
@@ -397,8 +401,8 @@ type Project {
  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
  icon: String
  id: ID!
- "Label-Set der Tasks dieses Projekts. null = keins gewählt."
- labelSet: LabelSet
+ "Die Labels dieses Projekts in ihrer Reihenfolge"
+ labels: [Label!]!
  "Sprache der Benachrichtigungsmails dieses Projekts"
  locale: Locale!
  members: [ProjectMember!]!
@@ -408,6 +412,8 @@ type Project {
  planerRevision: Int!
  "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
  progress: Progress!
+ "Die Vorlage, aus der das Projekt angelegt wurde (nur zur Anzeige; null: ohne Vorlage oder Vorlage gelöscht)"
+ template: Template
  "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
  viewerRights: [Right!]!
  "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
@@ -507,8 +513,6 @@ type Query {
  dashboard: Dashboard!
  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
  kanban(projectId: ID!): [KanbanColumn!]!
- "Alle Label-Sets (mitgelieferte zuerst, dann eigene nach Name)"
- labelSets: [LabelSet!]!
  "Der angemeldete Benutzer"
  me: User!
  "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
@@ -531,6 +535,10 @@ type Query {
  roles(scope: RoleScope): [Role!]!
  "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
  task(id: ID!): Task
+ "Eine Vorlage"
+ template(id: ID!): Template
+ "Alle Vorlagen (mitgelieferte zuerst, dann eigene nach Name). Alle Angemeldeten sehen alle."
+ templates: [Template!]!
  todo(id: ID!): Todo
  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
  todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
@@ -569,8 +577,6 @@ enum Right {
  DATABASE_VIEW
  IDEAS_CREATE
  IDEAS_VIEW_ANY
- LABEL_SETS_MANAGE
- LABEL_SETS_MANAGE_ANY
  MEMBERS_MANAGE
  MILESTONE_CREATE
  MILESTONE_DELETE
@@ -698,6 +704,69 @@ enum TaskStatus {
  PLANNED
  REVIEW
 }
+"Eine Vorlage für Projekte: Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks. Alle Angemeldeten sehen alle Vorlagen."
+type Template {
+ "null bei mitgelieferten Vorlagen und wenn die Person gelöscht wurde"
+ createdBy: User
+ description: String
+ id: ID!
+ "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
+ isBuiltin: Boolean!
+ "Nur mitgelieferte Vorlagen haben einen Schlüssel"
+ key: String
+ labels: [TemplateLabel!]!
+ "Sprache der Vorlage (ihrer Titel und Beschreibungen)"
+ locale: Locale!
+ "Mitgelieferte Vorlagen: übersetzt nach Accept-Language"
+ name: String!
+ "Das Gerüst zum Ansehen: Milestones, ToDos und Tasks nach Titel"
+ outline: [TemplateOutlineMilestone!]!
+ "Wie viele Projekte aus dieser Vorlage angelegt wurden"
+ projectCount: Int!
+ viewerCanDelete: Boolean!
+ viewerCanUpdate: Boolean!
+}
+"Eine neue Vorlage: ohne Gerüst, mit Labels"
+input TemplateInput {
+ description: String
+ "Mindestens ein, höchstens 30 Labels"
+ labels: [LabelInput!]!
+ "Sprache der Vorlage; die Labels brauchen einen Namen in dieser Sprache"
+ locale: Locale!
+ name: String!
+}
+"Ein Label einer Vorlage"
+type TemplateLabel {
+ category: String
+ categoryLabel: String
+ color: LabelColor!
+ key: String!
+ "Name in der Sprache der Oberfläche, sonst in der der Vorlage"
+ name: String!
+ names: [LabelName!]!
+}
+"Wie die Labels einer Vorlage in ein bestehendes Projekt kommen"
+enum TemplateLabelMode {
+ "Nur Labels ergänzen, deren Schlüssel im Projekt fehlt"
+ APPEND
+ "Die Labels der Vorlage setzen; Labels, die an Tasks hängen und nicht in der Vorlage stehen, bleiben am Ende"
+ REPLACE
+}
+type TemplateOutlineMilestone {
+ title: String!
+ todos: [TemplateOutlineTodo!]!
+ "Version, wenn der Milestone eine hat"
+ version: String
+}
+type TemplateOutlineTask {
+ "Schlüssel der Labels des Tasks"
+ labels: [String!]!
+ title: String!
+}
+type TemplateOutlineTodo {
+ tasks: [TemplateOutlineTask!]!
+ title: String!
+}
 "Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
 type Todo {
  createdAt: DateTime!
@@ -800,6 +869,12 @@ input UpdateTaskInput {
  title: String
  "Die Story des Tasks, null entfernt sie"
  userStory: UserStoryInput
+}
+"Name, Beschreibung und Labels einer eigenen Vorlage; Sprache und Gerüst bleiben"
+input UpdateTemplateInput {
+ description: String
+ labels: [LabelInput!]!
+ name: String!
 }
 input UpdateTodoInput {
  description: RichText

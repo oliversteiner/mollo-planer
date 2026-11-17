@@ -123,7 +123,7 @@ Die Datei `.github/workflows/deploy.yml` läuft bei jedem Push auf `main` (oder 
 2. **Freigabe:** Der Job `deploy` wartet auf eine Freigabe im Environment `production`.
 3. **Build:** Das Frontend wird mit `NUXT_PUBLIC_API_BASE=https://api.planer.mollo.dev` gebaut.
 4. **Übertragung:** Das Archiv `frontend/.output/public` geht per SSH an den Server. Der Schlüssel darf nur das Skript `deploy/deploy.sh` starten, keine Shell.
-5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/main`, sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force` und die Caches aus, kopiert das Frontend nach `~/www/planer.mollo.dev` und schaltet den Wartungsmodus wieder aus.
+5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/main`, sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force`, `planer:sync-templates` (die mitgelieferten Vorlagen aus `spec/templates/`) und die Caches aus, kopiert das Frontend nach `~/www/planer.mollo.dev` und schaltet den Wartungsmodus wieder aus.
 
 Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen.
 

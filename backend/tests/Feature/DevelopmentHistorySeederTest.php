@@ -25,7 +25,7 @@ class DevelopmentHistorySeederTest extends TestCase
         $this->seed(DevelopmentHistorySeeder::class);
 
         $project = Project::query()->where('name', DevelopmentHistorySeeder::PROJECT_NAME)->sole();
-        $this->assertSame('software_dev', $project->labelSet()->firstOrFail()->key);
+        $this->assertSame(['research', 'design', 'feature', 'bug', 'planning', 'blocked'], $project->labels()->pluck('key')->all());
         $this->assertSame(count($expected['milestones']), Milestone::query()->where('project_id', $project->id)->count());
         $this->assertSame($taskCount, Task::query()->count());
     }
@@ -56,8 +56,10 @@ class DevelopmentHistorySeederTest extends TestCase
         }
     }
 
-    public function test_the_planning_label_exists_in_the_built_in_set(): void
+    public function test_the_project_has_the_planning_label_of_the_template(): void
     {
+        $this->seed(DevelopmentHistorySeeder::class);
+
         $this->assertTrue(Label::query()->where('key', 'planning')->exists());
     }
 }

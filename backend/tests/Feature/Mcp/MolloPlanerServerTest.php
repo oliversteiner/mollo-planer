@@ -9,13 +9,16 @@ use App\Mcp\Tools\CreateProjectPlanTool;
 use App\Mcp\Tools\CreateProjectTool;
 use App\Mcp\Tools\GetProjectTool;
 use App\Mcp\Tools\ListProjectsTool;
+use App\Mcp\Tools\ListTemplatesTool;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
+use App\Models\Template;
 use App\Models\Todo;
 use App\Models\User;
 use App\Notifications\TaskAssigned;
+use App\Planer\TemplateSync;
 use App\Support\McpTokens;
 use Illuminate\Support\Facades\Notification;
 
@@ -71,6 +74,39 @@ class MolloPlanerServerTest extends McpTestCase
         $project = Project::where('name', 'Podcast Migration')->firstOrFail();
         $this->assertSame(ProjectRole::OWNER->value, $project->roleOf($this->owner)?->key);
         $this->assertSame(ProjectRole::MEMBER->value, $project->roleOf($this->member)?->key);
+    }
+
+    public function test_list_templates_shows_the_templates_for_every_token_owner(): void
+    {
+        TemplateSync::sync();
+
+        MolloPlanerServer::actingAs($this->member)->tool(ListTemplatesTool::class)
+            ->assertOk()
+            ->assertSee('Event')
+            ->assertSee('Veranstaltungsort anfragen')
+            ->assertSee('location');
+    }
+
+    public function test_admin_creates_a_project_from_a_template(): void
+    {
+        TemplateSync::sync();
+        $template = Template::query()->where('key', 'podcast')->firstOrFail();
+
+        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, ['name' => 'Aus Vorlage', 'template_id' => (string) $template->id])
+            ->assertOk()->assertSee('Aus Vorlage');
+
+        $project = Project::where('name', 'Aus Vorlage')->firstOrFail();
+        $this->assertSame(['topic_idea', 'guest_booking', 'audio_editing', 'social_media'], $project->labels()->pluck('key')->all());
+        $this->assertSame(3, Task::query()->where('project_id', $project->id)->count());
+        $this->assertSame($template->id, $project->template_id);
+    }
+
+    public function test_a_template_that_does_not_exist_creates_no_project(): void
+    {
+        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, ['name' => 'Aus Nichts', 'template_id' => '9999'])
+            ->assertHasErrors();
+
+        $this->assertFalse(Project::where('name', 'Aus Nichts')->exists());
     }
 
     public function test_an_unknown_member_creates_no_project(): void

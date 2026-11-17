@@ -3,11 +3,13 @@
 namespace Database\Seeders;
 
 use App\Enums\TaskStatus;
-use App\Models\LabelSet;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\Template;
 use App\Models\Todo;
+use App\Planer\TemplateSync;
+use App\Services\ProjectLabels;
 use App\Support\DevelopmentHistory\HistoryMarkdown;
 use App\Support\DevelopmentHistory\HistoryValidator;
 use Illuminate\Database\Seeder;
@@ -60,17 +62,17 @@ class DevelopmentHistorySeeder extends Seeder
 
         $history = HistoryMarkdown::parse($markdown);
 
-        DB::transaction(function () use ($history): void {
-            $labelSet = LabelSet::query()->where('key', 'software_dev')->firstOrFail();
+        TemplateSync::sync();
 
+        DB::transaction(function () use ($history): void {
             $project = Project::create([
                 'name' => self::PROJECT_NAME,
                 'description' => $this->richText('Entwicklung von Mollo Planer, aus docs/entwicklung.md.'),
                 'locale' => 'de',
-                'label_set_id' => $labelSet->getKey(),
             ]);
 
-            $labelIds = $labelSet->labels()->pluck('labels.id', 'labels.key');
+            app(ProjectLabels::class)->copyFromTemplate($project, Template::query()->where('key', 'software-development')->firstOrFail());
+            $labelIds = $project->labels()->pluck('labels.id', 'labels.key');
             $positions = [];
 
             foreach ($history['milestones'] as $milestoneData) {

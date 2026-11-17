@@ -36,8 +36,6 @@ return [
     'roles.manage' => 'Manage roles and functions',
     'templates.manage' => 'Manage own templates',
     'templates.manageAny' => 'Manage all templates',
-    'labelSets.manage' => 'Manage own label sets',
-    'labelSets.manageAny' => 'Manage all label sets',
     'assistant.use' => 'Use the AI assistant',
     'ideas.create' => 'Record ideas',
     'ideas.viewAny' => 'See all ideas',

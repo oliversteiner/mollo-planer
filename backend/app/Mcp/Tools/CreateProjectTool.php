@@ -13,7 +13,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('create_project')]
-#[Description('Creates a project (admins only) and adds its members by e-mail with a role. The creator does not become a member automatically: add yourself if you want to work in it. Members must already have an account. Returns the new project id for create_project_plan.')]
+#[Description('Creates a project (admins only) and adds its members by e-mail with a role. The creator does not become a member automatically: add yourself if you want to work in it. Members must already have an account. With template_id (see list_templates) the project starts with the labels and the outline of the template. Returns the new project id for create_project_plan.')]
 class CreateProjectTool extends Tool
 {
     use ResolvesPeople;
@@ -25,11 +25,13 @@ class CreateProjectTool extends Tool
             'name' => ['required', 'string', 'min:2', 'max:120'],
             'description' => ['nullable', 'string', 'max:2000'],
             'locale' => ['nullable', 'in:DE,EN'],
+            'template_id' => ['nullable', 'regex:/^[0-9]+$/'],
             'members' => ['array', 'max:50'],
             'members.*.email' => ['required', 'email'],
             'members.*.role' => ['required', 'in:OWNER,MANAGER,MEMBER'],
         ], [
             'locale.in' => 'locale is DE or EN (language of the notification e-mails).',
+            'template_id.regex' => 'template_id is the id of a template from list_templates.',
             'members.*.role.in' => 'role is OWNER, MANAGER or MEMBER.',
         ]);
 
@@ -42,6 +44,7 @@ class CreateProjectTool extends Tool
                     'name' => $validated['name'],
                     'description' => PlainTextDocument::from($validated['description'] ?? null),
                     'locale' => $validated['locale'] ?? 'DE',
+                    'templateId' => $validated['template_id'] ?? null,
                 ],
             ])['createProject'];
 
@@ -66,6 +69,7 @@ class CreateProjectTool extends Tool
             'name' => $schema->string()->description('Name of the project.')->required(),
             'description' => $schema->string()->description('Short plain-text description.'),
             'locale' => $schema->string()->enum(['DE', 'EN'])->description('Language of the notification e-mails. Default DE.'),
+            'template_id' => $schema->string()->description('Id of a template from list_templates: the project gets its labels and its outline of milestones, todos and tasks (all planned).'),
             'members' => $schema->array()->items($schema->object([
                 'email' => $schema->string()->description('E-mail of an existing account.')->required(),
                 'role' => $schema->string()->enum(['OWNER', 'MANAGER', 'MEMBER'])->description('OWNER and MANAGER manage the project and create tasks; MEMBER works on tasks.')->required(),

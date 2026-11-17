@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\GraphQL;
 
-use App\Models\LabelSet;
+use App\Models\Label;
 use App\Models\Milestone;
 use App\Models\Todo;
 use Closure;
@@ -42,21 +42,18 @@ class PlanerRevisionTest extends GraphQLTestCase
             'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $t) => ['id' => $t->task->id]],
             'moveTaskToTodo' => ['manager', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $t) => ['id' => $t->task->id, 't' => Todo::factory()->for($t->milestone)->create()->id]],
             'deleteTask' => ['manager', 'mutation ($id: ID!) { deleteTask(id: $id) { id } }', fn (self $t) => ['id' => $t->task->id]],
-            'setTaskLabels' => ['manager', 'mutation ($id: ID!, $l: [ID!]!) { setTaskLabels(taskId: $id, labelIds: $l) { id } }', fn (self $t) => ['id' => $t->task->id, 'l' => [$t->labelOfTheProjectSet()]]],
+            'setTaskLabels' => ['manager', 'mutation ($id: ID!, $l: [ID!]!) { setTaskLabels(taskId: $id, labelIds: $l) { id } }', fn (self $t) => ['id' => $t->task->id, 'l' => [$t->labelOfTheProject()]]],
             'setProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "member") { id } }', fn (self $t) => ['p' => $t->project->id, 'u' => $t->users['stranger']->id]],
             'removeProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $t) => ['p' => $t->project->id, 'u' => $t->users['member']->id]],
         ];
     }
 
     /**
-     * Gives the project a label set and returns one of its labels.
+     * Gives the project a label and returns its id.
      */
-    private function labelOfTheProjectSet(): string
+    private function labelOfTheProject(): string
     {
-        $set = LabelSet::query()->whereNotNull('key')->firstOrFail();
-        $this->project->labelSet()->associate($set)->save();
-
-        return (string) $set->labels()->firstOrFail()->id;
+        return (string) Label::factory()->for($this->project)->create()->id;
     }
 
     /**

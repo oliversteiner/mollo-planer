@@ -90,6 +90,10 @@ cd "$BACKEND"
 log "Migrationen ausführen"
 "$PHP" "$BACKEND/artisan" migrate --force
 
+# Die mitgelieferten Vorlagen (spec/templates) in die Datenbank schreiben; ändert nichts, wenn die Dateien gleich blieben.
+log "Vorlagen abgleichen"
+"$PHP" "$BACKEND/artisan" planer:sync-templates
+
 log "Caches erzeugen"
 "$PHP" "$BACKEND/artisan" config:cache
 "$PHP" "$BACKEND/artisan" route:cache

@@ -11,7 +11,7 @@
         "key": "location",
         "names": {
           "de": "Location",
-          "en": "location"
+          "en": "Location"
         },
         "category": "trade",
         "color": "purple"
@@ -20,7 +20,7 @@
         "key": "speakers",
         "names": {
           "de": "Speaker",
-          "en": "speakers"
+          "en": "Speakers"
         },
         "category": "trade",
         "color": "cyan"
@@ -29,7 +29,7 @@
         "key": "marketing",
         "names": {
           "de": "Marketing",
-          "en": "marketing"
+          "en": "Marketing"
         },
         "category": "trade",
         "color": "orange"
@@ -38,7 +38,7 @@
         "key": "confirmed",
         "names": {
           "de": "Bestätigt",
-          "en": "confirmed"
+          "en": "Confirmed"
         },
         "category": "status",
         "color": "green"

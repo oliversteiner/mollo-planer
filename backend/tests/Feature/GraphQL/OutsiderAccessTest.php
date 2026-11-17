@@ -3,8 +3,8 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
-use App\Models\LabelSet;
 use App\Models\Task;
+use App\Models\Template;
 use App\Services\Deletion;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -61,7 +61,7 @@ class OutsiderAccessTest extends GraphQLTestCase
         $task = fn (self $test) => ['id' => $test->task->id];
         $comment = fn (self $test) => ['id' => $test->comment->id];
         $member = fn (self $test) => ['id' => $test->users['member']->id];
-        $labelSet = fn (self $test) => ['id' => LabelSet::factory()->create()->id];
+        $template = fn (self $test) => ['id' => Template::factory()->create()->id];
         $anyRole = fn (self $test) => ['id' => DB::table('roles')->where(['scope' => 'project', 'key' => 'member'])->value('id')];
         $anyFunction = fn (self $test) => ['id' => DB::table('functions')->where(['scope' => 'project', 'key' => 'contribute'])->value('id')];
 
@@ -103,7 +103,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'rejectUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { rejectUser(id: $id) { id } }', fn (self $test) => ['id' => $test->users['stranger']->id]],
             'moveTodo' => ['stranger', 'mutation ($id: ID!, $m: ID!) { moveTodo(id: $id, milestoneId: $m, position: 0) { id } }', fn (self $test) => ['id' => $test->todo->id, 'm' => $test->milestone->id]],
             'moveMilestone' => ['stranger', 'mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
-            'setProjectLabelSet (member)' => ['member', 'mutation ($p: ID!) { setProjectLabelSet(projectId: $p, labelSetId: null) { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'updateProjectLabels (member)' => ['member', 'mutation ($p: ID!) { updateProjectLabels(projectId: $p, labels: []) { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'applyTemplateLabels (member)' => ['member', 'mutation ($p: ID!, $t: ID!) { applyTemplateLabels(projectId: $p, templateId: $t, mode: APPEND) { id } }', fn (self $test) => ['p' => $test->project->id, 't' => Template::factory()->create()->id]],
             'setTaskLabels (member)' => ['member', 'mutation ($t: ID!) { setTaskLabels(taskId: $t, labelIds: []) { id } }', fn (self $test) => ['t' => $test->task->id]],
             'createRole' => ['owner', 'mutation { createRole(input: {scope: PROJECT, names: {de: "Hack", en: "Hack"}, functionIds: []}) { id } }', fn (self $test) => []],
             'updateRole' => ['owner', 'mutation ($id: ID!) { updateRole(id: $id, input: {names: {de: "Hack", en: "Hack"}}) { id } }', $anyRole],
@@ -116,10 +117,10 @@ class OutsiderAccessTest extends GraphQLTestCase
             'duplicateRoleFunction' => ['owner', 'mutation ($id: ID!) { duplicateRoleFunction(id: $id) { id } }', $anyFunction],
             'deleteRoleFunction' => ['owner', 'mutation ($id: ID!) { deleteRoleFunction(id: $id) { id } }', $anyFunction],
             'resetRoleFunction' => ['owner', 'mutation ($id: ID!) { resetRoleFunction(id: $id) { id } }', $anyFunction],
-            'createLabelSet (member)' => ['member', 'mutation { createLabelSet(input: {name: "Bau", labels: []}) { id } }', fn (self $test) => []],
-            'updateLabelSet (member)' => ['member', 'mutation ($id: ID!) { updateLabelSet(id: $id, input: {name: "Hack", labels: []}) { id } }', $labelSet],
-            'deleteLabelSet (member)' => ['member', 'mutation ($id: ID!) { deleteLabelSet(id: $id) { id } }', $labelSet],
-            'duplicateLabelSet (member)' => ['member', 'mutation ($id: ID!) { duplicateLabelSet(id: $id) { id } }', $labelSet],
+            'createTemplate (member)' => ['member', 'mutation { createTemplate(input: {name: "Bau", locale: DE, labels: [{names: [{locale: DE, name: "Eins"}], color: RED}]}) { id } }', fn (self $test) => []],
+            'updateTemplate (member)' => ['member', 'mutation ($id: ID!) { updateTemplate(id: $id, input: {name: "Hack", labels: [{names: [{locale: DE, name: "Eins"}], color: RED}]}) { id } }', $template],
+            'deleteTemplate (member)' => ['member', 'mutation ($id: ID!) { deleteTemplate(id: $id) }', $template],
+            'duplicateTemplate (member)' => ['member', 'mutation ($id: ID!) { duplicateTemplate(id: $id) { id } }', $template],
         ];
     }
 

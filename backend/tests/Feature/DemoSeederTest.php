@@ -61,7 +61,8 @@ class DemoSeederTest extends TestCase
             );
         }
 
-        $this->assertSame('software_dev', $relaunch->labelSet?->key);
+        $this->assertSame(['research', 'design', 'feature', 'bug', 'planning', 'blocked'], $relaunch->labels()->pluck('key')->all());
+        $this->assertSame('software-development', $relaunch->template?->key);
         $this->assertEqualsCanonicalizing(['design', 'feature'], Task::where('title', 'Komponenten dokumentieren')->firstOrFail()->labels->pluck('key')->all());
     }
 

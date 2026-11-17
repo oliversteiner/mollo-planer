@@ -8,9 +8,9 @@ use App\Planer\PlanerRevision;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The only place that writes the labels of a task. New labels come only from
- * the label set of its project. Labels the task already has may stay after
- * the project changed its set (they are shown, but cannot be chosen again).
+ * The only place that writes the labels of a task. Labels come from the
+ * labels of its project; one the task has may stay when it was moved to a
+ * project without it (it is shown, but cannot be chosen again).
  */
 class TaskLabels
 {
@@ -44,11 +44,7 @@ class TaskLabels
             return [];
         }
 
-        $allowed = $project->label_set_id === null
-            ? collect()
-            : $project->labelSet()->firstOrFail()->labels()->pluck('labels.id');
-
-        $allowed = $allowed->merge($task->labels()->pluck('labels.id'));
+        $allowed = $project->labels()->pluck('labels.id')->merge($task->labels()->pluck('labels.id'));
 
         $allowed = $allowed->map(fn ($id) => (int) $id)->all();
 

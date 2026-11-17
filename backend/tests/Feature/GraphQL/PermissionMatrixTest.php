@@ -27,7 +27,7 @@ class PermissionMatrixTest extends GraphQLTestCase
 
         $this->assertSame(['admin'], $system['USERS_MANAGE']);
         $this->assertEqualsCanonicalizing(['admin', 'projektleitung', 'koordination'], $system['PROJECTS_CREATE']);
-        $this->assertEqualsCanonicalizing(['admin', 'projektleitung'], $system['LABEL_SETS_MANAGE']);
+        $this->assertEqualsCanonicalizing(['admin', 'projektleitung'], $system['TEMPLATES_MANAGE']);
         $this->assertSame(['admin'], $system['PROJECTS_MANAGE_ANY']);
     }
 

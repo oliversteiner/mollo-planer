@@ -6,7 +6,7 @@ use App\Enums\ItemStatus;
 use App\Enums\ProjectRole;
 use App\Enums\TaskStatus;
 use App\Models\Comment;
-use App\Models\LabelSet;
+use App\Models\Label;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Role;
@@ -167,9 +167,7 @@ class TrashTest extends GraphQLTestCase
 
     public function test_labels_stay_on_a_deleted_task_and_memberships_on_a_deleted_project(): void
     {
-        $labelSet = LabelSet::factory()->hasLabels(1)->create();
-        $this->project->forceFill(['label_set_id' => $labelSet->id])->save();
-        $this->task->labels()->attach($labelSet->labels->first());
+        $this->task->labels()->attach(Label::factory()->for($this->project)->create());
 
         $this->deletion->delete($this->project);
         $id = Project::onlyTrashed()->find($this->project->id)->deletion_id;

@@ -11,7 +11,7 @@
         "key": "research",
         "names": {
           "de": "Recherche",
-          "en": "research"
+          "en": "Research"
         },
         "category": "phase",
         "color": "blue"
@@ -20,7 +20,7 @@
         "key": "design",
         "names": {
           "de": "Design",
-          "en": "design"
+          "en": "Design"
         },
         "category": "phase",
         "color": "pink"
@@ -29,7 +29,7 @@
         "key": "feature",
         "names": {
           "de": "Feature",
-          "en": "feature"
+          "en": "Feature"
         },
         "category": "type",
         "color": "green"
@@ -38,7 +38,7 @@
         "key": "bug",
         "names": {
           "de": "Fehler",
-          "en": "bug"
+          "en": "Bug"
         },
         "category": "type",
         "color": "red"
@@ -47,7 +47,7 @@
         "key": "planning",
         "names": {
           "de": "Planung",
-          "en": "planning"
+          "en": "Planning"
         },
         "category": "type",
         "color": "indigo"
@@ -56,7 +56,7 @@
         "key": "blocked",
         "names": {
           "de": "Blockiert",
-          "en": "blocked"
+          "en": "Blocked"
         },
         "category": "status",
         "color": "yellow"

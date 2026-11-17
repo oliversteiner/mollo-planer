@@ -9,13 +9,15 @@ use App\Enums\TaskStatus;
 use App\Enums\UserActivity;
 use App\Enums\UserRole;
 use App\Models\Comment;
-use App\Models\LabelSet;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
+use App\Models\Template;
 use App\Models\Todo;
 use App\Models\User;
+use App\Planer\TemplateSync;
+use App\Services\ProjectLabels;
 use App\Support\AppSettings;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -76,6 +78,9 @@ class DemoSeeder extends Seeder
 
         $password = $this->password();
 
+        // The built-in templates give the projects their labels.
+        TemplateSync::sync();
+
         $credentials = DB::transaction(function () use ($password): array {
             $credentials = $this->createUsers($password);
             $this->createWebsiteRelaunch();
@@ -133,7 +138,7 @@ class DemoSeeder extends Seeder
             'chiara' => ProjectRole::MANAGER,
             'david' => ProjectRole::MEMBER,
         ]);
-        $this->useLabelSet($project, 'software_dev');
+        $this->useTemplateLabels($project, 'software-development');
 
         $design = $this->milestone($project, 'Design freigegeben', 'Styleguide und Entwürfe sind abgenommen.', 'palette', '2026-11-20');
         $design->update(['release_version' => '1.1', 'release_status' => ReleaseStatus::PLANNED]);
@@ -176,7 +181,7 @@ class DemoSeeder extends Seeder
             'chiara' => ProjectRole::OWNER,
             'david' => ProjectRole::MEMBER,
         ]);
-        $this->useLabelSet($project, 'event');
+        $this->useTemplateLabels($project, 'event');
 
         $budget = $this->milestone($project, 'Budget und Termin', 'Budget genehmigt, Datum und Ort fest.', 'coins', '2026-12-04');
 
@@ -259,21 +264,22 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * The project uses one of the built-in label sets (created by the migration).
+     * The project gets copies of the labels of a built-in template.
      */
-    private function useLabelSet(Project $project, string $key): void
+    private function useTemplateLabels(Project $project, string $key): void
     {
-        $project->labelSet()->associate(LabelSet::query()->where('key', $key)->firstOrFail())->save();
+        $template = Template::query()->where('key', $key)->firstOrFail();
+
+        app(ProjectLabels::class)->copyFromTemplate($project, $template);
+        $project->forceFill(['template_id' => $template->getKey()])->save();
     }
 
     /**
-     * Labels of the project's set, by their key.
+     * Labels of the project, by their key.
      */
     private function label(Task $task, string ...$keys): void
     {
-        $set = $task->owningProject()->labelSet()->firstOrFail();
-
-        $task->labels()->attach($set->labels()->whereIn('key', $keys)->pluck('labels.id'));
+        $task->labels()->attach($task->owningProject()->labels()->whereIn('key', $keys)->pluck('labels.id'));
     }
 
     private function comment(Task $task, string $author, string $text, string $createdAt): void

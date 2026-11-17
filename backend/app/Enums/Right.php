@@ -56,12 +56,10 @@ enum Right: string
     case USERS_MANAGE = 'users.manage';
     /** Roles and functions in the settings. */
     case ROLES_MANAGE = 'roles.manage';
+    /** Create and duplicate templates, change and delete one's own. */
     case TEMPLATES_MANAGE = 'templates.manage';
+    /** Change and delete the templates of others. */
     case TEMPLATES_MANAGE_ANY = 'templates.manageAny';
-    /** Create and duplicate label sets. Becomes templates.manage in step S7. */
-    case LABEL_SETS_MANAGE = 'labelSets.manage';
-    /** Change and delete label sets of others. Becomes templates.manageAny in step S7. */
-    case LABEL_SETS_MANAGE_ANY = 'labelSets.manageAny';
     case ASSISTANT_USE = 'assistant.use';
     case IDEAS_CREATE = 'ideas.create';
     case IDEAS_VIEW_ANY = 'ideas.viewAny';
@@ -85,8 +83,6 @@ enum Right: string
         self::ROLES_MANAGE,
         self::TEMPLATES_MANAGE,
         self::TEMPLATES_MANAGE_ANY,
-        self::LABEL_SETS_MANAGE,
-        self::LABEL_SETS_MANAGE_ANY,
         self::ASSISTANT_USE,
         self::IDEAS_CREATE,
         self::IDEAS_VIEW_ANY,

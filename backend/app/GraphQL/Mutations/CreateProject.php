@@ -5,7 +5,10 @@ namespace App\GraphQL\Mutations;
 use App\Enums\Locale;
 use App\Models\Project;
 use App\Models\Role;
+use App\Models\Template;
 use App\Models\User;
+use App\Planer\TemplateScaffold;
+use App\Services\ProjectLabels;
 use App\Services\ProjectMembership;
 use App\Support\AppSettings;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -21,13 +24,20 @@ use Illuminate\Validation\ValidationException;
  *
  * Further members come in the same transaction, each through
  * ProjectMembership, so the ground rules hold (docs/fix-m1-mitglieder.md §1.2).
+ *
+ * With a template the project gets copies of its labels and its outline
+ * (docs/auftrag-m3.md 3.3), in the same transaction: one change, revision 1.
  */
 class CreateProject
 {
-    public function __construct(private readonly ProjectMembership $membership) {}
+    public function __construct(
+        private readonly ProjectMembership $membership,
+        private readonly ProjectLabels $labels,
+        private readonly TemplateScaffold $scaffold,
+    ) {}
 
     /**
-     * @param  array{name: string, description?: array<string, mixed>|null, icon?: string|null, locale?: string|null, members?: list<array{userId: int|string, role: string}>|null}  $args
+     * @param  array{name: string, description?: array<string, mixed>|null, icon?: string|null, locale?: string|null, members?: list<array{userId: int|string, role: string}>|null, templateId?: int|string|null}  $args
      *
      * @throws ValidationException
      */
@@ -35,21 +45,35 @@ class CreateProject
     {
         $creator = Auth::user();
 
-        return DB::transaction(function () use ($args, $creator): Project {
-            $project = Project::create([
+        $project = DB::transaction(function () use ($args, $creator): Project {
+            $template = isset($args['templateId'])
+                ? Template::query()->find($args['templateId']) ?? throw ValidationException::withMessages(['input.templateId' => __('labels.template_unknown')])
+                : null;
+
+            $project = new Project([
                 'name' => $args['name'],
-                'description' => $args['description'] ?? null,
+                'description' => $args['description'] ?? ($template === null ? null : $this->scaffold->description($template)),
                 'icon' => $args['icon'] ?? null,
                 'locale' => $args['locale'] ?? Locale::DE->value,
             ]);
+            $project->template_id = $template?->getKey();
+            $project->save();
 
             if ($creator instanceof User) {
                 $project->members()->attach($creator->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
                 $this->addMembers($project, $creator, $args['members'] ?? []);
             }
 
+            if ($template !== null) {
+                $this->labels->copyFromTemplate($project, $template);
+                $this->scaffold->apply($project, $template);
+            }
+
             return $project;
         });
+
+        // The planer revision is counted when the transaction is over.
+        return $project->refresh();
     }
 
     /**

@@ -9,10 +9,6 @@
  * of one scope. A role is a named set of functions of one scope.
  * 'project_cap' limits the project rights of a system role (null = all, [] =
  * none). projects.manageAny overrides the cap.
- *
- * labelSets.manage and labelSets.manageAny are today's rights for label
- * sets. They ride along with the template functions until step S7 replaces
- * them by templates.manage and templates.manageAny.
  */
 return [
     'functions' => [
@@ -31,11 +27,11 @@ return [
             ],
             'templates' => [
                 'names' => ['de' => 'Vorlagen', 'en' => 'Templates'],
-                'rights' => ['templates.manage', 'labelSets.manage'],
+                'rights' => ['templates.manage'],
             ],
             'all-templates' => [
                 'names' => ['de' => 'Alle Vorlagen', 'en' => 'All templates'],
-                'rights' => ['templates.manageAny', 'labelSets.manageAny'],
+                'rights' => ['templates.manageAny'],
             ],
             'ai-and-ideas' => [
                 'names' => ['de' => 'KI und Ideen', 'en' => 'AI and ideas'],

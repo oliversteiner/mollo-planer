@@ -11,7 +11,7 @@
         "key": "topic_idea",
         "names": {
           "de": "Themenidee",
-          "en": "topic idea"
+          "en": "Topic idea"
         },
         "category": "pipeline",
         "color": "indigo"
@@ -20,7 +20,7 @@
         "key": "guest_booking",
         "names": {
           "de": "Gästebuchung",
-          "en": "guest booking"
+          "en": "Guest booking"
         },
         "category": "pipeline",
         "color": "cyan"
@@ -29,7 +29,7 @@
         "key": "audio_editing",
         "names": {
           "de": "Audioschnitt",
-          "en": "audio editing"
+          "en": "Audio editing"
         },
         "category": "pipeline",
         "color": "yellow"
@@ -38,7 +38,7 @@
         "key": "social_media",
         "names": {
           "de": "Social Media",
-          "en": "social media"
+          "en": "Social media"
         },
         "category": "promotion",
         "color": "pink"

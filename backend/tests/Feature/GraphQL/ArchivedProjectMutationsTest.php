@@ -4,6 +4,7 @@ namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
 use App\Models\Task;
+use App\Models\Template;
 use App\Services\Deletion;
 use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Schema\SchemaBuilder;
@@ -27,19 +28,19 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
         'approveUser' => 'user administration',
         'setProjectCreatorRole' => 'app settings, belong to no project',
         'createApiToken' => 'personal token',
-        'createLabelSet' => 'label sets belong to no project',
+        'createTemplate' => 'templates belong to no project',
         'createProject' => 'a new project is not archived',
         'createRole' => 'roles and functions belong to no project',
         'createRoleFunction' => 'roles and functions belong to no project',
         'createUser' => 'user administration',
         'deleteApiToken' => 'personal token',
-        'deleteLabelSet' => 'label sets belong to no project',
+        'deleteTemplate' => 'templates belong to no project',
         'deleteRole' => 'roles and functions belong to no project',
         'deleteRoleFunction' => 'roles and functions belong to no project',
         'deleteUser' => 'user administration',
         'deleteUserAvatar' => 'user profile',
         'draftProjectPlan' => 'writes nothing',
-        'duplicateLabelSet' => 'label sets belong to no project',
+        'duplicateTemplate' => 'templates belong to no project',
         'duplicateRole' => 'roles and functions belong to no project',
         'duplicateRoleFunction' => 'roles and functions belong to no project',
         'importProjectPlan' => 'creates a new project',
@@ -49,7 +50,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
         'resetUserTwoFactor' => 'user administration',
         'setDefaultRole' => 'roles and functions belong to no project',
         'updateAppSettings' => 'application settings',
-        'updateLabelSet' => 'label sets belong to no project',
+        'updateTemplate' => 'templates belong to no project',
         'updateMyAvatar' => 'user profile',
         'updateMyNotifications' => 'user profile',
         'updateRole' => 'roles and functions belong to no project',
@@ -126,7 +127,8 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
             'moveTaskToTodo' => ['mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => $test->todo->id]],
             'moveTodo' => ['mutation ($id: ID!, $m: ID!) { moveTodo(id: $id, milestoneId: $m, position: 0) { id } }', fn (self $test) => ['id' => $test->todo->id, 'm' => $test->milestone->id]],
             'removeProjectMember' => ['mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],
-            'setProjectLabelSet' => ['mutation ($p: ID!) { setProjectLabelSet(projectId: $p, labelSetId: null) { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'updateProjectLabels' => ['mutation ($p: ID!) { updateProjectLabels(projectId: $p, labels: []) { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'applyTemplateLabels' => ['mutation ($p: ID!, $t: ID!) { applyTemplateLabels(projectId: $p, templateId: $t, mode: APPEND) { id } }', fn (self $test) => ['p' => $test->project->id, 't' => Template::factory()->create()->id]],
             'setProjectMember' => ['mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "member") { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
             'setTaskLabels' => ['mutation ($t: ID!) { setTaskLabels(taskId: $t, labelIds: []) { id } }', fn (self $test) => ['t' => $test->task->id]],
             'updateComment' => ['mutation ($id: ID!, $b: RichText!) { updateComment(id: $id, input: {body: $b}) { id } }', fn (self $test) => ['id' => $test->comment->id, 'b' => $test->doc('Neu')]],

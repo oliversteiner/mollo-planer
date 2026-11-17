@@ -109,30 +109,34 @@ type Mutation @guard {
     @can(ability: "manageRoles", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@reset")
 
-  # Label-Sets: app-weit. Anlegen mit labelSets.manage (Rolle); eigene Sets
-  # ändert und löscht der Ersteller mit dieser Fähigkeit, fremde mit
-  # labelSets.manageAny (Admin), mitgelieferte niemand.
-  "Legt ein eigenes Label-Set an."
-  createLabelSet(input: LabelSetInput!): LabelSet!
-    @can(ability: "create", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@create")
-  "Kopiert ein Set (auch ein mitgeliefertes) als eigenes Set, um es anzupassen."
-  duplicateLabelSet(id: ID!): LabelSet!
-    @can(ability: "duplicate", find: "id", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\DuplicateLabelSet")
-  "Ändert Name, Beschreibung und Labels in einem Zug. Labels mit id bleiben (und an ihren Tasks), ohne id kommen neu dazu, fehlende werden gelöscht (auch an den Tasks)."
-  updateLabelSet(id: ID!, input: LabelSetInput!): LabelSet!
-    @can(ability: "update", find: "id", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@update")
-  "Löscht ein eigenes Set, das kein Projekt mehr verwendet."
-  deleteLabelSet(id: ID!): LabelSet!
-    @can(ability: "delete", find: "id", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\DeleteLabelSet")
-  "Wählt das Label-Set eines Projekts (null: keins). Tasks behalten ihre bisherigen Labels."
-  setProjectLabelSet(projectId: ID!, labelSetId: ID): Project!
+  # Vorlagen: app-weit, alle Angemeldeten lesen sie. Anlegen und Duplizieren mit
+  # templates.manage (Rolle); eigene ändert und löscht der Ersteller mit dieser
+  # Fähigkeit, fremde mit templates.manageAny (Admin), mitgelieferte niemand.
+  "Legt eine eigene Vorlage an: Name, Beschreibung, Sprache und Labels, ohne Gerüst."
+  createTemplate(input: TemplateInput!): Template!
+    @can(ability: "create", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveTemplate@create")
+  "Kopiert eine Vorlage (auch eine mitgelieferte) mit ihrem Gerüst als eigene Vorlage, um sie anzupassen."
+  duplicateTemplate(id: ID!): Template!
+    @can(ability: "duplicate", find: "id", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\DuplicateTemplate")
+  "Ändert Name, Beschreibung und Labels einer eigenen Vorlage in einem Zug. Labels mit Schlüssel bleiben, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht."
+  updateTemplate(id: ID!, input: UpdateTemplateInput!): Template!
+    @can(ability: "update", find: "id", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveTemplate@update")
+  "Löscht eine eigene Vorlage endgültig (kein Papierkorb). Projekte aus ihr behalten ihre Kopien."
+  deleteTemplate(id: ID!): Boolean!
+    @can(ability: "delete", find: "id", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteTemplate")
+  "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
+  updateProjectLabels(projectId: ID!, labels: [LabelInput!]! @rulesForArray(apply: ["max:30"])): Project!
     @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
-    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectLabelSet")
-  "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateProjectLabels")
+  "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
+  applyTemplateLabels(projectId: ID!, templateId: ID!, mode: TemplateLabelMode!): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ApplyTemplateLabels")
+  "Setzt die Labels eines Tasks. Neue Labels müssen aus den Labels des Projekts stammen; bisherige dürfen bleiben."
   setTaskLabels(taskId: ID!, labelIds: [ID!]!): Task!
     @can(ability: "update", find: "taskId", model: "App\\Models\\Task")
     @field(resolver: "App\\GraphQL\\Mutations\\SetTaskLabels")

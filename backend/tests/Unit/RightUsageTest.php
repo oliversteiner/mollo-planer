@@ -24,8 +24,6 @@ class RightUsageTest extends TestCase
         'planer.export' => 'I1',
         'planer.import' => 'I2',
         'aiContext.update' => 'B6',
-        'templates.manage' => 'S7',
-        'templates.manageAny' => 'S7',
         'assistant.use' => 'B5a',
         'ideas.create' => 'B6',
         'ideas.viewAny' => 'B6',
