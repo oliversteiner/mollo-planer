@@ -41,7 +41,7 @@ Beim Vergleich ist aufgefallen: `spec/format-v2.md` §6.1 (gebaut in T6) weicht 
 
 Grundsatz für die Entscheidung: **Was der Editor speichern kann, muss als Datei gültig sein.** Sonst bricht der Export (I1) an Beschreibungen, die jemand ganz normal im Editor geschrieben hat.
 
-**Vorschlag (gilt, wenn Oliver nicht widerspricht):**
+**Entschieden (Oliver, 2026-11-17):**
 - Gemischt verschachtelte Listen werden in der Datei **erlaubt**. `tools/planer` (Validator, `richtext.mjs`, §6.1) wird angepasst, `mixed-list.error.md` wird zum Paar `mixed-list.in.md`/`.out.md`.
 - Tiefe und Code in Fett/Kursiv bleiben wie in §6.1 (erlaubt). §9.4/§9.6 gelten an diesen Stellen nicht mehr.
 - Die Startnummer einer nummerierten Liste geht verloren (Liste ab 1), wie in §6.1. Die App nimmt `orderedList.attrs.start` weiter an (`RichTextDocument` erlaubt es heute, der Editor schreibt es); `TiptapToMarkdown` lässt es weg, `MarkdownToTiptap` setzt es nie. (Korrektur 2026-11-17: Die frühere Aussage „der Validator der App lässt `start` nicht zu“ stimmt nicht mit dem Code überein und gilt nicht.)
