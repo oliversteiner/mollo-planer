@@ -17,6 +17,7 @@ export const kanbanQuery = graphql(`
         labels { id name color position }
         assignee { id name avatarUrl }
         todo { id title }
+        viewerCanUpdate
       }
     }
   }
@@ -54,6 +55,10 @@ export const taskQuery = graphql(`
       userStory { role goal benefit }
       assignee { id name avatarUrl }
       labels { id name color position }
+      viewerCanUpdate
+      viewerCanAssign
+      viewerCanAssignSelf
+      viewerCanDelete
       todo {
         id
         title

@@ -655,6 +655,14 @@ type Task {
  todo: Todo!
  "Die Story des Tasks: Als <Rolle> möchte ich <Ziel>, damit <Nutzen>."
  userStory: UserStory
+ "Darf sie den Task beliebigen Personen zuweisen (task.assign)?"
+ viewerCanAssign: Boolean!
+ "Darf sie sich den Task wenigstens selbst zuweisen (task.assign oder task.assignSelf)?"
+ viewerCanAssignSelf: Boolean!
+ "Darf sie den Task löschen?"
+ viewerCanDelete: Boolean!
+ "Darf die angemeldete Person den Task ändern? Auch mit task.updateOwn beim selbst angelegten Task."
+ viewerCanUpdate: Boolean!
 }
 "Spalten im Kanban-Board"
 enum TaskStatus {

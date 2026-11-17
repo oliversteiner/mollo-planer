@@ -27,7 +27,7 @@ const milestonesOnly = computed({
 })
 
 /** Todos for the task dialog, members for it and the task details. */
-const taskFormEnabled = computed(() => can('TASK_CREATE') || can('TASK_UPDATE'))
+const taskFormEnabled = computed(() => can('TASK_CREATE') || can('TASK_UPDATE') || can('TASK_UPDATE_OWN'))
 const { result: todosResult } = useQuery(projectTodosQuery, () => ({ projectId: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
 const { result: membersResult } = useQuery(projectMembersQuery, () => ({ id: projectId.value }))
 const todos = computed(() => todosResult.value?.todos ?? [])
@@ -46,9 +46,6 @@ const returnToTaskId = ref<string | null>(null)
 
 const taskAbilities = computed(() => ({
   move: can('TASK_MOVE'),
-  assign: can('TASK_ASSIGN'),
-  update: can('TASK_UPDATE'),
-  delete: can('TASK_DELETE'),
   comment: can('COMMENT_CREATE')
 }))
 
@@ -147,7 +144,6 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
       :empty-hint="can('MILESTONE_CREATE') ? t('project.noMilestonesHint') : undefined"
       :can-create-todo="can('TODO_CREATE')"
       :can-create-task="can('TASK_CREATE')"
-      :can-update-task="can('TASK_UPDATE')"
       :can-move-task="can('TASK_UPDATE')"
       @create-todo="editing = { kind: 'todo', parentId: $event }"
       @create-task="createTask"

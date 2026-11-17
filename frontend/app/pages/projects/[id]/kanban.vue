@@ -92,7 +92,7 @@ function onDrop(event: SortableEvent): void {
 
 /** Card menu: edit (if allowed), then moving without dragging. */
 function menuItems(task: Task): ActionMenuItem[] {
-  const edit: ActionMenuItem[] = can('TASK_UPDATE')
+  const edit: ActionMenuItem[] = task.viewerCanUpdate
     ? [{ label: t('common.edit'), icon: 'pen', onSelect: () => editTask(task.id) }]
     : []
 
@@ -172,11 +172,11 @@ const { $apollo } = useNuxtApp()
 
 /**
  * Double-click or menu: edit the task. The board does not load the
- * description, so the task is fetched first. Without the right to edit,
- * the details open instead.
+ * description, so the task is fetched first. Without the right to edit
+ * this task (task.updateOwn holds per task), the details open instead.
  */
 async function editTask(taskId: string): Promise<void> {
-  if (!can('TASK_UPDATE')) {
+  if (!columns.value.some(column => column.tasks.some(task => task.id === taskId && task.viewerCanUpdate))) {
     openTask(taskId)
 
     return
@@ -193,9 +193,6 @@ async function editTask(taskId: string): Promise<void> {
 
 const abilities = computed(() => ({
   move: can('TASK_MOVE'),
-  assign: can('TASK_ASSIGN'),
-  update: can('TASK_UPDATE'),
-  delete: can('TASK_DELETE'),
   comment: can('COMMENT_CREATE')
 }))
 </script>
@@ -279,7 +276,7 @@ const abilities = computed(() => ({
             :key="task.id"
             :task="task"
             :menu-items="menuItems(task)"
-            :editable="can('TASK_UPDATE')"
+            :editable="task.viewerCanUpdate"
             @open="openTask(task.id)"
             @edit="editTask(task.id)"
           />

@@ -6,16 +6,15 @@ import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES
 
 /**
  * Details of a task in a side panel: status, assignee, due date,
- * description and comments. What can be changed follows the abilities.
+ * description and comments. Moving and commenting follow the project's
+ * abilities; changing, assigning and deleting follow the task's own answers
+ * (Task.viewerCan*), since task.updateOwn holds per task (docs/fix-m1-f4.md F4.5).
  */
 const props = defineProps<{
   taskId: string | null
   members: { id: string, name: string }[]
   can: {
     move: boolean
-    assign: boolean
-    update: boolean
-    delete: boolean
     comment: boolean
   }
 }>()
@@ -42,10 +41,15 @@ const { result, loading } = useQuery(taskQuery, () => ({ id: props.taskId ?? '' 
   fetchPolicy: 'cache-and-network'
 }))
 const task = computed(() => (props.taskId ? result.value?.task ?? null : null))
+const may = computed(() => ({
+  update: task.value?.viewerCanUpdate ?? false,
+  assign: task.value?.viewerCanAssignSelf ?? false,
+  delete: task.value?.viewerCanDelete ?? false
+}))
 
 const statusItems = computed(() => TASK_STATUSES.map(status => ({ label: t(`status.${status}`), value: status })))
 /** Members first; people who may manage members can also take somebody in. */
-const assignee = useAssigneeChoice(() => props.members)
+const assignee = useAssigneeChoice(() => props.members, () => task.value?.viewerCanAssign ?? false)
 
 const { mutate: moveTask } = useProjectMutation(moveTaskMutation)
 const { mutate: assignTask } = useProjectMutation(assignTaskMutation)
@@ -154,7 +158,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
         />
         <div class="wa-cluster wa-gap-3xs task-tools">
           <wa-button
-            v-if="can.update"
+            v-if="may.update"
             appearance="outlined"
             variant="neutral"
             size="s"
@@ -167,7 +171,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
             {{ t('common.edit') }}
           </wa-button>
           <wa-button
-            v-if="can.delete"
+            v-if="may.delete"
             appearance="plain"
             variant="danger"
             size="s"
@@ -201,7 +205,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
         </FormField>
 
         <FormInput
-          v-if="can.update"
+          v-if="may.update"
           :model-value="task.commit ?? ''"
           name="commit"
           :label="t('task.commit.label')"
@@ -211,7 +215,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
         />
 
         <FormPersonSelect
-          v-if="can.assign"
+          v-if="may.assign"
           :model-value="task.assignee?.id ?? null"
           :groups="assignee.groups.value"
           :label="t('task.assignee')"
@@ -228,7 +232,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), { onDeleted: () => 
       </div>
 
       <LabelPicker
-        v-if="can.update && (setLabels.length || extraLabels.length)"
+        v-if="may.update && (setLabels.length || extraLabels.length)"
         :model-value="task.labels.map(label => label.id)"
         :labels="setLabels"
         :extra="extraLabels"

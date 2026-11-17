@@ -51,7 +51,8 @@ const project = {
           dueDate: null,
           commentCount: 3,
           labels: [{ id: '4', name: 'Fehler', color: 'RED', position: 3 }],
-          assignee: { id: '5', name: 'Lindita Aliu', avatarUrl: null }
+          assignee: { id: '5', name: 'Lindita Aliu', avatarUrl: null },
+          viewerCanUpdate: false
         }]
       }]
     }
@@ -185,7 +186,7 @@ describe('ProjectTimeline', () => {
     ])
   })
 
-  it('opens a task by click and edits it by double-click with the right to', async () => {
+  it('opens a task by click and edits it by double-click when this task may be changed', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
 
     await timeline.find('button[aria-label="ToDo «Zielgruppe festlegen» auf- oder zuklappen"]').trigger('click')
@@ -198,8 +199,11 @@ describe('ProjectTimeline', () => {
     expect(timeline.emitted('openTask')).toEqual([['100']])
     expect(timeline.emitted('editTask')).toBeUndefined()
 
-    await timeline.setProps({ canUpdateTask: true })
+    // Task.viewerCanUpdate: per task, task.updateOwn holds for the own ones (F4.5).
+    const fixture = project.milestones[1]!.todos[0]!.tasks[0]!
+    fixture.viewerCanUpdate = true
     await task().trigger('dblclick')
+    fixture.viewerCanUpdate = false
 
     expect(timeline.emitted('editTask')).toEqual([[expect.objectContaining({ id: '100', title: 'Hörerprofile schreiben' })]])
   })

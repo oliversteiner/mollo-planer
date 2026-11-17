@@ -178,6 +178,14 @@ type Task {
   "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
   labels: [Label!]! @belongsToMany
   createdAt: DateTime! @rename(attribute: "created_at")
+  "Darf die angemeldete Person den Task ändern? Auch mit task.updateOwn beim selbst angelegten Task."
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@update")
+  "Darf sie den Task beliebigen Personen zuweisen (task.assign)?"
+  viewerCanAssign: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@assign")
+  "Darf sie sich den Task wenigstens selbst zuweisen (task.assign oder task.assignSelf)?"
+  viewerCanAssignSelf: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@assignSelf")
+  "Darf sie den Task löschen?"
+  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@delete")
 }
 
 "Eine Gruppe von Labels, app-weit. Jedes Projekt wählt ein Set."

@@ -27,8 +27,6 @@ const props = defineProps<{
   canCreateTodo?: boolean
   /** Shows "Task anlegen" under the tasks of each todo */
   canCreateTask?: boolean
-  /** A double-click on a task opens the edit dialog */
-  canUpdateTask?: boolean
   /** Tasks can be dragged into another todo */
   canMoveTask?: boolean
 }>()
@@ -53,9 +51,9 @@ type Milestone = NonNullable<ProjectTimelineQuery['project']>['milestones'][numb
 type MilestoneItem = TimelineEntry & { milestone: Milestone, number: number }
 type TimelineTask = Milestone['todos'][number]['tasks'][number]
 
-/** Click: details; double-click: edit dialog, with the right to change. */
+/** Click: details; double-click: edit dialog, with the right to change this task (task.updateOwn holds per task). */
 function editTask(task: TimelineTask) {
-  if (props.canUpdateTask) {
+  if (task.viewerCanUpdate) {
     emit('editTask', task)
   }
 }

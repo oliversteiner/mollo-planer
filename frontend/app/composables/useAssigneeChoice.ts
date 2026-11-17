@@ -15,7 +15,7 @@ interface Member {
  * only assign themselves (task.assignSelf without task.assign) sees only
  * themselves (docs/fix-m1-abnahme.md F3.9).
  */
-export function useAssigneeChoice(members: () => readonly Member[]) {
+export function useAssigneeChoice(members: () => readonly Member[], mayAssignOthers?: () => boolean) {
   const { t } = useI18n()
   const toast = useToast()
   const { projectId, can } = useProject()
@@ -26,7 +26,8 @@ export function useAssigneeChoice(members: () => readonly Member[]) {
   const canBringIn = computed(() => can('MEMBERS_MANAGE'))
   const { result } = useQuery(memberCandidatesQuery, () => ({ projectId: projectId.value }), () => ({ enabled: canBringIn.value }))
 
-  const onlySelf = computed(() => !can('TASK_ASSIGN'))
+  /** An existing task answers itself (Task.viewerCanAssign); a new one asks the project. */
+  const onlySelf = computed(() => !(mayAssignOthers ? mayAssignOthers() : can('TASK_ASSIGN')))
 
   const groups = computed<PersonGroup[]>(() => {
     const people = onlySelf.value
