@@ -1,6 +1,6 @@
 # Auftrag: M3 „Vorlagen und Labels“ (S3e, S7)
 
-Status: offen
+Status: erledigt (4193943), bereit zur Abnahme M3 (Browser-Prüfung durch Bob: Vorlagenseite, Gerüst-Baum, Projekt-Labels, Übernehmen mit Vorschau, Neues Projekt aus Vorlage, Telefonbreite)
 Stand: 2026-11-17, `dev` bis `c26119e`. M2 ist abgenommen.
 Dokument: `docs/auftrag-m3.md` (maßgeblich), dazu `docs/refactoring-m1-m3.md` (RF8).
 
