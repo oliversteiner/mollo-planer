@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Plan\PlanSchema;
+use App\Planer\PlanSchema;
 use GraphQL\Language\AST\InputObjectTypeDefinitionNode;
 use GraphQL\Language\AST\ListValueNode;
 use GraphQL\Language\AST\StringValueNode;

@@ -9,7 +9,7 @@ use Anthropic\Core\Exceptions\APIStatusException;
 use Anthropic\Core\Exceptions\AuthenticationException;
 use Anthropic\Core\Exceptions\PermissionDeniedException;
 use App\Models\User;
-use App\Plan\PlanSchema;
+use App\Planer\PlanSchema;
 use Carbon\CarbonImmutable;
 use GraphQL\Error\Error;
 use Illuminate\Support\Facades\Log;

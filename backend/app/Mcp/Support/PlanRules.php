@@ -2,7 +2,7 @@
 
 namespace App\Mcp\Support;
 
-use App\Plan\PlanSchema;
+use App\Planer\PlanSchema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\In;
 

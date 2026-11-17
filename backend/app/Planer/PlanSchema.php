@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Plan;
+namespace App\Planer;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
