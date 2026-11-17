@@ -179,7 +179,6 @@ class DemoSeeder extends Seeder
         $this->useLabelSet($project, 'event');
 
         $budget = $this->milestone($project, 'Budget und Termin', 'Budget genehmigt, Datum und Ort fest.', 'coins', '2026-12-04');
-        $this->milestone($project, 'Programm steht', 'Ablauf und Helferplan sind fertig.', 'calendar-days', '2027-03-12');
 
         $estimate = $this->todo($budget, 'Budget aufstellen', $this->plain('Kosten schätzen und Freigabe einholen.'), 'calculator', '2026-11-25');
 
@@ -191,6 +190,9 @@ class DemoSeeder extends Seeder
         $this->task($guests, 'Einladungsliste schreiben', TaskStatus::DONE, 0, 'chiara', '2026-12-20')->forceFill(['commit' => 'none'])->save();
         $this->task($guests, 'Einladung verschicken', TaskStatus::DONE, 1, 'chiara', '2027-01-05')->forceFill(['commit' => 'b7e4c21'])->save();
         $invitation->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]);
+
+        // Created last: the milestones' order (position) follows their due dates.
+        $this->milestone($project, 'Programm steht', 'Ablauf und Helferplan sind fertig.', 'calendar-days', '2027-03-12');
     }
 
     /**

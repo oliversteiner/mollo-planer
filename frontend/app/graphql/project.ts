@@ -95,6 +95,12 @@ export const updateMilestoneMutation = graphql(`
   }
 `)
 
+export const moveMilestoneMutation = graphql(`
+  mutation MoveMilestone($id: ID!, $position: Int!) {
+    moveMilestone(id: $id, position: $position) { id }
+  }
+`)
+
 export const deleteMilestoneMutation = graphql(`
   mutation DeleteMilestone($id: ID!) {
     deleteMilestone(id: $id) { id deletionId }

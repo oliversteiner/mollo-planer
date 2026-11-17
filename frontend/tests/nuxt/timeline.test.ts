@@ -8,25 +8,6 @@ const project = {
   id: '1',
   milestones: [
     {
-      id: '2',
-      title: 'Erste Folge online',
-      description: null,
-      icon: null,
-      dueDate: '2027-03-31',
-      status: 'OPEN',
-      progress: { done: 0, total: 1, percent: 0 },
-      todos: [{
-        id: '11',
-        title: 'Folge schneiden',
-        description: null,
-        icon: null,
-        dueDate: null,
-        status: 'OPEN',
-        progress: { done: 0, total: 0, percent: 0 },
-        tasks: []
-      }]
-    },
-    {
       id: '1',
       title: 'Konzept steht',
       description: null,
@@ -55,14 +36,36 @@ const project = {
           viewerCanUpdate: false
         }]
       }]
+    },
+    {
+      id: '2',
+      title: 'Erste Folge online',
+      description: null,
+      icon: null,
+      dueDate: '2027-03-31',
+      status: 'OPEN',
+      progress: { done: 0, total: 1, percent: 0 },
+      todos: [{
+        id: '11',
+        title: 'Folge schneiden',
+        description: null,
+        icon: null,
+        dueDate: null,
+        status: 'OPEN',
+        progress: { done: 0, total: 0, percent: 0 },
+        tasks: []
+      }]
     }
   ]
 }
 
 const { moveTaskToTodo } = vi.hoisted(() => ({ moveTaskToTodo: vi.fn() }))
 
+/** The backend's answer; milestones in their order (position). */
+const answer = ref<{ project: typeof project }>({ project })
+
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: () => ({ result: ref({ project }), loading: ref(false), refetch: vi.fn() }),
+  useQuery: () => ({ result: answer, loading: ref(false), refetch: vi.fn() }),
   useMutation: () => ({ mutate: moveTaskToTodo }),
   // The revision of the planer file (S3f): nothing in the cache, nothing changed.
   useApolloClient: () => ({ resolveClient: () => ({ readQuery: () => null, query: async () => ({ data: null }), refetchQueries: async () => [] }) })
@@ -73,7 +76,7 @@ beforeAll(async () => {
 })
 
 describe('ProjectTimeline', () => {
-  it('shows milestones by due date, the reached ones as completed', async () => {
+  it('shows milestones in their order, the reached ones as completed', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
 
     const stepper = timeline.find('wa-stepper').element as unknown as { active: string }
@@ -88,6 +91,19 @@ describe('ProjectTimeline', () => {
     expect(reached).toEqual([true, false])
     expect(stepper.active).toBe('2')
     expect(timeline.text()).toContain('31. Januar 2027')
+  })
+
+  it('keeps the order of the backend (position), not the due dates (F5.4)', async () => {
+    answer.value = { project: { ...project, milestones: [...project.milestones].reverse() } }
+    const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+    answer.value = { project }
+
+    const titles = timeline.findAll('.plan-timeline > wa-step').map(step => step.find('.timeline-title').text())
+
+    expect(titles).toEqual([
+      expect.stringMatching(/^M1\s*Erste Folge online/),
+      expect.stringMatching(/^M2\s*Konzept steht/)
+    ])
   })
 
   it('opens a todo to show its tasks with the assignee', async () => {
@@ -186,6 +202,15 @@ describe('ProjectTimeline', () => {
     ])
   })
 
+  it('tells the menu of a milestone its place, for "Nach oben" and "Nach unten"', async () => {
+    const actions = vi.fn(() => [{ label: 'Ändern' }])
+    await mountSuspended(Timeline, { props: { projectId: '1', actions } })
+
+    expect(actions).toHaveBeenCalledWith('milestone', expect.objectContaining({ id: '1' }), { index: 0, count: 2 })
+    expect(actions).toHaveBeenCalledWith('milestone', expect.objectContaining({ id: '2' }), { index: 1, count: 2 })
+    expect(actions).toHaveBeenCalledWith('todo', expect.objectContaining({ id: '10' }), undefined)
+  })
+
   it('opens a task by click and edits it by double-click when this task may be changed', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
 
@@ -200,7 +225,7 @@ describe('ProjectTimeline', () => {
     expect(timeline.emitted('editTask')).toBeUndefined()
 
     // Task.viewerCanUpdate: per task, task.updateOwn holds for the own ones (F4.5).
-    const fixture = project.milestones[1]!.todos[0]!.tasks[0]!
+    const fixture = project.milestones[0]!.todos[0]!.tasks[0]!
     fixture.viewerCanUpdate = true
     await task().trigger('dblclick')
     fixture.viewerCanUpdate = false

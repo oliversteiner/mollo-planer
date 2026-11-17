@@ -3,7 +3,8 @@ import { useQuery } from '@vue/apollo-composable'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
-import { deleteMilestoneMutation, deleteTodoMutation, projectTodosQuery } from '~/graphql/project'
+import type { MilestonePlace } from '~/components/project/Timeline.vue'
+import { deleteMilestoneMutation, deleteTodoMutation, moveMilestoneMutation, projectTodosQuery } from '~/graphql/project'
 import { projectMembersQuery } from '~/graphql/task'
 
 /**
@@ -89,6 +90,7 @@ const editing = ref<ItemFormTarget | null>(null)
 
 const { mutate: deleteMilestone } = useProjectMutation(deleteMilestoneMutation)
 const { mutate: deleteTodo } = useProjectMutation(deleteTodoMutation)
+const { mutate: moveMilestone } = useProjectMutation(moveMilestoneMutation)
 
 const deletion = useDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
   target.kind === 'milestone' ? deleteMilestone({ id: target.item.id }) : deleteTodo({ id: target.item.id })
@@ -102,13 +104,21 @@ function startDeleting(target: { kind: 'milestone' | 'todo', item: Item }): void
   void deletion.remove(target)
 }
 
-/** Menu "Ändern / Löschen" of a milestone or todo, by the viewer's rights. */
-function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
+/** Menu "Ändern / Nach oben / Nach unten / Löschen" of a milestone or todo, by the viewer's rights. */
+function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace): ActionMenuItem[] {
   const prefix = kind === 'milestone' ? 'MILESTONE' : 'TODO'
   const items: ActionMenuItem[] = []
 
   if (can(`${prefix}_UPDATE`)) {
     items.push({ label: t('common.edit'), icon: 'pen', onSelect: () => startEditing({ kind, item }) })
+  }
+  if (kind === 'milestone' && place && can('MILESTONE_UPDATE')) {
+    if (place.index > 0) {
+      items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => void moveMilestone({ id: item.id, position: place.index - 1 }) })
+    }
+    if (place.index < place.count - 1) {
+      items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveMilestone({ id: item.id, position: place.index + 1 }) })
+    }
   }
   if (can(`${prefix}_DELETE`)) {
     items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => startDeleting({ kind, item }) })

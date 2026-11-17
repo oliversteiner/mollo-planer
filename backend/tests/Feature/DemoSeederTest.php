@@ -53,6 +53,14 @@ class DemoSeederTest extends TestCase
         $this->assertSame(['1.1', ReleaseStatus::PLANNED], [$planned->release_version, $planned->release_status]);
         $this->assertSame('bulletList', Todo::where('title', 'Styleguide erstellen')->firstOrFail()->description['content'][1]['type']);
 
+        // The overview orders milestones by position; in the demo it matches their due dates.
+        foreach (Project::all() as $project) {
+            $this->assertSame(
+                $project->milestones()->reorder('due_date')->pluck('title')->all(),
+                $project->milestones()->pluck('title')->all(),
+            );
+        }
+
         $this->assertSame('software_dev', $relaunch->labelSet?->key);
         $this->assertEqualsCanonicalizing(['design', 'feature'], Task::where('title', 'Komponenten dokumentieren')->firstOrFail()->labels->pluck('key')->all());
     }

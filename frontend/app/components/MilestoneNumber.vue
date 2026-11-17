@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Short number of a milestone ("M1", "M2", ...) by its place on the page:
- * milestones sorted by due date, as on the overview.
+ * milestones in their order (position), as on the overview.
  */
 defineProps<{ number: number }>()
 

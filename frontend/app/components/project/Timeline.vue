@@ -12,15 +12,24 @@ import { isEmptyDocument } from '~/utils/rich-text'
 
 /**
  * Project as a timeline, like the preview of the AI assistant: milestones
- * by due date, their todos (collapsible) and in them the tasks. Milestones
+ * in their order from the backend (position), their todos (collapsible)
+ * and in them the tasks, by due date. Milestones
  * before the first open one are shown as reached. Creating, changing and
  * deleting is left to the page (events and the actions menu); tasks are
  * moved to another todo here, by drag and drop.
  */
+export interface MilestonePlace {
+  index: number
+  count: number
+}
+
 const props = defineProps<{
   projectId: string
-  /** Menu entries (change, delete) of a milestone or todo; none: no menu */
-  actions?: (kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>) => ActionMenuItem[]
+  /**
+   * Menu entries (change, move, delete) of a milestone or todo; none: no
+   * menu. For a milestone, `place` is its index among the milestones.
+   */
+  actions?: (kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>, place?: MilestonePlace) => ActionMenuItem[]
   /** Below "Noch keine Milestones" */
   emptyHint?: string
   /** Shows "ToDo anlegen" under the todos of each milestone */
@@ -62,7 +71,7 @@ function byDueDate<T extends { id: string, dueDate?: string | null }>(items: rea
   return [...items].sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || Number(a.id) - Number(b.id))
 }
 
-const milestones = computed(() => byDueDate(result.value?.project?.milestones ?? []))
+const milestones = computed(() => result.value?.project?.milestones ?? [])
 
 /** The first milestone not done is the current one; all done: the last. */
 const current = computed(() => (milestones.value.find(milestone => milestone.status !== 'DONE') ?? milestones.value.at(-1))?.id)
@@ -144,7 +153,11 @@ function openWhileDragging(todoId: string) {
 const milestonesOnly = defineModel<boolean>('milestonesOnly', { default: false })
 
 function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>): ActionMenuItem[] {
-  return props.actions?.(kind, item) ?? []
+  const place = kind === 'milestone'
+    ? { index: milestones.value.findIndex(milestone => milestone.id === item.id), count: milestones.value.length }
+    : undefined
+
+  return props.actions?.(kind, item, place) ?? []
 }
 
 function toggleAll() {
