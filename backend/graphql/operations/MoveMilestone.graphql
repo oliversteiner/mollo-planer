@@ -1,3 +1,0 @@
-mutation MoveMilestone($id: ID!, $position: Int!) {
-    moveMilestone(id: $id, position: $position) { id title position }
-}

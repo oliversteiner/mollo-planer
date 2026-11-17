@@ -2,41 +2,22 @@
 
 namespace Tests\Feature\Mcp;
 
-use App\Enums\ItemStatus;
-use App\Enums\ProjectRole;
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\CreateProjectPlanTool;
-use App\Mcp\Tools\CreateProjectTool;
-use App\Mcp\Tools\GetProjectTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\ListTemplatesTool;
-use App\Models\Milestone;
+use App\Mcp\Tools\ListUsersTool;
 use App\Models\Project;
-use App\Models\Role;
-use App\Models\Task;
-use App\Models\Template;
-use App\Models\Todo;
 use App\Models\User;
-use App\Notifications\TaskAssigned;
 use App\Planer\TemplateSync;
 use App\Support\McpTokens;
-use Illuminate\Support\Facades\Notification;
 
 /**
- * The MCP server acts through the GraphQL schema as the token's owner:
- * same permissions and rules as the app, plans are created all or nothing.
+ * The MCP server acts through the GraphQL schema as the token's owner: same
+ * permissions and rules as the app. Reading and writing a plan is export_plan
+ * and import_plan (tests/Feature/Planer).
  */
 class MolloPlanerServerTest extends McpTestCase
 {
-    private User $admin;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->admin = User::factory()->admin()->create(['email' => 'anna@example.ch']);
-    }
-
     public function test_list_projects_shows_only_what_the_token_owner_may_see(): void
     {
         Project::factory()->create(['name' => 'Fremd']);
@@ -45,35 +26,6 @@ class MolloPlanerServerTest extends McpTestCase
             ->assertOk()
             ->assertSee('Podcast')
             ->assertDontSee('Fremd');
-    }
-
-    public function test_get_project_refuses_a_foreign_project(): void
-    {
-        MolloPlanerServer::actingAs($this->stranger)->tool(GetProjectTool::class, ['project_id' => (string) $this->project->id])
-            ->assertHasErrors(['This project does not exist, or you have no access to it.']);
-    }
-
-    public function test_only_admins_create_projects(): void
-    {
-        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectTool::class, ['name' => 'Neu'])
-            ->assertHasErrors(['You are not allowed to do this.']);
-
-        $this->assertSame(1, Project::count());
-    }
-
-    public function test_admin_creates_a_project_with_members_by_email(): void
-    {
-        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, [
-            'name' => 'Podcast Migration',
-            'members' => [
-                ['email' => 'Oliver@example.ch', 'role' => 'OWNER'],
-                ['email' => 'lindita@example.ch', 'role' => 'MEMBER'],
-            ],
-        ])->assertOk()->assertSee('Podcast Migration');
-
-        $project = Project::where('name', 'Podcast Migration')->firstOrFail();
-        $this->assertSame(ProjectRole::OWNER->value, $project->roleOf($this->owner)?->key);
-        $this->assertSame(ProjectRole::MEMBER->value, $project->roleOf($this->member)?->key);
     }
 
     public function test_list_templates_shows_the_templates_for_every_token_owner(): void
@@ -87,94 +39,22 @@ class MolloPlanerServerTest extends McpTestCase
             ->assertSee('location');
     }
 
-    public function test_admin_creates_a_project_from_a_template(): void
+    public function test_list_users_names_the_people_by_e_mail(): void
     {
-        TemplateSync::sync();
-        $template = Template::query()->where('key', 'podcast')->firstOrFail();
-
-        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, ['name' => 'Aus Vorlage', 'template_id' => (string) $template->id])
-            ->assertOk()->assertSee('Aus Vorlage');
-
-        $project = Project::where('name', 'Aus Vorlage')->firstOrFail();
-        $this->assertSame(['topic_idea', 'guest_booking', 'audio_editing', 'social_media'], $project->labels()->pluck('key')->all());
-        $this->assertSame(3, Task::query()->where('project_id', $project->id)->count());
-        $this->assertSame($template->id, $project->template_id);
-    }
-
-    public function test_a_template_that_does_not_exist_creates_no_project(): void
-    {
-        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, ['name' => 'Aus Nichts', 'template_id' => '9999'])
-            ->assertHasErrors();
-
-        $this->assertFalse(Project::where('name', 'Aus Nichts')->exists());
-    }
-
-    public function test_an_unknown_member_creates_no_project(): void
-    {
-        MolloPlanerServer::actingAs($this->admin)->tool(CreateProjectTool::class, [
-            'name' => 'Podcast Migration',
-            'members' => [['email' => 'niemand@example.ch', 'role' => 'MEMBER']],
-        ])->assertHasErrors(['No person with the e-mail niemand@example.ch has an account. An admin must invite them in the app first.']);
-
-        $this->assertFalse(Project::where('name', 'Podcast Migration')->exists());
-    }
-
-    public function test_owner_creates_a_whole_plan_with_assignments_and_no_mails_by_default(): void
-    {
-        Notification::fake();
-
-        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $this->plan())
+        MolloPlanerServer::actingAs(User::factory()->admin()->create())->tool(ListUsersTool::class)
             ->assertOk()
-            ->assertSee('"tasks":3');
-
-        $milestone = Milestone::where('title', 'Konzept steht')->firstOrFail();
-        $todo = Todo::where('title', 'Zielgruppe festlegen')->firstOrFail();
-        $this->assertSame($this->project->id, $milestone->project_id);
-        $this->assertSame('2027-01-31', $milestone->due_date->toDateString());
-        $this->assertSame('bulletList', $milestone->description['content'][1]['type']);
-        $this->assertSame(ItemStatus::OPEN, $todo->fresh()->status);
-        $this->assertSame([$this->member->id, $this->owner->id, null], Task::orderBy('id')->pluck('assigned_user_id')->all());
-        Notification::assertNothingSent();
+            ->assertSee('lindita@example.ch');
     }
 
-    public function test_assignment_mails_are_sent_when_asked_for(): void
+    public function test_the_server_offers_exactly_one_way_to_read_and_one_to_write_a_plan(): void
     {
-        Notification::fake();
+        $list = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'];
+        $headers = ['Accept' => 'application/json, text/event-stream'];
+        $token = McpTokens::create($this->owner, 'Claude')->plainTextToken;
 
-        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, [...$this->plan(), 'notify_assignees' => true])
-            ->assertOk();
+        $names = collect($this->postJson('/mcp', $list, [...$headers, 'Authorization' => "Bearer {$token}"])->json('result.tools'))->pluck('name')->sort()->values()->all();
 
-        Notification::assertSentTo($this->member, TaskAssigned::class);
-    }
-
-    public function test_a_guest_may_not_create_tasks_and_then_nothing_is_created(): void
-    {
-        $this->project->members()->updateExistingPivot($this->member->id, ['role_id' => Role::idOf(Role::SCOPE_PROJECT, ProjectRole::GUEST)]);
-
-        MolloPlanerServer::actingAs($this->member)->tool(CreateProjectPlanTool::class, $this->plan())
-            ->assertHasErrors(['Milestone "Konzept steht": You are not allowed to do this.']);
-
-        $this->assertSame([0, 0, 0], [Milestone::count(), Todo::count(), Task::count()]);
-    }
-
-    public function test_assigning_someone_outside_the_project_creates_nothing(): void
-    {
-        $plan = $this->plan();
-        $plan['milestones'][0]['todos'][0]['tasks'][0]['assignee_email'] = 'eva@example.ch';
-
-        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $plan)
-            ->assertHasErrors(['Task "Hörerprofile schreiben": eva@example.ch is not a member of this project. Add them with set_project_member first, or leave the task unassigned.']);
-
-        $this->assertSame([0, 0, 0], [Milestone::count(), Todo::count(), Task::count()]);
-    }
-
-    public function test_invalid_dates_are_explained(): void
-    {
-        $plan = $this->plan();
-        $plan['milestones'][0]['due_date'] = '31.01.2027';
-
-        MolloPlanerServer::actingAs($this->owner)->tool(CreateProjectPlanTool::class, $plan)
-            ->assertHasErrors(['Dates are YYYY-MM-DD, for example 2027-03-31.']);
+        $this->assertSame(['export_plan', 'import_plan', 'list_projects', 'list_templates', 'list_users'], $names);
     }
 
     public function test_http_endpoint_needs_a_token_made_for_claude(): void
@@ -192,29 +72,6 @@ class MolloPlanerServerTest extends McpTestCase
         $token = McpTokens::create($this->owner, 'Claude')->plainTextToken;
         $this->postJson('/mcp', $list, [...$headers, 'Authorization' => "Bearer {$token}"])
             ->assertOk()
-            ->assertSee('create_project_plan');
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function plan(): array
-    {
-        return [
-            'project_id' => (string) $this->project->id,
-            'milestones' => [[
-                'title' => 'Konzept steht',
-                'description' => "Format, Zielgruppe und Ablauf sind festgelegt.\n\n- Format\n- Zielgruppe",
-                'due_date' => '2027-01-31',
-                'todos' => [[
-                    'title' => 'Zielgruppe festlegen',
-                    'tasks' => [
-                        ['title' => 'Hörerprofile schreiben', 'assignee_email' => 'lindita@example.ch', 'due_date' => '2027-01-15'],
-                        ['title' => 'Technik-Setup vergleichen', 'assignee_email' => 'OLIVER@example.ch'],
-                        ['title' => 'Namen sammeln'],
-                    ],
-                ]],
-            ]],
-        ];
+            ->assertSee('export_plan');
     }
 }

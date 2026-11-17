@@ -1,6 +1,6 @@
 # Claude anbinden: der Connector für Mollo Planer
 
-> **Hinweis (2026-11-13, D1):** Gilt für den heutigen Connector bis Schritt I3. Danach neu schreiben (`umsetzung.md` I3).
+> **Stand (2026-11-17, M4 I3):** Der Connector hat fünf Werkzeuge. Einen Plan liest `export_plan`, und schreibt `import_plan`. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
 
 Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang einrichtest und was dabei passiert. Die Einrichtung in einem Satz: Im Profil einen Zugang erzeugen und die Konfiguration in Claude Desktop oder Claude Code eintragen.
 
@@ -26,13 +26,13 @@ Claude sieht also nur, was du in der App auch sehen würdest, und kann nur ände
 |---|---|---|
 | Route | `backend/routes/ai.php` | Registriert den MCP-Server unter `/mcp`, mit Anmeldung, Token-Prüfung und Drosselung |
 | Server | `backend/app/Mcp/Servers/MolloPlanerServer.php` | Enthält die Werkzeuge und die Regeln für Claude |
-| Werkzeuge | `backend/app/Mcp/Tools/*.php` | Einzelne Aktionen (Projekte lesen, anlegen, Mitglieder setzen, Plan anlegen) |
+| Werkzeuge | `backend/app/Mcp/Tools/*.php` | Die fünf Werkzeuge (Projekte, Vorlagen und Personen lesen, einen Plan exportieren und importieren) |
 | Token-Prüfung | `backend/app/Http/Middleware/EnsureMcpToken.php` | Lässt nur Zugänge mit der Fähigkeit `mcp` zu |
 | Token-Regeln | `backend/app/Support/McpTokens.php` | Name der Fähigkeit und Gültigkeit der Zugänge |
 | Oberfläche | `frontend/app/components/profile/ClaudeAccessCard.vue` | Zugang erzeugen, anzeigen, widerrufen, Konfiguration kopieren |
 | Konfiguration | `frontend/app/utils/claude.ts` | Baut den Eintrag für `claude_desktop_config.json` |
 
-Die Werkzeuge führen GraphQL-Mutationen im Namen der Person aus. Dadurch gelten dieselben Regeln wie in der Oberfläche.
+Die Werkzeuge laufen im Namen der Person durch dasselbe GraphQL-Schema wie die Oberfläche. Dadurch gelten dieselben Rechte und Regeln. Ein Import prüft darüber hinaus jede einzelne Änderung mit dem Recht, das die Oberfläche dafür verlangt.
 
 ---
 
@@ -92,34 +92,76 @@ Claude Code danach neu starten.
 
 ## Was Claude tun kann
 
+Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.md`): Projekt mit Mitgliedern und Labels, Milestones, ToDos und Tasks, mit der Revision und den IDs der App. Claude liest sie, ändert sie und schreibt sie zurück. Einen anderen Weg, einen Plan zu ändern, gibt es nicht.
+
 | Werkzeug | Was es macht | Wer darf es |
 |---|---|---|
-| `list_projects` | Projekte auflisten, die du siehst | alle |
-| `get_project` | Ein Projekt mit Milestones, ToDos und Tasks lesen | alle, die das Projekt sehen |
-| `list_users` | Benutzer und Funktionen auflisten, zum Zuweisen | alle |
-| `create_project` | Projekt anlegen | Admins, Projektleitung, Koordination |
-| `set_project_member` | Mitglied hinzufügen oder die Rolle ändern | nach Projektrolle, siehe unten |
-| `create_project_plan` | Milestones, ToDos, Tasks und Zuweisungen in einem Projekt anlegen. Jede Aufgabe kann mit `status` `open` (Standard) oder `done` angelegt werden, etwa um abgeschlossene Versionen zu importieren | Tasks: Owner und Manager. Mit `status` `done` zusätzlich das Recht, Tasks zu verschieben (Mitglieder dürfen das) |
-| `set_task_status` | Setzt den Status einer Aufgabe (`open`, `in_progress`, `review`, `done`). ToDo und Milestone werden danach automatisch berechnet. Antwort mit Task, ToDo und Milestone | alle Mitglieder des Projekts, die Aufgaben verschieben dürfen |
-| `add_to_plan` | Fügt einem bestehenden Plan etwas hinzu, ohne Duplikate: mit `milestone_id` ToDos (mit Tasks) an einen Milestone, mit `todo_id` Tasks an ein ToDo. Ein doppelter Titel im selben Milestone oder ToDo bricht den ganzen Aufruf ab. Antwort mit IDs und Titeln | ToDos: Recht, ToDos anzulegen. Tasks: Owner und Manager |
-| `update_plan_item` | Ändert Titel, Beschreibung oder Fälligkeit eines Milestones oder ToDos. Nur die angegebenen Felder ändern sich. Der Status wird nie gesetzt | Milestone: Recht, Milestones zu ändern. ToDo: Recht, ToDos zu ändern |
-| `move_milestone` | Verschiebt einen Milestone an eine andere Stelle im Projekt (`position`, 0 ist der erste). Die anderen rücken nach | Recht, Milestones zu ändern |
+| `list_projects` | Projekte auflisten, die du siehst, mit Rolle, Rechten, Fortschritt und Mitgliedern. Archivierte nur mit `archived: true` | alle |
+| `list_users` | Personen mit E-Mail-Adresse auflisten, zum Zuweisen | Admins |
+| `list_templates` | Vorlagen mit Labels und Gerüst zeigen | alle |
+| `export_plan` | Das ganze Projekt als planer-v2-Dokument (`{ "document": … }`) mit Revision und IDs (`m-<id>`, `t-<id>`, `k-<id>`). Der Papierkorb fehlt. Ändert nichts | Recht „Planer-Datei exportieren“, auch im Archiv |
+| `import_plan` | Schreibt ein planer-v2-Dokument in ein Projekt (`project_id`) oder ohne `project_id` in ein neues. Siehe unten | Recht „Planer-Datei importieren“, dazu für jede einzelne Änderung das Recht der Oberfläche. Ein neues Projekt: Recht, Projekte anzulegen |
 
-Beim Anlegen (`create_project_plan`, `add_to_plan`) geben die Werkzeuge die IDs und Titel aller neuen Milestones, ToDos und Tasks zurück, damit ein Folgeaufruf ohne Suche auskommt. `create_project_plan` nimmt außerdem `position` je Milestone entgegen; ohne Angabe kommt er ans Ende.
+### `import_plan`
 
-**Löschen kann Claude nicht.** Es gibt kein Werkzeug dafür. Aufgaben ändert Claude nur im Status, nicht Titel, Zuweisung oder Beschreibung. Milestones und ToDos kann Claude mit `update_plan_item` in Titel, Beschreibung und Fälligkeit ändern, und Milestones mit `move_milestone` umordnen.
+| Argument | Bedeutung |
+|---|---|
+| `project_id` | Das Projekt. Ohne: ein neues Projekt aus dem Dokument (Revision 0, IDs wie `m-new-1`) |
+| `plan` | Das Dokument, zum Beispiel das aus `export_plan` mit Änderungen |
+| `mode` | `full` (Standard): das Dokument ist der ganze Plan. Was darin fehlt, kommt als **ein** Vorgang in den Papierkorb und lässt sich in der App zurückholen. Felder, die das Dokument nicht nennt, werden geleert. Die `revision` muss die des Projekts sein (sonst Abbruch mit beiden Zahlen, dann neu exportieren). `partial`: ergänzt und ändert, löscht nie, Felder, die fehlen, bleiben, die Revision wird nicht geprüft |
+| `dry_run` | `true`: nichts wird geschrieben. Das Ergebnis zeigt, was geschähe (alle Änderungen) und was scheitern würde (alle Fehler mit Pfad). **Immer zuerst so versuchen.** |
+| `notify_assignees` | `true`: Mails für Zuweisungen. Standard `false` |
 
-**Status:** ToDos und Milestones bekommen ihren Status nie direkt. Sie ergeben sich aus den Aufgaben: ein ToDo ist erledigt, wenn alle seine Aufgaben erledigt sind, ein Milestone, wenn alle seine ToDos erledigt sind. Mails verschickt `set_task_status` nie, auch bei `done` nicht.
+Das Ergebnis enthält `changes` (je Eintrag `kind` `CREATE`/`UPDATE`/`MOVE`/`DELETE`, `path` im Dokument, `id`, betroffene `fields`), `errors` (je Eintrag `path`, `kind`, `message`), `idMap` (die IDs `…-new-…` des Dokuments und die echten IDs, die die App vergeben hat) und nach einem echten Import das neue `document`. Bei Fehlern wird **nichts** geschrieben (alles oder nichts), und das Ergebnis kommt als MCP-Fehler.
 
-Die Rechte im Projekt folgen der Tabelle in `docs/rollen-plan.md` und `ProjectPermissions`. Ein Mitglied kann also Tasks anlegen, aber keine Mitglieder verwalten.
+Was ein Import beachtet:
 
-Personen werden über ihre **E-Mail-Adresse** erkannt. Hat jemand noch kein Konto, sagt Claude das und verweist auf die Einladung durch einen Admin (Verwaltung → Benutzer). Claude legt keine Konten an.
+- **Reihenfolge:** Die Reihenfolge in den Listen ist die Reihenfolge in der App, auch über Elternteile hinweg (ein Task in einem anderen ToDo, ein ToDo in einem anderen Milestone).
+- **Nicht im Format, bleibt unverändert:** Icons, Kommentare, wer angelegt hat, Zeitstempel.
+- **Personen** werden über die E-Mail-Adresse erkannt. Wer kein freigegebenes Konto hat, lässt sich nicht aufnehmen, ein Import legt keine Konten an. Die Rolle eines Mitglieds ist der Schlüssel einer Projektrolle der App (`owner`, `manager`, `member`, `guest` oder eine eigene). Im Modus `full` werden Mitglieder, die im Dokument fehlen, entfernt. Wer importiert, entfernt sich damit nicht selbst, und es bleibt immer jemand, die oder der das Projekt löschen darf.
+- **Grenzen** der Datei gelten für das Ergebnis: 30 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibungen bis 5000 Zeichen.
+- **Freigabe-Regeln:** Eine veröffentlichte Version braucht erledigte Tasks mit Commit. Sie werden für das Ergebnis geprüft, nicht Schritt für Schritt.
+- **Beschreibungen** sind Markdown mit einer kleinen Auswahl (Absätze, Überschriften 2 und 3, Listen, Zitate, fett, kursiv, Code, Links). Alles andere ist ein Fehler.
+- **Archivierte Projekte** lassen sich lesen (`export_plan`), nicht schreiben.
 
-### Beispiel
+**Löschen** geht nur über `import_plan` im Modus `full`, immer in den Papierkorb und mit dem Recht zum Löschen. Endgültig löscht Claude nie.
 
-> „Erstelle ein Projekt für einen Podcast mit Milestones, ToDos und Tasks; Oliver macht Technik und Schnitt, Lindita moderiert.“
+**Status:** ToDos und Milestones bekommen ihren Status nie direkt, er ergibt sich aus den Tasks.
 
-Claude prüft zuerst, welche Personen es gibt, schlägt den Plan vor und legt ihn anschließend an. Standardmäßig gehen **keine** Mails für Zuweisungen raus. Nur wenn `notify_assignees` auf `true` gesetzt ist, bekommt jede zugewiesene Person eine Mail.
+Personen werden über ihre **E-Mail-Adresse** erkannt. Hat jemand noch kein Konto, sagt Claude das und verweist auf die Einladung durch einen Admin (Verwaltung → Benutzer).
+
+### Beispiele
+
+> „Zeig mir, was im Projekt Podcast offen ist.“
+
+Claude ruft `list_projects` und `export_plan` auf und liest die Tasks mit Status `open`, `in_progress` und `review`.
+
+> „Leg im ToDo ‚Technik‘ zwei Tasks für Oliver an.“
+
+Claude exportiert den Plan, hängt im ToDo zwei Tasks mit den IDs `k-new-1` und `k-new-2` und `assigneeEmail` an und prüft zuerst mit dem Modus `partial` und `dry_run: true`:
+
+```json
+{
+  "project_id": "12",
+  "mode": "partial",
+  "dry_run": true,
+  "plan": {
+    "format": "planer-v2",
+    "revision": 41,
+    "project": { "name": "Podcast", "locale": "de", "members": [ { "email": "oliver@mollo.ch", "role": "owner" } ] },
+    "milestones": [ { "id": "m-31", "title": "Konzept", "todos": [ { "id": "t-77", "title": "Technik", "tasks": [
+      { "id": "k-new-1", "title": "Mikrofone vergleichen", "status": "open", "assigneeEmail": "oliver@mollo.ch" },
+      { "id": "k-new-2", "title": "Aufnahmesoftware testen", "status": "open", "assigneeEmail": "oliver@mollo.ch" }
+    ] } ] } ]
+  }
+}
+```
+
+Das Ergebnis nennt zwei `CREATE` mit Pfad. Ist es richtig, wiederholt Claude den Aufruf ohne `dry_run`, und `idMap` verrät die echten IDs. Standardmäßig gehen **keine** Mails für Zuweisungen raus.
+
+### Breaking Change gegenüber früheren Ständen
+
+Wer den Connector schon eingerichtet hat, verliert diese Werkzeuge: `get_project` (jetzt `export_plan`), `create_project`, `set_project_member`, `create_project_plan`, `add_to_plan`, `update_plan_item`, `move_milestone` und `set_task_status` (alles jetzt `import_plan`). Die Zugänge und die Konfiguration bleiben gültig; Claude sieht beim nächsten Start die neue Liste. Eigene Anweisungen oder Skills, die die alten Namen nennen, müssen angepasst werden.
 
 ---
 
@@ -136,7 +178,7 @@ Claude prüft zuerst, welche Personen es gibt, schlägt den Plan vor und legt ih
 - **Der Zugang ist ein Geheimnis.** Er gehört in die Konfiguration, nicht in den Chat, nicht in ein Repository und nicht in Screenshots.
 - **Nur Zugänge mit der Fähigkeit `mcp`** werden angenommen. Andere Token (zum Beispiel der Login der App mit allen Rechten) lehnt der Server mit HTTP 403 ab.
 - **Drosselung:** höchstens 60 Anfragen pro Minute und Person.
-- **Mails:** Ohne `notify_assignees` verschickt der Connector keine Mails. Mit dieser Option gibt es eine Mail je zugewiesenem Task, wie beim Zuweisen in der Oberfläche.
+- **Mails:** Ohne `notify_assignees` verschickt der Connector keine Mails. Mit dieser Option gibt es eine Mail je neu zugewiesenem Task, wie beim Zuweisen in der Oberfläche.
 - **Verlust:** Wurde ein Zugang kopiert oder ist er auf einem fremden Gerät gelandet, sofort widerrufen.
 
 ---
@@ -159,7 +201,7 @@ Claude prüft zuerst, welche Personen es gibt, schlägt den Plan vor und legt ih
 ## Grenzen
 
 - **Kein „Custom Connector“ über die Einstellungen von Claude Desktop.** Der braucht OAuth. Das Backend hat dafür keinen Authorization-Server. Der Weg über den Zugang funktioniert auch ohne.
-- **Keine Abfrage von Benachrichtigungen oder Kommentaren** über den Connector. Die Werkzeuge decken Projekte, Mitglieder und Pläne ab.
+- **Keine Abfrage von Benachrichtigungen oder Kommentaren** über den Connector. Die Werkzeuge decken Projekte, Mitglieder (als Teil der Datei) und Pläne ab.
 - **Die Bridge braucht Node.js** auf dem Rechner. Dieser Schritt entfällt, wenn ein Connector mit OAuth gebaut würde.
 
 ---

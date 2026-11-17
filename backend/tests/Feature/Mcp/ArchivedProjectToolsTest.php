@@ -5,15 +5,14 @@ namespace Tests\Feature\Mcp;
 use App\Enums\ProjectRole;
 use App\Mcp\Servers\MolloPlanerServer;
 use App\Mcp\Support\GraphQLFailed;
-use App\Mcp\Tools\AddToPlanTool;
-use App\Mcp\Tools\GetProjectTool;
+use App\Mcp\Tools\ExportPlanTool;
+use App\Mcp\Tools\ImportPlanTool;
 use App\Mcp\Tools\ListProjectsTool;
-use App\Mcp\Tools\SetTaskStatusTool;
-use App\Mcp\Tools\UpdatePlanItemTool;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
+use App\Planer\Export;
 
 /**
  * The MCP tools and an archived project (docs/auftrag-m2.md §1.7): reading
@@ -38,25 +37,20 @@ class ArchivedProjectToolsTest extends McpTestCase
         $this->project->forceFill(['archived_at' => now()])->save();
     }
 
-    public function test_writing_tools_refuse_an_archived_project_and_say_why(): void
+    public function test_import_refuses_an_archived_project_and_says_why(): void
     {
-        MolloPlanerServer::actingAs($this->owner)->tool(SetTaskStatusTool::class, ['task_id' => (string) $this->task->id, 'status' => 'done'])
+        $document = app(Export::class)->document($this->project->fresh());
+        $document['milestones'][0]['todos'][0]['title'] = 'Neu';
+
+        MolloPlanerServer::actingAs($this->owner)->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document])
             ->assertHasErrors([GraphQLFailed::ARCHIVED]);
-        MolloPlanerServer::actingAs($this->owner)->tool(UpdatePlanItemTool::class, ['type' => 'todo', 'id' => (string) $this->todo->id, 'title' => 'Neu'])
-            ->assertHasErrors([GraphQLFailed::ARCHIVED]);
-        MolloPlanerServer::actingAs($this->owner)->tool(AddToPlanTool::class, [
-            'project_id' => (string) $this->project->id,
-            'todo_id' => (string) $this->todo->id,
-            'tasks' => [['title' => 'Noch ein Task']],
-        ])->assertHasErrors([GraphQLFailed::ARCHIVED]);
 
         $this->assertSame('Vorbereiten', $this->todo->fresh()->title);
-        $this->assertSame(1, Task::count());
     }
 
     public function test_reading_an_archived_project_works(): void
     {
-        MolloPlanerServer::actingAs($this->member)->tool(GetProjectTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->member)->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id])
             ->assertOk()
             ->assertSee('Hörerprofile schreiben');
     }

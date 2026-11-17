@@ -1,3 +1,0 @@
-mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {
-    updateTodo(id: $id, input: $input) { id title dueDate }
-}

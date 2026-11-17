@@ -2,19 +2,11 @@
 
 namespace App\Mcp\Servers;
 
-use App\Mcp\Tools\AddToPlanTool;
-use App\Mcp\Tools\CreateProjectPlanTool;
-use App\Mcp\Tools\CreateProjectTool;
 use App\Mcp\Tools\ExportPlanTool;
-use App\Mcp\Tools\GetProjectTool;
 use App\Mcp\Tools\ImportPlanTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\ListTemplatesTool;
 use App\Mcp\Tools\ListUsersTool;
-use App\Mcp\Tools\MoveMilestoneTool;
-use App\Mcp\Tools\SetProjectMemberTool;
-use App\Mcp\Tools\SetTaskStatusTool;
-use App\Mcp\Tools\UpdatePlanItemTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -22,41 +14,38 @@ use Laravel\Mcp\Server\Attributes\Version;
 
 /**
  * MCP server of the app (POST /mcp, routes/ai.php): lets an AI client such
- * as Claude read projects and fill them with milestones, todos and tasks,
- * acting as the owner of the personal access token with their permissions.
- * Deleting is not offered.
+ * as Claude read a project as a planer-v2 file (export_plan) and write one
+ * back (import_plan), acting as the owner of the personal access token with
+ * their permissions. One way to read and one to write: the file format.
  */
 #[Name('mollo-planer')]
-#[Version('1.0.0')]
+#[Version('2.0.0')]
 #[Instructions(<<<'TEXT'
-Project management app: projects contain milestones, milestones contain todos, todos contain tasks. Tasks are the work of one person and appear on a Kanban board (status open, in progress, review, done). Statuses of todos and milestones are derived automatically; progress is done tasks out of all tasks. Mark a task done with set_task_status (or with status done in create_project_plan), never by changing a todo or milestone directly.
+Project management app: projects contain milestones, milestones contain todos, todos contain tasks. Tasks are the work of one person and appear on a Kanban board (status idea, planned, open, in_progress, review, done). Statuses of todos and milestones are derived automatically from their tasks; to finish work, set the status of its tasks.
 
-You act as the person who created the access token, with exactly their permissions. Roles per project: OWNER, MANAGER (both manage members and tasks), MEMBER (creates milestones and todos, moves tasks). Only admins create projects and manage accounts. The abilities in list_projects say what you may do in a project.
+You act as the person who created the access token, with exactly their permissions; every change you make is checked on its own. The abilities in list_projects say what you may do in a project. Only admins create accounts.
+
+The whole plan of a project is one planer-v2 document (format, revision, project with members and labels, milestones with todos with tasks). You read it and you write it back; there is no other way to change a plan.
 
 How to work:
-1. Read first: list_projects (and get_project for an existing plan), list_users to find people.
-2. People are named by e-mail. Someone without an account cannot be added; tell the user that an admin must invite them in the app (Verwaltung > Benutzer) and ask how to go on.
-3. To create a new project: create_project with its members, then create_project_plan with milestones, todos and tasks. Tasks can only be assigned to project members. list_templates shows templates: with template_id, create_project starts the project with the labels and the outline of the template, so look there first when the project is of a common kind.
-4. Do not create the same items twice. To extend an existing plan use add_to_plan (milestone_id or todo_id), never create_project_plan again: it would create the milestones a second time. Read the ids from get_project or from the answer of the last call. To change a milestone or todo use update_plan_item, to put milestones in order use move_milestone.
-5. Write titles and descriptions in the language of the user; descriptions are plain text.
-Nothing can be deleted through this server; the user does that in the app.
+1. Find the project: list_projects (id, your role, abilities). list_users names the people (by e-mail); list_templates shows templates for new projects.
+2. Read: export_plan(project_id) gives the document. It has the revision and the ids (m-<id>, t-<id>, k-<id>) of the app.
+3. Change the document: edit what you need, keep the ids of what exists, give new items ids like m-new-1, t-new-1, k-new-1 (the result maps them to real ids). Order in a list is the order in the app. People are named by e-mail and must be members (project.members) and have an account; someone without an account cannot be added, tell the user an admin must invite them in the app first.
+4. Always try import_plan with dry_run: true first. Nothing is written; the result lists every change and every error with its path in the document. Fix the errors, then import for real.
+5. mode "full" (default): the document is the whole plan. What it lacks goes to the trash as one deletion the user can undo in the app, and its revision must be the one of the project (export again if somebody changed it). mode "partial": use it to add to a plan or change a part: it only adds and changes, fields you leave out stay, nothing is deleted, the revision is not checked.
+6. To create a new project, call import_plan without project_id and with a complete document (revision 0, ids like m-new-1).
+7. Write titles and descriptions in the language of the user. Descriptions are Markdown with a small whitelist: paragraphs, headings level 2 and 3, lists, quotes, bold, italic, inline code, links (http, https, mailto). No HTML, images, tables or code blocks.
+8. Limits: 30 milestones per project, 50 todos per milestone, 50 tasks per todo, 50 members, 30 labels, descriptions up to 5000 characters.
+Assignment mails are not sent unless you ask with notify_assignees.
 TEXT)]
 class MolloPlanerServer extends Server
 {
     protected array $tools = [
         ListProjectsTool::class,
         ListTemplatesTool::class,
-        GetProjectTool::class,
+        ListUsersTool::class,
         ExportPlanTool::class,
         ImportPlanTool::class,
-        ListUsersTool::class,
-        CreateProjectTool::class,
-        SetProjectMemberTool::class,
-        CreateProjectPlanTool::class,
-        SetTaskStatusTool::class,
-        AddToPlanTool::class,
-        UpdatePlanItemTool::class,
-        MoveMilestoneTool::class,
     ];
 
     protected array $resources = [];

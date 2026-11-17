@@ -1,3 +1,0 @@
-mutation SetProjectMemberWithMembers($p: ID!, $u: ID!, $r: String!) {
-    setProjectMember(projectId: $p, userId: $u, role: $r) { members { role { key } user { name email } } }
-}
