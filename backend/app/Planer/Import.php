@@ -55,6 +55,8 @@ final class Import
 
     private bool $notify;
 
+    private bool $dryRun = false;
+
     private User $actor;
 
     private Project $project;
@@ -122,6 +124,7 @@ final class Import
     public function run(?Project $project, array $document, ImportMode $mode, bool $dryRun, bool $notifyAssignees, User $actor): ImportResult
     {
         $this->reset($document, $mode, $notifyAssignees, $actor);
+        $this->dryRun = $dryRun;
 
         foreach (Validator::errors($document) as $issue) {
             $this->error($issue['path'], 'invalid', __('planer.import.invalid', ['message' => $issue['message']]));
@@ -1151,7 +1154,8 @@ final class Import
             $this->idMap[$fileId] = $id;
         }
 
-        $this->change('create', $path, $id, $fields);
+        // A dry run names the id of the file: the number the app took for it is rolled back and shows nowhere.
+        $this->change('create', $path, $this->dryRun ? $fileId : $id, $fields);
     }
 
     /**

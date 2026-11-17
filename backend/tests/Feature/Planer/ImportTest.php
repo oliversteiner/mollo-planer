@@ -161,6 +161,7 @@ class ImportTest extends GraphQLTestCase
         $this->assertSame([], $result->errors);
         $this->assertSame(['update', 'create'], array_column($result->changes, 'kind'));
         $this->assertSame('milestones[0]', $result->changes[0]['path']);
+        $this->assertSame('k-new-1', $result->changes[1]['id']);
         $this->assertSame(['title'], $result->changes[0]['fields']);
         $this->assertNull($result->document);
         $this->assertSame([], $result->idMap);
