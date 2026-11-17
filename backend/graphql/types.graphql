@@ -274,7 +274,7 @@ type Dashboard {
   upcomingTodos(limit: Int = 5 @rules(apply: ["integer", "min:1", "max:50"])): [Todo!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@upcomingTodos")
   "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
   myOpenTasks: [Task!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@myOpenTasks")
-  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+  projects: [Project!]! @all(scopes: ["visibleToViewer", "notArchived"])
 }
 
 "Berechnete Übersicht Rolle × Recht: Systemrechte und Projektrechte, je mit den Rollen, die sie haben."

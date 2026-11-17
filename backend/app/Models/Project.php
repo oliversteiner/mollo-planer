@@ -62,6 +62,16 @@ class Project extends Model
     }
 
     /**
+     * Projects that are not archived (dashboard).
+     *
+     * @param  Builder<static>  $query
+     */
+    public function scopeNotArchived(Builder $query): void
+    {
+        $this->scopeArchived($query, false);
+    }
+
+    /**
      * Members of the project with their role (pivot attribute "membership").
      *
      * @return BelongsToMany<User, $this, ProjectMember, 'membership'>

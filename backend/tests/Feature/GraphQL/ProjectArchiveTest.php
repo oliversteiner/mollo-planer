@@ -118,10 +118,11 @@ class ProjectArchiveTest extends GraphQLTestCase
     public function test_my_tasks_and_the_dashboard_leave_archived_projects_out(): void
     {
         $this->task->forceFill(['assigned_user_id' => $this->users['member']->id])->save();
-        $query = '{ myTasks { id } dashboard { upcomingTodos(limit: 50) { id } myOpenTasks { id } } }';
+        $query = '{ myTasks { id } dashboard { upcomingTodos(limit: 50) { id } myOpenTasks { id } projects { id } } }';
 
         $this->as('member')->gql($query)
             ->assertJsonCount(1, 'data.myTasks')
+            ->assertJsonCount(1, 'data.dashboard.projects')
             ->assertJsonCount(1, 'data.dashboard.upcomingTodos')
             ->assertJsonCount(1, 'data.dashboard.myOpenTasks');
 
@@ -130,7 +131,8 @@ class ProjectArchiveTest extends GraphQLTestCase
         $this->as('member')->gql($query)
             ->assertJsonPath('data.myTasks', [])
             ->assertJsonPath('data.dashboard.upcomingTodos', [])
-            ->assertJsonPath('data.dashboard.myOpenTasks', []);
+            ->assertJsonPath('data.dashboard.myOpenTasks', [])
+            ->assertJsonPath('data.dashboard.projects', []);
     }
 
     public function test_no_mails_about_tasks_of_an_archived_project(): void
