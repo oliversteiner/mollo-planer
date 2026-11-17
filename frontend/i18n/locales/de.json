@@ -1670,10 +1670,10 @@
     "empty": "Der Plan hat noch keine Milestones.",
     "willDelete": "Wird in den Papierkorb gelegt | {count} Element wird in den Papierkorb gelegt | {count} Elemente werden in den Papierkorb gelegt",
     "removed": {
-      "milestone": "Milestone {id}",
-      "todo": "ToDo {id}",
-      "task": "Task {id}",
-      "member": "Mitglied"
+      "milestone": "Milestone «{name}»",
+      "todo": "ToDo «{name}»",
+      "task": "Task «{name}»",
+      "member": "Mitglied {name}"
     },
     "mark": {
       "create": "Neu",

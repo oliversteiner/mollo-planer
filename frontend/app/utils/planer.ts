@@ -61,6 +61,8 @@ export interface PlanerChange {
   path: string
   id?: string | null
   fields: string[]
+  /** The title of what is deleted (the file does not know it). */
+  title?: string | null
 }
 
 export type PlanerFileProblem = 'notJson' | 'notPlaner'

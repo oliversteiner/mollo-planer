@@ -28,14 +28,14 @@ describe('PlanerTree', () => {
       { kind: 'CREATE', path: 'milestones[0].todos[0].tasks[0]', id: 'k-new-1', fields: ['title'] },
       { kind: 'UPDATE', path: 'milestones[1]', id: 'm-2', fields: ['title', 'dueDate'] },
       { kind: 'MOVE', path: 'milestones[1].todos[0]', id: 't-2', fields: ['milestone'] },
-      { kind: 'DELETE', path: 'k-7', id: 'k-7', fields: [] }
+      { kind: 'DELETE', path: 'k-7', id: 'k-7', fields: [], title: 'Alter Task' }
     ]
     const tree = await mountSuspended(PlanerTree, { props: { document, changes } })
     const marks = tree.findAll('wa-badge.planer-mark')
 
     expect(marks.map(mark => (mark.find('wa-icon').element as unknown as { name: string }).name)).toEqual(['plus', 'pen', 'arrows-up-down'])
     expect(marks[1]!.text()).toContain('Title, Due date')
-    expect(tree.text()).toContain('Task k-7')
+    expect(tree.text()).toContain('Task “Alter Task”')
     expect(tree.find('.planer-removed').exists()).toBe(true)
   })
 
@@ -43,5 +43,16 @@ describe('PlanerTree', () => {
     const tree = await mountSuspended(PlanerTree, { props: { document: { ...document, milestones: [] } } })
 
     expect(tree.text()).toContain('no milestones')
+  })
+
+  it('marks a changed task and a moved task', async () => {
+    const changes: PlanerChange[] = [
+      { kind: 'UPDATE', path: 'milestones[1].todos[0].tasks[0]', id: 'k-3', fields: ['title'] },
+      { kind: 'MOVE', path: 'milestones[1].todos[0].tasks[1]', id: 'k-4', fields: ['position'] }
+    ]
+    const tree = await mountSuspended(PlanerTree, { props: { document, changes } })
+    const marks = tree.findAll('wa-badge.planer-mark')
+
+    expect(marks.map(mark => mark.text())).toEqual(['Changed : Title', 'Moved'])
   })
 })

@@ -9,7 +9,7 @@ namespace App\Planer;
 final class ImportResult
 {
     /**
-     * @param  list<array{kind: string, path: string, id: ?string, fields: list<string>}>  $changes  kind: create, update, move or delete
+     * @param  list<array{kind: string, path: string, id: ?string, fields: list<string>, title?: string}>  $changes  kind: create, update, move or delete
      * @param  list<array{path: string, kind: string, message: string}>  $errors  Nothing was written when there are any
      * @param  array<string, string>  $idMap  "-new-" ids of the file => the ids the app gave them
      * @param  array<string, mixed>|null  $document  The export after the import; null in a dry run and on errors

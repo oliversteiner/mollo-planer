@@ -125,6 +125,8 @@ type ImportChange {
  kind: ImportChangeKind!
  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]; bei einem Löschen die ID des Elements"
  path: String!
+ "Titel des Elements, bei einem Löschen (das Dokument kennt es nicht)"
+ title: String
 }
 "Art einer Änderung in einem Import"
 enum ImportChangeKind {

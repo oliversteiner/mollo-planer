@@ -51,10 +51,12 @@ function mark(path: string) {
   return marks.value.get(path) ?? null
 }
 
-function removedLabel(id: string | null | undefined): string {
+/** "Task «Titel»"; without a title (a member) the id. */
+function removedLabel(change: PlanerChange): string {
+  const id = change.id
   const kind = id?.startsWith('m-') ? 'milestone' : id?.startsWith('t-') ? 'todo' : id?.startsWith('k-') ? 'task' : 'member'
 
-  return t(`planer.removed.${kind}`, { id: id ?? '' })
+  return t(`planer.removed.${kind}`, { name: change.title || (id ?? '') })
 }
 
 function statusKey(status: string) {
@@ -73,55 +75,73 @@ function statusKey(status: string) {
         :key="milestone.id"
         expanded
       >
-        <wa-icon name="flag"></wa-icon>
-        {{ milestone.title }}
-        <wa-badge
-          v-if="milestone.release"
-          variant="neutral"
-          appearance="outlined"
-        >
-          {{ milestone.release.version }} · {{ t(`release.${milestone.release.status}`) }}
-        </wa-badge>
-        <DueDate :date="milestone.dueDate" />
-        <PlanerMark
-          v-if="mark(`milestones[${m}]`)"
-          :mark="mark(`milestones[${m}]`)!"
-        />
+        <span class="planer-row">
+          <span class="planer-head">
+            <wa-icon name="flag"></wa-icon>
+            <span class="planer-title">{{ milestone.title }}</span>
+            <PlanerMark
+              v-if="mark(`milestones[${m}]`)"
+              :mark="mark(`milestones[${m}]`)!"
+            />
+          </span>
+          <span
+            v-if="milestone.release || milestone.dueDate"
+            class="planer-meta"
+          >
+            <wa-badge
+              v-if="milestone.release"
+              variant="neutral"
+              appearance="outlined"
+            >
+              {{ milestone.release.version }} · {{ t(`release.${milestone.release.status}`) }}
+            </wa-badge>
+            <DueDate :date="milestone.dueDate" />
+          </span>
+        </span>
         <wa-tree-item
           v-for="(todo, d) in milestone.todos"
           :key="todo.id"
           expanded
         >
-          <wa-icon name="list-check"></wa-icon>
-          {{ todo.title }}
-          <DueDate :date="todo.dueDate" />
-          <PlanerMark
-            v-if="mark(`milestones[${m}].todos[${d}]`)"
-            :mark="mark(`milestones[${m}].todos[${d}]`)!"
-          />
+          <span class="planer-row">
+            <span class="planer-head">
+              <wa-icon name="list-check"></wa-icon>
+              <span class="planer-title">{{ todo.title }}</span>
+              <PlanerMark
+                v-if="mark(`milestones[${m}].todos[${d}]`)"
+                :mark="mark(`milestones[${m}].todos[${d}]`)!"
+              />
+            </span>
+            <span
+              v-if="todo.dueDate"
+              class="planer-meta"
+            >
+              <DueDate :date="todo.dueDate" />
+            </span>
+          </span>
           <wa-tree-item
             v-for="(task, k) in todo.tasks"
             :key="task.id"
           >
-            <wa-icon name="square-check"></wa-icon>
-            {{ task.title }}
-            <StatusBadge :status="statusKey(task.status)" />
-            <DueDate
-              :date="task.dueDate"
-              :done="task.status === 'done'"
-            />
-            <span
-              v-if="task.assigneeEmail"
-              class="planer-tree-quiet"
-            >{{ task.assigneeEmail }}</span>
-            <span
-              v-if="task.labels?.length"
-              class="planer-tree-quiet"
-            >{{ task.labels.map(labelName).join(', ') }}</span>
-            <PlanerMark
-              v-if="mark(`milestones[${m}].todos[${d}].tasks[${k}]`)"
-              :mark="mark(`milestones[${m}].todos[${d}].tasks[${k}]`)!"
-            />
+            <span class="planer-row">
+              <span class="planer-head">
+                <wa-icon name="square-check"></wa-icon>
+                <span class="planer-title">{{ task.title }}</span>
+                <PlanerMark
+                  v-if="mark(`milestones[${m}].todos[${d}].tasks[${k}]`)"
+                  :mark="mark(`milestones[${m}].todos[${d}].tasks[${k}]`)!"
+                />
+              </span>
+              <span class="planer-meta">
+                <StatusBadge :status="statusKey(task.status)" />
+                <DueDate
+                  :date="task.dueDate"
+                  :done="task.status === 'done'"
+                />
+                <span v-if="task.assigneeEmail">{{ task.assigneeEmail }}</span>
+                <span v-if="task.labels?.length">{{ task.labels.map(labelName).join(', ') }}</span>
+              </span>
+            </span>
           </wa-tree-item>
         </wa-tree-item>
       </wa-tree-item>
@@ -129,7 +149,7 @@ function statusKey(status: string) {
 
     <p
       v-if="!document.milestones.length"
-      class="planer-tree-quiet"
+      class="planer-quiet"
     >
       {{ t('planer.empty') }}
     </p>
@@ -153,7 +173,7 @@ function statusKey(status: string) {
             ></wa-icon>
             {{ t('planer.mark.delete') }}
           </wa-badge>
-          {{ removedLabel(change.id) }}
+          {{ removedLabel(change) }}
         </li>
       </ul>
     </section>
@@ -163,12 +183,42 @@ function statusKey(status: string) {
 <style scoped>
 .planer-tree {
   --indent-guide-width: 1px;
+  max-inline-size: 100%;
 }
 
-.planer-tree-quiet {
-  margin-inline-start: var(--wa-space-xs);
+/* A row wraps: the title and its mark on the first line, the details on the second. */
+.planer-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-3xs);
+  min-inline-size: 0;
+  white-space: normal;
+}
+
+.planer-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-xs);
+}
+
+.planer-title {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.planer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wa-space-xs) var(--wa-space-s);
   color: var(--wa-color-text-quiet);
   font-size: var(--wa-font-size-xs);
+}
+
+.planer-quiet {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
 }
 
 .planer-removed {

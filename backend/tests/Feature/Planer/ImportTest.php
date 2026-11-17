@@ -197,6 +197,7 @@ class ImportTest extends GraphQLTestCase
 
         $this->assertSame([], $result->errors);
         $this->assertSame(['delete', 'delete'], array_column($result->changes, 'kind'));
+        $this->assertSame(['Zweiter', 'Überzählig'], array_column($result->changes, 'title'));
         $this->assertNull(Milestone::query()->find($second->id));
         $this->assertNull(Task::query()->find($extra->id));
         $ids = [Milestone::onlyTrashed()->find($second->id)->deletion_id, Task::onlyTrashed()->find($extra->id)->deletion_id, Task::onlyTrashed()->find($secondTask->id)->deletion_id];
@@ -573,5 +574,15 @@ class ImportTest extends GraphQLTestCase
         $this->assertSame([], $result->changes);
         $this->assertNotNull($b);
         $this->assertNotNull($c);
+    }
+
+    public function test_a_changed_task_is_reported_as_an_update_at_its_path(): void
+    {
+        $document = $this->exported();
+        $document['milestones'][0]['todos'][0]['tasks'][0]['title'] = 'Neuer Titel';
+
+        $result = $this->import($this->project, $document, dryRun: true);
+
+        $this->assertSame([['kind' => 'update', 'path' => 'milestones[0].todos[0].tasks[0]', 'id' => "k-{$this->task->id}", 'fields' => ['title']]], $result->changes);
     }
 }

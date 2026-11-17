@@ -446,6 +446,8 @@ type ImportChange {
   id: String
   "Welche Felder betroffen sind"
   fields: [String!]!
+  "Titel des Elements, bei einem Löschen (das Dokument kennt es nicht)"
+  title: String
 }
 
 type ImportError {

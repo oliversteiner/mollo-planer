@@ -14,7 +14,7 @@ export const importPlanMutation = graphql(`
       ok
       dryRun
       projectId
-      changes { kind path id fields }
+      changes { kind path id fields title }
       errors { path kind message }
     }
   }

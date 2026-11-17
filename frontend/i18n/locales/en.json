@@ -1670,10 +1670,10 @@
     "empty": "The plan has no milestones yet.",
     "willDelete": "Goes to the trash | {count} item goes to the trash | {count} items go to the trash",
     "removed": {
-      "milestone": "Milestone {id}",
-      "todo": "To-do {id}",
-      "task": "Task {id}",
-      "member": "Member"
+      "milestone": "Milestone “{name}”",
+      "todo": "To-do “{name}”",
+      "task": "Task “{name}”",
+      "member": "Member {name}"
     },
     "mark": {
       "create": "New",

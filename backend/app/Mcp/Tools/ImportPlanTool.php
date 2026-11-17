@@ -21,7 +21,7 @@ class ImportPlanTool extends Tool
         mutation ($projectId: ID, $document: String!, $mode: ImportMode!, $dryRun: Boolean!, $notify: Boolean!) {
           importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notify) {
             ok dryRun projectId document
-            changes { kind path id fields }
+            changes { kind path id fields title }
             errors { path kind message }
             idMap { from to }
           }

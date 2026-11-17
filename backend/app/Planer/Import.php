@@ -1017,7 +1017,7 @@ final class Import
                 }
 
                 $tops[] = $model;
-                $this->change('delete', "{$prefix}-{$model->getKey()}", "{$prefix}-{$model->getKey()}", []);
+                $this->change('delete', "{$prefix}-{$model->getKey()}", "{$prefix}-{$model->getKey()}", [], (string) $model->title);
             }
         }
 
@@ -1161,9 +1161,9 @@ final class Import
     /**
      * @param  list<string>  $fields
      */
-    private function change(string $kind, string $path, ?string $id, array $fields): void
+    private function change(string $kind, string $path, ?string $id, array $fields, ?string $title = null): void
     {
-        $this->changes[] = ['kind' => $kind, 'path' => $path, 'id' => $id, 'fields' => $fields];
+        $this->changes[] = ['kind' => $kind, 'path' => $path, 'id' => $id, 'fields' => $fields, ...($title === null ? [] : ['title' => $title])];
     }
 
     private function error(string $path, string $kind, string $message): void
