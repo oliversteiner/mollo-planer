@@ -155,9 +155,8 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
    git fetch -q origin main && git checkout -q -f -B main origin/main
    ```
 2. `backend/.env` aus Abschnitt 5 anlegen, `chmod 600`.
-3. Backend-Abhängigkeiten mit PHP 8.5:
+3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`):
    ```bash
-   export PATH=/usr/local/php85/bin:$PATH
    cd ~/apps/<projekt>/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
    php artisan storage:link
@@ -202,7 +201,7 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 ## 12. Stolpersteine
 
 - **DB-Host:** Nicht `localhost` verwenden. Der Socket existiert auf Hostpoint nicht.
-- **PHP-Version:** `php` in der Shell ist 8.3. Für das Projekt immer den vollen Pfad `/usr/local/php85/bin/php` nutzen oder `PATH` setzen (`~/.bash_profile`).
+- **PHP-Version:** `php` in der Shell ist 8.5. Zeigt `php -v` eine ältere Version, den vollen Pfad (z. B. `/usr/local/php85/bin/php`) nutzen oder `PATH` setzen (`~/.bash_profile`); `deploy.sh` bricht dann ab.
 - **Erster Lauf:** Liegt `deploy/deploy.sh` schon unverwaltet auf dem Server, vorher `git fetch origin main && git reset --hard origin/main` ausführen.
 - **Hostpoint-Block in `.htaccess`:** Nicht löschen, sonst wechselt die PHP-Version des Docroots.
 - **Frontend-Build:** Die API-Adresse wird beim Build eingebaut (`NUXT_PUBLIC_API_BASE`). Ändert sich die Domain, neu bauen.

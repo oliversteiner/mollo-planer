@@ -15,10 +15,16 @@ WEB_ROOT="$HOME/www/planer.mollo.dev"
 STAGE="$HOME/apps/.planer-stage"
 BACKUP_DIR="$HOME/backups/planer"
 KEEP_BACKUPS=10
-PHP="/usr/local/php85/bin/php"
+PHP="php"
 COMPOSER="/usr/local/bin/composer"
 
 maintenance=0
+
+# backend/composer.json requires PHP 8.5; stop before anything changes.
+if ! "$PHP" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
+    echo "PHP 8.5 oder neuer nötig, gefunden: $("$PHP" -r 'echo PHP_VERSION;'). Nichts wurde geändert." >&2
+    exit 1
+fi
 
 log() {
     printf '\n==> %s\n' "$*"

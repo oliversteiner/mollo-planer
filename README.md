@@ -150,14 +150,14 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
 - **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
 - **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
 - **Docroots:** `~/www/planer.mollo.dev` ist das Frontend. `~/www/api.planer.mollo.dev` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Hostpoint-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.
-- **PHP:** Der Server hat PHP 8.5 unter `/usr/local/php85/bin`. Das Skript nutzt diesen Pfad fest. Die Standard-`php` (8.3) reicht für das Projekt nicht: `composer.json` verlangt PHP 8.5, wie auf Test- und Produktionsserver.
+- **PHP:** Die Standard-`php` des Servers ist 8.5, das Skript nutzt sie. `composer.json` verlangt PHP 8.5; ist `php` älter, bricht das Skript ab, bevor es etwas ändert.
 
 ### Fehlersuche
 
 - **Tests rot:** Im Log des Jobs `test-backend` oder `test-frontend` steht der Fehler. Es wurde nichts veröffentlicht.
 - **Deploy abgebrochen:** Im Log zeigt die letzte Zeile mit `==>` den Schritt. Bricht das Skript während des Wartungsmodus ab, hebt es ihn selbst wieder auf. Falls die App trotzdem hängen bleibt, auf dem Server ausführen:
   ```bash
-  cd ~/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan up
+  cd ~/apps/mollo-planer/backend && php artisan up
   ```
 - **Stand prüfen:** `ssh mollo.ch` (persönlicher Schlüssel), dann `cd ~/apps/mollo-planer && git log --oneline -1`.
 
