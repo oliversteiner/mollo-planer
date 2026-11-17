@@ -37,6 +37,60 @@ final class TemplateContent
     }
 
     /**
+     * A template made from a planer document (a project's export): the
+     * references to the app are removed, new ids come in the order of the
+     * document, the fixed values are set. The same rules as `toTemplate` in
+     * tools/planer/core/template.mjs; the fixtures in spec/fixtures/expected
+     * are checked by both.
+     *
+     * @param  array<string, mixed>  $document  A valid planer-v2 document
+     * @return array<string, mixed>
+     */
+    public static function fromDocument(array $document): array
+    {
+        $counters = ['m' => 0, 't' => 0, 'k' => 0];
+        $next = function (string $prefix) use (&$counters): string {
+            $counters[$prefix]++;
+
+            return "{$prefix}-new-{$counters[$prefix]}";
+        };
+        $optional = fn (array $from, string $key): array => isset($from[$key]) ? [$key => $from[$key]] : [];
+
+        $milestones = array_map(fn (array $milestone): array => [
+            'id' => $next('m'),
+            'title' => $milestone['title'],
+            ...$optional($milestone, 'description'),
+            ...(isset($milestone['release']) ? ['release' => ['version' => $milestone['release']['version'], 'status' => 'planned']] : []),
+            'todos' => array_map(fn (array $todo): array => [
+                'id' => $next('t'),
+                'title' => $todo['title'],
+                ...$optional($todo, 'description'),
+                'tasks' => array_map(fn (array $task): array => [
+                    'id' => $next('k'),
+                    'title' => $task['title'],
+                    ...$optional($task, 'description'),
+                    ...$optional($task, 'userStory'),
+                    'status' => 'planned',
+                    ...(($task['labels'] ?? []) !== [] ? ['labels' => $task['labels']] : []),
+                ], $todo['tasks']),
+            ], $milestone['todos']),
+        ], $document['milestones']);
+
+        return [
+            'format' => $document['format'],
+            'revision' => 0,
+            'project' => [
+                'name' => $document['project']['name'],
+                ...$optional($document['project'], 'description'),
+                'locale' => $document['project']['locale'],
+                'members' => [],
+                ...$optional($document['project'], 'labels'),
+            ],
+            'milestones' => $milestones,
+        ];
+    }
+
+    /**
      * The labels, in order.
      *
      * @param  array<string, mixed>  $content

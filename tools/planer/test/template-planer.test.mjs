@@ -90,3 +90,14 @@ test('eine Vorlage ohne Gerüst (nur Labels) besteht validate --template und auc
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('Erwartete Vorlagen (spec/fixtures/expected/*.template.json): toTemplate liefert genau diese, PHP prüft dieselben Dateien', async () => {
+  const { toTemplate } = await import('../core/template.mjs');
+  const { canonicalText } = await import('../core/planer-canonical.mjs');
+  const dir = fileURLToPath(new URL('../../../spec/fixtures/', import.meta.url));
+  for (const name of ['planer-valid', 'beispiel-planer', 'planer-projekt', 'planer-leer']) {
+    const plan = JSON.parse(readFileSync(`${dir}${name}.planer.json`, 'utf8'));
+    delete plan.$schema;
+    assert.equal(canonicalText(toTemplate(plan)), readFileSync(`${dir}expected/${name}.template.json`, 'utf8'), name);
+  }
+});

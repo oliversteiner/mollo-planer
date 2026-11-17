@@ -248,6 +248,8 @@ type Template {
   createdBy: User @belongsTo(relation: "creator")
   "Wie viele Projekte aus dieser Vorlage angelegt wurden"
   projectCount: Int! @count(relation: "projects")
+  "Die Vorlage als Planer-Datei (planer-v2, kanonischer Text), zum Herunterladen und Ansehen"
+  file: String! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateFile")
   viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateViewerCan@update")
   viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateViewerCan@delete")
 }

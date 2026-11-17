@@ -85,6 +85,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'updateTask' => ['stranger', 'mutation ($id: ID!) { updateTask(id: $id, input: {title: "Hack"}) { id } }', $task],
             'assignTask' => ['stranger', 'mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $test) => ['id' => $test->task->id, 'u' => $test->users['member']->id]],
             'moveTask' => ['stranger', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', $task],
+            'createTemplateFromProject' => ['stranger', 'mutation ($p: ID!) { createTemplateFromProject(projectId: $p, name: "Hack") { id } }', fn (self $test) => ['p' => $test->project->id]],
+            'createTemplateFromFile' => ['stranger', 'mutation { createTemplateFromFile(document: "{}") { id } }', fn (self $test) => []],
             'importPlan' => ['stranger', 'mutation ($p: ID!, $d: String!) { importPlan(projectId: $p, document: $d) { ok } }', fn (self $test) => ['p' => $test->project->id, 'd' => '{}']],
             'moveTaskInTodo' => ['stranger', 'mutation ($id: ID!) { moveTaskInTodo(id: $id, position: 0) { id } }', $task],
             'moveTaskToTodo' => ['stranger', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => $test->todo->id]],

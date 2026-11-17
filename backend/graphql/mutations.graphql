@@ -116,6 +116,12 @@ type Mutation @guard {
   createTemplate(input: TemplateInput!): Template!
     @can(ability: "create", model: "App\\Models\\Template")
     @field(resolver: "App\\GraphQL\\Mutations\\SaveTemplate@create")
+  "Legt aus einem Projekt eine eigene Vorlage an („Als Vorlage speichern“): Export mit den festen Werten einer Vorlage (keine Mitglieder, Fälligkeiten, Zuweisungen, Commits, alle Tasks geplant). Recht planer.export im Projekt und templates.manage. Das Projekt braucht mindestens ein Label."
+  createTemplateFromProject(projectId: ID!, name: String!): Template!
+    @field(resolver: "App\\GraphQL\\Mutations\\TemplateFromPlan@fromProject")
+  "Legt aus einer hochgeladenen Planer-Datei (planer-v2, als JSON-Text) eine eigene Vorlage an. Der Name der Vorlage ist der Projektname der Datei. Recht templates.manage."
+  createTemplateFromFile(document: String!): Template!
+    @field(resolver: "App\\GraphQL\\Mutations\\TemplateFromPlan@fromFile")
   "Kopiert eine Vorlage (auch eine mitgelieferte) mit ihrem Gerüst als eigene Vorlage, um sie anzupassen."
   duplicateTemplate(id: ID!): Template!
     @can(ability: "duplicate", find: "id", model: "App\\Models\\Template")

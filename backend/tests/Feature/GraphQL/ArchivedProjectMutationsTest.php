@@ -29,6 +29,8 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
         'setProjectCreatorRole' => 'app settings, belong to no project',
         'createApiToken' => 'personal token',
         'createTemplate' => 'templates belong to no project',
+        'createTemplateFromFile' => 'templates belong to no project',
+        'createTemplateFromProject' => 'reads the project (planer.export holds in the archive), writes a template',
         'createProject' => 'a new project is not archived',
         'createRole' => 'roles and functions belong to no project',
         'createRoleFunction' => 'roles and functions belong to no project',
