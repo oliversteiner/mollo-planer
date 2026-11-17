@@ -79,7 +79,7 @@ class Todo extends Model implements BelongsToProject
      */
     public function tasks(): HasMany
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(Task::class)->orderBy('position')->orderBy('id');
     }
 
     public function owningProject(): Project

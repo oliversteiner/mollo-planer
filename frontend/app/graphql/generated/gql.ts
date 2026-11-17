@@ -84,6 +84,7 @@ type Documents = {
     "\n  mutation UnarchiveProject($id: ID!) {\n    unarchiveProject(id: $id) { id archivedAt viewerRights }\n  }\n": typeof types.UnarchiveProjectDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        boardPosition\n        dueDate\n        commit\n        userStory { role goal benefit }\n        commentCount\n        labels { id name color position }\n        assignee { id name avatarUrl }\n        todo { id title }\n        viewerCanUpdate\n        viewerCanDelete\n      }\n    }\n  }\n": typeof types.KanbanDocument,
     "\n  mutation MoveTaskToTodo($id: ID!, $todoId: ID!) {\n    moveTaskToTodo(id: $id, todoId: $todoId) { id }\n  }\n": typeof types.MoveTaskToTodoDocument,
+    "\n  mutation MoveTaskInTodo($id: ID!, $position: Int!) {\n    moveTaskInTodo(id: $id, position: $position) { id }\n  }\n": typeof types.MoveTaskInTodoDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role { key }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.ProjectMembersDocument,
     "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      boardPosition\n      dueDate\n      commit\n      userStory { role goal benefit }\n      assignee { id name avatarUrl }\n      labels { id name color position }\n      viewerCanUpdate\n      viewerCanAssign\n      viewerCanAssignSelf\n      viewerCanDelete\n      todo {\n        id\n        title\n        milestone {\n          id\n          title\n          project { id name labels { id name category color position } }\n        }\n      }\n      comments {\n        id\n        body\n        createdAt\n        editedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": typeof types.TaskDetailDocument,
     "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) { id }\n  }\n": typeof types.CreateTaskDocument,
@@ -171,6 +172,7 @@ const documents: Documents = {
     "\n  mutation UnarchiveProject($id: ID!) {\n    unarchiveProject(id: $id) { id archivedAt viewerRights }\n  }\n": types.UnarchiveProjectDocument,
     "\n  query Kanban($projectId: ID!) {\n    kanban(projectId: $projectId) {\n      status\n      tasks {\n        id\n        title\n        icon\n        status\n        boardPosition\n        dueDate\n        commit\n        userStory { role goal benefit }\n        commentCount\n        labels { id name color position }\n        assignee { id name avatarUrl }\n        todo { id title }\n        viewerCanUpdate\n        viewerCanDelete\n      }\n    }\n  }\n": types.KanbanDocument,
     "\n  mutation MoveTaskToTodo($id: ID!, $todoId: ID!) {\n    moveTaskToTodo(id: $id, todoId: $todoId) { id }\n  }\n": types.MoveTaskToTodoDocument,
+    "\n  mutation MoveTaskInTodo($id: ID!, $position: Int!) {\n    moveTaskInTodo(id: $id, position: $position) { id }\n  }\n": types.MoveTaskInTodoDocument,
     "\n  query ProjectMembers($id: ID!) {\n    project(id: $id) {\n      id\n      members {\n        role { key }\n        user { id name avatarUrl }\n      }\n    }\n  }\n": types.ProjectMembersDocument,
     "\n  query TaskDetail($id: ID!) {\n    task(id: $id) {\n      id\n      title\n      description\n      icon\n      status\n      boardPosition\n      dueDate\n      commit\n      userStory { role goal benefit }\n      assignee { id name avatarUrl }\n      labels { id name color position }\n      viewerCanUpdate\n      viewerCanAssign\n      viewerCanAssignSelf\n      viewerCanDelete\n      todo {\n        id\n        title\n        milestone {\n          id\n          title\n          project { id name labels { id name category color position } }\n        }\n      }\n      comments {\n        id\n        body\n        createdAt\n        editedAt\n        viewerCanEdit\n        viewerCanDelete\n        author { id name avatarUrl }\n      }\n    }\n  }\n": types.TaskDetailDocument,
     "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) { id }\n  }\n": types.CreateTaskDocument,
@@ -482,6 +484,10 @@ export function graphql(source: "\n  query Kanban($projectId: ID!) {\n    kanban
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation MoveTaskToTodo($id: ID!, $todoId: ID!) {\n    moveTaskToTodo(id: $id, todoId: $todoId) { id }\n  }\n"): (typeof documents)["\n  mutation MoveTaskToTodo($id: ID!, $todoId: ID!) {\n    moveTaskToTodo(id: $id, todoId: $todoId) { id }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation MoveTaskInTodo($id: ID!, $position: Int!) {\n    moveTaskInTodo(id: $id, position: $position) { id }\n  }\n"): (typeof documents)["\n  mutation MoveTaskInTodo($id: ID!, $position: Int!) {\n    moveTaskInTodo(id: $id, position: $position) { id }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

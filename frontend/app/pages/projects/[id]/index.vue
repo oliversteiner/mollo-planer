@@ -155,6 +155,7 @@ function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace)
       :can-create-todo="can('TODO_CREATE')"
       :can-create-task="can('TASK_CREATE')"
       :can-move-task="can('TASK_UPDATE')"
+      :can-reorder-task="can('TASK_MOVE')"
       @create-todo="editing = { kind: 'todo', parentId: $event }"
       @create-task="createTask"
       @open-task="openTask"

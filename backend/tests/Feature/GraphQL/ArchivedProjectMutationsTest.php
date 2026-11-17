@@ -124,6 +124,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
             'deleteTodo' => ['mutation ($id: ID!) { deleteTodo(id: $id) { id } }', $todo],
             'moveMilestone' => ['mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
             'moveTask' => ['mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', $task],
+            'moveTaskInTodo' => ['mutation ($id: ID!) { moveTaskInTodo(id: $id, position: 0) { id } }', $task],
             'moveTaskToTodo' => ['mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => $test->todo->id]],
             'moveTodo' => ['mutation ($id: ID!, $m: ID!) { moveTodo(id: $id, milestoneId: $m, position: 0) { id } }', fn (self $test) => ['id' => $test->todo->id, 'm' => $test->milestone->id]],
             'removeProjectMember' => ['mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],

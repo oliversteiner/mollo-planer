@@ -57,7 +57,9 @@ class LabelSetMigrationTest extends TestCase
         $withoutSet = $this->project('Ohne Set', 'de', null);
 
         $attach = function (Project $project, int $labelId): void {
-            $task = Task::factory()->for(Todo::factory()->for(Milestone::factory()->for($project))->create())->create();
+            // Without events: the observer writes columns a later migration adds.
+            $todo = Todo::factory()->for(Milestone::factory()->for($project))->create();
+            $task = Task::withoutEvents(fn () => Task::factory()->for($todo)->create(['project_id' => $project->id]));
             DB::table('label_task')->insert(['label_id' => $labelId, 'task_id' => $task->id]);
         };
         $attach($withSet, $bug);

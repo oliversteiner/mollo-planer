@@ -4,6 +4,7 @@ namespace Tests\Feature\GraphQL;
 
 use App\Models\Label;
 use App\Models\Milestone;
+use App\Models\Task;
 use App\Models\Todo;
 use Closure;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,7 @@ class PlanerRevisionTest extends GraphQLTestCase
             'updateTask' => ['manager', 'mutation ($id: ID!) { updateTask(id: $id, input: {title: "Neu"}) { id } }', fn (self $t) => ['id' => $t->task->id]],
             'assignTask' => ['manager', 'mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $t) => ['id' => $t->task->id, 'u' => $t->users['member']->id]],
             'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $t) => ['id' => $t->task->id]],
+            'moveTaskInTodo' => ['member', 'mutation ($id: ID!) { moveTaskInTodo(id: $id, position: 1) { id } }', fn (self $t) => ['id' => tap($t->task, fn () => Task::factory()->for($t->todo)->create())->id]],
             'moveTaskToTodo' => ['manager', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $t) => ['id' => $t->task->id, 't' => Todo::factory()->for($t->milestone)->create()->id]],
             'deleteTask' => ['manager', 'mutation ($id: ID!) { deleteTask(id: $id) { id } }', fn (self $t) => ['id' => $t->task->id]],
             'setTaskLabels' => ['manager', 'mutation ($id: ID!, $l: [ID!]!) { setTaskLabels(taskId: $id, labelIds: $l) { id } }', fn (self $t) => ['id' => $t->task->id, 'l' => [$t->labelOfTheProject()]]],

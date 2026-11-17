@@ -30,6 +30,12 @@ export const moveTaskToTodoMutation = graphql(`
   }
 `)
 
+export const moveTaskInTodoMutation = graphql(`
+  mutation MoveTaskInTodo($id: ID!, $position: Int!) {
+    moveTaskInTodo(id: $id, position: $position) { id }
+  }
+`)
+
 export const projectMembersQuery = graphql(`
   query ProjectMembers($id: ID!) {
     project(id: $id) {

@@ -5,7 +5,7 @@ import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TimelineEntry } from '~/components/StepTimeline.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { projectTimelineQuery } from '~/graphql/project'
-import { moveTaskToTodoMutation } from '~/graphql/task'
+import { moveTaskInTodoMutation, moveTaskToTodoMutation } from '~/graphql/task'
 import type { ProjectTimelineQuery } from '~/graphql/generated/graphql'
 import { formatDate } from '~/utils/dates'
 import { isEmptyDocument } from '~/utils/rich-text'
@@ -13,7 +13,7 @@ import { isEmptyDocument } from '~/utils/rich-text'
 /**
  * Project as a timeline, like the preview of the AI assistant: milestones
  * in their order from the backend (position), their todos (collapsible)
- * and in them the tasks, by due date. Milestones
+ * and in them the tasks in their order (position). Milestones
  * before the first open one are shown as reached. Creating, changing and
  * deleting is left to the page (events and the actions menu); tasks are
  * moved to another todo here, by drag and drop.
@@ -38,6 +38,8 @@ const props = defineProps<{
   canCreateTask?: boolean
   /** Tasks can be dragged into another todo */
   canMoveTask?: boolean
+  /** Tasks can be moved up and down inside their todo (task.move) */
+  canReorderTask?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -65,10 +67,6 @@ function editTask(task: TimelineTask) {
   if (task.viewerCanUpdate) {
     emit('editTask', task)
   }
-}
-
-function byDueDate<T extends { id: string, dueDate?: string | null }>(items: readonly T[]): T[] {
-  return [...items].sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || Number(a.id) - Number(b.id))
 }
 
 const milestones = computed(() => result.value?.project?.milestones ?? [])
@@ -110,19 +108,40 @@ function setOpen(id: string, open: boolean) {
 
 /**
  * Tasks per todo id, a local copy so a drop shows at once. Within a todo
- * the order is by due date, so dragging only moves between todos; the
- * server's answer replaces the copy after every move.
+ * the order is the server's (position, changed by "Move up/down"), so
+ * dragging only moves between todos; the server's answer replaces the copy
+ * after every move.
  */
 const taskLists = ref<Record<string, TimelineTask[]>>({})
 const dragging = ref(false)
 
 function fillTaskLists() {
-  taskLists.value = Object.fromEntries(milestones.value.flatMap(milestone => milestone.todos.map(todo => [todo.id, byDueDate(todo.tasks)])))
+  taskLists.value = Object.fromEntries(milestones.value.flatMap(milestone => milestone.todos.map(todo => [todo.id, [...todo.tasks]])))
 }
 
 watch(milestones, fillTaskLists, { immediate: true })
 
 const { mutate: moveTaskToTodo } = useProjectMutation(moveTaskToTodoMutation)
+const { mutate: moveTaskInTodo } = useProjectMutation(moveTaskInTodoMutation)
+
+/** Menu "Move up / Move down" of a task, by its place in the todo. */
+function taskMenu(task: TimelineTask, todoId: string): ActionMenuItem[] {
+  const list = taskLists.value[todoId] ?? []
+  const index = list.findIndex(entry => entry.id === task.id)
+  const items: ActionMenuItem[] = []
+
+  if (!props.canReorderTask || index < 0) {
+    return items
+  }
+  if (index > 0) {
+    items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => void moveTaskInTodo({ id: task.id, position: index - 1 }) })
+  }
+  if (index < list.length - 1) {
+    items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveTaskInTodo({ id: task.id, position: index + 1 }) })
+  }
+
+  return items
+}
 
 async function onDrop(event: SortableEvent) {
   dragging.value = false
@@ -385,6 +404,16 @@ function toggleAll() {
                               v-else
                               class="task-unassigned"
                             >{{ t('project.timeline.unassigned') }}</span>
+                            <span
+                              v-if="taskMenu(task, todo.id).length"
+                              @click.stop
+                              @dblclick.stop
+                            >
+                              <ActionMenu
+                                :items="taskMenu(task, todo.id)"
+                                :label="t('project.timeline.taskActions', { title: task.title })"
+                              />
+                            </span>
                           </div>
                         </li>
                       </VueDraggable>

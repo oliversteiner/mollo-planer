@@ -50,6 +50,7 @@ class Task extends Model implements BelongsToProject
             'status' => TaskStatus::class,
             'due_date' => 'date',
             'board_position' => 'integer',
+            'position' => 'integer',
             'user_story' => 'array',
         ];
     }

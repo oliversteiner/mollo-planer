@@ -283,6 +283,8 @@ type Mutation {
  moveMilestone(id: ID!, position: Int!): Milestone!
  "Verschiebt einen Task im Kanban"
  moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
+ "Verschiebt einen Task an eine andere Stelle in seinem ToDo (Zeitachse). Die übrigen rücken nach; Status und Kanban-Platz bleiben."
+ moveTaskInTodo(id: ID!, position: Int!): Task!
  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
  moveTaskToTodo(id: ID!, todoId: ID!): Task!
  moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
@@ -680,6 +682,8 @@ type Task {
  id: ID!
  "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
  labels: [Label!]!
+ "Reihenfolge im ToDo, von 0 an. Die Tasks eines ToDos kommen in dieser Reihenfolge (Zeitachse, Planer-Datei)."
+ position: Int!
  project: Project!
  status: TaskStatus!
  title: String!

@@ -261,6 +261,7 @@
       "createTask": "New task in todo “{title}”",
       "milestoneActions": "Actions for milestone “{title}”",
       "todoActions": "Actions for todo “{title}”",
+      "taskActions": "Actions for task “{title}”",
       "openTask": "Open task “{title}”"
     },
     "milestoneNumber": "M{number}",
@@ -1149,6 +1150,10 @@
         "board_position": {
           "label": "Position",
           "description": "Reihenfolge innerhalb der Kanban-Spalte."
+        },
+        "position": {
+          "label": "Position in the to-do",
+          "description": "Order of the tasks inside their to-do (timeline, planer file)."
         },
         "due_date": {
           "label": "Fälligkeit",

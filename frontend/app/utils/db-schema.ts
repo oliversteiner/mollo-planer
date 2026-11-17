@@ -180,6 +180,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'status', type: 'varchar', default: 'open', values: ['idea', 'planned', 'open', 'in_progress', 'review', 'done'] },
       { name: 'commit', type: 'varchar', nullable: true },
       { name: 'board_position', type: 'int', default: '0' },
+      { name: 'position', type: 'int', default: '0' },
       { name: 'due_date', type: 'date', nullable: true },
       { name: 'created_at', type: 'timestamp', nullable: true },
       { name: 'updated_at', type: 'timestamp', nullable: true },
@@ -191,7 +192,8 @@ const TABLES: Record<DbTableName, DbTable> = {
       { kind: 'index', columns: ['deletion_id'] },
       { kind: 'index', columns: ['assigned_user_id'] },
       { kind: 'index', columns: ['todo_id', 'status'] },
-      { kind: 'index', columns: ['project_id', 'status', 'board_position'] }
+      { kind: 'index', columns: ['project_id', 'status', 'board_position'] },
+      { kind: 'index', columns: ['todo_id', 'position'] }
     ]
   },
   comments: {

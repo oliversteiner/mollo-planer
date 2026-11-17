@@ -445,6 +445,7 @@ class MutationTest extends GraphQLTestCase
             'createTask' => ['manager', 'mutation ($t: ID!, $u: ID!) { createTask(input: {todoId: $t, title: "Neu", assigneeId: $u}) { id } }', fn (self $test) => ['t' => $test->todo->id, 'u' => $test->users['member']->id]],
             'assignTask' => ['manager', 'mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $test) => ['id' => $test->task->id, 'u' => $test->users['member']->id]],
             'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
+            'moveTaskInTodo' => ['member', 'mutation ($id: ID!) { moveTaskInTodo(id: $id, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
             'moveTaskToTodo' => ['manager', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => Todo::factory()->for($test->milestone)->create()->id]],
             'addComment' => ['member', 'mutation ($t: ID!, $body: RichText!) { addComment(input: {taskId: $t, body: $body}) { id } }', fn (self $test) => ['t' => $test->task->id, 'body' => $test->doc('Hallo')]],
             'createRole' => ['admin', 'mutation ($f: ID!) { createRole(input: {scope: PROJECT, names: {de: "Prüferin", en: "Reviewer"}, functionIds: [$f]}) { id } }', fn (self $test) => ['f' => self::functionId('contribute')]],
