@@ -5,6 +5,7 @@ namespace App\Mcp\Servers;
 use App\Mcp\Tools\AddToPlanTool;
 use App\Mcp\Tools\CreateProjectPlanTool;
 use App\Mcp\Tools\CreateProjectTool;
+use App\Mcp\Tools\ExportPlanTool;
 use App\Mcp\Tools\GetProjectTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\ListTemplatesTool;
@@ -45,6 +46,7 @@ class MolloPlanerServer extends Server
         ListProjectsTool::class,
         ListTemplatesTool::class,
         GetProjectTool::class,
+        ExportPlanTool::class,
         ListUsersTool::class,
         CreateProjectTool::class,
         SetProjectMemberTool::class,

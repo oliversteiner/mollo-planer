@@ -1,0 +1,21 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Pflichtfeld fehlt",
+    "locale": "de",
+    "members": []
+  },
+  "milestones": [
+    {
+      "id": "m-1",
+      "title": "Start",
+      "todos": [
+        {
+          "id": "t-1",
+          "tasks": []
+        }
+      ]
+    }
+  ]
+}

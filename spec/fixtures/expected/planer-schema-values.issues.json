@@ -1,0 +1,30 @@
+[
+  {
+    "severity": "error",
+    "path": "revision"
+  },
+  {
+    "severity": "error",
+    "path": "project.name"
+  },
+  {
+    "severity": "error",
+    "path": "project.locale"
+  },
+  {
+    "severity": "error",
+    "path": "project.members[0].email"
+  },
+  {
+    "severity": "error",
+    "path": "project.members[0].role"
+  },
+  {
+    "severity": "error",
+    "path": "milestones[0].dueDate"
+  },
+  {
+    "severity": "error",
+    "path": "milestones[0].todos[0].tasks[0].status"
+  }
+]

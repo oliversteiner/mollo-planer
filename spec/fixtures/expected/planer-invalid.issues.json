@@ -1,0 +1,22 @@
+[
+  {
+    "severity": "error",
+    "path": "milestones[0].todos[0].tasks[0].commit"
+  },
+  {
+    "severity": "error",
+    "path": "milestones[0]"
+  },
+  {
+    "severity": "error",
+    "path": "milestones[1].todos[0].tasks[0].commit"
+  },
+  {
+    "severity": "error",
+    "path": "milestones[1].todos[0].tasks[1].id"
+  },
+  {
+    "severity": "error",
+    "path": "milestones[1].todos[0].tasks[2].assigneeEmail"
+  }
+]

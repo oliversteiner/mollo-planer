@@ -1,0 +1,34 @@
+{
+  "format": "planer-v2",
+  "revision": -1,
+  "project": {
+    "name": "X",
+    "locale": "fr",
+    "members": [
+      {
+        "email": "keine-adresse",
+        "role": "Bar Team"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-1",
+      "title": "Start",
+      "dueDate": "2026-13-40",
+      "todos": [
+        {
+          "id": "t-1",
+          "title": "Arbeit",
+          "tasks": [
+            {
+              "id": "k-1",
+              "title": "Aufgabe",
+              "status": "waiting"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

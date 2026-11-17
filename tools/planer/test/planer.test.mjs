@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -193,4 +193,16 @@ test('M4: leeres Projekt, eigene Rolle und Markdown-Beschreibung sind gültig', 
   assert.deepEqual(errorPaths((d) => { d.project.description = 'x'.repeat(5000); }), []);
   assert.deepEqual(errorPaths((d) => { d.project.description = 'x'.repeat(5001); }), ['project.description']);
   assert.deepEqual(errorPaths((d) => { d.project.description = '<b>fett</b>'; }), ['project.description']);
+});
+
+test('Erwartete Ergebnisse (spec/fixtures/expected): jede Planer-Datei hat eine, JS und PHP melden dasselbe', () => {
+  const dir = fileURLToPath(new URL('../../../spec/fixtures/', import.meta.url));
+  const names = readdirSync(dir).filter((name) => name.endsWith('.planer.json'));
+  assert.ok(names.length >= 8);
+  for (const name of names) {
+    const expectedFile = `${dir}expected/${name.replace('.planer.json', '.issues.json')}`;
+    assert.ok(existsSync(expectedFile), `Erwartungsdatei fehlt für ${name}`);
+    const actual = [...new Map(validatePlaner(readFileSync(`${dir}${name}`, 'utf8')).map((issue) => [`${issue.severity}|${issue.path}`, { severity: issue.severity, path: issue.path }])).values()];
+    assert.deepEqual(actual, JSON.parse(readFileSync(expectedFile, 'utf8')), name);
+  }
 });

@@ -513,6 +513,8 @@ type Query {
  appSettings: AppSettings!
  "Startseite"
  dashboard: Dashboard!
+ "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
+ exportPlan(projectId: ID!): String!
  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
  kanban(projectId: ID!): [KanbanColumn!]!
  "Der angemeldete Benutzer"

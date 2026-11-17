@@ -36,6 +36,12 @@ class ProjectPolicy
         return $this->allows($user, $project, Right::PROJECT_ARCHIVE);
     }
 
+    /** The planer file of the project: reading, so it holds in the archive too. */
+    public function export(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::PLANER_EXPORT);
+    }
+
     public function manageMembers(User $user, Project $project): bool
     {
         return $this->allows($user, $project, Right::MEMBERS_MANAGE);

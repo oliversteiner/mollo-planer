@@ -30,6 +30,11 @@ type Query @guard {
   "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
   task(id: ID! @eq): Task @find(scopes: ["visibleToViewer"])
 
+  "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
+  exportPlan(projectId: ID!): String!
+    @can(ability: "export", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Queries\\ExportPlan")
+
   "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
   kanban(projectId: ID!): [KanbanColumn!]! @field(resolver: "App\\GraphQL\\Queries\\Kanban")
 
