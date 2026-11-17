@@ -297,11 +297,11 @@ final class Import
 
         $this->before['milestones'] = $this->milestones->keys()->all();
 
-        foreach ($this->todos->groupBy('milestone_id') as $milestoneId => $group) {
+        foreach ($this->todos->groupBy('milestone_id', preserveKeys: true) as $milestoneId => $group) {
             $this->before['todos'][(int) $milestoneId] = $group->keys()->all();
         }
 
-        foreach ($this->tasks->groupBy('todo_id') as $todoId => $group) {
+        foreach ($this->tasks->groupBy('todo_id', preserveKeys: true) as $todoId => $group) {
             $this->before['tasks'][(int) $todoId] = $group->keys()->all();
         }
     }
@@ -943,8 +943,7 @@ final class Import
     private function orderGroup(string $table, string $column, int|string $parentId, array $wanted, array $before, string $prefix): void
     {
         $now = DB::table($table)->where($column, $parentId)->whereNull('deleted_at')->orderBy('position')->orderBy('id')->pluck('id')->map(fn ($id): int => (int) $id)->all();
-        $rest = array_values(array_diff($now, $wanted));
-        $order = [...$wanted, ...$rest];
+        $order = $this->mode === ImportMode::Partial ? $this->refillSlots($now, $wanted) : [...$wanted, ...array_values(array_diff($now, $wanted))];
 
         // Items that were in the group before and are still: did their relative order change?
         $kept = array_values(array_filter($before, fn (int $id): bool => in_array($id, $order, true)));
@@ -963,6 +962,27 @@ final class Import
                 $this->change('move', $this->paths["{$prefix}-{$id}"] ?? "{$prefix}-{$id}", "{$prefix}-{$id}", ['position']);
             }
         }
+    }
+
+    /**
+     * Partial: what the file does not list keeps its place. The places of the
+     * listed items are filled with them again, in the order of the file.
+     *
+     * @param  list<int>  $now  The group as it is
+     * @param  list<int>  $wanted  The listed items in the order of the file
+     * @return list<int>
+     */
+    private function refillSlots(array $now, array $wanted): array
+    {
+        $listed = array_values(array_filter($wanted, fn (int $id): bool => in_array($id, $now, true)));
+        $slots = $listed;
+        $result = [];
+
+        foreach ($now as $id) {
+            $result[] = in_array($id, $slots, true) ? array_shift($listed) : $id;
+        }
+
+        return $result;
     }
 
     // ─── Deletions (full) ────────────────────────────────────────────

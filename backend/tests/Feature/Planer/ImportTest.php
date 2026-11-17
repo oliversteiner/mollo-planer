@@ -532,4 +532,45 @@ class ImportTest extends GraphQLTestCase
         $this->assertSame([], $result->changes);
         $this->assertSame($before, $this->revision($this->project));
     }
+
+    // ─── The order is compared by id (F7.1) ──────────────────────────
+
+    public function test_a_fresh_export_changes_nothing_even_after_the_order_was_changed(): void
+    {
+        $second = Milestone::factory()->for($this->project)->create();
+        $secondTodo = Todo::factory()->for($this->milestone)->create();
+        Todo::factory()->for($second)->create();
+        Task::factory()->count(2)->for($this->todo)->create();
+
+        $document = $this->exported();
+        $document['milestones'] = array_reverse($document['milestones']);
+        $document['milestones'][1]['todos'] = array_reverse($document['milestones'][1]['todos']);
+        $document['milestones'][1]['todos'][1]['tasks'] = array_reverse($document['milestones'][1]['todos'][1]['tasks']);
+        $this->assertSame([], $this->import($this->project, $document)->errors);
+
+        $fresh = $this->exported();
+        $revision = $this->revision($this->project);
+
+        $this->assertSame([], $this->import($this->project, $fresh, dryRun: true)->changes);
+        $this->assertSame([], $this->import($this->project, $fresh)->changes);
+        $this->assertSame($revision, $this->revision($this->project));
+        $this->assertSame([], $this->import($this->project, $this->exported(), ImportMode::Partial)->changes);
+        $this->assertNotNull($secondTodo);
+    }
+
+    public function test_partial_with_some_of_the_tasks_reports_no_move_for_the_others(): void
+    {
+        $b = Task::factory()->for($this->todo)->create();
+        $c = Task::factory()->for($this->todo)->create();
+        $document = $this->exported();
+        $tasks = $document['milestones'][0]['todos'][0]['tasks'];
+        $document['milestones'][0]['todos'][0]['tasks'] = [$tasks[0], $tasks[2]];
+
+        $result = $this->import($this->project, $document, ImportMode::Partial, dryRun: true);
+
+        $this->assertSame([], $result->errors);
+        $this->assertSame([], $result->changes);
+        $this->assertNotNull($b);
+        $this->assertNotNull($c);
+    }
 }
