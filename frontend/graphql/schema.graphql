@@ -293,6 +293,10 @@ type Mutation {
  createTask(input: CreateTaskInput!): Task!
  "Legt eine eigene Vorlage an: Name, Beschreibung, Sprache und Labels, ohne Gerüst."
  createTemplate(input: TemplateInput!): Template!
+ "Legt aus einer hochgeladenen Planer-Datei (planer-v2, als JSON-Text) eine eigene Vorlage an. Der Name der Vorlage ist der Projektname der Datei. Recht templates.manage."
+ createTemplateFromFile(document: String!): Template!
+ "Legt aus einem Projekt eine eigene Vorlage an („Als Vorlage speichern“): Export mit den festen Werten einer Vorlage (keine Mitglieder, Fälligkeiten, Zuweisungen, Commits, alle Tasks geplant). Recht planer.export im Projekt und templates.manage. Das Projekt braucht mindestens ein Label."
+ createTemplateFromProject(name: String!, projectId: ID!): Template!
  createTodo(input: CreateTodoInput!): Todo!
  createUser(input: CreateUserInput!): User!
  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
@@ -765,6 +769,8 @@ type Template {
  "null bei mitgelieferten Vorlagen und wenn die Person gelöscht wurde"
  createdBy: User
  description: String
+ "Die Vorlage als Planer-Datei (planer-v2, kanonischer Text), zum Herunterladen und Ansehen"
+ file: String!
  id: ID!
  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
  isBuiltin: Boolean!

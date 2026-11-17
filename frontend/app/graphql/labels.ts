@@ -17,6 +17,7 @@ export const templatesQuery = graphql(`
       createdBy { id name }
       labels { key name names { locale name } category categoryLabel color }
       outline { title version todos { title tasks { title labels } } }
+      file
     }
   }
 `)

@@ -9,8 +9,13 @@ const duotoneLight = `${fontAwesome}/svgs-full/duotone-light`
 const iconCatalog = fileURLToPath(new URL('./node_modules/.cache/icon-catalog', import.meta.url))
 ensureIconCatalog(fontAwesome, iconCatalog)
 
+// The Markdown view of a planer file is the one of tools/planer (docs/auftrag-m4.md §7): only
+// modules without node: imports (render-planer, planer-words) are used in the browser.
+const planerCore = fileURLToPath(new URL('../tools/planer/core', import.meta.url))
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
@@ -54,6 +59,9 @@ export default defineNuxtConfig({
       apiBase: 'http://localhost:8000'
     }
   },
+  alias: {
+    '#planer-core': planerCore
+  },
 
   // Dev server only on this machine (WSL forwards localhost to Windows),
   // not reachable from the network.
@@ -78,6 +86,12 @@ export default defineNuxtConfig({
         baseURL: '/icons'
       }
     ]
+  },
+
+  vite: {
+    server: {
+      fs: { allow: ['..'] }
+    }
   },
 
   hooks: {

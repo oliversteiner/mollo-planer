@@ -4,7 +4,9 @@ import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TemplateFormTarget } from '~/components/template/FormModal.vue'
 import type { TemplatesQuery } from '~/graphql/generated/graphql'
 import { deleteTemplateMutation, duplicateTemplateMutation, templatesQuery } from '~/graphql/labels'
+import { createTemplateFromFileMutation } from '~/graphql/planer'
 import { outlineSize } from '~/utils/labels'
+import { downloadName, downloadText, readPlanerFile } from '~/utils/planer'
 
 /**
  * Templates of the app: the built-in ones and own ones. Everybody signed in
@@ -27,6 +29,50 @@ const editing = ref<TemplateFormTarget | null>(null)
 
 const { mutate: duplicateTemplate } = useMutation(duplicateTemplateMutation, templateRefresh)
 const { mutate: deleteTemplate } = useMutation(deleteTemplateMutation, templateRefresh)
+
+const { mutate: createFromFile } = useMutation(createTemplateFromFileMutation, templateRefresh)
+const { errors: uploadErrors, run: runUpload } = useGraphqlForm()
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploadProblem = ref<string | null>(null)
+
+async function upload(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  uploadProblem.value = null
+  const text = await file.text()
+  input.value = ''
+  const read = readPlanerFile(text)
+
+  if ('problem' in read) {
+    uploadProblem.value = t(`planer.import.${read.problem}`)
+
+    return
+  }
+
+  const created = (await runUpload(() => createFromFile({ document: text })))?.data?.createTemplateFromFile
+
+  if (created) {
+    toast.add({ title: t('templates.uploaded', { name: created.name }), color: 'success' })
+  } else {
+    uploadProblem.value = uploadErrors.value.document ?? null
+  }
+}
+
+function download(template: Template): void {
+  downloadText(downloadName(template.name, 'planer.json'), template.file, 'application/json')
+}
+
+/** The outline as a planer document, for the tree. */
+function documentOf(template: Template) {
+  const read = readPlanerFile(template.file)
+
+  return 'document' in read ? read.document : null
+}
 
 const deletion = useConfirmedDelete<Template>(template => deleteTemplate({ id: template.id }), {
   onDeleted: () => toast.add({ title: t('templates.deleted'), color: 'success' })
@@ -54,6 +100,7 @@ function actions(template: Template): ActionMenuItem[] {
   if (canManage.value) {
     items.push({ label: t('templates.duplicate'), icon: 'copy', onSelect: () => duplicate(template) })
   }
+  items.push({ label: t('templates.download'), icon: 'file-arrow-down', onSelect: () => download(template) })
   if (template.viewerCanDelete) {
     items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => deletion.ask(template) })
   }
@@ -63,10 +110,6 @@ function actions(template: Template): ActionMenuItem[] {
 
 function labelItems(template: Template) {
   return template.labels.map((label, position) => ({ id: label.key, name: label.name, color: label.color, position }))
-}
-
-function labelNames(template: Template): Record<string, string> {
-  return Object.fromEntries(template.labels.map(label => [label.key, label.name]))
 }
 
 /** "2 Milestones, 4 ToDos, 7 Tasks" */
@@ -86,6 +129,17 @@ function size(template: Template): string {
       #actions
     >
       <wa-button
+        appearance="outlined"
+        variant="neutral"
+        @click="fileInput?.click()"
+      >
+        <wa-icon
+          slot="start"
+          name="file-import"
+        ></wa-icon>
+        {{ t('templates.upload') }}
+      </wa-button>
+      <wa-button
         variant="brand"
         @click="editing = {}"
       >
@@ -96,6 +150,20 @@ function size(template: Template): string {
         {{ t('templates.create') }}
       </wa-button>
     </template>
+
+    <input
+      ref="fileInput"
+      type="file"
+      accept=".json,application/json"
+      class="wa-visually-hidden"
+      tabindex="-1"
+      @change="upload"
+    >
+    <AppCallout
+      v-if="uploadProblem"
+      variant="danger"
+      :description="uploadProblem"
+    />
 
     <wa-skeleton
       v-if="loading && !result"
@@ -152,9 +220,9 @@ function size(template: Template): string {
               v-if="template.outline.length"
               :summary="`${t('templates.outline')}: ${size(template)}`"
             >
-              <TemplateOutline
-                :outline="template.outline"
-                :label-names="labelNames(template)"
+              <PlanerTree
+                v-if="documentOf(template)"
+                :document="documentOf(template)!"
               />
             </wa-details>
             <p

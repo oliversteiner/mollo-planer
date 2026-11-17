@@ -192,7 +192,8 @@
       "noTemplate": "Ohne Vorlage",
       "templateHint": "Das Projekt bekommt Kopien der Labels und des Gerüsts der Vorlage.",
       "templateFallback": "Bei {count} Labels gibt es keinen Namen in {language}: Dort gilt der Name in der Sprache der Vorlage.",
-      "templateDescription": "Ohne eigene Beschreibung gilt die der Vorlage."
+      "templateDescription": "Ohne eigene Beschreibung gilt die der Vorlage.",
+      "fromFile": "Aus Datei"
     },
     "fields": {
       "name": "Name",
@@ -709,7 +710,10 @@
     "deleteDescription": "Die Vorlage wird endgültig gelöscht. Projekte, die aus ihr angelegt wurden, behalten ihre Labels und ihr Gerüst.",
     "sizeMilestones": "{n} Milestone | {n} Milestones",
     "sizeTodos": "{n} ToDo | {n} ToDos",
-    "sizeTasks": "{n} Task | {n} Tasks"
+    "sizeTasks": "{n} Task | {n} Tasks",
+    "upload": "Aus Datei",
+    "download": "Als planer.json herunterladen",
+    "uploaded": "Vorlage «{name}» aus der Datei angelegt."
   },
   "userRole": {
     "ADMIN": "Administration",
@@ -1659,6 +1663,84 @@
       "TODO": "{count} ToDo | {count} ToDos",
       "TASK": "{count} Task | {count} Tasks",
       "COMMENT": "{count} Kommentar | {count} Kommentare"
+    }
+  },
+  "planer": {
+    "tree": "Plan",
+    "empty": "Der Plan hat noch keine Milestones.",
+    "willDelete": "Wird in den Papierkorb gelegt | {count} Element wird in den Papierkorb gelegt | {count} Elemente werden in den Papierkorb gelegt",
+    "removed": {
+      "milestone": "Milestone {id}",
+      "todo": "ToDo {id}",
+      "task": "Task {id}",
+      "member": "Mitglied"
+    },
+    "mark": {
+      "create": "Neu",
+      "update": "Geändert",
+      "move": "Verschoben",
+      "delete": "Gelöscht"
+    },
+    "field": {
+      "title": "Titel",
+      "description": "Beschreibung",
+      "dueDate": "Fälligkeit",
+      "release": "Version",
+      "status": "Status",
+      "assigneeEmail": "Zuständig",
+      "labels": "Labels",
+      "commit": "Commit",
+      "userStory": "User-Story",
+      "name": "Name",
+      "locale": "Sprache",
+      "member": "Mitglied",
+      "milestone": "Milestone",
+      "todo": "ToDo",
+      "position": "Reihenfolge"
+    },
+    "file": {
+      "title": "Planer-Datei",
+      "intro": "Das ganze Projekt als Datei im Format planer-v2: Milestones, ToDos, Tasks, Mitglieder und Labels.",
+      "download": "Herunterladen",
+      "asJson": "Als planer.json",
+      "asMarkdown": "Als Markdown",
+      "language": "Sprache der Markdown-Ansicht",
+      "languageHint": "Feste Wörter und Label-Namen.",
+      "legend": "Übersetzungen in der Legende",
+      "legendHint": "Die Legende nennt die Wörter auch in der anderen Sprache.",
+      "markdownFailed": "Die Markdown-Ansicht ist nicht möglich.",
+      "import": "Datei eintragen",
+      "importHint": "Eine Planer-Datei ins Projekt eintragen. Vorher siehst du, was sich ändert; geschrieben wird erst, wenn du bestätigst.",
+      "importButton": "Datei eintragen …",
+      "template": "Als Vorlage speichern",
+      "templateHint": "Das Gerüst und die Labels dieses Projekts als eigene Vorlage, ohne Mitglieder, Fälligkeiten und Zuweisungen.",
+      "templateButton": "Als Vorlage speichern …",
+      "templateTitle": "Als Vorlage speichern",
+      "templateDescription": "Die Vorlage bekommt die Labels, Milestones, ToDos und Tasks dieses Projekts. Alle Tasks stehen darin auf «geplant».",
+      "templateSubmit": "Speichern",
+      "templateSaved": "Vorlage «{name}» gespeichert."
+    },
+    "import": {
+      "title": "Planer-Datei eintragen",
+      "titleNew": "Projekt aus Datei",
+      "intro": "Wähle eine Planer-Datei (planer.json). Es wird noch nichts geschrieben: du siehst zuerst, was sich ändern würde.",
+      "introNew": "Wähle eine Planer-Datei (planer.json). Du siehst zuerst, was angelegt würde. Du wirst Mitglied des neuen Projekts.",
+      "choose": "Datei wählen",
+      "chooseOther": "Andere Datei wählen",
+      "notJson": "Das ist keine gültige JSON-Datei.",
+      "notPlaner": "Das ist keine Planer-Datei (Format planer-v2).",
+      "mode": "Modus",
+      "modeFull": "Ganzer Plan",
+      "modePartial": "Nur ergänzen und ändern",
+      "modeFullHint": "Die Datei ist der ganze Plan: was darin fehlt, kommt in den Papierkorb. Die Revision der Datei muss stimmen.",
+      "modePartialHint": "Ergänzt und ändert, löscht nie. Felder, die in der Datei fehlen, bleiben.",
+      "errors": "Kein Fehler | 1 Fehler, es wird nichts geschrieben | {count} Fehler, es wird nichts geschrieben",
+      "nothing": "Die Datei ändert nichts am Projekt.",
+      "changes": "Keine Änderung | 1 Änderung | {count} Änderungen",
+      "submit": "Eintragen",
+      "confirmTitle": "Eintragen und löschen?",
+      "confirmDescription": "Die Datei lässt 1 Element weg. Es kommt in den Papierkorb und lässt sich dort zurückholen. | Die Datei lässt 1 Element weg. Es kommt in den Papierkorb und lässt sich dort zurückholen. | Die Datei lässt {count} Elemente weg. Sie kommen zusammen in den Papierkorb und lassen sich dort zurückholen.",
+      "done": "Die Datei ist eingetragen."
     }
   }
 }

@@ -192,7 +192,8 @@
       "noTemplate": "No template",
       "templateHint": "The project gets copies of the labels and the outline of the template.",
       "templateFallback": "{count} labels have no name in {language}: the name in the language of the template is used there.",
-      "templateDescription": "Without a description of your own, the one of the template is used."
+      "templateDescription": "Without a description of your own, the one of the template is used.",
+      "fromFile": "From file"
     },
     "fields": {
       "name": "Name",
@@ -709,7 +710,10 @@
     "deleteDescription": "The template is deleted for good. Projects made from it keep their labels and outline.",
     "sizeMilestones": "{n} milestone | {n} milestones",
     "sizeTodos": "{n} todo | {n} todos",
-    "sizeTasks": "{n} task | {n} tasks"
+    "sizeTasks": "{n} task | {n} tasks",
+    "upload": "From file",
+    "download": "Download as planer.json",
+    "uploaded": "Template “{name}” created from the file."
   },
   "userRole": {
     "ADMIN": "Administration",
@@ -1659,6 +1663,84 @@
       "TODO": "{count} todo | {count} todos",
       "TASK": "{count} task | {count} tasks",
       "COMMENT": "{count} comment | {count} comments"
+    }
+  },
+  "planer": {
+    "tree": "Plan",
+    "empty": "The plan has no milestones yet.",
+    "willDelete": "Goes to the trash | {count} item goes to the trash | {count} items go to the trash",
+    "removed": {
+      "milestone": "Milestone {id}",
+      "todo": "To-do {id}",
+      "task": "Task {id}",
+      "member": "Member"
+    },
+    "mark": {
+      "create": "New",
+      "update": "Changed",
+      "move": "Moved",
+      "delete": "Deleted"
+    },
+    "field": {
+      "title": "Title",
+      "description": "Description",
+      "dueDate": "Due date",
+      "release": "Version",
+      "status": "Status",
+      "assigneeEmail": "Assignee",
+      "labels": "Labels",
+      "commit": "Commit",
+      "userStory": "User story",
+      "name": "Name",
+      "locale": "Language",
+      "member": "Member",
+      "milestone": "Milestone",
+      "todo": "To-do",
+      "position": "Order"
+    },
+    "file": {
+      "title": "Planer file",
+      "intro": "The whole project as a file in the planer-v2 format: milestones, to-dos, tasks, members and labels.",
+      "download": "Download",
+      "asJson": "As planer.json",
+      "asMarkdown": "As Markdown",
+      "language": "Language of the Markdown view",
+      "languageHint": "Fixed words and label names.",
+      "legend": "Translations in the legend",
+      "legendHint": "The legend names the words in the other language too.",
+      "markdownFailed": "The Markdown view is not possible.",
+      "import": "Read in a file",
+      "importHint": "Read a planer file into the project. You see what changes first; nothing is written until you confirm.",
+      "importButton": "Read in a file …",
+      "template": "Save as template",
+      "templateHint": "The outline and the labels of this project as your own template, without members, due dates and assignments.",
+      "templateButton": "Save as template …",
+      "templateTitle": "Save as template",
+      "templateDescription": "The template gets the labels, milestones, to-dos and tasks of this project. All tasks in it are “planned”.",
+      "templateSubmit": "Save",
+      "templateSaved": "Template “{name}” saved."
+    },
+    "import": {
+      "title": "Read in a planer file",
+      "titleNew": "Project from a file",
+      "intro": "Choose a planer file (planer.json). Nothing is written yet: you see what would change first.",
+      "introNew": "Choose a planer file (planer.json). You see what would be created first. You become a member of the new project.",
+      "choose": "Choose a file",
+      "chooseOther": "Choose another file",
+      "notJson": "This is not a valid JSON file.",
+      "notPlaner": "This is not a planer file (format planer-v2).",
+      "mode": "Mode",
+      "modeFull": "Whole plan",
+      "modePartial": "Only add and change",
+      "modeFullHint": "The file is the whole plan: what it lacks goes to the trash. The revision of the file must match.",
+      "modePartialHint": "Adds and changes, never deletes. Fields the file leaves out stay.",
+      "errors": "No error | 1 error, nothing is written | {count} errors, nothing is written",
+      "nothing": "The file changes nothing in the project.",
+      "changes": "No change | 1 change | {count} changes",
+      "submit": "Import",
+      "confirmTitle": "Import and delete?",
+      "confirmDescription": "The file leaves out 1 item. It goes to the trash and can be restored there. | The file leaves out 1 item. It goes to the trash and can be restored there. | The file leaves out {count} items. They go to the trash together and can be restored there.",
+      "done": "The file has been imported."
     }
   }
 }

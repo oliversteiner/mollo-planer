@@ -66,6 +66,13 @@ async function bringBack(): Promise<void> {
       v-if="can('PROJECT_UPDATE')"
       :project-id="project.id"
     />
+    <PlanerFileCard
+      v-if="can('PLANER_EXPORT') || can('PLANER_IMPORT')"
+      :project-id="project.id"
+      :project-name="project.name"
+      :can-export="can('PLANER_EXPORT')"
+      :can-import="can('PLANER_IMPORT')"
+    />
 
     <wa-card v-if="can('PROJECT_ARCHIVE')">
       <h2

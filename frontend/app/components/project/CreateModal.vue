@@ -19,6 +19,8 @@ const { t } = useI18n()
 const toast = useToast()
 const { errors, pending, run } = useGraphqlForm()
 
+const fromFile = ref(false)
+
 const state = reactive<{ name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale, templateId: string }>({ name: '', description: null, icon: null, locale: 'DE', templateId: 'none' })
 
 interface NewMember {
@@ -116,6 +118,11 @@ async function submit(): Promise<void> {
     toast.add({ title: t('projects.create.done', { name: project.name }), color: 'success' })
     await navigateTo(`/projects/${project.id}`)
   }
+}
+
+async function onFileImported(projectId: string): Promise<void> {
+  open.value = false
+  await navigateTo(`/projects/${projectId}`)
 }
 
 watch(open, (isOpen) => {
@@ -294,6 +301,18 @@ watch(open, (isOpen) => {
       <wa-button
         appearance="plain"
         variant="neutral"
+        class="create-from-file"
+        @click="fromFile = true"
+      >
+        <wa-icon
+          slot="start"
+          name="file-import"
+        ></wa-icon>
+        {{ t('projects.create.fromFile') }}
+      </wa-button>
+      <wa-button
+        appearance="plain"
+        variant="neutral"
         @click="open = false"
       >
         {{ t('common.cancel') }}
@@ -308,9 +327,18 @@ watch(open, (isOpen) => {
       </wa-button>
     </template>
   </AppDialog>
+
+  <PlanerImportModal
+    v-model:open="fromFile"
+    @done="onFileImported"
+  />
 </template>
 
 <style scoped>
+.create-from-file {
+  margin-inline-end: auto;
+}
+
 .create-template-note {
   margin: 0;
   color: var(--wa-color-text-quiet);
