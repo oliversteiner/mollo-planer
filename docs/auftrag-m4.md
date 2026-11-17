@@ -165,6 +165,11 @@ Rolle: Auftrag für die Umsetzung (Bob). Präzisiert `umsetzung.md` I1 bis I5 au
   - Recht wie in M3 (`templates.manage`).
 - Texte DE/EN, hell/dunkel, Tastatur, Telefonbreite.
 
+## 7a. Entscheidungen zu den Rückfragen (Oliver, 2026-11-17)
+
+- **`templateId` bei `importPlan`/`import_plan`:** bleibt weg. Projekte aus Vorlagen entstehen über `createProject` (intern über den Importer) bzw. den Dialog „Neues Projekt“; `import_plan` nimmt nur Dateien. `planer-abgleich.md` V2/V3 ist an dieser Stelle überholt.
+- **`DevelopmentHistorySeeder`:** auf `planer-v2` umstellen. Einmal `docs/entwicklung.md` mit `tools/planer convert` nach `docs/entwicklung.planer.json` (eingecheckt, gültig nach `validate`); der Seeder importiert diese Datei über `App\Planer\Import` (neues Projekt, `full`) und liest das v1-Format nicht mehr. `App\Support\DevelopmentHistory\*` (v1-Leser) entfernen, wenn danach ungenutzt. Test: Seeder läuft, Export ergibt die Datei (bis auf IDs und Revision).
+
 ## 8. Ablauf und Abschluss
 
 1. §2.1 Spezifikation → §2.2 Grenzen (mit `planer:check-limits`) → §2.3 `tasks.position` → I1 → I2 → I3 → I4 → I5. Ein Commit je Teil, `umsetzung.md` „Stand“ nachführen.
