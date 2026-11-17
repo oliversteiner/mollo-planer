@@ -1176,6 +1176,10 @@
         "deletion_id": {
           "label": "Deletion",
           "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "edited_at": {
+          "label": "Edited at",
+          "description": "When the text was last changed. Empty while it is unchanged; deleting and restoring do not count."
         }
       },
       "label_sets": {

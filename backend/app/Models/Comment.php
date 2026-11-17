@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Casts\RichTextCast;
 use App\Models\Contracts\BelongsToProject;
+use App\Observers\CommentObserver;
 use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * The author (user_id) is set from the logged-in user, never from input.
  */
 #[Fillable(['body'])]
+#[ObservedBy(CommentObserver::class)]
 class Comment extends Model implements BelongsToProject
 {
     /** @use HasFactory<CommentFactory> */
@@ -27,6 +30,7 @@ class Comment extends Model implements BelongsToProject
     {
         return [
             'body' => RichTextCast::class,
+            'edited_at' => 'datetime',
         ];
     }
 

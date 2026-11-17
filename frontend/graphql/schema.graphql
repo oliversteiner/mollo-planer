@@ -29,6 +29,8 @@ type Comment {
  createdAt: DateTime!
  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
  deletionId: ID
+ "Wann der Text zuletzt geändert wurde; null, solange er unverändert ist. Löschen und Wiederherstellen zählen nicht."
+ editedAt: DateTime
  id: ID!
  task: Task!
  updatedAt: DateTime!

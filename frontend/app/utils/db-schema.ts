@@ -205,7 +205,8 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'updated_at', type: 'timestamp', nullable: true },
       { name: 'deleted_at', type: 'timestamp', nullable: true },
       { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
-      { name: 'deletion_id', type: 'varchar', nullable: true }
+      { name: 'deletion_id', type: 'varchar', nullable: true },
+      { name: 'edited_at', type: 'timestamp', nullable: true }
     ],
     indexes: [
       { kind: 'index', columns: ['deletion_id'] },

@@ -1176,6 +1176,10 @@
         "deletion_id": {
           "label": "Löschvorgang",
           "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
+        },
+        "edited_at": {
+          "label": "Bearbeitet am",
+          "description": "Wann der Text zuletzt geändert wurde. Leer, solange er unverändert ist; Löschen und Wiederherstellen zählen nicht."
         }
       },
       "label_sets": {

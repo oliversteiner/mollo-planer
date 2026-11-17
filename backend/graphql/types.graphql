@@ -242,6 +242,8 @@ type Comment {
   viewerCanDelete: Boolean! @with(relation: "task.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
   createdAt: DateTime! @rename(attribute: "created_at")
   updatedAt: DateTime! @rename(attribute: "updated_at")
+  "Wann der Text zuletzt geändert wurde; null, solange er unverändert ist. Löschen und Wiederherstellen zählen nicht."
+  editedAt: DateTime @rename(attribute: "edited_at")
 }
 
 "Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."

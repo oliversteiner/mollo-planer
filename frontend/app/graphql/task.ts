@@ -73,7 +73,7 @@ export const taskQuery = graphql(`
         id
         body
         createdAt
-        updatedAt
+        editedAt
         viewerCanEdit
         viewerCanDelete
         author { id name avatarUrl }
@@ -120,7 +120,7 @@ export const addCommentMutation = graphql(`
 
 export const updateCommentMutation = graphql(`
   mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {
-    updateComment(id: $id, input: $input) { id body updatedAt }
+    updateComment(id: $id, input: $input) { id body editedAt }
   }
 `)
 

@@ -14,7 +14,8 @@ const props = defineProps<{
     id: string
     body: Record<string, unknown>
     createdAt: string
-    updatedAt: string
+    /** Set only when the text was changed; deleting and restoring do not count (F5.6). */
+    editedAt?: string | null
     viewerCanEdit: boolean
     viewerCanDelete: boolean
     author?: { id: string, name: string, avatarUrl?: string | null } | null
@@ -96,7 +97,7 @@ async function saveEdit(): Promise<void> {
               class="comment-quiet"
             >{{ formatDateTime(comment.createdAt, language) }}</time>
             <span
-              v-if="comment.updatedAt !== comment.createdAt"
+              v-if="comment.editedAt"
               class="comment-quiet"
             >{{ t('comments.edited') }}</span>
             <span class="comment-tools">
