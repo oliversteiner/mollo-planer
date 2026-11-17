@@ -259,6 +259,6 @@ async function saveTemplate(): Promise<void> {
 }
 
 .file-language {
-  inline-size: 12rem;
+  inline-size: min(100%, 16rem);
 }
 </style>
