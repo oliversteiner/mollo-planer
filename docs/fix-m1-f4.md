@@ -16,3 +16,16 @@ Sammelt, was Oliver bei seinen offenen Punkten der Abnahme M1 findet. Wird laufe
 - Test: Vitest/Snapshot der Texte ist nicht nötig; im Browser DE und EN ansehen.
 
 Nicht gewählt (später möglich): Projekte der Person mit Projektrolle direkt in „Person ändern“ bearbeiten.
+
+---
+
+## F4.2 Chrome füllt das Suchfeld in `/admin/users` weiterhin aus (offen)
+
+- Gefunden (2026-11-17, Bob bei der Browser-Prüfung von F4.1): Nach dem Laden von `/admin/users` steht die E-Mail-Adresse des angemeldeten Kontos im Suchfeld, die Liste ist dadurch leer. Der Fix aus F3.10 (`name="people-filter"`, `autocomplete="off"`, `data-1p-ignore`, `data-lpignore`, inneres Feld `type="search"`) verhindert es nicht; Chrome ignoriert `autocomplete="off"`.
+- Vermutung: Chrome hält das Feld (erstes Textfeld der Seite, gespeicherte Anmeldedaten für `localhost:3000`) für ein Benutzernamen-Feld.
+- Fix: offen, Vorschlag folgt von Bob (z. B. Feld außerhalb eines Formulars, ein `autocomplete`-Wert, den Chrome nicht kennt, statt `off`, oder einen beim Laden eingefüllten Wert nicht übernehmen, solange niemand getippt hat). Im Browser mit gespeicherten Anmeldedaten prüfen.
+
+## F4.3 Seitenleiste: Systemrolle unter der E-Mail-Adresse (offen)
+
+- Gewünscht (Oliver, 2026-11-17): In der Seitenleiste unten (Benutzerknopf, `layouts/default.vue`, `UserLine`) unter Name und E-Mail-Adresse auch die Systemrolle der angemeldeten Person anzeigen.
+- Fix (nur Frontend): Rollenname über `useRoleName(viewer.role)` (der Viewer liefert `role { key names }` bereits), DE/EN aus dem Backend. Form (eigene Zeile oder Badge wie in `/admin/users`) bei der Umsetzung im Browser festlegen.
