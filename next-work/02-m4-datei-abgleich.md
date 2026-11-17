@@ -1,6 +1,6 @@
 # Auftrag: M4 „Datei-Abgleich“ (I1–I5)
 
-Status: in Arbeit (Bob, ab 2026-11-17; M3 ist abgenommen. Der Abgleich mit dem Code läuft je Teil mit; Abweichungen werden gemeldet)
+Status: umgesetzt (ef802e8), bereit zur Abnahme M4. Noch offen: `php artisan migrate:fresh --seed --seeder=DemoSeeder` und die Sicht im Browser (hell/dunkel, DE/EN, Tastatur, Telefonbreite); beides wurde in dieser Sitzung nicht ausgeführt (Löschen der lokalen Datenbank wurde nicht freigegeben). Rückfragen an die Planung: `templateId` bei `importPlan` (siehe `docs/umsetzung.md`), `DevelopmentHistorySeeder`.
 Stand: 2026-11-17.
 Dokument: `docs/auftrag-m4.md` (maßgeblich).
 
