@@ -163,6 +163,7 @@ async function confirmRemove(): Promise<void> {
         />
         <wa-badge
           v-else
+          :title="t('settings.members.role')"
           variant="neutral"
           appearance="outlined"
         >

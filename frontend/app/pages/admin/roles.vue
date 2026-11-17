@@ -305,6 +305,19 @@ function create(): void {
             @update:filter="filter => setState({ filter })"
           />
 
+          <!-- Where the roles are given (docs/fix-m1-f4.md F4.1): not on this page. -->
+          <i18n-t
+            v-if="state.view === 'roles'"
+            :keypath="`roleSettings.assignHint.${state.scope}`"
+            tag="p"
+            scope="global"
+            class="role-settings-assign wa-body-s wa-color-text-quiet"
+          >
+            <template #link>
+              <NuxtLink to="/admin/users">{{ t('roleSettings.assignLink') }}</NuxtLink>
+            </template>
+          </i18n-t>
+
           <wa-skeleton
             v-if="loading && !result"
             effect="sheen"
@@ -402,6 +415,10 @@ function create(): void {
 </template>
 
 <style scoped>
+.role-settings-assign {
+  margin: 0;
+}
+
 .role-settings-skeleton {
   block-size: 12rem;
 }

@@ -211,6 +211,7 @@ function factorLabel(user: User): string {
               <span class="users-name-text">{{ user.name }}</span>
               <wa-badge
                 v-if="!user.role.isDefault"
+                :title="t('admin.users.role')"
                 variant="brand"
                 appearance="filled"
               >

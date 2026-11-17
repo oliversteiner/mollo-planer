@@ -36,11 +36,11 @@
       "title": "Mitglieder",
       "intro": "Owner und Manager verwalten Mitglieder. Die Owner-Rolle vergeben oder entziehen nur Owner und Admins; das Projekt behält immer mindestens einen Owner.",
       "you": "du",
-      "roleOf": "Rolle von {name}",
+      "roleOf": "Projektrolle von {name}",
       "remove": "{name} entfernen",
       "person": "Person",
       "search": "Name suchen (mindestens 2 Buchstaben)",
-      "role": "Rolle",
+      "role": "Projektrolle",
       "add": "Hinzufügen",
       "added": "Mitglied hinzugefügt.",
       "roleChanged": "Rolle geändert.",
@@ -497,8 +497,8 @@
       "deleteTitle": "{name} löschen?",
       "deleteDescription": "Das Konto wird gelöscht. Kommentare bleiben ohne Namen erhalten, zugewiesene Tasks sind danach niemandem mehr zugewiesen.",
       "deleted": "{name} gelöscht.",
-      "role": "Rolle",
-      "roleHint": "Bestimmt, was die Person in der ganzen App darf.",
+      "role": "Systemrolle",
+      "roleHint": "Gilt in der ganzen App. Projektrollen vergibst du im Projekt unter „Mitglieder“.",
       "activity": "Tätigkeit",
       "activityHint": "Nur zur Anzeige, ohne Rechte.",
       "noFunction": "Keine",
@@ -1418,6 +1418,11 @@
   "roleSettings": {
     "title": "Rollen und Rechte",
     "intro": "Rechte gibt der Code vor. Eine Funktion bündelt Rechte, eine Rolle bündelt Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft.",
+    "assignHint": {
+      "SYSTEM": "Systemrollen vergibst du unter „{link}“.",
+      "PROJECT": "Projektrollen vergibst du in einem Projekt unter „Mitglieder“."
+    },
+    "assignLink": "Benutzer",
     "scopes": {
       "SYSTEM": "System",
       "PROJECT": "Projekt"

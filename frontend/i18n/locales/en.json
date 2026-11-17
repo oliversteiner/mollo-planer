@@ -36,11 +36,11 @@
       "title": "Members",
       "intro": "Owners and managers manage members. Only owners and admins grant or take the owner role; the project always keeps at least one owner.",
       "you": "you",
-      "roleOf": "Role of {name}",
+      "roleOf": "Project role of {name}",
       "remove": "Remove {name}",
       "person": "Person",
       "search": "Search by name (at least 2 letters)",
-      "role": "Role",
+      "role": "Project role",
       "add": "Add",
       "added": "Member added.",
       "roleChanged": "Role changed.",
@@ -497,8 +497,8 @@
       "deleteTitle": "Delete {name}?",
       "deleteDescription": "The account is deleted. Comments stay without a name, assigned tasks are then assigned to nobody.",
       "deleted": "{name} deleted.",
-      "role": "Role",
-      "roleHint": "Decides what the person may do across the whole app.",
+      "role": "System role",
+      "roleHint": "Holds across the whole app. Project roles are given in a project under “Members”.",
       "activity": "Activity",
       "activityHint": "Display only, no rights.",
       "noFunction": "None",
@@ -1418,6 +1418,11 @@
   "roleSettings": {
     "title": "Roles and rights",
     "intro": "Rights are fixed by the code. A function bundles rights, a role bundles functions. System roles hold for a person in the whole app, project roles for a membership.",
+    "assignHint": {
+      "SYSTEM": "System roles are given under “{link}”.",
+      "PROJECT": "Project roles are given in a project under “Members”."
+    },
+    "assignLink": "Users",
     "scopes": {
       "SYSTEM": "System",
       "PROJECT": "Project"
