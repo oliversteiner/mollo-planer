@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Crumb } from '~/components/PageFrame.vue'
+import { documentText } from '~/utils/rich-text'
 
 /**
  * Frame of every project page: header (breadcrumb, project name, role,
@@ -39,7 +40,7 @@ useHead({ title: () => (project.value ? `${project.value.name} · ${pageName.val
   <PageFrame
     :title="project?.name ?? t('projects.title')"
     :breadcrumbs="breadcrumbs"
-    :description="project?.description"
+    :description="documentText(project?.description)"
   >
     <template
       v-if="project?.viewerRole"

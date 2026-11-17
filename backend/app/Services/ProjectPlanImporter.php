@@ -55,7 +55,8 @@ class ProjectPlanImporter
         return $this->transaction($notifyAssignees, function () use ($project, $members, $milestones): array {
             $created = $this->graphQL->runNamed('CreateProject', ['input' => [
                 'name' => $project['name'],
-                'description' => $project['description'] ?? null,
+                // The plan keeps plain text (until I3/B5a); the project stores a document.
+                'description' => PlainTextDocument::from($project['description'] ?? null),
                 'locale' => $project['locale'] ?? 'DE',
             ]])['createProject'];
 

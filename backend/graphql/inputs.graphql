@@ -20,7 +20,7 @@ input UpdateUserInput {
 
 input CreateProjectInput {
   name: String! @rules(apply: ["min:2", "max:120"])
-  description: String
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale = DE
   "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
@@ -36,7 +36,7 @@ input ProjectMemberInput {
 
 input UpdateProjectInput {
   name: String @rules(apply: ["min:2", "max:120"])
-  description: String
+  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale
 }

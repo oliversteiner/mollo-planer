@@ -50,7 +50,7 @@ input CreateMilestoneInput {
  title: String!
 }
 input CreateProjectInput {
- description: String
+ description: RichText
  icon: String
  locale: Locale = DE
  "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
@@ -390,7 +390,8 @@ type Project {
  createdAt: DateTime!
  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
  deletionId: ID
- description: String
+ "Formatierter Text, gleiche Regeln wie bei Milestones"
+ description: RichText
  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
  icon: String
  id: ID!
@@ -771,7 +772,7 @@ input UpdateMilestoneInput {
  title: String
 }
 input UpdateProjectInput {
- description: String
+ description: RichText
  icon: String
  locale: Locale
  name: String

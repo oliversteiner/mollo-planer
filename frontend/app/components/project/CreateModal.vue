@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isEmptyDocument } from '~/utils/rich-text'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { Locale } from '~/graphql/generated/graphql'
 import { appSettingsQuery } from '~/graphql/admin'
@@ -15,7 +16,7 @@ const { t } = useI18n()
 const toast = useToast()
 const { errors, pending, run } = useGraphqlForm()
 
-const state = reactive<{ name: string, description: string, icon: string | null, locale: Locale }>({ name: '', description: '', icon: null, locale: 'DE' })
+const state = reactive<{ name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale }>({ name: '', description: null, icon: null, locale: 'DE' })
 
 interface NewMember {
   userId: string
@@ -90,7 +91,7 @@ async function submit(): Promise<void> {
   const result = await run(() => mutate({
     input: {
       name: state.name.trim(),
-      description: state.description.trim() || null,
+      description: isEmptyDocument(state.description) ? null : state.description,
       icon: state.icon,
       locale: state.locale,
       members: members.value.map(member => ({ userId: member.userId, role: member.role }))
@@ -107,7 +108,7 @@ async function submit(): Promise<void> {
 
 watch(open, (isOpen) => {
   if (isOpen) {
-    Object.assign(state, { name: '', description: '', icon: null, locale: 'DE' })
+    Object.assign(state, { name: '', description: null, icon: null, locale: 'DE' })
     members.value = []
     person.value = null
     personRole.value = defaultRole.value
@@ -135,13 +136,15 @@ watch(open, (isOpen) => {
         required
       />
 
-      <FormTextarea
-        v-model="state.description"
-        name="description"
+      <FormField
         :label="t('projects.fields.description')"
         :error="errors.description"
-        :rows="3"
-      />
+      >
+        <RichTextEditor
+          v-model="state.description"
+          :placeholder="t('item.fields.descriptionPlaceholder')"
+        />
+      </FormField>
 
       <FormField
         :label="t('item.fields.icon')"

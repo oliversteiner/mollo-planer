@@ -77,3 +77,28 @@ export function isEmptyDocument(document: Record<string, unknown> | null | undef
 
   return !hasText(document)
 }
+
+/**
+ * The text of a document on one line, for places that show a short
+ * summary (the header of a project, its card): blocks are separated by a
+ * space, formatting is left out.
+ */
+export function documentText(document: Record<string, unknown> | null | undefined): string {
+  const inline = new Set(['paragraph', 'heading', 'codeBlock'])
+  const textOf = (node: unknown): string => {
+    if (!node || typeof node !== 'object') {
+      return ''
+    }
+    const { type, text, content } = node as { type?: string, text?: string, content?: unknown[] }
+
+    if (type === 'hardBreak') {
+      return ' '
+    }
+
+    const parts = Array.isArray(content) ? content.map(textOf) : []
+
+    return (text ?? '') + parts.join(inline.has(type ?? '') ? '' : ' ')
+  }
+
+  return textOf(document).replace(/\s+/g, ' ').trim()
+}

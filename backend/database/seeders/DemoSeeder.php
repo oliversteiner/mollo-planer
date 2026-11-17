@@ -198,7 +198,7 @@ class DemoSeeder extends Seeder
      */
     private function project(string $name, string $description, string $createdAt, array $members): Project
     {
-        $project = new Project(['name' => $name, 'description' => $description, 'locale' => Locale::DE]);
+        $project = new Project(['name' => $name, 'description' => $this->plain($description), 'locale' => Locale::DE]);
         $project->forceFill(['created_at' => $createdAt, 'updated_at' => $createdAt])->save();
 
         foreach ($members as $key => $role) {

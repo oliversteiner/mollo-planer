@@ -23,7 +23,7 @@ export type CreateMilestoneInput = {
 };
 
 export type CreateProjectInput = {
-  description?: string | null | undefined;
+  description?: Record<string, unknown> | null | undefined;
   icon?: string | null | undefined;
   locale?: Locale | null | undefined;
   /** Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht. */
@@ -266,7 +266,7 @@ export type UpdateMilestoneInput = {
 };
 
 export type UpdateProjectInput = {
-  description?: string | null | undefined;
+  description?: Record<string, unknown> | null | undefined;
   icon?: string | null | undefined;
   locale?: Locale | null | undefined;
   name?: string | null | undefined;
@@ -572,14 +572,14 @@ export type ProjectsQueryVariables = Exact<{
 }>;
 
 
-export type ProjectsQuery = { projects: Array<{ id: string, name: string, description: string | null, viewerRole: { key: string, names: { de: string, en: string } } | null, progress: { done: number, total: number, percent: number }, members: Array<{ role: { key: string, names: { de: string, en: string } }, user: { id: string, name: string, avatarUrl: string | null } }> }> };
+export type ProjectsQuery = { projects: Array<{ id: string, name: string, description: Record<string, unknown> | null, viewerRole: { key: string, names: { de: string, en: string } } | null, progress: { done: number, total: number, percent: number }, members: Array<{ role: { key: string, names: { de: string, en: string } }, user: { id: string, name: string, avatarUrl: string | null } }> }> };
 
 export type ProjectHeaderQueryVariables = Exact<{
   id: string | number;
 }>;
 
 
-export type ProjectHeaderQuery = { project: { id: string, planerRevision: number, name: string, description: string | null, icon: string | null, archivedAt: string | null, viewerRights: Array<Right>, viewerRole: { key: string, names: { de: string, en: string } } | null, labelSet: { id: string, name: string, labels: Array<{ id: string, name: string, category: string | null, color: LabelColor, position: number }> } | null } | null };
+export type ProjectHeaderQuery = { project: { id: string, planerRevision: number, name: string, description: Record<string, unknown> | null, icon: string | null, archivedAt: string | null, viewerRights: Array<Right>, viewerRole: { key: string, names: { de: string, en: string } } | null, labelSet: { id: string, name: string, labels: Array<{ id: string, name: string, category: string | null, color: LabelColor, position: number }> } | null } | null };
 
 export type ProjectRevisionQueryVariables = Exact<{
   id: string | number;
@@ -725,7 +725,7 @@ export type ProjectSettingsQueryVariables = Exact<{
 }>;
 
 
-export type ProjectSettingsQuery = { project: { id: string, name: string, description: string | null, icon: string | null, locale: Locale, members: Array<{ role: { key: string, names: { de: string, en: string } }, user: { id: string, name: string, email: string, avatarUrl: string | null } }> } | null };
+export type ProjectSettingsQuery = { project: { id: string, name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale, members: Array<{ role: { key: string, names: { de: string, en: string } }, user: { id: string, name: string, email: string, avatarUrl: string | null } }> } | null };
 
 export type MemberCandidatesQueryVariables = Exact<{
   projectId?: string | number | null | undefined;
@@ -740,7 +740,7 @@ export type UpdateProjectMutationVariables = Exact<{
 }>;
 
 
-export type UpdateProjectMutation = { updateProject: { id: string, name: string, description: string | null, icon: string | null, locale: Locale } };
+export type UpdateProjectMutation = { updateProject: { id: string, name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale } };
 
 export type SetProjectMemberMutationVariables = Exact<{
   projectId: string | number;

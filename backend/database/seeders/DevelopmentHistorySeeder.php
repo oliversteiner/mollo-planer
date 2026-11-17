@@ -65,7 +65,7 @@ class DevelopmentHistorySeeder extends Seeder
 
             $project = Project::create([
                 'name' => self::PROJECT_NAME,
-                'description' => 'Entwicklung von Mollo Planer, aus docs/entwicklung.md.',
+                'description' => $this->richText('Entwicklung von Mollo Planer, aus docs/entwicklung.md.'),
                 'locale' => 'de',
                 'label_set_id' => $labelSet->getKey(),
             ]);

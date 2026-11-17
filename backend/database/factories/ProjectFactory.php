@@ -22,7 +22,7 @@ class ProjectFactory extends Factory
     {
         return [
             'name' => fake()->words(3, true),
-            'description' => fake()->optional()->sentence(),
+            'description' => fake()->boolean() ? ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => fake()->sentence()]]]]] : null,
             'locale' => 'de',
         ];
     }

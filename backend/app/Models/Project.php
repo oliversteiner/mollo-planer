@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\RichTextCast;
 use App\Enums\Locale;
 use App\Models\Concerns\VisibleToViewer;
 use App\Observers\ProjectObserver;
@@ -39,6 +40,7 @@ class Project extends Model
     {
         return [
             'locale' => Locale::class,
+            'description' => RichTextCast::class,
             'archived_at' => 'datetime',
         ];
     }

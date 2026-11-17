@@ -27,7 +27,7 @@ class CreateProject
     public function __construct(private readonly ProjectMembership $membership) {}
 
     /**
-     * @param  array{name: string, description?: string|null, icon?: string|null, locale?: string|null, members?: list<array{userId: int|string, role: string}>|null}  $args
+     * @param  array{name: string, description?: array<string, mixed>|null, icon?: string|null, locale?: string|null, members?: list<array{userId: int|string, role: string}>|null}  $args
      *
      * @throws ValidationException
      */

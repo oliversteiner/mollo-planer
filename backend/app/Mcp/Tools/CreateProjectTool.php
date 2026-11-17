@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools;
 
+use App\Mcp\Support\PlainTextDocument;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\JsonSchema\Types\Type;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ class CreateProjectTool extends Tool
             $project = $this->operation('CreateProject', [
                 'input' => [
                     'name' => $validated['name'],
-                    'description' => $validated['description'] ?? null,
+                    'description' => PlainTextDocument::from($validated['description'] ?? null),
                     'locale' => $validated['locale'] ?? 'DE',
                 ],
             ])['createProject'];

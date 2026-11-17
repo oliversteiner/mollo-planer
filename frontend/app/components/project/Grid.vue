@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ProjectsQuery } from '~/graphql/generated/graphql'
+import { documentText } from '~/utils/rich-text'
 
 /**
  * The projects as cards (name, role, description, progress, members): the
@@ -34,9 +35,9 @@ const roleName = useRoleName()
           </wa-badge>
         </span>
         <span
-          v-if="project.description"
+          v-if="documentText(project.description)"
           class="projects-description"
-        >{{ project.description }}</span>
+        >{{ documentText(project.description) }}</span>
         <span class="projects-footer">
           <wa-progress-bar
             :value="project.progress.percent"
