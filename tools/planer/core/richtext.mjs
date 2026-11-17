@@ -230,14 +230,18 @@ function inline(s, st, base) {
       buf += s[i + 1];
       i += 2;
     } else if (c === '`') {
-      const end = s.indexOf('`', i + 1);
+      let run = 0;
+      while (s[i + run] === '`') run += 1;
+      const end = findClosingRun(s, i + run, run);
       if (end === -1) {
-        buf += c;
-        i += 1;
+        buf += '`'.repeat(run);
+        i += run;
       } else {
         flush();
-        out.push({ type: 'text', text: s.slice(i + 1, end), marks: [...marks(), { type: 'code' }] });
-        i = end + 1;
+        let code = s.slice(i + run, end).replace(/\n/g, ' ');
+        if (code.length > 2 && code.startsWith(' ') && code.endsWith(' ') && code.trim() !== '') code = code.slice(1, -1);
+        out.push({ type: 'text', text: code, marks: [...marks(), { type: 'code' }] });
+        i = end + run;
       }
     } else if (c === '*') {
       let run = 0;
@@ -283,6 +287,12 @@ function inline(s, st, base) {
       st.hints.push('HTML-Entität wird zum Zeichen');
       buf += ENTITIES[entity];
       i += entity.length + 2;
+    } else if (c === '&' && /^&#(\d{1,7}|[xX][0-9a-fA-F]{1,6});/.test(s.slice(i))) {
+      const [whole, code] = s.slice(i).match(/^&#(\d{1,7}|[xX][0-9a-fA-F]{1,6});/);
+      const point = /^[xX]/.test(code) ? parseInt(code.slice(1), 16) : Number(code);
+      st.hints.push('HTML-Entität wird zum Zeichen');
+      buf += point > 0 && point <= 0x10ffff ? String.fromCodePoint(point) : '\uFFFD';
+      i += whole.length;
     } else if (c === '~' && s[i + 1] === '~') {
       st.errors.push('Durchgestrichen ist in Beschreibungen nicht erlaubt');
       i += 2;
@@ -304,20 +314,79 @@ function toggle(set, mark) {
   else set.add(mark);
 }
 
-/** Liest [Text](URL), auch mit Titel. Null, wenn es kein Link ist. */
+/** Ende eines Codes mit `size` Backticks ab `from` (nur eine Folge genau dieser Länge), sonst -1. */
+function findClosingRun(s, from, size) {
+  let j = from;
+  while (j < s.length) {
+    if (s[j] !== '`') {
+      j += 1;
+      continue;
+    }
+    let run = 0;
+    while (s[j + run] === '`') run += 1;
+    if (run === size) return j;
+    j += run;
+  }
+  return -1;
+}
+
+/** Liest [Text](URL), auch mit Titel, Klammern in der Adresse und <URL>. Null, wenn es kein Link ist. */
 function readLink(s, start) {
-  const close = s.indexOf(']', start + 1);
+  let close = -1;
+  for (let j = start + 1; j < s.length; j += 1) {
+    if (s[j] === '\\') j += 1;
+    else if (s[j] === ']') {
+      close = j;
+      break;
+    }
+  }
   if (close === -1 || s[close + 1] !== '(') return null;
-  const end = s.indexOf(')', close + 2);
-  if (end === -1) return null;
-  const target = s.slice(close + 2, end).trim();
-  const titled = target.match(/^(\S+)\s+"[^"]*"$/);
-  return {
-    label: s.slice(start + 1, close),
-    url: titled ? titled[1] : target,
-    title: titled !== null,
-    end: end + 1,
-  };
+
+  const target = readDestination(s, close + 2);
+  return target === null ? null : { label: s.slice(start + 1, close), ...target };
+}
+
+function unescapeBackslashes(text) {
+  return text.replace(/\\([\\`*_[\]<>#()+\-.!&~|])/g, '$1');
+}
+
+function readDestination(s, from) {
+  let j = from;
+  while (s[j] === ' ') j += 1;
+
+  let url;
+  if (s[j] === '<') {
+    const end = s.indexOf('>', j + 1);
+    if (end === -1 || s.slice(j + 1, end).includes('\n')) return null;
+    url = unescapeBackslashes(s.slice(j + 1, end));
+    j = end + 1;
+  } else {
+    const begin = j;
+    let depth = 0;
+    while (j < s.length) {
+      const ch = s[j];
+      if (ch === '\\' && j + 1 < s.length) {
+        j += 2;
+        continue;
+      }
+      if (/\s/.test(ch)) break;
+      if (ch === '(') depth += 1;
+      else if (ch === ')') {
+        if (depth === 0) break;
+        depth -= 1;
+      }
+      j += 1;
+    }
+    url = unescapeBackslashes(s.slice(begin, j));
+  }
+
+  while (s[j] === ' ') j += 1;
+  const titled = s.slice(j).match(/^"[^"]*"/);
+  if (titled) {
+    j += titled[0].length;
+    while (s[j] === ' ') j += 1;
+  }
+  return s[j] === ')' ? { url, title: titled !== null, end: j + 1 } : null;
 }
 
 /** Gleiche Marks nebeneinander zu einem Textknoten zusammenfassen, Marks in fester Reihenfolge. */
@@ -341,54 +410,256 @@ const MARK_ORDER = ['bold', 'italic', 'code', 'link'];
 
 /* ---- Schreiben ---- */
 
-function renderBlocks(blocks, separator = '\n\n') {
-  return blocks.map(renderBlock).filter((text) => text !== '').join(separator);
+const LIST_TYPES = ['bulletList', 'orderedList'];
+
+function renderBlocks(blocks, inItem = false) {
+  let out = '';
+  let previous = null;
+  for (const block of blocks) {
+    const text = renderBlock(block);
+    if (text === '') continue;
+    if (previous !== null) out += inItem && joinsTight(previous, block) ? '\n' : '\n\n';
+    out += text;
+    previous = block;
+  }
+  return out;
+}
+
+/** In einem Listenpunkt braucht eine Liste direkt nach Absatz oder Überschrift keine Leerzeile. */
+function joinsTight(previous, next) {
+  return LIST_TYPES.includes(next.type) && ['paragraph', 'heading'].includes(previous.type);
 }
 
 function renderBlock(block) {
   switch (block.type) {
-    case 'heading':
-      return `${'#'.repeat(block.attrs.level)} ${renderInline(block.content)}`;
+    case 'heading': {
+      const text = renderInline(block.content ?? [], true);
+      return text === '' ? '' : `${'#'.repeat(Math.max(2, Math.min(3, block.attrs?.level ?? 2)))} ${text}`;
+    }
     case 'paragraph':
-      return renderInline(block.content);
-    case 'blockquote':
-      return renderBlocks(block.content).split('\n').map((line) => (line === '' ? '>' : `> ${line}`)).join('\n');
+      return renderInline(block.content ?? []);
+    case 'blockquote': {
+      const inner = renderBlocks(block.content ?? []);
+      return inner === '' ? '' : inner.split('\n').map((line) => (line === '' ? '>' : `> ${line}`)).join('\n');
+    }
     case 'bulletList':
-      return block.content.map((item) => prefixLines(renderBlocks(item.content, '\n'), '- ', '  ')).join('\n');
+      return renderItems(block, () => '- ');
     case 'orderedList':
-      return block.content
-        .map((item, index) => prefixLines(renderBlocks(item.content, '\n'), `${index + 1}. `, '   '))
-        .join('\n');
+      return renderItems(block, (index) => `${index + 1}. `);
     default:
       return '';
   }
 }
 
-function prefixLines(text, first, rest) {
-  return text.split('\n').map((line, index) => {
-    if (index === 0) return `${first}${line}`;
-    return line === '' ? '' : `${rest}${line}`;
-  }).join('\n');
+/** Fortsetzungen eines Punkts sind so weit eingerückt wie sein Listenzeichen (`1. ` 3, `10. ` 4 Zeichen). */
+function renderItems(list, marker) {
+  const lines = [];
+  let written = 0;
+  for (const item of list.content ?? []) {
+    const text = renderBlocks(item.content ?? [], true);
+    if (text === '') continue;
+    const first = marker(written);
+    written += 1;
+    const rest = ' '.repeat(first.length);
+    text.split('\n').forEach((line, n) => {
+      lines.push(n === 0 ? `${first}${line}` : line === '' ? '' : `${rest}${line}`);
+    });
+  }
+  return lines.join('\n');
 }
 
-function renderInline(nodes) {
-  return normalizeText(nodes.map((node) => ({ ...node }))).map(renderNode).join('');
+/**
+ * Fett und Kursiv werden nur dort geöffnet und geschlossen, wo sie wechseln (`**a*b***`); ein Link
+ * umfasst die Texte mit derselben Adresse. Überlappen Fett und Kursiv ohne Verschachtelung und
+ * ohne Zwischenraum, ist das mit CommonMark nicht lesbar (`****`).
+ */
+function renderInline(nodes, heading = false) {
+  const prepared = prepareInline(nodes);
+  const state = { open: [], href: null };
+  let out = '';
+  let atLineStart = true;
+
+  prepared.forEach((node, index) => {
+    if (node.type === 'hardBreak') {
+      out += closeAll(state) + (heading ? ' ' : '\\\n');
+      atLineStart = true;
+      return;
+    }
+
+    const marks = Object.fromEntries((node.marks ?? []).map((mark) => [mark.type, mark]));
+    const href = marks.link ? marks.link.attrs.href : null;
+    if (href !== state.href) {
+      out += closeAll(state);
+      if (href !== null) out += '[';
+      state.href = href;
+    }
+    out += changeMarks(state, ['bold', 'italic'].filter((mark) => marks[mark]));
+
+    const next = (prepared[index + 1]?.marks ?? []).map((mark) => mark.type);
+    const plain = !node.marks;
+    out += renderContent(node.text, Boolean(marks.code), atLineStart && plain, heading && index === prepared.length - 1 && plain, plain && next.includes('code'), plain && next.includes('link'));
+    atLineStart = false;
+  });
+
+  return out + closeAll(state);
 }
 
-function renderNode(node) {
-  if (node.type === 'hardBreak') return '\\\n';
-  const marks = node.marks ?? [];
-  const isCode = marks.some((mark) => mark.type === 'code');
-  let text = isCode ? `\`${node.text}\`` : escapeText(node.text);
-  const bold = marks.some((mark) => mark.type === 'bold');
-  const italic = marks.some((mark) => mark.type === 'italic');
-  if (bold && italic) text = `***${text}***`;
-  else if (bold) text = `**${text}**`;
-  else if (italic) text = `*${text}*`;
-  const link = marks.find((mark) => mark.type === 'link');
-  return link ? `[${text}](${link.attrs.href})` : text;
+const DELIMITER = { bold: '**', italic: '*' };
+
+function closeAll(state) {
+  let out = [...state.open].reverse().map((mark) => DELIMITER[mark]).join('');
+  state.open = [];
+  if (state.href !== null) {
+    out += `](${renderDestination(state.href)})`;
+    state.href = null;
+  }
+  return out;
 }
 
-function escapeText(text) {
-  return text.replace(/[\\`*_[\]<]/g, (char) => `\\${char}`);
+/** Schließt, was nicht mehr gilt (und was danach geöffnet wurde, das wieder geöffnet wird), dann öffnet es Neues. */
+function changeMarks(state, wanted) {
+  let out = '';
+  const cut = state.open.findIndex((mark) => !wanted.includes(mark));
+  if (cut !== -1) {
+    const closed = state.open.splice(cut);
+    out += [...closed].reverse().map((mark) => DELIMITER[mark]).join('');
+    for (const mark of closed) {
+      if (wanted.includes(mark)) {
+        out += DELIMITER[mark];
+        state.open.push(mark);
+      }
+    }
+  }
+  for (const mark of wanted) {
+    if (!state.open.includes(mark)) {
+      out += DELIMITER[mark];
+      state.open.push(mark);
+    }
+  }
+  return out;
+}
+
+function sortedMarks(marks) {
+  const byType = new Map();
+  for (const mark of marks ?? []) {
+    if (MARK_ORDER.includes(mark?.type)) {
+      byType.set(mark.type, mark.type === 'link' ? { type: 'link', attrs: { href: String(mark.attrs?.href ?? '') } } : { type: mark.type });
+    }
+  }
+  return MARK_ORDER.filter((type) => byType.has(type)).map((type) => byType.get(type));
+}
+
+/**
+ * Nur Textknoten, Marks in fester Reihenfolge; Leerzeichen am Rand eines Textes mit Marks
+ * werden ohne Marks geschrieben (`**a** b`, nicht `**a **b`), Leerzeichen am Zeilenrand entfallen.
+ */
+function prepareInline(nodes) {
+  const split = [];
+  for (const node of nodes) {
+    if (node.type === 'hardBreak') {
+      split.push({ type: 'hardBreak' });
+      continue;
+    }
+    if (node.type !== 'text' || typeof node.text !== 'string' || node.text === '') continue;
+
+    const text = node.text.replace(/\r\n|[\r\n\t]/g, ' ');
+    const marks = sortedMarks(node.marks);
+    if (marks.length === 0) {
+      split.push({ type: 'text', text });
+      continue;
+    }
+    const [, before, core, after] = text.match(/^([ \p{Zs}]*)([\s\S]*?)([ \p{Zs}]*)$/u);
+    if (core === '') {
+      split.push({ type: 'text', text });
+      continue;
+    }
+    for (const [piece, pieceMarks] of [[before, []], [core, marks], [after, []]]) {
+      if (piece !== '') split.push(pieceMarks.length === 0 ? { type: 'text', text: piece } : { type: 'text', text: piece, marks: pieceMarks });
+    }
+  }
+
+  const joined = [];
+  for (const node of split) {
+    const last = joined[joined.length - 1];
+    if (last && node.type === 'text' && last.type === 'text' && JSON.stringify(last.marks ?? []) === JSON.stringify(node.marks ?? [])) {
+      last.text += node.text;
+    } else {
+      joined.push({ ...node });
+    }
+  }
+  return trimLines(joined);
+}
+
+/** Leerzeichen ohne Marks am Anfang und Ende des Absatzes und neben einem Zeilenumbruch entfallen. */
+function trimLines(nodes) {
+  const trimmed = [];
+  let lineStart = true;
+  for (const node of nodes) {
+    if (node.type === 'hardBreak') {
+      trimmed.push(node);
+      lineStart = true;
+      continue;
+    }
+    if (lineStart && !node.marks) node.text = node.text.replace(/^ +/, '');
+    if (node.text !== '') {
+      trimmed.push(node);
+      lineStart = false;
+    }
+  }
+  while (trimmed.length > 0 && trimmed[trimmed.length - 1].type === 'hardBreak') trimmed.pop();
+  for (let i = trimmed.length - 1; i >= 0; i -= 1) {
+    const isEdge = i === trimmed.length - 1 || trimmed[i + 1].type === 'hardBreak';
+    if (trimmed[i].type === 'text' && !trimmed[i].marks && isEdge) {
+      trimmed[i].text = trimmed[i].text.replace(/ +$/, '');
+      if (trimmed[i].text === '') trimmed.splice(i, 1);
+    }
+  }
+  return trimmed;
+}
+
+function renderContent(text, isCode, atLineStart, endsHeading, beforeCode, beforeLink) {
+  if (isCode) return renderCode(text);
+  let out = escapeText(text, atLineStart, endsHeading);
+  // Ein maskierter Backtick direkt vor dem Code liefe mit dessen Umrandung zusammen.
+  if (beforeCode) out = out.replace(/\\`$/, '&#96;');
+  // Ein „!“ direkt vor einem Link würde ein Bild.
+  if (beforeLink && out.endsWith('!')) out = `${out.slice(0, -1)}\\!`;
+  return out;
+}
+
+/** Zeichen, die Markdown wären, mit Backslash; am Zeilenanfang auch `#`, `>`, `-`, `1.` u. a. */
+function escapeText(text, atLineStart, endsHeading) {
+  let out = text.replace(/[\\`*_[\]<]|&(?=#?[A-Za-z0-9]+;)|~(?=~)|(?<=~)~/g, (char) => `\\${char}`);
+  if (atLineStart) {
+    out = out
+      .replace(/^(#{1,6})(?=[ \t]|$)/, '\\$1')
+      .replace(/^>/, '\\>')
+      .replace(/^([-+])(?=[ \t]|$)/, '\\$1')
+      .replace(/^(\d{1,9})([.)])(?=[ \t]|$)/, '$1\\$2')
+      .replace(/^([-=]+)(?=[ \t]*$)/, '\\$1')
+      .replace(/^(:?-+:?)(?=[ \t]*\|)/, '\\$1')
+      .replace(/^\|/, '\\|');
+  }
+  return endsHeading ? out.replace(/(?<![^ \t])#+$/, '\\$&') : out;
+}
+
+/** Inline-Code; enthält der Text Backticks, mit längerer Umrandung (und Leerzeichen, wenn nötig). */
+function renderCode(text) {
+  const runs = text.match(/`+/g) ?? [];
+  const fence = '`'.repeat(Math.max(0, ...runs.map((run) => run.length)) + 1);
+  const pad = text.startsWith('`') || text.endsWith('`') || (text.startsWith(' ') && text.endsWith(' ') && text.trim() !== '') ? ' ' : '';
+  return `${fence}${pad}${text}${pad}${fence}`;
+}
+
+/** Eine Adresse mit Leerzeichen, spitzen oder unpaarigen runden Klammern steht in <…>. */
+function renderDestination(href) {
+  const clean = href.replace(/[\r\n]/g, '');
+  let depth = 0;
+  let balanced = true;
+  for (const char of clean) {
+    depth += char === '(' ? 1 : char === ')' ? -1 : 0;
+    balanced = balanced && depth >= 0;
+  }
+  if (clean !== '' && balanced && depth === 0 && !/[\s<>\\]/.test(clean)) return clean;
+  return `<${clean.replace(/\\/g, '\\\\').replace(/</g, '%3C').replace(/>/g, '%3E')}>`;
 }

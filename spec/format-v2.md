@@ -242,15 +242,19 @@ Der Konverter in `tools/planer/core/richtext.mjs` liest eine Beschreibung in ein
 - Harter Umbruch als `\` am Zeilenende (nicht zwei Leerzeichen).
 - Fett `**…**`, kursiv `*…*`, beides `***…***`, Inline-Code `` `…` `` (auch innerhalb von Fett oder Kursiv).
 - Aufzählungen mit `- `, nummerierte Listen mit `1.`, `2.`, … fortlaufend, verschachtelt mit zwei bzw. drei Leerzeichen (der Einzug folgt der Breite des Listenzeichens des Elternteils, auch bei Aufzählung in nummerierter Liste und umgekehrt).
-- Links `[Text](URL)`. Ein Linktitel entfällt. Autolinks `<URL>` werden zu `[URL](URL)`.
+- Links `[Text](URL)`. Ein Linktitel entfällt. Autolinks `<URL>` werden zu `[URL](URL)`. Eine Adresse mit Leerzeichen oder unpaarigen Klammern steht in `<…>`; Klammerpaare in der Adresse bleiben (`…/Foo_(Bar)`).
 - Zitate `> `, Überschriften `## ` und `### `.
+- Leerzeichen am Rand eines Textes mit Fett, Kursiv, Code oder Link stehen außerhalb (`**a** b`, nicht `**a **b`), Leerzeichen am Rand einer Zeile und ein Zeilenumbruch am Ende eines Absatzes entfallen. Leere Absätze, Zitate, Listen und Listenpunkte entfallen. Zwei Listen derselben Art hintereinander werden beim Lesen eine.
+- Fortsetzungen eines Listenpunkts sind so weit eingerückt wie sein Listenzeichen (`1. ` drei, `10. ` vier Leerzeichen). Blöcke in einem Punkt trennt eine Leerzeile, nur eine Liste nach Absatz oder Überschrift nicht.
+- Text, der als Markdown gelesen würde, steht mit Backslash: `*`, `_`, `` ` ``, `[`, `]`, `<`, `\`, `~~`, `&` vor einer Entität (`\&amp;`); am Zeilenanfang auch `#`, `>`, `-`, `+`, `1.`, `---`, `===` und `-|`. Ein maskierter Backtick direkt vor Inline-Code wird `&#96;`. Enthält Inline-Code Backticks, hat er eine längere Umrandung.
+- Grenzen der Lesbarkeit (Eigenschaft von CommonMark, nicht der Konverter): Fett oder Kursiv direkt um Text, der mit einem Satzzeichen beginnt oder endet und an einem Wort hängt (`a**.**b`), um Inline-Code an einem Wort, und Fett und Kursiv, die überlappen, ohne verschachtelt zu sein, und sich ohne Zwischenraum berühren (`**a*b****c*`), werden nicht gelesen wie geschrieben.
 - Ist eine Beschreibung ungültig, bleibt sie unverändert; der Validator meldet den Fehler.
 
 **Hinweise** (Schreibweisen aus §9.5, Text bleibt gleich): `__fett__` und `_kursiv_` werden zu `**` und `*`, Zeilenumbruch mit zwei Leerzeichen zu `\`, HTML-Entitäten (`&amp;` u. a.) zu Zeichen, Listenzeichen `*` oder `+` zu `-`, fortlaufende Nummerierung, Autolinks, Linktitel. Weicht eine Beschreibung von der kanonischen Form ab, meldet `validate` einen Hinweis.
 
 **Fehler** (§9.6, Text kann nicht übernommen werden): HTML (auch Kommentare und Inline-HTML), Bilder (auch im Text), Tabellen, Code-Blöcke, durchgestrichen `~~`, nicht geschlossenes Fett oder Kursiv, Überschriften außer Ebene 2 und 3, Links mit anderem Schema.
 
-Testfälle: `spec/fixtures/richtext/`. Paare `*.in.md` und `*.out.md` prüfen die kanonische Form, `*.error.md` prüft die Fehler, `*.hint.in.md` und die Hinweise.
+Testfälle: `spec/fixtures/richtext/`. Paare `*.in.md` und `*.out.md` prüfen die kanonische Form, `*.error.md` prüft die Fehler, `*.hint.in.md` und die Hinweise. Dazu je Paar `*.tiptap.json` (das erwartete Dokument) und je Fehlerfall `*.lenient.json` (Ergebnis von `App\Planer\RichText\MarkdownToTiptap` im Modus `lenient`); sie lesen nur die PHP-Tests, `tools/planer` liest `.md`.
 
 ---
 

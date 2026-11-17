@@ -1,0 +1,22 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Titel",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "https://a.ch"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { parseDescription, canonicalDescription, forbiddenMarkdown } from '../core/richtext.mjs';
+import { parseDescription, canonicalDescription, canonicalMarkdown, forbiddenMarkdown } from '../core/richtext.mjs';
 import { validatePlaner } from '../core/validate-planer.mjs';
 
 const dir = fileURLToPath(new URL('../../../spec/fixtures/richtext/', import.meta.url));
@@ -68,4 +68,36 @@ test('Validator: Fehler aus der Whitelist führen zur Angabe des Feldes, Schreib
   const hint = issues('__fett__ Text');
   assert.equal(hint.filter((issue) => issue.severity === 'error').length, 0);
   assert.ok(hint.some((issue) => issue.severity === 'warning' && issue.path === 'project.description'));
+});
+
+const text = (value, marks = []) => (marks.length === 0 ? { type: 'text', text: value } : { type: 'text', text: value, marks: marks.map((type) => ({ type })) });
+const paragraph = (...content) => ({ type: 'paragraph', content });
+const doc = (...content) => ({ type: 'doc', content });
+
+test('Kanonische Form: Leerzeichen am Rand von Marks, am Zeilenrand und leere Punkte', () => {
+  assert.equal(canonicalMarkdown(doc(paragraph(text('Hallo ', ['bold']), text('Welt'), text(' und ', ['italic']), text('mehr', ['bold', 'italic'])))), '**Hallo** Welt *und* ***mehr***');
+  assert.equal(canonicalMarkdown(doc(paragraph(text('  vorn '), { type: 'hardBreak' }, text('  nach  '), { type: 'hardBreak' }))), 'vorn\\\nnach');
+  const empty = { type: 'listItem', content: [{ type: 'paragraph' }] };
+  const item = (value) => ({ type: 'listItem', content: [paragraph(text(value))] });
+  assert.equal(canonicalMarkdown(doc({ type: 'orderedList', content: [item('a'), empty, item('b')] })), '1. a\n2. b');
+});
+
+test('Kanonische Form: Text, der Markdown wäre, wird maskiert', () => {
+  const lines = ['# kein Titel', '> kein Zitat', '- kein Punkt', '12. keine Liste', '---', '-|-', '&amp; & &', '~~x~~ ~y~', 'a_b*c[d]e<f`g\\h'];
+  assert.equal(
+    canonicalMarkdown(doc(...lines.map((line) => paragraph(text(line))))),
+    ['\\# kein Titel', '\\> kein Zitat', '\\- kein Punkt', '12\\. keine Liste', '\\---', '\\-|-', '\\&amp; & &', '\\~\\~x\\~\\~ ~y~', 'a\\_b\\*c\\[d\\]e\\<f\\`g\\\\h'].join('\n\n'),
+  );
+  assert.equal(canonicalMarkdown(doc({ type: 'heading', attrs: { level: 2 }, content: [text('C #')] })), '## C \\#');
+});
+
+test('Kanonische Form: Absätze in einem Punkt, Listen nach Absatz und fortlaufender Einzug', () => {
+  const li = (...content) => ({ type: 'listItem', content });
+  const nested = { type: 'orderedList', content: [li(paragraph(text('a')))] };
+  assert.equal(canonicalMarkdown(doc({ type: 'bulletList', content: [li(paragraph(text('eins')), paragraph(text('zwei')), nested)] })), '- eins\n\n  zwei\n  1. a');
+});
+
+test('Code mit Backticks, Adressen mit Klammern und überlappende Marks', () => {
+  assert.equal(canonicalMarkdown(doc(paragraph(text('a``b', ['code']), text(' '), { type: 'text', text: 'x', marks: [{ type: 'link', attrs: { href: 'https://a.ch/x)y' } }] }))), '```a``b``` [x](<https://a.ch/x)y>)');
+  assert.equal(canonicalMarkdown(doc(paragraph(text('aa', ['bold']), text('bb', ['bold', 'italic']), text('cc', ['bold'])))), '**aa*bb*cc**');
 });

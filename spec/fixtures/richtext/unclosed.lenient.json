@@ -1,0 +1,21 @@
+{
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "**offen"
+          }
+        ]
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "kind": "unclosed_emphasis"
+    }
+  ]
+}

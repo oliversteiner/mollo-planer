@@ -75,9 +75,9 @@ class RichTextDocumentTest extends TestCase
 
     public function test_depth_limit(): void
     {
-        // doc (1) + 7 blockquotes + paragraph + text = depth 10.
-        $this->assertNull(RichTextDocument::validate(self::nestedQuotes(7)));
-        $this->assertSame('too_deep', RichTextDocument::validate(self::nestedQuotes(8))[0]);
+        // doc (1) + 17 blockquotes + paragraph + text = depth 20.
+        $this->assertNull(RichTextDocument::validate(self::nestedQuotes(17)));
+        $this->assertSame('too_deep', RichTextDocument::validate(self::nestedQuotes(18))[0]);
     }
 
     public function test_node_count_limit(): void

@@ -14,7 +14,8 @@ final class RichTextDocument
 {
     public const MAX_TEXT_LENGTH = 20000;
 
-    public const MAX_DEPTH = 10;
+    /** Lists nest up to 8 levels (a list and an item per level): the planer file allows deep lists (spec/format-v2.md 6.1). */
+    public const MAX_DEPTH = 20;
 
     /** Guards against huge documents made of empty nodes. */
     public const MAX_NODES = 5000;

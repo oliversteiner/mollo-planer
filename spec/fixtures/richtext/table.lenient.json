@@ -1,0 +1,30 @@
+{
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "a · b"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "1 · 2"
+          }
+        ]
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "kind": "table"
+    }
+  ]
+}
