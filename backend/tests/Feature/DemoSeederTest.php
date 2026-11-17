@@ -13,6 +13,7 @@ use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Planer\Export;
 use App\Support\AppSettings;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -64,6 +65,47 @@ class DemoSeederTest extends TestCase
         $this->assertSame(['research', 'design', 'feature', 'bug', 'planning', 'blocked'], $relaunch->labels()->pluck('key')->all());
         $this->assertSame('software-development', $relaunch->template?->key);
         $this->assertEqualsCanonicalizing(['design', 'feature'], Task::where('title', 'Komponenten dokumentieren')->firstOrFail()->labels->pluck('key')->all());
+    }
+
+    public function test_the_export_of_each_demo_project_is_its_file(): void
+    {
+        $this->seedDemo();
+
+        foreach (['website-relaunch' => 'Website-Relaunch', 'sommerfest-2027' => 'Sommerfest 2027'] as $file => $name) {
+            $expected = json_decode((string) file_get_contents(database_path("seeders/demo/{$file}.planer.json")), true, 512, JSON_THROW_ON_ERROR);
+            $actual = app(Export::class)->document(Project::query()->where('name', $name)->firstOrFail());
+
+            $this->assertSame($this->withoutIdsAndRevision($expected), $this->withoutIdsAndRevision($actual), $file);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $document
+     * @return array<string, mixed>
+     */
+    private function withoutIdsAndRevision(array $document): array
+    {
+        unset($document['revision']);
+        usort($document['project']['members'], fn (array $a, array $b): int => $a['email'] <=> $b['email']);
+
+        foreach ($document['milestones'] as $mi => $milestone) {
+            unset($document['milestones'][$mi]['id']);
+
+            foreach ($milestone['todos'] as $ti => $todo) {
+                unset($document['milestones'][$mi]['todos'][$ti]['id']);
+
+                foreach ($todo['tasks'] as $ki => $task) {
+                    unset($document['milestones'][$mi]['todos'][$ti]['tasks'][$ki]['id']);
+
+                    if (isset($task['labels'])) {
+                        sort($task['labels']);
+                        $document['milestones'][$mi]['todos'][$ti]['tasks'][$ki]['labels'] = $task['labels'];
+                    }
+                }
+            }
+        }
+
+        return $document;
     }
 
     public function test_demo_data_starts_with_two_factor_off_so_the_password_is_enough(): void

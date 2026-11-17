@@ -2,23 +2,20 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Locale;
-use App\Enums\ProjectRole;
-use App\Enums\ReleaseStatus;
-use App\Enums\TaskStatus;
 use App\Enums\UserActivity;
 use App\Enums\UserRole;
 use App\Models\Comment;
 use App\Models\Milestone;
 use App\Models\Project;
-use App\Models\Role;
 use App\Models\Task;
 use App\Models\Template;
 use App\Models\Todo;
 use App\Models\User;
+use App\Planer\Import;
+use App\Planer\ImportMode;
 use App\Planer\TemplateSync;
-use App\Services\ProjectLabels;
 use App\Support\AppSettings;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -32,7 +29,8 @@ use RuntimeException;
 /**
  * Demo data for trying the API (Postman, frontend), the same as in the
  * GraphQL demo: four people, two projects with milestones, todos, tasks
- * and comments.
+ * and comments. The projects are planer files in database/seeders/demo,
+ * read in by the importer.
  *
  * Only for an empty database outside production:
  *   php artisan migrate:fresh --seed --seeder=DemoSeeder
@@ -131,44 +129,24 @@ class DemoSeeder extends Seeder
         return $credentials;
     }
 
+    /**
+     * The projects are planer files (database/seeders/demo/*.planer.json), imported as
+     * a new project by Anna (an admin may create projects), like a person would from a
+     * file. What the format does not hold is added afterwards: icons, the template a
+     * project came from, the time it was created, comments.
+     */
     private function createWebsiteRelaunch(): void
     {
-        $project = $this->project('Website-Relaunch', 'Neue Website mit Terminen, Berichten und Kontaktformular.', '2026-09-10 10:00', [
-            'ben' => ProjectRole::OWNER,
-            'chiara' => ProjectRole::MANAGER,
-            'david' => ProjectRole::MEMBER,
+        $project = $this->import('website-relaunch', '2026-09-10 10:00', 'software-development');
+
+        $this->icons($project, [
+            'Design freigegeben' => 'palette', 'Inhalte migriert' => 'file-import', 'Go-live' => 'rocket',
+            'Styleguide erstellen' => 'swatchbook', 'Startseite entwerfen' => 'browser',
+            'Komponenten dokumentieren' => 'book',
         ]);
-        $this->useTemplateLabels($project, 'software-development');
 
-        $design = $this->milestone($project, 'Design freigegeben', 'Styleguide und Entwürfe sind abgenommen.', 'palette', '2026-11-20');
-        $design->update(['release_version' => '1.1', 'release_status' => ReleaseStatus::PLANNED]);
-        $content = $this->milestone($project, 'Inhalte migriert', 'Alle Seiten und Texte sind im neuen System.', 'file-import', '2026-12-18');
-        $goLive = $this->milestone($project, 'Go-live', 'Die neue Website ist online.', 'rocket', '2027-01-29');
-
-        $styleguide = $this->todo($design, 'Styleguide erstellen', $this->doc(
-            $this->paragraph($this->text('Farben, Schriften und Komponenten.')),
-            $this->bullets('Farbpalette', 'Schriften', 'Buttons und Formulare'),
-        ), 'swatchbook', '2026-11-13');
-        $homepage = $this->todo($design, 'Startseite entwerfen', $this->plain('Wireframe und Mockup für Desktop und Mobil.'), 'browser', '2026-11-18');
-        $inventory = $this->todo($content, 'Inhaltsinventar erstellen', $this->plain('Alle bestehenden Seiten erfassen und bewerten.'), null, '2026-11-27');
-        $this->todo($content, 'Texte überarbeiten', $this->plain('Veraltete Texte aktualisieren.'), null, '2026-12-11');
-        $server = $this->todo($goLive, 'Server und Domain vorbereiten', $this->plain('Hosting bestellen, Subdomain und Zertifikat einrichten.'), null, '2027-01-15');
-
-        $this->task($styleguide, 'Farben und Schriften festlegen', TaskStatus::DONE, 0, 'chiara', '2026-11-06');
-        $components = $this->task($styleguide, 'Komponenten dokumentieren', TaskStatus::IN_PROGRESS, 0, 'david', '2026-11-12', 'book', $this->doc(
-            $this->paragraph($this->text('Bitte '), $this->text('alle', ['bold']), $this->text(' Bausteine beschreiben:')),
-            $this->bullets('Buttons und Formulare', 'Icons', 'Farben und Abstände'),
-        ));
-        $wireframes = $this->task($homepage, 'Wireframes zeichnen', TaskStatus::REVIEW, 0, 'chiara', '2026-11-12');
-        $mockup = $this->task($homepage, 'Mockup Desktop', TaskStatus::OPEN, 0, 'david', '2026-11-17');
-        $this->task($inventory, 'Alle Seiten auflisten', TaskStatus::DONE, 1, 'david', '2026-11-20');
-        $this->task($inventory, 'Veraltete Seiten markieren', TaskStatus::OPEN, 1, null, '2026-11-26');
-        $hosting = $this->task($server, 'Hosting bestellen', TaskStatus::OPEN, 2, 'ben', '2027-01-08');
-
-        $this->label($components, 'design', 'feature');
-        $this->label($wireframes, 'research', 'design');
-        $this->label($mockup, 'design');
-        $this->label($hosting, 'blocked');
+        $components = $this->taskTitled($project, 'Komponenten dokumentieren');
+        $wireframes = $this->taskTitled($project, 'Wireframes zeichnen');
 
         $this->comment($components, 'ben', 'Bitte dokumentiere auch die Icons.', '2026-11-04 09:15');
         $this->comment($components, 'david', 'Mache ich. Morgen bin ich damit durch.', '2026-11-04 10:02');
@@ -177,109 +155,54 @@ class DemoSeeder extends Seeder
 
     private function createSummerParty(): void
     {
-        $project = $this->project('Sommerfest 2027', 'Planung des Fests im Juni 2027.', '2026-10-05 14:30', [
-            'chiara' => ProjectRole::OWNER,
-            'david' => ProjectRole::MEMBER,
+        $project = $this->import('sommerfest-2027', '2026-10-05 14:30', 'event');
+
+        $this->icons($project, [
+            'Budget und Termin' => 'coins', 'Einladung versendet' => 'envelope', 'Programm steht' => 'calendar-days',
+            'Budget aufstellen' => 'calculator',
         ]);
-        $this->useTemplateLabels($project, 'event');
-
-        $budget = $this->milestone($project, 'Budget und Termin', 'Budget genehmigt, Datum und Ort fest.', 'coins', '2026-12-04');
-
-        $estimate = $this->todo($budget, 'Budget aufstellen', $this->plain('Kosten schätzen und Freigabe einholen.'), 'calculator', '2026-11-25');
-
-        $this->label($this->task($estimate, 'Kostenschätzung', TaskStatus::IN_PROGRESS, 0, 'chiara', '2026-11-24'), 'location');
-
-        // A released version (1.0): its done tasks have a commit or none (spec/format-v2.md, 5.3).
-        $invitation = $this->milestone($project, 'Einladung versendet', 'Alle Gäste haben Datum, Ort und Programm erhalten.', 'envelope', '2027-01-15');
-        $guests = $this->todo($invitation, 'Gäste einladen', $this->plain('Liste schreiben und verschicken.'), null, '2027-01-10');
-        $this->task($guests, 'Einladungsliste schreiben', TaskStatus::DONE, 0, 'chiara', '2026-12-20')->forceFill(['commit' => 'none'])->save();
-        $this->task($guests, 'Einladung verschicken', TaskStatus::DONE, 1, 'chiara', '2027-01-05')->forceFill(['commit' => 'b7e4c21'])->save();
-        $invitation->update(['release_version' => '1.0', 'release_status' => ReleaseStatus::RELEASED]);
-
-        // Created last: the milestones' order (position) follows their due dates.
-        $this->milestone($project, 'Programm steht', 'Ablauf und Helferplan sind fertig.', 'calendar-days', '2027-03-12');
     }
 
     /**
-     * @param  array<string, ProjectRole>  $members
+     * Imports a demo file as a new project (full mode, Anna), then lets Anna go: she
+     * imported it, but the demo has her as an admin without a seat in the project.
      */
-    private function project(string $name, string $description, string $createdAt, array $members): Project
+    private function import(string $file, string $createdAt, string $templateKey): Project
     {
-        $project = new Project(['name' => $name, 'description' => $this->plain($description), 'locale' => Locale::DE]);
-        $project->forceFill(['created_at' => $createdAt, 'updated_at' => $createdAt])->save();
+        $document = json_decode((string) file_get_contents(database_path("seeders/demo/{$file}.planer.json")), true, 512, JSON_THROW_ON_ERROR);
+        $result = app(Import::class)->run(null, $document, ImportMode::Full, false, false, $this->users['anna']);
 
-        foreach ($members as $key => $role) {
-            $project->members()->attach($this->users[$key], ['role_id' => Role::idOf(Role::SCOPE_PROJECT, $role)]);
+        if (! $result->ok()) {
+            throw new RuntimeException("The demo file {$file} is not valid: ".json_encode($result->errors, JSON_UNESCAPED_UNICODE));
         }
+
+        $project = Project::query()->findOrFail($result->projectId);
+        $project->members()->detach($this->users['anna']);
+        $project->forceFill([
+            'template_id' => Template::query()->where('key', $templateKey)->value('id'),
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
+        ])->saveQuietly();
 
         return $project;
     }
 
-    private function milestone(Project $project, string $title, string $description, string $icon, string $dueDate): Milestone
-    {
-        return Milestone::create([
-            'project_id' => $project->id,
-            'title' => $title,
-            'description' => $this->plain($description),
-            'icon' => $icon,
-            'due_date' => $dueDate,
-        ]);
-    }
-
     /**
-     * @param  array<string, mixed>  $description
-     */
-    private function todo(Milestone $milestone, string $title, array $description, ?string $icon, string $dueDate): Todo
-    {
-        return Todo::create([
-            'milestone_id' => $milestone->id,
-            'title' => $title,
-            'description' => $description,
-            'icon' => $icon,
-            'due_date' => $dueDate,
-        ]);
-    }
-
-    /**
-     * Status and position are set directly, as moveTask would leave them
-     * (positions per project and column, starting at 0).
+     * Icons are not in the file; they are set by title.
      *
-     * @param  array<string, mixed>|null  $description
+     * @param  array<string, string>  $icons
      */
-    private function task(Todo $todo, string $title, TaskStatus $status, int $position, ?string $assignee, string $dueDate, ?string $icon = null, ?array $description = null): Task
+    private function icons(Project $project, array $icons): void
     {
-        $task = new Task([
-            'todo_id' => $todo->id,
-            'title' => $title,
-            'description' => $description,
-            'icon' => $icon,
-            'due_date' => $dueDate,
-        ]);
-        $task->status = $status;
-        $task->board_position = $position;
-        $task->assigned_user_id = $assignee === null ? null : $this->users[$assignee]->id;
-        $task->save();
-
-        return $task;
+        foreach ([Milestone::class, Todo::class, Task::class] as $model) {
+            $model::query()->where('project_id', $project->getKey())->whereIn('title', array_keys($icons))->get()
+                ->each(fn (Model $item) => $item->forceFill(['icon' => $icons[$item->title]])->saveQuietly());
+        }
     }
 
-    /**
-     * The project gets copies of the labels of a built-in template.
-     */
-    private function useTemplateLabels(Project $project, string $key): void
+    private function taskTitled(Project $project, string $title): Task
     {
-        $template = Template::query()->where('key', $key)->firstOrFail();
-
-        app(ProjectLabels::class)->copyFromTemplate($project, $template);
-        $project->forceFill(['template_id' => $template->getKey()])->save();
-    }
-
-    /**
-     * Labels of the project, by their key.
-     */
-    private function label(Task $task, string ...$keys): void
-    {
-        $task->labels()->attach($task->owningProject()->labels()->whereIn('key', $keys)->pluck('labels.id'));
+        return Task::query()->where('project_id', $project->getKey())->where('title', $title)->firstOrFail();
     }
 
     private function comment(Task $task, string $author, string $text, string $createdAt): void
@@ -327,54 +250,10 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param  array<string, mixed>  ...$blocks
-     * @return array<string, mixed>
-     */
-    private function doc(array ...$blocks): array
-    {
-        return ['type' => 'doc', 'content' => $blocks];
-    }
-
-    /**
      * @return array<string, mixed>
      */
     private function plain(string $text): array
     {
-        return $this->doc($this->paragraph($this->text($text)));
-    }
-
-    /**
-     * @param  array<string, mixed>  ...$texts
-     * @return array<string, mixed>
-     */
-    private function paragraph(array ...$texts): array
-    {
-        return ['type' => 'paragraph', 'content' => $texts];
-    }
-
-    /**
-     * @param  list<string>  $marks
-     * @return array<string, mixed>
-     */
-    private function text(string $text, array $marks = []): array
-    {
-        $node = ['type' => 'text', 'text' => $text];
-
-        if ($marks !== []) {
-            $node['marks'] = array_map(fn (string $mark) => ['type' => $mark], $marks);
-        }
-
-        return $node;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function bullets(string ...$items): array
-    {
-        return [
-            'type' => 'bulletList',
-            'content' => array_map(fn (string $item) => ['type' => 'listItem', 'content' => [$this->paragraph($this->text($item))]], $items),
-        ];
+        return ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => $text]]]]];
     }
 }
