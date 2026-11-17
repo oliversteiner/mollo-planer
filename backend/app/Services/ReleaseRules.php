@@ -23,11 +23,39 @@ final class ReleaseRules
     /** How many task titles a message names. */
     private const LISTED = 5;
 
+    private static bool $suspended = false;
+
+    /**
+     * Runs the work without the checks at each save. The import checks the
+     * result as a whole: a milestone may be released before its last task
+     * is written.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $work
+     * @return T
+     */
+    public static function withoutChecks(callable $work): mixed
+    {
+        $before = self::$suspended;
+        self::$suspended = true;
+
+        try {
+            return $work();
+        } finally {
+            self::$suspended = $before;
+        }
+    }
+
     /**
      * @throws ValidationException
      */
-    public static function checkMilestone(Milestone $milestone): void
+    public static function checkMilestone(Milestone $milestone, bool $always = false): void
     {
+        if (self::$suspended && ! $always) {
+            return;
+        }
+
         $errors = [];
         $version = $milestone->release_version;
         $status = $milestone->release_status;
@@ -103,8 +131,12 @@ final class ReleaseRules
     /**
      * @throws ValidationException
      */
-    public static function checkTask(Task $task): void
+    public static function checkTask(Task $task, bool $always = false): void
     {
+        if (self::$suspended && ! $always) {
+            return;
+        }
+
         $errors = [];
         $commit = $task->commit;
 

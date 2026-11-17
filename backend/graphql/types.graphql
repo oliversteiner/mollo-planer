@@ -419,3 +419,41 @@ type TrashChildCount {
   type: TrashItemType!
   count: Int!
 }
+
+"Was ein Import tat, oder bei dryRun tun würde"
+type ImportResult {
+  "Ohne Fehler"
+  ok: Boolean!
+  dryRun: Boolean!
+  "Das Projekt (bei einem neuen erst nach dem Eintragen, nicht im Trockenlauf)"
+  projectId: ID
+  changes: [ImportChange!]!
+  "Bei Fehlern wurde nichts geschrieben"
+  errors: [ImportError!]!
+  "Die „-new-“-IDs der Datei und die IDs, die die App ihnen gab (leer im Trockenlauf)"
+  idMap: [ImportId!]!
+  "Der Export nach dem Import als kanonischer Text (nicht im Trockenlauf und nicht bei Fehlern)"
+  document: String
+}
+
+type ImportChange {
+  kind: ImportChangeKind!
+  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]; bei einem Löschen die ID des Elements"
+  path: String!
+  "ID des Elements (m-<id>, t-<id>, k-<id>)"
+  id: String
+  "Welche Felder betroffen sind"
+  fields: [String!]!
+}
+
+type ImportError {
+  path: String!
+  "invalid, revision, archived, denied, unknown_id, person, role, self, assignee, description, limit oder rule"
+  kind: String!
+  message: String!
+}
+
+type ImportId {
+  from: String!
+  to: String!
+}

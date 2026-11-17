@@ -43,6 +43,50 @@ class ProjectLabels
     }
 
     /**
+     * The labels of a planer file: exactly these, with the keys of the file
+     * (a label that is new gets the key the file gives it). Those with a key
+     * that exists are kept and changed, the others are created. With
+     * $keepOthers the labels the file does not list stay (partial import),
+     * otherwise they are deleted, from the tasks too. Counts as one change.
+     *
+     * @param  list<array{key: string, names: array<string, string>, category: ?string, color: string}>  $labels
+     * @return bool Whether anything changed
+     *
+     * @throws ValidationException
+     */
+    public function replace(Project $project, array $labels, bool $keepOthers): bool
+    {
+        $existing = $project->labels()->get();
+        $listed = array_column($labels, 'key');
+        $keep = $keepOthers ? $existing->pluck('key')->reject(fn (string $key): bool => in_array($key, $listed, true))->values()->all() : [];
+        $this->checkTotal(count($labels) + count($keep));
+
+        $wanted = [...array_map(fn (array $label): array => $this->normalized($label), $labels), ...array_map(fn (string $key): array => $this->asData($existing->firstWhere('key', $key)), $keep)];
+        $current = $existing->map(fn (Label $label): array => $this->asData($label))->values()->all();
+
+        if ($wanted === $current) {
+            return false;
+        }
+
+        $this->write($project, $existing->keyBy('key'), $labels, $keep);
+        $this->revision->touch($project->getKey());
+
+        return true;
+    }
+
+    /**
+     * @param  array{key: string, names: array<string, string>, category: ?string, color: string}  $label
+     * @return array{key: string, names: array<string, string>, category: ?string, color: string}
+     */
+    private function normalized(array $label): array
+    {
+        $names = $label['names'];
+        ksort($names);
+
+        return ['key' => $label['key'], 'names' => $names, 'category' => $label['category'] ?? null, 'color' => $label['color']];
+    }
+
+    /**
      * A new project gets the labels of the template, with all languages. A label
      * without a name in the language of the project gets the name of the template's language.
      *
@@ -98,7 +142,10 @@ class ProjectLabels
      */
     private function asData(Label $label): array
     {
-        return ['key' => $label->key, 'names' => (array) $label->names, 'category' => $label->category, 'color' => $label->color->value];
+        $names = (array) $label->names;
+        ksort($names);
+
+        return ['key' => $label->key, 'names' => $names, 'category' => $label->category, 'color' => $label->color->value];
     }
 
     /**

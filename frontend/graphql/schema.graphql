@@ -117,6 +117,54 @@ type Dashboard {
 scalar Date
 "Zeitpunkt, Format ISO 8601"
 scalar DateTime
+type ImportChange {
+ "Welche Felder betroffen sind"
+ fields: [String!]!
+ "ID des Elements (m-<id>, t-<id>, k-<id>)"
+ id: String
+ kind: ImportChangeKind!
+ "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]; bei einem Löschen die ID des Elements"
+ path: String!
+}
+"Art einer Änderung in einem Import"
+enum ImportChangeKind {
+ CREATE
+ DELETE
+ MOVE
+ UPDATE
+}
+type ImportError {
+ "invalid, revision, archived, denied, unknown_id, person, role, self, assignee, description, limit oder rule"
+ kind: String!
+ message: String!
+ path: String!
+}
+type ImportId {
+ from: String!
+ to: String!
+}
+"Wie ein Import behandelt, was das Projekt hat und die Datei nicht"
+enum ImportMode {
+ "Die Datei ist der ganze Plan: Fehlendes kommt als ein Vorgang in den Papierkorb, nicht Genanntes in einem Feld wird geleert. Die Revision der Datei muss stimmen."
+ FULL
+ "Die Datei ist ein Teil: sie ergänzt und ändert, löscht nie, und Felder, die sie nicht nennt, bleiben."
+ PARTIAL
+}
+"Was ein Import tat, oder bei dryRun tun würde"
+type ImportResult {
+ changes: [ImportChange!]!
+ "Der Export nach dem Import als kanonischer Text (nicht im Trockenlauf und nicht bei Fehlern)"
+ document: String
+ dryRun: Boolean!
+ "Bei Fehlern wurde nichts geschrieben"
+ errors: [ImportError!]!
+ "Die „-new-“-IDs der Datei und die IDs, die die App ihnen gab (leer im Trockenlauf)"
+ idMap: [ImportId!]!
+ "Ohne Fehler"
+ ok: Boolean!
+ "Das Projekt (bei einem neuen erst nach dem Eintragen, nicht im Trockenlauf)"
+ projectId: ID
+}
 "Status von Milestone und ToDo (wird automatisch berechnet)"
 enum ItemStatus {
  DONE
@@ -277,6 +325,8 @@ type Mutation {
  duplicateTemplate(id: ID!): Template!
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
+ "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
+ importPlan(document: String!, dryRun: Boolean = false, mode: ImportMode = FULL, notifyAssignees: Boolean = false, projectId: ID): ImportResult!
  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
  importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."

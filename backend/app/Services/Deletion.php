@@ -48,11 +48,35 @@ final class Deletion
         private readonly Ordering $ordering,
     ) {}
 
-    /** Into the trash, with every child that is not there yet. */
-    public function delete(Model $model): Model
+    /**
+     * Several elements into the trash as one deletion (the import of a file
+     * in full mode): one id, so one "Undo" brings them all back.
+     *
+     * @param  list<Model>  $models  Elements that are not inside one another
+     * @return string The deletion id, empty when there was nothing to delete
+     */
+    public function deleteMany(array $models): string
     {
-        return DB::transaction(function () use ($model): Model {
-            $deletionId = (string) Str::uuid();
+        if ($models === []) {
+            return '';
+        }
+
+        $deletionId = (string) Str::uuid();
+
+        DB::transaction(function () use ($models, $deletionId): void {
+            foreach ($models as $model) {
+                $this->delete($model, $deletionId);
+            }
+        });
+
+        return $deletionId;
+    }
+
+    /** Into the trash, with every child that is not there yet. */
+    public function delete(Model $model, ?string $deletionId = null): Model
+    {
+        return DB::transaction(function () use ($model, $deletionId): Model {
+            $deletionId ??= (string) Str::uuid();
             $deletedBy = Auth::id();
 
             foreach ($this->activeChildren($model) as $children) {
@@ -104,12 +128,42 @@ final class Deletion
             $top->forceFill(['deleted_by' => null, 'deletion_id' => null]);
             $top->restore();
 
+            if ($top instanceof Milestone || $top instanceof Todo || $top instanceof Task) {
+                $this->closeGapsAfterRestore($top, $taskIds);
+            }
+
             if ($top instanceof Project) {
                 $this->keepHolder($top, $actor);
             }
 
             return $top;
         });
+    }
+
+    /**
+     * A deletion with several tops (an import in full mode) brings back rows
+     * that were not restored one by one: their places in their lists are
+     * renumbered, so the lists have no gaps and no equal places.
+     *
+     * @param  list<int>  $taskIds  The tasks that came back with the top
+     */
+    private function closeGapsAfterRestore(Model $top, array $taskIds): void
+    {
+        $projectId = $top->project_id;
+        $todoIds = Task::query()->whereKey($taskIds)->pluck('todo_id')->when($top instanceof Task, fn ($ids) => $ids->push($top->todo_id))->unique();
+
+        foreach ($todoIds as $todoId) {
+            $this->ordering->close($projectId, Task::query()->where('todo_id', $todoId));
+        }
+
+        $milestoneIds = Todo::query()->where('project_id', $projectId)->pluck('milestone_id')->unique();
+
+        foreach ($milestoneIds as $milestoneId) {
+            $this->ordering->close($projectId, Todo::query()->where('milestone_id', $milestoneId));
+        }
+
+        $this->ordering->close($projectId, Milestone::query()->where('project_id', $projectId));
+        $this->kanban->close($projectId);
     }
 
     /**

@@ -128,3 +128,19 @@ enum TemplateLabelMode {
   "Nur Labels ergänzen, deren Schlüssel im Projekt fehlt"
   APPEND
 }
+
+"Wie ein Import behandelt, was das Projekt hat und die Datei nicht"
+enum ImportMode {
+  "Die Datei ist der ganze Plan: Fehlendes kommt als ein Vorgang in den Papierkorb, nicht Genanntes in einem Feld wird geleert. Die Revision der Datei muss stimmen."
+  FULL @enum(value: "full")
+  "Die Datei ist ein Teil: sie ergänzt und ändert, löscht nie, und Felder, die sie nicht nennt, bleiben."
+  PARTIAL @enum(value: "partial")
+}
+
+"Art einer Änderung in einem Import"
+enum ImportChangeKind {
+  CREATE @enum(value: "create")
+  UPDATE @enum(value: "update")
+  MOVE @enum(value: "move")
+  DELETE @enum(value: "delete")
+}

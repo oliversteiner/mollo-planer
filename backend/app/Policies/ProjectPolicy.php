@@ -42,6 +42,12 @@ class ProjectPolicy
         return $this->allows($user, $project, Right::PLANER_EXPORT);
     }
 
+    /** Writes a planer file into the project. Every single change is checked again by its own policy. */
+    public function import(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::PLANER_IMPORT);
+    }
+
     public function manageMembers(User $user, Project $project): bool
     {
         return $this->allows($user, $project, Right::MEMBERS_MANAGE);

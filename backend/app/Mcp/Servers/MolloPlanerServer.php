@@ -7,6 +7,7 @@ use App\Mcp\Tools\CreateProjectPlanTool;
 use App\Mcp\Tools\CreateProjectTool;
 use App\Mcp\Tools\ExportPlanTool;
 use App\Mcp\Tools\GetProjectTool;
+use App\Mcp\Tools\ImportPlanTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\ListTemplatesTool;
 use App\Mcp\Tools\ListUsersTool;
@@ -47,6 +48,7 @@ class MolloPlanerServer extends Server
         ListTemplatesTool::class,
         GetProjectTool::class,
         ExportPlanTool::class,
+        ImportPlanTool::class,
         ListUsersTool::class,
         CreateProjectTool::class,
         SetProjectMemberTool::class,

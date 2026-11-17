@@ -7,8 +7,8 @@ use App\Models\Project;
 use App\Models\Role;
 use App\Models\Template;
 use App\Models\User;
-use App\Planer\TemplateScaffold;
-use App\Services\ProjectLabels;
+use App\Planer\Import;
+use App\Planer\ImportMode;
 use App\Services\ProjectMembership;
 use App\Support\AppSettings;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -27,13 +27,14 @@ use Illuminate\Validation\ValidationException;
  *
  * With a template the project gets copies of its labels and its outline
  * (docs/auftrag-m3.md 3.3), in the same transaction: one change, revision 1.
+ * The importer does it (docs/auftrag-m4.md §4.3), as a partial import into the
+ * new project: the template is a planer file like any other.
  */
 class CreateProject
 {
     public function __construct(
         private readonly ProjectMembership $membership,
-        private readonly ProjectLabels $labels,
-        private readonly TemplateScaffold $scaffold,
+        private readonly Import $import,
     ) {}
 
     /**
@@ -52,7 +53,7 @@ class CreateProject
 
             $project = new Project([
                 'name' => $args['name'],
-                'description' => $args['description'] ?? ($template === null ? null : $this->scaffold->description($template)),
+                'description' => $args['description'] ?? null,
                 'icon' => $args['icon'] ?? null,
                 'locale' => $args['locale'] ?? Locale::DE->value,
             ]);
@@ -65,8 +66,7 @@ class CreateProject
             }
 
             if ($template !== null) {
-                $this->labels->copyFromTemplate($project, $template);
-                $this->scaffold->apply($project, $template);
+                $this->applyTemplate($project, $template, $creator, isset($args['description']));
             }
 
             return $project;
@@ -74,6 +74,38 @@ class CreateProject
 
         // The planer revision is counted when the transaction is over.
         return $project->refresh();
+    }
+
+    /**
+     * The template is written into the new project as a partial import: its
+     * labels (a label without a name in the language of the project gets the
+     * template's name), its outline, and its description when the person gave none.
+     *
+     * @throws ValidationException
+     */
+    private function applyTemplate(Project $project, Template $template, ?User $creator, bool $hasOwnDescription): void
+    {
+        $document = $template->content ?? [];
+        $locale = $project->locale->value;
+
+        $document['revision'] = 0;
+        $document['project']['name'] = $project->name;
+        $document['project']['locale'] = $locale;
+        $document['project']['members'] = [];
+
+        foreach ($document['project']['labels'] ?? [] as $index => $label) {
+            $document['project']['labels'][$index]['names'][$locale] ??= $label['names'][$template->locale] ?? (string) reset($label['names']);
+        }
+
+        if ($hasOwnDescription) {
+            unset($document['project']['description']);
+        }
+
+        $result = $this->import->run($project, $document, ImportMode::Partial, false, false, $creator ?? throw ValidationException::withMessages(['input.templateId' => __('labels.template_unknown')]));
+
+        if ($result->errors !== []) {
+            throw ValidationException::withMessages(['input.templateId' => __('labels.template_invalid', ['path' => $result->errors[0]['path'], 'problem' => $result->errors[0]['message']])]);
+        }
     }
 
     /**

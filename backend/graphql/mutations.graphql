@@ -159,6 +159,15 @@ type Mutation @guard {
   unarchiveProject(id: ID!): Project!
     @can(ability: "archive", find: "id", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\ArchiveProject@unarchive")
+  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
+  importPlan(
+    projectId: ID
+    document: String!
+    mode: ImportMode = FULL
+    dryRun: Boolean = false
+    notifyAssignees: Boolean = false
+  ): ImportResult!
+    @field(resolver: "App\\GraphQL\\Mutations\\ImportPlan")
   "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
   draftProjectPlan(
     messages: [PlanChatMessageInput!]! @rules(apply: ["min:1", "max:40"])

@@ -123,7 +123,7 @@ class ProjectFromTemplateTest extends GraphQLTestCase
     {
         $content = TemplateContent::blank('Mit Text', null, 'de', [['key' => 'eins', 'names' => ['de' => 'Eins'], 'category' => null, 'color' => 'blue']]);
         $content['milestones'] = [['id' => 'm-new-1', 'title' => 'Erster', 'description' => "Text mit **fett**.\n\n- eins\n- zwei", 'release' => ['version' => '1.0', 'status' => 'planned'], 'todos' => [
-            ['id' => 't-new-1', 'title' => 'Todo', 'tasks' => [['id' => 'k-new-1', 'title' => 'Task', 'status' => 'planned', 'labels' => ['eins', 'gibt-es-nicht'], 'description' => 'Beschreibung']]],
+            ['id' => 't-new-1', 'title' => 'Todo', 'tasks' => [['id' => 'k-new-1', 'title' => 'Task', 'status' => 'planned', 'labels' => ['eins'], 'description' => 'Beschreibung']]],
         ]]];
         $template = Template::factory()->create(['content' => $content]);
 
@@ -135,5 +135,17 @@ class ProjectFromTemplateTest extends GraphQLTestCase
         $this->assertSame('1.0', $milestone->release_version);
         $this->assertSame('planned', $milestone->release_status->value);
         $this->assertSame(['eins'], Task::query()->where('project_id', $id)->sole()->labels()->pluck('key')->all());
+    }
+
+    public function test_a_template_that_is_not_a_valid_file_is_refused_and_nothing_is_created(): void
+    {
+        $content = TemplateContent::blank('Kaputt', null, 'de', [['key' => 'eins', 'names' => ['de' => 'Eins'], 'category' => null, 'color' => 'blue']]);
+        $content['milestones'] = [['id' => 'm-new-1', 'title' => 'Erster', 'todos' => [['id' => 't-new-1', 'title' => 'Todo', 'tasks' => [['id' => 'k-new-1', 'title' => 'Task', 'status' => 'planned', 'labels' => ['gibt-es-nicht']]]]]]];
+        $template = Template::factory()->create(['content' => $content]);
+        $before = Project::query()->count();
+
+        $this->as('admin')->gql(self::CREATE, ['in' => ['name' => 'Neu', 'templateId' => $template->id]])->assertGraphQLValidationKeys(['input.templateId']);
+
+        $this->assertSame($before, Project::query()->count());
     }
 }
