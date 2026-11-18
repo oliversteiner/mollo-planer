@@ -9,6 +9,7 @@ import { renderPlaner } from '../../core/render-planer.mjs';
 import { templateIssues, toTemplate } from '../../core/template.mjs';
 import { HELPERS, runPlanerCommand } from '../planer-commands.mjs';
 import { runConvert } from '../planer-convert.mjs';
+import { SYNC_COMMANDS, runSync } from '../planer-sync.mjs';
 
 const USAGE = `Verwendung:
   mollo-planer validate [datei] [--template]   Prüft die Datei (Fehler brechen ab, Hinweise nicht)
@@ -26,7 +27,26 @@ const USAGE = `Verwendung:
   mollo-planer convert md2json <datei.md> [--out <datei>]
                                    Liest die Markdown-Ansicht von planer-v2 zurück in die Datei
 
-Ohne Datei sucht das Werkzeug im aktuellen Ordner nach docs/version-*.md oder docs/*.planer.json.`;
+  mollo-planer pull [datei] [--project <id>] [--force]
+                                   Holt den Plan aus der App (MCP export_plan) und schreibt die Datei kanonisch.
+                                   Hat die Datei „changed“, bricht pull ab; --force verwirft die Änderungen.
+  mollo-planer push [datei] [--partial] [--force] [--yes]
+                                   Trägt die Datei in die App ein (import_plan): erst ein Trockenlauf mit den Änderungen,
+                                   Löschungen nur mit --yes. Schreibt danach die echten IDs und die neue Revision.
+  mollo-planer sync [datei] [--yes]   Mit „changed“: push, dann pull. Sonst pull.
+  mollo-planer pull --watch [--interval 60]
+                                   pull in einer Schleife (Abstand mindestens 10 s), Strg-C beendet.
+
+Ohne Datei sucht das Werkzeug im aktuellen Ordner nach docs/version-*.md oder docs/*.planer.json.
+
+Verbindung (Vorrang von oben nach unten):
+  Adresse   MOLLO_PLANER_URL, sonst "url" in .mollo-planer
+  Zugang    MOLLO_PLANER_TOKEN, sonst "token" in .mollo-planer (nie als Option, wegen des Shell-Verlaufs)
+  Projekt   --project, sonst MOLLO_PLANER_PROJECT, sonst "projects" in .mollo-planer (Pfad der Datei als Schlüssel)
+.mollo-planer ist JSON und gehört nicht ins Repository.
+
+Exit-Codes: 0 ok oder unverändert, 1 Aufruf falsch, 2 Datei ungültig, 3 lokale Änderungen,
+            4 Revision weicht ab, 5 Löschungen ohne --yes, 6 Verbindung oder Zugang.`;
 
 const isPlanerFile = (path) => path.endsWith('.planer.json');
 
@@ -194,8 +214,12 @@ function optionValue(args, name) {
   return index === -1 ? undefined : args[index + 1];
 }
 
-function main(argv) {
+async function main(argv) {
   const [command, argument, ...rest] = argv;
+
+  if (SYNC_COMMANDS.includes(command)) {
+    return runSync(command, argv.slice(1), syncContext());
+  }
 
   if (command === 'convert') {
     const result = runConvert(argv, { cwd: process.cwd() });
@@ -242,4 +266,26 @@ function main(argv) {
   }
 }
 
-process.exitCode = main(process.argv.slice(2));
+/** Kontext für pull, push und sync: Ausgabe, Zeit, Strg-C. */
+function syncContext() {
+  let stop = false;
+  const wake = [];
+  process.once('SIGINT', () => {
+    stop = true;
+    wake.splice(0).forEach((resolveSleep) => resolveSleep());
+  });
+  return {
+    cwd: process.cwd(),
+    env: process.env,
+    fetch: globalThis.fetch,
+    out: (line) => console.log(line),
+    err: (line) => console.error(line),
+    stopped: () => stop,
+    sleep: (ms) => new Promise((resolveSleep) => {
+      wake.push(resolveSleep);
+      setTimeout(resolveSleep, ms).unref?.();
+    }),
+  };
+}
+
+process.exitCode = await main(process.argv.slice(2));

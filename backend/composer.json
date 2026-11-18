@@ -61,6 +61,9 @@
         "schema:frontend": [
             "@php artisan lighthouse:print-schema --sort > ../frontend/graphql/schema.graphql"
         ],
+        "test:planer-remote": [
+            "cd ../tools/planer && npm run test:remote"
+        ],
         "test:mariadb": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@putenv DB_CONNECTION=mariadb",

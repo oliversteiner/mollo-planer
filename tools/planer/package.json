@@ -7,7 +7,8 @@
     "mollo-planer": "cli/bin/mollo-planer.mjs"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "test:remote": "node scripts/run-remote-tests.mjs"
   },
   "engines": {
     "node": ">=20"
