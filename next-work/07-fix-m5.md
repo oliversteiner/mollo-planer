@@ -1,6 +1,6 @@
 # Auftrag: Fix M5 (F8)
 
-Status: offen
+Status: erledigt (9f7b4c1, d520f73, bbb21e0, a67c7ef, 2282a95); Browser-Sicht bei der Nachprüfung durch die Planung
 Stand: 2026-11-18, `dev` bis `9a79a76`.
 Dokument: `docs/fix-m5.md` (maßgeblich). Ergebnisse der Abnahme: `docs/abnahme-m5.md`.
 
