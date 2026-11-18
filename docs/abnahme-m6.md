@@ -76,3 +76,8 @@ Personen: Anna (Admin, `ideas.viewAny`), Ben (Systemrolle Mitglied, Owner Websit
 ---
 
 Ergebnis: **Abgenommen am 2026-11-18 durch Oliver.** F10 (Verknüpfung zur genannten Vorlage, Texte in den Knöpfen) folgt als kleiner Fix-Auftrag; ⏸ (Grenzen, MCP, Darstellung) bleiben bei Oliver.
+
+## Nachprüfung F10 (2026-11-18, Planung)
+
+- [ ] ❌ Nach F10 scheitert jeder Entwurf: „Claude ist gerade nicht erreichbar.“, Log „compiled grammar too large“ (Feld `template` im Schema). → F10.3 (dringend)
+- F10.2 noch nicht prüfbar (keine Antwort von Claude).

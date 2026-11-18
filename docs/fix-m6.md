@@ -77,3 +77,14 @@ F9.1 bis F9.8 mit echtem Claude nachgeprüft: alle ✅. Neu: F10.1 und F10.2 (un
 **Umsetzung:** `detail` für `MILESTONE`, `PROJECT`, `TEMPLATE`, `APPEND_TO_TODO` baut der Server selbst aus den Daten (Fälligkeit im Format der Sprache, Version, Umfang), Claude liefert nur `kind`, `value`, `recommended` und optional eine Begründung (`NEW_MILESTONE`), aus der der Server IDs der Form `m-<Zahl>`/`t-<Zahl>`/`k-<Zahl>` entfernt. Daten in Antworten von Claude: Prompt verlangt das Datumsformat der Sprache (z. B. „31. Juli 2027“). Test.
 
 Ablauf: F10.1 → F10.2, Prüfungen grün, im Browser ansehen, anhalten.
+
+## F10.3 Schema wieder zu groß: jeder Entwurf scheitert (dringend)
+
+**Befund** (Nachprüfung F10, 2026-11-18 06:57): Jede Anfrage an den Assistenten endet mit „Claude ist gerade nicht erreichbar.“ Log: `Anthropic Bad Request … The compiled grammar is too large`. Ursache: F10.1 hat dem Antwort-Schema das Pflichtfeld `template` (`string | null`) hinzugefügt; das Schema lag schon an der Grenze (siehe M6: `members`/`release` mussten raus). Die Tests mit gefälschtem Client sehen das nicht.
+**Umsetzung:**
+- Das Feld `template` wieder aus dem Schema entfernen. Die Vorlage bestimmt der **Server** ohne Claude: Ist der Entwurf ein neues Projekt und hat die Person in dieser Unterhaltung eine Vorlage per Knopf gewählt oder ihren Namen bzw. Schlüssel in einer eigenen Nachricht genannt (ohne Groß/Klein und Akzente, `utils`/PHP-Gegenstück zu `text-search`), genau eine Vorlage passt und sie für die Person sichtbar ist → `PlanDraft.templateId`. Sonst `null`. Rest von F10.1 (Oberfläche übernimmt `templateId` aus jedem `PlanDraft`) bleibt.
+- **Schutz vor Wiederholung:**
+  - Test „Schema-Budget“: zählt im erzeugten Antwort-Schema Eigenschaften, `anyOf`/Typ-Listen mit `null`, `enum`-Werte und Verschachtelungstiefe und vergleicht mit einem festgehaltenen Höchstwert (heutiger funktionierender Stand vor F10.1). Wächst das Schema, schlägt der Test fehl und verlangt einen echten Aufruf.
+  - Befehl `php artisan assistant:ping` (nur lokal, braucht `ANTHROPIC_API_KEY`): schickt eine kleine echte Anfrage mit dem echten Schema und meldet OK oder den Fehler der API. Vor jedem „erledigt“ an Assistent oder Schema laufen lassen und das Ergebnis in `umsetzung.md` vermerken.
+- **Meldung in der Oberfläche:** Ein `400` der API wegen des Schemas ist kein „nicht erreichbar“. Text für Fehler auf unserer Seite: „Der Assistent hat gerade ein technisches Problem. Bitte versuche es später nochmals.“; „nicht erreichbar“ nur bei Netz, Zeitüberschreitung, 5xx, 529. Das Log bleibt wie es ist.
+- Abschluss: `assistant:ping` OK, ein echter Entwurf mit im Text genannter Vorlage legt ein verknüpftes Projekt an (`template` gesetzt, `projectCount` +1).
