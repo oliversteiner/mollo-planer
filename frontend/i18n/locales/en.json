@@ -165,8 +165,20 @@
     },
     "verify": {
       "title": "Confirm email address",
+      "intro": "Confirm that this address is yours.",
+      "confirm": "Confirm email address",
       "done": "Your email address is confirmed.",
-      "loginHint": "Sign in once an admin has approved your account."
+      "already": "This address is already confirmed.",
+      "failed": "The confirmation did not work. Please try again.",
+      "nextSteps": "Sign in now and set up your second factor. An admin releases your account; you get a mail.",
+      "login": "Sign in",
+      "invalid": "The link is invalid or has expired.",
+      "invalidText": "Have a new confirmation mail sent, or sign in.",
+      "toLogin": "To sign in",
+      "resend": "Send the confirmation mail again",
+      "resendIn": "Send again in {seconds} s",
+      "resent": "We sent you a new mail. It can take a minute.",
+      "resentNeutral": "If an account with this address is waiting for confirmation, we sent a mail. It can take a minute."
     },
     "pending": {
       "title": "Account waiting",

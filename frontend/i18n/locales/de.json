@@ -165,8 +165,20 @@
     },
     "verify": {
       "title": "E-Mail-Adresse bestätigen",
+      "intro": "Bestätige, dass diese Adresse dir gehört.",
+      "confirm": "E-Mail-Adresse bestätigen",
       "done": "Deine E-Mail-Adresse ist bestätigt.",
-      "loginHint": "Melde dich an, sobald ein Admin dein Konto freigegeben hat."
+      "already": "Diese Adresse ist schon bestätigt.",
+      "failed": "Die Bestätigung hat nicht geklappt. Versuche es nochmals.",
+      "nextSteps": "Melde dich jetzt an und richte deinen zweiten Faktor ein. Ein Admin gibt dein Konto frei; du bekommst eine Mail.",
+      "login": "Anmelden",
+      "invalid": "Der Link ist ungültig oder abgelaufen.",
+      "invalidText": "Lass dir eine neue Bestätigungsmail schicken oder melde dich an.",
+      "toLogin": "Zur Anmeldung",
+      "resend": "Bestätigungsmail erneut senden",
+      "resendIn": "Erneut senden in {seconds} s",
+      "resent": "Wir haben dir eine neue Mail geschickt. Sie kann eine Minute brauchen.",
+      "resentNeutral": "Wenn ein Konto mit dieser Adresse auf Bestätigung wartet, haben wir eine Mail geschickt. Sie kann eine Minute brauchen."
     },
     "pending": {
       "title": "Konto wartet",

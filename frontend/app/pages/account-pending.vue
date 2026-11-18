@@ -64,6 +64,12 @@ onMounted(check)
         {{ t('auth.pending.recheck') }}
       </wa-button>
 
+      <AuthResendVerification
+        v-if="reason === 'email'"
+        mode="session"
+        @confirmed="check"
+      />
+
       <div class="wa-split wa-gap-s">
         <wa-button
           appearance="plain"
