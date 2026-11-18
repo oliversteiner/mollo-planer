@@ -11,6 +11,7 @@ Stand: 2026-11-18, Fassung 2 (Fassung 1 vom 2026-11-17 an den Stand nach M6 ange
 
 **2026-11-18:**
 - **Aktueller Milestone** (Zeitachse in „Ruhig“): der erste nicht erledigte in der Reihenfolge des Projekts; sind alle erledigt, der letzte. Die übrigen eingeklappt darunter.
+- **Farbschema „Steingarten“** mit den Reglern Helligkeit und Kontrast und den Vorschlägen Leinen, Sand, Stein und Leder, genau wie in der Vorschau; pro Gerät gespeichert; aufgerufen über das Slide-In „Stimmung“ mit transparentem Hintergrund (§4.6).
 - **Ohne Dokumente:** Die Dokumentenverwaltung gibt es noch nicht. Zen gilt jetzt für alle vorhandenen Seiten, „Fokus“ für Task und ToDo. Dokumente bekommen Zen mit ihrem eigenen Auftrag (die Mechanik hier muss das ohne Umbau erlauben).
 
 ## 2. Grundsatz
@@ -85,6 +86,56 @@ Zen ist eine Darstellungsschicht, keine zweite App.
 - Es gibt keinen eigenen Datenweg: dieselbe Detail-Komponente, nur ein anderer Rahmen.
 - Bei ungesicherten Änderungen kommt dieselbe Warnung beim Verlassen wie heute.
 
+### 4.6 Farbschema „Steingarten“ und Slide-In „Stimmung“ (Oliver, 2026-11-18)
+
+Zen (`calm` und `focus`) hat ein eigenes Farbschema mit den Farben Leinen, Sand, Stein, Taupe und Leder. Die Person stellt es mit zwei Reglern ein. Vorbild ist die interaktive Vorschau der Planung; Regler und Vorschläge werden **genau so** übernommen.
+
+**Farben aus zwei Werten:**
+- **Reine Funktion** `utils/steingarten.ts`: `palette(brightness, contrast)` (beide 0–100) liefert `bg`, `surface`, `border`, `text`, `textMuted`, `accent`, `onAccent`, `warn`. Sie läuft auf Server und Client gleich, ohne DOM.
+- **Rampe**, gleichmäßig zwischen diesen Stützpunkten (sRGB):
+
+  | Stelle | Farbe | Wert |
+  |---|---|---|
+  | 0 | Leinen | `#F4EEE3` |
+  | 25 | Sand | `#E2D6C3` |
+  | 50 | Stein | `#A39A8C` |
+  | 75 | Taupe | `#5E5348` |
+  | 100 | Leder | `#2B1E16` |
+- `bg` = Rampe(Helligkeit). Über 50 kippt das Schema auf dunklen Grund mit heller Schrift.
+- `text` = Rampe(Helligkeit ± (0,42 + 0,58 × Kontrast)).
+- `textMuted` und `border` sind Mischungen von `bg` und `text`, abhängig vom Kontrast.
+- `accent` ist Moosgrün: hell `#55633C` bis `#343E24`, dunkel `#B3C08F`. `warn` ist Ocker: hell `#966226`, dunkel `#D6AA6E`.
+- Die genauen Formeln stehen in der Vorschau (Planung) und werden in Vitest festgehalten.
+- **Mindestkontrast:** Die Funktion sorgt immer für Text/Hintergrund ≥ 4,5:1, Nebentext ≥ 3:1 und Knopftext ≥ 4,5:1. Wird ein Wert unterschritten, rückt sie Text bzw. Nebentext weiter vom Hintergrund weg; die Regler bleiben dabei frei. Vitest prüft das über alle Paare 0–100 in Schritten von 5.
+
+**Wirkung in der Oberfläche:**
+- Ein Plugin setzt unter `[data-view="calm"]` und `[data-view="focus"]` die Variablen `--zen-*` als Inline-Style auf `<html>`.
+- `zen.css` bildet sie auf die `--wa-*`-Tokens von Web Awesome ab (Flächen, Text, Rahmen, Markenfarbe = `accent`, Warnung = `warn`). Komponenten bekommen keine eigenen Farben.
+- Im Normalmodus gilt das bisherige Schema unverändert, hell und dunkel nach `ColorModeSwitch`.
+- Statusfarben in Zen: Erledigt in Moos, In Arbeit und Hinweise in Ocker, Offen neutral. Gefahr (Löschen, Fehler) bleibt rot und lesbar ≥ 4,5:1 auf `bg`.
+
+**Speichern pro Gerät:**
+- Cookies `zen_brightness` und `zen_contrast` (0–100, ganze Zahlen, ein Jahr, `SameSite=Lax`), wie `view_mode`, damit das SSR sofort richtig rendert.
+- Ungültige Werte führen zum Standard.
+- Standard ist Helligkeit 12 und Kontrast 55 (Leinen).
+
+**Slide-In „Stimmung“:**
+- **Aufbau:** `components/zen/MoodDrawer.vue` auf Basis `AppDrawer`/`wa-drawer`, von rechts (auf dem Telefon von unten), Titel „Stimmung“ (EN „Mood“).
+- **Transparenter Hintergrund:** Der Drawer dunkelt die Seite nicht ab, die Seite bleibt voll sichtbar und ändert sich live mit. Die Fläche des Drawers ist in `--zen-surface` mit 85 % Deckkraft, ohne Unschärfe und ohne Schatten (nur Rahmen `--zen-border`). Klick neben den Drawer und `Esc` schließen ihn.
+- **Inhalt**, genau wie in der Vorschau:
+  1. Regler „Helligkeit“ mit Anzeige des Tons und der Prozent (z. B. „Leinen · 12 %“).
+  2. Regler „Kontrast“ mit Prozent.
+  3. Knöpfe „Leinen“ (6/50), „Sand“ (30/45), „Stein“ (52/70), „Leder“ (88/55).
+  4. Farbleiste mit 9 Feldern, die aktuelle Stelle markiert.
+  5. Klein darunter: Kontrast Text/Fläche als Zahl mit AA/AAA.
+  6. Knopf „Zurücksetzen“ (auf den Standard).
+- **Speichern:** Änderungen wirken sofort. Gespeichert wird beim Loslassen des Reglers bzw. beim Klick, mit 300 ms Verzögerung, ohne eigenen Speichern-Knopf.
+- **Aufruf:**
+  - Eintrag „Stimmung“ im Menü des Eck-Knopfs (`ZenShell`).
+  - Befehl „Stimmung“ in der Palette.
+  - Im Normalmodus über den Befehl oder das Benutzermenü (neben „Zen“). Ist Zen aus, schaltet „Stimmung“ zuerst auf `calm`, damit die Wirkung sichtbar ist.
+- **Tastatur:** Regler mit Pfeiltasten (1) und Bild auf/ab (10). Der Fokus springt beim Öffnen auf den ersten Regler und beim Schließen zurück zum Auslöser. Werte werden per `aria-valuetext` angesagt („Sand, 30 Prozent“).
+
 ## 5. Was je Seitentyp ausgeblendet wird (Leitlinie, die genaue Liste entsteht in Z1)
 
 | Seitentyp | Bleibt in `calm` | Geht ins „…“-Menü oder verschwindet |
@@ -126,6 +177,19 @@ Die Reihenfolge ist verbindlich. Je Schritt ein Commit, `lint`, `typecheck` und 
 - **Abnahme:**
   - Neuladen in `calm` zeigt serverseitig sofort den Zen-Rahmen, ohne Aufblitzen und ohne Hydration-Warnung.
   - Vitest für `useViewMode`: Übergänge und Rückkehr aus `focus`.
+
+**Z2b Farbschema „Steingarten“ und „Stimmung“ (§4.6)**
+- **Bauen:**
+  - `utils/steingarten.ts` mit Mindestkontrast
+  - Plugin für `--zen-*`, Abbildung auf `--wa-*` in `zen.css`
+  - Cookies `zen_brightness` und `zen_contrast`
+  - `MoodDrawer` mit Reglern, Vorschlägen, Farbleiste und Kontrastanzeige
+  - Einstieg über Eck-Knopf und Benutzermenü (die Palette folgt mit Z3)
+- **Abnahme:**
+  - Neuladen in `calm` zeigt sofort die gespeicherte Stimmung, ohne Aufblitzen des Normal-Schemas.
+  - Vitest für `palette()`: Stützpunkte, Kippen bei 50 und Mindestkontrast über das ganze Raster.
+  - Der Drawer dunkelt nicht ab, und die Seite ändert sich live.
+  - Mit der Tastatur bedienbar.
 
 **Z3 Befehlspalette**
 - **Bauen:** `CommandPalette` und `useCommands`, mit Seiten, Projekten und Seitenaktionen als Quellen und Rechteprüfung über `viewerRights`.
