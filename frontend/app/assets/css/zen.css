@@ -31,9 +31,11 @@
 }
 
 /* The frame: no sidebar, no header bar; the content is one column of a reading width. */
-[data-view='calm'] .app-shell,
-[data-view='focus'] .app-shell {
-  --menu-width: 0px;
+/* !important: the layout sets the width of the menu itself, with a rule of the same weight. Without the menu the
+   column is centred in the window, not in what is left of it. */
+html[data-view='calm'] .app-shell,
+html[data-view='focus'] .app-shell {
+  --menu-width: 0px !important;
 }
 
 [data-view='calm'] .app-shell::part(menu),

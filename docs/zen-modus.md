@@ -61,7 +61,8 @@ Zen ist eine Darstellungsschicht, keine zweite App.
 ### 4.3 Rahmen
 
 - `layouts/default.vue` rendert je nach Zustand Seitenmenü und Kopfleiste oder den Zen-Rahmen `components/zen/ZenShell.vue`: Eck-Knopf, Projektname, Sichern-Status.
-- Der Eck-Knopf öffnet die Suche (§4.4). Darin stehen in Zen oben „Zen verlassen“ und „Stimmung“.
+- Der Eck-Knopf (das „Zen-Zeichen“, ein Blatt) öffnet die Suche (§4.4). Darin stehen in Zen oben „Zen verlassen“ und „Stimmung“.
+- **Zen-Zeichen (ZH1, ZH2):** Das Blatt ist doppelt so groß wie zuvor (Icon 28 statt 14 px) und der Knopf mindestens 44 × 44 px (Styles in `ZenShell`). Ab 64 rem Fensterbreite steht er am linken Rand des Fensters (Abstand `--wa-space-m`, `position: fixed`, bleibt beim Scrollen sichtbar), Projektname und Sichern-Status bleiben in der Lesespalte. In schmaleren Fenstern (bis 64 rem, Telefon) bleibt er wie zuvor in der Spalte und überdeckt nichts. Die Spalte ist im ganzen Fenster zentriert (das Seitenmenü reserviert in Zen keinen Platz mehr).
 - Telefonbreite: Der Eck-Knopf überdeckt keine Eingabefelder, keine Sichern-Leiste und keine Meldungen.
 
 ### 4.4 Suche (`Cmd/Ctrl+K`) und Aufruf von Zen
