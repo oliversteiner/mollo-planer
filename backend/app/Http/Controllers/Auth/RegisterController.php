@@ -61,6 +61,9 @@ class RegisterController extends Controller
 
         if ($request->hasSession()) {
             $request->session()->regenerate();
+            // The person has just typed the password: setting up the first factor right after does not ask again
+            // (the same as after /login, see ConfirmPasswordOnLogin; a passkey login or a taken address do not count).
+            $request->session()->put('auth.password_confirmed_at', time());
         }
 
         return new JsonResponse('', 201);

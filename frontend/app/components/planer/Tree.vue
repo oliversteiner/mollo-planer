@@ -93,7 +93,7 @@ function statusKey(status: string) {
           <span class="planer-head">
             <wa-checkbox
               v-if="strikes(milestone.id)"
-              size="small"
+              size="s"
               :checked="!isStruck(milestone.id)"
               :aria-label="t('planer.keep', { name: milestone.title })"
               @click.stop
@@ -132,7 +132,7 @@ function statusKey(status: string) {
             <span class="planer-head">
               <wa-checkbox
                 v-if="strikes(todo.id)"
-                size="small"
+                size="s"
                 :checked="!isStruck(todo.id)"
                 :aria-label="t('planer.keep', { name: todo.title })"
                 @click.stop
@@ -163,7 +163,7 @@ function statusKey(status: string) {
               <span class="planer-head">
                 <wa-checkbox
                   v-if="strikes(task.id)"
-                  size="small"
+                  size="s"
                   :checked="!isStruck(task.id)"
                   :aria-label="t('planer.keep', { name: task.title })"
                   @click.stop

@@ -42,6 +42,19 @@ class RegistrationNeutralTest extends TestCase
         Notification::assertNotSentTo($user, RegistrationForExistingAddress::class);
     }
 
+    public function test_the_registration_counts_as_password_confirmation_for_the_first_factor_but_a_taken_address_does_not(): void
+    {
+        Notification::fake();
+        $this->register('new@example.com')->assertCreated();
+        $this->getJson('/user/confirmed-password-status')->assertOk()->assertJsonPath('confirmed', true);
+
+        $this->post('/logout');
+        User::factory()->create(['email' => 'anna@example.com']);
+        $this->register('anna@example.com')->assertCreated();
+        $this->assertNull(session('auth.password_confirmed_at'));
+        $this->getJson('/user/confirmed-password-status')->assertUnauthorized();
+    }
+
     public function test_a_taken_address_gets_the_same_status_and_body_creates_nothing_and_logs_nobody_in(): void
     {
         Notification::fake();
@@ -87,6 +100,18 @@ class RegistrationNeutralTest extends TestCase
         $this->assertSame('Eva Neu', $waiting->name, 'a stranger cannot take over a registration that is still waiting');
         $this->assertSame($hash, $waiting->password);
         Notification::assertSentTo($waiting, RegistrationForExistingAddress::class, fn (RegistrationForExistingAddress $notification): bool => ! $notification->confirmed);
+    }
+
+    public function test_a_german_mail_ends_with_a_german_salutation_and_link_hint(): void
+    {
+        app()->setLocale('de');
+        $user = User::factory()->create(['name' => 'Anna Keller']);
+
+        $html = (string) (new RegistrationForExistingAddress(true))->locale('de')->toMail($user)->render();
+
+        $this->assertStringContainsString('Viele Grüsse', $html);
+        $this->assertStringNotContainsString('Regards', $html);
+        $this->assertStringContainsString('kopiere diese Adresse in die Adresszeile deines Browsers', $html);
     }
 
     public function test_the_two_mails_name_the_right_links_in_both_languages(): void

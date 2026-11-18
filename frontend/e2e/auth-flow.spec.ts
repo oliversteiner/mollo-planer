@@ -599,18 +599,14 @@ test.describe('Passwort', () => {
     expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 
-  test('S16b Nach der Registrierung wird das Passwort beim Einrichten abgefragt (Befund)', async ({ page }) => {
-    test.fail(true, 'Befund: Die Registrierung meldet an, setzt aber die Passwortbestätigung nicht (nur /login und die Abfrage des zweiten Faktors tun das, Auftrag 22 O6). Das erste Einrichten fragt das Passwort darum nochmals ab.')
+  test('S16b Auch nach der Registrierung fragt «Konto absichern» das Passwort nicht nochmals ab', async ({ page }) => {
     await registerAndConfirm(page, uniqueEmail('s16b'))
     await addVirtualAuthenticator(page)
     await page.locator('.setup-choice', { hasText: 'Passkey einrichten' }).click()
     await page.getByRole('button', { name: 'Passkey hinzufügen' }).click()
-    await page.getByText('Bitte bestätige dein Passwort').waitFor({ state: 'visible', timeout: 3000 }).catch(() => undefined)
-    // For the report: the screenshot stays in test-results (a test that is expected to fail keeps no attachment).
-    await page.screenshot({ path: 'test-results/befund-s16b-passwortabfrage.png' })
 
-    await expect(page.getByText('Bitte bestätige dein Passwort')).toHaveCount(0, { timeout: 3000 })
-    await expect(page.locator('wa-card')).toContainText('Dein Passkey ist eingerichtet.', { timeout: 3000 })
+    await expect(page.locator('wa-card')).toContainText('Dein Passkey ist eingerichtet.')
+    await expect(passwordDialog(page)).toHaveCount(0)
   })
 })
 
