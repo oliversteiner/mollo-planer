@@ -59,6 +59,7 @@ return [
             'assign' => 'zuweisen',
             'delete' => 'löschen',
             'members' => 'Mitglieder ändern',
+            'idea' => 'diese Idee einplanen (nur die Autorin)',
         ],
         'person_unknown' => 'Zu :email gibt es kein freigegebenes Konto. Ein Import legt keine Konten an.',
         'role_unknown' => 'Die Projektrolle „:role“ gibt es nicht.',
@@ -66,5 +67,9 @@ return [
         'description' => ':problem',
         'assignee_not_member' => ':email ist kein Mitglied des Projekts.',
         'nothing_to_delete' => 'Nichts zu löschen.',
+        'append_only' => 'Der Assistent ergänzt nur. „:what“ würde geändert.',
+        'template_only_new' => 'Eine Vorlage gibt es nur für ein neues Projekt.',
+        'template_unknown' => 'Diese Vorlage gibt es nicht.',
+        'idea_unknown' => 'Diese Idee gibt es nicht.',
     ],
 ];

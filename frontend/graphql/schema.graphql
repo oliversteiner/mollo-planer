@@ -379,7 +379,19 @@ type Mutation {
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
- importPlan(document: String!, dryRun: Boolean = false, mode: ImportMode = FULL, notifyAssignees: Boolean = false, projectId: ID): ImportResult!
+ importPlan(
+ "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
+ appendOnly: Boolean = false
+ document: String!
+ dryRun: Boolean = false
+ "Die Idee, aus der die Datei entstand (nur die Autorin): danach angenommen, ihre neuen ToDos verweisen auf sie"
+ ideaId: ID
+ mode: ImportMode = FULL
+ notifyAssignees: Boolean = false
+ projectId: ID
+ "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
+ templateId: ID
+ ): ImportResult!
  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
  importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."

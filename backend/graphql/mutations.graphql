@@ -172,6 +172,12 @@ type Mutation @guard {
     mode: ImportMode = FULL
     dryRun: Boolean = false
     notifyAssignees: Boolean = false
+    "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
+    templateId: ID
+    "Die Idee, aus der die Datei entstand (nur die Autorin): danach angenommen, ihre neuen ToDos verweisen auf sie"
+    ideaId: ID
+    "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
+    appendOnly: Boolean = false
   ): ImportResult!
     @field(resolver: "App\\GraphQL\\Mutations\\ImportPlan")
   "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."

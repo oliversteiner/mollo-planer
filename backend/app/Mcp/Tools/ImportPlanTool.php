@@ -18,8 +18,8 @@ class ImportPlanTool extends Tool
     use RunsGraphQL;
 
     private const MUTATION = <<<'GRAPHQL'
-        mutation ($projectId: ID, $document: String!, $mode: ImportMode!, $dryRun: Boolean!, $notify: Boolean!) {
-          importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notify) {
+        mutation ($projectId: ID, $document: String!, $mode: ImportMode!, $dryRun: Boolean!, $notify: Boolean!, $templateId: ID, $ideaId: ID, $appendOnly: Boolean!) {
+          importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notify, templateId: $templateId, ideaId: $ideaId, appendOnly: $appendOnly) {
             ok dryRun projectId document
             changes { kind path id fields title }
             errors { path kind message }
@@ -37,6 +37,9 @@ class ImportPlanTool extends Tool
                 'mode' => ['sometimes', 'in:full,partial'],
                 'dry_run' => ['sometimes', 'boolean'],
                 'notify_assignees' => ['sometimes', 'boolean'],
+                'template_id' => ['sometimes', 'nullable'],
+                'idea_id' => ['sometimes', 'nullable'],
+                'append_only' => ['sometimes', 'boolean'],
             ],
             [
                 'plan.required' => 'Give the plan: a planer-v2 document, for example the one export_plan returned.',
@@ -53,6 +56,9 @@ class ImportPlanTool extends Tool
                 'mode' => strtoupper($validated['mode'] ?? 'full'),
                 'dryRun' => (bool) ($validated['dry_run'] ?? false),
                 'notify' => (bool) ($validated['notify_assignees'] ?? false),
+                'templateId' => isset($validated['template_id']) ? (string) $validated['template_id'] : null,
+                'ideaId' => isset($validated['idea_id']) ? (string) $validated['idea_id'] : null,
+                'appendOnly' => (bool) ($validated['append_only'] ?? false),
             ])['importPlan'];
 
             $data['idMap'] = (object) array_column($data['idMap'], 'to', 'from');
@@ -73,6 +79,9 @@ class ImportPlanTool extends Tool
             'mode' => $schema->string()->enum(['full', 'partial'])->description('"full" (default) or "partial".'),
             'dry_run' => $schema->boolean()->description('true: write nothing, only report the changes and errors.'),
             'notify_assignees' => $schema->boolean()->description('true: send the assignment mails. Default false.'),
+            'template_id' => $schema->string()->description('Only without project_id: the template the new project comes from (sets its origin; the outline and labels must stand in the plan).'),
+            'idea_id' => $schema->string()->description('The idea (yours) this plan is made from: it is adopted afterwards.'),
+            'append_only' => $schema->boolean()->description('true: only add; any change of something that exists is an error. Default false.'),
         ];
     }
 }

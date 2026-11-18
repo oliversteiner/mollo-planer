@@ -2,8 +2,10 @@
 
 namespace App\Planer;
 
+use App\Enums\IdeaState;
 use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
+use App\Models\Idea;
 use App\Models\Label;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -56,6 +58,13 @@ final class Import
     private bool $notify;
 
     private bool $dryRun = false;
+
+    private bool $appendOnly = false;
+
+    private ?int $templateId = null;
+
+    /** @var list<int> Todos this run created, for the idea they came from */
+    private array $createdTodoIds = [];
 
     private User $actor;
 
@@ -120,11 +129,20 @@ final class Import
 
     /**
      * @param  array<string, mixed>  $document
+     * @param  bool  $appendOnly  Only add: every change of something that exists is an error (the assistant, docs/auftrag-m6.md §1 Nr. 4)
+     * @param  int|null  $templateId  The template a new project comes from (only without $project)
+     * @param  Idea|null  $idea  The idea this file is made from: afterwards adopted, its new todos know it
      */
-    public function run(?Project $project, array $document, ImportMode $mode, bool $dryRun, bool $notifyAssignees, User $actor): ImportResult
+    public function run(?Project $project, array $document, ImportMode $mode, bool $dryRun, bool $notifyAssignees, User $actor, bool $appendOnly = false, ?int $templateId = null, ?Idea $idea = null): ImportResult
     {
         $this->reset($document, $mode, $notifyAssignees, $actor);
         $this->dryRun = $dryRun;
+        $this->appendOnly = $appendOnly;
+        $this->templateId = $project === null ? $templateId : null;
+
+        if ($idea !== null && ! $actor->can('update', $idea)) {
+            $this->error('', 'denied', __('planer.import.denied', ['what' => __('planer.import.what.idea')]));
+        }
 
         foreach (Validator::errors($document) as $issue) {
             $this->error($issue['path'], 'invalid', __('planer.import.invalid', ['message' => $issue['message']]));
@@ -145,6 +163,11 @@ final class Import
         try {
             ReleaseRules::withoutChecks(fn () => PlanerLimits::withoutChecks(fn () => $this->apply($project)));
             $this->checkResult();
+            $this->checkAppendOnly();
+
+            if ($idea !== null && $this->errors === [] && ! $dryRun) {
+                $this->adopt($idea);
+            }
 
             if ($this->errors === [] && $this->changes !== []) {
                 $this->revision->touch($this->project->getKey());
@@ -195,6 +218,7 @@ final class Import
         $this->leftGroups = [];
         $this->touchedTasks = [];
         $this->moved = [];
+        $this->createdTodoIds = [];
     }
 
     /**
@@ -249,6 +273,7 @@ final class Import
             'description' => $this->description($data['description'] ?? null, 'project.description')[1],
             'locale' => $data['locale'],
         ]);
+        $project->template_id = $this->templateId;
         $project->save();
         $project->members()->attach($this->actor->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
         Rights::clearCache();
@@ -616,6 +641,7 @@ final class Import
 
             $model = new Todo(['milestone_id' => $milestone->getKey()] + $values);
             $this->save($model, $path);
+            $this->createdTodoIds[] = (int) $model->getKey();
             $this->created($model, 't', $entry['id'], $path, ['title', ...$fields]);
         } else {
             $parentChanged = (int) $model->milestone_id !== (int) $milestone->getKey();
@@ -1053,6 +1079,34 @@ final class Import
                 $this->validation($this->paths["k-{$taskId}"] ?? "k-{$taskId}", $error);
             }
         }
+    }
+
+    /**
+     * The assistant only adds (docs/auftrag-m6.md §1 Nr. 4): a change of something that exists is an error with its
+     * path, also in a dry run. A new project is all new.
+     */
+    private function checkAppendOnly(): void
+    {
+        if (! $this->appendOnly || $this->errors !== []) {
+            return;
+        }
+
+        foreach ($this->changes as $change) {
+            if ($change['kind'] !== 'create') {
+                $this->error($change['path'], 'append_only', __('planer.import.append_only', ['what' => $change['id'] ?? $change['path']]));
+            }
+        }
+    }
+
+    /** The idea is put into the project: adopted, its new todos know it, the project is set if it had none. */
+    private function adopt(Idea $idea): void
+    {
+        Todo::query()->whereIn('id', $this->createdTodoIds)->update(['idea_id' => $idea->getKey()]);
+
+        $idea->status = IdeaState::ADOPTED;
+        $idea->adopted_at = now();
+        $idea->project_id ??= $this->project->getKey();
+        $idea->save();
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────

@@ -3,12 +3,15 @@
 namespace App\GraphQL\Mutations;
 
 use App\GraphQL\Concerns\ResolvesViewer;
+use App\Models\Idea;
 use App\Models\Project;
+use App\Models\Template;
 use App\Planer\Canonical;
 use App\Planer\Import;
 use App\Planer\ImportMode;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use JsonException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -25,7 +28,7 @@ class ImportPlan
     public function __construct(private readonly Import $import) {}
 
     /**
-     * @param  array{projectId?: int|string|null, document: string, mode?: string, dryRun?: bool, notifyAssignees?: bool}  $args
+     * @param  array{projectId?: int|string|null, document: string, mode?: string, dryRun?: bool, notifyAssignees?: bool, templateId?: int|string|null, ideaId?: int|string|null, appendOnly?: bool}  $args
      * @return array<string, mixed>
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): array
@@ -36,6 +39,22 @@ class ImportPlan
             : null;
 
         Gate::forUser($viewer)->authorize($project === null ? 'create' : 'import', $project ?? Project::class);
+
+        $templateId = $args['templateId'] ?? null;
+
+        if ($templateId !== null && $project !== null) {
+            throw ValidationException::withMessages(['templateId' => __('planer.import.template_only_new')]);
+        }
+
+        if ($templateId !== null && ! Template::query()->whereKey($templateId)->exists()) {
+            throw ValidationException::withMessages(['templateId' => __('planer.import.template_unknown')]);
+        }
+
+        $idea = isset($args['ideaId']) ? Idea::query()->find($args['ideaId']) : null;
+
+        if (isset($args['ideaId']) && ($idea === null || ! Gate::forUser($viewer)->allows('view', $idea))) {
+            throw ValidationException::withMessages(['ideaId' => __('planer.import.idea_unknown')]);
+        }
 
         try {
             $document = json_decode($args['document'], true, 512, JSON_THROW_ON_ERROR);
@@ -54,6 +73,9 @@ class ImportPlan
             (bool) ($args['dryRun'] ?? false),
             (bool) ($args['notifyAssignees'] ?? false),
             $viewer,
+            (bool) ($args['appendOnly'] ?? false),
+            $templateId === null ? null : (int) $templateId,
+            $idea,
         );
 
         return [

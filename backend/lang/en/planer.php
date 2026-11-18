@@ -59,6 +59,7 @@ return [
             'assign' => 'assign',
             'delete' => 'delete',
             'members' => 'change members',
+            'idea' => 'put this idea into a plan (only its author)',
         ],
         'person_unknown' => 'There is no approved account for :email. An import does not create accounts.',
         'role_unknown' => 'There is no project role “:role”.',
@@ -66,5 +67,9 @@ return [
         'description' => ':problem',
         'assignee_not_member' => ':email is not a member of the project.',
         'nothing_to_delete' => 'Nothing to delete.',
+        'append_only' => 'The assistant only adds. “:what” would be changed.',
+        'template_only_new' => 'A template is only for a new project.',
+        'template_unknown' => 'This template does not exist.',
+        'idea_unknown' => 'This idea does not exist.',
     ],
 ];
