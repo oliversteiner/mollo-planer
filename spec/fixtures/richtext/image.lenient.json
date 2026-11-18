@@ -1,0 +1,29 @@
+{
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "bild",
+            "marks": [
+              {
+                "type": "link",
+                "attrs": {
+                  "href": "https://a.ch/x.png"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "kind": "image"
+    }
+  ]
+}

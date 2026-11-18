@@ -1,0 +1,221 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Website-Relaunch",
+    "description": "Neue Website mit Terminen, Berichten und Kontaktformular.",
+    "locale": "de",
+    "members": [
+      {
+        "email": "ben.mueller@example.ch",
+        "role": "owner"
+      },
+      {
+        "email": "chiara.rossi@example.ch",
+        "role": "manager"
+      },
+      {
+        "email": "david.frei@example.ch",
+        "role": "member"
+      }
+    ],
+    "labels": [
+      {
+        "key": "research",
+        "names": {
+          "de": "Recherche",
+          "en": "Research"
+        },
+        "category": "phase",
+        "color": "blue"
+      },
+      {
+        "key": "design",
+        "names": {
+          "de": "Design",
+          "en": "Design"
+        },
+        "category": "phase",
+        "color": "pink"
+      },
+      {
+        "key": "feature",
+        "names": {
+          "de": "Feature",
+          "en": "Feature"
+        },
+        "category": "type",
+        "color": "green"
+      },
+      {
+        "key": "bug",
+        "names": {
+          "de": "Fehler",
+          "en": "Bug"
+        },
+        "category": "type",
+        "color": "red"
+      },
+      {
+        "key": "planning",
+        "names": {
+          "de": "Planung",
+          "en": "Planning"
+        },
+        "category": "type",
+        "color": "indigo"
+      },
+      {
+        "key": "blocked",
+        "names": {
+          "de": "Blockiert",
+          "en": "Blocked"
+        },
+        "category": "status",
+        "color": "yellow"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Design freigegeben",
+      "description": "Styleguide und Entwürfe sind abgenommen.",
+      "dueDate": "2026-11-20",
+      "release": {
+        "version": "1.1",
+        "status": "planned"
+      },
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Styleguide erstellen",
+          "description": "Farben, Schriften und Komponenten.\n\n- Farbpalette\n- Schriften\n- Buttons und Formulare",
+          "dueDate": "2026-11-13",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Farben und Schriften festlegen",
+              "dueDate": "2026-11-06",
+              "status": "done",
+              "assigneeEmail": "chiara.rossi@example.ch"
+            },
+            {
+              "id": "k-new-2",
+              "title": "Komponenten dokumentieren",
+              "description": "Bitte **alle** Bausteine beschreiben:\n\n- Buttons und Formulare\n- Icons\n- Farben und Abstände",
+              "dueDate": "2026-11-12",
+              "status": "in_progress",
+              "assigneeEmail": "david.frei@example.ch",
+              "labels": [
+                "design",
+                "feature"
+              ],
+              "userStory": {
+                "role": "Entwicklerin",
+                "goal": "die Komponenten dokumentiert sehen",
+                "benefit": "ich sie ohne Rückfrage einsetzen kann"
+              }
+            }
+          ]
+        },
+        {
+          "id": "t-new-2",
+          "title": "Startseite entwerfen",
+          "description": "Wireframe und Mockup für Desktop und Mobil.",
+          "dueDate": "2026-11-18",
+          "tasks": [
+            {
+              "id": "k-new-3",
+              "title": "Wireframes zeichnen",
+              "dueDate": "2026-11-12",
+              "status": "review",
+              "assigneeEmail": "chiara.rossi@example.ch",
+              "labels": [
+                "research",
+                "design"
+              ]
+            },
+            {
+              "id": "k-new-4",
+              "title": "Mockup Desktop",
+              "dueDate": "2026-11-17",
+              "status": "open",
+              "assigneeEmail": "david.frei@example.ch",
+              "labels": [
+                "design"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-2",
+      "title": "Inhalte migriert",
+      "description": "Alle Seiten und Texte sind im neuen System.",
+      "dueDate": "2026-12-18",
+      "todos": [
+        {
+          "id": "t-new-3",
+          "title": "Inhaltsinventar erstellen",
+          "description": "Alle bestehenden Seiten erfassen und bewerten.",
+          "dueDate": "2026-11-27",
+          "tasks": [
+            {
+              "id": "k-new-5",
+              "title": "Alle Seiten auflisten",
+              "dueDate": "2026-11-20",
+              "status": "done",
+              "assigneeEmail": "david.frei@example.ch"
+            },
+            {
+              "id": "k-new-6",
+              "title": "Veraltete Seiten markieren",
+              "dueDate": "2026-11-26",
+              "status": "open"
+            }
+          ]
+        },
+        {
+          "id": "t-new-4",
+          "title": "Texte überarbeiten",
+          "description": "Veraltete Texte aktualisieren.",
+          "dueDate": "2026-12-11",
+          "tasks": []
+        }
+      ]
+    },
+    {
+      "id": "m-new-3",
+      "title": "Go-live",
+      "description": "Die neue Website ist online.",
+      "dueDate": "2027-01-29",
+      "todos": [
+        {
+          "id": "t-new-5",
+          "title": "Server und Domain vorbereiten",
+          "description": "Hosting bestellen, Subdomain und Zertifikat einrichten.",
+          "dueDate": "2027-01-15",
+          "tasks": [
+            {
+              "id": "k-new-7",
+              "title": "Hosting bestellen",
+              "dueDate": "2027-01-08",
+              "status": "open",
+              "assigneeEmail": "ben.mueller@example.ch",
+              "labels": [
+                "blocked"
+              ],
+              "userStory": {
+                "role": "Betreiber",
+                "goal": "das Hosting bestellt haben",
+                "benefit": "die Website online gehen kann"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

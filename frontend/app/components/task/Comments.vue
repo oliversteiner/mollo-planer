@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
 import { addCommentMutation, deleteCommentMutation, updateCommentMutation } from '~/graphql/task'
 import { formatDateTime } from '~/utils/dates'
 import { isEmptyDocument } from '~/utils/rich-text'
@@ -15,7 +14,8 @@ const props = defineProps<{
     id: string
     body: Record<string, unknown>
     createdAt: string
-    updatedAt: string
+    /** Set only when the text was changed; deleting and restoring do not count (F5.6). */
+    editedAt?: string | null
     viewerCanEdit: boolean
     viewerCanDelete: boolean
     author?: { id: string, name: string, avatarUrl?: string | null } | null
@@ -30,12 +30,11 @@ const editingId = ref<string | null>(null)
 const editDraft = ref<Record<string, unknown> | null>(null)
 
 const { errors, pending, run } = useGraphqlForm()
-const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
-const { mutate: addComment } = useMutation(addCommentMutation, options)
-const { mutate: updateComment } = useMutation(updateCommentMutation, options)
-const { mutate: deleteComment } = useMutation(deleteCommentMutation, options)
+const { mutate: addComment } = useProjectMutation(addCommentMutation)
+const { mutate: updateComment } = useProjectMutation(updateCommentMutation)
+const { mutate: deleteComment } = useProjectMutation(deleteCommentMutation)
 
-const deletion = useConfirmedDelete<string>(id => deleteComment({ id }))
+const deletion = useDelete<string>(id => deleteComment({ id }))
 
 async function add(): Promise<void> {
   if (isEmptyDocument(draft.value)) {
@@ -98,7 +97,7 @@ async function saveEdit(): Promise<void> {
               class="comment-quiet"
             >{{ formatDateTime(comment.createdAt, language) }}</time>
             <span
-              v-if="comment.updatedAt !== comment.createdAt"
+              v-if="comment.editedAt"
               class="comment-quiet"
             >{{ t('comments.edited') }}</span>
             <span class="comment-tools">
@@ -118,7 +117,7 @@ async function saveEdit(): Promise<void> {
                 variant="neutral"
                 size="s"
                 :aria-label="t('common.delete')"
-                @click="deletion.ask(comment.id)"
+                @click="deletion.remove(comment.id)"
               >
                 <wa-icon name="trash"></wa-icon>
               </wa-button>
@@ -200,15 +199,6 @@ async function saveEdit(): Promise<void> {
         </wa-button>
       </div>
     </form>
-
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t('comments.deleteTitle')"
-      :description="t('comments.deleteDescription')"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
-    />
   </section>
 </template>
 

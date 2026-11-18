@@ -12,7 +12,7 @@ use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
  * Query.dashboard: the start page in one request. The fields resolve
- * themselves; the root value carries nothing.
+ * themselves; the root value carries nothing. Archived projects are left out.
  */
 class Dashboard
 {
@@ -36,6 +36,7 @@ class Dashboard
     {
         return Todo::query()
             ->visibleTo($this->viewer($context))
+            ->inActiveProjects()
             ->where('status', ItemStatus::OPEN->value)
             ->orderByRaw('due_date is null')
             ->orderBy('due_date')
@@ -57,7 +58,8 @@ class Dashboard
         return Task::query()
             ->assignedTo($viewer)
             ->visibleTo($viewer)
-            ->where('status', '!=', TaskStatus::DONE->value)
+            ->inActiveProjects()
+            ->whereNotIn('status', [TaskStatus::DONE->value, TaskStatus::IDEA->value])
             ->orderByRaw('due_date is null')
             ->orderBy('due_date')
             ->orderBy('id')

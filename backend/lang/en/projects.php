@@ -1,9 +1,13 @@
 <?php
 
 return [
+    'archived' => 'The project is archived and read only. Bring it back first.',
+    'only_holder' => ':name is the only person with “:right” in :projects. Give the role to someone else there first.',
+    'list_and' => ' and ',
     'last_owner' => 'The project needs at least one owner. Make someone else an owner first.',
     'assignee_not_member' => 'Tasks can only be assigned to members of the project.',
     'todo_other_project' => 'A task can only be moved to a todo of the same project.',
+    'milestone_other_project' => 'A todo can only be moved to a milestone of the same project.',
     'plan' => [
         'not_configured' => 'The AI assistant is not set up yet. The backend .env lacks ANTHROPIC_API_KEY.',
         'invalid_key' => 'Claude refuses the API key. Check ANTHROPIC_API_KEY in the backend .env (it starts with sk-ant-).',
@@ -15,5 +19,14 @@ return [
         'task' => 'Task “:subject”: :detail',
         'not_a_member' => 'Task “:subject”: :detail is not a member of the project.',
         'unknown_person' => 'There is no account for :subject. An admin must invite them first (Administration → Users).',
+        'duplicate_task' => 'The task “:subject” already exists in “:detail”. Nothing was created.',
+        'duplicate_todo' => 'The todo “:subject” already exists in the milestone “:detail”. Nothing was created.',
     ],
+    'limit_milestones' => 'A project has at most :max milestones.',
+    'limit_todos' => 'A milestone has at most :max to-dos.',
+    'limit_tasks' => 'A to-do has at most :max tasks.',
+    'limit_members' => 'A project has at most :max members.',
+    'member_twice' => 'This person is in the list already.',
+    'member_unknown' => 'This person does not exist or has not been approved yet.',
+    'member_role_refused' => 'You may not give this role here.',
 ];

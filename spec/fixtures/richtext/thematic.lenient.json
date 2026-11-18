@@ -1,0 +1,30 @@
+{
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Davor"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Danach"
+          }
+        ]
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "kind": "thematic_break"
+    }
+  ]
+}

@@ -9,38 +9,10 @@
 #  Schreiben  Eine Policy prüft per @can. Ohne Recht gibt es den Fehler
 #             "This action is unauthorized."
 #
-#  Rechte     Eine zentrale Rechte-Tabelle (App\Support\ProjectPermissions)
-#             legt fest, welche Projektrolle welche Fähigkeit hat. Alle
-#             Policies fragen nur diese Tabelle. Eine neue Einschränkung
-#             ändert dort eine Zeile, nicht das Schema. Admins
-#             (Rolle admin, Fähigkeit projects.manageAny) dürfen immer alles.
-#
-#                                 Owner  Manager  Mitglied
-#             Projekt ändern        ja     ja       nein
-#             Projekt löschen       ja     nein     nein
-#             Mitglieder verwalten  ja     ja       nein
-#             Milestone anlegen     ja     ja       ja
-#             Milestone ändern      ja     ja       ja
-#             Milestone löschen     ja     ja       nein
-#             ToDo anlegen          ja     ja       ja
-#             ToDo ändern           ja     ja       ja
-#             ToDo löschen          ja     ja       nein
-#             Task anlegen          ja     ja       nein
-#             Task ändern           ja     ja       nein
-#             Task zuweisen         ja     ja       nein
-#             Task verschieben      ja     ja       ja
-#             Task löschen          ja     ja       nein
-#             Kommentieren          ja     ja       ja
-#             Fremde Kommentare
-#             löschen               ja     ja       nein
-#             Label-Sets verwalten  ja     ja       nein   (in irgendeinem Projekt;
-#                                                         eigene Sets ändert der
-#                                                         Ersteller oder ein Admin)
-#
-#             Eigene Kommentare ändern und löschen darf jede Person,
-#             solange sie das Projekt sehen darf.
-#             Fremde Kommentare ändert niemand, auch kein Admin.
-#             Projekte anlegen und Benutzer verwalten dürfen nur Admins.
+#  Rechte     Der Code prüft nur Rechte (Enum Right). Welche Rolle welches
+#             Recht hat, steht in den Einstellungen (Rollen, Funktionen) und
+#             ist in docs/rollen-funktionen-rechte.md beschrieben. Die
+#             Abfrage permissionMatrix zeigt, was gerade gilt.
 #  Login      läuft nicht über GraphQL, sondern über Fortify (REST):
 #             Login, Logout, Passwort-Reset, 2FA und Passkeys
 #  2FA-Pflicht  Eine Middleware in config/lighthouse.php (route.middleware)
@@ -80,12 +52,12 @@
 #  Aufbau     Dieses Schema ist in Dateien geteilt, Lighthouse fügt sie per
 #             #import zusammen (Reihenfolge egal):
 #             scalars.graphql    Skalare (Date, DateTime, RichText, Upload)
-#             enums.graphql      Enums (Rollen, Status, Fähigkeiten, Farben)
+#             enums.graphql      Enums (Rollen, Status, Rechte, Farben)
 #             types.graphql      Typen (Benutzer, Projekt, Milestone … Rechte-Tabelle)
 #             inputs.graphql     Eingaben (CreateTaskInput …)
 #             queries.graphql    Abfragen (type Query)
 #             mutations.graphql  Änderungen (type Mutation)
-#             plan.graphql       KI-Assistent: Projektplan per Chat
+#             plan.graphql       KI-Assistent: Plan per Chat
 
 #import scalars.graphql
 #import enums.graphql

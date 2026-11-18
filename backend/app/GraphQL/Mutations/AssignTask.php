@@ -6,6 +6,8 @@ use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Task;
 use App\Services\ProjectMembership;
 use App\Services\TaskNotifier;
+use App\Support\Rights;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -34,8 +36,12 @@ class AssignTask
             $task = Task::findOrFail($args['id']);
             $assigneeId = $args['assigneeId'] ?? null;
 
+            if (! Rights::mayAssignTask($viewer, $task->owningProject(), $assigneeId, $task->assigned_user_id)) {
+                throw new AuthorizationException;
+            }
+
             if ($assigneeId !== null) {
-                $this->membership->ensureAssignable($task->owningProject(), $assigneeId, 'assigneeId');
+                $this->membership->ensureMember($viewer, $task->owningProject(), $assigneeId, 'assigneeId');
             }
 
             if ((string) $task->assigned_user_id === (string) $assigneeId) {

@@ -1,0 +1,133 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Sommerfest 2027",
+    "description": "Planung des Fests im Juni 2027.",
+    "locale": "de",
+    "members": [
+      {
+        "email": "chiara.rossi@example.ch",
+        "role": "owner"
+      },
+      {
+        "email": "david.frei@example.ch",
+        "role": "member"
+      }
+    ],
+    "labels": [
+      {
+        "key": "location",
+        "names": {
+          "de": "Location",
+          "en": "Location"
+        },
+        "category": "trade",
+        "color": "purple"
+      },
+      {
+        "key": "speakers",
+        "names": {
+          "de": "Speaker",
+          "en": "Speakers"
+        },
+        "category": "trade",
+        "color": "cyan"
+      },
+      {
+        "key": "marketing",
+        "names": {
+          "de": "Marketing",
+          "en": "Marketing"
+        },
+        "category": "trade",
+        "color": "orange"
+      },
+      {
+        "key": "confirmed",
+        "names": {
+          "de": "Bestätigt",
+          "en": "Confirmed"
+        },
+        "category": "status",
+        "color": "green"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Budget und Termin",
+      "description": "Budget genehmigt, Datum und Ort fest.",
+      "dueDate": "2026-12-04",
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Budget aufstellen",
+          "description": "Kosten schätzen und Freigabe einholen.",
+          "dueDate": "2026-11-25",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Kostenschätzung",
+              "dueDate": "2026-11-24",
+              "status": "in_progress",
+              "assigneeEmail": "chiara.rossi@example.ch",
+              "labels": [
+                "location"
+              ],
+              "userStory": {
+                "role": "Organisatorin",
+                "goal": "die Kosten geschätzt haben",
+                "benefit": "das Budget freigegeben werden kann"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-2",
+      "title": "Einladung versendet",
+      "description": "Alle Gäste haben Datum, Ort und Programm erhalten.",
+      "dueDate": "2027-01-15",
+      "release": {
+        "version": "1.0",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-2",
+          "title": "Gäste einladen",
+          "description": "Liste schreiben und verschicken.",
+          "dueDate": "2027-01-10",
+          "tasks": [
+            {
+              "id": "k-new-2",
+              "title": "Einladungsliste schreiben",
+              "dueDate": "2026-12-20",
+              "status": "done",
+              "assigneeEmail": "chiara.rossi@example.ch",
+              "commit": "none"
+            },
+            {
+              "id": "k-new-3",
+              "title": "Einladung verschicken",
+              "dueDate": "2027-01-05",
+              "status": "done",
+              "assigneeEmail": "chiara.rossi@example.ch",
+              "commit": "b7e4c21"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-3",
+      "title": "Programm steht",
+      "description": "Ablauf und Helferplan sind fertig.",
+      "dueDate": "2027-03-12",
+      "todos": []
+    }
+  ]
+}

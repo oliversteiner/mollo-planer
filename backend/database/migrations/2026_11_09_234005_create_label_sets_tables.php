@@ -1,6 +1,5 @@
 <?php
 
-use App\Support\BuiltinLabelSets;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,8 +8,8 @@ return new class extends Migration
 {
     /**
      * Label sets (app-wide) with their labels, the set a project uses and
-     * the labels of a task. The built-in sets are created here, so they
-     * exist on every installation.
+     * the labels of a task. Replaced by templates and project labels in
+     * 2026_11_17_120000; the built-in sets are no longer created here.
      */
     public function up(): void
     {
@@ -48,8 +47,6 @@ return new class extends Migration
             $table->primary(['label_id', 'task_id']);
             $table->index('task_id');
         });
-
-        BuiltinLabelSets::sync();
     }
 
     public function down(): void

@@ -18,9 +18,9 @@ trait RunsGraphQL
      * @param  array<string, mixed>  $variables
      * @return array<string, mixed>
      */
-    protected function graphQL(string $query, array $variables = []): array
+    protected function operation(string $name, array $variables = []): array
     {
-        return app(GraphQLRunner::class)->run($query, $variables);
+        return app(GraphQLRunner::class)->runNamed($name, $variables);
     }
 
     /**

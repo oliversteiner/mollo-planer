@@ -1,0 +1,42 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Siehe "
+        },
+        {
+          "type": "text",
+          "text": "Wiki",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "https://de.wikipedia.org/wiki/Foo_(Bar)"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " und "
+        },
+        {
+          "type": "text",
+          "text": "Klammer",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "https://a.ch/x)y"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

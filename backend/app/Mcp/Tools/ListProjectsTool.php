@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('list_projects')]
-#[Description('Lists the projects you can see, with your role, what you may do there (abilities), the progress and the members (name, e-mail, role). Use it first to find a project id or the people of a project.')]
+#[Description('Lists the projects you can see, with your role, what you may do there (abilities), the progress and the members (name, e-mail, role). Use it first to find a project id or the people of a project. Archived projects (read only) are left out unless you ask for them with archived: true.')]
 #[IsReadOnly]
 class ListProjectsTool extends Tool
 {
@@ -20,13 +20,14 @@ class ListProjectsTool extends Tool
 
     public function handle(Request $request): Response
     {
-        return $this->respond(fn () => Response::json($this->graphQL('{
-            projects {
-                id name description locale viewerRole viewerAbilities
-                progress { done total percent }
-                members { role user { id name email } }
-            }
-        }')['projects'] ?? []));
+        $validated = $request->validate(
+            ['archived' => ['sometimes', 'boolean']],
+            ['archived.boolean' => 'archived is true (only archived projects) or false (the others, default).'],
+        );
+
+        return $this->respond(fn () => Response::json(
+            $this->operation('ListProjects', ['archived' => (bool) ($validated['archived'] ?? false)])['projects'] ?? [],
+        ));
     }
 
     /**
@@ -34,6 +35,8 @@ class ListProjectsTool extends Tool
      */
     public function schema(JsonSchema $schema): array
     {
-        return [];
+        return [
+            'archived' => $schema->boolean()->description('true: only archived projects (read only). Default false: the others.'),
+        ];
     }
 }

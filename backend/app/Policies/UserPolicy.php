@@ -2,21 +2,24 @@
 
 namespace App\Policies;
 
-use App\Enums\SystemAbility;
-use App\Enums\UserRole;
+use App\Enums\Right;
+use App\Models\Role;
 use App\Models\User;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 
 /**
- * Managing users is for users with users.manage (the admin role). The full
+ * Managing users is for users with the right users.manage. The full
  * user list is for them too. Everyone who manages members somewhere uses the
  * narrow member search instead, which shows only names.
  */
 class UserPolicy
 {
+    /** Rights that somebody must always keep, so the settings stay reachable. */
+    private const PROTECTED_RIGHTS = [Right::USERS_MANAGE, Right::ROLES_MANAGE];
+
     public function viewAny(User $user): bool
     {
-        return SystemPermissions::allows($user, SystemAbility::USERS_MANAGE);
+        return Rights::allows($user, Right::USERS_MANAGE);
     }
 
     /**
@@ -26,31 +29,43 @@ class UserPolicy
      */
     public function viewSecurity(User $user, User $target): bool
     {
-        return $user->is($target) || SystemPermissions::allows($user, SystemAbility::USERS_MANAGE);
+        return $user->is($target) || Rights::allows($user, Right::USERS_MANAGE);
     }
 
     public function create(User $user): bool
     {
-        return SystemPermissions::allows($user, SystemAbility::USERS_MANAGE);
+        return Rights::allows($user, Right::USERS_MANAGE);
     }
 
     /**
-     * Also used by resetUserTwoFactor. Nobody can take the admin role away
-     * from themselves, so the last admin cannot lock themselves out.
+     * Also used by resetUserTwoFactor. Two rules protect against locking
+     * everybody out (docs/rollen-funktionen-rechte.md, §7.1 and §7.2):
+     * nobody takes users.manage or roles.manage away from themselves, and
+     * the last person with one of these rights keeps it.
      *
      * @param  array<string, mixed>  $input  Mutation input (Lighthouse injectArgs), snake_case keys
      */
     public function update(User $user, User $target, array $input = []): bool
     {
-        if (! SystemPermissions::allows($user, SystemAbility::USERS_MANAGE)) {
+        if (! Rights::allows($user, Right::USERS_MANAGE)) {
             return false;
         }
 
-        $removesOwnAdminRole = $user->is($target)
-            && array_key_exists('role', $input)
-            && $this->roleOf($input['role']) !== UserRole::ADMIN;
+        if (! array_key_exists('role', $input)) {
+            return true;
+        }
 
-        return ! $removesOwnAdminRole;
+        $newRights = Rights::rightsOfRole(Role::resolve(Role::SCOPE_SYSTEM, $input['role']));
+
+        foreach (self::PROTECTED_RIGHTS as $right) {
+            $loses = Rights::allows($target, $right) && ! in_array($right, $newRights, true);
+
+            if ($loses && ($user->is($target) || Rights::countUsersWith($right, $target) === 0)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -60,31 +75,68 @@ class UserPolicy
      */
     public function deleteAvatar(User $user, User $target): bool
     {
-        return $user->is($target) || SystemPermissions::allows($user, SystemAbility::USERS_MANAGE);
+        return $user->is($target) || Rights::allows($user, Right::USERS_MANAGE);
     }
 
     /**
      * Settings of the whole application (for example two-factor
-     * authentication) are for users who manage users.
+     * authentication) need the right settings.manage.
      */
     public function updateAppSettings(User $user): bool
     {
-        return SystemPermissions::allows($user, SystemAbility::USERS_MANAGE);
+        return Rights::allows($user, Right::SETTINGS_MANAGE);
     }
 
     /**
-     * Nobody deletes their own account.
+     * Roles and functions in the settings (/admin/roles) need the right
+     * roles.manage. The ground rules that keep the settings reachable are
+     * checked by App\Services\RoleAdministration.
+     */
+    public function manageRoles(User $user): bool
+    {
+        return Rights::allows($user, Right::ROLES_MANAGE);
+    }
+
+    /**
+     * Releases a self-registered account. Only accounts whose mail address is
+     * confirmed and that are still waiting can be approved; nobody approves
+     * themselves.
+     */
+    public function approve(User $user, User $target): bool
+    {
+        return Rights::allows($user, Right::USERS_MANAGE)
+            && $target->hasVerifiedEmail()
+            && ! $target->isApproved()
+            && ! $user->is($target);
+    }
+
+    /**
+     * Rejects a waiting account and deletes it. Approved accounts are never
+     * rejected here; they use deleteUser.
+     */
+    public function reject(User $user, User $target): bool
+    {
+        return Rights::allows($user, Right::USERS_MANAGE)
+            && ! $target->isApproved()
+            && ! $user->is($target);
+    }
+
+    /**
+     * Nobody deletes their own account, and the last person with
+     * users.manage or roles.manage stays (§7.1).
      */
     public function delete(User $user, User $target): bool
     {
-        return SystemPermissions::allows($user, SystemAbility::USERS_MANAGE) && ! $user->is($target);
-    }
+        if (! Rights::allows($user, Right::USERS_MANAGE) || $user->is($target)) {
+            return false;
+        }
 
-    /**
-     * The mutation input may carry the role as enum case or as its value.
-     */
-    private function roleOf(mixed $value): ?UserRole
-    {
-        return $value instanceof UserRole ? $value : UserRole::tryFrom((string) $value);
+        foreach (self::PROTECTED_RIGHTS as $right) {
+            if (Rights::allows($target, $right) && Rights::countUsersWith($right, $target) === 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

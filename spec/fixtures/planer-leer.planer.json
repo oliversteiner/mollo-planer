@@ -1,0 +1,16 @@
+{
+  "$schema": "planer-v2.schema.json",
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Leeres Projekt",
+    "locale": "de",
+    "members": [
+      {
+        "email": "oliver@mollo.ch",
+        "role": "owner"
+      }
+    ]
+  },
+  "milestones": []
+}

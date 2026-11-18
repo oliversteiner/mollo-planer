@@ -1,42 +1,29 @@
 import { graphql } from '~/graphql/generated'
 
-export const draftProjectPlanMutation = graphql(`
-  mutation DraftProjectPlan($messages: [PlanChatMessageInput!]!, $currentPlan: ProjectPlanInput) {
-    draftProjectPlan(messages: $messages, currentPlan: $currentPlan) {
+/** The next step of a plan from the chat: reply, buttons, the plan (canonical text) and the preview (dry run, appendOnly). */
+export const draftPlanMutation = graphql(`
+  mutation DraftPlan($messages: [PlanChatMessageInput!]!, $projectId: ID, $templateId: ID, $currentPlan: String, $ideaId: ID) {
+    draftPlan(messages: $messages, projectId: $projectId, templateId: $templateId, currentPlan: $currentPlan, ideaId: $ideaId) {
       reply
-      plan {
-        name
-        description
-        locale
-        members { email role }
-        milestones {
-          title
-          description
-          dueDate
-          todos {
-            title
-            description
-            dueDate
-            tasks { title description dueDate assigneeEmail }
-          }
-        }
+      plan
+      projectId
+      templateId
+      hints
+      choices { kind label detail value recommended }
+      preview {
+        ok
+        dryRun
+        projectId
+        changes { kind path id fields title }
+        errors { path kind message }
       }
     }
   }
 `)
 
-export const importProjectPlanMutation = graphql(`
-  mutation ImportProjectPlan($plan: ProjectPlanInput!, $notifyAssignees: Boolean) {
-    importProjectPlan(plan: $plan, notifyAssignees: $notifyAssignees) {
-      id
-      name
-    }
-  }
-`)
-
-/** Accounts, to show names and avatars of the planned people. */
-export const assistantPeopleQuery = graphql(`
-  query AssistantPeople {
-    users { id name email avatarUrl }
+/** Projects the person may add to, for the choice of the project. */
+export const assistantProjectQuery = graphql(`
+  query AssistantProject($id: ID!) {
+    project(id: $id) { id name archivedAt }
   }
 `)

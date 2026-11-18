@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Casts\RichTextCast;
 use App\Enums\ItemStatus;
+use App\Models\Concerns\DerivesProject;
+use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TodoObserver;
@@ -14,16 +16,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Status is computed by the status observer, never set from input.
  */
-#[Fillable(['milestone_id', 'title', 'description', 'icon', 'due_date'])]
+#[Fillable(['milestone_id', 'title', 'description', 'icon', 'due_date', 'position'])]
 #[ObservedBy(TodoObserver::class)]
 class Todo extends Model implements BelongsToProject
 {
     /** @use HasFactory<TodoFactory> */
-    use HasFactory, VisibleToViewer;
+    use DerivesProject, HasFactory, RecordsCreator, SoftDeletes, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -43,6 +46,7 @@ class Todo extends Model implements BelongsToProject
             'description' => RichTextCast::class,
             'status' => ItemStatus::class,
             'due_date' => 'date',
+            'position' => 'integer',
         ];
     }
 
@@ -51,7 +55,33 @@ class Todo extends Model implements BelongsToProject
      */
     public function milestone(): BelongsTo
     {
-        return $this->belongsTo(Milestone::class);
+        return $this->belongsTo(Milestone::class)->withTrashed();
+    }
+
+    /**
+     * @return BelongsTo<Project, $this>
+     */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class)->withTrashed();
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * The idea this todo was made from, if any (docs/auftrag-m6.md §2.3).
+     *
+     * @return BelongsTo<Idea, $this>
+     */
+    public function idea(): BelongsTo
+    {
+        return $this->belongsTo(Idea::class)->withTrashed();
     }
 
     /**
@@ -59,16 +89,21 @@ class Todo extends Model implements BelongsToProject
      */
     public function tasks(): HasMany
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(Task::class)->orderBy('position')->orderBy('id');
     }
 
     public function owningProject(): Project
     {
-        return $this->milestone->owningProject();
+        return $this->project;
+    }
+
+    protected function parentProjectId(): int|string
+    {
+        return Milestone::query()->whereKey($this->milestone_id)->value('project_id');
     }
 
     protected static function projectPath(): ?string
     {
-        return 'milestone.project';
+        return 'project';
     }
 }

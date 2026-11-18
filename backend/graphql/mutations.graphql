@@ -17,11 +17,20 @@ type Mutation @guard {
   resetUserTwoFactor(id: ID!): User!
     @can(ability: "update", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\ResetUserTwoFactor")
+  "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
+  approveUser(id: ID!): User!
+    @can(ability: "approve", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\ApproveUser")
+  "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
+  rejectUser(id: ID!): User!
+    @can(ability: "reject", find: "id", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\RejectUser")
   deleteUser(id: ID! @whereKey): User!
     @can(ability: "delete", find: "id")
+    @validator
     @delete
   "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
-  updateMyNotifications(emailEnabled: Boolean!): User!
+  updateMyNotifications(notifyByEmail: Boolean!): User!
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateMyNotifications")
 
   "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
@@ -45,31 +54,95 @@ type Mutation @guard {
   updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
     @can(ability: "updateAppSettings", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\UpdateAppSettings")
+  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
+  setProjectCreatorRole(roleKey: String!): AppSettings!
+    @can(ability: "updateAppSettings", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectCreatorRole")
 
-  # Label-Sets: app-weit. Anlegen mit labelSets.manage (Rolle); eigene Sets
-  # ändert und löscht der Ersteller mit dieser Fähigkeit, fremde mit
-  # labelSets.manageAny (Admin), mitgelieferte niemand.
-  "Legt ein eigenes Label-Set an."
-  createLabelSet(input: LabelSetInput!): LabelSet!
-    @can(ability: "create", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@create")
-  "Kopiert ein Set (auch ein mitgeliefertes) als eigenes Set, um es anzupassen."
-  duplicateLabelSet(id: ID!): LabelSet!
-    @can(ability: "duplicate", find: "id", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\DuplicateLabelSet")
-  "Ändert Name, Beschreibung und Labels in einem Zug. Labels mit id bleiben (und an ihren Tasks), ohne id kommen neu dazu, fehlende werden gelöscht (auch an den Tasks)."
-  updateLabelSet(id: ID!, input: LabelSetInput!): LabelSet!
-    @can(ability: "update", find: "id", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\SaveLabelSet@update")
-  "Löscht ein eigenes Set, das kein Projekt mehr verwendet."
-  deleteLabelSet(id: ID!): LabelSet!
-    @can(ability: "delete", find: "id", model: "App\\Models\\LabelSet")
-    @field(resolver: "App\\GraphQL\\Mutations\\DeleteLabelSet")
-  "Wählt das Label-Set eines Projekts (null: keins). Tasks behalten ihre bisherigen Labels."
-  setProjectLabelSet(projectId: ID!, labelSetId: ID): Project!
+  # Rollen und Funktionen (Einstellungen, Recht roles.manage). Jede Änderung
+  # wird gegen die Grundregeln geprüft (docs/rollen-funktionen-rechte.md, §7):
+  # jemand behält users.manage und roles.manage, niemand nimmt sie sich
+  # selbst, kein Projekt verliert die letzte Person mit project.delete.
+  # Mitgeliefertes lässt sich ändern und zurücksetzen, aber nicht löschen.
+  "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
+  createRole(input: CreateRoleInput!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@create")
+  "Ändert Namen, Funktionen oder Obergrenze einer Rolle. Der Schlüssel bleibt."
+  updateRole(id: ID!, input: UpdateRoleInput!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@update")
+  "Kopiert eine Rolle mit ihren Funktionen als eigene Rolle."
+  duplicateRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@duplicate")
+  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
+  deleteRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@delete")
+  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
+  setDefaultRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@setDefault")
+  "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
+  resetRole(id: ID!): Role!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoles@reset")
+  "Legt eine eigene Funktion an. Der Schlüssel entsteht aus dem englischen Namen."
+  createRoleFunction(input: CreateRoleFunctionInput!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@create")
+  "Ändert Namen oder Rechte einer Funktion. Wirkt sofort für alle Rollen, die sie verwenden."
+  updateRoleFunction(id: ID!, input: UpdateRoleFunctionInput!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@update")
+  "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
+  duplicateRoleFunction(id: ID!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@duplicate")
+  "Löscht eine eigene Funktion, die keine Rolle mehr verwendet."
+  deleteRoleFunction(id: ID!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@delete")
+  "Standard wiederherstellen: Namen und Rechte einer mitgelieferten Funktion."
+  resetRoleFunction(id: ID!): RoleFunction!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\ManageRoleFunctions@reset")
+
+  # Vorlagen: app-weit, alle Angemeldeten lesen sie. Anlegen und Duplizieren mit
+  # templates.manage (Rolle); eigene ändert und löscht der Ersteller mit dieser
+  # Fähigkeit, fremde mit templates.manageAny (Admin), mitgelieferte niemand.
+  "Legt eine eigene Vorlage an: Name, Beschreibung, Sprache und Labels, ohne Gerüst."
+  createTemplate(input: TemplateInput!): Template!
+    @can(ability: "create", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveTemplate@create")
+  "Legt aus einem Projekt eine eigene Vorlage an („Als Vorlage speichern“): Export mit den festen Werten einer Vorlage (keine Mitglieder, Fälligkeiten, Zuweisungen, Commits, alle Tasks geplant). Recht planer.export im Projekt und templates.manage. Das Projekt braucht mindestens ein Label."
+  createTemplateFromProject(projectId: ID!, name: String!): Template!
+    @field(resolver: "App\\GraphQL\\Mutations\\TemplateFromPlan@fromProject")
+  "Legt aus einer hochgeladenen Planer-Datei (planer-v2, als JSON-Text) eine eigene Vorlage an. Der Name der Vorlage ist der Projektname der Datei. Recht templates.manage."
+  createTemplateFromFile(document: String!): Template!
+    @field(resolver: "App\\GraphQL\\Mutations\\TemplateFromPlan@fromFile")
+  "Kopiert eine Vorlage (auch eine mitgelieferte) mit ihrem Gerüst als eigene Vorlage, um sie anzupassen."
+  duplicateTemplate(id: ID!): Template!
+    @can(ability: "duplicate", find: "id", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\DuplicateTemplate")
+  "Ändert Name, Beschreibung und Labels einer eigenen Vorlage in einem Zug. Labels mit Schlüssel bleiben, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht."
+  updateTemplate(id: ID!, input: UpdateTemplateInput!): Template!
+    @can(ability: "update", find: "id", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\SaveTemplate@update")
+  "Löscht eine eigene Vorlage endgültig (kein Papierkorb). Projekte aus ihr behalten ihre Kopien."
+  deleteTemplate(id: ID!): Boolean!
+    @can(ability: "delete", find: "id", model: "App\\Models\\Template")
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteTemplate")
+  "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
+  updateProjectLabels(projectId: ID!, labels: [LabelInput!]!): Project!
     @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
-    @field(resolver: "App\\GraphQL\\Mutations\\SetProjectLabelSet")
-  "Setzt die Labels eines Tasks. Neue Labels müssen aus dem Set des Projekts stammen; bisherige dürfen bleiben."
+    @field(resolver: "App\\GraphQL\\Mutations\\UpdateProjectLabels")
+  "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
+  applyTemplateLabels(projectId: ID!, templateId: ID!, mode: TemplateLabelMode!): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ApplyTemplateLabels")
+  "Setzt die Labels eines Tasks. Neue Labels müssen aus den Labels des Projekts stammen; bisherige dürfen bleiben."
   setTaskLabels(taskId: ID!, labelIds: [ID!]!): Task!
     @can(ability: "update", find: "taskId", model: "App\\Models\\Task")
     @field(resolver: "App\\GraphQL\\Mutations\\SetTaskLabels")
@@ -83,22 +156,89 @@ type Mutation @guard {
     @update
   deleteProject(id: ID! @whereKey): Project!
     @can(ability: "delete", find: "id")
-    @delete
-  "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
-  draftProjectPlan(
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteProject")
+  "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
+  archiveProject(id: ID!): Project!
+    @can(ability: "archive", find: "id", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ArchiveProject@archive")
+  "Holt ein archiviertes Projekt zurück."
+  unarchiveProject(id: ID!): Project!
+    @can(ability: "archive", find: "id", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ArchiveProject@unarchive")
+  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
+  importPlan(
+    projectId: ID
+    document: String!
+    mode: ImportMode = FULL
+    dryRun: Boolean = false
+    notifyAssignees: Boolean = false
+    "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
+    templateId: ID
+    "Die Idee, aus der die Datei entstand (nur die Autorin): danach angenommen, ihre neuen ToDos verweisen auf sie"
+    ideaId: ID
+    "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
+    appendOnly: Boolean = false
+  ): ImportResult!
+    @field(resolver: "App\\GraphQL\\Mutations\\ImportPlan")
+  "KI-Assistent (assistant.use): der nächste Schritt eines Plans aus dem Chat, mit Rückfrage-Knöpfen und Vorschau (Trockenlauf mit appendOnly). Speichert nichts. Grenzen je Person und Stunde/Tag."
+  draftPlan(
     messages: [PlanChatMessageInput!]! @rules(apply: ["min:1", "max:40"])
-    "Der Entwurf in der Vorschau, damit Claude ihn ändert statt neu beginnt"
-    currentPlan: ProjectPlanInput
-  ): ProjectPlanDraft!
-    @can(ability: "create", model: "App\\Models\\Project")
-    @throttle(name: "plan-assistant")
-    @field(resolver: "App\\GraphQL\\Mutations\\DraftProjectPlan")
-  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
-  importProjectPlan(plan: ProjectPlanInput!, notifyAssignees: Boolean = false): Project!
-    @can(ability: "create", model: "App\\Models\\Project")
-    @field(resolver: "App\\GraphQL\\Mutations\\ImportProjectPlan")
+    "Das Projekt, zu dem ergänzt wird; ohne: neues Projekt oder noch offen"
+    projectId: ID
+    "Die gewählte Vorlage eines neuen Projekts"
+    templateId: ID
+    "Der Plan der Vorschau (kanonischer Text), damit Claude ihn ändert statt neu beginnt"
+    currentPlan: String @rules(apply: ["max:400000"])
+    "Die Idee, aus der der Plan entsteht"
+    ideaId: ID
+  ): PlanDraft!
+    @field(resolver: "App\\GraphQL\\Mutations\\DraftPlan")
+  "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
+  setProjectWebhook(projectId: ID!, input: ProjectWebhookInput!): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ProjectWebhookMutations@set")
+  "Entfernt die Benachrichtigung (project.update)"
+  removeProjectWebhook(projectId: ID!): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ProjectWebhookMutations@remove")
+  "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
+  testProjectWebhook(projectId: ID!): WebhookTestResult!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ProjectWebhookMutations@test")
+  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
+  createIdea(input: CreateIdeaInput!): Idea!
+    @can(ability: "create", model: "App\\Models\\Idea")
+    @field(resolver: "App\\GraphQL\\Mutations\\IdeaMutations@create")
+  "Ändert eine eigene Idee"
+  updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
+    @can(ability: "update", find: "id", model: "App\\Models\\Idea")
+    @field(resolver: "App\\GraphQL\\Mutations\\IdeaMutations@update")
+  "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
+  setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
+    @can(ability: "update", find: "id", model: "App\\Models\\Idea")
+    @field(resolver: "App\\GraphQL\\Mutations\\IdeaMutations@setStatus")
+  "Löscht eine eigene Idee in den Papierkorb"
+  deleteIdea(id: ID!): Idea!
+    @can(ability: "delete", find: "id", model: "App\\Models\\Idea")
+    @field(resolver: "App\\GraphQL\\Mutations\\IdeaMutations@delete")
+  "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
+  setProjectAiContext(projectId: ID!, input: ProjectAiContextInput!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@set")
+  "Lädt eine Datei (.txt oder .md, UTF-8, höchstens 100 KB) in den KI-Kontext und ersetzt eine vorhandene. Gespeichert wird nur ihr Text."
+  uploadProjectAiContextFile(projectId: ID!, file: Upload!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@upload")
+  "Entfernt die Datei aus dem KI-Kontext, der Text bleibt"
+  removeProjectAiContextFile(projectId: ID!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@removeFile")
+  "Löscht den ganzen KI-Kontext"
+  clearProjectAiContext(projectId: ID!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@clear")
   "Fügt eine Person hinzu oder ändert ihre Rolle"
-  setProjectMember(projectId: ID!, userId: ID!, role: ProjectRole!): Project!
+  setProjectMember(projectId: ID!, userId: ID!, role: String! @rules(apply: ["max:64"])): Project!
     @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\SetProjectMember")
   removeProjectMember(projectId: ID!, userId: ID!): Project!
@@ -113,9 +253,13 @@ type Mutation @guard {
   updateMilestone(id: ID!, input: UpdateMilestoneInput! @spread): Milestone!
     @can(ability: "update", find: "id")
     @update
+  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
+  moveMilestone(id: ID!, position: Int! @rules(apply: ["integer", "min:0"])): Milestone!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveMilestone")
   deleteMilestone(id: ID! @whereKey): Milestone!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteMilestone")
 
   createTodo(input: CreateTodoInput! @spread): Todo!
     @can(ability: "createTodo", find: "milestone_id", model: "App\\Models\\Milestone")
@@ -123,9 +267,12 @@ type Mutation @guard {
   updateTodo(id: ID!, input: UpdateTodoInput! @spread): Todo!
     @can(ability: "update", find: "id")
     @update
+  moveTodo(id: ID!, milestoneId: ID!, position: Int! @rules(apply: ["integer", "min:0"])): Todo!
+    @can(ability: "update", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveTodo")
   deleteTodo(id: ID! @whereKey): Todo!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteTodo")
 
   "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
   createTask(input: CreateTaskInput! @spread): Task!
@@ -142,13 +289,17 @@ type Mutation @guard {
   moveTask(id: ID!, status: TaskStatus!, position: Int! @rules(apply: ["integer", "min:0"])): Task!
     @can(ability: "move", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\MoveTask")
+  "Verschiebt einen Task an eine andere Stelle in seinem ToDo (Zeitachse). Die übrigen rücken nach; Status und Kanban-Platz bleiben."
+  moveTaskInTodo(id: ID!, position: Int! @rules(apply: ["integer", "min:0"])): Task!
+    @can(ability: "move", find: "id")
+    @field(resolver: "App\\GraphQL\\Mutations\\MoveTaskInTodo")
   "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
   moveTaskToTodo(id: ID!, todoId: ID!): Task!
     @can(ability: "update", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\MoveTaskToTodo")
   deleteTask(id: ID! @whereKey): Task!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteTask")
 
   # Kommentare: Alle Mitglieder dürfen kommentieren. Die Autorin oder der
   # Autor wird aus dem Login gesetzt, nicht aus der Eingabe.
@@ -160,5 +311,17 @@ type Mutation @guard {
     @update
   deleteComment(id: ID! @whereKey): Comment!
     @can(ability: "delete", find: "id")
-    @delete
+    @field(resolver: "App\\GraphQL\\Mutations\\DeleteComment")
+
+  # Papierkorb: Wer was darf, entscheidet die Policy des Elements, mit dem der Vorgang begann.
+  "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
+  restoreFromTrash(deletionId: ID!): TrashItem!
+    @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@restore")
+  "Löscht einen Vorgang endgültig."
+  purgeFromTrash(deletionId: ID!): Boolean!
+    @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@purge")
+  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
+  emptyProjectTrash(projectId: ID!): Int!
+    @can(ability: "emptyTrash", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@emptyProjectTrash")
 }

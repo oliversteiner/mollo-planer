@@ -1,46 +1,48 @@
-# ─── KI-Assistent: Projektplan per Chat ─────────────────────────
-# Ein Entwurf ist noch nichts in der Datenbank. Beschreibungen sind Klartext:
-# Leerzeilen trennen Absätze, Zeilen mit "- " werden eine Liste.
+# ─── KI-Assistent: Plan per Chat ────────────────────────────────
+# Ein Entwurf ist noch nichts in der Datenbank. Der Plan ist ein Auszug von planer-v2 (kanonischer Text),
+# die Vorschau der Trockenlauf des Imports mit appendOnly (docs/auftrag-m6.md §4).
 
-"Antwort des Assistenten: Text für den Chat und der ganze Plan (null, solange er noch Angaben braucht)"
-type ProjectPlanDraft {
+"Welche Art Antwort-Knopf der Assistent anbietet"
+enum PlanChoiceKind {
+  "Ein vorhandenes Projekt (value = ID)"
+  PROJECT
+  NEW_PROJECT
+  "Eine Vorlage für das neue Projekt (value = ID)"
+  TEMPLATE
+  NO_TEMPLATE
+  "Ein vorhandener Milestone (value = m-<id>)"
+  MILESTONE
+  NEW_MILESTONE
+  CUSTOM_MILESTONE
+  "An ein vorhandenes ToDo anhängen (value = t-<id>)"
+  APPEND_TO_TODO
+  "Als Idee ablegen"
+  IDEA
+  SHOW_ALL
+}
+
+type PlanChoice {
+  kind: PlanChoiceKind!
+  label: String!
+  detail: String
+  value: String
+  recommended: Boolean!
+}
+
+"Antwort des Assistenten"
+type PlanDraft {
+  "Text für den Chat"
   reply: String!
-  plan: ProjectPlan
-}
-
-type ProjectPlan {
-  name: String!
-  description: String
-  locale: Locale!
-  members: [ProjectPlanMember!]!
-  milestones: [ProjectPlanMilestone!]!
-}
-
-type ProjectPlanMember {
-  email: String!
-  role: ProjectRole!
-}
-
-type ProjectPlanMilestone {
-  title: String!
-  description: String
-  dueDate: Date
-  todos: [ProjectPlanTodo!]!
-}
-
-type ProjectPlanTodo {
-  title: String!
-  description: String
-  dueDate: Date
-  tasks: [ProjectPlanTask!]!
-}
-
-type ProjectPlanTask {
-  title: String!
-  description: String
-  dueDate: Date
-  "E-Mail eines Mitglieds aus members"
-  assigneeEmail: String
+  "Rückfrage-Knöpfe (höchstens fünf, dann „Alle anzeigen“), sonst leer"
+  choices: [PlanChoice!]!
+  "Der Auszug als kanonischer Text, null solange Angaben fehlen; geht mit der nächsten Nachricht als currentPlan zurück"
+  plan: String
+  projectId: ID
+  templateId: ID
+  "Trockenlauf des Imports mit appendOnly; null ohne Plan"
+  preview: ImportResult
+  "Hinweise der Nachbearbeitung (unbekannte Person, Duplikat, Beschreibung zu Text geworden …)"
+  hints: [String!]!
 }
 
 enum PlanChatRole {
@@ -51,38 +53,4 @@ enum PlanChatRole {
 input PlanChatMessageInput {
   role: PlanChatRole!
   content: String! @rules(apply: ["min:1", "max:8000"])
-}
-
-input ProjectPlanInput {
-  name: String! @rules(apply: ["min:2", "max:120"])
-  description: String @rules(apply: ["max:2000"])
-  locale: Locale = DE
-  members: [ProjectPlanMemberInput!]! @rules(apply: ["max:50"])
-  milestones: [ProjectPlanMilestoneInput!]! @rules(apply: ["min:1", "max:30"])
-}
-
-input ProjectPlanMemberInput {
-  email: String! @rules(apply: ["email"])
-  role: ProjectRole!
-}
-
-input ProjectPlanMilestoneInput {
-  title: String! @rules(apply: ["min:2", "max:160"])
-  description: String @rules(apply: ["max:5000"])
-  dueDate: Date
-  todos: [ProjectPlanTodoInput!]! @rules(apply: ["max:50"])
-}
-
-input ProjectPlanTodoInput {
-  title: String! @rules(apply: ["min:2", "max:160"])
-  description: String @rules(apply: ["max:5000"])
-  dueDate: Date
-  tasks: [ProjectPlanTaskInput!]! @rules(apply: ["max:50"])
-}
-
-input ProjectPlanTaskInput {
-  title: String! @rules(apply: ["min:2", "max:160"])
-  description: String @rules(apply: ["max:5000"])
-  dueDate: Date
-  assigneeEmail: String @rules(apply: ["nullable", "email"])
 }

@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import type { ShareTask } from '~/utils/share'
 import { setTaskLabelsMutation } from '~/graphql/labels'
-import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES, taskQuery } from '~/graphql/task'
+import { assignTaskMutation, deleteTaskMutation, moveTaskMutation, TASK_STATUSES, taskQuery, updateTaskMutation } from '~/graphql/task'
 
 /**
  * Details of a task in a side panel: status, assignee, due date,
- * description and comments. What can be changed follows the abilities.
+ * description and comments. Moving and commenting follow the project's
+ * abilities; changing, assigning and deleting follow the task's own answers
+ * (Task.viewerCan*), since task.updateOwn holds per task (docs/fix-m1-f4.md F4.5).
  */
 const props = defineProps<{
   taskId: string | null
   members: { id: string, name: string }[]
   can: {
     move: boolean
-    assign: boolean
-    update: boolean
-    delete: boolean
     comment: boolean
   }
 }>()
@@ -28,11 +27,39 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const toast = useToast()
 
+/**
+ * Set when the task is deleted here: the panel closes at once, before the
+ * page has changed the route, so useDelete waits for it (F5.1).
+ */
+const closing = ref(false)
+watch(() => props.taskId, () => {
+  closing.value = false
+})
+
+/**
+ * Esc in the focus view closes the panel by itself (wa-drawer); the focus ends and the detail stays as it was, so the
+ * panel is shown again: `open` goes false for one tick, then true, which sets the attribute anew.
+ */
+const reopening = ref(false)
+
+async function leaveFocusKeepOpen(): Promise<void> {
+  reopening.value = true
+  await leaveFocus()
+  // The panel is still closing (its animation); it opens again when that is over.
+  await new Promise(resolve => setTimeout(resolve, 400))
+  reopening.value = false
+}
+
 const open = computed({
-  get: () => props.taskId !== null,
+  get: () => props.taskId !== null && !closing.value && !reopening.value,
   set: (value: boolean) => {
     if (!value) {
-      emit('close')
+      // Esc or "back" in the focus view leave only the focus: the detail stays open as before (ZF5).
+      if (focusing.value) {
+        void leaveFocusKeepOpen()
+      } else {
+        emit('close')
+      }
     }
   }
 })
@@ -42,21 +69,42 @@ const { result, loading } = useQuery(taskQuery, () => ({ id: props.taskId ?? '' 
   fetchPolicy: 'cache-and-network'
 }))
 const task = computed(() => (props.taskId ? result.value?.task ?? null : null))
+const may = computed(() => ({
+  update: task.value?.viewerCanUpdate ?? false,
+  assign: task.value?.viewerCanAssignSelf ?? false,
+  delete: task.value?.viewerCanDelete ?? false
+}))
 
 const statusItems = computed(() => TASK_STATUSES.map(status => ({ label: t(`status.${status}`), value: status })))
-const memberItems = computed(() => [
-  { label: t('task.nobody'), value: 'none' },
-  ...props.members.map(member => ({ label: member.name, value: member.id }))
-])
+/** Members first; people who may manage members can also take somebody in. */
+const assignee = useAssigneeChoice(() => props.members, () => task.value?.viewerCanAssign ?? false)
 
-const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
-const { mutate: moveTask } = useMutation(moveTaskMutation, options)
-const { mutate: assignTask } = useMutation(assignTaskMutation, options)
-const { mutate: deleteTask } = useMutation(deleteTaskMutation, options)
-const { mutate: setTaskLabels } = useMutation(setTaskLabelsMutation, options)
+const { mutate: moveTask } = useProjectMutation(moveTaskMutation)
+const { mutate: assignTask } = useProjectMutation(assignTaskMutation)
+const { mutate: deleteTask } = useProjectMutation(deleteTaskMutation)
+const { mutate: setTaskLabels } = useProjectMutation(setTaskLabelsMutation)
+const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
+const { errors: commitErrors, run: runCommit } = useGraphqlForm()
 
-/** Labels of the project's set; the task's labels outside it can only be removed. */
-const setLabels = computed(() => task.value?.todo.milestone.project.labelSet?.labels ?? [])
+const { mode, focusing, enterFocus, leaveFocus } = useViewMode()
+/** Open in the normal view, closed in the calm and focus views; the person can still change it. */
+const commentsOpen = ref(mode.value === 'full')
+
+useCommands(() => [{
+  id: 'task-focus',
+  label: t('zen.focusTask'),
+  icon: 'bullseye',
+  group: 'action',
+  visible: () => task.value !== null && !focusing.value,
+  run: () => enterFocus({ kind: 'task', id: task.value!.id })
+}])
+
+watch(mode, (value) => {
+  commentsOpen.value = value === 'full'
+})
+
+/** Labels of the project; one the task has that is not among them (any more) can only be removed. */
+const setLabels = computed(() => task.value?.todo.milestone.project.labels ?? [])
 const setLabelIds = computed(() => setLabels.value.map(label => label.id))
 const extraLabels = computed(() => (task.value?.labels ?? []).filter(label => !setLabelIds.value.includes(label.id)))
 
@@ -90,17 +138,41 @@ async function changeStatus(status: (typeof TASK_STATUSES)[number]): Promise<voi
   }
 }
 
-async function changeAssignee(value: string): Promise<void> {
-  if (task.value) {
-    const result = await assignTask({ id: task.value.id, assigneeId: value === 'none' ? null : value }).catch(() => null)
+/**
+ * The commit of a done task: a hash, or none. Saved when the field loses focus;
+ * an empty field clears it. The backend checks the format and the release rules.
+ */
+async function changeCommit(value: string): Promise<void> {
+  if (!task.value) {
+    return
+  }
+  const commit = value.trim() || null
+  if (commit === (task.value.commit ?? null)) {
+    return
+  }
+  await runCommit(() => updateTask({ id: task.value!.id, input: { commit } }))
+}
 
-    if (result && value !== 'none') {
+async function changeAssignee(value: string | null): Promise<void> {
+  if (task.value && value !== (task.value.assignee?.id ?? null)) {
+    const joining = assignee.willJoin(value)
+    const result = await assignTask({ id: task.value.id, assigneeId: value }).catch(() => null)
+
+    if (result && value) {
       toast.add({ title: t('task.assigned'), description: t('task.assignedMail'), color: 'success' })
+      if (joining) {
+        assignee.announceJoined(value)
+      }
     }
   }
 }
 
-const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDeleted: () => emit('close') })
+const deletion = useDelete<string>(id => deleteTask({ id }), {
+  onDeleted: () => {
+    closing.value = true
+    emit('close')
+  }
+})
 </script>
 
 <template>
@@ -136,7 +208,20 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
         />
         <div class="wa-cluster wa-gap-3xs task-tools">
           <wa-button
-            v-if="can.update"
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            data-zen="focus-hide"
+            @click="enterFocus({ kind: 'task', id: task.id })"
+          >
+            <wa-icon
+              slot="start"
+              name="bullseye"
+            ></wa-icon>
+            {{ t('zen.focus') }}
+          </wa-button>
+          <wa-button
+            v-if="may.update"
             appearance="outlined"
             variant="neutral"
             size="s"
@@ -149,12 +234,12 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
             {{ t('common.edit') }}
           </wa-button>
           <wa-button
-            v-if="can.delete"
+            v-if="may.delete"
             appearance="plain"
             variant="danger"
             size="s"
             :aria-label="t('common.delete')"
-            @click="task && deletion.ask(task.id)"
+            @click="task && deletion.remove(task.id)"
           >
             <wa-icon name="trash"></wa-icon>
           </wa-button>
@@ -165,6 +250,7 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
         v-if="shareTask"
         :tasks="[shareTask]"
         :name="shareTask.title"
+        data-zen="hide"
       />
 
       <div class="task-fields">
@@ -182,12 +268,25 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
           <StatusBadge :status="task.status" />
         </FormField>
 
-        <FormSelect
-          v-if="can.assign"
-          :model-value="task.assignee?.id ?? 'none'"
-          :items="memberItems"
+        <FormInput
+          v-if="may.update"
+          :model-value="task.commit ?? ''"
+          name="commit"
+          :label="t('task.commit.label')"
+          :hint="t('task.commit.hint')"
+          :error="commitErrors.commit"
+          data-zen="hide"
+          @change="(event: Event) => changeCommit((event.target as HTMLInputElement).value)"
+        />
+
+        <FormPersonSelect
+          v-if="may.assign"
+          :model-value="task.assignee?.id ?? null"
+          :groups="assignee.groups.value"
           :label="t('task.assignee')"
-          @update:model-value="value => value && changeAssignee(value)"
+          :hint="assignee.hint.value"
+          clearable
+          @update:model-value="changeAssignee"
         />
         <FormField
           v-else
@@ -198,7 +297,8 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
       </div>
 
       <LabelPicker
-        v-if="can.update && (setLabels.length || extraLabels.length)"
+        v-if="may.update && (setLabels.length || extraLabels.length)"
+        data-zen="hide"
         :model-value="task.labels.map(label => label.id)"
         :labels="setLabels"
         :extra="extraLabels"
@@ -208,6 +308,7 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
       <FormField
         v-else-if="task.labels.length"
         :label="t('labels.field')"
+        data-zen="hide"
       >
         <TaskLabels
           :labels="task.labels"
@@ -216,6 +317,12 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
       </FormField>
 
       <section class="wa-stack wa-gap-xs">
+        <p
+          v-if="task.userStory"
+          class="wa-body-s"
+        >
+          {{ t('task.story.sentence', { role: task.userStory.role, goal: task.userStory.goal, benefit: task.userStory.benefit }) }}
+        </p>
         <h3 class="wa-heading-s">
           {{ t('item.fields.description') }}
         </h3>
@@ -231,23 +338,23 @@ const deletion = useConfirmedDelete<string>(id => deleteTask({ id }), { onDelete
         </p>
       </section>
 
-      <wa-divider></wa-divider>
+      <wa-divider data-zen="hide"></wa-divider>
 
-      <TaskComments
-        :task-id="task.id"
-        :comments="task.comments"
-        :can-comment="can.comment"
-      />
+      <!-- Calm view: the comments are closed under the content (docs/zen-modus.md §4.5), open in the normal view. -->
+      <wa-details
+        :open="commentsOpen"
+        appearance="plain"
+        @wa-show="commentsOpen = true"
+        @wa-hide="commentsOpen = false"
+      >
+        <span slot="summary">{{ t('task.commentsSummary', { count: task.comments.length }, task.comments.length) }}</span>
+        <TaskComments
+          :task-id="task.id"
+          :comments="task.comments"
+          :can-comment="can.comment"
+        />
+      </wa-details>
     </div>
-
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t('task.deleteTitle')"
-      :description="t('task.deleteDescription', { title: task?.title ?? '' })"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
-    />
   </AppDrawer>
 </template>
 

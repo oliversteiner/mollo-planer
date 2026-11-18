@@ -5,10 +5,13 @@ withDefaults(defineProps<{
   src?: string | null
   /** Second line under the name. */
   description?: string
+  /** Third line, for example the system role under the e-mail address. */
+  detail?: string
   size?: '2xs' | 'xs' | 'sm' | 'md'
 }>(), {
   src: null,
   description: undefined,
+  detail: undefined,
   size: 'sm'
 })
 </script>
@@ -26,6 +29,10 @@ withDefaults(defineProps<{
         v-if="description"
         class="user-line-description"
       >{{ description }}</span>
+      <span
+        v-if="detail"
+        class="user-line-description"
+      >{{ detail }}</span>
     </span>
   </span>
 </template>
@@ -44,7 +51,8 @@ withDefaults(defineProps<{
   min-inline-size: 0;
 }
 
-.user-line-name {
+.user-line-name,
+.user-line-description {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

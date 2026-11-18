@@ -4,13 +4,16 @@ namespace Tests\Feature;
 
 use App\Enums\ItemStatus;
 use App\Enums\ProjectRole;
+use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Models\Comment;
 use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Planer\Export;
 use App\Support\AppSettings;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,23 +33,79 @@ class DemoSeederTest extends TestCase
     {
         $this->seedDemo();
 
-        $this->assertSame([4, 2, 5, 6, 8, 3], [User::count(), Project::count(), Milestone::count(), Todo::count(), Task::count(), Comment::count()]);
-        $this->assertSame(['anna.keller@example.ch'], User::where('role', 'admin')->pluck('email')->all());
+        $this->assertSame([4, 2, 6, 7, 10, 3], [User::count(), Project::count(), Milestone::count(), Todo::count(), Task::count(), Comment::count()]);
+        $this->assertSame(['anna.keller@example.ch'], User::where('role_id', Role::idOf(Role::SCOPE_SYSTEM, 'admin'))->pluck('email')->all());
 
         $relaunch = Project::where('name', 'Website-Relaunch')->firstOrFail();
         $chiara = User::where('email', 'chiara.rossi@example.ch')->firstOrFail();
-        $this->assertSame(ProjectRole::MANAGER, $relaunch->roleOf($chiara));
-        $this->assertSame(ProjectRole::OWNER, Project::where('name', 'Sommerfest 2027')->firstOrFail()->roleOf($chiara));
+        $this->assertSame(ProjectRole::MANAGER->value, $relaunch->roleOf($chiara)?->key);
+        $this->assertSame(ProjectRole::OWNER->value, Project::where('name', 'Sommerfest 2027')->firstOrFail()->roleOf($chiara)?->key);
 
         $this->assertSame(
             ['Mockup Desktop', 'Veraltete Seiten markieren', 'Hosting bestellen'],
-            Task::query()->inProject($relaunch->id)->where('status', TaskStatus::OPEN)->orderBy('position')->pluck('title')->all(),
+            Task::query()->inProject($relaunch->id)->where('status', TaskStatus::OPEN)->orderBy('board_position')->pluck('title')->all(),
         );
-        $this->assertSame([ItemStatus::OPEN], Todo::pluck('status')->unique()->values()->all());
+        $this->assertSame(['Gäste einladen'], Todo::where('status', ItemStatus::DONE)->pluck('title')->all());
+        $this->assertSame([ItemStatus::OPEN], Todo::where('status', ItemStatus::OPEN)->get()->pluck('status')->unique()->values()->all());
+
+        $released = Milestone::where('title', 'Einladung versendet')->firstOrFail();
+        $this->assertSame(['1.0', ReleaseStatus::RELEASED], [$released->release_version, $released->release_status]);
+        $planned = Milestone::where('title', 'Design freigegeben')->firstOrFail();
+        $this->assertSame(['1.1', ReleaseStatus::PLANNED], [$planned->release_version, $planned->release_status]);
         $this->assertSame('bulletList', Todo::where('title', 'Styleguide erstellen')->firstOrFail()->description['content'][1]['type']);
 
-        $this->assertSame('software_dev', $relaunch->labelSet?->key);
+        // The overview orders milestones by position; in the demo it matches their due dates.
+        foreach (Project::all() as $project) {
+            $this->assertSame(
+                $project->milestones()->reorder('due_date')->pluck('title')->all(),
+                $project->milestones()->pluck('title')->all(),
+            );
+        }
+
+        $this->assertSame(['research', 'design', 'feature', 'bug', 'planning', 'blocked'], $relaunch->labels()->pluck('key')->all());
+        $this->assertSame('software-development', $relaunch->template?->key);
         $this->assertEqualsCanonicalizing(['design', 'feature'], Task::where('title', 'Komponenten dokumentieren')->firstOrFail()->labels->pluck('key')->all());
+    }
+
+    public function test_the_export_of_each_demo_project_is_its_file(): void
+    {
+        $this->seedDemo();
+
+        foreach (['website-relaunch' => 'Website-Relaunch', 'sommerfest-2027' => 'Sommerfest 2027'] as $file => $name) {
+            $expected = json_decode((string) file_get_contents(database_path("seeders/demo/{$file}.planer.json")), true, 512, JSON_THROW_ON_ERROR);
+            $actual = app(Export::class)->document(Project::query()->where('name', $name)->firstOrFail());
+
+            $this->assertSame($this->withoutIdsAndRevision($expected), $this->withoutIdsAndRevision($actual), $file);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $document
+     * @return array<string, mixed>
+     */
+    private function withoutIdsAndRevision(array $document): array
+    {
+        unset($document['revision']);
+        usort($document['project']['members'], fn (array $a, array $b): int => $a['email'] <=> $b['email']);
+
+        foreach ($document['milestones'] as $mi => $milestone) {
+            unset($document['milestones'][$mi]['id']);
+
+            foreach ($milestone['todos'] as $ti => $todo) {
+                unset($document['milestones'][$mi]['todos'][$ti]['id']);
+
+                foreach ($todo['tasks'] as $ki => $task) {
+                    unset($document['milestones'][$mi]['todos'][$ti]['tasks'][$ki]['id']);
+
+                    if (isset($task['labels'])) {
+                        sort($task['labels']);
+                        $document['milestones'][$mi]['todos'][$ti]['tasks'][$ki]['labels'] = $task['labels'];
+                    }
+                }
+            }
+        }
+
+        return $document;
     }
 
     public function test_demo_data_starts_with_two_factor_off_so_the_password_is_enough(): void
@@ -59,9 +118,9 @@ class DemoSeederTest extends TestCase
         $this->postJson('/login', ['email' => $ben->email, 'password' => self::PASSWORD])
             ->assertOk()->assertJsonPath('two_factor', false);
 
-        $this->postJson('/api', ['query' => '{ projects { name viewerRole } }'])
+        $this->postJson('/api', ['query' => '{ projects { name viewerRole { key } } }'])
             ->assertOk()
-            ->assertJsonPath('data.projects', [['name' => 'Website-Relaunch', 'viewerRole' => 'OWNER']]);
+            ->assertJsonPath('data.projects', [['name' => 'Website-Relaunch', 'viewerRole' => ['key' => 'owner']]]);
     }
 
     public function test_after_switching_two_factor_on_the_seeded_totp_code_works(): void

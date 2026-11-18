@@ -6,7 +6,6 @@ import { DB_TABLE_NAMES } from '~/utils/db-schema'
  * (nested pages in system/db/). The current table is marked as the current page.
  * Admins only (the middleware checks USERS_MANAGE).
  */
-definePageMeta({ middleware: 'admin' })
 
 const { t } = useI18n()
 const route = useRoute()

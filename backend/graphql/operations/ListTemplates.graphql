@@ -1,0 +1,7 @@
+query ListTemplates {
+    templates {
+        id name description locale isBuiltin
+        labels { key name category }
+        outline { title version todos { title tasks { title labels } } }
+    }
+}

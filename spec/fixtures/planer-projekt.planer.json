@@ -1,0 +1,27 @@
+{
+  "$schema": "planer-v2.schema.json",
+  "format": "planer-v2",
+  "revision": 2,
+  "project": {
+    "name": "Sommerfest",
+    "description": "Das **Sommerfest** findet am Seeufer statt.\n\n- Aufbau am Freitag\n- Abbau am Sonntag\n\nMehr dazu im [Wiki](https://example.org/wiki).",
+    "locale": "de",
+    "members": [
+      {
+        "email": "oliver@mollo.ch",
+        "role": "owner"
+      },
+      {
+        "email": "anna@example.org",
+        "role": "bar-team"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-1",
+      "title": "Vorbereitung",
+      "todos": []
+    }
+  ]
+}

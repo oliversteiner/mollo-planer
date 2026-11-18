@@ -10,7 +10,7 @@ import { formatDateTime } from '~/utils/dates'
  */
 const { t, localeProperties } = useI18n()
 const toast = useToast()
-const apiBase = useRuntimeConfig().public.apiBase.replace(/\/$/, '')
+const apiBase = useApiBase()
 const language = computed(() => localeProperties.value.language ?? 'de-CH')
 
 const { result, refetch } = useQuery(apiTokensQuery, null, { fetchPolicy: 'network-only' })

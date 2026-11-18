@@ -21,7 +21,8 @@ export function useGraphqlForm() {
     } catch (error) {
       const apiError: ApiError = classifyApolloError(error)
       errors.value = Object.fromEntries(
-        Object.entries(apiError.fields).map(([field, messages]) => [field.replace(/^input\./, ''), messages[0] ?? ''])
+        // Several messages of one field (for example two reasons against a release) are shown together.
+        Object.entries(apiError.fields).map(([field, messages]) => [field.replace(/^input\./, ''), messages.join(' ')])
       )
 
       return null

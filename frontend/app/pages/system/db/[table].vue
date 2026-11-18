@@ -6,7 +6,6 @@ import { dbTable, isDbTableName } from '~/utils/db-schema'
  * One page per table: the title, the name in the database, the columns (label,
  * name, type, properties, description) and the indexes.
  */
-definePageMeta({ middleware: 'admin' })
 
 const { t } = useI18n()
 const route = useRoute()

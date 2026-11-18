@@ -32,6 +32,11 @@ return [
     'anthropic' => [
         'key' => env('ANTHROPIC_API_KEY'),
         'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+        // Drafts per person (docs/auftrag-m6.md §4.5).
+        'limits' => [
+            'hour' => (int) env('ASSISTANT_LIMIT_HOUR', 30),
+            'day' => (int) env('ASSISTANT_LIMIT_DAY', 200),
+        ],
     ],
 
     'slack' => [

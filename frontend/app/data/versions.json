@@ -505,6 +505,205 @@
           "text": "Platzhalter-Host aus der Anonymisierung ließ den Deploy an der Namensauflösung scheitern; Host und Benutzer jetzt als Repository-Variablen"
         }
       ]
+    },
+    {
+      "major": 1,
+      "minor": 0,
+      "number": "1.0",
+      "title": "Planer-Datei, KI-Assistent und Zen-Modus",
+      "description": "Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit Abgleich (Export, Import, Kommandozeile, GitHub-Action, Webhook), KI-Assistent und Ideen, Zen-Modus mit Stimmung.",
+      "status": "veröffentlicht",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Rechte, Funktionen und Rollen sind einstellbar (role_id statt fester Rollen)"
+        },
+        {
+          "kind": "neu",
+          "text": "Task-Status „Idee“ und „Geplant“, Werte in Englisch, Labels je Sprache"
+        },
+        {
+          "kind": "neu",
+          "text": "Release-Version, Release-Status und Commit an Milestones und Tasks"
+        },
+        {
+          "kind": "neu",
+          "text": "Benutzergeschichte an Tasks"
+        },
+        {
+          "kind": "neu",
+          "text": "Revision des Plans zählt nur die App; ein geändertes Projekt wird neu geladen"
+        },
+        {
+          "kind": "neu",
+          "text": "Reihenfolge der ToDos im Milestone und der Tasks im ToDo (verschieben)"
+        },
+        {
+          "kind": "behoben",
+          "text": "Mitglieder: Ersteller, Zuweisung und Löschrecht bleiben stimmig"
+        },
+        {
+          "kind": "behoben",
+          "text": "Meine Tasks blendet Ideen standardmäßig aus"
+        },
+        {
+          "kind": "neu",
+          "text": "Archivierte Projekte sind nur lesbar, archivieren und zurückholen"
+        },
+        {
+          "kind": "neu",
+          "text": "Löschen kommt in den Papierkorb, als ein Vorgang wiederherstellbar"
+        },
+        {
+          "kind": "neu",
+          "text": "Papierkorb-Seiten und „Rückgängig“ nach dem Löschen"
+        },
+        {
+          "kind": "neu",
+          "text": "Projektbeschreibung als Rich-Text"
+        },
+        {
+          "kind": "behoben",
+          "text": "Rückgängig funktioniert über offenen Panels, Meldung behält ihre Zeit"
+        },
+        {
+          "kind": "neu",
+          "text": "Vorlagen mit Gerüst und Labels, Labels je Projekt"
+        },
+        {
+          "kind": "neu",
+          "text": "Vorlagenseite, Label-Editor und Projekt-Labels"
+        },
+        {
+          "kind": "behoben",
+          "text": "Fehlermeldungen der Labels am Feld der Sprache, Einzahl und Mehrzahl"
+        },
+        {
+          "kind": "neu",
+          "text": "Format planer-v2: Datei mit Milestones, ToDos, Tasks, Mitgliedern und Labels"
+        },
+        {
+          "kind": "neu",
+          "text": "Export der Planer-Datei (kanonischer Text) und Prüfung mit Meldungen"
+        },
+        {
+          "kind": "neu",
+          "text": "Import mit Probelauf, Rechte je Änderung, ein Papierkorb-Vorgang für Gelöschtes"
+        },
+        {
+          "kind": "neu",
+          "text": "Claude-Connector mit zwei Werkzeugen: Plan lesen und schreiben"
+        },
+        {
+          "kind": "neu",
+          "text": "Demo-Daten als Planer-Dateien"
+        },
+        {
+          "kind": "neu",
+          "text": "Vorlagen aus einem Projekt oder einer hochgeladenen Datei"
+        },
+        {
+          "kind": "neu",
+          "text": "Planer-Baum mit Markierungen, Datei-Import mit Vorschau und Downloads"
+        },
+        {
+          "kind": "behoben",
+          "text": "Import vergleicht die Reihenfolge nach IDs, Vorschau markiert Geändertes und Gelöschtes"
+        },
+        {
+          "kind": "neu",
+          "text": "Kommandozeile: pull, push, sync und pull --watch gegen die App"
+        },
+        {
+          "kind": "neu",
+          "text": "GitHub-Action-Vorlage hält eine Planer-Datei im Gleichschritt mit der App"
+        },
+        {
+          "kind": "neu",
+          "text": "Webhook je Projekt, gebündelt und signiert, Queue über den Scheduler"
+        },
+        {
+          "kind": "neu",
+          "text": "Webhook-Karte in den Projekteinstellungen"
+        },
+        {
+          "kind": "behoben",
+          "text": "Zeitangaben ohne Zeitzone zeigten eine Stunde zu früh (DateTime mit Zone)"
+        },
+        {
+          "kind": "behoben",
+          "text": "pull --watch lief nur eine Runde"
+        },
+        {
+          "kind": "neu",
+          "text": "Private Ideen mit Entwurf, Papierkorb, MCP-Werkzeuge"
+        },
+        {
+          "kind": "neu",
+          "text": "KI-Kontext eines Projekts: Text und Datei, Freigabe für externe Werkzeuge"
+        },
+        {
+          "kind": "neu",
+          "text": "Assistent ergänzt bestehende Projekte, Rückfragen mit Knöpfen, Vorschau mit Streichen"
+        },
+        {
+          "kind": "neu",
+          "text": "Import mit Vorlage, Idee und „nur ergänzen“"
+        },
+        {
+          "kind": "neu",
+          "text": "Assistent für alle mit dem Recht, Grenzen je Person (Stunde und Tag)"
+        },
+        {
+          "kind": "verbessert",
+          "text": "Einstieg „Mit dem Assistenten ergänzen“ im Projekt, „In Ideen ablegen“ mit Titelvorschlag"
+        },
+        {
+          "kind": "behoben",
+          "text": "Mitglieder tragen Entwürfe mit den Rechten je Änderung ein"
+        },
+        {
+          "kind": "behoben",
+          "text": "Assistent wählt keinen Milestone mehr still"
+        },
+        {
+          "kind": "behoben",
+          "text": "Schema der Antwort passte nicht zur Grenze der Claude-API; Test und Befehl assistant:ping"
+        },
+        {
+          "kind": "neu",
+          "text": "Ruhige Ansicht und Fokus für Task und ToDo, Cookie je Gerät"
+        },
+        {
+          "kind": "neu",
+          "text": "Suche mit Cmd/Ctrl+K: Seiten, Projekte, Aktionen, „Zen“"
+        },
+        {
+          "kind": "neu",
+          "text": "Zeitachse zeigt in Zen den aktuellen Milestone"
+        },
+        {
+          "kind": "neu",
+          "text": "Farbschema Steingarten mit dem Slide-In „Stimmung“"
+        },
+        {
+          "kind": "neu",
+          "text": "Zen über die Suche und den Knopf in der Kopfleiste, zuletzt besuchter Bereich"
+        },
+        {
+          "kind": "verbessert",
+          "text": "Status, Fokusringe und Gefahr folgen der Stimmung"
+        },
+        {
+          "kind": "neu",
+          "text": "Entwicklungsserver im lokalen Netz erreichbar, API-Adresse aus dem Host abgeleitet"
+        },
+        {
+          "kind": "neu",
+          "text": "Rechte nur über Rights, eine Liste für Seiten- und Menürechte"
+        }
+      ]
     }
   ]
 }

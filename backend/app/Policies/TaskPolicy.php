@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\Models\Task;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
@@ -11,28 +11,54 @@ class TaskPolicy
 {
     use ChecksProjectAbilities;
 
+    /**
+     * Everyone with the right may change any task. Someone with only
+     * "task.updateOwn" may change the tasks they created themselves.
+     */
     public function update(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::TASK_UPDATE);
+        if ($this->allows($user, $task, Right::TASK_UPDATE)) {
+            return true;
+        }
+
+        return (string) $task->created_by === (string) $user->getKey()
+            && $this->allows($user, $task, Right::TASK_UPDATE_OWN);
     }
 
+    /**
+     * The mutation checks the target person (see Rights::mayAssignTask):
+     * with only "task.assignSelf" the person may assign the task to themselves.
+     */
     public function assign(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::TASK_ASSIGN);
+        return $this->allows($user, $task, Right::TASK_ASSIGN)
+            || $this->allows($user, $task, Right::TASK_ASSIGN_SELF);
     }
 
     public function move(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::TASK_MOVE);
+        return $this->allows($user, $task, Right::TASK_MOVE);
     }
 
     public function delete(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::TASK_DELETE);
+        return $this->allows($user, $task, Right::TASK_DELETE);
     }
 
     public function createComment(User $user, Task $task): bool
     {
-        return $this->allows($user, $task, ProjectAbility::COMMENT_CREATE);
+        return $this->allows($user, $task, Right::COMMENT_CREATE);
+    }
+
+    /** Back from the trash (in an archived project too). */
+    public function restore(User $user, Task $task): bool
+    {
+        return $this->allows($user, $task, Right::TRASH_RESTORE);
+    }
+
+    /** Out of the trash for good. */
+    public function forceDelete(User $user, Task $task): bool
+    {
+        return $this->allows($user, $task, Right::TRASH_PURGE);
     }
 }

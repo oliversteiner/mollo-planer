@@ -2,8 +2,8 @@
 
 namespace App\GraphQL\Resolvers;
 
-use App\Enums\ProjectRole;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\User;
 
 /**
@@ -12,7 +12,7 @@ use App\Models\User;
 class ProjectMembers
 {
     /**
-     * @return list<array{user: User, role: ProjectRole}>
+     * @return list<array{user: User, role: Role|null}>
      */
     public function __invoke(Project $project): array
     {

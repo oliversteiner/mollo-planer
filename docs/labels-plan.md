@@ -1,5 +1,7 @@
 # Labels für Tasks (Label-Sets)
 
+> **Hinweis (2026-11-13, D1):** Teilweise historisch. Label-Sets werden mit Schritt S7 durch Vorlagen und Labels je Projekt ersetzt (`planer-abgleich.md` §3, §5.2). Bis dahin beschreibt dieses Dokument den Code.
+
 Stand: 2026-11-10, vom Auftraggeber freigegeben und umgesetzt (Branch `feature/labels`). Ergänzt `backend-plan.md`, `graphql-kontext.md` und `frontend-webawesome-plan.md`; das GraphQL-Schema bleibt der Vertrag.
 
 ## Ziel

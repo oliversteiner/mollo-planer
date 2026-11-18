@@ -1,5 +1,7 @@
 # Mollo Planer · GraphQL-Schema und Entscheidungen
 
+> **Hinweis (2026-11-13, D1):** Historisch (Stand 2026-11-07). Maßgeblich sind das Schema `backend/graphql/schema.graphql`, `schema-review.md`, `planer-abgleich.md` und `rollen-funktionen-rechte.md`. Siehe `README.md`.
+
 Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprache, formatiertem Text und Icons)
 
 ## Was es gibt

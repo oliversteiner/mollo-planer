@@ -49,9 +49,8 @@ class AuthenticationFlowTest extends TestCase
 
     // ─── Routes ──────────────────────────────────────────────────
 
-    public function test_self_registration_and_rest_user_route_are_gone(): void
+    public function test_rest_user_route_is_gone(): void
     {
-        $this->postJson('/register', ['name' => 'X', 'email' => 'x@example.com', 'password' => 'secret'])->assertNotFound();
         $this->getJson('/api/user')->assertNotFound();
     }
 
@@ -338,7 +337,7 @@ class AuthenticationFlowTest extends TestCase
     public function test_after_an_expired_invitation_forgot_password_sets_the_password(): void
     {
         Notification::fake();
-        $user = app(UserInvitation::class)->invite('Fritz', 'fritz@example.com', UserRole::MITGLIED, Locale::DE);
+        $user = app(UserInvitation::class)->invite('Fritz', 'fritz@example.com', $this->systemRole(UserRole::MITGLIED), Locale::DE);
         $this->travel(8)->days();
 
         $this->postJson('/forgot-password', ['email' => $user->email])->assertOk();

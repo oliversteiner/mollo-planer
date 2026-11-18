@@ -45,6 +45,7 @@ function follow(event: MouseEvent, to: string): void {
         v-if="breadcrumbs?.length"
         :label="t('nav.breadcrumb')"
         class="page-breadcrumb"
+        data-zen="hide"
       >
         <wa-breadcrumb-item
           v-for="(crumb, index) in breadcrumbs"
@@ -66,6 +67,7 @@ function follow(event: MouseEvent, to: string): void {
         <div
           id="page-actions"
           class="page-actions"
+          data-zen="hide"
         >
           <slot name="actions" />
         </div>
@@ -74,6 +76,7 @@ function follow(event: MouseEvent, to: string): void {
       <p
         v-if="description"
         class="page-description"
+        data-zen="hide"
       >
         {{ description }}
       </p>
@@ -82,6 +85,7 @@ function follow(event: MouseEvent, to: string): void {
     <div
       v-if="$slots.nav"
       class="page-nav"
+      data-zen="hide"
     >
       <slot name="nav" />
     </div>

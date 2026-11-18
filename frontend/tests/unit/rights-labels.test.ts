@@ -1,30 +1,30 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import de from '../../i18n/locales/de.json'
 import en from '../../i18n/locales/en.json'
 
-const enumsDir = fileURLToPath(new URL('../../../backend/app/Enums', import.meta.url))
+const enumFile = fileURLToPath(new URL('../../../backend/app/Enums/Right.php', import.meta.url))
 
-/** Case names of the backend enums: the GraphQL names the page shows (for example PROJECTS_CREATE). */
-function abilityNames(file: string): string[] {
-  const source = readFileSync(`${enumsDir}/${file}`, 'utf8')
+/** Case names of the backend enum Right: the GraphQL names the page shows (for example PROJECTS_CREATE). */
+function rightNames(): string[] {
+  const source = readFileSync(enumFile, 'utf8')
 
   return [...source.matchAll(/case (\w+) = '[^']+';/g)].map(match => match[1] ?? '')
 }
 
 describe('rights table texts', () => {
-  const abilities = [...abilityNames('SystemAbility.php'), ...abilityNames('ProjectAbility.php')]
+  const rights = rightNames()
 
-  it('lists the abilities of the backend enums', () => {
-    expect(abilities.length).toBe(22)
-    expect(readdirSync(enumsDir)).toContain('ProjectAbility.php')
+  it('lists the rights of the backend enum', () => {
+    expect(rights.length).toBe(38)
+    expect(rights).toContain('PROJECTS_CREATE')
   })
 
-  for (const ability of abilities) {
-    it(`has a German and English text for the ability ${ability}`, () => {
-      expect((de.rights.abilities as Record<string, string>)[ability], ability).toBeTruthy()
-      expect((en.rights.abilities as Record<string, string>)[ability], ability).toBeTruthy()
+  for (const right of rights) {
+    it(`has a German and English text for the right ${right}`, () => {
+      expect((de.rights.names as Record<string, string>)[right], right).toBeTruthy()
+      expect((en.rights.names as Record<string, string>)[right], right).toBeTruthy()
     })
   }
 })

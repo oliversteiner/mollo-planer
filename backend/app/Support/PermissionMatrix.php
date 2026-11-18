@@ -2,44 +2,41 @@
 
 namespace App\Support;
 
-use App\Enums\ProjectAbility;
-use App\Enums\ProjectRole;
-use App\Enums\SystemAbility;
-use App\Enums\UserRole;
+use App\Enums\Right;
+use App\Models\Role;
 
 /**
- * The rights table for admins: which role has which ability. Read from the
- * same tables the policies use, so the page can never show other rights than
- * the app enforces.
+ * The computed overview role × right. Read from the same tables the
+ * policies use, so the page can never show other rights than the app
+ * enforces.
  */
 final class PermissionMatrix
 {
     /**
-     * @return array{system: list<array{ability: SystemAbility, roles: list<UserRole>}>, project: list<array{ability: ProjectAbility, roles: list<ProjectRole>}>}
+     * @return array{system: list<array{right: Right, roles: list<Role>}>, project: list<array{right: Right, roles: list<Role>}>}
      */
     public static function build(): array
     {
         return [
-            'system' => array_map(
-                fn (SystemAbility $ability): array => [
-                    'ability' => $ability,
-                    'roles' => array_values(array_filter(
-                        UserRole::cases(),
-                        fn (UserRole $role): bool => in_array($ability, SystemPermissions::abilitiesOf($role), true),
-                    )),
-                ],
-                SystemAbility::cases(),
-            ),
-            'project' => array_map(
-                fn (ProjectAbility $ability): array => [
-                    'ability' => $ability,
-                    'roles' => array_values(array_filter(
-                        ProjectRole::cases(),
-                        fn (ProjectRole $role): bool => ProjectPermissions::roleAllows($role, $ability),
-                    )),
-                ],
-                ProjectAbility::cases(),
-            ),
+            'system' => self::rows(Right::SCOPE_SYSTEM),
+            'project' => self::rows(Right::SCOPE_PROJECT),
         ];
+    }
+
+    /**
+     * @return list<array{right: Right, roles: list<Role>}>
+     */
+    private static function rows(string $scope): array
+    {
+        return array_map(
+            fn (Right $right): array => [
+                'right' => $right,
+                'roles' => array_values(array_filter(
+                    Role::ofScope($scope),
+                    fn (Role $role): bool => Rights::roleAllows($role, $right),
+                )),
+            ],
+            Right::ofScope($scope),
+        );
     }
 }

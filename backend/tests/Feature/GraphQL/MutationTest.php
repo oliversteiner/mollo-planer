@@ -9,9 +9,12 @@ use App\Enums\UserRole;
 use App\GraphQL\Mutations\ResetUserTwoFactor;
 use App\Models\Comment;
 use App\Models\Milestone;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
+use App\Services\Deletion;
+use App\Support\McpTokens;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -21,14 +24,14 @@ class MutationTest extends GraphQLTestCase
 {
     // ─── Projects ────────────────────────────────────────────────
 
-    public function test_only_admins_create_projects_without_becoming_members(): void
+    public function test_admins_create_projects_and_become_members_with_the_creator_role(): void
     {
-        $mutation = 'mutation { createProject(input: {name: "Neu", locale: EN}) { name locale viewerRole } }';
+        $mutation = 'mutation { createProject(input: {name: "Neu", locale: EN}) { name locale viewerRole { key } } }';
 
         $this->assertUnauthorized($this->as('owner')->gql($mutation));
 
         $this->as('admin')->gql($mutation)
-            ->assertJsonPath('data.createProject', ['name' => 'Neu', 'locale' => 'EN', 'viewerRole' => null]);
+            ->assertJsonPath('data.createProject', ['name' => 'Neu', 'locale' => 'EN', 'viewerRole' => ['key' => 'owner']]);
     }
 
     public function test_project_has_an_icon_that_follows_the_icon_rule(): void
@@ -57,7 +60,7 @@ class MutationTest extends GraphQLTestCase
 
         $this->assertUnauthorized($this->as('manager')->gql($delete, $id));
         $this->as('owner')->gql($delete, $id)->assertJsonPath('data.deleteProject.id', (string) $this->project->id);
-        $this->assertModelMissing($this->project);
+        $this->assertSoftDeleted($this->project);
     }
 
     // ─── Members ─────────────────────────────────────────────────
@@ -65,11 +68,11 @@ class MutationTest extends GraphQLTestCase
     public function test_manager_adds_members_but_cannot_grant_owner(): void
     {
         $newcomer = User::factory()->create();
-        $set = 'mutation ($p: ID!, $u: ID!, $r: ProjectRole!) { setProjectMember(projectId: $p, userId: $u, role: $r) { members { user { id } role } } }';
+        $set = 'mutation ($p: ID!, $u: ID!, $r: String!) { setProjectMember(projectId: $p, userId: $u, role: $r) { members { user { id } role { key } } } }';
 
         $this->as('manager')->gql($set, ['p' => $this->project->id, 'u' => $newcomer->id, 'r' => 'MEMBER'])
             ->assertJsonMissingPath('errors');
-        $this->assertSame(ProjectRole::MEMBER, $this->project->roleOf($newcomer));
+        $this->assertSame(ProjectRole::MEMBER->value, $this->project->roleOf($newcomer)?->key);
 
         $this->assertUnauthorized($this->as('manager')->gql($set, ['p' => $this->project->id, 'u' => $this->users['manager']->id, 'r' => 'OWNER']));
         $this->assertUnauthorized($this->as('manager')->gql($set, ['p' => $this->project->id, 'u' => $this->users['owner']->id, 'r' => 'MEMBER']));
@@ -78,7 +81,7 @@ class MutationTest extends GraphQLTestCase
 
     public function test_owner_grants_owner_and_last_owner_is_protected(): void
     {
-        $set = 'mutation ($p: ID!, $u: ID!, $r: ProjectRole!) { setProjectMember(projectId: $p, userId: $u, role: $r) { id } }';
+        $set = 'mutation ($p: ID!, $u: ID!, $r: String!) { setProjectMember(projectId: $p, userId: $u, role: $r) { id } }';
         $remove = 'mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }';
         $owner = $this->users['owner'];
 
@@ -94,13 +97,13 @@ class MutationTest extends GraphQLTestCase
         $this->assertNull($this->project->roleOf($owner));
     }
 
-    public function test_admin_may_remove_the_last_owner(): void
+    public function test_admin_may_not_remove_the_last_owner_either(): void
     {
         $this->as('admin')->gql('mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', [
             'p' => $this->project->id, 'u' => $this->users['owner']->id,
-        ])->assertJsonMissingPath('errors');
+        ])->assertGraphQLValidationKeys(['userId']);
 
-        $this->assertSame(0, $this->project->countMembersWithRole(ProjectRole::OWNER));
+        $this->assertSame(1, $this->project->members()->wherePivot('role_id', Role::idOf(Role::SCOPE_PROJECT, ProjectRole::OWNER))->count());
     }
 
     public function test_removed_member_loses_task_assignments_in_this_project(): void
@@ -176,23 +179,32 @@ class MutationTest extends GraphQLTestCase
 
     public function test_manager_creates_task_at_end_of_open_column(): void
     {
-        $create = 'mutation ($in: CreateTaskInput!) { createTask(input: $in) { status position assignee { name } } }';
+        $create = 'mutation ($in: CreateTaskInput!) { createTask(input: $in) { status boardPosition assignee { name } } }';
         $input = ['todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $this->users['member']->id];
 
-        $this->assertUnauthorized($this->as('member')->gql($create, ['in' => $input]));
-
         $this->as('manager')->gql($create, ['in' => $input])
-            ->assertJsonPath('data.createTask', ['status' => 'OPEN', 'position' => 1, 'assignee' => ['name' => 'David Member']]);
+            ->assertJsonPath('data.createTask', ['status' => 'OPEN', 'boardPosition' => 1, 'assignee' => ['name' => 'David Member']]);
     }
 
-    public function test_task_cannot_be_assigned_to_non_members(): void
+    public function test_create_task_takes_the_commit_from_the_input(): void
     {
+        $this->as('manager')->gql('mutation ($in: CreateTaskInput!) { createTask(input: $in) { commit } }', ['in' => [
+            'todoId' => $this->todo->id, 'title' => 'Mit Commit', 'commit' => 'a1b2c3d',
+        ]])->assertJsonPath('data.createTask.commit', 'a1b2c3d');
+    }
+
+    public function test_task_cannot_be_assigned_to_people_who_cannot_become_members(): void
+    {
+        // Non-members join when someone with members.manage assigns them (AssignNonMemberTest);
+        // a person who is not approved never can.
+        $pending = User::factory()->unapproved()->create();
+
         $this->as('manager')->gql('mutation ($in: CreateTaskInput!) { createTask(input: $in) { id } }', ['in' => [
-            'todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $this->users['stranger']->id,
+            'todoId' => $this->todo->id, 'title' => 'Neuer Task', 'assigneeId' => $pending->id,
         ]])->assertGraphQLValidationKeys(['input.assigneeId']);
 
         $this->as('manager')->gql('mutation ($id: ID!, $u: ID) { assignTask(id: $id, assigneeId: $u) { id } }', [
-            'id' => $this->task->id, 'u' => $this->users['stranger']->id,
+            'id' => $this->task->id, 'u' => $pending->id,
         ])->assertGraphQLValidationKeys(['assigneeId']);
     }
 
@@ -204,25 +216,25 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.assignTask.assignee.name', 'David Member');
         $this->as('owner')->gql($assign, ['id' => $this->task->id, 'u' => null])
             ->assertJsonPath('data.assignTask.assignee', null);
-        $this->assertUnauthorized($this->as('member')->gql($assign, ['id' => $this->task->id, 'u' => $this->users['member']->id]));
+        $this->assertUnauthorized($this->as('member')->gql($assign, ['id' => $this->task->id, 'u' => $this->users['owner']->id]));
     }
 
     public function test_move_reorders_columns_and_updates_status(): void
     {
-        $second = Task::factory()->for($this->todo)->create(['position' => 1]);
-        $done = Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'position' => 0]);
-        $move = 'mutation ($id: ID!, $s: TaskStatus!, $p: Int!) { moveTask(id: $id, status: $s, position: $p) { status position } }';
+        $second = Task::factory()->for($this->todo)->create(['board_position' => 1]);
+        $done = Task::factory()->for($this->todo)->create(['status' => TaskStatus::DONE, 'board_position' => 0]);
+        $move = 'mutation ($id: ID!, $s: TaskStatus!, $p: Int!) { moveTask(id: $id, status: $s, position: $p) { status boardPosition } }';
 
         // Member moves the first open task to the top of DONE.
         $this->as('member')->gql($move, ['id' => $this->task->id, 's' => 'DONE', 'p' => 0])
-            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'position' => 0]);
+            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'boardPosition' => 0]);
 
-        $this->assertSame(1, $done->fresh()->position);
-        $this->assertSame(0, $second->fresh()->position);
+        $this->assertSame(1, $done->fresh()->board_position);
+        $this->assertSame(0, $second->fresh()->board_position);
         $this->assertSame(ItemStatus::OPEN, $this->todo->fresh()->status);
 
         $this->as('member')->gql($move, ['id' => $second->id, 's' => 'DONE', 'p' => 99])
-            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'position' => 2]);
+            ->assertJsonPath('data.moveTask', ['status' => 'DONE', 'boardPosition' => 2]);
         $this->assertSame(ItemStatus::DONE, $this->todo->fresh()->status);
 
         $this->as('member')->gql($move, ['id' => $second->id, 's' => 'DONE', 'p' => -1])
@@ -233,9 +245,9 @@ class MutationTest extends GraphQLTestCase
     public function test_move_to_todo_keeps_the_task_in_its_project_and_updates_statuses(): void
     {
         $this->task->forceFill(['status' => TaskStatus::DONE])->save();
-        $open = Task::factory()->for($this->todo)->create(['position' => 1]);
+        $open = Task::factory()->for($this->todo)->create(['board_position' => 1]);
         $target = Todo::factory()->for(Milestone::factory()->for($this->project))->create();
-        $move = 'mutation ($id: ID!, $todo: ID!) { moveTaskToTodo(id: $id, todoId: $todo) { todo { id milestone { id } } status position } }';
+        $move = 'mutation ($id: ID!, $todo: ID!) { moveTaskToTodo(id: $id, todoId: $todo) { todo { id milestone { id } } status boardPosition } }';
 
         $this->assertSame(ItemStatus::OPEN, $this->todo->fresh()->status);
 
@@ -246,7 +258,7 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.moveTaskToTodo', [
                 'todo' => ['id' => (string) $target->id, 'milestone' => ['id' => (string) $target->milestone_id]],
                 'status' => 'OPEN',
-                'position' => 1,
+                'boardPosition' => 1,
             ]);
 
         // The old todo has only its done task left, the new one an open task.
@@ -299,14 +311,14 @@ class MutationTest extends GraphQLTestCase
             ->assertJsonPath('data.updateComment.body', $this->doc('Neu'));
 
         $this->as('manager')->gql($delete, ['id' => $comment->id])->assertJsonMissingPath('errors');
-        $this->assertModelMissing($comment);
+        $this->assertSoftDeleted($comment);
     }
 
     // ─── Users ───────────────────────────────────────────────────
 
     public function test_update_my_notifications_only_changes_the_viewer(): void
     {
-        $this->as('member')->gql('mutation { updateMyNotifications(emailEnabled: false) { id notifyByEmail } }')
+        $this->as('member')->gql('mutation { updateMyNotifications(notifyByEmail: false) { id notifyByEmail } }')
             ->assertJsonPath('data.updateMyNotifications', ['id' => (string) $this->users['member']->id, 'notifyByEmail' => false]);
 
         $this->assertTrue($this->users['owner']->fresh()->notify_by_email);
@@ -314,20 +326,20 @@ class MutationTest extends GraphQLTestCase
 
     public function test_admin_creates_users(): void
     {
-        $create = 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { name role } }';
+        $create = 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { name role { key } } }';
 
         $this->assertUnauthorized($this->as('owner')->gql($create));
-        $this->as('admin')->gql($create)->assertJsonPath('data.createUser', ['name' => 'Fritz', 'role' => 'MITGLIED']);
+        $this->as('admin')->gql($create)->assertJsonPath('data.createUser', ['name' => 'Fritz', 'role' => ['key' => 'mitglied']]);
         $this->as('admin')->gql($create)->assertGraphQLValidationKeys(['input.email']);
     }
 
     public function test_update_user_rules(): void
     {
-        $update = 'mutation ($id: ID!, $in: UpdateUserInput!) { updateUser(id: $id, input: $in) { email role } }';
+        $update = 'mutation ($id: ID!, $in: UpdateUserInput!) { updateUser(id: $id, input: $in) { email role { key } } }';
         $admin = $this->users['admin'];
 
-        $this->as('admin')->gql($update, ['id' => $this->users['member']->id, 'in' => ['role' => 'ADMIN']])
-            ->assertJsonPath('data.updateUser.role', 'ADMIN');
+        $this->as('admin')->gql($update, ['id' => $this->users['member']->id, 'in' => ['role' => 'admin']])
+            ->assertJsonPath('data.updateUser.role.key', 'admin');
 
         $this->as('admin')->gql($update, ['id' => $this->users['member']->id, 'in' => ['email' => $this->users['owner']->email]])
             ->assertGraphQLValidationKeys(['input.email']);
@@ -335,8 +347,8 @@ class MutationTest extends GraphQLTestCase
         $this->as('admin')->gql($update, ['id' => $admin->id, 'in' => ['email' => $admin->email]])
             ->assertJsonMissingPath('errors');
 
-        $this->assertUnauthorized($this->as('admin')->gql($update, ['id' => $admin->id, 'in' => ['role' => 'MITGLIED']]));
-        $this->assertSame(UserRole::ADMIN, $admin->fresh()->role);
+        $this->assertUnauthorized($this->as('admin')->gql($update, ['id' => $admin->id, 'in' => ['role' => 'mitglied']]));
+        $this->assertSame(UserRole::ADMIN->value, $admin->fresh()->role?->key);
 
         $this->assertUnauthorized($this->as('owner')->gql($update, ['id' => $this->users['member']->id, 'in' => ['name' => 'Xaver']]));
     }
@@ -397,7 +409,9 @@ class MutationTest extends GraphQLTestCase
         $levelOutside = DB::transactionLevel();
         $writesOutside = [];
         DB::listen(function (QueryExecuted $query) use ($levelOutside, &$writesOutside): void {
-            if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) && $query->connection->transactionLevel() <= $levelOutside) {
+            // The planer revision is counted on purpose after the commit (App\Planer\PlanerRevision).
+            $countsRevision = str_contains($query->sql, 'planer_revision');
+            if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) && $query->connection->transactionLevel() <= $levelOutside && ! $countsRevision) {
                 $writesOutside[] = $query->sql;
             }
         });
@@ -414,20 +428,48 @@ class MutationTest extends GraphQLTestCase
     {
         return [
             'createProject' => ['admin', 'mutation { createProject(input: {name: "Neu"}) { id } }', fn (self $test) => []],
-            'importProjectPlan' => ['admin', 'mutation ($u: String!) { importProjectPlan(plan: {name: "Plan", members: [{email: $u, role: OWNER}], milestones: [{title: "Start", todos: [{title: "Vorbereiten", tasks: [{title: "Los", assigneeEmail: $u}]}]}]}) { id } }', fn (self $test) => ['u' => $test->users['member']->email]],
+            'restoreFromTrash' => ['manager', 'mutation ($id: ID!) { restoreFromTrash(deletionId: $id) { id type } }', fn (self $test) => ['id' => app(Deletion::class)->delete(Task::factory()->for($test->todo)->create())->deletion_id]],
+            'purgeFromTrash' => ['owner', 'mutation ($id: ID!) { purgeFromTrash(deletionId: $id) }', fn (self $test) => ['id' => app(Deletion::class)->delete(Task::factory()->for($test->todo)->create())->deletion_id]],
+            'emptyProjectTrash' => ['owner', 'mutation ($p: ID!) { emptyProjectTrash(projectId: $p) }', fn (self $test) => ['p' => $test->project->id]],
+            'archiveProject' => ['manager', 'mutation ($id: ID!) { archiveProject(id: $id) { archivedAt } }', fn (self $test) => ['id' => $test->project->id]],
+            'unarchiveProject' => ['owner', 'mutation ($id: ID!) { unarchiveProject(id: $id) { archivedAt } }', fn (self $test) => ['id' => $test->project->id]],
             'createUser' => ['admin', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
             'resetUserTwoFactor' => ['admin', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', fn (self $test) => ['id' => $test->users['member']->id]],
             'createApiToken' => ['member', 'mutation { createApiToken(name: "Claude") { plainTextToken } }', fn (self $test) => []],
             'updateAppSettings' => ['admin', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],
             'deleteUserAvatar' => ['admin', 'mutation ($id: ID!) { deleteUserAvatar(id: $id) { id } }', fn (self $test) => ['id' => $test->users['member']->id]],
-            'updateMyNotifications' => ['member', 'mutation { updateMyNotifications(emailEnabled: false) { id } }', fn (self $test) => []],
-            'setProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: MEMBER) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
+            'updateMyNotifications' => ['member', 'mutation { updateMyNotifications(notifyByEmail: false) { id } }', fn (self $test) => []],
+            'setProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { setProjectMember(projectId: $p, userId: $u, role: "member") { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['stranger']->id]],
             'removeProjectMember' => ['owner', 'mutation ($p: ID!, $u: ID!) { removeProjectMember(projectId: $p, userId: $u) { id } }', fn (self $test) => ['p' => $test->project->id, 'u' => $test->users['member']->id]],
             'createTask' => ['manager', 'mutation ($t: ID!, $u: ID!) { createTask(input: {todoId: $t, title: "Neu", assigneeId: $u}) { id } }', fn (self $test) => ['t' => $test->todo->id, 'u' => $test->users['member']->id]],
             'assignTask' => ['manager', 'mutation ($id: ID!, $u: ID!) { assignTask(id: $id, assigneeId: $u) { id } }', fn (self $test) => ['id' => $test->task->id, 'u' => $test->users['member']->id]],
             'moveTask' => ['member', 'mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
+            'moveTaskInTodo' => ['member', 'mutation ($id: ID!) { moveTaskInTodo(id: $id, position: 0) { id } }', fn (self $test) => ['id' => $test->task->id]],
             'moveTaskToTodo' => ['manager', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => Todo::factory()->for($test->milestone)->create()->id]],
             'addComment' => ['member', 'mutation ($t: ID!, $body: RichText!) { addComment(input: {taskId: $t, body: $body}) { id } }', fn (self $test) => ['t' => $test->task->id, 'body' => $test->doc('Hallo')]],
+            'createRole' => ['admin', 'mutation ($f: ID!) { createRole(input: {scope: PROJECT, names: {de: "Prüferin", en: "Reviewer"}, functionIds: [$f]}) { id } }', fn (self $test) => ['f' => self::functionId('contribute')]],
+            'updateRole' => ['admin', 'mutation ($id: ID!, $f: ID!) { updateRole(id: $id, input: {names: {de: "Gast", en: "Guest"}, functionIds: [$f]}) { id } }', fn (self $test) => ['id' => self::roleId('guest'), 'f' => self::functionId('contribute')]],
+            'duplicateRole' => ['admin', 'mutation ($id: ID!) { duplicateRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('manager')]],
+            'deleteRole' => ['admin', 'mutation ($id: ID!) { deleteRole(id: $id) { id } }', fn (self $test) => ['id' => DB::table('roles')->insertGetId(['scope' => 'project', 'key' => 'own', 'names' => '{"de":"Eigene","en":"Own"}'])]],
+            'setProjectCreatorRole' => ['admin', 'mutation ($key: String!) { setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key } } }', fn (self $test) => ['key' => 'owner']],
+            'setDefaultRole' => ['admin', 'mutation ($id: ID!) { setDefaultRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('guest')]],
+            'resetRole' => ['admin', 'mutation ($id: ID!) { resetRole(id: $id) { id } }', fn (self $test) => ['id' => self::roleId('manager')]],
+            'createRoleFunction' => ['admin', 'mutation { createRoleFunction(input: {scope: PROJECT, names: {de: "Aufräumen", en: "Tidy up"}, rights: [TASK_DELETE]}) { id } }', fn (self $test) => []],
+            'updateRoleFunction' => ['admin', 'mutation ($id: ID!) { updateRoleFunction(id: $id, input: {names: {de: "Planen", en: "Plan"}, rights: [TODO_CREATE]}) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
+            'duplicateRoleFunction' => ['admin', 'mutation ($id: ID!) { duplicateRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
+            'deleteRoleFunction' => ['admin', 'mutation ($id: ID!) { deleteRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => DB::table('functions')->insertGetId(['scope' => 'project', 'key' => 'own', 'names' => '{"de":"Eigene","en":"Own"}'])]],
+            'resetRoleFunction' => ['admin', 'mutation ($id: ID!) { resetRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
+            'deleteApiToken' => ['owner', 'mutation ($id: ID!) { deleteApiToken(id: $id) { name } }', fn (self $test) => ['id' => McpTokens::create($test->users['owner'], 'Meins')->accessToken->id]],
         ];
+    }
+
+    private static function roleId(string $key): int
+    {
+        return (int) DB::table('roles')->where(['scope' => 'project', 'key' => $key])->value('id');
+    }
+
+    private static function functionId(string $key): int
+    {
+        return (int) DB::table('functions')->where(['scope' => 'project', 'key' => $key])->value('id');
     }
 }

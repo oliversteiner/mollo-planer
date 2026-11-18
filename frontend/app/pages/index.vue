@@ -94,7 +94,7 @@ const greeting = computed(() => {
         </ul>
       </wa-card>
 
-      <wa-card>
+      <wa-card data-zen="hide">
         <h2
           slot="header"
           class="wa-heading-m"
@@ -142,7 +142,7 @@ const greeting = computed(() => {
       </wa-card>
     </div>
 
-    <wa-card>
+    <wa-card data-zen="hide">
       <div
         slot="header"
         class="wa-split wa-gap-s"

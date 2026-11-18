@@ -2,11 +2,15 @@
 
 namespace App\Providers;
 
+use App\Planer\PlanerRevision;
 use App\Services\TaskNotifier;
+use App\Support\Rights;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
         // One instance per request, so withoutAssignmentMails() reaches the
         // notifier the GraphQL mutations use.
         $this->app->scoped(TaskNotifier::class);
+
+        // Remembers the projects of one transaction; per request and per queued job.
+        $this->app->scoped(PlanerRevision::class);
     }
 
     /**
@@ -35,11 +42,12 @@ class AppServiceProvider extends ServiceProvider
         // task title like "[Click](https://evil.example)" stays plain text.
         Markdown::withSecuredEncoding();
 
+        // A queue worker lives longer than a request: read the rights anew
+        // for every job, so a change in the settings reaches it.
+        Event::listen(JobProcessing::class, fn () => Rights::clearCache());
+
         // MCP requests (Claude) per minute and token owner; a project plan is
         // one request, reading a project another.
-        // Every draft is a paid Claude request.
-        RateLimiter::for('plan-assistant', fn (Request $request) => Limit::perMinute(10)->by('plan:'.$request->user()?->getAuthIdentifier()));
-
         RateLimiter::for('mcp', fn (Request $request) => Limit::perMinute(60)->by('mcp:'.$request->user()?->getAuthIdentifier()));
 
         // GraphQL requests per minute, per user (or per IP for guests).

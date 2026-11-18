@@ -10,6 +10,8 @@ use App\Services\KanbanOrdering;
 use App\Services\ProjectMembership;
 use App\Services\TaskLabels;
 use App\Services\TaskNotifier;
+use App\Support\Rights;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -40,24 +42,29 @@ class CreateTask
             $project = $todo->owningProject();
             $assigneeId = $args['assigned_user_id'] ?? null;
 
-            if ($assigneeId !== null) {
-                $this->membership->ensureAssignable($project, $assigneeId, 'input.assigneeId');
+            if (! Rights::mayAssignTask($viewer, $project, $assigneeId, null)) {
+                throw new AuthorizationException;
             }
 
-            $labelIds = $this->labels->validated($project, $args['label_ids'] ?? [], null, 'input.labelIds');
+            if ($assigneeId !== null) {
+                $this->membership->ensureMember($viewer, $project, $assigneeId, 'input.assigneeId');
+            }
 
             $task = new Task([
                 'title' => $args['title'],
                 'description' => $args['description'] ?? null,
                 'icon' => $args['icon'] ?? null,
                 'due_date' => $args['due_date'] ?? null,
+                'user_story' => $args['user_story'] ?? null,
+                'commit' => $args['commit'] ?? null,
             ]);
             $task->todo()->associate($todo);
             $task->assigned_user_id = $assigneeId;
             $task->status = TaskStatus::OPEN;
-            $task->position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
+            $task->board_position = $this->ordering->nextPosition($project->getKey(), TaskStatus::OPEN);
             $task->save();
-            $task->labels()->sync($labelIds);
+            // In the same transaction: refused labels take the new task back.
+            $this->labels->set($task, $args['label_ids'] ?? [], 'input.labelIds');
 
             if ($assigneeId !== null) {
                 $this->notifier->assigned($task, $viewer);

@@ -1,36 +1,45 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TimelineEntry } from '~/components/StepTimeline.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import { projectTimelineQuery } from '~/graphql/project'
-import { moveTaskToTodoMutation } from '~/graphql/task'
+import { deleteTaskMutation, moveTaskInTodoMutation, moveTaskToTodoMutation } from '~/graphql/task'
 import type { ProjectTimelineQuery } from '~/graphql/generated/graphql'
 import { formatDate } from '~/utils/dates'
 import { isEmptyDocument } from '~/utils/rich-text'
 
 /**
  * Project as a timeline, like the preview of the AI assistant: milestones
- * by due date, their todos (collapsible) and in them the tasks. Milestones
+ * in their order from the backend (position), their todos (collapsible)
+ * and in them the tasks in their order (position). Milestones
  * before the first open one are shown as reached. Creating, changing and
  * deleting is left to the page (events and the actions menu); tasks are
  * moved to another todo here, by drag and drop.
  */
+export interface MilestonePlace {
+  index: number
+  count: number
+}
+
 const props = defineProps<{
   projectId: string
-  /** Menu entries (change, delete) of a milestone or todo; none: no menu */
-  actions?: (kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>) => ActionMenuItem[]
+  /**
+   * Menu entries (change, move, delete) of a milestone or todo; none: no
+   * menu. For a milestone, `place` is its index among the milestones.
+   */
+  actions?: (kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>, place?: MilestonePlace) => ActionMenuItem[]
   /** Below "Noch keine Milestones" */
   emptyHint?: string
   /** Shows "ToDo anlegen" under the todos of each milestone */
   canCreateTodo?: boolean
   /** Shows "Task anlegen" under the tasks of each todo */
   canCreateTask?: boolean
-  /** A double-click on a task opens the edit dialog */
-  canUpdateTask?: boolean
   /** Tasks can be dragged into another todo */
   canMoveTask?: boolean
+  /** Tasks can be moved up and down inside their todo (task.move) */
+  canReorderTask?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -53,18 +62,14 @@ type Milestone = NonNullable<ProjectTimelineQuery['project']>['milestones'][numb
 type MilestoneItem = TimelineEntry & { milestone: Milestone, number: number }
 type TimelineTask = Milestone['todos'][number]['tasks'][number]
 
-/** Click: details; double-click: edit dialog, with the right to change. */
+/** Click: details; double-click: edit dialog, with the right to change this task (task.updateOwn holds per task). */
 function editTask(task: TimelineTask) {
-  if (props.canUpdateTask) {
+  if (task.viewerCanUpdate) {
     emit('editTask', task)
   }
 }
 
-function byDueDate<T extends { id: string, dueDate?: string | null }>(items: readonly T[]): T[] {
-  return [...items].sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999') || Number(a.id) - Number(b.id))
-}
-
-const milestones = computed(() => byDueDate(result.value?.project?.milestones ?? []))
+const milestones = computed(() => result.value?.project?.milestones ?? [])
 
 /** The first milestone not done is the current one; all done: the last. */
 const current = computed(() => (milestones.value.find(milestone => milestone.status !== 'DONE') ?? milestones.value.at(-1))?.id)
@@ -103,19 +108,46 @@ function setOpen(id: string, open: boolean) {
 
 /**
  * Tasks per todo id, a local copy so a drop shows at once. Within a todo
- * the order is by due date, so dragging only moves between todos; the
- * server's answer replaces the copy after every move.
+ * the order is the server's (position, changed by "Move up/down"), so
+ * dragging only moves between todos; the server's answer replaces the copy
+ * after every move.
  */
 const taskLists = ref<Record<string, TimelineTask[]>>({})
 const dragging = ref(false)
 
 function fillTaskLists() {
-  taskLists.value = Object.fromEntries(milestones.value.flatMap(milestone => milestone.todos.map(todo => [todo.id, byDueDate(todo.tasks)])))
+  taskLists.value = Object.fromEntries(milestones.value.flatMap(milestone => milestone.todos.map(todo => [todo.id, [...todo.tasks]])))
 }
 
 watch(milestones, fillTaskLists, { immediate: true })
 
-const { mutate: moveTaskToTodo } = useMutation(moveTaskToTodoMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
+const { mutate: moveTaskToTodo } = useProjectMutation(moveTaskToTodoMutation)
+const { mutate: moveTaskInTodo } = useProjectMutation(moveTaskInTodoMutation)
+
+const { mutate: deleteTask } = useProjectMutation(deleteTaskMutation)
+const deletion = useDelete<string>(id => deleteTask({ id }))
+
+/** Menu of a task like the Kanban card: edit (if allowed), then its place in the todo, then delete (if allowed). */
+function taskMenu(task: TimelineTask, todoId: string): ActionMenuItem[] {
+  const list = taskLists.value[todoId] ?? []
+  const index = list.findIndex(entry => entry.id === task.id)
+  const items: ActionMenuItem[] = []
+
+  if (task.viewerCanUpdate) {
+    items.push({ label: t('common.edit'), icon: 'pen', onSelect: () => emit('editTask', task) })
+  }
+  if (props.canReorderTask && index > 0) {
+    items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => void moveTaskInTodo({ id: task.id, position: index - 1 }) })
+  }
+  if (props.canReorderTask && index >= 0 && index < list.length - 1) {
+    items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveTaskInTodo({ id: task.id, position: index + 1 }) })
+  }
+  if (task.viewerCanDelete) {
+    items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => void deletion.remove(task.id) })
+  }
+
+  return items
+}
 
 async function onDrop(event: SortableEvent) {
   dragging.value = false
@@ -142,11 +174,40 @@ function openWhileDragging(todoId: string) {
   }
 }
 
+/**
+ * Calm view (docs/zen-modus.md §1, §5): the current milestone shows its todos open, the other milestones stay closed
+ * until "Aufklappen". This is state of the data; what is hidden is decided by zen.css.
+ */
+const { calm } = useViewMode()
+const zenOpened = ref(new Set<string>())
+
+function toggleZenOpen(id: string): void {
+  const next = new Set(zenOpened.value)
+
+  if (!next.delete(id)) {
+    next.add(id)
+  }
+
+  zenOpened.value = next
+}
+
+watch([calm, current, milestones], () => {
+  if (calm.value) {
+    const todos = milestones.value.find(milestone => milestone.id === current.value)?.todos ?? []
+
+    openTodos.value = new Set([...openTodos.value, ...todos.map(todo => todo.id)])
+  }
+}, { immediate: true })
+
 /** Only the milestones: without descriptions and todos, as an outline. */
 const milestonesOnly = defineModel<boolean>('milestonesOnly', { default: false })
 
 function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>): ActionMenuItem[] {
-  return props.actions?.(kind, item) ?? []
+  const place = kind === 'milestone'
+    ? { index: milestones.value.findIndex(milestone => milestone.id === item.id), count: milestones.value.length }
+    : undefined
+
+  return props.actions?.(kind, item, place) ?? []
 }
 
 function toggleAll() {
@@ -169,7 +230,10 @@ function toggleAll() {
     />
 
     <template v-else>
-      <div class="wa-cluster wa-gap-s wa-justify-content-end">
+      <div
+        class="wa-cluster wa-gap-s wa-justify-content-end"
+        data-zen="hide"
+      >
         <wa-button
           appearance="plain"
           variant="neutral"
@@ -215,9 +279,17 @@ function toggleAll() {
           <span class="timeline-title-row">
             <MilestoneNumber :number="item.number" />
             {{ item.title }}
+            <span
+              v-if="item.milestone.release"
+              class="timeline-release wa-caption-s"
+              data-zen="hide"
+            >
+              {{ item.milestone.release.version }} · {{ t(`release.${item.milestone.release.status.toLowerCase()}`) }}
+            </span>
             <StatusBadge :status="item.milestone.status" />
             <ActionMenu
               v-if="menu('milestone', item.milestone).length"
+              data-zen="hide"
               :items="menu('milestone', item.milestone)"
               :label="t('project.timeline.milestoneActions', { title: item.milestone.title })"
             />
@@ -243,13 +315,36 @@ function toggleAll() {
               <span class="milestone-progress-text">{{ t('projects.progress', { done: item.milestone.progress.done, total: item.milestone.progress.total }) }}</span>
             </div>
 
-            <template v-if="!milestonesOnly">
+            <!--
+              Calm view: only the current milestone shows its todos; the others are closed, "Aufklappen" opens one.
+              The marking is data (is it the current one?), the hiding is zen.css.
+            -->
+            <wa-button
+              v-if="!milestonesOnly && item.milestone.id !== current"
+              appearance="plain"
+              variant="neutral"
+              size="s"
+              data-zen="only"
+              :aria-expanded="zenOpened.has(item.milestone.id)"
+              @click="toggleZenOpen(item.milestone.id)"
+            >
+              <wa-icon
+                slot="start"
+                :name="zenOpened.has(item.milestone.id) ? 'chevron-up' : 'chevron-down'"
+              ></wa-icon>
+              {{ zenOpened.has(item.milestone.id) ? t('zen.collapseMilestone') : t('zen.expandMilestone') }}
+            </wa-button>
+            <div
+              v-if="!milestonesOnly"
+              class="wa-stack wa-gap-s"
+              :data-zen="item.milestone.id === current || zenOpened.has(item.milestone.id) ? undefined : 'hide'"
+            >
               <ul
                 v-if="item.milestone.todos.length"
                 class="todo-list wa-list-plain"
               >
                 <li
-                  v-for="todo in byDueDate(item.milestone.todos)"
+                  v-for="todo in item.milestone.todos"
                   :key="todo.id"
                   class="todo"
                 >
@@ -274,11 +369,15 @@ function toggleAll() {
                         class="todo-icon"
                       />
                       <span class="todo-title">{{ todo.title }}</span>
-                      <span class="todo-count">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
+                      <span
+                        class="todo-count"
+                        data-zen="hide"
+                      >{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
                       <StatusBadge :status="todo.status" />
                       <DueDate
                         :date="todo.dueDate"
                         :done="todo.status === 'DONE'"
+                        data-zen="hide"
                       />
                     </button>
                     <ActionMenu
@@ -313,63 +412,14 @@ function toggleAll() {
                         @start="dragging = true"
                         @end="onDrop"
                       >
-                        <li
+                        <ProjectTimelineTask
                           v-for="task in taskLists[todo.id]"
                           :key="task.id"
-                          :data-id="task.id"
-                          class="task"
-                          @click="emit('openTask', task.id)"
-                          @dblclick="editTask(task)"
-                        >
-                          <ItemIcon
-                            :name="task.icon"
-                            fallback="square-check"
-                            class="task-icon"
-                          />
-                          <div class="task-text">
-                            <button
-                              type="button"
-                              class="task-title plain-button"
-                              :data-done="task.status === 'DONE' ? '' : undefined"
-                              :aria-label="t('project.timeline.openTask', { title: task.title })"
-                              @click.stop="emit('openTask', task.id)"
-                              @dblclick.stop="editTask(task)"
-                            >
-                              {{ task.title }}
-                            </button>
-                            <RichTextView
-                              v-if="!isEmptyDocument(task.description)"
-                              :content="task.description"
-                              class="wa-body-s task-description"
-                            />
-                          </div>
-                          <div class="task-meta">
-                            <TaskLabels :labels="task.labels" />
-                            <StatusBadge :status="task.status" />
-                            <DueDate
-                              :date="task.dueDate"
-                              :done="task.status === 'DONE'"
-                            />
-                            <span
-                              v-if="task.commentCount"
-                              class="task-comments"
-                            >
-                              <wa-icon name="comments"></wa-icon>
-                              {{ task.commentCount }}
-                              <span class="wa-visually-hidden">{{ t('kanban.comments') }}</span>
-                            </span>
-                            <UserLine
-                              v-if="task.assignee"
-                              :name="task.assignee.name"
-                              :src="task.assignee.avatarUrl"
-                              size="xs"
-                            />
-                            <span
-                              v-else
-                              class="task-unassigned"
-                            >{{ t('project.timeline.unassigned') }}</span>
-                          </div>
-                        </li>
+                          :task="task"
+                          :menu="taskMenu(task, todo.id)"
+                          @open="emit('openTask', task.id)"
+                          @edit="editTask(task)"
+                        />
                       </VueDraggable>
                       <p
                         v-if="!taskLists[todo.id]?.length && !dragging"
@@ -380,7 +430,10 @@ function toggleAll() {
                       </p>
                     </div>
 
-                    <div v-if="canCreateTask">
+                    <div
+                      v-if="canCreateTask"
+                      data-zen="hide"
+                    >
                       <wa-button
                         appearance="plain"
                         variant="neutral"
@@ -405,7 +458,10 @@ function toggleAll() {
                 {{ t('project.noTodos') }}
               </p>
 
-              <div v-if="canCreateTodo">
+              <div
+                v-if="canCreateTodo"
+                data-zen="hide"
+              >
                 <wa-button
                   appearance="plain"
                   variant="neutral"
@@ -420,7 +476,7 @@ function toggleAll() {
                   {{ t('item.todo.create') }}
                 </wa-button>
               </div>
-            </template>
+            </div>
           </div>
         </template>
       </StepTimeline>
@@ -561,87 +617,6 @@ function toggleAll() {
 .task-list-droppable {
   min-block-size: 2.5rem;
   border: var(--wa-border-width-s) dashed var(--wa-color-surface-border);
-}
-
-.task {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--wa-space-xs);
-  padding: var(--wa-space-xs) var(--wa-space-s);
-  cursor: pointer;
-}
-
-.task + .task {
-  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
-}
-
-.task:hover {
-  background-color: var(--wa-color-neutral-fill-quiet);
-}
-
-.task-ghost {
-  opacity: 0.4;
-}
-
-.task-icon {
-  margin-block-start: var(--wa-space-3xs);
-  color: var(--wa-color-text-quiet);
-}
-
-.task-text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--wa-space-3xs);
-  min-inline-size: 12rem;
-}
-
-.task-title {
-  align-self: flex-start;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-size: var(--wa-font-size-s);
-  font-weight: var(--wa-font-weight-semibold);
-  text-align: start;
-  cursor: pointer;
-}
-
-.task-title:focus-visible {
-  text-decoration: underline;
-  outline: none;
-}
-
-.task-title[data-done] {
-  color: var(--wa-color-text-quiet);
-  text-decoration: line-through;
-}
-
-.task-description {
-  color: var(--wa-color-text-quiet);
-}
-
-.task-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--wa-space-s);
-}
-
-.task-comments {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--wa-space-3xs);
-  color: var(--wa-color-text-quiet);
-  font-size: var(--wa-font-size-xs);
-}
-
-.task-unassigned {
-  color: var(--wa-color-text-quiet);
-  font-size: var(--wa-font-size-xs);
 }
 
 .task-none {

@@ -27,6 +27,14 @@ describe('FormInput', () => {
     expect(field(input).required).toBe(true)
   })
 
+  it('gives date fields an empty placeholder, so the label stays above the browser placeholder', async () => {
+    const date = await mountSuspended(FormInput, { props: { modelValue: '', label: 'Fällig' }, attrs: { type: 'date' } })
+    const text = await mountSuspended(FormInput, { props: { modelValue: '', label: 'Titel' }, attrs: { type: 'text' } })
+
+    expect(date.element.getAttribute('placeholder')).toBe('')
+    expect(text.element.hasAttribute('placeholder')).toBe(false)
+  })
+
   it('writes what the user types back with v-model', async () => {
     const input = await mountSuspended(FormInput, { props: { modelValue: '' } })
 
@@ -98,7 +106,10 @@ describe('FormSelect', () => {
 describe.each([
   ['FormCheckbox', FormCheckbox, 'WA-CHECKBOX'],
   ['FormSwitch', FormSwitch, 'WA-SWITCH']
-] as const)('%s', (_name, component, tag) => {
+] as const)('%s', (_name, anyBox, tag) => {
+  /** Both take the same props; one type keeps TypeScript from a too complex union. */
+  const component = anyBox as typeof FormCheckbox
+
   it('shows the label and the state and writes a change back with v-model', async () => {
     const box = await mountSuspended(component, { props: { modelValue: false, label: 'Mails senden', hint: 'Nur bei Zuweisung' } })
 

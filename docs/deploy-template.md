@@ -76,7 +76,8 @@ DB_PASSWORD=
 SESSION_DRIVER=database
 SESSION_DOMAIN=.<domain>
 FRONTEND_URL=https://<frontend-domain>
-SANCTUM_STATEFUL_DOMAINS=<frontend-domain>
+SANCTUM_STATEFUL_DOMAINS=<frontend-domain>   # ohne lokale IP
+# CORS_ALLOWED_ORIGINS bleibt leer: nur für die Entwicklung im lokalen Netz
 QUEUE_CONNECTION=database
 CACHE_STORE=database
 
@@ -89,7 +90,9 @@ MAIL_PASSWORD=
 MAIL_FROM_ADDRESS="<absender@domain>"
 MAIL_FROM_NAME="${APP_NAME}"
 
-ANTHROPIC_API_KEY=             # nur, falls der KI-Assistent genutzt wird
+ANTHROPIC_API_KEY=             # nur, falls der KI-Assistent genutzt wird (ohne Schlüssel bleibt er aus)
+# ASSISTANT_LIMIT_HOUR=30      # Entwürfe je Person und Stunde (Standard)
+# ASSISTANT_LIMIT_DAY=200      # und je Tag (Standard)
 ```
 
 Bei einem Frontend ohne Backend entfällt dieser Abschnitt.
@@ -155,14 +158,15 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
    git fetch -q origin main && git checkout -q -f -B main origin/main
    ```
 2. `backend/.env` aus Abschnitt 5 anlegen, `chmod 600`.
-3. Backend-Abhängigkeiten mit PHP 8.5:
+3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`):
    ```bash
-   export PATH=/usr/local/php85/bin:$PATH
    cd ~/apps/<projekt>/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
    php artisan storage:link
    ```
-4. **Migration nur nach Freigabe und mit Backup:** `php artisan migrate --force`.
+4. **Migration nur nach Freigabe und mit Backup:** `php artisan migrate --force`, danach `php artisan planer:sync-templates` (schreibt die mitgelieferten Vorlagen aus `spec/templates/` in die Datenbank, wiederholbar).
+   **Vor dem Deployment von M4:** `php artisan planer:check-limits` (listet je Projekt, wo Daten eine Grenze der Planer-Datei verletzen: 30 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibung höchstens 5000 Zeichen als Markdown; ändert nichts, Exit-Code 1 bei Funden). Funde zuerst von Hand bereinigen: Ein Projekt mit Überschreitungen lässt sich nicht exportieren.
+   **Breaking Change am Connector (M4 I3):** Der MCP-Server hat nur noch `list_projects`, `list_users`, `list_templates`, `export_plan` und `import_plan`. `get_project`, `create_project`, `set_project_member`, `create_project_plan`, `add_to_plan`, `update_plan_item`, `move_milestone` und `set_task_status` entfallen. Zugänge und Konfiguration bleiben gültig. Wer sie nutzt, vor dem Deployment informieren (`docs/claude-connector.md`).
 5. Docroot der API (`~/www/<api-domain>`): Da Hostpoint diesen Ordner selbst anlegt, wird er gefüllt statt verlinkt:
    - `index.php` kopieren und die Pfade auf `~/apps/<projekt>/backend` umstellen (`__DIR__.'/../` durch den absoluten Pfad ersetzen).
    - Die Hostpoint-Zeilen oben in der `.htaccess` (`Use php-fpm latest` und `#@__HCP_END__@#`) behalten, darunter die Laravel-Regeln aus `backend/public/.htaccess`.
@@ -170,6 +174,24 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
 6. Docroot des Frontends (`~/www/<frontend-domain>`): leer lassen, der Deploy befüllt ihn.
 
 ---
+
+### Cron (Queue und Scheduler)
+
+Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in der Queue (`QUEUE_CONNECTION=database`). Auf dem Hostpoint-Server läuft kein Dauerprozess. Darum startet der Scheduler jede Minute einen Worker, der arbeitet, bis die Queue leer ist (`routes/console.php`: `queue:work --stop-when-empty --max-time=55`). Dazu genügt **ein** Cron-Eintrag im Hostpoint-Panel (Cron-Jobs), jede Minute:
+
+```
+* * * * * cd <api-pfad> && <php-pfad> artisan schedule:run >> /dev/null 2>&1
+```
+
+`<api-pfad>` ist der Ordner des Backends (`~/apps/<projekt>/backend`), `<php-pfad>` das PHP 8.5 des Servers (`php -v` prüfen, im Panel den vollen Pfad eintragen).
+
+**Ohne diesen Eintrag gehen weder Mails noch Webhooks raus**, und es erscheint kein Fehler. Prüfen: In der App einen Task zuweisen oder in den Projekteinstellungen „Testen“ drücken; innerhalb von zwei Minuten kommt die Mail bzw. der Test an. Der Eintrag ist ein einmaliger Schritt (macht Oliver im Panel).
+
+### Nach dem Deploy und bei Problemen
+
+- **Assistent prüfen:** `php artisan assistant:ping` schickt eine kleine echte Anfrage mit dem echten Schema an die Claude-API und meldet OK oder den Fehler der API (schreibt nichts, braucht `ANTHROPIC_API_KEY`). Nach dem Deploy auf dem Server laufen lassen, dann einen Entwurf im Browser auslösen.
+- **Kein `migrate:rollback` in Produktion.** Einige `down()`-Migrationen verlieren Daten. Der Rückweg ist die Datenbank-Sicherung (`deploy.sh` legt sie vor den Migrationen an) plus der vorherige Release.
+- **Frontend-Build:** `NUXT_PUBLIC_API_BASE` ist die Build-Variable mit der API-Adresse. Leer gilt nur in der Entwicklung (dort wird die Adresse aus dem Host der Seite abgeleitet), in Produktion muss sie gesetzt sein.
 
 ## 9. Skript und Workflow anpassen
 
@@ -202,7 +224,7 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 ## 12. Stolpersteine
 
 - **DB-Host:** Nicht `localhost` verwenden. Der Socket existiert auf Hostpoint nicht.
-- **PHP-Version:** `php` in der Shell ist 8.3. Für das Projekt immer den vollen Pfad `/usr/local/php85/bin/php` nutzen oder `PATH` setzen (`~/.bash_profile`).
+- **PHP-Version:** `php` in der Shell ist 8.5. Zeigt `php -v` eine ältere Version, den vollen Pfad (z. B. `/usr/local/php85/bin/php`) nutzen oder `PATH` setzen (`~/.bash_profile`); `deploy.sh` bricht dann ab.
 - **Erster Lauf:** Liegt `deploy/deploy.sh` schon unverwaltet auf dem Server, vorher `git fetch origin main && git reset --hard origin/main` ausführen.
 - **Hostpoint-Block in `.htaccess`:** Nicht löschen, sonst wechselt die PHP-Version des Docroots.
 - **Frontend-Build:** Die API-Adresse wird beim Build eingebaut (`NUXT_PUBLIC_API_BASE`). Ändert sich die Domain, neu bauen.

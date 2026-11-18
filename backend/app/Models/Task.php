@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Casts\RichTextCast;
 use App\Enums\TaskStatus;
+use App\Models\Concerns\DerivesProject;
+use App\Models\Concerns\RecordsCreator;
 use App\Models\Concerns\VisibleToViewer;
 use App\Models\Contracts\BelongsToProject;
 use App\Observers\TaskObserver;
@@ -16,17 +18,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Status and position are changed by moveTask, the assignee by assignTask.
+ * Status and Kanban position are changed by moveTask, the assignee by assignTask.
  */
-#[Fillable(['todo_id', 'title', 'description', 'icon', 'due_date'])]
+#[Fillable(['todo_id', 'title', 'description', 'icon', 'due_date', 'user_story', 'commit'])]
 #[ObservedBy(TaskObserver::class)]
 class Task extends Model implements BelongsToProject
 {
     /** @use HasFactory<TaskFactory> */
-    use HasFactory, VisibleToViewer;
+    use DerivesProject, HasFactory, RecordsCreator, SoftDeletes, VisibleToViewer;
 
     /**
      * Same default as the database.
@@ -46,7 +49,9 @@ class Task extends Model implements BelongsToProject
             'description' => RichTextCast::class,
             'status' => TaskStatus::class,
             'due_date' => 'date',
+            'board_position' => 'integer',
             'position' => 'integer',
+            'user_story' => 'array',
         ];
     }
 
@@ -55,7 +60,7 @@ class Task extends Model implements BelongsToProject
      */
     public function todo(): BelongsTo
     {
-        return $this->belongsTo(Todo::class);
+        return $this->belongsTo(Todo::class)->withTrashed();
     }
 
     /**
@@ -86,9 +91,30 @@ class Task extends Model implements BelongsToProject
         return $this->hasMany(Comment::class)->oldest('id');
     }
 
+    /**
+     * @return BelongsTo<Project, $this>
+     */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class)->withTrashed();
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function owningProject(): Project
     {
-        return $this->todo->owningProject();
+        return $this->project;
+    }
+
+    protected function parentProjectId(): int|string
+    {
+        return Todo::query()->whereKey($this->todo_id)->value('project_id');
     }
 
     /**
@@ -98,10 +124,7 @@ class Task extends Model implements BelongsToProject
      */
     public function scopeInProject(Builder $query, int|string $projectId): void
     {
-        $query->whereIn('todo_id', Todo::query()
-            ->select('todos.id')
-            ->join('milestones', 'milestones.id', '=', 'todos.milestone_id')
-            ->where('milestones.project_id', $projectId));
+        $query->where('project_id', $projectId);
     }
 
     /**
@@ -135,6 +158,6 @@ class Task extends Model implements BelongsToProject
 
     protected static function projectPath(): ?string
     {
-        return 'todo.milestone.project';
+        return 'project';
     }
 }

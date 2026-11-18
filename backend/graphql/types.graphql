@@ -8,9 +8,9 @@ type User {
   name: String!
   email: String!
   "Globale Berechtigungsrolle, unabhängig von Projekten"
-  role: UserRole!
-  "Funktion, zum Beispiel Designer. Nur zur Anzeige."
-  jobFunction: UserFunction @rename(attribute: "job_function")
+  role: Role!
+  "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
+  activity: UserActivity
   "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
   notifyByEmail: Boolean! @rename(attribute: "notify_by_email")
   "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
@@ -28,6 +28,10 @@ type User {
   "Zugewiesene Tasks, soweit du sie sehen darfst"
   assignedTasks: [Task!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserTasks")
   createdAt: DateTime! @rename(attribute: "created_at")
+  "Hat ein Admin das Konto freigegeben? Selbst registrierte Konten warten, bis ein Admin es freigibt."
+  approved: Boolean!
+  "Ist die E-Mail-Adresse bestätigt? Selbst registrierte Konten bestätigen sie zuerst."
+  emailVerified: Boolean!
 }
 
 "Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"
@@ -59,39 +63,75 @@ type NewApiToken {
 type Project {
   id: ID!
   name: String!
-  description: String
+  "Formatierter Text, gleiche Regeln wie bei Milestones"
+  description: RichText
   "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
   icon: String
   "Sprache der Benachrichtigungsmails dieses Projekts"
   locale: Locale!
-  "Label-Set der Tasks dieses Projekts. null = keins gewählt."
-  labelSet: LabelSet @belongsTo
+  "Die Labels dieses Projekts in ihrer Reihenfolge"
+  labels: [Label!]! @hasMany
+  "Die Vorlage, aus der das Projekt angelegt wurde (nur zur Anzeige; null: ohne Vorlage oder Vorlage gelöscht)"
+  template: Template @belongsTo
   members: [ProjectMember!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectMembers")
   milestones: [Milestone!]! @hasMany
+  "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
+  planerRevision: Int! @rename(attribute: "planer_revision")
+  "KI-Kontext: Hintergrundwissen für den Assistenten. Lesen dürfen alle, die das Projekt sehen; null, solange keiner angelegt ist."
+  aiContext: ProjectAiContext @hasOne(relation: "aiContext")
+  "Benachrichtigung bei Änderungen der Planer-Datei (GitHub oder allgemein). Nur mit project.update, sonst null."
+  webhook: ProjectWebhook @field(resolver: "App\\GraphQL\\Resolvers\\ProjectWebhookField")
+  "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
+  archivedAt: DateTime @rename(attribute: "archived_at")
+  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
+  deletionId: ID @rename(attribute: "deletion_id")
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
   progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
-  viewerRole: ProjectRole @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
+  viewerRole: Role @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
   "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
-  viewerAbilities: [ProjectAbility!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerAbilities")
+  viewerRights: [Right!]! @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ProjectViewerRights")
   createdAt: DateTime! @rename(attribute: "created_at")
 }
 
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
   user: User!
-  role: ProjectRole!
+  role: Role!
+}
+
+"Eine Person für die Auswahl von Mitgliedern: nur Name und Bild, ohne E-Mail und Sicherheitsstatus."
+type MemberCandidate {
+  id: ID!
+  name: String!
+  avatarUrl: String
+  "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
+  isMember: Boolean!
+}
+
+"Version eines Milestones und ihre Freigabe"
+type Release {
+  "Version im Format M.m, zum Beispiel 1.4"
+  version: String!
+  status: ReleaseStatus!
 }
 
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   project: Project! @belongsTo
+  createdBy: User @belongsTo
+  "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
+  position: Int!
   title: String!
   description: RichText
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
   icon: String
   dueDate: Date @rename(attribute: "due_date")
+  "Version und Freigabe, null wenn der Milestone keine Version hat"
+  release: Release
   "DONE, sobald alle ToDos erledigt sind"
   status: ItemStatus!
   todos: [Todo!]! @hasMany
@@ -102,7 +142,13 @@ type Milestone {
 "Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
 type Todo {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   milestone: Milestone! @belongsTo
+  "Reihenfolge im Milestone, von 0 an. Die ToDos kommen in dieser Reihenfolge."
+  position: Int!
+  project: Project! @belongsTo
+  createdBy: User @belongsTo
   title: String!
   description: RichText
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
@@ -115,16 +161,33 @@ type Todo {
   createdAt: DateTime! @rename(attribute: "created_at")
 }
 
+"Die Story eines Tasks, Klartext in drei Teilen."
+type UserStory {
+  role: String!
+  goal: String!
+  benefit: String!
+}
+
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
 type Task {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   todo: Todo! @belongsTo
+  project: Project! @belongsTo
+  createdBy: User @belongsTo
   title: String!
   description: RichText
+  "Die Story des Tasks: Als <Rolle> möchte ich <Ziel>, damit <Nutzen>."
+  userStory: UserStory @rename(attribute: "user_story")
   "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
   icon: String
   status: TaskStatus!
+  "Commit der Umsetzung: Hash (7 bis 40 Zeichen), none (ohne Commit, nur bei erledigten Tasks) oder null"
+  commit: String
   "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
+  boardPosition: Int! @rename(attribute: "board_position")
+  "Reihenfolge im ToDo, von 0 an. Die Tasks eines ToDos kommen in dieser Reihenfolge (Zeitachse, Planer-Datei)."
   position: Int!
   dueDate: Date @rename(attribute: "due_date")
   assignee: User @belongsTo(relation: "assignee")
@@ -134,49 +197,114 @@ type Task {
   "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
   labels: [Label!]! @belongsToMany
   createdAt: DateTime! @rename(attribute: "created_at")
+  "Darf die angemeldete Person den Task ändern? Auch mit task.updateOwn beim selbst angelegten Task."
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@update")
+  "Darf sie den Task beliebigen Personen zuweisen (task.assign)?"
+  viewerCanAssign: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@assign")
+  "Darf sie sich den Task wenigstens selbst zuweisen (task.assign oder task.assignSelf)?"
+  viewerCanAssignSelf: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@assignSelf")
+  "Darf sie den Task löschen?"
+  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TaskViewerCan@delete")
 }
 
-"Eine Gruppe von Labels, app-weit. Jedes Projekt wählt ein Set."
-type LabelSet {
-  id: ID!
-  "Mitgelieferte Sets: übersetzt nach Accept-Language"
-  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setName")
-  description: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@setDescription")
-  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
-  isBuiltin: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@isBuiltin")
-  labels: [Label!]! @hasMany
-  "Wie viele Projekte das Set gewählt haben. Ein Set in Gebrauch lässt sich nicht löschen."
-  usedByProjects: Int! @count(relation: "projects")
-  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@update")
-  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\LabelSetViewerCan@delete")
+"Der Name eines Labels in einer Sprache"
+type LabelName {
+  locale: Locale!
+  name: String!
 }
 
+"Ein Label eines Projekts. Jedes Projekt hat eigene Labels."
 type Label {
   id: ID!
-  "Labels mitgelieferter Sets: übersetzt nach Accept-Language"
-  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelName")
-  "Gruppe im Set, zum Beispiel Phase oder Typ"
-  category: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelCategory")
+  "Stabiler Schlüssel (a-z, 0-9, _ und -, höchstens 40 Zeichen, eindeutig im Projekt), ändert sich nie"
+  key: String!
+  "Name in der Sprache der Oberfläche, sonst in der des Projekts"
+  name: String! @with(relation: "project") @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelName")
+  "Die Namen in allen Sprachen, die das Label hat"
+  names: [LabelName!]! @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelNames")
+  "Gruppe, zum Beispiel `phase` oder `type`, wie geschrieben"
+  category: String
+  "Die Gruppe für die Anzeige: bei mitgelieferten Vorlagen übersetzt, sonst wie geschrieben"
+  categoryLabel: String @field(resolver: "App\\GraphQL\\Resolvers\\LabelText@labelCategory")
   color: LabelColor!
-  "Reihenfolge im Set, beginnt bei 0"
+  "Reihenfolge im Projekt, beginnt bei 0"
   position: Int!
-  labelSet: LabelSet! @belongsTo
+  "An wie vielen Tasks das Label hängt (ohne Tasks im Papierkorb)"
+  taskCount: Int! @count(relation: "tasks")
+}
+
+"Eine Vorlage für Projekte: Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks. Alle Angemeldeten sehen alle Vorlagen."
+type Template {
+  id: ID!
+  "Nur mitgelieferte Vorlagen haben einen Schlüssel"
+  key: String
+  "Mitgelieferte Vorlagen: übersetzt nach Accept-Language"
+  name: String! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@name")
+  description: String @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@description")
+  "Sprache der Vorlage (ihrer Titel und Beschreibungen)"
+  locale: Locale!
+  labels: [TemplateLabel!]! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@labels")
+  "Das Gerüst zum Ansehen: Milestones, ToDos und Tasks nach Titel"
+  outline: [TemplateOutlineMilestone!]! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@outline")
+  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
+  isBuiltin: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateText@isBuiltin")
+  "null bei mitgelieferten Vorlagen und wenn die Person gelöscht wurde"
+  createdBy: User @belongsTo(relation: "creator")
+  "Wie viele Projekte aus dieser Vorlage angelegt wurden"
+  projectCount: Int! @count(relation: "projects")
+  "Die Vorlage als Planer-Datei (planer-v2, kanonischer Text), zum Herunterladen und Ansehen"
+  file: String! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateFile")
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateViewerCan@update")
+  viewerCanDelete: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\TemplateViewerCan@delete")
+}
+
+"Ein Label einer Vorlage"
+type TemplateLabel {
+  key: String!
+  "Name in der Sprache der Oberfläche, sonst in der der Vorlage"
+  name: String!
+  names: [LabelName!]!
+  category: String
+  categoryLabel: String
+  color: LabelColor!
+}
+
+type TemplateOutlineMilestone {
+  title: String!
+  "Version, wenn der Milestone eine hat"
+  version: String
+  todos: [TemplateOutlineTodo!]!
+}
+
+type TemplateOutlineTodo {
+  title: String!
+  tasks: [TemplateOutlineTask!]!
+}
+
+type TemplateOutlineTask {
+  title: String!
+  "Schlüssel der Labels des Tasks"
+  labels: [String!]!
 }
 
 "Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
 type Comment {
   id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
   task: Task! @belongsTo
   "null, wenn die Person inzwischen gelöscht wurde"
   author: User @belongsTo(relation: "author")
   "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
   body: RichText!
   "Darfst du den Text ändern? Nur die Autorin oder der Autor."
-  viewerCanEdit: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
+  viewerCanEdit: Boolean! @with(relation: "task.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@edit")
   "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
-  viewerCanDelete: Boolean! @with(relation: "task.todo.milestone.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
+  viewerCanDelete: Boolean! @with(relation: "task.project.members") @field(resolver: "App\\GraphQL\\Resolvers\\CommentViewerCan@delete")
   createdAt: DateTime! @rename(attribute: "created_at")
   updatedAt: DateTime! @rename(attribute: "updated_at")
+  "Wann der Text zuletzt geändert wurde; null, solange er unverändert ist. Löschen und Wiederherstellen zählen nicht."
+  editedAt: DateTime @rename(attribute: "edited_at")
 }
 
 "Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
@@ -185,6 +313,8 @@ type AppSettings {
   twoFactorEnabled: Boolean!
   "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
   twoFactorSwitchable: Boolean!
+  "Projektrolle, die man im Projekt bekommt, das man selbst anlegt (Standard: Owner). Muss project.delete haben."
+  projectCreatorRole: Role!
 }
 
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
@@ -207,23 +337,185 @@ type Dashboard {
   upcomingTodos(limit: Int = 5 @rules(apply: ["integer", "min:1", "max:50"])): [Todo!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@upcomingTodos")
   "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
   myOpenTasks: [Task!]! @field(resolver: "App\\GraphQL\\Queries\\Dashboard@myOpenTasks")
-  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+  projects: [Project!]! @all(scopes: ["visibleToViewer", "notArchived"])
 }
 
-"Rechte-Tabelle (nur Admin): globale Fähigkeiten und Projektfähigkeiten, je mit den Rollen, die sie haben."
+"Berechnete Übersicht Rolle × Recht: Systemrechte und Projektrechte, je mit den Rollen, die sie haben."
 type PermissionMatrix {
-  system: [SystemAbilityRow!]!
-  project: [ProjectAbilityRow!]!
+  system: [SystemRightRow!]!
+  project: [ProjectRightRow!]!
 }
 
-"Eine globale Fähigkeit und die Rollen, die sie haben."
-type SystemAbilityRow {
-  ability: SystemAbility!
-  roles: [UserRole!]!
+"Ein Systemrecht und die Systemrollen, die es haben."
+type SystemRightRow {
+  right: Right!
+  roles: [Role!]!
 }
 
-"Eine Projektfähigkeit und die Projektrollen, die sie haben. Admins dürfen alle Projektfähigkeiten, siehe Systemfähigkeit projects.manageAny."
-type ProjectAbilityRow {
-  ability: ProjectAbility!
-  roles: [ProjectRole!]!
+"Ein Projektrecht und die Projektrollen, die es haben. Wer das Systemrecht projects.manageAny hat, hat in jedem Projekt alle Projektrechte."
+type ProjectRightRow {
+  right: Right!
+  roles: [Role!]!
+}
+
+"Eine Rolle: ein benanntes Bündel von Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft. Siehe docs/rollen-funktionen-rechte.md."
+type Role {
+  id: ID!
+  scope: RoleScope!
+  "Fester Schlüssel, zum Beispiel manager. Eingaben und die Planer-Datei (members[].role) nennen die Rolle damit."
+  key: String!
+  names: LocalizedName!
+  "Rolle für neue Personen (System) bzw. neue Mitglieder (Projekt)"
+  isDefault: Boolean! @rename(attribute: "is_default")
+  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+  isStandard: Boolean! @rename(attribute: "is_standard")
+  "Die Rechte, die die Rolle über ihre Funktionen gibt"
+  rights: [Right!]!
+  "Die Funktionen der Rolle"
+  functions: [RoleFunction!]! @belongsToMany
+  "Obergrenze einer Systemrolle: die Projektrechte, die für die Person überhaupt wirken dürfen. null: alle (auch bei Projektrollen). Leere Liste: keine, die Person liest nur."
+  projectCap: [Right!] @rename(attribute: "project_cap_rights")
+  "Wie oft die Rolle vergeben ist (Personen bzw. Mitgliedschaften). Eine vergebene Rolle lässt sich nicht löschen. Nur mit dem Recht roles.manage."
+  usageCount: Int! @rename(attribute: "usage_count") @can(ability: "manageRoles", model: "App\\Models\\User")
+}
+
+"Eine Funktion: ein benanntes Bündel von Rechten eines Bereichs. Rollen bestehen aus Funktionen. Siehe docs/rollen-funktionen-rechte.md."
+type RoleFunction {
+  id: ID!
+  scope: RoleScope!
+  "Fester Schlüssel, zum Beispiel manage-tasks"
+  key: String!
+  names: LocalizedName!
+  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+  isStandard: Boolean! @rename(attribute: "is_standard")
+  rights: [Right!]!
+  "Wie viele Rollen die Funktion verwenden. Eine verwendete Funktion lässt sich nicht löschen."
+  usageCount: Int! @rename(attribute: "usage_count")
+}
+
+"Ein Name in beiden Sprachen der Oberfläche"
+type LocalizedName {
+  de: String!
+  en: String!
+}
+
+"Ein Vorgang im Papierkorb: das Element, mit dem das Löschen begann. Die anderen Elemente gingen mit (childCount)."
+type TrashItem {
+  "Kennung des Vorgangs für restoreFromTrash und purgeFromTrash"
+  deletionId: ID!
+  type: TrashItemType!
+  id: ID!
+  "Titel bzw. Name; bei Kommentaren ein Auszug, höchstens 80 Zeichen Klartext"
+  title: String!
+  "Das Projekt, auch wenn es selbst gelöscht ist"
+  project: Project
+  "null, wenn die Person inzwischen gelöscht wurde"
+  deletedBy: User
+  deletedAt: DateTime!
+  "Wie viele weitere Elemente im selben Vorgang"
+  childCount: Int!
+  "Dieselben je Art, zum Beispiel 3 ToDos und 12 Tasks"
+  childCounts: [TrashChildCount!]!
+  viewerCanRestore: Boolean!
+  viewerCanPurge: Boolean!
+}
+
+"Anzahl mitgelöschter Elemente einer Art"
+type TrashChildCount {
+  type: TrashItemType!
+  count: Int!
+}
+
+"Was ein Import tat, oder bei dryRun tun würde"
+type ImportResult {
+  "Ohne Fehler"
+  ok: Boolean!
+  dryRun: Boolean!
+  "Das Projekt (bei einem neuen erst nach dem Eintragen, nicht im Trockenlauf)"
+  projectId: ID
+  changes: [ImportChange!]!
+  "Bei Fehlern wurde nichts geschrieben"
+  errors: [ImportError!]!
+  "Die „-new-“-IDs der Datei und die IDs, die die App ihnen gab (leer im Trockenlauf)"
+  idMap: [ImportId!]!
+  "Der Export nach dem Import als kanonischer Text (nicht im Trockenlauf und nicht bei Fehlern)"
+  document: String
+}
+
+type ImportChange {
+  kind: ImportChangeKind!
+  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]; bei einem Löschen die ID des Elements"
+  path: String!
+  "ID des Elements (m-<id>, t-<id>, k-<id>)"
+  id: String
+  "Welche Felder betroffen sind"
+  fields: [String!]!
+  "Titel des Elements, bei einem Löschen (das Dokument kennt es nicht)"
+  title: String
+}
+
+type ImportError {
+  path: String!
+  "invalid, revision, archived, denied, unknown_id, person, role, self, assignee, description, limit oder rule"
+  kind: String!
+  message: String!
+}
+
+type ImportId {
+  from: String!
+  to: String!
+}
+
+"Wohin die App meldet, dass die Planer-Datei eine neue Revision hat. Das Geheimnis (Token oder HMAC-Geheimnis) gibt kein Feld zurück."
+type ProjectWebhook {
+  kind: WebhookKind!
+  "GitHub: besitzer/name. Allgemein: die Adresse."
+  target: String!
+  "Ein Geheimnis ist gespeichert (der Wert nie)"
+  hasSecret: Boolean!
+  lastSentAt: DateTime @rename(attribute: "last_sent_at")
+  lastSentRevision: Int @rename(attribute: "last_sent_revision")
+  lastFailedAt: DateTime @rename(attribute: "last_failed_at")
+  "Kurzer Code: timeout, connection, target, HTTP <Status>, error. Nie Kopfzeilen oder Antworttext."
+  lastError: String @rename(attribute: "last_error")
+}
+
+"Ergebnis eines Testversands"
+type WebhookTestResult {
+  ok: Boolean!
+  message: String!
+}
+
+"Eine private Idee. Nur die Autorin oder der Autor ändert sie; wer ideas.viewAny hat, liest alle."
+type Idea {
+  id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
+  title: String!
+  description: RichText
+  author: User! @belongsTo(relation: "author")
+  "Das Projekt, zu dem die Idee gehört, oder null"
+  project: Project @belongsTo
+  status: IdeaStatus!
+  "Entwurf: ein planer-v2-Ausschnitt als kanonischer Text, oder null"
+  draft: String
+  createdAt: DateTime! @rename(attribute: "created_at")
+  adoptedAt: DateTime @rename(attribute: "adopted_at")
+  "Die ToDos, die aus dieser Idee entstanden sind"
+  todos: [Todo!]! @hasMany
+  "Darf die angemeldete Person die Idee ändern (nur die Autorin)?"
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\IdeaViewerCan@update")
+}
+
+"Hintergrundwissen eines Projekts für den Assistenten: ein Text und der Text einer Datei, zusammen höchstens 20 000 Zeichen"
+type ProjectAiContext {
+  text: String
+  fileName: String @rename(attribute: "file_name")
+  fileText: String @rename(attribute: "file_text")
+  "Zeichen von Text und Datei zusammen"
+  characters: Int!
+  "Für externe Werkzeuge (MCP get_project_ai_context) freigegeben"
+  sharedWithTools: Boolean! @rename(attribute: "shared_with_tools")
+  updatedAt: DateTime! @rename(attribute: "updated_at")
+  updatedBy: User @belongsTo(relation: "updatedBy")
 }

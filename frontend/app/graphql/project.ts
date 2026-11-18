@@ -10,6 +10,7 @@ export const projectOverviewQuery = graphql(`
         description
         icon
         dueDate
+        release { version status }
         status
         progress { done total percent }
         todos {
@@ -37,6 +38,7 @@ export const projectTimelineQuery = graphql(`
         description
         icon
         dueDate
+        release { version status }
         status
         progress { done total percent }
         todos {
@@ -54,9 +56,12 @@ export const projectTimelineQuery = graphql(`
             icon
             status
             dueDate
+            userStory { role goal benefit }
             commentCount
             labels { id name color position }
             assignee { id name avatarUrl }
+            viewerCanUpdate
+            viewerCanDelete
           }
         }
       }
@@ -87,13 +92,19 @@ export const createMilestoneMutation = graphql(`
 
 export const updateMilestoneMutation = graphql(`
   mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {
-    updateMilestone(id: $id, input: $input) { id title description icon dueDate }
+    updateMilestone(id: $id, input: $input) { id title description icon dueDate release { version status } }
+  }
+`)
+
+export const moveMilestoneMutation = graphql(`
+  mutation MoveMilestone($id: ID!, $position: Int!) {
+    moveMilestone(id: $id, position: $position) { id }
   }
 `)
 
 export const deleteMilestoneMutation = graphql(`
   mutation DeleteMilestone($id: ID!) {
-    deleteMilestone(id: $id) { id }
+    deleteMilestone(id: $id) { id deletionId }
   }
 `)
 
@@ -111,13 +122,6 @@ export const updateTodoMutation = graphql(`
 
 export const deleteTodoMutation = graphql(`
   mutation DeleteTodo($id: ID!) {
-    deleteTodo(id: $id) { id }
+    deleteTodo(id: $id) { id deletionId }
   }
 `)
-
-/**
- * After a change, reload every query on screen ('active'): statuses and
- * progress are derived by the backend. Queries not on screen use
- * cache-and-network and fetch fresh data when they are shown again.
- */
-export const projectContentQueries = 'active' as const

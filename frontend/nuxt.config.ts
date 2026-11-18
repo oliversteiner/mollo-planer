@@ -9,8 +9,13 @@ const duotoneLight = `${fontAwesome}/svgs-full/duotone-light`
 const iconCatalog = fileURLToPath(new URL('./node_modules/.cache/icon-catalog', import.meta.url))
 ensureIconCatalog(fontAwesome, iconCatalog)
 
+// The Markdown view of a planer file is the one of tools/planer (docs/auftrag-m4.md §7): only
+// modules without node: imports (render-planer, planer-words) are used in the browser.
+const planerCore = fileURLToPath(new URL('../tools/planer/core', import.meta.url))
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
@@ -39,7 +44,7 @@ export default defineNuxtConfig({
   },
 
   // Web Awesome (theme, native styles, utilities), then the own styles.
-  css: ['~/assets/css/webawesome.css', '~/assets/css/base.css', '~/assets/css/rich-text.css', '~/assets/css/animations.css'],
+  css: ['~/assets/css/webawesome.css', '~/assets/css/base.css', '~/assets/css/rich-text.css', '~/assets/css/animations.css', '~/assets/css/zen.css'],
 
   // Web Awesome components are custom elements (wa-*), not Vue components.
   vue: {
@@ -50,15 +55,20 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      // Address of the Laravel backend; override with NUXT_PUBLIC_API_BASE.
-      apiBase: 'http://localhost:8000'
+      // Address of the Laravel backend; set it with NUXT_PUBLIC_API_BASE. Empty: the development server uses the
+      // host of the page with port 8000, a build falls back to http://localhost:8000 (utils/api-base.ts).
+      apiBase: ''
     }
   },
+  alias: {
+    '#planer-core': planerCore
+  },
 
-  // Dev server only on this machine (WSL forwards localhost to Windows),
-  // not reachable from the network.
+  // Development server (not used by "nuxt generate" and never in production): reachable from the local
+  // network, for example from a tablet at http://<IP of the Mac>:3000.
   devServer: {
-    host: '127.0.0.1'
+    host: '0.0.0.0',
+    port: 3000
   },
 
   compatibilityDate: '2026-06-30',
@@ -78,6 +88,14 @@ export default defineNuxtConfig({
         baseURL: '/icons'
       }
     ]
+  },
+
+  vite: {
+    server: {
+      fs: { allow: ['..'] },
+      // The dev server answers to the IP of the Mac too (Vite blocks unknown host names otherwise).
+      allowedHosts: true
+    }
   },
 
   hooks: {

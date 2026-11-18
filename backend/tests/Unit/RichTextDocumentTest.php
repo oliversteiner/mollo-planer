@@ -13,6 +13,11 @@ class RichTextDocumentTest extends TestCase
         $this->assertNull(RichTextDocument::validate($this->fullDocument()));
     }
 
+    public function test_inline_code_mark_passes(): void
+    {
+        $this->assertNull(RichTextDocument::validate(self::paragraph(['type' => 'text', 'text' => 'x', 'marks' => [['type' => 'code']]])));
+    }
+
     /**
      * @return array<string, array{mixed, string}>
      */
@@ -29,7 +34,6 @@ class RichTextDocumentTest extends TestCase
             'heading level 4' => [self::doc(['type' => 'heading', 'attrs' => ['level' => 4], 'content' => [$text]]), 'heading_level'],
             'heading without level' => [self::doc(['type' => 'heading', 'content' => [$text]]), 'heading_level'],
             'strike mark' => [self::paragraph(['type' => 'text', 'text' => 'x', 'marks' => [['type' => 'strike']]]), 'mark_not_allowed'],
-            'code mark' => [self::paragraph(['type' => 'text', 'text' => 'x', 'marks' => [['type' => 'code']]]), 'mark_not_allowed'],
             'javascript link' => [self::link('javascript:alert(1)'), 'link_not_allowed'],
             'data link' => [self::link('data:text/html,<script>alert(1)</script>'), 'link_not_allowed'],
             'link with spaces' => [self::link('https://example.com/a b'), 'link_not_allowed'],
@@ -71,9 +75,9 @@ class RichTextDocumentTest extends TestCase
 
     public function test_depth_limit(): void
     {
-        // doc (1) + 7 blockquotes + paragraph + text = depth 10.
-        $this->assertNull(RichTextDocument::validate(self::nestedQuotes(7)));
-        $this->assertSame('too_deep', RichTextDocument::validate(self::nestedQuotes(8))[0]);
+        // doc (1) + 17 blockquotes + paragraph + text = depth 20.
+        $this->assertNull(RichTextDocument::validate(self::nestedQuotes(17)));
+        $this->assertSame('too_deep', RichTextDocument::validate(self::nestedQuotes(18))[0]);
     }
 
     public function test_node_count_limit(): void

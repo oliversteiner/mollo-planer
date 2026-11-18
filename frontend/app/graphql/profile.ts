@@ -8,6 +8,7 @@ export const myTasksQuery = graphql(`
       icon
       status
       dueDate
+      userStory { role goal benefit }
       commentCount
       description
       assignee { id name }
@@ -26,8 +27,8 @@ export const myTasksQuery = graphql(`
 `)
 
 export const updateMyNotificationsMutation = graphql(`
-  mutation UpdateMyNotifications($emailEnabled: Boolean!) {
-    updateMyNotifications(emailEnabled: $emailEnabled) { id notifyByEmail }
+  mutation UpdateMyNotifications($notifyByEmail: Boolean!) {
+    updateMyNotifications(notifyByEmail: $notifyByEmail) { id notifyByEmail }
   }
 `)
 

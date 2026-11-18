@@ -12,4 +12,12 @@ return [
         'invited' => 'Admin :email created. The invitation is sent through the queue. A second factor or passkey is set up at the first login.',
         'created' => 'Admin :email created. A second factor or passkey is set up at the first login.',
     ],
+    'check_limits' => [
+        'clean' => 'No project breaks a limit of the planer file.',
+        'found' => ':findings places in :projects projects break a limit of the planer file. Clean them up before exporting.',
+    ],
+    'prune_unverified' => [
+        'invalid_days' => 'The number of days must be at least 1.',
+        'done' => 'Deleted :count unconfirmed accounts.',
+    ],
 ];

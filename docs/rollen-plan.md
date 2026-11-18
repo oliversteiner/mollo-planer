@@ -1,5 +1,7 @@
 # Plan: Benutzerrollen und Rechte
 
+> **Hinweis (2026-11-13, D1):** Ersetzt durch `rollen-funktionen-rechte.md` (2026-11-13). Nur noch Geschichte.
+
 Stand: 2026-11-10. Status: **Rollenkatalog übernommen.** Die restlichen offenen Entscheidungen stehen unten. Noch nicht gebaut.
 
 ## Ausgangslage

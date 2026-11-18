@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Enums\ProjectAbility;
+use App\Enums\Right;
 use App\Models\Comment;
 use App\Models\User;
 use App\Policies\Concerns\ChecksProjectAbilities;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 
 class CommentPolicy
 {
@@ -14,7 +14,8 @@ class CommentPolicy
 
     /**
      * Only the author edits a comment, and only while they can still see
-     * the project. Nobody edits someone else's comment, not even an admin.
+     * the project and it is not archived. Nobody edits someone else's
+     * comment, not even an admin.
      */
     public function update(User $user, Comment $comment): bool
     {
@@ -28,12 +29,33 @@ class CommentPolicy
     public function delete(User $user, Comment $comment): bool
     {
         return $this->isAuthorWithAccess($user, $comment)
-            || $this->allows($user, $comment, ProjectAbility::COMMENT_MODERATE);
+            || $this->allows($user, $comment, Right::COMMENT_MODERATE);
+    }
+
+    /** Back from the trash: the author, or someone who may moderate. */
+    public function restore(User $user, Comment $comment): bool
+    {
+        return $this->delete($user, $comment);
+    }
+
+    /** Out of the trash for good, like the other elements. */
+    public function forceDelete(User $user, Comment $comment): bool
+    {
+        return $this->allows($user, $comment, Right::TRASH_PURGE);
     }
 
     private function isAuthorWithAccess(User $user, Comment $comment): bool
     {
-        return $comment->isAuthoredBy($user)
-            && ProjectPermissions::canView($user, $comment->owningProject());
+        $project = $comment->owningProject();
+
+        if (! $comment->isAuthoredBy($user) || ! Rights::canView($user, $project)) {
+            return false;
+        }
+
+        if ($project->isArchived()) {
+            $this->refuseAsArchived();
+        }
+
+        return true;
     }
 }

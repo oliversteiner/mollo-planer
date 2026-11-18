@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\AppSetting;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Log;
 final class AppSettings
 {
     private const TWO_FACTOR_ENABLED = 'two_factor_enabled';
+
+    private const PROJECT_CREATOR_ROLE = 'project_creator_role';
 
     /**
      * Is a second factor required? Checked by the login and both locks.
@@ -47,5 +50,25 @@ final class AppSettings
             'admin_id' => $admin->getKey(),
             'environment' => app()->environment(),
         ]);
+    }
+
+    /**
+     * The project role somebody gets in a project they create (standard:
+     * owner). A stored key that is no role any more falls back to owner,
+     * then to the default project role.
+     */
+    public static function projectCreatorRole(): Role
+    {
+        $key = AppSetting::query()->where('key', self::PROJECT_CREATOR_ROLE)->value('value');
+
+        return Role::byKey(Role::SCOPE_PROJECT, (string) $key)
+            ?? Role::byKey(Role::SCOPE_PROJECT, 'owner')
+            ?? Role::defaultOf(Role::SCOPE_PROJECT)
+            ?? throw new \RuntimeException('There is no project role.');
+    }
+
+    public static function setProjectCreatorRole(Role $role): void
+    {
+        AppSetting::query()->updateOrCreate(['key' => self::PROJECT_CREATOR_ROLE], ['value' => $role->key]);
     }
 }

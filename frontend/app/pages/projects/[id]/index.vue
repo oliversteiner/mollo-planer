@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
-import { deleteMilestoneMutation, deleteTodoMutation, projectContentQueries, projectTodosQuery } from '~/graphql/project'
+import type { MilestonePlace } from '~/components/project/Timeline.vue'
+import { deleteMilestoneMutation, deleteTodoMutation, moveMilestoneMutation, projectTodosQuery } from '~/graphql/project'
 import { projectMembersQuery } from '~/graphql/task'
 
 /**
@@ -12,8 +13,12 @@ import { projectMembersQuery } from '~/graphql/task'
  */
 const { t } = useI18n()
 const route = useRoute()
+
+// Someone else's changes show up within 30 seconds (S3f).
+useProjectRevisionPolling()
 const router = useRouter()
-const { projectId, can } = useProject()
+const { projectId, project, can } = useProject()
+const { can: canSystem } = useViewer()
 
 /** Only the milestones (?milestones=only). */
 const milestonesOnly = computed({
@@ -24,7 +29,7 @@ const milestonesOnly = computed({
 })
 
 /** Todos for the task dialog, members for it and the task details. */
-const taskFormEnabled = computed(() => can('TASK_CREATE') || can('TASK_UPDATE'))
+const taskFormEnabled = computed(() => can('TASK_CREATE') || can('TASK_UPDATE') || can('TASK_UPDATE_OWN'))
 const { result: todosResult } = useQuery(projectTodosQuery, () => ({ projectId: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
 const { result: membersResult } = useQuery(projectMembersQuery, () => ({ id: projectId.value }))
 const todos = computed(() => todosResult.value?.todos ?? [])
@@ -43,9 +48,6 @@ const returnToTaskId = ref<string | null>(null)
 
 const taskAbilities = computed(() => ({
   move: can('TASK_MOVE'),
-  assign: can('TASK_ASSIGN'),
-  update: can('TASK_UPDATE'),
-  delete: can('TASK_DELETE'),
   comment: can('COMMENT_CREATE')
 }))
 
@@ -55,7 +57,8 @@ function openTask(taskId: string): void {
 }
 
 function closeTask(): void {
-  const { task: _task, ...query } = route.query
+  // The task is the element of the focus view too: closing it ends the focus.
+  const { task: _task, focus: _focus, ...query } = route.query
   void router.replace({ query })
 }
 
@@ -87,29 +90,70 @@ type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
 
-const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: true }
-const { mutate: deleteMilestone } = useMutation(deleteMilestoneMutation, options)
-const { mutate: deleteTodo } = useMutation(deleteTodoMutation, options)
+const { mutate: deleteMilestone } = useProjectMutation(deleteMilestoneMutation)
+const { mutate: deleteTodo } = useProjectMutation(deleteTodoMutation)
+const { mutate: moveMilestone } = useProjectMutation(moveMilestoneMutation)
 
-const deletion = useConfirmedDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
+const deletion = useDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
   target.kind === 'milestone' ? deleteMilestone({ id: target.item.id }) : deleteTodo({ id: target.item.id })
 )
+
+// The buttons are in the page actions, which the calm view hides.
+useCommands(() => [
+  {
+    id: 'milestone-create',
+    label: t('item.milestone.create'),
+    icon: 'plus',
+    group: 'action',
+    visible: () => can('MILESTONE_CREATE'),
+    run: () => {
+      editing.value = { kind: 'milestone', parentId: projectId.value }
+    }
+  },
+  {
+    id: 'milestones-only',
+    label: t('zen.milestonesOnly'),
+    icon: 'flag',
+    group: 'action',
+    run: () => {
+      milestonesOnly.value = !milestonesOnly.value
+    }
+  }
+])
+
+/**
+ * Focus on a todo (?todo=…&focus=1, docs/zen-modus.md §4.5): the todo alone instead of the timeline. The timeline is
+ * only marked (data-zen) while a todo is focused; the zen frame hides it. The marking is data, the hiding is CSS.
+ */
+const { focusing, enterFocus } = useViewMode()
+const focusTodoId = computed(() => (focusing.value && typeof route.query.todo === 'string' ? route.query.todo : null))
 
 function startEditing(target: ItemFormTarget): void {
   editing.value = target
 }
 
 function startDeleting(target: { kind: 'milestone' | 'todo', item: Item }): void {
-  deletion.ask(target)
+  void deletion.remove(target)
 }
 
-/** Menu "Ändern / Löschen" of a milestone or todo, by the viewer's rights. */
-function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
+/** Menu "Ändern / Nach oben / Nach unten / Löschen" of a milestone or todo, by the viewer's rights. */
+function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace): ActionMenuItem[] {
   const prefix = kind === 'milestone' ? 'MILESTONE' : 'TODO'
   const items: ActionMenuItem[] = []
 
   if (can(`${prefix}_UPDATE`)) {
     items.push({ label: t('common.edit'), icon: 'pen', onSelect: () => startEditing({ kind, item }) })
+  }
+  if (kind === 'milestone' && place && can('MILESTONE_UPDATE')) {
+    if (place.index > 0) {
+      items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => void moveMilestone({ id: item.id, position: place.index - 1 }) })
+    }
+    if (place.index < place.count - 1) {
+      items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveMilestone({ id: item.id, position: place.index + 1 }) })
+    }
+  }
+  if (kind === 'todo') {
+    items.push({ label: t('zen.focus'), icon: 'bullseye', onSelect: () => void enterFocus({ kind: 'todo', id: item.id }) })
   }
   if (can(`${prefix}_DELETE`)) {
     items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => startDeleting({ kind, item }) })
@@ -121,6 +165,24 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
 
 <template>
   <div class="wa-stack wa-gap-l">
+    <Teleport
+      v-if="canSystem('ASSISTANT_USE') && !project?.archivedAt"
+      to="#page-actions"
+      defer
+    >
+      <wa-button
+        appearance="outlined"
+        variant="neutral"
+        @click="navigateTo({ path: '/assistant', query: { project: projectId } })"
+      >
+        <wa-icon
+          slot="start"
+          name="wand-magic-sparkles"
+        ></wa-icon>
+        {{ t('assistant.addWith') }}
+      </wa-button>
+    </Teleport>
+
     <Teleport
       v-if="can('MILESTONE_CREATE')"
       to="#page-actions"
@@ -138,15 +200,23 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
       </wa-button>
     </Teleport>
 
+    <TodoFocus
+      v-if="focusTodoId"
+      :project-id="projectId"
+      :todo-id="focusTodoId"
+      @open-task="openTask"
+    />
+
     <ProjectTimeline
       v-model:milestones-only="milestonesOnly"
+      :data-zen="focusTodoId ? 'hide' : undefined"
       :project-id="projectId"
       :actions="actions"
       :empty-hint="can('MILESTONE_CREATE') ? t('project.noMilestonesHint') : undefined"
       :can-create-todo="can('TODO_CREATE')"
       :can-create-task="can('TASK_CREATE')"
-      :can-update-task="can('TASK_UPDATE')"
       :can-move-task="can('TASK_UPDATE')"
+      :can-reorder-task="can('TASK_MOVE')"
       @create-todo="editing = { kind: 'todo', parentId: $event }"
       @create-task="createTask"
       @open-task="openTask"
@@ -169,14 +239,6 @@ function actions(kind: 'milestone' | 'todo', item: Item): ActionMenuItem[] {
       :todos="todos"
       :members="members"
       @close="closeTaskForm"
-    />
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t(`item.${deletion.target?.kind ?? 'todo'}.deleteTitle`)"
-      :description="t(`item.${deletion.target?.kind ?? 'todo'}.deleteDescription`, { title: deletion.target?.item.title ?? '' })"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
     />
   </div>
 </template>

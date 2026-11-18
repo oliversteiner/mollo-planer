@@ -6,13 +6,13 @@ body:
   type: graphql
   content:
     query: |
-      mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {
-        setProjectMember(projectId: $projectId, userId: $userId, role: $role) { members { role user { name } } }
+      mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {
+        setProjectMember(projectId: $projectId, userId: $userId, role: $role) { members { role { key } user { name } } }
       }
     variables: |-
       {
         "projectId": "{{projectId}}",
         "userId": "1",
-        "role": "MEMBER"
+        "role": "member"
       }
 order: 7000

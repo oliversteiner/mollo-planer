@@ -1,0 +1,21 @@
+{
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Text a mitten"
+          }
+        ]
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "kind": "image"
+    }
+  ]
+}

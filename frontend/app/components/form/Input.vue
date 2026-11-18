@@ -17,6 +17,15 @@ defineProps<{
 
 const model = defineModel<string>({ default: '' })
 
+/**
+ * Date and time fields always show the browser's own placeholder
+ * (TT.MM.JJJJ). The theme floats the label above only when the field has a
+ * placeholder, so an empty one keeps it out of the way (docs/fix-m1-abnahme.md F3.10).
+ */
+const DATE_TYPES = ['date', 'time', 'datetime-local', 'month', 'week']
+const attrs = useAttrs()
+const keepsLabelAbove = computed(() => DATE_TYPES.includes(String(attrs.type ?? '')) && attrs.placeholder === undefined)
+
 function onInput(event: Event) {
   model.value = (event.target as HTMLInputElement).value
 }
@@ -26,6 +35,7 @@ function onInput(event: Event) {
   <wa-input
     :value="model"
     :label="label"
+    :placeholder.attr="keepsLabelAbove ? '' : undefined"
     :class="{ 'wa-visually-hidden-label': hideLabel }"
     :hint="error ? undefined : hint"
     :aria-invalid="error ? 'true' : undefined"

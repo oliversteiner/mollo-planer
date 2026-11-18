@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { safeRedirect } from '~/utils/api'
+import { pendingAccountPath, safeRedirect } from '~/utils/api'
 
 /**
  * First setup after the invitation: an account needs an authenticator app
@@ -21,6 +21,8 @@ async function done(): Promise<void> {
 
   if (problem === null) {
     await navigateTo(safeRedirect(route.query.redirect))
+  } else if (pendingAccountPath(problem)) {
+    await navigateTo(pendingAccountPath(problem))
   }
 }
 </script>
@@ -44,6 +46,7 @@ async function done(): Promise<void> {
         class="wa-stack wa-gap-s"
       >
         <wa-button
+          class="setup-choice"
           variant="brand"
           size="l"
           style="width: 100%"
@@ -56,6 +59,7 @@ async function done(): Promise<void> {
           {{ t('auth.setup.passkey') }}
         </wa-button>
         <wa-button
+          class="setup-choice"
           appearance="outlined"
           variant="neutral"
           size="l"
@@ -100,3 +104,11 @@ async function done(): Promise<void> {
     </div>
   </wa-card>
 </template>
+
+<style scoped>
+/* Long labels wrap inside the button instead of running over its edge. */
+.setup-choice::part(label) {
+  white-space: normal;
+  text-align: center;
+}
+</style>

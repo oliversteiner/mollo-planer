@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
-import { projectContentQueries } from '~/graphql/project'
 import { createTaskMutation, updateTaskMutation } from '~/graphql/task'
 import { isEmptyDocument } from '~/utils/rich-text'
 
@@ -14,6 +12,10 @@ export interface TaskFormTarget {
     dueDate?: string | null
     icon?: string | null
     description?: Record<string, unknown> | null
+    /** Only present when the caller loaded the story; without it the story is left as it is. */
+    userStory?: { role: string, goal: string, benefit: string } | null
+    /** Only present when the caller loaded the commit; without it the commit is left as it is. */
+    commit?: string | null
   }
 }
 
@@ -44,54 +46,70 @@ const open = computed({
 
 const state = reactive<{
   todoId: string
-  assigneeId: string
+  assigneeId: string | null
   title: string
   dueDate: string
   icon: string | null
   description: Record<string, unknown> | null
   labelIds: string[]
-}>({ todoId: '', assigneeId: 'none', title: '', dueDate: '', icon: null, description: null, labelIds: [] })
+  story: { role: string, goal: string, benefit: string }
+  commit: string
+}>({ todoId: '', assigneeId: null, title: '', dueDate: '', icon: null, description: null, labelIds: [], story: { role: '', goal: '', benefit: '' }, commit: '' })
 
-/** Labels of the project's set, for a new task (an existing one gets its labels in the details). */
+/** Labels of the project, for a new task (an existing one gets its labels in the details). */
 const { project } = useProject()
-const setLabels = computed(() => project.value?.labelSet?.labels ?? [])
+const setLabels = computed(() => project.value?.labels ?? [])
 
 watch(() => props.target, (target) => {
   errors.value = {}
   state.todoId = target?.todoId ?? props.todos[0]?.id ?? ''
-  state.assigneeId = 'none'
+  state.assigneeId = null
   state.title = target?.task?.title ?? ''
   state.dueDate = target?.task?.dueDate ?? ''
   state.icon = target?.task?.icon ?? null
   state.description = target?.task?.description ?? null
+  state.commit = target?.task?.commit ?? ''
+  state.story = { role: target?.task?.userStory?.role ?? '', goal: target?.task?.userStory?.goal ?? '', benefit: target?.task?.userStory?.benefit ?? '' }
   state.labelIds = []
 }, { immediate: true })
 
 const isNew = computed(() => !props.target?.task)
-const todoItems = computed(() => props.todos.map(todo => ({ label: `${todo.milestone.title} · ${todo.title}`, value: todo.id })))
-const memberItems = computed(() => [
-  { label: t('task.nobody'), value: 'none' },
-  ...props.members.map(member => ({ label: member.name, value: member.id }))
-])
+/** The story is edited only where the caller passed the story along (see TaskFormTarget). */
+const storyEditable = computed(() => !props.target?.task || 'userStory' in props.target.task)
+const commitEditable = computed(() => !props.target?.task || 'commit' in props.target.task)
 
-const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: true }
-const { mutate: createTask } = useMutation(createTaskMutation, options)
-const { mutate: updateTask } = useMutation(updateTaskMutation, options)
+/** All three parts, trimmed; null when all are empty. A partial story is refused by the server. */
+function storyInput(): { role: string, goal: string, benefit: string } | null {
+  const parts = { role: state.story.role.trim(), goal: state.story.goal.trim(), benefit: state.story.benefit.trim() }
+  return parts.role || parts.goal || parts.benefit ? parts : null
+}
+const todoItems = computed(() => props.todos.map(todo => ({ label: `${todo.milestone.title} · ${todo.title}`, value: todo.id })))
+/** Members first; people who may manage members can also take somebody in. */
+const assignee = useAssigneeChoice(() => props.members)
+
+const { mutate: createTask } = useProjectMutation(createTaskMutation)
+const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
 
 async function submit(): Promise<void> {
   const fields = {
     title: state.title.trim(),
     dueDate: state.dueDate || null,
     icon: state.icon,
-    description: isEmptyDocument(state.description) ? null : state.description
+    description: isEmptyDocument(state.description) ? null : state.description,
+    ...(storyEditable.value ? { userStory: storyInput() } : {}),
+    ...(commitEditable.value ? { commit: state.commit.trim() || null } : {})
   }
   const task = props.target?.task
+  const joining = !task && assignee.willJoin(state.assigneeId)
   const result = await run<unknown>(() => task
     ? updateTask({ id: task.id, input: fields })
-    : createTask({ input: { ...fields, todoId: state.todoId, assigneeId: state.assigneeId === 'none' ? null : state.assigneeId, labelIds: state.labelIds } }))
+    : createTask({ input: { ...fields, todoId: state.todoId, assigneeId: state.assigneeId, labelIds: state.labelIds } }))
 
   if (result) {
     toast.add({ title: t('task.saved'), color: 'success' })
+    if (joining && state.assigneeId) {
+      assignee.announceJoined(state.assigneeId)
+    }
     emit('close')
   }
 }
@@ -144,13 +162,14 @@ async function submit(): Promise<void> {
           :label="t('item.fields.dueDate')"
           :error="errors.dueDate"
         />
-        <FormSelect
+        <FormPersonSelect
           v-if="isNew"
           v-model="state.assigneeId"
-          name="assigneeId"
-          :items="memberItems"
+          :groups="assignee.groups.value"
           :label="t('task.assignee')"
+          :hint="assignee.hint.value"
           :error="errors.assigneeId"
+          clearable
         />
       </div>
 
@@ -167,6 +186,42 @@ async function submit(): Promise<void> {
       >
         {{ errors.labelIds }}
       </p>
+
+      <section
+        v-if="storyEditable"
+        class="wa-stack wa-gap-xs"
+      >
+        <h3 class="wa-heading-s">
+          {{ t('task.story.title') }}
+        </h3>
+        <FormInput
+          v-model="state.story.role"
+          name="userStoryRole"
+          :label="t('task.story.role')"
+          :error="errors['userStory.role']"
+        />
+        <FormInput
+          v-model="state.story.goal"
+          name="userStoryGoal"
+          :label="t('task.story.goal')"
+          :error="errors['userStory.goal']"
+        />
+        <FormInput
+          v-model="state.story.benefit"
+          name="userStoryBenefit"
+          :label="t('task.story.benefit')"
+          :error="errors['userStory.benefit']"
+        />
+      </section>
+
+      <FormInput
+        v-if="commitEditable"
+        v-model="state.commit"
+        name="commit"
+        :label="t('task.commit.label')"
+        :hint="t('task.commit.hint')"
+        :error="errors.commit"
+      />
 
       <FormField
         :label="t('item.fields.description')"

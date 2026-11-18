@@ -2,13 +2,6 @@
 
 # ─── Enums ──────────────────────────────────────────────────────
 
-"Rolle einer Person innerhalb eines Projekts"
-enum ProjectRole {
-  OWNER @enum(value: "owner")
-  MANAGER @enum(value: "manager")
-  MEMBER @enum(value: "member")
-}
-
 "Sprache eines Projekts. Bestimmt die Sprache der Mails."
 enum Locale {
   DE @enum(value: "de")
@@ -21,11 +14,14 @@ enum ItemStatus {
   DONE @enum(value: "done")
 }
 
-"Fähigkeiten innerhalb eines Projekts. Welche Rolle sie hat, steht in der Rechte-Tabelle."
-enum ProjectAbility {
+"Rechte, die der Code prüft (docs/rollen-funktionen-rechte.md, §4). Projektrechte gelten in einem Projekt, Systemrechte in der ganzen App. Welche Rolle ein Recht hat, steht in den Einstellungen (Rollen und Funktionen)."
+enum Right {
+  # Projekt
   PROJECT_UPDATE @enum(value: "project.update")
   PROJECT_DELETE @enum(value: "project.delete")
+  PROJECT_ARCHIVE @enum(value: "project.archive")
   MEMBERS_MANAGE @enum(value: "members.manage")
+  OWNER_MANAGE @enum(value: "owner.manage")
   MILESTONE_CREATE @enum(value: "milestone.create")
   MILESTONE_UPDATE @enum(value: "milestone.update")
   MILESTONE_DELETE @enum(value: "milestone.delete")
@@ -34,40 +30,48 @@ enum ProjectAbility {
   TODO_DELETE @enum(value: "todo.delete")
   TASK_CREATE @enum(value: "task.create")
   TASK_UPDATE @enum(value: "task.update")
+  TASK_UPDATE_OWN @enum(value: "task.updateOwn")
   TASK_ASSIGN @enum(value: "task.assign")
+  TASK_ASSIGN_SELF @enum(value: "task.assignSelf")
   TASK_MOVE @enum(value: "task.move")
   TASK_DELETE @enum(value: "task.delete")
   COMMENT_CREATE @enum(value: "comment.create")
   COMMENT_MODERATE @enum(value: "comment.moderate")
+  TRASH_RESTORE @enum(value: "trash.restore")
+  TRASH_PURGE @enum(value: "trash.purge")
+  PLANER_EXPORT @enum(value: "planer.export")
+  PLANER_IMPORT @enum(value: "planer.import")
+  AI_CONTEXT_UPDATE @enum(value: "aiContext.update")
+  # System
+  PROJECTS_CREATE @enum(value: "projects.create")
+  PROJECTS_VIEW_ALL @enum(value: "projects.viewAll")
+  PROJECTS_MANAGE_ANY @enum(value: "projects.manageAny")
+  USERS_MANAGE @enum(value: "users.manage")
+  ROLES_MANAGE @enum(value: "roles.manage")
+  TEMPLATES_MANAGE @enum(value: "templates.manage")
+  TEMPLATES_MANAGE_ANY @enum(value: "templates.manageAny")
+  ASSISTANT_USE @enum(value: "assistant.use")
+  IDEAS_CREATE @enum(value: "ideas.create")
+  IDEAS_VIEW_ANY @enum(value: "ideas.viewAny")
+  SETTINGS_MANAGE @enum(value: "settings.manage")
+  SYSTEM_VIEW @enum(value: "system.view")
+  DATABASE_VIEW @enum(value: "database.view")
 }
 
-"Globale Berechtigungsrolle eines Benutzers. Welche Fähigkeiten sie hat, steht in der Rechte-Tabelle (App\\Support\\SystemPermissions)."
-enum UserRole {
-  ADMIN @enum(value: "admin")
-  PROJEKTLEITUNG @enum(value: "projektleitung")
-  KOORDINATION @enum(value: "koordination")
-  MITGLIED @enum(value: "mitglied")
-  LESEND @enum(value: "lesend")
+"Bereich einer Rolle: System (ganze App) oder Projekt (eine Mitgliedschaft)"
+enum RoleScope {
+  SYSTEM @enum(value: "system")
+  PROJECT @enum(value: "project")
 }
 
-"Funktion eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
-enum UserFunction {
+"Tätigkeit eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
+enum UserActivity {
   DESIGNER @enum(value: "designer")
   ENTWICKLUNG @enum(value: "entwicklung")
   TESTER @enum(value: "tester")
   CONTENT @enum(value: "content")
   TECHNIK @enum(value: "technik")
   VOLUNTEER @enum(value: "volunteer")
-}
-
-"Fähigkeiten über die ganze App, gegeben durch die globale Rolle."
-enum SystemAbility {
-  PROJECTS_CREATE @enum(value: "projects.create")
-  PROJECTS_VIEW_ALL @enum(value: "projects.viewAll")
-  PROJECTS_MANAGE_ANY @enum(value: "projects.manageAny")
-  USERS_MANAGE @enum(value: "users.manage")
-  LABEL_SETS_MANAGE @enum(value: "labelSets.manage")
-  LABEL_SETS_MANAGE_ANY @enum(value: "labelSets.manageAny")
 }
 
 "Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"
@@ -84,10 +88,67 @@ enum LabelColor {
   PINK @enum(value: "pink")
 }
 
+"Freigabe einer Version: geplant oder veröffentlicht"
+enum ReleaseStatus {
+  PLANNED @enum(value: "planned")
+  RELEASED @enum(value: "released")
+}
+
+"Art eines Elements im Papierkorb"
+enum TrashItemType {
+  PROJECT
+  MILESTONE
+  TODO
+  TASK
+  COMMENT
+  IDEA
+}
+
 "Spalten im Kanban-Board"
 enum TaskStatus {
+  IDEA @enum(value: "idea")
+  PLANNED @enum(value: "planned")
   OPEN @enum(value: "open")
   IN_PROGRESS @enum(value: "in_progress")
   REVIEW @enum(value: "review")
   DONE @enum(value: "done")
+}
+
+"Wie die Labels einer Vorlage in ein bestehendes Projekt kommen"
+enum TemplateLabelMode {
+  "Die Labels der Vorlage setzen; Labels, die an Tasks hängen und nicht in der Vorlage stehen, bleiben am Ende"
+  REPLACE
+  "Nur Labels ergänzen, deren Schlüssel im Projekt fehlt"
+  APPEND
+}
+
+"Wie ein Import behandelt, was das Projekt hat und die Datei nicht"
+enum ImportMode {
+  "Die Datei ist der ganze Plan: Fehlendes kommt als ein Vorgang in den Papierkorb, nicht Genanntes in einem Feld wird geleert. Die Revision der Datei muss stimmen."
+  FULL @enum(value: "full")
+  "Die Datei ist ein Teil: sie ergänzt und ändert, löscht nie, und Felder, die sie nicht nennt, bleiben."
+  PARTIAL @enum(value: "partial")
+}
+
+"Art einer Änderung in einem Import"
+enum ImportChangeKind {
+  CREATE @enum(value: "create")
+  UPDATE @enum(value: "update")
+  MOVE @enum(value: "move")
+  DELETE @enum(value: "delete")
+}
+
+"Art der Benachrichtigung bei Änderungen"
+enum WebhookKind {
+  "repository_dispatch an GitHub, mit einem fein eingeschränkten Token"
+  GITHUB @enum(value: "github")
+  "POST an eine Adresse, der Body mit HMAC-SHA256 signiert"
+  GENERIC @enum(value: "generic")
+}
+
+"Wo eine Idee steht. Nicht der Status IDEA eines Tasks: der gehört zu einem Projekt."
+enum IdeaStatus {
+  OPEN @enum(value: "open")
+  ADOPTED @enum(value: "adopted")
+  DISCARDED @enum(value: "discarded")
 }

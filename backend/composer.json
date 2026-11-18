@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.5",
         "anthropic-ai/sdk": "^1.6",
         "intervention/image": "^4.0",
         "laravel/fortify": "^1.41",
@@ -14,7 +14,8 @@
         "laravel/mcp": "^1.1",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
-        "nuwave/lighthouse": "^6.74"
+        "nuwave/lighthouse": "^6.74",
+        "opis/json-schema": "^2.6"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -49,6 +50,10 @@
             "npm install --ignore-scripts",
             "npm run build"
         ],
+        "serve:lan": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan serve --host=0.0.0.0 --port=8000"
+        ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"
@@ -59,6 +64,9 @@
         ],
         "schema:frontend": [
             "@php artisan lighthouse:print-schema --sort > ../frontend/graphql/schema.graphql"
+        ],
+        "test:planer-remote": [
+            "cd ../tools/planer && npm run test:remote"
         ],
         "test:mariadb": [
             "@php artisan config:clear --ansi @no_additional_args",

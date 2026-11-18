@@ -1,15 +1,15 @@
 import { graphql } from '~/graphql/generated'
 
 export const projectsQuery = graphql(`
-  query Projects {
-    projects {
+  query Projects($archived: Boolean = false) {
+    projects(archived: $archived) {
       id
       name
       description
-      viewerRole
+      viewerRole { key names { de en } }
       progress { done total percent }
       members {
-        role
+        role { key names { de en } }
         user { id name avatarUrl }
       }
     }
@@ -20,12 +20,24 @@ export const projectHeaderQuery = graphql(`
   query ProjectHeader($id: ID!) {
     project(id: $id) {
       id
+      planerRevision
       name
       description
       icon
-      viewerRole
-      viewerAbilities
-      labelSet { id name labels { id name category color position } }
+      archivedAt
+      viewerRole { key names { de en } }
+      viewerRights
+      labels { id name category color position }
+    }
+  }
+`)
+
+/** Only the revision of the planer file, for the polling of timeline and kanban (S3f). */
+export const projectRevisionQuery = graphql(`
+  query ProjectRevision($id: ID!) {
+    project(id: $id) {
+      id
+      planerRevision
     }
   }
 `)

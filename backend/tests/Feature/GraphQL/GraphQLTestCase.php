@@ -57,7 +57,7 @@ abstract class GraphQLTestCase extends TestCase
             ->create(['name' => 'Mollo Planer']);
         $this->milestone = Milestone::factory()->for($this->project)->create();
         $this->todo = Todo::factory()->for($this->milestone)->create();
-        $this->task = Task::factory()->for($this->todo)->create(['position' => 0]);
+        $this->task = Task::factory()->for($this->todo)->create(['board_position' => 0]);
     }
 
     /**
@@ -88,6 +88,6 @@ abstract class GraphQLTestCase extends TestCase
 
     protected function assertUnauthorized(TestResponse $response): void
     {
-        $response->assertGraphQLErrorMessage('This action is unauthorized.');
+        $response->assertGraphQLErrorMessage('You are not allowed to do this.');
     }
 }

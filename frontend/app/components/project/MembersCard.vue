@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
-import type { ProjectRole } from '~/graphql/generated/graphql'
-import { removeProjectMemberMutation, setProjectMemberMutation, userSearchQuery } from '~/graphql/settings'
+import { useQuery } from '@vue/apollo-composable'
+import { memberCandidatesQuery, removeProjectMemberMutation, setProjectMemberMutation } from '~/graphql/settings'
+import type { NamedRole } from '~/composables/useRoles'
 import { classifyApolloError } from '~/utils/api'
+import { assignableRoles, isOwnershipRole } from '~/utils/role-rights'
 
 /**
  * Members and their roles. Who may grant or take the owner role, and that
@@ -10,7 +11,7 @@ import { classifyApolloError } from '~/utils/api'
  */
 const props = defineProps<{
   projectId: string
-  members: { role: ProjectRole, user: { id: string, name: string, email: string, avatarUrl?: string | null } }[]
+  members: { role: NamedRole, user: { id: string, name: string, email: string, avatarUrl?: string | null } }[]
   canManage: boolean
 }>()
 
@@ -18,31 +19,58 @@ const { t } = useI18n()
 const toast = useToast()
 const { viewer } = useViewer()
 
-const roles: ProjectRole[] = ['OWNER', 'MANAGER', 'MEMBER']
-const roleItems = computed(() => roles.map(role => ({ label: t(`role.${role}`), value: role })))
+/** The project roles come from the backend (shipped ones and those made in the settings). */
+const { roles, defaultKey: defaultRole } = useRoles('PROJECT')
+const roleName = useRoleName()
+const { project, can } = useProject()
+
+/**
+ * Roles with project.delete or owner.manage are offered only to people with
+ * owner.manage (§7.4, docs/fix-m1-abnahme.md F3.9); the current role of a
+ * member is always shown.
+ */
+function roleItemsFor(currentKey?: string): { label: string, value: string }[] {
+  return assignableRoles(roles.value, project.value?.viewerRights ?? [], currentKey)
+    .map(role => ({ label: roleName(role), value: role.key }))
+}
+
+const newRoleItems = computed(() => roleItemsFor())
+
+/** A member with an ownership role is changed only with owner.manage. */
+function mayChangeRole(roleKey: string): boolean {
+  const role = roles.value.find(entry => entry.key === roleKey)
+
+  return can('OWNER_MANAGE') || !role || !isOwnershipRole(role)
+}
 
 const sortedMembers = computed(() => [...props.members].sort((a, b) => a.user.name.localeCompare(b.user.name)))
 
-/** Names only, from the narrow search (no e-mail, no security status). Starts at two letters. */
-const search = ref('')
-const searchTerm = computed(() => search.value.trim())
-const { result: searchResult } = useQuery(userSearchQuery, () => ({ term: searchTerm.value }), () => ({ enabled: props.canManage && searchTerm.value.length >= 2 }))
-const candidates = computed(() => {
-  const memberIds = new Set(props.members.map(member => member.user.id))
+/**
+ * Everybody who can join, shown at once; members stay in the list but cannot
+ * be chosen, so nobody wonders why a person is missing.
+ */
+const { result: candidatesResult } = useQuery(memberCandidatesQuery, () => ({ projectId: props.projectId }), () => ({ enabled: props.canManage, fetchPolicy: 'cache-and-network' }))
+const personGroups = computed(() => [{
+  people: (candidatesResult.value?.memberCandidates ?? []).map(person => ({
+    id: person.id,
+    name: person.name,
+    avatarUrl: person.avatarUrl,
+    disabledReason: person.isMember ? t('settings.members.alreadyMember') : null
+  }))
+}])
 
-  return (searchResult.value?.userSearch ?? [])
-    .filter(user => !memberIds.has(user.id))
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(user => ({ label: user.name, value: user.id }))
-})
+const newMember = reactive<{ userId: string | null, role: string }>({ userId: null, role: '' })
 
-const newMember = reactive<{ userId: string, role: ProjectRole }>({ userId: '', role: 'MEMBER' })
+watch(defaultRole, (key) => {
+  if (!newMember.role) {
+    newMember.role = key
+  }
+}, { immediate: true })
 const pending = ref(false)
 const removing = ref<{ id: string, name: string } | null>(null)
 
-const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
-const { mutate: setMember } = useMutation(setProjectMemberMutation, options)
-const { mutate: removeMember } = useMutation(removeProjectMemberMutation, options)
+const { mutate: setMember } = useProjectMutation(setProjectMemberMutation)
+const { mutate: removeMember } = useProjectMutation(removeProjectMemberMutation)
 
 /** Runs a change; a validation message (for example "last owner") becomes a toast. */
 async function change(action: () => Promise<unknown>, success: string): Promise<boolean> {
@@ -66,18 +94,20 @@ async function change(action: () => Promise<unknown>, success: string): Promise<
   }
 }
 
-async function setRole(userId: string, role: ProjectRole): Promise<void> {
+async function setRole(userId: string, role: string): Promise<void> {
   await change(() => setMember({ projectId: props.projectId, userId, role }), t('settings.members.roleChanged'))
 }
 
 async function add(): Promise<void> {
-  if (!newMember.userId) {
+  const userId = newMember.userId
+
+  if (!userId) {
     return
   }
-  const added = await change(() => setMember({ projectId: props.projectId, userId: newMember.userId, role: newMember.role }), t('settings.members.added'))
+  const added = await change(() => setMember({ projectId: props.projectId, userId, role: newMember.role }), t('settings.members.added'))
 
   if (added) {
-    Object.assign(newMember, { userId: '', role: 'MEMBER' })
+    Object.assign(newMember, { userId: null, role: defaultRole.value })
   }
 }
 
@@ -95,7 +125,10 @@ async function confirmRemove(): Promise<void> {
       <h2 class="wa-heading-m">
         {{ t('settings.members.title') }}
       </h2>
-      <p class="wa-body-s wa-color-text-quiet">
+      <p
+        class="wa-body-s wa-color-text-quiet"
+        data-zen="hide"
+      >
         {{ t('settings.members.intro') }}
       </p>
     </div>
@@ -123,20 +156,21 @@ async function confirmRemove(): Promise<void> {
         </span>
         <FormSelect
           v-if="canManage"
-          :model-value="member.role"
-          :items="roleItems"
-          :disabled="pending"
+          :model-value="member.role.key"
+          :items="roleItemsFor(member.role.key)"
+          :disabled="pending || !mayChangeRole(member.role.key)"
           :label="t('settings.members.roleOf', { name: member.user.name })"
           hide-label
           class="members-role"
-          @update:model-value="role => role && setRole(member.user.id, role as ProjectRole)"
+          @update:model-value="role => role && setRole(member.user.id, String(role))"
         />
         <wa-badge
           v-else
+          :title="t('settings.members.role')"
           variant="neutral"
           appearance="outlined"
         >
-          {{ t(`role.${member.role}`) }}
+          {{ roleName(member.role) }}
         </wa-badge>
         <wa-button
           v-if="canManage"
@@ -158,23 +192,15 @@ async function confirmRemove(): Promise<void> {
       class="members-add"
       @submit.prevent="add"
     >
-      <FormInput
-        v-model="search"
-        name="memberSearch"
-        type="search"
-        :label="t('settings.members.search')"
-        class="members-person"
-      />
-      <FormSelect
+      <FormPersonSelect
         v-model="newMember.userId"
-        :items="candidates"
-        searchable
+        :groups="personGroups"
         :label="t('settings.members.person')"
         class="members-person"
       />
       <FormSelect
         v-model="newMember.role"
-        :items="roleItems"
+        :items="newRoleItems"
         :label="t('settings.members.role')"
         class="members-role"
       />

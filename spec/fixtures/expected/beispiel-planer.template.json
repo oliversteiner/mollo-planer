@@ -1,0 +1,174 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Mollo Planer",
+    "description": "Projekt für Planung und Umsetzung. Alle Milestones, ToDos und Tasks stehen in der Reihenfolge, in der sie in der Datei erscheinen.",
+    "locale": "de",
+    "members": [],
+    "labels": [
+      {
+        "key": "feature",
+        "names": {
+          "de": "Feature",
+          "en": "Feature"
+        },
+        "category": "type",
+        "color": "green"
+      },
+      {
+        "key": "bug",
+        "names": {
+          "de": "Fehler",
+          "en": "Bug"
+        },
+        "category": "type",
+        "color": "red"
+      },
+      {
+        "key": "design",
+        "names": {
+          "de": "Design",
+          "en": "Design"
+        },
+        "category": "phase",
+        "color": "pink"
+      },
+      {
+        "key": "backend",
+        "names": {
+          "de": "Backend",
+          "en": "Backend"
+        },
+        "category": "area",
+        "color": "cyan"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Ordering-Grundlage",
+      "description": "Erste Version des Ordering-Service. Alle Tasks sind erledigt, deshalb ist die Version veröffentlicht. Dann ist ein Commit je erledigtem Task Pflicht.",
+      "release": {
+        "version": "1.3",
+        "status": "planned"
+      },
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Sperre und Reihenfolge",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Milestone-Reihenfolge absichern",
+              "description": "Die Sperre liegt auf dem **Projekt**, nicht auf dem Milestone. Das ist ein Muster aus `KanbanOrdering`.",
+              "status": "planned",
+              "labels": [
+                "backend",
+                "feature"
+              ],
+              "userStory": {
+                "role": "Owner",
+                "goal": "doppelte Positionen bei gleichzeitigem Anlegen vermeiden",
+                "benefit": "die Zeitachse stimmt"
+              }
+            },
+            {
+              "id": "k-new-2",
+              "title": "Lücken nach dem Verschieben schließen",
+              "status": "planned",
+              "labels": [
+                "backend",
+                "bug"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t-new-2",
+          "title": "Fehlerfälle",
+          "tasks": [
+            {
+              "id": "k-new-3",
+              "title": "Doppelte Positionen erkennen",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-2",
+      "title": "Schema-Refactoring",
+      "description": "Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist geplant, deshalb ist ein Task ohne Commit erlaubt.",
+      "release": {
+        "version": "1.4",
+        "status": "planned"
+      },
+      "todos": [
+        {
+          "id": "t-new-3",
+          "title": "Ordering",
+          "tasks": [
+            {
+              "id": "k-new-4",
+              "title": "Ordering-Service ausbauen",
+              "description": "Ziel ist eine Klasse `Ordering` mit den Methoden `nextPosition`, `openSlot`, `move` und `close`.\n\nDabei gelten diese Punkte:\n\n1. Das Projekt wird vor jeder Änderung gesperrt.\n2. Der Lückenschluss läuft nach jedem Löschen.\n3. Die Tests laufen gegen MariaDB.\n\n### Hinweis\n\nDie Methode `close` ist neu und muss in die Tests für Papierkorb (A5) aufgenommen werden.",
+              "status": "planned",
+              "labels": [
+                "backend",
+                "feature"
+              ],
+              "userStory": {
+                "role": "Entwickler",
+                "goal": "eine einzige Reihenfolge-Logik",
+                "benefit": "neue Sortierungen nicht an drei Stellen gepflegt werden"
+              }
+            },
+            {
+              "id": "k-new-5",
+              "title": "Lückenschluss nach Löschen testen",
+              "description": "> Ohne Test fällt ein fehlender Lückenschluss erst in der Zeitachse auf.",
+              "status": "planned",
+              "labels": [
+                "backend",
+                "feature"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "t-new-4",
+          "title": "Plan-Typen",
+          "tasks": [
+            {
+              "id": "k-new-6",
+              "title": "Plan-Entwurf für bestehende Projekte prüfen",
+              "description": "Details im Plan: [A4 im Schema-Review](https://planer.mollo.dev/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.",
+              "status": "planned",
+              "labels": [
+                "backend",
+                "feature"
+              ],
+              "userStory": {
+                "role": "Assistent",
+                "goal": "Milestones und ToDos per ID anhängen",
+                "benefit": "ich keine Duplikate erzeuge"
+              }
+            },
+            {
+              "id": "k-new-7",
+              "title": "Ältere Plan-Felder entfernen",
+              "status": "planned",
+              "labels": [
+                "backend",
+                "design"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -14,11 +14,13 @@
     "assistant": "AI assistant",
     "breadcrumb": "Breadcrumb",
     "workspace": "Workspace",
-    "labelSets": "Label sets",
     "database": "Database",
     "status": "Status",
     "version": "Version",
-    "rights": "Rights"
+    "roles": "Roles",
+    "trash": "Trash",
+    "templates": "Templates",
+    "ideas": "Ideas"
   },
   "settings": {
     "language": "Language",
@@ -36,26 +38,38 @@
       "title": "Members",
       "intro": "Owners and managers manage members. Only owners and admins grant or take the owner role; the project always keeps at least one owner.",
       "you": "you",
-      "roleOf": "Role of {name}",
+      "roleOf": "Project role of {name}",
       "remove": "Remove {name}",
       "person": "Person",
       "search": "Search by name (at least 2 letters)",
-      "role": "Role",
+      "role": "Project role",
       "add": "Add",
       "added": "Member added.",
       "roleChanged": "Role changed.",
       "removed": "Member removed.",
       "removeTitle": "Remove {name} from the project?",
       "removeDescription": "They will no longer see the project. Their tasks in this project are then assigned to nobody.",
-      "removeConfirm": "Remove"
+      "removeConfirm": "Remove",
+      "alreadyMember": "already a member"
     },
     "danger": {
       "title": "Delete project",
-      "description": "Deletes the project with all milestones, todos, tasks and comments.",
+      "description": "Moves the project with all milestones, todos, tasks and comments to the trash.",
       "delete": "Delete project",
-      "confirmTitle": "Delete “{name}” for good?",
-      "confirmDescription": "All milestones, todos, tasks and comments of this project are deleted. This cannot be undone.",
+      "confirmTitle": "Delete “{name}”?",
+      "confirmDescription": "The project disappears from the list with all milestones, todos, tasks and comments. It can be restored from the “Trash”.",
       "deleted": "Project “{name}” deleted."
+    },
+    "archive": {
+      "title": "Archive",
+      "description": "Archived projects are kept, but can only be read and are left out of the dashboard, the sidebar and “My tasks”.",
+      "archivedText": "The project is archived and read only. Brought back, it is visible and editable everywhere again.",
+      "archive": "Archive",
+      "unarchive": "Bring back",
+      "confirmTitle": "Archive “{name}”?",
+      "confirmDescription": "The project can then only be read. You can bring it back here at any time.",
+      "done": "Project “{name}” archived.",
+      "back": "Project “{name}” brought back."
     }
   },
   "dashboard": {
@@ -98,7 +112,8 @@
       "submit": "Sign in",
       "forgot": "Forgot your password?",
       "or": "or",
-      "passkey": "Sign in with a passkey"
+      "passkey": "Sign in with a passkey",
+      "register": "Create account"
     },
     "challenge": {
       "title": "Second factor",
@@ -140,6 +155,23 @@
       "description": "Before you start, secure your account with a second factor.",
       "passkey": "Set up a passkey (recommended)",
       "app": "Set up an authenticator app"
+    },
+    "register": {
+      "title": "Create account",
+      "description": "Create your account yourself. Then confirm your email address, and an admin approves the account.",
+      "name": "Name",
+      "submit": "Create account"
+    },
+    "verify": {
+      "title": "Confirm email address",
+      "done": "Your email address is confirmed.",
+      "loginHint": "Sign in once an admin has approved your account."
+    },
+    "pending": {
+      "title": "Account waiting",
+      "emailText": "Please confirm your email address. We have sent you a link.",
+      "approvalText": "Your email address is confirmed. An admin still has to approve your account. You will be told when it is ready.",
+      "recheck": "Check again"
     }
   },
   "projects": {
@@ -153,7 +185,16 @@
       "open": "New project",
       "title": "New project",
       "submit": "Create",
-      "done": "Project “{name}” created."
+      "done": "Project “{name}” created.",
+      "members": "Members (optional)",
+      "membersHint": "Add more people with their role right away. You can also do this later under “Members”.",
+      "inList": "in the list already",
+      "template": "Template",
+      "noTemplate": "No template",
+      "templateHint": "The project gets copies of the labels and the outline of the template.",
+      "templateFallback": "1 label has no name in {language}: the name in the language of the template is used there. | {count} labels have no name in {language}: the name in the language of the template is used there.",
+      "templateDescription": "Without a description of your own, the one of the template is used.",
+      "fromFile": "From file"
     },
     "fields": {
       "name": "Name",
@@ -161,9 +202,14 @@
       "iconHint": "Shown in the sidebar before the project name.",
       "locale": "Language of the emails",
       "localeHint": "Notifications about this project are sent in this language."
+    },
+    "archive": {
+      "title": "Archive ({count})"
     }
   },
   "status": {
+    "IDEA": "Idea",
+    "PLANNED": "Planned",
     "OPEN": "Open",
     "IN_PROGRESS": "In progress",
     "REVIEW": "Review",
@@ -172,7 +218,8 @@
   "role": {
     "OWNER": "Owner",
     "MANAGER": "Manager",
-    "MEMBER": "Member"
+    "MEMBER": "Member",
+    "GUEST": "Guest"
   },
   "locale": {
     "DE": "German",
@@ -195,7 +242,8 @@
       "todos": "Todos",
       "tasks": "Tasks",
       "members": "Members",
-      "settings": "Settings"
+      "settings": "Settings",
+      "trash": "Trash"
     },
     "noMilestones": "No milestones yet",
     "noMilestonesHint": "Create the first milestone, for example “Design approved”.",
@@ -215,10 +263,16 @@
       "createTask": "New task in todo “{title}”",
       "milestoneActions": "Actions for milestone “{title}”",
       "todoActions": "Actions for todo “{title}”",
+      "taskActions": "Actions for task “{title}”",
       "openTask": "Open task “{title}”"
     },
     "milestoneNumber": "M{number}",
-    "milestoneNumberLabel": "Milestone {number}"
+    "milestoneNumberLabel": "Milestone {number}",
+    "changedElsewhere": "The project was changed in the meantime.",
+    "archived": {
+      "title": "Archived, read only",
+      "description": "This project is archived. Changing, creating, deleting and commenting are locked until someone with the right “Archive” brings it back in the settings."
+    }
   },
   "todos": {
     "milestone": "Milestone",
@@ -233,28 +287,28 @@
       "dueDate": "Due on",
       "icon": "Icon",
       "description": "Description",
-      "descriptionPlaceholder": "What does it involve? Lists, links and emphasis are possible."
+      "descriptionPlaceholder": "What does it involve? Lists, links and emphasis are possible.",
+      "releaseVersion": "Version",
+      "releaseVersionHint": "Form M.m, for example 1.4. Empty when no version is planned.",
+      "releaseStatus": "Release"
     },
     "milestone": {
       "create": "New milestone",
       "edit": "Edit milestone",
-      "saved": "Milestone saved.",
-      "deleteTitle": "Delete milestone?",
-      "deleteDescription": "“{title}” is deleted with all its todos, tasks and comments. This cannot be undone."
+      "saved": "Milestone saved."
     },
     "todo": {
       "create": "New todo",
       "edit": "Edit todo",
       "saved": "Todo saved.",
-      "milestone": "Milestone",
-      "deleteTitle": "Delete todo?",
-      "deleteDescription": "“{title}” is deleted with all its tasks and comments. This cannot be undone."
+      "milestone": "Milestone"
     }
   },
   "richText": {
     "toolbar": "Formatting",
     "bold": "Bold",
     "italic": "Italic",
+    "code": "Code",
     "bulletList": "Bullet list",
     "orderedList": "Numbered list",
     "blockquote": "Quote",
@@ -281,6 +335,8 @@
     "noResults": "No icon found."
   },
   "kanban": {
+    "showIdeas": "Show ideas and planned tasks",
+    "showIdeasHint": "Off keeps the board lean for daily work. Stored in the browser.",
     "moveMenu": "Actions for “{title}”",
     "moveUp": "Move up",
     "moveDown": "Move down",
@@ -299,10 +355,16 @@
     "loading": "Task",
     "notFound": "This task does not exist, or you have no access.",
     "noDescription": "No description.",
+    "story": {
+      "title": "User story",
+      "role": "Role",
+      "goal": "Goal",
+      "benefit": "Benefit",
+      "sentence": "As {role} I want {goal}, so that {benefit}.",
+      "partial": "Fill in all three parts or leave all empty."
+    },
     "assigned": "Assigned.",
     "assignedMail": "They get an email if they receive notifications.",
-    "deleteTitle": "Delete task?",
-    "deleteDescription": "“{title}” is deleted with all its comments. This cannot be undone.",
     "share": {
       "shareTitle": "Share",
       "menu": "Share",
@@ -320,7 +382,19 @@
         "todo": "To-do",
         "due": "Due"
       }
-    }
+    },
+    "commit": {
+      "label": "Commit",
+      "hint": "Hash of the implementation, or “none” for done tasks without a commit. Leave empty while there is none."
+    },
+    "assigneeGroups": {
+      "members": "Members",
+      "others": "Other people (will join)"
+    },
+    "onlyMembers": "Only project members can be assigned.",
+    "onlySelf": "You can assign tasks only to yourself.",
+    "joined": "{name} is a member now (role {role}).",
+    "commentsSummary": "No comments | 1 comment | {count} comments"
   },
   "comments": {
     "title": "Comments ({count})",
@@ -328,14 +402,13 @@
     "deletedAuthor": "Deleted person",
     "edited": "edited",
     "placeholder": "Write a comment …",
-    "add": "Comment",
-    "deleteTitle": "Delete comment?",
-    "deleteDescription": "The comment is deleted for good."
+    "add": "Comment"
   },
   "myTasks": {
     "title": "My tasks",
     "notDone": "Not done",
-    "none": "No tasks."
+    "none": "No tasks.",
+    "showIdeas": "Show ideas"
   },
   "profile": {
     "title": "Profile",
@@ -445,15 +518,31 @@
       "deleteTitle": "Delete {name}?",
       "deleteDescription": "The account is deleted. Comments stay without a name, assigned tasks are then assigned to nobody.",
       "deleted": "{name} deleted.",
-      "role": "Role",
-      "roleHint": "Decides what the person may do across the whole app.",
-      "jobFunction": "Function",
-      "jobFunctionHint": "Display only, no rights.",
-      "noFunction": "None"
+      "role": "System role",
+      "roleHint": "Holds across the whole app. Project roles are given in a project under “Members”.",
+      "activity": "Activity",
+      "activityHint": "Display only, no rights.",
+      "noFunction": "None",
+      "pending": {
+        "title": "Waiting for approval ({count})",
+        "verified": "Email confirmed",
+        "unverified": "Email not confirmed",
+        "approve": "Approve",
+        "reject": "Reject",
+        "approved": "{name} is approved.",
+        "rejected": "{name} was rejected.",
+        "rejectTitle": "Reject {name}?",
+        "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards.",
+        "failed": "That did not work. The list has been updated."
+      }
     },
     "settings": {
       "title": "App settings",
       "twoFactorTitle": "Two-factor authentication",
+      "creatorRoleTitle": "Creating projects",
+      "creatorRoleLabel": "Role of the person who creates a project",
+      "creatorRoleHint": "This role is given to whoever creates a new project. It must have the right “Own project”.",
+      "creatorRoleSaved": "Role for new projects saved",
       "twoFactorLabel": "Require a second factor",
       "twoFactorDescription": "When on, every sign-in also needs an authenticator app or a passkey. When off, the password is enough.",
       "twoFactorOn": "2FA is on.",
@@ -489,14 +578,14 @@
   },
   "assistant": {
     "title": "AI assistant",
-    "imported": "Project “{name}” created.",
+    "imported": "Added: {list}",
     "chat": {
       "title": "Chat",
       "log": "Conversation with the assistant",
       "you": "You",
       "assistant": "Assistant",
-      "emptyTitle": "Describe your project",
-      "emptyDescription": "Who takes part, what should come out of it, by when? Claude drafts milestones, todos and tasks from it. Nothing is saved until “Create now”.",
+      "emptyTitle": "What should be added or planned?",
+      "emptyDescription": "Describe a task, a to-do or a whole project. Where something is unclear the assistant asks with buttons. Nothing is saved until “Add now”.",
       "placeholder": "Message to the assistant (Enter sends, Shift+Enter new line)",
       "listening": "Listening …",
       "send": "Send",
@@ -506,7 +595,13 @@
       "voiceStart": "Start voice input",
       "voiceStop": "Stop voice input",
       "voiceHint": "Voice input: the browser sends the recording to its provider for recognition (Google in Chrome, Microsoft in Edge).",
-      "voiceError": "Voice input not possible ({error}). Is the microphone allowed?"
+      "voiceError": "Voice input not possible ({error}). Is the microphone allowed?",
+      "choices": "Answer options",
+      "recommended": "recommended",
+      "chose": "I choose: {label}",
+      "showAll": "Show me all options.",
+      "planIdea": "Plan this idea.",
+      "otherProject": "Another project"
     },
     "preview": {
       "title": "Preview",
@@ -530,48 +625,37 @@
       "discard": "Discard",
       "import": "Create now",
       "importFailed": "Not created"
-    }
+    },
+    "ideaSaved": "Saved to ideas.",
+    "addingTo": "Adding to: {name}",
+    "plan": {
+      "title": "Preview",
+      "counts": "New: {list}",
+      "errors": "The preview reports errors",
+      "hints": "Hints",
+      "notify": "Send assignment e-mails",
+      "notifyHint": "Whoever is assigned a task gets an e-mail.",
+      "importNow": "Add now",
+      "toIdeas": "Keep as idea",
+      "discard": "Discard"
+    },
+    "addWith": "Add with the assistant",
+    "ideaProject": "Belongs to the project “{name}”.",
+    "counts": {
+      "milestone": "{count} milestone | {count} milestones",
+      "todo": "{count} to-do | {count} to-dos",
+      "task": "{count} task | {count} tasks"
+    },
+    "importedNothing": "Added."
   },
   "labels": {
     "ofTask": "Labels",
-    "outsideSet": "no longer in the project’s label set",
     "none": "No labels",
-    "outsideSetGroup": "No longer in the set",
     "field": "Labels",
-    "noSet": "No label set is chosen for this project.",
-    "noSetChoice": "No label set",
-    "setChosen": "Label set saved.",
-    "cardTitle": "Labels",
-    "cardIntro": "The label set decides which labels categorise the tasks of this project. When it changes, tasks keep the labels they have.",
-    "set": "Label set",
-    "manage": "Manage label sets",
-    "pageTitle": "Label sets",
-    "pageIntro": "Label sets apply to the whole app. Each project chooses a set in its settings. Built-in sets cannot be changed; duplicate them to adapt them.",
-    "create": "Create set",
-    "edit": "Edit set",
-    "duplicate": "Duplicate",
-    "builtin": "Built-in",
-    "usedBy": "In no project | In 1 project | In {count} projects",
-    "actionsOf": "Actions for the set “{name}”",
-    "empty": "No labels yet.",
-    "name": "Name",
-    "description": "Description",
-    "labelName": "Label",
-    "category": "Category",
-    "color": "Colour",
-    "addLabel": "Add label",
-    "moveUp": "Move “{name}” up",
-    "moveDown": "Move “{name}” down",
-    "removeLabel": "Remove “{name}”",
-    "saved": "Label set saved.",
-    "duplicated": "“{name}” created. You can adapt it now.",
-    "deleteTitle": "Delete the set “{name}”?",
-    "deleteDescription": "The set and its labels are deleted, also on all tasks. This cannot be undone.",
-    "deleted": "Label set deleted.",
-    "inUse": "Still used by projects",
-    "removeTitle": "Delete labels?",
-    "removeDescription": "No labels | 1 label is deleted and removed from all tasks. | {count} labels are deleted and removed from all tasks.",
-    "removeConfirm": "Save and delete",
+    "allLabels": "All labels",
+    "filter": "Filter by label",
+    "outsideSet": "no longer among the labels of the project",
+    "outsideSetGroup": "No longer in the project",
     "colors": {
       "GRAY": "Grey",
       "RED": "Red",
@@ -584,8 +668,83 @@
       "PURPLE": "Purple",
       "PINK": "Pink"
     },
-    "allLabels": "All labels",
-    "filter": "Filter by label"
+    "languages": {
+      "DE": "German",
+      "EN": "English"
+    },
+    "nameIn": "Name ({language})",
+    "category": "Category",
+    "color": "Colour",
+    "addLabel": "Add label",
+    "moveUp": "Move “{name}” up",
+    "moveDown": "Move “{name}” down",
+    "removeLabel": "Remove “{name}”",
+    "editorHint": "The name in {language} is required, other languages are optional. A label keeps its key, even when you rename it.",
+    "requiredNote": "The name in {language} is missing.",
+    "fallbackNote": "Without a name in {language} the label shows the name in {shown} there.",
+    "maxReached": "At most {max} labels.",
+    "cardTitle": "Labels",
+    "cardIntro": "Each project has labels of its own for its tasks. Changes affect no other project and no template.",
+    "cardEmpty": "This project has no labels yet.",
+    "tasksCount": "On no task | On 1 task | On {count} tasks",
+    "edit": "Edit labels",
+    "fromTemplate": "Take over from a template",
+    "manageTemplates": "Manage templates",
+    "saved": "Labels saved.",
+    "editTitle": "Labels of the project",
+    "removeTitle": "Delete labels?",
+    "removeConfirm": "Save and delete",
+    "applyTitle": "Take over labels from a template",
+    "applyIntro": "The labels are copied. Later changes to the template do not change this project.",
+    "template": "Template",
+    "mode": "How",
+    "replace": "Replace",
+    "append": "Add",
+    "replaceHint": "Labels with the same key are adapted, the tasks keep them. Labels that tasks carry and that are not in the template stay at the end; the others are deleted.",
+    "appendHint": "Only labels whose key is missing in the project are added. Nothing is changed or deleted.",
+    "preview": "What happens",
+    "previewAdded": "New: {count}",
+    "previewUpdated": "Adapted: {count}",
+    "previewKept": "Stay at the end because tasks carry them: {count}",
+    "previewRemoved": "Deleted: {count}",
+    "previewTotal": "Afterwards {count} labels in the project.",
+    "tooMany": "That would make more than {max} labels. Choose “Add” or remove labels first.",
+    "apply": "Take over",
+    "applied": "Labels taken over.",
+    "noTemplates": "There are no templates yet.",
+    "fallbackTemplate": "1 label of the template has no name in {language}: the name in the language of the template is used there. | {count} labels of the template have no name in {language}: the name in the language of the template is used there.",
+    "headColor": "Colour",
+    "removeNone": "No labels are deleted.",
+    "removeLabels": "1 label is deleted | {count} labels are deleted",
+    "removeFromTasks": "and removed from 1 task | and removed from {count} tasks"
+  },
+  "templates": {
+    "pageTitle": "Templates",
+    "pageIntro": "A template gives a new project its labels and, if wanted, an outline of milestones, todos and tasks. The project gets copies. Built-in templates cannot be changed; duplicate them to adapt them.",
+    "create": "Create template",
+    "edit": "Edit template",
+    "duplicate": "Duplicate",
+    "builtin": "Built-in",
+    "by": "by {name}",
+    "actionsOf": "Actions for the template “{name}”",
+    "name": "Name",
+    "description": "Description",
+    "locale": "Language",
+    "localeHint": "The language of the titles and descriptions. Every label needs a name in this language.",
+    "outline": "Outline",
+    "noOutline": "No outline, labels only.",
+    "usedBy": "No project made from it yet | 1 project made from it | {count} projects made from it",
+    "saved": "Template saved.",
+    "duplicated": "“{name}” created. You can adapt it now.",
+    "deleted": "Template deleted.",
+    "deleteTitle": "Delete the template “{name}”?",
+    "deleteDescription": "The template is deleted for good. Projects made from it keep their labels and outline.",
+    "sizeMilestones": "{n} milestone | {n} milestones",
+    "sizeTodos": "{n} todo | {n} todos",
+    "sizeTasks": "{n} task | {n} tasks",
+    "upload": "From file",
+    "download": "Download as planer.json",
+    "uploaded": "Template “{name}” created from the file."
   },
   "userRole": {
     "ADMIN": "Administration",
@@ -594,7 +753,7 @@
     "MITGLIED": "Member",
     "LESEND": "Read only"
   },
-  "jobFunction": {
+  "activity": {
     "DESIGNER": "Designer",
     "ENTWICKLUNG": "Development",
     "TESTER": "Testing",
@@ -690,21 +849,49 @@
         "title": "Comments",
         "description": "Comments on a task."
       },
-      "label_sets": {
-        "title": "Label sets",
-        "description": "Collections of labels that a project chooses for its tasks."
+      "templates": {
+        "title": "Templates",
+        "description": "Templates for new projects: labels and, if wanted, an outline of milestones, todos and tasks, stored as a planer document."
       },
       "labels": {
         "title": "Labels",
-        "description": "Single labels within a label set."
+        "description": "The labels of a project. Each project has its own, copied from a template or made by hand."
       },
       "label_task": {
         "title": "Task labels",
         "description": "Assignment: which labels are on a task."
       },
+      "project_webhooks": {
+        "title": "Webhooks",
+        "description": "One notification per project when the planer file changes: GitHub or an address. The secret is stored encrypted."
+      },
       "app_settings": {
         "title": "App settings",
         "description": "Settings of the whole app, for example whether 2FA is required."
+      },
+      "roles": {
+        "title": "Roles",
+        "description": "Roles of the app (system and project) with their names. The rights of a role come from its functions."
+      },
+      "functions": {
+        "title": "Functions",
+        "description": "Named sets of rights, per scope. A role has several functions."
+      },
+      "function_rights": {
+        "title": "Rights in functions",
+        "description": "Which right a function gives."
+      },
+      "role_functions": {
+        "title": "Functions per role",
+        "description": "Which functions a role has."
+      },
+      "project_ai_contexts": {
+        "title": "AI context",
+        "description": "Background knowledge of a project for the assistant: a text and the text of a file, together up to 20,000 characters."
+      },
+      "ideas": {
+        "title": "Ideas",
+        "description": "Private ideas of a person, with an optional draft of the assistant. Deleted ones go to the trash."
       }
     },
     "columns": {
@@ -721,13 +908,9 @@
           "label": "E-Mail",
           "description": "Adresse zum Anmelden und für Benachrichtigungen."
         },
-        "role": {
-          "label": "Rolle",
-          "description": "Globale Berechtigungsrolle. Bestimmt, was die Person in der ganzen App darf."
-        },
-        "job_function": {
-          "label": "Funktion",
-          "description": "Funktion der Person, zum Beispiel Designer. Nur zur Anzeige, ohne Rechte."
+        "activity": {
+          "label": "Tätigkeit",
+          "description": "Tätigkeit der Person, zum Beispiel Designer. Nur zur Anzeige, ohne Rechte."
         },
         "notify_by_email": {
           "label": "Benachrichtigung per E-Mail",
@@ -768,6 +951,14 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "approved_at": {
+          "label": "Approved at",
+          "description": "When an admin approved the account. Empty for self-registered accounts that still wait."
+        },
+        "role_id": {
+          "label": "Role",
+          "description": "Global role of the person. Decides what they may do in the whole app."
         }
       },
       "projects": {
@@ -787,10 +978,6 @@
           "label": "Icon",
           "description": "Font-Awesome-Icon des Projekts."
         },
-        "label_set_id": {
-          "label": "Label-Set",
-          "description": "Gewähltes Label-Set. Leer, wenn das Projekt keines gewählt hat."
-        },
         "locale": {
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
@@ -802,6 +989,30 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "archived_at": {
+          "label": "Archived at",
+          "description": "When the project was archived. Empty means active."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "planer_revision": {
+          "label": "Revision",
+          "description": "Counts every change to the planer file. Only the app increases it."
+        },
+        "template_id": {
+          "label": "Template",
+          "description": "Template the project was made from (only to show it). Empty when it was made without one or the template was deleted."
         }
       },
       "project_user": {
@@ -817,10 +1028,6 @@
           "label": "Person",
           "description": "Mitglied des Projekts."
         },
-        "role": {
-          "label": "Projektrolle",
-          "description": "Rolle im Projekt: Owner, Manager oder Mitglied."
-        },
         "created_at": {
           "label": "Created at",
           "description": "When the record was created, set by Laravel."
@@ -828,6 +1035,10 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "role_id": {
+          "label": "Project role",
+          "description": "Role of the person in the project. Decides what they may do in the project."
         }
       },
       "milestones": {
@@ -866,6 +1077,30 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "position": {
+          "label": "Position",
+          "description": "Order of the milestone in its project, from 0."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "release_version": {
+          "label": "Version",
+          "description": "Version of the milestone, in the form M.m, for example 1.4. Empty when no version is planned."
+        },
+        "release_status": {
+          "label": "Release",
+          "description": "planned or released. Released means: only done tasks, each with a commit."
         }
       },
       "todos": {
@@ -876,6 +1111,14 @@
         "milestone_id": {
           "label": "Milestone",
           "description": "Milestone, zu dem das ToDo gehört."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "Project the todo belongs to. Taken from the milestone."
+        },
+        "position": {
+          "label": "Position",
+          "description": "Order of the todo in its milestone, from 0."
         },
         "title": {
           "label": "Titel",
@@ -904,6 +1147,22 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "idea_id": {
+          "label": "Idea",
+          "description": "The idea the to-do came from, or empty."
         }
       },
       "tasks": {
@@ -914,6 +1173,10 @@
         "todo_id": {
           "label": "ToDo",
           "description": "ToDo, zu dem der Task gehört."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "Project the task belongs to. Taken from the todo."
         },
         "assigned_user_id": {
           "label": "Zugewiesen an",
@@ -935,9 +1198,13 @@
           "label": "Status",
           "description": "Offen, in Arbeit, Review oder erledigt."
         },
-        "position": {
+        "board_position": {
           "label": "Position",
           "description": "Reihenfolge innerhalb der Kanban-Spalte."
+        },
+        "position": {
+          "label": "Position in the to-do",
+          "description": "Order of the tasks inside their to-do (timeline, planer file)."
         },
         "due_date": {
           "label": "Fälligkeit",
@@ -950,6 +1217,26 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "user_story": {
+          "label": "User story",
+          "description": "User story of the task: As role I want goal, so that benefit. Three parts, all or none."
+        },
+        "commit": {
+          "label": "Commit",
+          "description": "Hash of the implementation (7 to 40 characters), none for done tasks without a commit, empty when none is recorded yet."
         }
       },
       "comments": {
@@ -976,36 +1263,22 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
-        }
-      },
-      "label_sets": {
-        "id": {
-          "label": "ID",
-          "description": "Unique number of the record."
         },
-        "key": {
-          "label": "Schlüssel",
-          "description": "Kennung eines mitgelieferten Sets. Leer bei eigenen Sets."
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "When it was moved to the trash. Empty means not deleted."
         },
-        "name": {
-          "label": "Name",
-          "description": "Name des Sets."
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted it."
         },
-        "description": {
-          "label": "Beschreibung",
-          "description": "Kurze Beschreibung des Sets."
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash in one deletion."
         },
-        "created_by": {
-          "label": "Angelegt von",
-          "description": "Ersteller eines eigenen Sets. Leer bei mitgelieferten Sets."
-        },
-        "created_at": {
-          "label": "Created at",
-          "description": "When the record was created, set by Laravel."
-        },
-        "updated_at": {
-          "label": "Updated at",
-          "description": "When the record last changed, set by Laravel."
+        "edited_at": {
+          "label": "Edited at",
+          "description": "When the text was last changed. Empty while it is unchanged; deleting and restoring do not count."
         }
       },
       "labels": {
@@ -1013,17 +1286,9 @@
           "label": "ID",
           "description": "Unique number of the record."
         },
-        "label_set_id": {
-          "label": "Label-Set",
-          "description": "Set, zu dem das Label gehört."
-        },
         "key": {
-          "label": "Schlüssel",
-          "description": "Kennung eines mitgelieferten Labels. Leer bei eigenen Labels."
-        },
-        "name": {
-          "label": "Name",
-          "description": "Name des Labels."
+          "label": "Key",
+          "description": "Stable identifier in the project (a-z, 0-9, _ and -), made from the name and never changed."
         },
         "category": {
           "label": "Kategorie",
@@ -1034,8 +1299,8 @@
           "description": "Farbton aus der Palette des Themes."
         },
         "position": {
-          "label": "Reihenfolge",
-          "description": "Reihenfolge im Set."
+          "label": "Order",
+          "description": "Order in the project."
         },
         "created_at": {
           "label": "Created at",
@@ -1044,6 +1309,14 @@
         "updated_at": {
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "Project the label belongs to. When the project is deleted for good, so are its labels."
+        },
+        "names": {
+          "label": "Names",
+          "description": "The name of the label per language (JSON, de and en). The name in the language of the project is required."
         }
       },
       "label_task": {
@@ -1054,6 +1327,52 @@
         "task_id": {
           "label": "Task",
           "description": "Der Task, an dem das Label hängt."
+        }
+      },
+      "project_webhooks": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "The project (at most one notification per project)."
+        },
+        "kind": {
+          "label": "Kind",
+          "description": "github (repository_dispatch) or generic (signed POST)."
+        },
+        "target": {
+          "label": "Target",
+          "description": "GitHub: owner/name. Generic: the address."
+        },
+        "secret": {
+          "label": "Secret",
+          "description": "Token or signing secret, encrypted. Never shown."
+        },
+        "last_sent_revision": {
+          "label": "Last revision",
+          "description": "Revision of the planer file at the last successful notification."
+        },
+        "last_sent_at": {
+          "label": "Last sent",
+          "description": "Time of the last successful notification."
+        },
+        "last_failed_at": {
+          "label": "Last failed",
+          "description": "Time of the last notification that did not arrive after all tries."
+        },
+        "last_error": {
+          "label": "Last error",
+          "description": "Short code, for example HTTP 401 or timeout. Never headers or body."
+        },
+        "created_at": {
+          "label": "Created",
+          "description": "Time it was created."
+        },
+        "updated_at": {
+          "label": "Changed",
+          "description": "Time of the last change."
         }
       },
       "app_settings": {
@@ -1077,6 +1396,220 @@
           "label": "Updated at",
           "description": "When the record last changed, set by Laravel."
         }
+      },
+      "roles": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the role."
+        },
+        "scope": {
+          "label": "Scope",
+          "description": "system: applies to the whole app. project: applies inside a project."
+        },
+        "key": {
+          "label": "Key",
+          "description": "Technical name of the role, lower case and English. Stays unchanged."
+        },
+        "names": {
+          "label": "Names",
+          "description": "Name of the role in German and English."
+        },
+        "project_cap": {
+          "label": "Cap",
+          "description": "System roles only: which project rights the role lets take effect. Empty means all, an empty list means none."
+        },
+        "is_default": {
+          "label": "Default",
+          "description": "Default role for new people (system) or new members (project)."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "Time of creation, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "Time of the last change, set by Laravel."
+        }
+      },
+      "functions": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the function."
+        },
+        "scope": {
+          "label": "Scope",
+          "description": "system or project, as for the roles."
+        },
+        "key": {
+          "label": "Key",
+          "description": "Technical name of the function, lower case and English."
+        },
+        "names": {
+          "label": "Names",
+          "description": "Name of the function in German and English."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "Time of creation, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Updated at",
+          "description": "Time of the last change, set by Laravel."
+        }
+      },
+      "function_rights": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the entry."
+        },
+        "function_id": {
+          "label": "Function",
+          "description": "Function that gives the right."
+        },
+        "right": {
+          "label": "Right",
+          "description": "Name of the right, for example task.update."
+        }
+      },
+      "role_functions": {
+        "role_id": {
+          "label": "Role",
+          "description": "Role that has the function."
+        },
+        "function_id": {
+          "label": "Function",
+          "description": "Function of the role."
+        }
+      },
+      "templates": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number of the record."
+        },
+        "key": {
+          "label": "Key",
+          "description": "Identifier of a built-in template (the file name in spec/templates). Empty for own templates."
+        },
+        "name": {
+          "label": "Name",
+          "description": "Name of the template, unique."
+        },
+        "description": {
+          "label": "Description",
+          "description": "Short description of the template."
+        },
+        "locale": {
+          "label": "Language",
+          "description": "Language of the titles and descriptions in the template (de or en)."
+        },
+        "content": {
+          "label": "Content",
+          "description": "The template as a planer document (spec/format-v2.md) with the fixed values of a template: labels and outline."
+        },
+        "created_by": {
+          "label": "Created by",
+          "description": "Creator of an own template. Empty for built-in templates and when the person was deleted."
+        },
+        "created_at": {
+          "label": "Created at",
+          "description": "When it was created, set by Laravel."
+        },
+        "updated_at": {
+          "label": "Changed at",
+          "description": "When it was last changed, set by Laravel."
+        }
+      },
+      "project_ai_contexts": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "The project (at most one context per project)."
+        },
+        "text": {
+          "label": "Text",
+          "description": "The text of the context."
+        },
+        "file_name": {
+          "label": "File name",
+          "description": "Name of the uploaded file (.txt or .md)."
+        },
+        "file_text": {
+          "label": "File text",
+          "description": "The text of the file as UTF-8."
+        },
+        "shared_with_tools": {
+          "label": "For tools",
+          "description": "Whether external tools (MCP) may read the context."
+        },
+        "updated_by": {
+          "label": "Changed by",
+          "description": "The person who last changed the context."
+        },
+        "created_at": {
+          "label": "Created",
+          "description": "Time of creation."
+        },
+        "updated_at": {
+          "label": "Changed",
+          "description": "Time of the last change."
+        }
+      },
+      "ideas": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number."
+        },
+        "user_id": {
+          "label": "Author",
+          "description": "The person the idea belongs to."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "The project the idea belongs to, or empty."
+        },
+        "title": {
+          "label": "Title",
+          "description": "Short title of the idea."
+        },
+        "description": {
+          "label": "Description",
+          "description": "Description as a TipTap document (JSON, never HTML)."
+        },
+        "draft": {
+          "label": "Draft",
+          "description": "A planer-v2 excerpt as canonical text, or empty."
+        },
+        "status": {
+          "label": "Status",
+          "description": "open, adopted or discarded."
+        },
+        "adopted_at": {
+          "label": "Adopted at",
+          "description": "When the idea was put into a plan."
+        },
+        "created_at": {
+          "label": "Created",
+          "description": "Time of creation."
+        },
+        "updated_at": {
+          "label": "Changed",
+          "description": "Time of the last change."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "Time of deletion (trash), otherwise empty."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted the idea."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash with one deletion."
+        }
       }
     }
   },
@@ -1089,26 +1622,25 @@
   "rights": {
     "title": "Rights table",
     "subtitle": "Which role may do what. The table is read from the rules of the app, so it always shows the truth.",
-    "system": "System abilities",
+    "system": "System rights",
     "systemHint": "Apply across the whole app, regardless of any project.",
-    "project": "Project abilities",
+    "project": "Project rights",
     "projectHint": "Apply inside a project, depending on the project role.",
     "yes": "yes",
     "no": "no",
-    "readOnly": "The role “read only” may change nothing, not even as owner of a project.",
-    "admin": "The role “administration” may do everything, also in projects it is not a member of.",
+    "readOnly": "The role {roles} may change nothing, not even as owner of a project. | The roles {roles} may change nothing, not even as owner of a project.",
+    "admin": "The role {roles} may do everything, also in projects it is not a member of. | The roles {roles} may do everything, also in projects they are not members of.",
+    "quoted": "“{name}”",
+    "scrollHint": "Not all roles fit: the table scrolls sideways.",
+    "tableLabel": "Rights per role",
     "role": "Role",
-    "ability": "Ability",
-    "abilities": {
-      "PROJECTS_CREATE": "Create projects",
-      "PROJECTS_VIEW_ALL": "See all projects, even without membership",
-      "PROJECTS_MANAGE_ANY": "Manage any project, overriding all project rules",
-      "USERS_MANAGE": "Manage users, user list, app settings",
-      "LABEL_SETS_MANAGE": "Create and duplicate label sets",
-      "LABEL_SETS_MANAGE_ANY": "Change and delete label sets of others",
+    "right": "Right",
+    "names": {
       "PROJECT_UPDATE": "Change the project",
       "PROJECT_DELETE": "Delete the project",
+      "PROJECT_ARCHIVE": "Archive and restore the project",
       "MEMBERS_MANAGE": "Manage members",
+      "OWNER_MANAGE": "Grant or take away owner roles (roles with “delete the project”)",
       "MILESTONE_CREATE": "Create milestones",
       "MILESTONE_UPDATE": "Change milestones",
       "MILESTONE_DELETE": "Delete milestones",
@@ -1117,11 +1649,415 @@
       "TODO_DELETE": "Delete to-dos",
       "TASK_CREATE": "Create tasks",
       "TASK_UPDATE": "Change tasks",
+      "TASK_UPDATE_OWN": "Change own tasks (the ones created by oneself)",
       "TASK_ASSIGN": "Assign tasks",
+      "TASK_ASSIGN_SELF": "Assign oneself, or remove one’s own assignment",
       "TASK_MOVE": "Move tasks",
       "TASK_DELETE": "Delete tasks",
       "COMMENT_CREATE": "Comment",
-      "COMMENT_MODERATE": "Delete comments of others"
+      "COMMENT_MODERATE": "Delete comments of others",
+      "TRASH_RESTORE": "Restore from trash",
+      "TRASH_PURGE": "Delete permanently",
+      "PLANER_EXPORT": "Export planer file",
+      "PLANER_IMPORT": "Import planer file",
+      "AI_CONTEXT_UPDATE": "Edit AI context",
+      "PROJECTS_CREATE": "Create projects",
+      "PROJECTS_VIEW_ALL": "See all projects, even without membership",
+      "PROJECTS_MANAGE_ANY": "Manage any project: all project rights in all projects",
+      "USERS_MANAGE": "Manage users, user list",
+      "ROLES_MANAGE": "Manage roles and functions",
+      "TEMPLATES_MANAGE": "Manage own templates",
+      "TEMPLATES_MANAGE_ANY": "Manage all templates",
+      "ASSISTANT_USE": "Use the AI assistant",
+      "IDEAS_CREATE": "Record ideas",
+      "IDEAS_VIEW_ANY": "See all ideas",
+      "SETTINGS_MANAGE": "Change app settings",
+      "SYSTEM_VIEW": "See the status page",
+      "DATABASE_VIEW": "See the database documentation"
     }
+  },
+  "roleSettings": {
+    "title": "Roles and rights",
+    "intro": "Rights are fixed by the code. A function bundles rights, a role bundles functions. System roles hold for a person in the whole app, project roles for a membership.",
+    "assignHint": {
+      "SYSTEM": "System roles are given under “{link}”.",
+      "PROJECT": "Project roles are given in a project under “Members”."
+    },
+    "assignLink": "Users",
+    "scopes": {
+      "SYSTEM": "System",
+      "PROJECT": "Project"
+    },
+    "roles": {
+      "SYSTEM": "System roles",
+      "PROJECT": "Project roles"
+    },
+    "functions": {
+      "SYSTEM": "System functions",
+      "PROJECT": "Project functions"
+    },
+    "createRole": "Create role",
+    "editRole": "Edit role",
+    "createFunction": "Create function",
+    "editFunction": "Edit function",
+    "standard": "Built-in",
+    "default": "Default role",
+    "duplicate": "Duplicate",
+    "makeDefault": "Set as default role",
+    "reset": "Reset to standard",
+    "inUse": "still in use",
+    "isDefault": "is the default role",
+    "actionsOf": "Actions for “{name}”",
+    "functionsOf": "Functions",
+    "noFunctions": "No functions (read only)",
+    "rightsOf": "Rights",
+    "noRights": "No rights",
+    "capAll": "Project rights: all",
+    "capNone": "Project rights: none, the person only reads in projects",
+    "capSome": "Project rights: limited to {count} of {total}",
+    "roleUsage": {
+      "SYSTEM": "Nobody has the role | 1 person | {count} people",
+      "PROJECT": "Given in no project | 1 membership | {count} memberships"
+    },
+    "functionUsage": "In no role | In 1 role | In {count} roles",
+    "scope": "Scope",
+    "scopeHint": "The scope cannot be changed later.",
+    "nameDe": "Name (German)",
+    "nameEn": "Name (English)",
+    "keyHint": "The key is made from the English name and stays fixed afterwards.",
+    "cap": "Cap for project rights",
+    "capHint": "Sets which project rights can take effect at all for people with this role, whatever their project role.",
+    "capModes": {
+      "ALL": "All project rights",
+      "NONE": "None (read only in projects)",
+      "SOME": "Selected ones only"
+    },
+    "capRights": "Project rights that may take effect",
+    "saved": "Saved.",
+    "duplicated": "“{name}” created. You can adjust it now.",
+    "deleted": "Deleted.",
+    "defaultSet": "“{name}” is now the default role.",
+    "resetDone": "“{name}” is back to the standard.",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteRoleDescription": "The role will be deleted. This cannot be undone.",
+    "deleteFunctionDescription": "The function will be deleted. This cannot be undone.",
+    "resetTitle": "Reset “{name}” to the standard?",
+    "resetRoleDescription": "Name, functions and cap go back to what ships with the app. This holds at once for everyone with the role.",
+    "resetFunctionDescription": "Name and rights go back to what ships with the app. This holds at once for every role with this function.",
+    "views": {
+      "roles": "Roles",
+      "functions": "Functions",
+      "matrix": "Overview"
+    },
+    "viewLabel": "View",
+    "own": "Own",
+    "creator": "Creator",
+    "more": "+{count}",
+    "capShort": {
+      "ALL": "Project rights: all",
+      "NONE": "Project rights: none",
+      "SOME": "{count} of {total} project rights"
+    },
+    "rightsCount": "No rights | 1 right | {count} rights",
+    "usedBy": "Used by {names}",
+    "showRights": "Show the rights of “{name}”",
+    "via": "via {names}",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Search role, function or right",
+      "originLabel": "Origin",
+      "origin": {
+        "all": "Origin: all",
+        "standard": "Shipped only",
+        "own": "Own only"
+      },
+      "usageLabel": "Use",
+      "usage": {
+        "all": "Use: all",
+        "used": "In use",
+        "unused": "Unused"
+      },
+      "rights": "Has right",
+      "rightsPlaceholder": "Has right …",
+      "count": "{shown} of {total}",
+      "reset": "Reset filters"
+    },
+    "empty": {
+      "roles": "No role matches the filters.",
+      "functions": "No function matches the filters.",
+      "matrix": "No right matches the filters."
+    },
+    "groups": {
+      "PROJECT": "Project",
+      "MEMBERS": "Members",
+      "MILESTONE": "Milestones",
+      "TODO": "To-dos",
+      "TASK": "Tasks",
+      "COMMENT": "Comments",
+      "TRASH": "Trash",
+      "PLANER": "Planer file",
+      "AI_CONTEXT": "AI context",
+      "PROJECTS": "Projects",
+      "USERS": "Users",
+      "ROLES": "Roles",
+      "TEMPLATES": "Templates and labels",
+      "ASSISTANT": "Assistant and ideas",
+      "OPERATIONS": "Operations",
+      "OTHER": "More"
+    }
+  },
+  "release": {
+    "none": "No version",
+    "planned": "Planned",
+    "released": "Released"
+  },
+  "trash": {
+    "deleted": "Deleted",
+    "undo": "Undo",
+    "restored": "Restored",
+    "restoreFailed": "Cannot restore",
+    "projectsTitle": "Trash",
+    "projectsHint": "Deleted projects you may restore.",
+    "hint": "What was deleted stays here until someone deletes it for good. Restored items go to the end of their list.",
+    "empty": "The trash is empty.",
+    "restore": "Restore",
+    "purge": "Delete for good",
+    "purgeTitle": "Delete for good?",
+    "purgeDescription": "“{title}” is deleted for good, with everything that went with it. This cannot be undone.",
+    "purged": "Deleted for good.",
+    "emptyTrash": "Empty trash",
+    "emptyTitle": "Empty the trash?",
+    "emptyDescription": "{count} entry is deleted for good. This cannot be undone. | {count} entries are deleted for good. This cannot be undone.",
+    "emptied": "Trash emptied.",
+    "projectPurgeTitle": "Delete “{name}” for good?",
+    "projectPurgeDescription": "All milestones, todos, tasks and comments of this project are deleted for good. This cannot be undone.",
+    "projectPurged": "Project “{name}” deleted for good.",
+    "deletedBy": "Deleted by {name}, {at}",
+    "deletedAt": "Deleted {at}",
+    "with": "with {list}",
+    "types": {
+      "PROJECT": "Project",
+      "MILESTONE": "Milestone",
+      "TODO": "Todo",
+      "TASK": "Task",
+      "COMMENT": "Comment",
+      "IDEA": "Idea"
+    },
+    "count": {
+      "PROJECT": "{count} project | {count} projects",
+      "MILESTONE": "{count} milestone | {count} milestones",
+      "TODO": "{count} todo | {count} todos",
+      "TASK": "{count} task | {count} tasks",
+      "COMMENT": "{count} comment | {count} comments",
+      "IDEA": "{count} idea | {count} ideas"
+    }
+  },
+  "planer": {
+    "tree": "Plan",
+    "empty": "The plan has no milestones yet.",
+    "willDelete": "Goes to the trash | {count} item goes to the trash | {count} items go to the trash",
+    "removed": {
+      "milestone": "Milestone “{name}”",
+      "todo": "To-do “{name}”",
+      "task": "Task “{name}”",
+      "member": "Member {name}"
+    },
+    "mark": {
+      "create": "New",
+      "update": "Changed",
+      "move": "Moved",
+      "delete": "Deleted"
+    },
+    "field": {
+      "title": "Title",
+      "description": "Description",
+      "dueDate": "Due date",
+      "release": "Version",
+      "status": "Status",
+      "assigneeEmail": "Assignee",
+      "labels": "Labels",
+      "commit": "Commit",
+      "userStory": "User story",
+      "name": "Name",
+      "locale": "Language",
+      "member": "Member",
+      "milestone": "Milestone",
+      "todo": "To-do",
+      "position": "Order"
+    },
+    "file": {
+      "title": "Planer file",
+      "intro": "The whole project as a file in the planer-v2 format: milestones, to-dos, tasks, members and labels.",
+      "download": "Download",
+      "asJson": "As planer.json",
+      "asMarkdown": "As Markdown",
+      "language": "Language",
+      "languageHint": "Language of the Markdown view: fixed words and label names.",
+      "legend": "Translations in the legend",
+      "legendHint": "The legend names the words in the other language too.",
+      "markdownFailed": "The Markdown view is not possible.",
+      "import": "Read in a file",
+      "importHint": "Read a planer file into the project. You see what changes first; nothing is written until you confirm.",
+      "importButton": "Read in a file …",
+      "template": "Save as template",
+      "templateHint": "The outline and the labels of this project as your own template, without members, due dates and assignments.",
+      "templateButton": "Save as template …",
+      "templateTitle": "Save as template",
+      "templateDescription": "The template gets the labels, milestones, to-dos and tasks of this project. All tasks in it are “planned”.",
+      "templateSubmit": "Save",
+      "templateSaved": "Template “{name}” saved."
+    },
+    "import": {
+      "title": "Read in a planer file",
+      "titleNew": "Project from a file",
+      "intro": "Choose a planer file (planer.json). Nothing is written yet: you see what would change first.",
+      "introNew": "Choose a planer file (planer.json). You see what would be created first. You become a member of the new project.",
+      "choose": "Choose a file",
+      "chooseOther": "Choose another file",
+      "notJson": "This is not a valid JSON file.",
+      "notPlaner": "This is not a planer file (format planer-v2).",
+      "mode": "Mode",
+      "modeFull": "Whole plan",
+      "modePartial": "Only add and change",
+      "modeFullHint": "The file is the whole plan: what it lacks goes to the trash. The revision of the file must match.",
+      "modePartialHint": "Adds and changes, never deletes. Fields the file leaves out stay.",
+      "errors": "No error | 1 error, nothing is written | {count} errors, nothing is written",
+      "nothing": "The file changes nothing in the project.",
+      "changes": "No change | 1 change | {count} changes",
+      "submit": "Import",
+      "confirmTitle": "Import and delete?",
+      "confirmDescription": "The file leaves out 1 item. It goes to the trash and can be restored there. | The file leaves out 1 item. It goes to the trash and can be restored there. | The file leaves out {count} items. They go to the trash together and can be restored there.",
+      "done": "The file has been imported."
+    },
+    "webhook": {
+      "title": "Notification on changes",
+      "intro": "The app tells you when the planer file has changed, at most every five minutes. A GitHub Action can use it to keep the file in the repository up to date.",
+      "kind": "Kind",
+      "kinds": {
+        "GITHUB": "GitHub",
+        "GENERIC": "Generic"
+      },
+      "repository": "Repository",
+      "repositoryHint": "In the form owner/name, for example oliver/podcast.",
+      "url": "Address",
+      "urlHint": "The app sends a signed POST to this address (https only).",
+      "token": "Token",
+      "tokenHint": "Fine-grained token, this repository only, permission Contents: write.",
+      "tokenSaved": "Token saved",
+      "secret": "Secret",
+      "secretHint": "The app signs the body with it (HMAC-SHA256, header X-Mollo-Signature).",
+      "secretSaved": "Secret saved",
+      "replace": "Replace",
+      "test": "Test",
+      "remove": "Remove",
+      "saved": "Notification saved.",
+      "removed": "Notification removed.",
+      "removeTitle": "Remove the notification?",
+      "removeDescription": "The app no longer tells anyone about changes. The stored token or secret is deleted.",
+      "sent": "Last sent on {date} (revision {revision}).",
+      "failed": "Last notification failed on {date}: {error}",
+      "notSent": "Nothing sent yet.",
+      "error": {
+        "timeout": "timeout",
+        "connection": "no connection",
+        "target": "target not allowed",
+        "error": "error"
+      }
+    },
+    "keep": "Add “{name}”"
+  },
+  "ideas": {
+    "title": "Ideas",
+    "intro": "Your private ideas. Plan them later with the assistant or keep drafts here.",
+    "new": "New idea",
+    "edit": "Edit idea",
+    "filter": "Filter",
+    "status": {
+      "ALL": "All",
+      "OPEN": "Open",
+      "ADOPTED": "Adopted",
+      "DISCARDED": "Discarded"
+    },
+    "empty": "No ideas",
+    "emptyDescription": "Create an idea or keep a draft of the assistant here.",
+    "plan": "Plan with the assistant",
+    "discard": "Discard",
+    "reopen": "Reopen",
+    "delete": "Delete",
+    "todos": "Became:",
+    "draftCounts": "Draft: {list}",
+    "fieldTitle": "Title",
+    "fieldDescription": "Description",
+    "descriptionPlaceholder": "What is it about?",
+    "created": "Idea created.",
+    "saved": "Idea saved."
+  },
+  "aiContext": {
+    "title": "AI context",
+    "intro": "Background knowledge for the assistant: goals, terms, scope. The assistant reads it as knowledge, never as instructions.",
+    "text": "Text",
+    "textHint": "Everybody in this project sees this text, and it is sent to the AI service (Claude) for evaluation. Do not enter passwords or confidential data.",
+    "fileLabel": "File (.txt or .md, up to 100 KB)",
+    "chooseFile": "Choose file",
+    "replaceFile": "Replace file",
+    "removeFile": "Remove file",
+    "file": {
+      "type": "Only .txt or .md.",
+      "size": "The file is larger than 100 KB."
+    },
+    "counter": "{used} of {limit} characters",
+    "share": "Share with external tools",
+    "shareHint": "The context can then also be read through the access for Claude.",
+    "clear": "Remove everything",
+    "saved": "AI context saved.",
+    "fileSaved": "File saved."
+  },
+  "zen": {
+    "menu": "Menu",
+    "enter": "Calm view",
+    "leave": "Leave zen",
+    "leaveFocus": "Back",
+    "announceOn": "Calm view on.",
+    "announceOff": "Normal view.",
+    "showIdeas": "Show ideas",
+    "hideIdeas": "Hide ideas",
+    "milestonesOnly": "Toggle milestones only",
+    "expandMilestone": "Expand",
+    "collapseMilestone": "Collapse",
+    "focus": "Focus",
+    "focusTask": "Open task in focus",
+    "focusTodo": "Open to-do in focus",
+    "mood": {
+      "title": "Mood",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "presets": "Presets",
+      "strip": "Colour strip, now {tone}",
+      "ratio": "Contrast text to ground {ratio} : 1",
+      "reset": "Reset",
+      "percent": "{value} percent",
+      "tones": {
+        "linen": "Linen",
+        "sand": "Sand",
+        "stone": "Stone",
+        "taupe": "Taupe",
+        "leather": "Leather"
+      }
+    },
+    "name": "Zen",
+    "start": "Start Zen",
+    "startHit": "Zen · {area}"
+  },
+  "command": {
+    "title": "Search",
+    "search": "Search",
+    "placeholder": "Page, project, action or “Zen” …",
+    "none": "Nothing found.",
+    "group": {
+      "action": "Actions",
+      "page": "Pages",
+      "project": "Projects"
+    },
+    "open": "Open search"
   }
 }

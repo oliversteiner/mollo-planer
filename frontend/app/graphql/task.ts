@@ -9,12 +9,16 @@ export const kanbanQuery = graphql(`
         title
         icon
         status
-        position
+        boardPosition
         dueDate
+        commit
+        userStory { role goal benefit }
         commentCount
         labels { id name color position }
         assignee { id name avatarUrl }
         todo { id title }
+        viewerCanUpdate
+        viewerCanDelete
       }
     }
   }
@@ -26,12 +30,18 @@ export const moveTaskToTodoMutation = graphql(`
   }
 `)
 
+export const moveTaskInTodoMutation = graphql(`
+  mutation MoveTaskInTodo($id: ID!, $position: Int!) {
+    moveTaskInTodo(id: $id, position: $position) { id }
+  }
+`)
+
 export const projectMembersQuery = graphql(`
   query ProjectMembers($id: ID!) {
     project(id: $id) {
       id
       members {
-        role
+        role { key }
         user { id name avatarUrl }
       }
     }
@@ -46,24 +56,30 @@ export const taskQuery = graphql(`
       description
       icon
       status
-      position
+      boardPosition
       dueDate
+      commit
+      userStory { role goal benefit }
       assignee { id name avatarUrl }
       labels { id name color position }
+      viewerCanUpdate
+      viewerCanAssign
+      viewerCanAssignSelf
+      viewerCanDelete
       todo {
         id
         title
         milestone {
           id
           title
-          project { id name labelSet { id labels { id name category color position } } }
+          project { id name labels { id name category color position } }
         }
       }
       comments {
         id
         body
         createdAt
-        updatedAt
+        editedAt
         viewerCanEdit
         viewerCanDelete
         author { id name avatarUrl }
@@ -80,13 +96,13 @@ export const createTaskMutation = graphql(`
 
 export const updateTaskMutation = graphql(`
   mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
-    updateTask(id: $id, input: $input) { id title description icon dueDate }
+    updateTask(id: $id, input: $input) { id title description icon dueDate userStory { role goal benefit } }
   }
 `)
 
 export const moveTaskMutation = graphql(`
   mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {
-    moveTask(id: $id, status: $status, position: $position) { id status position }
+    moveTask(id: $id, status: $status, position: $position) { id status boardPosition }
   }
 `)
 
@@ -98,7 +114,7 @@ export const assignTaskMutation = graphql(`
 
 export const deleteTaskMutation = graphql(`
   mutation DeleteTask($id: ID!) {
-    deleteTask(id: $id) { id }
+    deleteTask(id: $id) { id deletionId }
   }
 `)
 
@@ -110,15 +126,15 @@ export const addCommentMutation = graphql(`
 
 export const updateCommentMutation = graphql(`
   mutation UpdateComment($id: ID!, $input: UpdateCommentInput!) {
-    updateComment(id: $id, input: $input) { id body updatedAt }
+    updateComment(id: $id, input: $input) { id body editedAt }
   }
 `)
 
 export const deleteCommentMutation = graphql(`
   mutation DeleteComment($id: ID!) {
-    deleteComment(id: $id) { id }
+    deleteComment(id: $id) { id deletionId }
   }
 `)
 
 /** Kanban columns in board order (same as the backend's TaskStatus). */
-export const TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'REVIEW', 'DONE'] as const
+export const TASK_STATUSES = ['IDEA', 'PLANNED', 'OPEN', 'IN_PROGRESS', 'REVIEW', 'DONE'] as const

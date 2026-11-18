@@ -29,7 +29,7 @@ class ItemStatusSync
             return;
         }
 
-        $status = $this->derive($todo->tasks(), TaskStatus::DONE->value);
+        $status = $this->derive($todo->tasks(), TaskStatus::DONE->value, TaskStatus::IDEA->value);
 
         if ($todo->getRawOriginal('status') !== $status->value) {
             $todo->status = $status;
@@ -59,14 +59,20 @@ class ItemStatusSync
     }
 
     /**
-     * DONE if there is at least one child and every child is done.
+     * DONE if there is at least one child and every child is done. Children
+     * with the ignored value (tasks in IDEA) do not count at all.
      *
      * @param  HasMany<Task, Todo>|HasMany<Todo, Milestone>  $children
      */
-    private function derive(HasMany $children, string $doneValue): ItemStatus
+    private function derive(HasMany $children, string $doneValue, ?string $ignoredValue = null): ItemStatus
     {
-        $hasChildren = $children->clone()->exists();
-        $hasUnfinished = $children->clone()->where('status', '!=', $doneValue)->exists();
+        $counted = $children->clone();
+        if ($ignoredValue !== null) {
+            $counted->where('status', '!=', $ignoredValue);
+        }
+
+        $hasChildren = $counted->clone()->exists();
+        $hasUnfinished = $counted->clone()->where('status', '!=', $doneValue)->exists();
 
         return $hasChildren && ! $hasUnfinished ? ItemStatus::DONE : ItemStatus::OPEN;
     }

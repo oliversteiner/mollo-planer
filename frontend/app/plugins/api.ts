@@ -8,6 +8,7 @@ import createUploadLink from 'apollo-upload-client/createUploadLink.mjs'
 import type { $Fetch } from 'ofetch'
 import type { ApiError } from '~/utils/api'
 import { classifyApolloError, classifyRestError, readCookie } from '~/utils/api'
+import { trashTypePolicies } from '~/utils/trash'
 
 /**
  * Connection to the backend (separate origin, cookie session via Sanctum):
@@ -19,7 +20,7 @@ import { classifyApolloError, classifyRestError, readCookie } from '~/utils/api'
 export default defineNuxtPlugin({
   name: 'api',
   setup(nuxtApp) {
-    const apiBase = useRuntimeConfig().public.apiBase.replace(/\/$/, '')
+    const apiBase = useApiBase()
     const i18n = nuxtApp.$i18n as { locale: { value: string } }
 
     const xsrfToken = () => readCookie(document.cookie, 'XSRF-TOKEN')
@@ -119,7 +120,7 @@ export default defineNuxtPlugin({
 
     const apollo = new ApolloClient({
       link: from([errorLink, contextLink, uploadLink]),
-      cache: new InMemoryCache()
+      cache: new InMemoryCache({ typePolicies: trashTypePolicies })
     })
 
     nuxtApp.vueApp.provide(DefaultApolloClient, apollo)

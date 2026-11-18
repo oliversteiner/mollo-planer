@@ -8,16 +8,31 @@ export interface ChatMessage {
   content: string
   /** Shown in red; not sent to Claude again */
   failed?: boolean
+  /** Goes to Claude with the message (an id), not shown */
+  note?: string
+}
+
+export interface ChatChoice {
+  kind: string
+  label: string
+  detail?: string | null
+  value?: string | null
+  recommended: boolean
 }
 
 const props = defineProps<{
   messages: ChatMessage[]
   pending?: boolean
+  /** Offer "start anew" even without messages (a project is set: "another project") */
+  canReset?: boolean
+  /** Buttons of the last answer (docs/auftrag-m6.md §4.1) */
+  choices?: readonly ChatChoice[]
 }>()
 
 const emit = defineEmits<{
   send: [text: string]
   reset: []
+  choose: [choice: ChatChoice]
 }>()
 
 const { t, localeProperties } = useI18n()
@@ -110,6 +125,26 @@ watch(() => [props.messages.length, props.pending], async () => {
         </div>
 
         <div
+          v-if="choices?.length && !pending"
+          class="chat-choices"
+          role="group"
+          :aria-label="t('assistant.chat.choices')"
+        >
+          <wa-button
+            v-for="(choice, index) in choices"
+            :key="`${choice.kind}-${choice.value ?? index}`"
+            :variant="choice.recommended ? 'brand' : 'neutral'"
+            :appearance="choice.recommended ? 'filled' : 'outlined'"
+            @click="emit('choose', choice)"
+          >
+            <span class="chat-choice">
+              <span>{{ choice.label }}<span v-if="choice.recommended"> · {{ t('assistant.chat.recommended') }}</span></span>
+              <small v-if="choice.detail">{{ choice.detail }}</small>
+            </span>
+          </wa-button>
+        </div>
+
+        <div
           v-if="pending"
           class="chat-thinking"
         >
@@ -162,7 +197,7 @@ watch(() => [props.messages.length, props.pending], async () => {
               </wa-tooltip>
             </template>
             <wa-button
-              v-if="messages.length"
+              v-if="messages.length || canReset"
               appearance="plain"
               variant="neutral"
               :disabled="pending"
@@ -172,7 +207,7 @@ watch(() => [props.messages.length, props.pending], async () => {
                 slot="start"
                 name="arrow-rotate-left"
               ></wa-icon>
-              {{ t('assistant.chat.reset') }}
+              {{ messages.length ? t('assistant.chat.reset') : t('assistant.chat.otherProject') }}
             </wa-button>
           </div>
           <wa-button
@@ -253,6 +288,25 @@ watch(() => [props.messages.length, props.pending], async () => {
 .chat-bubble[data-failed] {
   background-color: var(--wa-color-danger-fill-quiet);
   color: var(--wa-color-danger-on-quiet);
+}
+
+.chat-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wa-space-xs);
+  padding-inline-start: calc(2rem + var(--wa-space-s));
+}
+
+.chat-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+  text-align: start;
+}
+
+.chat-choice small {
+  color: var(--wa-color-text-quiet);
 }
 
 .chat-thinking {

@@ -2,17 +2,16 @@
 
 namespace App\Models\Concerns;
 
-use App\Enums\SystemAbility;
+use App\Enums\Right;
 use App\Models\User;
-use App\Support\ProjectPermissions;
-use App\Support\SystemPermissions;
+use App\Support\Rights;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 /**
  * Read filter for everything that lives in a project.
  *
- * The rule itself (who sees which project) is in ProjectPermissions.
+ * The rule itself (who sees which project) is in App\Support\Rights.
  * This trait only follows the relations up to the project.
  */
 trait VisibleToViewer
@@ -44,18 +43,37 @@ trait VisibleToViewer
      */
     public function scopeVisibleTo(Builder $query, ?User $user): void
     {
-        if (SystemPermissions::allows($user, SystemAbility::PROJECTS_VIEW_ALL)) {
+        if (Rights::allows($user, Right::PROJECTS_VIEW_ALL)) {
             return;
         }
 
         $path = static::projectPath();
 
         if ($path === null) {
-            ProjectPermissions::constrainToVisibleProjects($query, $user);
+            Rights::constrainToVisibleProjects($query, $user);
 
             return;
         }
 
-        $query->whereHas($path, fn (Builder $projects) => ProjectPermissions::constrainToVisibleProjects($projects, $user));
+        $query->whereHas($path, fn (Builder $projects) => Rights::constrainToVisibleProjects($projects, $user));
+    }
+
+    /**
+     * Only what lies in projects that are not archived: lists across
+     * projects (dashboard, myTasks) leave the archive out.
+     *
+     * @param  Builder<static>  $query
+     */
+    public function scopeInActiveProjects(Builder $query): void
+    {
+        $path = static::projectPath();
+
+        if ($path === null) {
+            $query->whereNull($query->qualifyColumn('archived_at'));
+
+            return;
+        }
+
+        $query->whereHas($path, fn (Builder $projects) => $projects->whereNull('projects.archived_at'));
     }
 }

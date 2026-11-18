@@ -3,8 +3,8 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\Locale;
-use App\Enums\UserFunction;
-use App\Enums\UserRole;
+use App\Enums\UserActivity;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\UserInvitation;
 use Illuminate\Support\Facades\DB;
@@ -19,19 +19,21 @@ class CreateUser
     public function __construct(private readonly UserInvitation $invitation) {}
 
     /**
-     * @param  array{name: string, email: string, role?: string|null, job_function?: string|null}  $args
+     * @param  array{name: string, email: string, role?: string|null, activity?: string|null}  $args
      */
     public function __invoke(mixed $root, array $args): User
     {
-        $role = UserRole::from($args['role'] ?? UserRole::MITGLIED->value);
-        $jobFunction = isset($args['job_function']) ? UserFunction::from($args['job_function']) : null;
+        $role = isset($args['role'])
+            ? Role::resolveOrFail(Role::SCOPE_SYSTEM, $args['role'])
+            : Role::defaultOf(Role::SCOPE_SYSTEM);
+        $activity = isset($args['activity']) ? UserActivity::from($args['activity']) : null;
 
         return DB::transaction(fn (): User => $this->invitation->invite(
             $args['name'],
             $args['email'],
             $role,
             Locale::tryFrom(app()->getLocale()) ?? Locale::DE,
-            $jobFunction,
+            $activity,
         ));
     }
 }

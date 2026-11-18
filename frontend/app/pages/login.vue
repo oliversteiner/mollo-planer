@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser'
-import { safeRedirect } from '~/utils/api'
+import { pendingAccountPath, safeRedirect } from '~/utils/api'
 
 definePageMeta({ layout: 'auth', public: true })
 
@@ -47,8 +47,12 @@ async function submitPasskey(): Promise<void> {
 async function finish(): Promise<void> {
   const problem = await load()
 
+  const pendingPath = pendingAccountPath(problem)
+
   if (problem === 'setup-required') {
     await navigateTo('/setup-security')
+  } else if (pendingPath) {
+    await navigateTo(pendingPath)
   } else if (problem === null) {
     await navigateTo(safeRedirect(route.query.redirect))
   }
@@ -157,6 +161,15 @@ function backToCredentials(): void {
           class="wa-link"
         >
           {{ t('auth.login.forgot') }}
+        </NuxtLink>
+      </p>
+
+      <p class="wa-text-center wa-body-s">
+        <NuxtLink
+          to="/register"
+          class="wa-link"
+        >
+          {{ t('auth.login.register') }}
         </NuxtLink>
       </p>
     </form>

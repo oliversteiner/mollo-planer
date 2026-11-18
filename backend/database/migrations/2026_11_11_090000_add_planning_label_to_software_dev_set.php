@@ -1,17 +1,17 @@
 <?php
 
-use App\Support\BuiltinLabelSets;
 use Illuminate\Database\Migrations\Migration;
 
 /**
- * Adds the built-in label "Planung" to the set "Softwareentwicklung". The sync
- * matches sets and labels by key, so existing labels are kept.
+ * Added the built-in label "Planung" to the set "Softwareentwicklung".
+ * The built-in sets are templates now (2026_11_17_120000, planer:sync-templates),
+ * so there is nothing left to do here.
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        BuiltinLabelSets::sync();
+        // Moved to the templates: spec/templates/software-development.planer.json.
     }
 
     public function down(): void

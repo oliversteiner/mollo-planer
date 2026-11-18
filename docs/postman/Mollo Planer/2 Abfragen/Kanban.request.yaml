@@ -9,7 +9,7 @@ body:
       query Kanban($projectId: ID!) {
         kanban(projectId: $projectId) {
           status
-          tasks { id title position dueDate icon assignee { name } commentCount }
+          tasks { id title boardPosition dueDate icon assignee { name } commentCount }
         }
       }
     variables: |-

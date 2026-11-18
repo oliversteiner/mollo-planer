@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
 import {
   createMilestoneMutation,
   createTodoMutation,
-  projectContentQueries,
   updateMilestoneMutation,
   updateTodoMutation
 } from '~/graphql/project'
@@ -18,6 +16,8 @@ export interface ItemFormTarget {
     dueDate?: string | null
     icon?: string | null
     description?: Record<string, unknown> | null
+    /** Release of a milestone (version and status), null without a version. */
+    release?: { version: string, status: string } | null
   }
   /** Project (new milestone) or milestone (new todo) the item belongs to. */
   parentId?: string
@@ -45,13 +45,17 @@ const open = computed({
   }
 })
 
+type ReleaseStatusInput = 'PLANNED' | 'RELEASED'
+
 const state = reactive<{
   title: string
   dueDate: string
   milestoneId: string
   icon: string | null
   description: Record<string, unknown> | null
-}>({ title: '', dueDate: '', milestoneId: '', icon: null, description: null })
+  releaseVersion: string
+  releaseStatus: ReleaseStatusInput | ''
+}>({ title: '', dueDate: '', milestoneId: '', icon: null, description: null, releaseVersion: '', releaseStatus: '' })
 
 watch(() => props.target, (target) => {
   errors.value = {}
@@ -60,19 +64,25 @@ watch(() => props.target, (target) => {
   state.icon = target?.item?.icon ?? null
   state.description = target?.item?.description ?? null
   state.milestoneId = target?.parentId ?? props.milestones?.[0]?.id ?? ''
+  state.releaseVersion = target?.item?.release?.version ?? ''
+  state.releaseStatus = (target?.item?.release?.status?.toUpperCase() as ReleaseStatusInput | undefined) ?? ''
 }, { immediate: true })
 
 const isNew = computed(() => !props.target?.item)
 const kind = computed(() => props.target?.kind ?? 'milestone')
 const needsMilestoneChoice = computed(() => kind.value === 'todo' && isNew.value && !props.target?.parentId)
 const title = computed(() => t(`item.${kind.value}.${isNew.value ? 'create' : 'edit'}`))
+const releaseItems = computed(() => [
+  { label: t('release.none'), value: '' },
+  { label: t('release.planned'), value: 'PLANNED' },
+  { label: t('release.released'), value: 'RELEASED' }
+])
 const milestoneItems = computed(() => (props.milestones ?? []).map(milestone => ({ label: milestone.title, value: milestone.id })))
 
-const options = { refetchQueries: projectContentQueries, awaitRefetchQueries: true }
-const { mutate: createMilestone } = useMutation(createMilestoneMutation, options)
-const { mutate: updateMilestone } = useMutation(updateMilestoneMutation, options)
-const { mutate: createTodo } = useMutation(createTodoMutation, options)
-const { mutate: updateTodo } = useMutation(updateTodoMutation, options)
+const { mutate: createMilestone } = useProjectMutation(createMilestoneMutation)
+const { mutate: updateMilestone } = useProjectMutation(updateMilestoneMutation)
+const { mutate: createTodo } = useProjectMutation(createTodoMutation)
+const { mutate: updateTodo } = useProjectMutation(updateTodoMutation)
 
 async function submit(): Promise<void> {
   const target = props.target
@@ -85,7 +95,11 @@ async function submit(): Promise<void> {
     title: state.title.trim(),
     dueDate: state.dueDate || null,
     icon: state.icon,
-    description: isEmptyDocument(state.description) ? null : state.description
+    description: isEmptyDocument(state.description) ? null : state.description,
+    // Version and release belong together: both empty, or both set (the backend checks).
+    ...(target.kind === 'milestone'
+      ? { releaseVersion: state.releaseVersion.trim() || null, releaseStatus: state.releaseStatus || null }
+      : {})
   }
   const result = await run<unknown>(() => {
     if (target.item) {
@@ -153,6 +167,26 @@ async function submit(): Promise<void> {
           name="dueDate"
           :label="t('item.fields.dueDate')"
           :error="errors.dueDate"
+        />
+      </div>
+
+      <div
+        v-if="kind === 'milestone'"
+        class="wa-cluster wa-gap-m wa-align-items-start"
+      >
+        <FormInput
+          v-model="state.releaseVersion"
+          name="releaseVersion"
+          :label="t('item.fields.releaseVersion')"
+          :hint="t('item.fields.releaseVersionHint')"
+          :error="errors.releaseVersion"
+        />
+        <FormSelect
+          v-model="state.releaseStatus"
+          name="releaseStatus"
+          :items="releaseItems"
+          :label="t('item.fields.releaseStatus')"
+          :error="errors.releaseStatus"
         />
       </div>
 

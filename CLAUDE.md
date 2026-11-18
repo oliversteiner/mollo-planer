@@ -4,17 +4,17 @@ Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu e
 Produktiv-Domain: `planer.mollo.dev` (Frontend und API als getrennte Subdomains, API unter `api.planer.mollo.dev`).
 
 ## Bevor du etwas baust, lies
-- `docs/backend-plan.md`: bestätigte Entscheidungen und die **Reihenfolge beim Bauen**. Gilt vor allem anderen.
-- `docs/graphql-kontext.md`: alle Entscheidungen im Detail (Rechte, Status-Automatik, Mails, RichText, Icons, Kommentare).
+- `docs/README.md`: Einstieg, **Vorrang der Dokumente** und welche historisch sind. Zuerst lesen.
+- `docs/umsetzung.md`: Arbeitsschritte, Reihenfolge, Meilensteine, Stand. **Was dort steht, wird gebaut.**
+- `docs/planer-abgleich.md`, `docs/rollen-funktionen-rechte.md`, `docs/assistent-ideen-konzept.md`: Entscheidungen (Planer v2, Rechte, Assistent).
+- `spec/format-v2.md`, `spec/planer-v2.schema.json`: das Format Planer v2.
 - `backend/graphql/schema.graphql`: das GraphQL-Schema (Lighthouse). Ist der Vertrag zwischen Backend und Frontend.
-- `docs/frontend-plan.md`: Entscheidungen und Bau-Reihenfolge für das Frontend.
-- `docs/labels-plan.md`: Labels für Tasks (Label-Sets): Entscheidungen, mitgelieferte Sets, Stand.
-- `docs/frontend-webawesome-plan.md`: Umstellung der Oberfläche auf Web Awesome Pro (Bausteine, Abweichungen, Stand). Für alles an der Oberfläche gilt dieses Dokument vor `frontend-plan.md`.
+- `docs/frontend-webawesome-plan.md`: Oberfläche (Web Awesome Pro). Für alles an der Oberfläche gilt es vor `frontend-plan.md`.
 
-Wo sich die Dokumente widersprechen: `backend-plan.md` gewinnt. Weicht der Code vom Schema ab, nicht stillschweigend das Schema ändern, sondern nachfragen.
+Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuerst `umsetzung.md`). `backend-plan.md` und `graphql-kontext.md` sind historisch. Weicht der Code vom Schema oder von den Dokumenten ab, nicht stillschweigend ändern, sondern nachfragen.
 
 ## Stack
-- **Backend:** Laravel 13 headless in `backend/`, Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
+- **Backend:** Laravel 13 headless in `backend/` mit PHP 8.5 (lokal, CI, Test- und Produktionsserver; `composer.json` verlangt `^8.5`), Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
 - **KI-Assistent:** offizielles PHP-SDK `anthropic-ai/sdk` (Claude-API), Schlüssel `ANTHROPIC_API_KEY` nur in `.env`
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
@@ -33,8 +33,12 @@ Alle Befehle im Terminal im Ordner `backend/` ausführen:
 - `composer schema:frontend` (nach jeder Schemaänderung: schreibt `frontend/graphql/schema.graphql`, danach im Frontend `npm run codegen`)
 - `php artisan boost:update --no-discover` (Boost-Guidelines und -Skills neu erzeugen, läuft auch nach `composer update`)
 
+Werkzeug für `planer-v2` im Ordner `tools/planer/` (Node 20 oder neuer, keine Abhängigkeiten):
+- `npm test` (Tests, zusammen mit der Prüfung vor jedem Commit)
+- `node cli/bin/mollo-planer.mjs validate <datei>` (Prüfung einer Planer-Datei, Formatregeln in `spec/format-v2.md`)
+
 Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
-- `npm run dev` (http://localhost:3000)
+- `npm run dev` (http://localhost:3000, im WLAN erreichbar; die Backend-Adresse steht in `frontend/.env` als `NUXT_PUBLIC_API_BASE`)
 - `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)
 - `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
 - `npm run build` (statische Dateien in `.output/public`)
@@ -42,12 +46,12 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 ## Laravel Boost
 - Boost liefert `backend/CLAUDE.md` (allgemeine Laravel-Regeln), Skills in `backend/.claude/skills/` und den MCP-Server `laravel-boost` (`.mcp.json` im Projektordner: Doku-Suche `search-docs`, Datenbankschema, Logs).
 - `backend/CLAUDE.md` und die Skills werden von Boost erzeugt, **nicht von Hand ändern**. Auswahl in `backend/boost.json`, Ausschlüsse in `backend/config/boost.php` (Laravel Cloud und Tailwind sind ausgeschlossen).
-- Bei Widersprüchen gilt diese Datei und `docs/backend-plan.md` vor den Boost-Regeln. Insbesondere: API nur über GraphQL (Lighthouse), keine Eloquent API Resources oder REST-Versionierung. Den Abschnitt „Stand“ und `docs/backend-plan.md` nachführen, auch wenn Boost sagt, Dokumentation nur auf Anfrage.
+- Bei Widersprüchen gilt diese Datei und `docs/README.md` (mit `docs/umsetzung.md`) vor den Boost-Regeln. Insbesondere: API nur über GraphQL (Lighthouse), keine Eloquent API Resources oder REST-Versionierung. Den Stand in `docs/umsetzung.md` nachführen, auch wenn Boost sagt, Dokumentation nur auf Anfrage.
 
 ## Regeln
 - **Code** (Klassen, Methoden, Variablen, Kommentare im Code) auf Englisch. **UI-Texte und Mails** in Deutsch und Englisch über `lang/de` und `lang/en`, nie hart codiert.
 - GraphQL in camelCase, Datenbank in snake_case (`@rename`).
-- **Rechte nur über zwei Tabellen.** `App\Support\ProjectPermissions` für Projektrollen (Owner, Manager, Mitglied), `App\Support\SystemPermissions` für globale Rollen (admin, projektleitung, koordination, mitglied, lesend). Policies fragen nur diese Tabellen. Keine Rollenprüfung (`role === 'owner'`, `role === 'admin'`) irgendwo sonst, kein `is_admin`.
+- **Rechte nur über `App\Support\Rights`.** Der Code fragt nach einem Recht (Enum `App\Enums\Right`): `Rights::allows($user, Right::X, $project)`. Welche Rolle ein Recht hat, steht in den Tabellen `roles`, `functions`, `function_rights`, `role_functions` (Standard in `config/permissions.php`, Details in `docs/rollen-funktionen-rechte.md`). Keine Rollenprüfung (`role === 'owner'`, `role === 'admin'`) irgendwo sonst, kein `is_admin`.
 - Lesen filtert der Scope `visibleToViewer`, Schreiben prüft eine Policy per `@can`.
 - Status von ToDo und Milestone wird nur vom Observer berechnet, nie per Eingabe gesetzt.
 - RichText wird als TipTap-JSON gespeichert, **nie HTML**. Frontend zeigt es mit TipTap an, **nie mit `v-html`**.

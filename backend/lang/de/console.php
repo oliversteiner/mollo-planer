@@ -12,4 +12,12 @@ return [
         'invited' => 'Admin :email angelegt. Die Einladung wird über die Queue verschickt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
         'created' => 'Admin :email angelegt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
     ],
+    'check_limits' => [
+        'clean' => 'Kein Projekt verletzt eine Grenze der Planer-Datei.',
+        'found' => ':findings Stellen in :projects Projekten verletzen eine Grenze der Planer-Datei. Vor dem Export bereinigen.',
+    ],
+    'prune_unverified' => [
+        'invalid_days' => 'Die Anzahl der Tage muss mindestens 1 sein.',
+        'done' => ':count unbestätigte Konten gelöscht.',
+    ],
 ];

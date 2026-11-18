@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import { VueDraggable } from 'vue-draggable-plus'
 import type { SortableEvent } from 'sortablejs'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TaskFormTarget } from '~/components/task/FormModal.vue'
 import type { KanbanQuery } from '~/graphql/generated/graphql'
 import { projectTodosQuery } from '~/graphql/project'
-import { kanbanQuery, moveTaskMutation, projectMembersQuery, TASK_STATUSES, taskQuery } from '~/graphql/task'
+import { deleteTaskMutation, kanbanQuery, moveTaskMutation, projectMembersQuery, TASK_STATUSES, taskQuery } from '~/graphql/task'
 import { locate, moveInColumns } from '~/utils/kanban'
 
 type Column = KanbanQuery['kanban'][number]
@@ -15,6 +15,9 @@ type Status = (typeof TASK_STATUSES)[number]
 
 const { t } = useI18n()
 const route = useRoute()
+
+// Someone else's changes show up within 30 seconds (S3f).
+useProjectRevisionPolling()
 const router = useRouter()
 const { projectId, project, can } = useProject()
 
@@ -25,7 +28,7 @@ const { projectId, project, can } = useProject()
 const labelFilter = ref('all')
 const filterItems = computed(() => [
   { label: t('labels.allLabels'), value: 'all' },
-  ...[...(project.value?.labelSet?.labels ?? [])]
+  ...[...(project.value?.labels ?? [])]
     .sort((a, b) => a.position - b.position)
     .map(label => ({ label: label.name, value: label.id }))
 ])
@@ -50,18 +53,25 @@ const todos = computed(() => todosResult.value?.todos ?? [])
  */
 const columns = ref<Column[]>([])
 
+/** Ideas and planned tasks have their own columns, shown on request (planer-abgleich §8.2 Nr. 3). */
+const HIDDEN_BY_DEFAULT = ['IDEA', 'PLANNED']
+const showIdeas = useStoredSwitch('mollo.kanban.showIdeas')
+
+const visibleColumns = computed(() => columns.value.filter(column => showIdeas.value || !HIDDEN_BY_DEFAULT.includes(column.status)))
+
 watch(() => result.value?.kanban, (kanban) => {
   columns.value = (kanban ?? []).map(column => ({ ...column, tasks: [...column.tasks] }))
 }, { immediate: true })
 
-const { mutate: moveTask } = useMutation(moveTaskMutation)
+const { mutate: moveTask } = useProjectMutation(moveTaskMutation)
 
+/** The board shows the move at once; after a refused move it loads the server's state again. */
 async function move(taskId: string, status: Status, position: number): Promise<void> {
   columns.value = moveInColumns(columns.value, taskId, status, position)
 
   try {
     await moveTask({ id: taskId, status, position })
-  } finally {
+  } catch {
     await refetch()
   }
 }
@@ -80,13 +90,19 @@ function onDrop(event: SortableEvent): void {
   void move(taskId, status, event.newIndex)
 }
 
-/** Card menu: edit (if allowed), then moving without dragging. */
+const { mutate: deleteTask } = useProjectMutation(deleteTaskMutation)
+const deletion = useDelete<string>(id => deleteTask({ id }))
+
+/** Card menu: edit (if allowed), moving without dragging, then delete (if allowed). */
 function menuItems(task: Task): ActionMenuItem[] {
-  const edit: ActionMenuItem[] = can('TASK_UPDATE')
+  const edit: ActionMenuItem[] = task.viewerCanUpdate
     ? [{ label: t('common.edit'), icon: 'pen', onSelect: () => editTask(task.id) }]
     : []
+  const remove: ActionMenuItem[] = task.viewerCanDelete
+    ? [{ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => void deletion.remove(task.id) }]
+    : []
 
-  return [...edit, ...moveItems(task)]
+  return [...edit, ...moveItems(task), ...remove]
 }
 
 function moveItems(task: Task): ActionMenuItem[] {
@@ -129,9 +145,31 @@ function openTask(taskId: string): void {
 }
 
 function closeTask(): void {
-  const { task: _task, ...query } = route.query
+  // The task is the element of the focus view too: closing it ends the focus.
+  const { task: _task, focus: _focus, ...query } = route.query
   void router.replace({ query })
 }
+
+// The buttons and filters are hidden in the calm view: the palette keeps them reachable.
+useCommands(() => [
+  {
+    id: 'kanban-task-create',
+    label: t('task.create'),
+    icon: 'plus',
+    group: 'action',
+    visible: () => can('TASK_CREATE') && todos.value.length > 0 && !project.value?.archivedAt,
+    run: () => startCreating()
+  },
+  {
+    id: 'kanban-ideas',
+    label: t(showIdeas.value ? 'zen.hideIdeas' : 'zen.showIdeas'),
+    icon: 'lightbulb',
+    group: 'action',
+    run: () => {
+      showIdeas.value = !showIdeas.value
+    }
+  }
+])
 
 function startCreating(): void {
   closeTask()
@@ -162,11 +200,11 @@ const { $apollo } = useNuxtApp()
 
 /**
  * Double-click or menu: edit the task. The board does not load the
- * description, so the task is fetched first. Without the right to edit,
- * the details open instead.
+ * description, so the task is fetched first. Without the right to edit
+ * this task (task.updateOwn holds per task), the details open instead.
  */
 async function editTask(taskId: string): Promise<void> {
-  if (!can('TASK_UPDATE')) {
+  if (!columns.value.some(column => column.tasks.some(task => task.id === taskId && task.viewerCanUpdate))) {
     openTask(taskId)
 
     return
@@ -183,9 +221,6 @@ async function editTask(taskId: string): Promise<void> {
 
 const abilities = computed(() => ({
   move: can('TASK_MOVE'),
-  assign: can('TASK_ASSIGN'),
-  update: can('TASK_UPDATE'),
-  delete: can('TASK_DELETE'),
   comment: can('COMMENT_CREATE')
 }))
 </script>
@@ -210,6 +245,14 @@ const abilities = computed(() => ({
       </wa-button>
     </Teleport>
 
+    <FormSwitch
+      v-model="showIdeas"
+      :label="t('kanban.showIdeas')"
+      :hint="t('kanban.showIdeasHint')"
+      class="kanban-filter"
+      data-zen="hide"
+    />
+
     <FormSelect
       v-if="filterItems.length > 1"
       v-model="labelFilter"
@@ -217,6 +260,7 @@ const abilities = computed(() => ({
       :label="t('labels.filter')"
       hide-label
       class="kanban-filter"
+      data-zen="hide"
     />
 
     <wa-skeleton
@@ -229,7 +273,7 @@ const abilities = computed(() => ({
       class="kanban-board"
     >
       <section
-        v-for="column in columns"
+        v-for="column in visibleColumns"
         :key="column.status"
         class="kanban-column"
         :aria-label="t(`status.${column.status}`)"
@@ -262,7 +306,7 @@ const abilities = computed(() => ({
             :key="task.id"
             :task="task"
             :menu-items="menuItems(task)"
-            :editable="can('TASK_UPDATE')"
+            :editable="task.viewerCanUpdate"
             @open="openTask(task.id)"
             @edit="editTask(task.id)"
           />

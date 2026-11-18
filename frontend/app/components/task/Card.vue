@@ -11,7 +11,7 @@ defineProps<{
     id: string
     title: string
     icon?: string | null
-    status: 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE'
+    status: 'IDEA' | 'PLANNED' | 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE'
     dueDate?: string | null
     commentCount: number
     assignee?: { id: string, name: string, avatarUrl?: string | null } | null
@@ -58,6 +58,7 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
     class="task-card"
     :data-id="task.id"
     :data-status="task.status"
+    data-zen-row
     :title="editable ? t('kanban.doubleClickToEdit') : undefined"
     @dblclick="onDoubleClick"
   >
@@ -87,15 +88,18 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
     <TaskLabels
       v-if="task.labels?.length"
       :labels="task.labels"
+      data-zen="hide"
     />
     <div class="task-card-foot">
       <DueDate
         :date="task.dueDate"
         :done="task.status === 'DONE'"
+        data-zen="hover"
       />
       <span
         v-if="task.commentCount"
         class="task-card-comments"
+        data-zen="hide"
       >
         <wa-icon name="comments"></wa-icon>
         {{ task.commentCount }}
@@ -127,6 +131,14 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
   background-color: var(--wa-color-surface-default);
   box-shadow: var(--wa-shadow-s);
   cursor: grab;
+}
+
+.task-card[data-status='IDEA'] {
+  --status-color: var(--wa-color-purple-50);
+}
+
+.task-card[data-status='PLANNED'] {
+  --status-color: var(--wa-color-gray-50);
 }
 
 .task-card[data-status='IN_PROGRESS'] {

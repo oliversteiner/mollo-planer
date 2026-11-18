@@ -9,17 +9,17 @@ export const projectSettingsQuery = graphql(`
       icon
       locale
       members {
-        role
+        role { key names { de en } }
         user { id name email avatarUrl }
       }
     }
   }
 `)
 
-/** Names of people to add as project members (narrow search, no e-mail). */
-export const userSearchQuery = graphql(`
-  query UserSearch($term: String!) {
-    userSearch(term: $term) { id name }
+/** People who can be taken into a project (names and avatars only, no e-mail). Without a project: for a new project. */
+export const memberCandidatesQuery = graphql(`
+  query MemberCandidates($projectId: ID) {
+    memberCandidates(projectId: $projectId) { id name avatarUrl isMember }
   }
 `)
 
@@ -30,10 +30,10 @@ export const updateProjectMutation = graphql(`
 `)
 
 export const setProjectMemberMutation = graphql(`
-  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: ProjectRole!) {
+  mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {
     setProjectMember(projectId: $projectId, userId: $userId, role: $role) {
       id
-      members { role user { id name email avatarUrl } }
+      members { role { key names { de en } } user { id name email avatarUrl } }
     }
   }
 `)
@@ -42,13 +42,25 @@ export const removeProjectMemberMutation = graphql(`
   mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {
     removeProjectMember(projectId: $projectId, userId: $userId) {
       id
-      members { role user { id name email avatarUrl } }
+      members { role { key names { de en } } user { id name email avatarUrl } }
     }
   }
 `)
 
 export const deleteProjectMutation = graphql(`
   mutation DeleteProject($id: ID!) {
-    deleteProject(id: $id) { id }
+    deleteProject(id: $id) { id deletionId }
+  }
+`)
+
+export const archiveProjectMutation = graphql(`
+  mutation ArchiveProject($id: ID!) {
+    archiveProject(id: $id) { id archivedAt viewerRights }
+  }
+`)
+
+export const unarchiveProjectMutation = graphql(`
+  mutation UnarchiveProject($id: ID!) {
+    unarchiveProject(id: $id) { id archivedAt viewerRights }
   }
 `)

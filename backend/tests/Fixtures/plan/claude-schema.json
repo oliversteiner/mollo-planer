@@ -1,0 +1,172 @@
+{
+    "type": "object",
+    "properties": {
+        "reply": {
+            "type": "string"
+        },
+        "plan": {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "locale": {
+                            "type": "string",
+                            "enum": [
+                                "DE",
+                                "EN"
+                            ]
+                        },
+                        "members": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "OWNER",
+                                            "MANAGER",
+                                            "MEMBER"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "role"
+                                ],
+                                "additionalProperties": false
+                            }
+                        },
+                        "milestones": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "dueDate": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "description": "YYYY-MM-DD"
+                                    },
+                                    "todos": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "dueDate": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "YYYY-MM-DD"
+                                                },
+                                                "tasks": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "title": {
+                                                                "type": "string"
+                                                            },
+                                                            "description": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "dueDate": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ],
+                                                                "description": "YYYY-MM-DD"
+                                                            },
+                                                            "assigneeEmail": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "title",
+                                                            "description",
+                                                            "dueDate",
+                                                            "assigneeEmail"
+                                                        ],
+                                                        "additionalProperties": false
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "title",
+                                                "description",
+                                                "dueDate",
+                                                "tasks"
+                                            ],
+                                            "additionalProperties": false
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "description",
+                                    "dueDate",
+                                    "todos"
+                                ],
+                                "additionalProperties": false
+                            }
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "description",
+                        "locale",
+                        "members",
+                        "milestones"
+                    ],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        }
+    },
+    "required": [
+        "reply",
+        "plan"
+    ],
+    "additionalProperties": false
+}

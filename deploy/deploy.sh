@@ -15,10 +15,16 @@ WEB_ROOT="$HOME/www/planer.mollo.dev"
 STAGE="$HOME/apps/.planer-stage"
 BACKUP_DIR="$HOME/backups/planer"
 KEEP_BACKUPS=10
-PHP="/usr/local/php85/bin/php"
+PHP="php"
 COMPOSER="/usr/local/bin/composer"
 
 maintenance=0
+
+# backend/composer.json requires PHP 8.5; stop before anything changes.
+if ! "$PHP" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
+    echo "PHP 8.5 oder neuer nötig, gefunden: $("$PHP" -r 'echo PHP_VERSION;'). Nichts wurde geändert." >&2
+    exit 1
+fi
 
 log() {
     printf '\n==> %s\n' "$*"
@@ -54,6 +60,9 @@ cd "$APP"
 git fetch --quiet origin main
 git reset --hard --quiet origin/main
 echo "Commit: $(git rev-parse --short HEAD)"
+# Werkzeuge und Testdaten für planer-v2 gehören nicht auf den Server (dort gibt es kein Node).
+# spec/planer-v2.schema.json bleibt: die App liest es.
+rm -rf "$APP/tools" "$APP/spec/fixtures"
 
 log "Datenbank sichern"
 DB_HOST=$(env_value DB_HOST)
@@ -80,6 +89,10 @@ cd "$BACKEND"
 
 log "Migrationen ausführen"
 "$PHP" "$BACKEND/artisan" migrate --force
+
+# Die mitgelieferten Vorlagen (spec/templates) in die Datenbank schreiben; ändert nichts, wenn die Dateien gleich blieben.
+log "Vorlagen abgleichen"
+"$PHP" "$BACKEND/artisan" planer:sync-templates
 
 log "Caches erzeugen"
 "$PHP" "$BACKEND/artisan" config:cache

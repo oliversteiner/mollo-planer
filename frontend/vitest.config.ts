@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineVitestProject } from '@nuxt/test-utils/config'
 import { defineConfig } from 'vitest/config'
 
@@ -9,6 +10,9 @@ export default defineConfig({
   test: {
     projects: [
       {
+        resolve: {
+          alias: { '#planer-core': fileURLToPath(new URL('../tools/planer/core', import.meta.url)) }
+        },
         test: {
           name: 'unit',
           include: ['tests/unit/**/*.test.ts'],

@@ -8,11 +8,11 @@ type Query @guard {
 
   "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
   users: [User!]! @can(ability: "viewAny", model: "App\\Models\\User") @all
-  "Namen suchen, um Mitglieder in ein Projekt zu setzen. Ohne E-Mail und Sicherheitsstatus. Für alle, die in einem Projekt Mitglieder verwalten dürfen."
-  userSearch(term: String!): [MemberCandidate!]! @field(resolver: "App\\GraphQL\\Queries\\UserSearch")
+  "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
+  memberCandidates(projectId: ID): [MemberCandidate!]! @field(resolver: "App\\GraphQL\\Queries\\MemberCandidates")
 
-  "Deine Projekte. Admins sehen alle."
-  projects: [Project!]! @all(scopes: ["visibleToViewer"])
+  "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
+  projects(archived: Boolean = false @scope(name: "archived")): [Project!]! @all(scopes: ["visibleToViewer"])
   project(id: ID! @eq): Project @find(scopes: ["visibleToViewer"])
 
   "Milestones eines Projekts (Seite Milestones)"
@@ -30,20 +30,43 @@ type Query @guard {
   "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
   task(id: ID! @eq): Task @find(scopes: ["visibleToViewer"])
 
+  "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
+  exportPlan(projectId: ID!): String!
+    @can(ability: "export", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Queries\\ExportPlan")
+
   "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
   kanban(projectId: ID!): [KanbanColumn!]! @field(resolver: "App\\GraphQL\\Queries\\Kanban")
 
-  "Tasks, die dir zugewiesen sind"
-  myTasks(status: TaskStatus @filter): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer"])
+  "Tasks, die dir zugewiesen sind (ohne archivierte Projekte)"
+  myTasks(status: TaskStatus @filter): [Task!]! @all(scopes: ["assignedToViewer", "visibleToViewer", "inActiveProjects"])
 
   "Startseite"
   dashboard: Dashboard! @field(resolver: "App\\GraphQL\\Queries\\Dashboard")
-  "Alle Label-Sets (mitgelieferte zuerst, dann eigene nach Name)"
-  labelSets: [LabelSet!]! @field(resolver: "App\\GraphQL\\Queries\\LabelSets")
-  "Welche Fähigkeiten über die ganze App du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
-  viewerSystemAbilities: [SystemAbility!]! @field(resolver: "App\\GraphQL\\Queries\\ViewerSystemAbilities")
-  "Die Rechte-Tabelle: welche Rolle welche Fähigkeit hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
+  "Alle Vorlagen (mitgelieferte zuerst, dann eigene nach Name). Alle Angemeldeten sehen alle."
+  templates: [Template!]! @field(resolver: "App\\GraphQL\\Queries\\Templates")
+  "Eine Vorlage"
+  template(id: ID! @eq): Template @find
+  "Welche Systemrechte du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
+  viewerRights: [Right!]! @field(resolver: "App\\GraphQL\\Queries\\ViewerRights")
+  "Alle Rollen, auf Wunsch nur eines Bereichs. Für die Rollenauswahl bei Benutzern und Mitgliedern."
+  roles(scope: RoleScope): [Role!]! @field(resolver: "App\\GraphQL\\Queries\\Roles")
+  "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
+  rights(scope: RoleScope!): [Right!]! @field(resolver: "App\\GraphQL\\Queries\\RightsOfScope")
+  "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."
+  roleFunctions(scope: RoleScope): [RoleFunction!]!
+    @can(ability: "manageRoles", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Queries\\RoleFunctions")
+  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
   permissionMatrix: PermissionMatrix! @can(ability: "viewAny", model: "App\\Models\\User") @field(resolver: "App\\GraphQL\\Queries\\PermissionMatrixQuery")
+  "Deine Ideen, neueste zuerst. Mit ideas.viewAny alle, oder die einer Autorin mit authorId (nur mit diesem Recht)."
+  ideas(status: IdeaStatus, projectId: ID, authorId: ID): [Idea!]!
+    @paginate(builder: "App\\GraphQL\\Builders\\IdeaBuilder@visible", defaultCount: 20, maxCount: 100)
+  "Eine Idee, oder null, wenn es sie nicht gibt oder du sie nicht lesen darfst"
+  idea(id: ID!): Idea @field(resolver: "App\\GraphQL\\Queries\\IdeaQuery")
   "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
   appSettings: AppSettings! @field(resolver: "App\\GraphQL\\Queries\\AppSettings")
+
+  "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst, und deine gelöschten Ideen."
+  trash(projectId: ID): [TrashItem!]! @field(resolver: "App\\GraphQL\\Queries\\Trash")
 }

@@ -6,13 +6,27 @@ export const adminUsersQuery = graphql(`
       id
       name
       email
-      role
-      jobFunction
+      role { key isDefault names { de en } }
+      activity
       avatarUrl
       twoFactorConfirmed
       hasPasskey
       createdAt
+      approved
+      emailVerified
     }
+  }
+`)
+
+export const approveUserMutation = graphql(`
+  mutation ApproveUser($id: ID!) {
+    approveUser(id: $id) { id approved }
+  }
+`)
+
+export const rejectUserMutation = graphql(`
+  mutation RejectUser($id: ID!) {
+    rejectUser(id: $id) { id }
   }
 `)
 
@@ -24,7 +38,7 @@ export const createUserMutation = graphql(`
 
 export const updateUserMutation = graphql(`
   mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
-    updateUser(id: $id, input: $input) { id name email role jobFunction }
+    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }
   }
 `)
 
@@ -42,7 +56,13 @@ export const deleteUserMutation = graphql(`
 
 export const appSettingsQuery = graphql(`
   query AppSettings {
-    appSettings { twoFactorEnabled twoFactorSwitchable }
+    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }
+  }
+`)
+
+export const setProjectCreatorRoleMutation = graphql(`
+  mutation SetProjectCreatorRole($key: String!) {
+    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }
   }
 `)
 

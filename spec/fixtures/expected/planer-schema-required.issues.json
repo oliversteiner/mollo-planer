@@ -1,0 +1,6 @@
+[
+  {
+    "severity": "error",
+    "path": "milestones[0].todos[0].title"
+  }
+]

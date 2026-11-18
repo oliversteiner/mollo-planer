@@ -1,0 +1,13 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query ExportPlan {
+        exportPlan(projectId: 1)
+      }
+    variables: "{}"
+order: 10200

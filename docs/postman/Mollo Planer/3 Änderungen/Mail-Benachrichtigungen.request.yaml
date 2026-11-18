@@ -6,11 +6,11 @@ body:
   type: graphql
   content:
     query: |
-      mutation UpdateMyNotifications($emailEnabled: Boolean!) {
-        updateMyNotifications(emailEnabled: $emailEnabled) { name notifyByEmail }
+      mutation UpdateMyNotifications($notifyByEmail: Boolean!) {
+        updateMyNotifications(notifyByEmail: $notifyByEmail) { name notifyByEmail }
       }
     variables: |-
       {
-        "emailEnabled": false
+        "notifyByEmail": false
       }
 order: 8000

@@ -109,7 +109,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_MODEL=claude-opus-5-5
 ```
 
-Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).
+Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Je Person gelten Grenzen (Standard 30 Entwürfe je Stunde und 200 je Tag, einstellbar mit `ASSISTANT_LIMIT_HOUR` und `ASSISTANT_LIMIT_DAY`). `php artisan assistant:ping` schickt eine kleine echte Anfrage mit dem echten Schema und meldet OK oder den Fehler der API; vor jeder Änderung am Assistenten oder an seinem Schema laufen lassen. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).
 
 ## Deployment (Produktion)
 
@@ -123,9 +123,9 @@ Die Datei `.github/workflows/deploy.yml` läuft bei jedem Push auf `main` (oder 
 2. **Freigabe:** Der Job `deploy` wartet auf eine Freigabe im Environment `production`.
 3. **Build:** Das Frontend wird mit `NUXT_PUBLIC_API_BASE=https://api.planer.mollo.dev` gebaut.
 4. **Übertragung:** Das Archiv `frontend/.output/public` geht per SSH an den Server. Der Schlüssel darf nur das Skript `deploy/deploy.sh` starten, keine Shell.
-5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/main`, sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force` und die Caches aus, kopiert das Frontend nach `~/www/planer.mollo.dev` und schaltet den Wartungsmodus wieder aus.
+5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/main`, sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force`, `planer:sync-templates` (die mitgelieferten Vorlagen aus `spec/templates/`) und die Caches aus, kopiert das Frontend nach `~/www/planer.mollo.dev` und schaltet den Wartungsmodus wieder aus.
 
-Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen.
+Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen. `CORS_ALLOWED_ORIGINS` bleibt dort leer (nur für die Entwicklung im lokalen Netz). Mails und Webhooks brauchen den Cron-Eintrag `schedule:run` jede Minute (siehe `docs/deploy-template.md`, Abschnitt „Cron“). **Kein `php artisan migrate:rollback` in Produktion:** einige Rückwärts-Migrationen verlieren Daten, der Rückweg ist die Sicherung vor dem Deploy plus der vorherige Release.
 
 ### Deployment auslösen
 
@@ -150,14 +150,14 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
 - **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
 - **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
 - **Docroots:** `~/www/planer.mollo.dev` ist das Frontend. `~/www/api.planer.mollo.dev` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Hostpoint-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.
-- **PHP:** Der Server hat PHP 8.5 unter `/usr/local/php85/bin`. Das Skript nutzt diesen Pfad fest. Die Standard-`php` (8.3) reicht für das Projekt nicht, mindestens 8.4.1 ist nötig.
+- **PHP:** Die Standard-`php` des Servers ist 8.5, das Skript nutzt sie. `composer.json` verlangt PHP 8.5; ist `php` älter, bricht das Skript ab, bevor es etwas ändert.
 
 ### Fehlersuche
 
 - **Tests rot:** Im Log des Jobs `test-backend` oder `test-frontend` steht der Fehler. Es wurde nichts veröffentlicht.
 - **Deploy abgebrochen:** Im Log zeigt die letzte Zeile mit `==>` den Schritt. Bricht das Skript während des Wartungsmodus ab, hebt es ihn selbst wieder auf. Falls die App trotzdem hängen bleibt, auf dem Server ausführen:
   ```bash
-  cd ~/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan up
+  cd ~/apps/mollo-planer/backend && php artisan up
   ```
 - **Stand prüfen:** `ssh mollo.ch` (persönlicher Schlüssel), dann `cd ~/apps/mollo-planer && git log --oneline -1`.
 

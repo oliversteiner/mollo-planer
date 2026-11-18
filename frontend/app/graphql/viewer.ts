@@ -7,14 +7,16 @@ export const viewerQuery = graphql(`
       id
       name
       email
-      role
-      jobFunction
+      role { key names { de en } }
+      activity
       avatarUrl
       notifyByEmail
+      approved
+      emailVerified
     }
     appSettings {
       twoFactorEnabled
     }
-    viewerSystemAbilities
+    viewerRights
   }
 `)

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\ProjectRole;
+use App\Models\Concerns\HasRole;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
@@ -10,21 +10,19 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  *
  * @property int $project_id
  * @property int $user_id
- * @property ProjectRole $role
+ * @property int|null $role_id
+ * @property Role|null $role
  */
 class ProjectMember extends Pivot
 {
+    use HasRole;
+
     protected $table = 'project_user';
 
     public $incrementing = true;
 
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected static function roleScope(): string
     {
-        return [
-            'role' => ProjectRole::class,
-        ];
+        return Role::SCOPE_PROJECT;
     }
 }

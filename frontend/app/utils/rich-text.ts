@@ -1,4 +1,5 @@
 import Blockquote from '@tiptap/extension-blockquote'
+import Code from '@tiptap/extension-code'
 import Bold from '@tiptap/extension-bold'
 import Document from '@tiptap/extension-document'
 import HardBreak from '@tiptap/extension-hard-break'
@@ -17,7 +18,7 @@ import type { AnyExtension } from '@tiptap/core'
  * not in the editor schema, so pasted HTML loses it on the way in.
  */
 export const RICH_TEXT_NODES = ['doc', 'paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote', 'text', 'hardBreak'] as const
-export const RICH_TEXT_MARKS = ['bold', 'italic', 'link'] as const
+export const RICH_TEXT_MARKS = ['bold', 'italic', 'code', 'link'] as const
 export const HEADING_LEVELS = [2, 3] as const
 
 /** Same limit as RichTextDocument::MAX_TEXT_LENGTH. */
@@ -44,6 +45,7 @@ export function richTextExtensions(): AnyExtension[] {
     Blockquote,
     Bold,
     Italic,
+    Code,
     Heading.configure({ levels: [...HEADING_LEVELS] }),
     BulletList,
     OrderedList,
@@ -74,4 +76,29 @@ export function isEmptyDocument(document: Record<string, unknown> | null | undef
   }
 
   return !hasText(document)
+}
+
+/**
+ * The text of a document on one line, for places that show a short
+ * summary (the header of a project, its card): blocks are separated by a
+ * space, formatting is left out.
+ */
+export function documentText(document: Record<string, unknown> | null | undefined): string {
+  const inline = new Set(['paragraph', 'heading', 'codeBlock'])
+  const textOf = (node: unknown): string => {
+    if (!node || typeof node !== 'object') {
+      return ''
+    }
+    const { type, text, content } = node as { type?: string, text?: string, content?: unknown[] }
+
+    if (type === 'hardBreak') {
+      return ' '
+    }
+
+    const parts = Array.isArray(content) ? content.map(textOf) : []
+
+    return (text ?? '') + parts.join(inline.has(type ?? '') ? '' : ' ')
+  }
+
+  return textOf(document).replace(/\s+/g, ' ').trim()
 }

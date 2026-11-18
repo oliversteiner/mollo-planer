@@ -1,0 +1,40 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Aufruf "
+        },
+        {
+          "type": "text",
+          "text": "a`b",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " und "
+        },
+        {
+          "type": "text",
+          "text": "x",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " im Text"
+        }
+      ]
+    }
+  ]
+}

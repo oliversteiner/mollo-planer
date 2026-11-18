@@ -1,0 +1,62 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Siehe "
+        },
+        {
+          "type": "text",
+          "text": "Doku",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "https://example.ch/x"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "text",
+          "text": "https://a.ch",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "https://a.ch"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " und "
+        },
+        {
+          "type": "text",
+          "text": "Mail",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "mailto:a@b.ch"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    }
+  ]
+}

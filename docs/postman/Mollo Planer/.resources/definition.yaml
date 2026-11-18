@@ -13,7 +13,7 @@ description: |-
   Die Skripte der Collection setzen `Origin`, `Referer`, `Accept` und `X-XSRF-TOKEN` automatisch. Bei Fehler 419 (CSRF) nochmals „CSRF-Cookie holen“ ausführen. Bei `SECOND_FACTOR_SETUP_REQUIRED` oder `STRONG_AUTHENTICATION_REQUIRED` fehlt der 2FA-Schritt.
 
   **Rechte ausprobieren**
-  Mit Logout und neuem Login als andere Demo-Person sieht man, wie sich `viewerRole`, `viewerAbilities` und die Fehler „This action is unauthorized.“ ändern: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Managerin bzw. Owner Sommerfest), David (Mitglied).
+  Mit Logout und neuem Login als andere Demo-Person sieht man, wie sich `viewerRole`, `viewerRights` und die Fehler „This action is unauthorized.“ ändern: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Managerin bzw. Owner Sommerfest), David (Mitglied).
 variables:
   baseUrl: http://localhost:8000
   frontendOrigin: http://localhost:3000

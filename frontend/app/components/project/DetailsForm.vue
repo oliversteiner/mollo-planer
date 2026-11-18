@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { useMutation } from '@vue/apollo-composable'
+import { isEmptyDocument } from '~/utils/rich-text'
 import type { Locale } from '~/graphql/generated/graphql'
 import { updateProjectMutation } from '~/graphql/settings'
 
 /** Name, description, icon and mail language of the project. */
 const props = defineProps<{
-  project: { id: string, name: string, description?: string | null, icon?: string | null, locale: Locale }
+  project: { id: string, name: string, description?: Record<string, unknown> | null, icon?: string | null, locale: Locale }
 }>()
 
 const { t } = useI18n()
 const toast = useToast()
 const { errors, pending, run } = useGraphqlForm()
 
-const state = reactive<{ name: string, description: string, icon: string | null, locale: Locale }>({ name: '', description: '', icon: null, locale: 'DE' })
+const state = reactive<{ name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale }>({ name: '', description: null, icon: null, locale: 'DE' })
 
 watch(() => props.project, (project) => {
-  Object.assign(state, { name: project.name, description: project.description ?? '', icon: project.icon ?? null, locale: project.locale })
+  Object.assign(state, { name: project.name, description: project.description ?? null, icon: project.icon ?? null, locale: project.locale })
 }, { immediate: true })
 
 const locales = computed(() => [
@@ -23,12 +23,12 @@ const locales = computed(() => [
   { label: t('locale.EN'), value: 'EN' }
 ])
 
-const { mutate } = useMutation(updateProjectMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
+const { mutate } = useProjectMutation(updateProjectMutation)
 
 async function submit(): Promise<void> {
   const result = await run(() => mutate({
     id: props.project.id,
-    input: { name: state.name.trim(), description: state.description.trim() || null, icon: state.icon, locale: state.locale }
+    input: { name: state.name.trim(), description: isEmptyDocument(state.description) ? null : state.description, icon: state.icon, locale: state.locale }
   }))
 
   if (result) {
@@ -57,13 +57,15 @@ async function submit(): Promise<void> {
         :error="errors.name"
         required
       />
-      <FormTextarea
-        v-model="state.description"
-        name="description"
+      <FormField
         :label="t('projects.fields.description')"
         :error="errors.description"
-        :rows="3"
-      />
+      >
+        <RichTextEditor
+          v-model="state.description"
+          :placeholder="t('item.fields.descriptionPlaceholder')"
+        />
+      </FormField>
       <FormField
         :label="t('item.fields.icon')"
         :hint="t('projects.fields.iconHint')"

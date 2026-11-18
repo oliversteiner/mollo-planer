@@ -8,9 +8,9 @@ body:
     query: |
       query Projects {
         projects {
-          id name locale viewerRole viewerAbilities
+          id name locale viewerRole { key } viewerRights
           progress { done total percent }
-          members { role user { name } }
+          members { role { key } user { name } }
         }
       }
     variables: "{}"

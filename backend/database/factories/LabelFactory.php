@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\LabelColor;
 use App\Models\Label;
-use App\Models\LabelSet;
+use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,9 +17,12 @@ class LabelFactory extends Factory
      */
     public function definition(): array
     {
+        $word = fake()->unique()->lexify('label-????');
+
         return [
-            'label_set_id' => LabelSet::factory(),
-            'name' => fake()->unique()->word(),
+            'project_id' => Project::factory(),
+            'key' => $word,
+            'names' => ['de' => $word, 'en' => $word],
             'category' => null,
             'color' => fake()->randomElement(LabelColor::cases()),
             'position' => 0,

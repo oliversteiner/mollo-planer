@@ -2,15 +2,15 @@
 
 namespace Tests\Feature;
 
-use App\Enums\ProjectAbility;
 use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Models\Comment;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Models\User;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -39,6 +39,7 @@ class PolicyTest extends TestCase
             'owner' => User::factory()->create(),
             'manager' => User::factory()->create(),
             'member' => User::factory()->create(),
+            'guest' => User::factory()->create(),
             'stranger' => User::factory()->create(),
             'admin' => User::factory()->admin()->create(),
         ];
@@ -47,6 +48,7 @@ class PolicyTest extends TestCase
             ->withMember($this->users['owner'], ProjectRole::OWNER)
             ->withMember($this->users['manager'], ProjectRole::MANAGER)
             ->withMember($this->users['member'], ProjectRole::MEMBER)
+            ->withMember($this->users['guest'], ProjectRole::GUEST)
             ->create();
         $this->milestone = Milestone::factory()->for($this->project)->create();
         $this->todo = Todo::factory()->for($this->milestone)->create();
@@ -56,37 +58,36 @@ class PolicyTest extends TestCase
     /**
      * Policy method, model, ability it must ask the permission table for.
      *
-     * @return array<string, array{string, string, ProjectAbility}>
+     * @return array<string, array{string, string, Right}>
      */
     public static function policyAbilities(): array
     {
         return [
-            'project update' => ['update', 'project', ProjectAbility::PROJECT_UPDATE],
-            'project delete' => ['delete', 'project', ProjectAbility::PROJECT_DELETE],
-            'project manageMembers' => ['manageMembers', 'project', ProjectAbility::MEMBERS_MANAGE],
-            'project createMilestone' => ['createMilestone', 'project', ProjectAbility::MILESTONE_CREATE],
-            'milestone update' => ['update', 'milestone', ProjectAbility::MILESTONE_UPDATE],
-            'milestone delete' => ['delete', 'milestone', ProjectAbility::MILESTONE_DELETE],
-            'milestone createTodo' => ['createTodo', 'milestone', ProjectAbility::TODO_CREATE],
-            'todo update' => ['update', 'todo', ProjectAbility::TODO_UPDATE],
-            'todo delete' => ['delete', 'todo', ProjectAbility::TODO_DELETE],
-            'todo createTask' => ['createTask', 'todo', ProjectAbility::TASK_CREATE],
-            'task update' => ['update', 'task', ProjectAbility::TASK_UPDATE],
-            'task assign' => ['assign', 'task', ProjectAbility::TASK_ASSIGN],
-            'task move' => ['move', 'task', ProjectAbility::TASK_MOVE],
-            'task delete' => ['delete', 'task', ProjectAbility::TASK_DELETE],
-            'task createComment' => ['createComment', 'task', ProjectAbility::COMMENT_CREATE],
+            'project update' => ['update', 'project', Right::PROJECT_UPDATE],
+            'project delete' => ['delete', 'project', Right::PROJECT_DELETE],
+            'project manageMembers' => ['manageMembers', 'project', Right::MEMBERS_MANAGE],
+            'project createMilestone' => ['createMilestone', 'project', Right::MILESTONE_CREATE],
+            'milestone update' => ['update', 'milestone', Right::MILESTONE_UPDATE],
+            'milestone delete' => ['delete', 'milestone', Right::MILESTONE_DELETE],
+            'milestone createTodo' => ['createTodo', 'milestone', Right::TODO_CREATE],
+            'todo update' => ['update', 'todo', Right::TODO_UPDATE],
+            'todo delete' => ['delete', 'todo', Right::TODO_DELETE],
+            'todo createTask' => ['createTask', 'todo', Right::TASK_CREATE],
+            'task update' => ['update', 'task', Right::TASK_UPDATE],
+            'task move' => ['move', 'task', Right::TASK_MOVE],
+            'task delete' => ['delete', 'task', Right::TASK_DELETE],
+            'task createComment' => ['createComment', 'task', Right::COMMENT_CREATE],
         ];
     }
 
     #[DataProvider('policyAbilities')]
-    public function test_policy_follows_the_permission_table(string $method, string $model, ProjectAbility $ability): void
+    public function test_policy_follows_the_permission_table(string $method, string $model, Right $ability): void
     {
         $target = $this->{$model};
 
         foreach (ProjectRole::cases() as $role) {
             $this->assertSame(
-                ProjectPermissions::roleAllows($role, $ability),
+                Rights::projectRoleAllows($this->projectRole($role), $ability),
                 $this->users[$role->value]->can($method, $target),
                 "{$role->value} {$method} {$model}",
             );

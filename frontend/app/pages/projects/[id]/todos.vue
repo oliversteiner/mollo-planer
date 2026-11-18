@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useQuery } from '@vue/apollo-composable'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
-import { deleteTodoMutation, projectContentQueries, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
+import { deleteTodoMutation, projectOverviewQuery, projectTodosQuery } from '~/graphql/project'
 import { withoutNulls } from '~/utils/api'
 
 const { t } = useI18n()
@@ -41,16 +41,16 @@ type Item = NonNullable<ItemFormTarget['item']>
 
 const editing = ref<ItemFormTarget | null>(null)
 
-const { mutate: deleteTodo } = useMutation(deleteTodoMutation, { refetchQueries: projectContentQueries, awaitRefetchQueries: true })
+const { mutate: deleteTodo } = useProjectMutation(deleteTodoMutation)
 
-const deletion = useConfirmedDelete<Item>(todo => deleteTodo({ id: todo.id }))
+const deletion = useDelete<Item>(todo => deleteTodo({ id: todo.id }))
 
 function startEditing(todo: Item): void {
   editing.value = { kind: 'todo', item: todo }
 }
 
 function startDeleting(todo: Item): void {
-  deletion.ask(todo)
+  void deletion.remove(todo)
 }
 
 function actions(todo: Item): ActionMenuItem[] {
@@ -65,6 +65,18 @@ function actions(todo: Item): ActionMenuItem[] {
 
   return items
 }
+
+// The button is in the page actions, which the calm view hides.
+useCommands(() => [{
+  id: 'todos-create',
+  label: t('item.todo.create'),
+  icon: 'plus',
+  group: 'action',
+  visible: () => can('TODO_CREATE') && milestones.value.length > 0,
+  run: () => {
+    editing.value = { kind: 'todo' }
+  }
+}])
 </script>
 
 <template>
@@ -120,6 +132,7 @@ function actions(todo: Item): ActionMenuItem[] {
         v-for="todo in todos"
         :key="todo.id"
         class="todos-row"
+        data-zen-row
       >
         <ItemIcon
           :name="todo.icon"
@@ -130,14 +143,19 @@ function actions(todo: Item): ActionMenuItem[] {
           <span class="todos-title">{{ todo.title }}</span>
           <span class="todos-sub">{{ todo.milestone.title }}</span>
         </span>
-        <span class="todos-sub">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
+        <span
+          class="todos-sub"
+          data-zen="hide"
+        >{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
         <StatusBadge :status="todo.status" />
         <DueDate
           :date="todo.dueDate"
           :done="todo.status === 'DONE'"
+          data-zen="hover"
         />
         <ActionMenu
           v-if="actions(todo).length"
+          data-zen="hover"
           :items="actions(todo)"
           :label="t('common.actions')"
         />
@@ -148,14 +166,6 @@ function actions(todo: Item): ActionMenuItem[] {
       :target="editing"
       :milestones="milestones"
       @close="editing = null"
-    />
-    <ConfirmModal
-      :open="deletion.isOpen"
-      :title="t('item.todo.deleteTitle')"
-      :description="t('item.todo.deleteDescription', { title: deletion.target?.title ?? '' })"
-      :confirm-label="t('common.delete')"
-      :action="deletion.confirm"
-      @close="deletion.close"
     />
   </div>
 </template>

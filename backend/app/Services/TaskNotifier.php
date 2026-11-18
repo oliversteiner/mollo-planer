@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\TaskStatus;
 use App\Models\Comment;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskAssigned;
 use App\Notifications\TaskCommented;
-use App\Support\ProjectPermissions;
+use App\Support\Rights;
 use Closure;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Notification;
  * - new comment: the assignee and everyone who commented on the task before
  *
  * Never the actor, never someone with mails turned off, never someone who
- * can no longer see the project.
+ * can no longer see the project, never about a task of an archived project.
  */
 class TaskNotifier
 {
@@ -51,7 +52,7 @@ class TaskNotifier
 
     public function assigned(Task $task, User $actor): void
     {
-        if ($this->assignmentMailsMuted) {
+        if ($this->assignmentMailsMuted || $task->status === TaskStatus::IDEA) {
             return;
         }
 
@@ -81,11 +82,15 @@ class TaskNotifier
     {
         $project = $task->owningProject();
 
+        if ($project->isArchived()) {
+            return collect();
+        }
+
         return $users
             ->filter()
             ->unique(fn (User $user) => $user->getKey())
             ->reject(fn (User $user) => $user->is($actor))
-            ->filter(fn (User $user) => $user->notify_by_email && ProjectPermissions::canView($user, $project))
+            ->filter(fn (User $user) => $user->notify_by_email && Rights::canView($user, $project))
             ->values();
     }
 }

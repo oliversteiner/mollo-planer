@@ -7,7 +7,7 @@ body:
   content:
     query: |
       mutation MoveTask($id: ID!, $status: TaskStatus!, $position: Int!) {
-        moveTask(id: $id, status: $status, position: $position) { id status position todo { status } }
+        moveTask(id: $id, status: $status, position: $position) { id status boardPosition todo { status } }
       }
     variables: |-
       {

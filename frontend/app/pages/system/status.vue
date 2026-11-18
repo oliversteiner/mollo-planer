@@ -4,7 +4,8 @@
  * GraphQL endpoint answer. Plain requests only; nothing is read or changed.
  */
 const { t } = useI18n()
-const config = useRuntimeConfig()
+const roleName = useRoleName()
+const resolvedApiBase = useApiBase()
 const { viewer } = useViewer()
 
 useHead({ title: () => t('systemStatus.title') })
@@ -19,7 +20,7 @@ const lastChecked = ref<string | null>(null)
 /** Versions from the status endpoint, and how this session accesses the API. */
 const versions = reactive<{ apiVersion: string | null, appVersion: string | null }>({ apiVersion: null, appVersion: null })
 
-const apiBase = computed(() => config.public.apiBase.replace(/\/$/, ''))
+const apiBase = computed(() => resolvedApiBase)
 
 /** One request to the status endpoint: the backend answers, and the database answers (503 if not). */
 async function checkBackendAndDatabase(): Promise<void> {
@@ -84,7 +85,7 @@ function badge(state: Check): { variant: 'success' | 'danger' | 'neutral', text:
 /** The line under the GraphQL row: API version, app version and access, as in fcadb. */
 const graphqlDetail = computed(() => {
   if (!versions.apiVersion) return ''
-  const access = viewer.value ? t('systemStatus.accessAs', { role: t(`userRole.${viewer.value.role}`) }) : t('systemStatus.accessPublic')
+  const access = viewer.value ? t('systemStatus.accessAs', { role: roleName(viewer.value.role) }) : t('systemStatus.accessPublic')
   const app = versions.appVersion ? ` · ${t('systemStatus.appVersion')} ${versions.appVersion}` : ''
 
   return `${t('systemStatus.apiVersion')} ${versions.apiVersion}${app} · ${t('systemStatus.access')}: ${access}`

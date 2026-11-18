@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useQuery } from '@vue/apollo-composable'
 import type { NavItem } from '~/components/NavList.vue'
+import { trashQuery } from '~/graphql/trash'
 import versionData from '~/data/versions.json'
+import { routeRight } from '~/utils/route-rights'
 import { currentVersion, type VersionFile } from '~/utils/versions'
 
 /**
@@ -9,26 +12,56 @@ import { currentVersion, type VersionFile } from '~/utils/versions'
  */
 const { t, localeProperties } = useI18n()
 const { viewer, can, logout } = useViewer()
+const { calm } = useViewMode()
+const zen = useZen()
+const route = useRoute()
+const palette = useCommandPalette()
+
+// The content area last visited is where Zen starts from other pages (docs/zen-modus.md §4.4).
+watch(() => route.path, () => zen.remember(), { immediate: true })
+
+/** The change of view is announced to screen readers (docs/zen-modus.md §6). */
+const announcement = ref('')
+
+watch(calm, (value) => {
+  announcement.value = value ? t('zen.announceOn') : t('zen.announceOff')
+})
+
+useViewShortcuts()
+const roleName = useRoleName()
 
 /** The current (highest released) version, shown under the user menu. */
 const appVersion = currentVersion((versionData as VersionFile).versions)
 
+/** A menu entry is shown when its route needs no right or the viewer has it (utils/route-rights.ts). */
+function allowed(item: NavItem): boolean {
+  const right = routeRight(item.to)
+
+  return right === null || can(right)
+}
+
+/** Deleted projects the viewer may bring back: „Papierkorb“ shows when there are some, or always with projects.manageAny. */
+const { result: deletedProjects } = useQuery(trashQuery, { projectId: null }, { fetchPolicy: 'cache-and-network' })
+const withTrash = computed(() => can('PROJECTS_MANAGE_ANY') || (deletedProjects.value?.trash.length ?? 0) > 0)
+
 const mainItems = computed<NavItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
   { label: t('nav.myTasks'), icon: 'square-check', to: '/my-tasks' },
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' }] : [])
-])
+  { label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' },
+  { label: t('nav.ideas'), icon: 'lightbulb', to: '/ideas' },
+  ...(withTrash.value ? [{ label: t('nav.trash'), icon: 'trash-can', to: '/trash' }] : [])
+].filter(allowed))
 
 /** The section "System": the database documentation (admins), the status and the version (everyone), then administration. */
 const adminItems = computed<NavItem[]>(() => [
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.database'), icon: 'database', to: '/system/db' }] : []),
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.rights'), icon: 'list-check', to: '/system/rechte' }] : []),
+  { label: t('nav.database'), icon: 'database', to: '/system/db' },
   { label: t('nav.status'), icon: 'heart-pulse', to: '/system/status' },
   { label: t('nav.version'), icon: 'code-branch', to: '/system/version' },
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.users'), icon: 'users', to: '/admin/users' }] : []),
-  ...(can('LABEL_SETS_MANAGE') ? [{ label: t('nav.labelSets'), icon: 'tags', to: '/label-sets' }] : []),
-  ...(can('USERS_MANAGE') ? [{ label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }] : [])
-])
+  { label: t('nav.users'), icon: 'users', to: '/admin/users' },
+  { label: t('nav.roles'), icon: 'user-shield', to: '/admin/roles' },
+  { label: t('nav.templates'), icon: 'copy', to: '/templates' },
+  { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }
+].filter(allowed))
 
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   if (event.detail.item.value === 'profile') {
@@ -36,6 +69,22 @@ function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   } else if (event.detail.item.value === 'logout') {
     void logout()
   }
+}
+
+/**
+ * The mobile navigation drawer of wa-page does not give the focus back to its
+ * toggle button when it closes (Escape, click outside, or a link). The drawer
+ * reports its hiding to wa-page; the event comes from inside the page's shadow
+ * DOM, so its target is the page itself. Then the focus goes back to the toggle.
+ */
+function returnFocusToNavigationToggle(event: Event): void {
+  const page = event.currentTarget as HTMLElement
+
+  if (event.target !== page) {
+    return
+  }
+
+  page.shadowRoot?.querySelector<HTMLElement>('[part~="navigation-toggle"]')?.focus()
 }
 
 /** Keyboard users jump past the sidebar to the content of the page. */
@@ -48,6 +97,7 @@ function skipToContent(): void {
   <wa-page
     mobile-breakpoint="1024px"
     class="app-shell"
+    @wa-after-hide="returnFocusToNavigationToggle"
   >
     <a
       slot="skip-to-content"
@@ -56,9 +106,38 @@ function skipToContent(): void {
       @click.prevent="skipToContent"
     >{{ t('nav.skipToContent') }}</a>
 
+    <!-- The header bar: search (the magnifier) and Zen. Zen has its own frame, so it is hidden there. -->
+    <div
+      slot="header"
+      class="app-topbar"
+      data-zen="hide"
+    >
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        :aria-label="t('command.open')"
+        @click="palette.show()"
+      >
+        <wa-icon name="magnifying-glass"></wa-icon>
+      </wa-button>
+      <wa-button
+        appearance="outlined"
+        variant="neutral"
+        :aria-label="t('zen.start')"
+        @click="zen.start()"
+      >
+        <wa-icon
+          slot="start"
+          name="leaf"
+        ></wa-icon>
+        <span class="app-topbar-label">{{ t('zen.name') }}</span>
+      </wa-button>
+    </div>
+
     <div
       slot="navigation-header"
       class="app-header"
+      data-zen="hide"
     >
       <NuxtLink
         to="/"
@@ -71,6 +150,7 @@ function skipToContent(): void {
     <div
       slot="navigation"
       class="app-navigation"
+      data-zen="hide"
     >
       <NavList
         :items="mainItems"
@@ -97,6 +177,7 @@ function skipToContent(): void {
     <div
       slot="navigation-footer"
       class="app-footer"
+      data-zen="hide"
     >
       <wa-dropdown
         v-if="viewer"
@@ -115,6 +196,7 @@ function skipToContent(): void {
             :name="viewer.name"
             :src="viewer.avatarUrl"
             :description="viewer.email"
+            :detail="roleName(viewer.role)"
             size="sm"
           />
         </wa-button>
@@ -151,14 +233,39 @@ function skipToContent(): void {
       id="main-content"
       tabindex="-1"
     >
+      <ZenShell />
       <slot />
     </main>
+    <p
+      class="wa-visually-hidden"
+      role="status"
+      aria-live="polite"
+    >
+      {{ announcement }}
+    </p>
 
     <PasswordPromptModal />
+    <CommandPalette />
+    <ZenMoodDrawer />
   </wa-page>
 </template>
 
 <style scoped>
+.app-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--wa-space-xs);
+  padding: var(--wa-space-2xs) var(--wa-space-m);
+}
+
+/* On the phone only the icon of Zen stays (the aria-label names it). */
+@media (max-width: 40em) {
+  .app-topbar-label {
+    display: none;
+  }
+}
+
 /*
  * The sidebar stands out: it keeps the surface of cards and panels, the
  * content area behind the pages is one step lower.

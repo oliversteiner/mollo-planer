@@ -1,0 +1,42 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "code",
+          "marks": [
+            {
+              "type": "bold"
+            },
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " und "
+        },
+        {
+          "type": "text",
+          "text": "kursiv",
+          "marks": [
+            {
+              "type": "italic"
+            },
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " Text"
+        }
+      ]
+    }
+  ]
+}

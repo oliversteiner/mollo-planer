@@ -10,5 +10,6 @@ return [
     'too_long' => 'Das Feld :attribute darf höchstens :max Zeichen enthalten.',
     'too_deep' => 'Das Feld :attribute darf höchstens :max Ebenen tief verschachtelt sein.',
     'too_large' => 'Das Feld :attribute ist zu umfangreich.',
+    'markdown_too_long' => 'Das Feld :attribute darf als Markdown höchstens :max Zeichen haben (jetzt :length).',
     'empty' => 'Das Feld :attribute darf nicht leer sein.',
 ];

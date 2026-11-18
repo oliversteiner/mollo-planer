@@ -5,98 +5,147 @@
 input CreateUserInput {
   name: String! @rules(apply: ["min:2", "max:120"])
   email: String! @rules(apply: ["email", "unique:users,email"])
-  role: UserRole = MITGLIED
-  jobFunction: UserFunction @rename(attribute: "job_function")
+  "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
+  role: String @rules(apply: ["max:64"])
+  activity: UserActivity
 }
 
 input UpdateUserInput {
   name: String @rules(apply: ["min:2", "max:120"])
   email: String @rules(apply: ["email"])
-  role: UserRole
-  jobFunction: UserFunction @rename(attribute: "job_function")
-}
-
-"Ein Benutzer, nur mit Namen. Für die Auswahl von Mitgliedern."
-type MemberCandidate {
-  id: ID!
-  name: String!
+  "Schlüssel einer Systemrolle (siehe roles)"
+  role: String @rules(apply: ["max:64"])
+  activity: UserActivity
 }
 
 input CreateProjectInput {
   name: String! @rules(apply: ["min:2", "max:120"])
-  description: String
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale = DE
+  "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
+  members: [ProjectMemberInput!]
+  "Vorlage: Die Labels und das Gerüst werden übernommen. Ohne eigene Beschreibung gilt die der Vorlage."
+  templateId: ID
+}
+
+"Ein Mitglied beim Anlegen eines Projekts"
+input ProjectMemberInput {
+  userId: ID!
+  "Schlüssel einer Projektrolle (siehe roles)"
+  role: String! @rules(apply: ["max:64"])
 }
 
 input UpdateProjectInput {
   name: String @rules(apply: ["min:2", "max:120"])
-  description: String
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   locale: Locale
 }
 
 input CreateMilestoneInput {
   projectId: ID! @rename(attribute: "project_id")
+  "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
+  position: Int @rules(apply: ["integer", "min:0"])
   title: String! @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
+  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+  releaseVersion: String @rename(attribute: "release_version") @rules(apply: ["max:20"])
+  releaseStatus: ReleaseStatus @rename(attribute: "release_status")
 }
 
 input UpdateMilestoneInput {
   title: String @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
+  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+  releaseVersion: String @rename(attribute: "release_version") @rules(apply: ["max:20"])
+  releaseStatus: ReleaseStatus @rename(attribute: "release_status")
 }
 
 input CreateTodoInput {
   milestoneId: ID! @rename(attribute: "milestone_id")
+  "Stelle im Milestone (0 = erstes ToDo). Ohne Angabe ans Ende."
+  position: Int @rules(apply: ["integer", "min:0"])
   title: String! @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
 }
 
 input UpdateTodoInput {
   title: String @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
 }
 
-input LabelSetInput {
-  name: String! @rules(apply: ["min:2", "max:60"])
-  description: String @rules(apply: ["max:200"])
-  "Höchstens 30 Labels, Namen innerhalb des Sets eindeutig"
-  labels: [LabelInput!]! @rulesForArray(apply: ["max:30"])
+"Der Name eines Labels in einer Sprache"
+input LabelNameInput {
+  locale: Locale!
+  name: String! @rules(apply: ["min:1", "max:40"])
 }
 
+"Ein Label eines Projekts oder einer Vorlage"
 input LabelInput {
-  "Bestehendes Label dieses Sets; ohne id wird es neu angelegt"
-  id: ID
-  name: String! @rules(apply: ["min:1", "max:40"])
+  "Schlüssel eines bestehenden Labels; fehlt er, ist das Label neu (der Schlüssel entsteht aus dem Namen und ändert sich nie)"
+  key: String @rules(apply: ["max:40"])
+  "Namen je Sprache; der Name in der Sprache des Projekts bzw. der Vorlage ist Pflicht, einmal je Sprache, je Sprache eindeutig"
+  names: [LabelNameInput!]! @rulesForArray(apply: ["min:1", "max:2"])
   category: String @rules(apply: ["max:40"])
   color: LabelColor!
+}
+
+"Eine neue Vorlage: ohne Gerüst, mit Labels"
+input TemplateInput {
+  name: String! @rules(apply: ["min:2", "max:60"])
+  description: String @rules(apply: ["max:500"])
+  "Sprache der Vorlage; die Labels brauchen einen Namen in dieser Sprache"
+  locale: Locale!
+  "Mindestens ein, höchstens 30 Labels"
+  labels: [LabelInput!]! @rulesForArray(apply: ["min:1"])
+}
+
+"Name, Beschreibung und Labels einer eigenen Vorlage; Sprache und Gerüst bleiben"
+input UpdateTemplateInput {
+  name: String! @rules(apply: ["min:2", "max:60"])
+  description: String @rules(apply: ["max:500"])
+  labels: [LabelInput!]! @rulesForArray(apply: ["min:1"])
+}
+
+input UserStoryInput {
+  role: String! @rules(apply: ["min:1", "max:80"])
+  goal: String! @rules(apply: ["min:1", "max:160"])
+  benefit: String! @rules(apply: ["min:1", "max:160"])
 }
 
 input CreateTaskInput {
   todoId: ID! @rename(attribute: "todo_id")
   title: String! @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
+  "Die Story des Tasks, alle drei Teile oder keiner"
+  userStory: UserStoryInput @rename(attribute: "user_story")
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   assigneeId: ID @rename(attribute: "assigned_user_id")
   dueDate: Date @rename(attribute: "due_date")
   "Labels aus dem Set des Projekts"
   labelIds: [ID!] @rename(attribute: "label_ids")
+  "Commit: Hash oder none, siehe Typ Task"
+  commit: String @rules(apply: ["max:40"])
 }
 
 input UpdateTaskInput {
   title: String @rules(apply: ["min:2", "max:160"])
-  description: RichText @rules(apply: ["App\\Rules\\RichTextRule"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
+  "Die Story des Tasks, null entfernt sie"
+  userStory: UserStoryInput @rename(attribute: "user_story")
   icon: String @rules(apply: ["App\\Rules\\FontAwesomeIconRule"])
   dueDate: Date @rename(attribute: "due_date")
+  "Commit: Hash oder none, siehe Typ Task"
+  commit: String @rules(apply: ["max:40"])
 }
 
 input AddCommentInput {
@@ -106,4 +155,73 @@ input AddCommentInput {
 
 input UpdateCommentInput {
   body: RichText! @rules(apply: ["App\\Rules\\RichTextRule", "required"])
+}
+
+"Ein Name in beiden Sprachen der Oberfläche"
+input LocalizedNameInput {
+  de: String! @rules(apply: ["min:1", "max:60"])
+  en: String! @rules(apply: ["min:1", "max:60"])
+}
+
+input CreateRoleInput {
+  scope: RoleScope!
+  names: LocalizedNameInput!
+  "Funktionen desselben Bereichs"
+  functionIds: [ID!]!
+  "Nur Systemrollen: die Projektrechte, die wirken dürfen. Ohne Angabe oder null: alle. Leere Liste: keine."
+  projectCap: [Right!]
+}
+
+"Nur was angegeben ist, ändert sich."
+input UpdateRoleInput {
+  names: LocalizedNameInput
+  functionIds: [ID!]
+  "Nur Systemrollen. null: alle Projektrechte. Leere Liste: keine. Ohne Angabe bleibt die Obergrenze."
+  projectCap: [Right!]
+}
+
+input CreateRoleFunctionInput {
+  scope: RoleScope!
+  names: LocalizedNameInput!
+  "Rechte desselben Bereichs"
+  rights: [Right!]!
+}
+
+"Nur was angegeben ist, ändert sich."
+input UpdateRoleFunctionInput {
+  names: LocalizedNameInput
+  rights: [Right!]
+}
+
+"Benachrichtigung bei Änderungen. Das Geheimnis ist beim Anlegen und beim Wechsel der Art Pflicht, sonst optional (fehlt es, bleibt das gespeicherte)."
+input ProjectWebhookInput {
+  kind: WebhookKind!
+  "GitHub: besitzer/name. Allgemein: https-Adresse."
+  target: String!
+  "GitHub: Token. Allgemein: Geheimnis für die Signatur. Wird nie wieder angezeigt."
+  secret: String
+}
+
+input CreateIdeaInput {
+  title: String! @rules(apply: ["min:2", "max:200"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
+  "Ein Projekt, das die Person sieht"
+  projectId: ID
+  "Entwurf: ein planer-v2-Ausschnitt als Text. Wird gegen das Schema geprüft und kanonisch gespeichert."
+  draft: String
+}
+
+"Nur die genannten Felder ändern sich; null leert Beschreibung, Projekt und Entwurf."
+input UpdateIdeaInput {
+  title: String @rules(apply: ["min:2", "max:200"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
+  projectId: ID
+  draft: String
+}
+
+input ProjectAiContextInput {
+  "Der Text; leer entfernt ihn (die Datei bleibt)"
+  text: String!
+  "Für externe Werkzeuge freigeben (Standard aus)"
+  sharedWithTools: Boolean! = false
 }

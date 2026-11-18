@@ -4,15 +4,30 @@ namespace App\Services;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Planer\PlanerRevision;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Which labels a task may get: new ones only from the label set of its
- * project. Labels the task already has may stay after the project changed
- * its set (they are shown, but cannot be chosen again).
+ * The only place that writes the labels of a task. Labels come from the
+ * labels of its project; one the task has may stay when it was moved to a
+ * project without it (it is shown, but cannot be chosen again).
  */
 class TaskLabels
 {
+    /**
+     * Checks the ids and gives the task exactly these labels.
+     *
+     * @param  list<int|string>  $labelIds
+     *
+     * @throws ValidationException
+     */
+    public function set(Task $task, array $labelIds, string $field = 'labelIds'): void
+    {
+        $task->labels()->sync($this->validated($task->owningProject(), $labelIds, $task, $field));
+        // Pivot changes fire no model events; the labels are in the planer file.
+        app(PlanerRevision::class)->touch($task->project_id);
+    }
+
     /**
      * Checks the ids and returns them as integers, without duplicates.
      *
@@ -21,7 +36,7 @@ class TaskLabels
      *
      * @throws ValidationException
      */
-    public function validated(Project $project, array $labelIds, ?Task $task, string $field): array
+    private function validated(Project $project, array $labelIds, Task $task, string $field): array
     {
         $ids = array_values(array_unique(array_map('intval', $labelIds)));
 
@@ -29,13 +44,7 @@ class TaskLabels
             return [];
         }
 
-        $allowed = $project->label_set_id === null
-            ? collect()
-            : $project->labelSet()->firstOrFail()->labels()->pluck('labels.id');
-
-        if ($task !== null) {
-            $allowed = $allowed->merge($task->labels()->pluck('labels.id'));
-        }
+        $allowed = $project->labels()->pluck('labels.id')->merge($task->labels()->pluck('labels.id'));
 
         $allowed = $allowed->map(fn ($id) => (int) $id)->all();
 

@@ -1,0 +1,83 @@
+{
+  "format": "planer-v2",
+  "revision": 0,
+  "project": {
+    "name": "Mollo Planer",
+    "description": "Projektverwaltung mit Milestones, ToDos und Kanban.",
+    "locale": "de",
+    "members": [],
+    "labels": [
+      {
+        "key": "backend",
+        "names": {
+          "de": "Backend",
+          "en": "Backend"
+        },
+        "category": "area",
+        "color": "cyan"
+      }
+    ]
+  },
+  "milestones": [
+    {
+      "id": "m-new-1",
+      "title": "Schema-Refactoring",
+      "release": {
+        "version": "1.4",
+        "status": "planned"
+      },
+      "todos": [
+        {
+          "id": "t-new-1",
+          "title": "Ordering-Service ausbauen",
+          "tasks": [
+            {
+              "id": "k-new-1",
+              "title": "Sperre für Milestones ergänzen",
+              "status": "planned",
+              "labels": [
+                "backend"
+              ]
+            },
+            {
+              "id": "k-new-2",
+              "title": "Altbestand übernommen",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m-new-2",
+      "title": "Ideen sammeln",
+      "todos": [
+        {
+          "id": "t-new-2",
+          "title": "Import prüfen",
+          "tasks": [
+            {
+              "id": "k-new-3",
+              "title": "Lückenschluss nach Löschen",
+              "status": "planned",
+              "labels": [
+                "backend"
+              ]
+            },
+            {
+              "id": "k-new-4",
+              "title": "Filter nach Status",
+              "description": "Die Liste soll **Status** filtern.\n\n- nach Kanban-Spalte\n- nach Zuständigem",
+              "status": "planned",
+              "userStory": {
+                "role": "Mitglied",
+                "goal": "meine Tasks nach Status filtern",
+                "benefit": "ich in Meetings schnell den Stand zeige"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
