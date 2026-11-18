@@ -1,0 +1,83 @@
+# Hält eine Planer-Datei im Repository mit der App im Gleichstand (mollo-planer, planer-v2).
+# Kopieren nach .github/workflows/planer-export.yml. Einrichtung: README.md daneben.
+#
+# Auslöser: die App stößt die Action nach jeder Änderung per Webhook an (repository_dispatch),
+# dazu stündlich als Netz und von Hand (workflow_dispatch).
+name: planer-export
+
+on:
+  repository_dispatch:
+    types: [planer-export]
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Ein Lauf je Datei, nie parallel: zwei Läufe würden sich beim Pushen in die Quere kommen.
+concurrency:
+  group: planer-export-${{ vars.PLANER_FILE }}
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout des Repositories
+        uses: actions/checkout@v7
+
+      # mollo-planer ist öffentlich: ohne Token. Nur das Werkzeug und die Spezifikation.
+      - name: Checkout von mollo-planer (Werkzeug)
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.MOLLO_PLANER_REPOSITORY || 'oliversteiner/mollo-planer' }}
+          ref: ${{ vars.MOLLO_PLANER_REF || 'main' }}
+          path: .planer-tool
+          sparse-checkout: |
+            tools/planer
+            spec
+
+      # Das Werkzeug liegt im Arbeitsbaum, soll aber nie committet werden.
+      - name: Werkzeug aus Git ausschließen
+        run: echo '/.planer-tool/' >> .git/info/exclude
+
+      - name: Node installieren
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Plan aus der App holen
+        id: pull
+        env:
+          MOLLO_PLANER_URL: ${{ secrets.MOLLO_PLANER_URL }}
+          MOLLO_PLANER_TOKEN: ${{ secrets.MOLLO_PLANER_TOKEN }}
+          MOLLO_PLANER_PROJECT: ${{ vars.PLANER_PROJECT }}
+          PLANER_FILE: ${{ vars.PLANER_FILE }}
+        run: |
+          set +e
+          node .planer-tool/tools/planer/cli/bin/mollo-planer.mjs pull "$PLANER_FILE"
+          code=$?
+          set -e
+          if [ "$code" -eq 3 ]; then
+            echo "::error title=Lokale Änderungen in $PLANER_FILE::Jemand hat die Datei mit \"changed\": true eingecheckt. Lokal 'mollo-planer push' (oder sync) ausführen, dann committen. Die Action überschreibt sie nicht."
+          elif [ "$code" -eq 6 ]; then
+            echo "::error title=Verbindung oder Zugang::Zugang abgelaufen oder ungültig? Zugänge gelten 90 Tage. Neuen Zugang erzeugen (Profil › Zugang für Claude) und das Secret MOLLO_PLANER_TOKEN ersetzen."
+          fi
+          exit "$code"
+
+      - name: Committen und pushen, wenn sich etwas geändert hat
+        env:
+          PLANER_FILE: ${{ vars.PLANER_FILE }}
+        run: |
+          if git diff --quiet -- "$PLANER_FILE" && [ -z "$(git ls-files --others --exclude-standard -- "$PLANER_FILE")" ]; then
+            echo "Keine Änderung, nichts zu committen."
+            exit 0
+          fi
+          revision=$(node -e "console.log(JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8')).revision)" "$PLANER_FILE")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$PLANER_FILE"
+          git commit -m "Docs: planer export rev $revision"
+          git push

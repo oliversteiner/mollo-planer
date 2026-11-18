@@ -165,6 +165,17 @@ Wer den Connector schon eingerichtet hat, verliert diese Werkzeuge: `get_project
 
 ---
 
+## Planer-Datei im Repository
+
+Eine Planer-Datei (`*.planer.json`) in einem Repository bleibt mit der App im Gleichstand:
+
+- **Lokal** mit `mollo-planer pull`, `push` und `sync` (`tools/planer`). `pull` holt den Plan über denselben MCP-Zugang wie Claude (`export_plan`), `push` trägt Änderungen ein (`import_plan`), zuerst als Trockenlauf mit der Liste der Änderungen. Befehle, Optionen und Exit-Codes stehen in `tools/planer/skills/planer/SKILL.md` unter „Mit der App abgleichen“.
+- **Automatisch auf GitHub** mit der Vorlage `tools/planer/templates/github-action/planer-export.yml`: Die App stößt die Action nach jeder Änderung per Webhook an (Projekteinstellungen › Benachrichtigung bei Änderungen), die Action holt den Plan und committet die Datei. Einrichtung in vier Schritten: `tools/planer/templates/github-action/README.md`.
+
+Der Zugang für die Action ist ein gewöhnlicher Zugang für Claude (90 Tage) und gehört in ein Secret des Repositories, nie in die Datei.
+
+---
+
 ## Zugang verwalten
 
 - **Liste:** Im Profil unter „Zugang für Claude“ stehen alle Zugänge mit Name, letzter Nutzung und Ablaufdatum.
