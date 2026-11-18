@@ -9,6 +9,7 @@ use App\Models\Template;
 use App\Models\Todo;
 use App\Models\User;
 use App\Support\Rights;
+use Carbon\CarbonImmutable;
 
 /**
  * The buttons of a question of the assistant (docs/auftrag-m6.md §4.1): what Claude proposes, checked by the
@@ -53,7 +54,7 @@ final class PlanChoices
             $valid[] = [
                 'kind' => $kind,
                 'label' => mb_substr($label, 0, 160),
-                'detail' => isset($choice['detail']) && trim((string) $choice['detail']) !== '' ? mb_substr(trim((string) $choice['detail']), 0, 200) : null,
+                'detail' => self::detail($kind, $value, $choice['detail'] ?? null, $viewer, $project),
                 'value' => $value,
                 'recommended' => (bool) ($choice['recommended'] ?? false),
             ];
@@ -79,6 +80,99 @@ final class PlanChoices
         }
 
         return $valid;
+    }
+
+    /**
+     * The detail under a button. For what the server knows it builds the text itself (due date in the format of the
+     * language, version, size); what Claude gives (a reason) loses internal ids and ISO dates.
+     */
+    private static function detail(string $kind, ?string $value, mixed $claudeDetail, User $viewer, ?Project $project): ?string
+    {
+        $built = match ($kind) {
+            'MILESTONE' => self::milestoneDetail($project, $value),
+            'APPEND_TO_TODO' => self::todoDetail($project, $value),
+            'PROJECT' => self::projectDetail($viewer, $value),
+            'TEMPLATE' => self::templateDetail($value),
+            default => null,
+        };
+
+        if (in_array($kind, ['MILESTONE', 'APPEND_TO_TODO', 'PROJECT', 'TEMPLATE'], true)) {
+            return $built;
+        }
+
+        return self::sanitize($claudeDetail);
+    }
+
+    /** A reason of Claude without ids (m-3, t-4, k-9) and with dates in the format of the language. */
+    public static function sanitize(mixed $text): ?string
+    {
+        if (! is_string($text) || trim($text) === '') {
+            return null;
+        }
+
+        $text = (string) preg_replace('/\b[mtk]-\d+\b[,:;]?\s*/u', '', $text);
+        $text = (string) preg_replace_callback('/\b(\d{4})-(\d{2})-(\d{2})\b/', fn (array $match): string => self::date($match[0]) ?? $match[0], $text);
+        $text = trim($text, " \t\n\r,;:-");
+
+        return $text === '' ? null : mb_substr($text, 0, 200);
+    }
+
+    private static function date(mixed $date): ?string
+    {
+        if ($date === null || $date === '') {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse((string) $date)->locale(app()->getLocale())->isoFormat('LL');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private static function milestoneDetail(?Project $project, ?string $value): ?string
+    {
+        $milestone = $project !== null && ($id = self::numericId($value, 'm')) !== null ? Milestone::query()->where('project_id', $project->getKey())->find($id) : null;
+
+        if ($milestone === null) {
+            return null;
+        }
+
+        $parts = array_filter([
+            $milestone->due_date !== null ? __('assistant.due', ['date' => self::date($milestone->due_date)]) : null,
+            $milestone->release_version !== null ? __('assistant.version', ['version' => $milestone->release_version]) : null,
+            trans_choice('assistant.todos', $milestone->todos()->count()),
+        ]);
+
+        return implode(' · ', $parts);
+    }
+
+    private static function todoDetail(?Project $project, ?string $value): ?string
+    {
+        $todo = $project !== null && ($id = self::numericId($value, 't')) !== null ? Todo::query()->where('project_id', $project->getKey())->find($id) : null;
+
+        return $todo === null ? null : implode(' · ', array_filter([$todo->milestone?->title, trans_choice('assistant.tasks', $todo->tasks()->count())]));
+    }
+
+    private static function projectDetail(User $viewer, ?string $value): ?string
+    {
+        $project = $value === null ? null : Project::query()->visibleTo($viewer)->find($value);
+
+        return $project === null ? null : trans_choice('assistant.milestones', $project->milestones()->count());
+    }
+
+    private static function templateDetail(?string $value): ?string
+    {
+        $template = $value === null ? null : Template::query()->find($value);
+
+        if ($template === null) {
+            return null;
+        }
+
+        $milestones = $template->content['milestones'] ?? [];
+        $todos = array_sum(array_map(fn (array $milestone): int => count($milestone['todos'] ?? []), $milestones));
+
+        return trans_choice('assistant.milestones', count($milestones)).' · '.trans_choice('assistant.todos', $todos);
     }
 
     /** May the person create todos in this project (and it is not archived)? */

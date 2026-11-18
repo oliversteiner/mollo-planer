@@ -1,6 +1,6 @@
 # Auftrag: Fix M6 Nachtrag (F10)
 
-Status: offen
+Status: erledigt (siehe Commit dieser Änderung); Browser-Sicht bei der Nachprüfung durch die Planung
 Stand: 2026-11-18, `dev` bis `25bb8e4`. M6 ist abgenommen.
 Dokument: `docs/fix-m6.md` Abschnitt „Fix M6 Nachtrag (F10)“ (maßgeblich).
 

@@ -142,6 +142,8 @@ async function send(text: string, note?: string) {
       messages.value.push({ role: 'ASSISTANT', content: answer.reply || t('assistant.chat.planReady') })
       choices.value = answer.choices.map(choice => ({ ...choice }))
       hints.value = [...answer.hints]
+      // The server says which template the plan is on (a button or named in the text); it goes with the import.
+      templateId.value = projectId.value ? null : answer.templateId ?? null
 
       if (answer.plan) {
         plan.value = answer.plan

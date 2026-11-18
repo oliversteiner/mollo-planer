@@ -3,6 +3,7 @@
 namespace App\Assistant;
 
 use App\Enums\Right;
+use App\Models\Template;
 use App\Models\User;
 use App\Planer\Canonical;
 use App\Planer\Export;
@@ -64,7 +65,8 @@ class DraftProcessor
 
         $reply = Str::limit(trim((string) ($answer['reply'] ?? '')), 4000);
         $choices = PlanChoices::clean((array) ($answer['choices'] ?? []), $request->viewer, $request->project);
-        $result = ['reply' => $reply, 'choices' => $choices, 'plan' => null, 'projectId' => $request->project?->getKey(), 'templateId' => $request->template?->getKey(), 'preview' => null, 'hints' => []];
+        $template = $this->template($answer['template'] ?? null, $request);
+        $result = ['reply' => $reply, 'choices' => $choices, 'plan' => null, 'projectId' => $request->project?->getKey(), 'templateId' => $template?->getKey(), 'preview' => null, 'hints' => []];
 
         if (! is_array($answer['plan'] ?? null)) {
             return $result;
@@ -80,11 +82,28 @@ class DraftProcessor
             return [...$result, ...$ask, 'hints' => $this->hints];
         }
 
-        $preview = $this->import->run($request->project, $document, ImportMode::Partial, true, false, $request->viewer, true, $request->template?->getKey());
+        $preview = $this->import->run($request->project, $document, ImportMode::Partial, true, false, $request->viewer, true, $template?->getKey());
 
         $choices = PlanChoices::clean([...$choices, ...$this->extraChoices], $request->viewer, $request->project);
 
         return [...$result, 'choices' => $choices, 'plan' => Canonical::text($document), 'preview' => $preview->forGraphQL(), 'hints' => $this->hints];
+    }
+
+    /**
+     * The template of a new project: the one chosen by a button, else the one Claude says it used (it must exist).
+     * A plan for an existing project has none.
+     */
+    private function template(mixed $claudeValue, AssistantRequest $request): ?Template
+    {
+        if ($request->project !== null) {
+            return null;
+        }
+
+        if ($request->template !== null) {
+            return $request->template;
+        }
+
+        return is_string($claudeValue) && preg_match('/^\d+$/', $claudeValue) === 1 ? Template::query()->find((int) $claudeValue) : null;
     }
 
     /**

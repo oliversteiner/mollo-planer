@@ -10,6 +10,7 @@ use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Template;
 use App\Models\Todo;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\RateLimiter;
 use Mockery\MockInterface;
 use Tests\Feature\GraphQL\GraphQLTestCase;
@@ -22,7 +23,7 @@ class DraftPlanTest extends GraphQLTestCase
     private const DRAFT = 'mutation ($p: ID, $t: ID, $plan: String, $idea: ID, $text: String!) {
         draftPlan(messages: [{role: USER, content: $text}], projectId: $p, templateId: $t, currentPlan: $plan, ideaId: $idea) {
             reply plan projectId hints
-            choices { kind label value recommended }
+            choices { kind label detail value recommended }
             preview { ok changes { kind path } errors { kind path } }
         }
     }';
@@ -48,9 +49,9 @@ class DraftPlanTest extends GraphQLTestCase
     }
 
     /** @return array<string, mixed> */
-    private function answer(?array $plan = null, array $choices = []): array
+    private function answer(?array $plan = null, array $choices = [], ?string $template = null): array
     {
-        return ['reply' => 'Erledigt.', 'choices' => $choices, 'plan' => $plan];
+        return ['reply' => 'Erledigt.', 'choices' => $choices, 'template' => $template, 'plan' => $plan];
     }
 
     /** @return array<string, mixed> */
@@ -215,6 +216,51 @@ class DraftPlanTest extends GraphQLTestCase
 
         $project = Project::query()->where('name', 'Tag der offenen Tür')->sole();
         $this->assertSame($template->id, $project->template_id);
+    }
+
+    public function test_a_template_named_in_the_text_is_returned_and_links_the_new_project(): void
+    {
+        $template = Template::factory()->create();
+        $plan = [
+            'project' => ['name' => 'Sommerfest', 'description' => null, 'locale' => 'de', 'labels' => []],
+            'milestones' => [['id' => 'x', 'title' => 'Start', 'description' => null, 'dueDate' => null, 'todos' => []]],
+        ];
+        $this->claude($this->answer($plan, [], (string) $template->id));
+
+        $draft = $this->as('admin')->gql('mutation { draftPlan(messages: [{role: USER, content: "Nimm die Vorlage Event"}]) { plan templateId preview { ok } } }')->json('data.draftPlan');
+
+        $this->assertSame((string) $template->id, $draft['templateId']);
+        $this->assertTrue($draft['preview']['ok']);
+
+        $this->as('admin')->gql('mutation ($d: String!, $t: ID) { importPlan(document: $d, mode: PARTIAL, appendOnly: true, templateId: $t) { ok } }', ['d' => $draft['plan'], 't' => $draft['templateId']])->assertJsonPath('data.importPlan.ok', true);
+
+        $this->assertSame($template->id, Project::query()->where('name', 'Sommerfest')->sole()->template_id);
+    }
+
+    public function test_an_unknown_template_of_claude_is_dropped_and_an_existing_project_has_none(): void
+    {
+        $this->claude($this->answer(null, [], '999999'));
+        $this->assertNull($this->as('admin')->gql('mutation { draftPlan(messages: [{role: USER, content: "Hallo"}]) { templateId } }')->json('data.draftPlan.templateId'));
+
+        $template = Template::factory()->create();
+        $this->claude($this->answer(null, [], (string) $template->id));
+        $this->assertNull($this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan.templateId'));
+    }
+
+    public function test_the_detail_of_buttons_is_built_by_the_server_without_ids_or_iso_dates(): void
+    {
+        $this->milestone->forceFill(['due_date' => '2027-01-29'])->save();
+        $this->claude($this->answer(null, [
+            ['kind' => 'MILESTONE', 'label' => 'Start', 'detail' => "m-{$this->milestone->id}, fällig 2027-01-29", 'value' => "m-{$this->milestone->id}", 'recommended' => true],
+            ['kind' => 'NEW_MILESTONE', 'label' => 'Neu', 'detail' => 'Nach m-3, bis 2027-02-26 passend', 'value' => null, 'recommended' => false],
+        ]));
+
+        $choices = $this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan.choices');
+
+        $this->assertStringNotContainsString($this->milestone->id.',', $choices[0]['detail'] ?? '');
+        $this->assertStringContainsString('2027', $choices[0]['detail']);
+        $this->assertStringNotContainsString('2027-01-29', $choices[0]['detail']);
+        $this->assertSame('Nach bis '.CarbonImmutable::parse('2027-02-26')->locale(app()->getLocale())->isoFormat('LL').' passend', $choices[1]['detail'] ?? null);
     }
 
     public function test_the_hour_limit_refuses_with_the_time_and_counts_per_person(): void
