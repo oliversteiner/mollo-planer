@@ -6,7 +6,7 @@
  * same for every address, whether it is known or not. After sending, the button is locked for
  * a minute (the API allows one request a minute); the mail itself can take a minute to arrive.
  */
-const props = defineProps<{ mode: 'session' | 'address' }>()
+const props = defineProps<{ mode: 'session' | 'address', email?: string | null }>()
 const emit = defineEmits<{ confirmed: [] }>()
 
 const LOCK_SECONDS = 60
@@ -16,7 +16,7 @@ const toast = useToast()
 const { $backend } = useNuxtApp()
 const { errors, pending, run } = useServerForm()
 
-const state = reactive({ email: '' })
+const state = reactive({ email: props.email ?? '' })
 const remaining = ref(0)
 const sent = ref(false)
 let timer: ReturnType<typeof setInterval> | undefined

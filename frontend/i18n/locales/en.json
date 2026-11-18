@@ -137,7 +137,7 @@
     "setPassword": {
       "password": "New password",
       "confirmation": "Repeat password",
-      "rules": "At least 8 characters",
+      "rules": "At least 12 characters",
       "invalidLink": "The link is incomplete. Please open it again from the email."
     },
     "reset": {
@@ -183,9 +183,16 @@
       "resentNeutral": "If an account with this address is waiting for confirmation, we sent a mail. It can take a minute."
     },
     "pending": {
-      "title": "Account waiting",
-      "emailText": "Please confirm your email address. We have sent you a link.",
-      "approvalText": "Your email address is confirmed. An admin still has to approve your account. You will be told when it is ready.",
+      "emailTitle": "Confirm email address",
+      "emailText": "We sent a mail to {email}. Open it and follow the hint in it.",
+      "emailTextNoAddress": "We sent you a mail. Open it and follow the hint in it.",
+      "deadline": "A link in the mail is valid for 60 minutes.",
+      "spam": "Check your spam folder too.",
+      "wait": "The mail can take a minute.",
+      "wrongAddress": "Wrong address?",
+      "registerAgain": "Register again",
+      "approvalTitle": "Release pending",
+      "approvalText": "Your email address is confirmed. An admin will release your account. You get a mail as soon as it is done. You need not do anything.",
       "recheck": "Check again"
     }
   },

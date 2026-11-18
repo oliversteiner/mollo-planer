@@ -15,6 +15,9 @@ export function useViewer() {
   const viewer = useState<Viewer | null>('viewer', () => null)
   const twoFactorEnabled = useState<boolean>('twoFactorEnabled', () => true)
   const systemRights = useState<string[]>('systemRights', () => [])
+  // The address a confirmation mail went to: from the answer of the API for an unconfirmed account (it knows
+  // it after a reload), or from the registration form. Only in memory, never in the address bar.
+  const pendingEmail = useState<string | null>('pendingEmail', () => null)
 
   /**
    * Asks the API who is logged in. Returns null on success, otherwise why
@@ -42,12 +45,18 @@ export function useViewer() {
       // The session is over: the chat of the assistant must not reach the next person.
       clearAssistantStorage()
 
-      return classifyApolloError(error).kind
+      const apiError = classifyApolloError(error)
+
+      if (apiError.kind === 'unverified' && apiError.email) {
+        pendingEmail.value = apiError.email
+      }
+
+      return apiError.kind
     }
   }
 
-  /** Ends the session and forgets all cached data. */
-  async function logout(): Promise<void> {
+  /** Ends the session and forgets all cached data, then goes to the given page (the login). */
+  async function logout(to = '/login'): Promise<void> {
     try {
       await $backend('/logout', { method: 'POST' })
     } finally {
@@ -55,7 +64,7 @@ export function useViewer() {
       viewer.value = null
       systemRights.value = []
       await $apollo.clearStore()
-      await navigateTo('/login')
+      await navigateTo(to)
     }
   }
 
@@ -64,5 +73,5 @@ export function useViewer() {
     return systemRights.value.includes(right)
   }
 
-  return { viewer, twoFactorEnabled, systemRights, can, load, logout }
+  return { viewer, twoFactorEnabled, systemRights, pendingEmail, can, load, logout }
 }

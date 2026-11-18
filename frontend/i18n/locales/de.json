@@ -137,7 +137,7 @@
     "setPassword": {
       "password": "Neues Passwort",
       "confirmation": "Passwort wiederholen",
-      "rules": "Mindestens 8 Zeichen",
+      "rules": "Mindestens 12 Zeichen",
       "invalidLink": "Der Link ist unvollständig. Bitte öffne ihn nochmals aus der E-Mail."
     },
     "reset": {
@@ -183,9 +183,16 @@
       "resentNeutral": "Wenn ein Konto mit dieser Adresse auf Bestätigung wartet, haben wir eine Mail geschickt. Sie kann eine Minute brauchen."
     },
     "pending": {
-      "title": "Konto wartet",
-      "emailText": "Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt.",
-      "approvalText": "Deine E-Mail-Adresse ist bestätigt. Ein Admin muss dein Konto noch freigeben. Du bekommst Bescheid, sobald es so weit ist.",
+      "emailTitle": "E-Mail-Adresse bestätigen",
+      "emailText": "Wir haben dir eine Mail an {email} geschickt. Öffne sie und folge dem Hinweis darin.",
+      "emailTextNoAddress": "Wir haben dir eine Mail geschickt. Öffne sie und folge dem Hinweis darin.",
+      "deadline": "Ein Link in der Mail gilt 60 Minuten.",
+      "spam": "Sieh auch im Spam-Ordner nach.",
+      "wait": "Die Mail kann eine Minute brauchen.",
+      "wrongAddress": "Adresse falsch?",
+      "registerAgain": "Nochmals registrieren",
+      "approvalTitle": "Freigabe ausstehend",
+      "approvalText": "Deine E-Mail-Adresse ist bestätigt. Ein Admin schaltet dein Konto frei. Du bekommst eine Mail, sobald es so weit ist. Du musst nichts tun.",
       "recheck": "Erneut prüfen"
     }
   },
