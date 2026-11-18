@@ -87,6 +87,16 @@ class Project extends Model
     }
 
     /**
+     * Background knowledge for the assistant (docs/auftrag-m6.md §3).
+     *
+     * @return HasOne<ProjectAiContext, $this>
+     */
+    public function aiContext(): HasOne
+    {
+        return $this->hasOne(ProjectAiContext::class);
+    }
+
+    /**
      * Where the app announces a new revision of the planer file (docs/auftrag-m5.md §4).
      *
      * @return HasOne<ProjectWebhook, $this>

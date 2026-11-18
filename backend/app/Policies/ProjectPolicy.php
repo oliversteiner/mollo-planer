@@ -42,6 +42,12 @@ class ProjectPolicy
         return $this->allows($user, $project, Right::PLANER_EXPORT);
     }
 
+    /** The AI context of the project: whoever has aiContext.update (the project rights; refused in the archive). */
+    public function updateAiContext(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::AI_CONTEXT_UPDATE);
+    }
+
     /** Writes a planer file into the project. Every single change is checked again by its own policy. */
     public function import(User $user, Project $project): bool
     {

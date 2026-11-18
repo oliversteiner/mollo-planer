@@ -4,6 +4,7 @@ namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\CreateIdeaTool;
 use App\Mcp\Tools\ExportPlanTool;
+use App\Mcp\Tools\GetProjectAiContextTool;
 use App\Mcp\Tools\ImportPlanTool;
 use App\Mcp\Tools\ListIdeasTool;
 use App\Mcp\Tools\ListProjectsTool;
@@ -50,6 +51,7 @@ class MolloPlanerServer extends Server
         ImportPlanTool::class,
         CreateIdeaTool::class,
         ListIdeasTool::class,
+        GetProjectAiContextTool::class,
     ];
 
     protected array $resources = [];

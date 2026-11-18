@@ -28,6 +28,9 @@ final class PlanerLimits
 
     public const LABELS_PER_PROJECT = TemplateContent::MAX_LABELS;
 
+    /** Characters of the AI context of a project: its text and the text of its file together. */
+    public const AI_CONTEXT_CHARACTERS = 20_000;
+
     /** Characters of a description as canonical Markdown (project, milestone, todo, task). */
     public const DESCRIPTION_MARKDOWN = 5000;
 

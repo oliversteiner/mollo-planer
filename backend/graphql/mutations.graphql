@@ -215,6 +215,22 @@ type Mutation @guard {
   deleteIdea(id: ID!): Idea!
     @can(ability: "delete", find: "id", model: "App\\Models\\Idea")
     @field(resolver: "App\\GraphQL\\Mutations\\IdeaMutations@delete")
+  "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
+  setProjectAiContext(projectId: ID!, input: ProjectAiContextInput!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@set")
+  "Lädt eine Datei (.txt oder .md, UTF-8, höchstens 100 KB) in den KI-Kontext und ersetzt eine vorhandene. Gespeichert wird nur ihr Text."
+  uploadProjectAiContextFile(projectId: ID!, file: Upload!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@upload")
+  "Entfernt die Datei aus dem KI-Kontext, der Text bleibt"
+  removeProjectAiContextFile(projectId: ID!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@removeFile")
+  "Löscht den ganzen KI-Kontext"
+  clearProjectAiContext(projectId: ID!): Project!
+    @can(ability: "updateAiContext", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\AiContextMutations@clear")
   "Fügt eine Person hinzu oder ändert ihre Rolle"
   setProjectMember(projectId: ID!, userId: ID!, role: String! @rules(apply: ["max:64"])): Project!
     @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")

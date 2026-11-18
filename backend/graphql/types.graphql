@@ -77,6 +77,8 @@ type Project {
   milestones: [Milestone!]! @hasMany
   "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
   planerRevision: Int! @rename(attribute: "planer_revision")
+  "KI-Kontext: Hintergrundwissen für den Assistenten. Lesen dürfen alle, die das Projekt sehen; null, solange keiner angelegt ist."
+  aiContext: ProjectAiContext @hasOne(relation: "aiContext")
   "Benachrichtigung bei Änderungen der Planer-Datei (GitHub oder allgemein). Nur mit project.update, sonst null."
   webhook: ProjectWebhook @field(resolver: "App\\GraphQL\\Resolvers\\ProjectWebhookField")
   "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
@@ -503,4 +505,17 @@ type Idea {
   todos: [Todo!]! @hasMany
   "Darf die angemeldete Person die Idee ändern (nur die Autorin)?"
   viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\IdeaViewerCan@update")
+}
+
+"Hintergrundwissen eines Projekts für den Assistenten: ein Text und der Text einer Datei, zusammen höchstens 20 000 Zeichen"
+type ProjectAiContext {
+  text: String
+  fileName: String @rename(attribute: "file_name")
+  fileText: String @rename(attribute: "file_text")
+  "Zeichen von Text und Datei zusammen"
+  characters: Int!
+  "Für externe Werkzeuge (MCP get_project_ai_context) freigegeben"
+  sharedWithTools: Boolean! @rename(attribute: "shared_with_tools")
+  updatedAt: DateTime! @rename(attribute: "updated_at")
+  updatedBy: User @belongsTo(relation: "updatedBy")
 }

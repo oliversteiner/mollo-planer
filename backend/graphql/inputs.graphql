@@ -218,3 +218,10 @@ input UpdateIdeaInput {
   projectId: ID
   draft: String
 }
+
+input ProjectAiContextInput {
+  "Der Text; leer entfernt ihn (die Datei bleibt)"
+  text: String!
+  "Für externe Werkzeuge freigeben (Standard aus)"
+  sharedWithTools: Boolean! = false
+}
