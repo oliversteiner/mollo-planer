@@ -229,3 +229,27 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 - **Hostpoint-Block in `.htaccess`:** Nicht löschen, sonst wechselt die PHP-Version des Docroots.
 - **Frontend-Build:** Die API-Adresse wird beim Build eingebaut (`NUXT_PUBLIC_API_BASE`). Ändert sich die Domain, neu bauen.
 - **Passwörter:** Nie im Chat oder im Repo. Nach versehentlicher Weitergabe ändern.
+
+## 13. Betrieb: Nutzer verwalten
+
+Wenn niemand sich anmelden kann, helfen drei Artisan-Befehle auf dem Server (per SSH im Ordner `backend/`, das `php` der Shell ist 8.5). `<Nutzer>` ist die E-Mail-Adresse oder die ID.
+
+| Aufruf | Zweck |
+|---|---|
+| `php artisan app:user-password <Nutzer>` | Neues Passwort setzen. Wird zweimal und versteckt abgefragt, nie als Parameter. Beendet danach Zugänge für Claude, „angemeldet bleiben“ und Sitzungen. Der zweite Faktor bleibt. |
+| `php artisan app:user-email <Nutzer>` | Zeigt Adresse und Stand der Bestätigung (schreibt nichts). |
+| `php artisan app:user-email <Nutzer> <neue-E-Mail>` | Adresse ändern. Gilt danach als bestätigt (`--unverified`: Bestätigung wird neu verlangt). |
+| `php artisan app:user-email <Nutzer> --verified` oder `--unverified` | Nur die Bestätigung ändern. |
+| `php artisan app:user-2fa <Nutzer> status` | Authenticator, Wiederherstellungscodes, Passkeys (ID, Name, Datum), ob die Person beim nächsten Login einrichten muss. Schreibt nichts. |
+| `php artisan app:user-2fa <Nutzer> reset` | Gerät verloren: Authenticator, Wiederherstellungscodes, alle Passkeys, Zugänge für Claude, Sitzungen und „angemeldet bleiben“ weg. |
+| `php artisan app:user-2fa <Nutzer> authenticator` | Nur die Authenticator-App samt Wiederherstellungscodes entfernen, Passkeys bleiben. |
+| `php artisan app:user-2fa <Nutzer> passkeys [--id=<ID>]` | Alle Passkeys oder einen entfernen, die Authenticator-App bleibt. |
+| `php artisan app:user-2fa <Nutzer> recovery-codes` | Neue Wiederherstellungscodes (die alten verfallen), nur mit bestätigter Authenticator-App. Die Codes erscheinen einmal im Terminal und werden nirgends gespeichert. |
+
+Gemeinsam:
+
+- Jeder schreibende Aufruf fragt vorher nach (`--no-interaction` ist ein Fehler, es wird nichts geschrieben). Ohne Aktion fragt `app:user-2fa` per Auswahl.
+- Entfernt ein Aufruf den **letzten** zweiten Faktor, sagt die Frage das ausdrücklich: Die Person richtet beim nächsten Login einen neuen ein (Pflicht, keine Ausnahme), ihre Zugänge und Sitzungen enden.
+- **Sitzungen** lassen sich nur beenden, wenn `SESSION_DRIVER=database` gilt (Produktion). Sonst nennt die Ausgabe es, und die Sitzungen laufen aus.
+- **E-Mail:** Solange eine Adresse nicht bestätigt ist, bleibt die API für das Konto gesperrt (Anmelden geht, mehr nicht). Unbestätigte und nicht freigegebene Konten löscht `app:prune-unverified-users` täglich nach 7 Tagen. Der Befehl verschickt keine Bestätigungsmail.
+- Im Log (`storage/logs`) steht je Eingriff eine Zeile mit Nutzer-ID, Befehl und Aktion, ohne Passwort, Hash oder Adresse.
