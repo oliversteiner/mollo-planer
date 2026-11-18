@@ -1,6 +1,6 @@
 # 21 · Bestätigungslink der Registrierungsmail ohne Anmeldung
 
-Status: offen
+Status: Backend und Frontend erledigt (Commits siehe `git log fix/verify-email-public`), Prüfung durch Agenten und Doku-Commit folgen
 Priorität: HOCH (Oliver, 2026-11-18). Reihenfolge: nach Auftrag 19, vor den Aufträgen 22, 23 und 20, vor Auftrag 16.
 Branch: `fix/verify-email-public` **von `fix/setup-security-redirect`** (Auftrag 19 liegt noch nicht in `dev`; die Aufträge 21, 22, 23 und 20 werden gestapelt, jeder auf dem vorigen). Nichts mergen und nichts auf `dev` oder `main` pushen, bis Oliver es sagt. Der Tag `v1.0.0` wird heute **nach** der Umsetzung des Onboardings gesetzt (Oliver); im Repo gibt es schon einen Tag dieses Namens, Bob fasst ihn nicht an und meldet es nur.
 Stand der Vorgaben: überarbeitet 2026-11-18 (Fable, von Oliver bestätigt): Bestätigung erst per Klick, Link aus fester Konfiguration, Text nach der Bestätigung. Hintergrund: `docs/onboarding-gutachten.md`.
