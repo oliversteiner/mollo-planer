@@ -66,12 +66,11 @@ class SelfRegistrationTest extends TestCase
         $admin = User::factory()->admin()->create();
         $applicant = User::factory()->unapproved()->unverified()->create();
 
-        $this->actingAs($applicant)
-            ->get(URL::temporarySignedRoute('verification.verify', now()->addHour(), [
-                'id' => $applicant->id,
-                'hash' => sha1($applicant->getEmailForVerification()),
-            ]))
-            ->assertRedirect();
+        // The link works without a session (another browser), and the click on the page confirms.
+        $this->postJson(URL::temporarySignedRoute('verification.verify', now()->addHour(), [
+            'id' => $applicant->id,
+            'hash' => sha1($applicant->getEmailForVerification()),
+        ]))->assertOk()->assertJsonPath('status', 'ok');
 
         $this->assertNotNull($applicant->fresh()->email_verified_at);
         $this->assertFalse($applicant->fresh()->isApproved());

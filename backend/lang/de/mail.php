@@ -41,7 +41,8 @@ return [
         'subject' => 'Bitte bestätige deine E-Mail-Adresse',
         'intro' => 'Du hast dich bei :app registriert. Bitte bestätige deine E-Mail-Adresse mit dem Button unten.',
         'action' => 'E-Mail-Adresse bestätigen',
-        'ignore' => 'Falls du dich nicht registriert hast, musst du nichts tun.',
-        'approval' => 'Danach gibt ein Admin dein Konto frei.',
+        'expiry' => 'Der Link ist :minutes Minuten gültig.',
+        'ignore' => 'Wenn du dich nicht registriert hast, klick nicht auf den Link und tu nichts.',
+        'approval' => 'Danach richtest du deinen zweiten Faktor ein, und ein Admin gibt dein Konto frei.',
     ],
 ];

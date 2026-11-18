@@ -182,7 +182,7 @@ return [
         // Admins can still create users (GraphQL createUser) with an invitation link.
         Features::registration(),
         Features::resetPasswords(),
-        Features::emailVerification(),
+        // Email verification: own routes in routes/web.php (link without a session, confirmation by click).
         Features::updateProfileInformation(),
         Features::updatePasswords(),
         Features::twoFactorAuthentication([

@@ -46,6 +46,20 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->ip());
         });
 
+        // The link of the mail (open and confirm): generous per IP, many people share one address (office, mobile network).
+        // The link is signed, so guessing is no risk; the limit only keeps a flood away.
+        RateLimiter::for('verification-link', function (Request $request) {
+            return Limit::perMinute(20)->by('verify-link:'.$request->ip());
+        });
+
+        // Mail again without a session: few per hour, by address and by IP, so nobody can flood a mailbox.
+        RateLimiter::for('verification-guest', function (Request $request) {
+            return [
+                Limit::perHour(3)->by('verify-ip:'.$request->ip()),
+                Limit::perHour(3)->by('verify-mail:'.Str::lower(trim((string) $request->input('email')))),
+            ];
+        });
+
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });

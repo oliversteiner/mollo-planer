@@ -41,7 +41,8 @@ return [
         'subject' => 'Please confirm your email address',
         'intro' => 'You registered at :app. Please confirm your email address with the button below.',
         'action' => 'Confirm email address',
-        'ignore' => 'If you did not register, you need not do anything.',
-        'approval' => 'After that, an admin releases your account.',
+        'expiry' => 'The link is valid for :minutes minutes.',
+        'ignore' => 'If you did not register, do not click the link and do nothing.',
+        'approval' => 'After that you set up your second factor, and an admin releases your account.',
     ],
 ];
