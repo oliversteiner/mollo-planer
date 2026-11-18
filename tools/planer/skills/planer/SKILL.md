@@ -52,3 +52,20 @@ Ist nur eine `docs/*.planer.json` im Ordner, genügt der Befehl. Mehrere Dateien
 4. Nicht die ganze Datei erneut lesen.
 
 - **Vorlagen:** `mollo-planer template <datei> [--out <datei>]` macht aus einer Planer-Datei eine Vorlage (neue IDs, Status `planned`, ohne Zuweisungen und Fälligkeiten). `mollo-planer validate <datei> --template` prüft sie.
+
+## Mit der App abgleichen
+
+Die App ist die Quelle der Revision, die Datei im Repository die Arbeitskopie. Verbindung: `MOLLO_PLANER_URL` und `MOLLO_PLANER_TOKEN` in der Umgebung oder `.mollo-planer` (JSON, gehört nicht ins Repository); das Projekt mit `--project <id>`, `MOLLO_PLANER_PROJECT` oder `projects` in `.mollo-planer`. Den Zugang nie als Option, nie in den Chat, nie ins Repository.
+
+| Befehl | Was es macht |
+|---|---|
+| `pull [datei] [--project <id>] [--force]` | Holt den Plan aus der App und schreibt die Datei kanonisch. „unverändert“, wenn nichts neu ist. Hat die Datei `changed`, bricht es ab (Exit 3); `--force` verwirft die Änderungen. |
+| `push [datei] [--partial] [--force] [--yes]` | Trägt die Datei ein. Zeigt **zuerst** den Trockenlauf (Anzahl je Art, Löschungen mit Titel), schreibt danach die echten IDs und die neue Revision in die Datei. |
+| `sync [datei] [--yes]` | Mit `changed`: `push`, danach `pull`. Sonst `pull`. |
+| `pull --watch [--interval 60]` | `pull` in einer Schleife, mindestens 10 s Abstand. |
+
+- **Vor der Arbeit `pull`.** So arbeitest du auf der aktuellen Revision. Die Revision änderst du nie von Hand.
+- **Danach ein Helfer, dann `push`.** `push` trägt nichts ein, wenn die Datei kein `changed` hat. Weicht die Revision der App ab, endet es mit Exit 4: zuerst `pull`, die eigenen Änderungen mit den Helfern neu anwenden.
+- **Löschungen nur mit `--yes`, und nur nach Rückfrage beim Menschen.** Ohne `--yes` endet `push` mit Exit 5 und der Liste. Was fehlt, kommt in der App in den Papierkorb und lässt sich dort zurückholen.
+- **Nie committen ohne Auftrag.** Das Werkzeug committet nie.
+- **Exit-Codes:** 0 ok oder unverändert, 1 Aufruf falsch, 2 Datei ungültig oder Fehler der App (mit Pfad), 3 lokale Änderungen, 4 Revision weicht ab, 5 Löschungen ohne `--yes`, 6 Verbindung oder Zugang (Zugänge laufen nach 90 Tagen ab).

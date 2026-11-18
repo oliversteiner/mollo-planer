@@ -5,11 +5,15 @@ on:
     paths:
       - 'tools/planer/**'
       - 'spec/**'
+      - 'backend/app/Mcp/**'
+      - 'backend/app/Planer/**'
       - '.github/workflows/tools.yml'
   pull_request:
     paths:
       - 'tools/planer/**'
       - 'spec/**'
+      - 'backend/app/Mcp/**'
+      - 'backend/app/Planer/**'
       - '.github/workflows/tools.yml'
 
 defaults:
@@ -31,3 +35,28 @@ jobs:
 
       - name: Test planer tools
         run: npm test
+
+  remote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: composer install --no-interaction --no-progress --no-suggest
+
+      - name: Test pull, push and sync against the real MCP server
+        run: npm run test:remote
