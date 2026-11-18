@@ -5,7 +5,7 @@
  */
 const { t } = useI18n()
 const roleName = useRoleName()
-const config = useRuntimeConfig()
+const resolvedApiBase = useApiBase()
 const { viewer } = useViewer()
 
 useHead({ title: () => t('systemStatus.title') })
@@ -20,7 +20,7 @@ const lastChecked = ref<string | null>(null)
 /** Versions from the status endpoint, and how this session accesses the API. */
 const versions = reactive<{ apiVersion: string | null, appVersion: string | null }>({ apiVersion: null, appVersion: null })
 
-const apiBase = computed(() => config.public.apiBase.replace(/\/$/, ''))
+const apiBase = computed(() => resolvedApiBase)
 
 /** One request to the status endpoint: the backend answers, and the database answers (503 if not). */
 async function checkBackendAndDatabase(): Promise<void> {

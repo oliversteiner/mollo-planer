@@ -38,7 +38,7 @@ Werkzeug für `planer-v2` im Ordner `tools/planer/` (Node 20 oder neuer, keine A
 - `node cli/bin/mollo-planer.mjs validate <datei>` (Prüfung einer Planer-Datei, Formatregeln in `spec/format-v2.md`)
 
 Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
-- `npm run dev` (http://localhost:3000)
+- `npm run dev` (http://localhost:3000, im WLAN erreichbar; die Backend-Adresse steht in `frontend/.env` als `NUXT_PUBLIC_API_BASE`)
 - `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)
 - `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
 - `npm run build` (statische Dateien in `.output/public`)

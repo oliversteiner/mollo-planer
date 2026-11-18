@@ -27,7 +27,7 @@ Installieren mit `WEBAWESOME_NPM_TOKEN="…" npm install` (oder die Variable mit
 ## Befehle (im Ordner `frontend/`)
 
 - `npm install`: Abhängigkeiten installieren
-- `npm run dev`: Entwicklungsserver auf `http://localhost:3000` (das Backend läuft auf `http://localhost:8000`, änderbar mit `NUXT_PUBLIC_API_BASE`)
+- `npm run dev`: Entwicklungsserver auf `http://localhost:3000`, im WLAN erreichbar unter `http://<IP des Macs>:3000` (z. B. vom iPad). Das Backend läuft auf `http://localhost:8000`, im Entwicklungsmodus aus dem Host der Seite abgeleitet (`http://<Host>:8000`), sonst mit `NUXT_PUBLIC_API_BASE` (siehe `.env.example`)
 - `npm run lint`: ESLint
 - `npm run typecheck`: TypeScript
 - `npm test`: Tests (Vitest): `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware in einer Nuxt-Umgebung

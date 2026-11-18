@@ -20,7 +20,7 @@ import { trashTypePolicies } from '~/utils/trash'
 export default defineNuxtPlugin({
   name: 'api',
   setup(nuxtApp) {
-    const apiBase = useRuntimeConfig().public.apiBase.replace(/\/$/, '')
+    const apiBase = useApiBase()
     const i18n = nuxtApp.$i18n as { locale: { value: string } }
 
     const xsrfToken = () => readCookie(document.cookie, 'XSRF-TOKEN')

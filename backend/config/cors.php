@@ -33,8 +33,13 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // Only the SPA. Cookies (session, XSRF-TOKEN) require an exact origin.
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
+    // Only the SPA. Cookies (session, XSRF-TOKEN) require an exact origin. More origins (for example the
+    // development server reached from a tablet in the local network) go into CORS_ALLOWED_ORIGINS, separated
+    // by commas; production leaves it empty.
+    'allowed_origins' => array_values(array_unique(array_filter([
+        env('FRONTEND_URL', 'http://localhost:3000'),
+        ...array_map('trim', explode(',', (string) env('CORS_ALLOWED_ORIGINS', ''))),
+    ]))),
 
     'allowed_origins_patterns' => [],
 
