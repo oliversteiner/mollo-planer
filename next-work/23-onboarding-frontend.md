@@ -1,6 +1,6 @@
 # 23 · Onboarding: Zustandsseiten, Anmeldung und Einrichtung (Frontend)
 
-Status: offen
+Status: erledigt (F1 11724b4, F2 und F3 f6f6d65 und de6d773, F4 3738d4b, F5 a5ba031, F6 c89b59c, F8 9770a15, Funde der Prüfung, Doku; auf `fix/onboarding-frontend`); F7 (Passwort anzeigen) nicht umgesetzt, wartet auf Absprache; Prüfung durch unabhängigen Agenten bestanden (eingebaute Abweichung gefunden); wartet auf Oliver
 Reihenfolge: nach Auftrag 22 (neue API-Antworten) und nach 21 (Link, erneut senden). Vor Auftrag 20 (Browser-Tests). Ein Commit je Punkt (F1 bis F8).
 Branch: `fix/onboarding-frontend` **von `fix/onboarding-backend`** (Auftrag 22; die Aufträge sind gestapelt, darin stecken auch 19 und 21). Nichts mergen und nichts auf `dev` oder `main` pushen, bis Oliver es sagt; der Tag `v1.0.0` wird heute nach der Umsetzung des Onboardings gesetzt (Oliver).
 Grundlage: `docs/onboarding-gutachten.md` (Fable, 2026-11-18), Empfehlungen E2, E10, E15, E17 bis E20 und die Anpassungen aus den Entscheiden von Oliver (Registrierung neutral, Passkey-Konten: Admin-Reset + Hinweis, 12 Zeichen, Bestätigung der E-Mail per Klick in Auftrag 21). Für alles an der Oberfläche gilt `docs/frontend-webawesome-plan.md` vor `frontend-plan.md` (`CLAUDE.md`).
