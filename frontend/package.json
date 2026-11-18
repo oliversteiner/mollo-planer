@@ -12,7 +12,8 @@
     "codegen": "graphql-codegen",
     "versions": "node scripts/build-versions.mjs",
     "knip": "knip",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.14.1",
@@ -47,12 +48,14 @@
     "@graphql-codegen/client-preset": "^7.0.0",
     "@nuxt/eslint": "^1.17.0",
     "@nuxt/test-utils": "^4.3.4",
+    "@playwright/test": "^1.65.1",
     "@types/apollo-upload-client": "^18.0.1",
     "@types/node": "^24.19.2",
     "@vue/test-utils": "^2.5.1",
     "eslint": "^10.13.0",
     "happy-dom": "^21.0.4",
     "knip": "^6.45.1",
+    "otpauth": "^9.6.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.12",
     "vue-tsc": "^3.3.13"

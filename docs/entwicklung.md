@@ -658,3 +658,25 @@ Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit A
 
 - [x] [feature] Rechte nur über Rights, eine Liste für Seiten- und Menürechte
   Commit 9673541
+
+## Browser-Tests der Anmeldung (Auftrag 20, 2026-11-18)
+
+Der ganze Weg vom Konto bis zur Arbeitsfläche läuft als Browser-Test (Playwright, Chromium) in `frontend/e2e/`: Registrierung, Bestätigungslink (auch im zweiten Browserprofil), «Konto absichern» mit Passkey und Authenticator-App, Anmelden mit Code, Wiederherstellungscode und Passkey, «Passwort vergessen», Freigabe, Ablehnung, Reset des zweiten Faktors durch den Admin, Drossel, ein Durchlauf auf Englisch. Szenarien: `e2e/auth-flow.spec.ts` (Nummern wie in `next-work/20-anmelde-ui-tests.md`). Je Szenario werden die Zielseite, die sichtbare Meldung, Fehler in der Browser-Konsole und unerwartete 4xx/5xx geprüft; erwartete Antworten (zum Beispiel 422, 429, 403 bei gesperrtem Konto) stehen je Szenario im Test.
+
+**Starten** (im Ordner `frontend/`, Voraussetzung: PHP 8.5, `npm install`, einmal `npx playwright install chromium`, und **Mailpit läuft** auf `localhost:8025` / `1025`):
+
+```bash
+npm run test:e2e
+```
+
+Der Lauf startet **sein eigenes** Backend (`php artisan serve` auf Port 8100) und seinen eigenen Dev-Server des Frontends (Port 3100, Build-Ordner `.nuxt-e2e`), neben dem normalen Entwicklungsstand. Nichts davon berührt die Entwicklungsdatenbank, einen Testserver oder die Produktion.
+
+- **Datenbank:** eine eigene SQLite-Datei (`/tmp/mollo-planer-e2e.sqlite`), vor jedem Lauf per `migrate:fresh --seed --seeder=E2eSeeder` neu aufgebaut. Der Seeder legt einen Admin (`admin@e2e.test`) und ein Mitglied an, beide mit Authenticator-App. Passwort und Schlüssel stehen in `frontend/e2e/support/environment.ts` (nur für diese Wegwerf-Datenbank), nicht im Seeder. Der Seeder läuft nicht in Produktion.
+- **Umgebung des Backends** (`e2e/support/environment.ts`): `QUEUE_CONNECTION=sync` (die Mail ist da, wenn der Test sie liest), `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PASSWORD_UNCOMPROMISED_CHECK=false` (kein Aufruf des Prüfdienstes), `FRONTEND_URL=http://localhost:3100`, `PASSKEYS_RELYING_PARTY_ID=localhost`, `SANCTUM_STATEFUL_DOMAINS=localhost:3100`, `SESSION_DOMAIN=localhost`, Mail an Mailpit. Kein echter SMTP-Zugang.
+- **Mails** liest der Test über die API von Mailpit, je Empfänger; jedes Szenario nutzt eigene, eindeutige Adressen.
+- **Drosseln:** Alle Tests laufen von `127.0.0.1`; vor jedem Szenario wird der Cache geleert (`php artisan cache:clear`). Die Grenzwerte der App werden **nicht** angehoben; ein eigenes Szenario prüft die Drossel der Registrierung.
+- **Passkeys** über den virtuellen Authenticator von Chromium (WebAuthn über CDP, mit Benutzerprüfung).
+- **Abgelaufene Links:** der Bestätigungslink wird mit einer Gültigkeit in der Vergangenheit erzeugt (`tinker`), der Reset-Token in `password_reset_tokens` zurückdatiert. Es gibt keine Hilfsroute in der App.
+- **Befunde:** Ein Szenario, das eine Abweichung der App zeigt, ist mit `test.fail()` und der Begründung markiert und geht in den Bericht an die Planung. Die Warnungen der Browser-Konsole (Web Awesome und Lit im Entwicklungsmodus) landen nach dem Lauf in `frontend/test-results/console-warnings.txt`, ungefiltert.
+- **Nicht im Umfang:** `app:create-admin` und `app:user-2fa` brauchen ein Terminal (Auftrag 18) und sind durch die Backend-Tests abgedeckt; «Passwort anzeigen»; Barrierefreiheit.
+
