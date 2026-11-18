@@ -35,3 +35,7 @@ Stand: 2026-11-18, Planung. Geprüft an `dev` bis `9a79a76` mit frischen Demo-Da
 ## Ablauf
 
 F8.4 → F8.1 → F8.2 → F8.3 → F8.5, Prüfungen grün, im Browser ansehen, dann anhalten. Keine Datenbank neu aufsetzen nötig.
+
+## Nachprüfung (2026-11-18, Planung)
+
+F8.1 bis F8.5 nachgeprüft (Chrome, CLI in der Werkzeug-Umgebung): alle ✅. Details in `docs/abnahme-m5.md`.

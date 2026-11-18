@@ -49,6 +49,15 @@ Personen: Ben (Owner Website-Relaunch), Chiara (Manager), David (Mitglied). Je P
 - [x] ✅ Scheduler-Eintrag `queue:work --stop-when-empty`, Abschnitt „Cron“ in `deploy-template.md`.
 - [ ] ⏸ Cron-Eintrag `schedule:run` im Hostpoint-Panel.
 
+## Nachprüfung F8 (2026-11-18, Planung, `dev` bis `15cbce7`)
+
+- [x] ✅ F8.4: neuer Test `watch-process.test.mjs` startet die echte CLI, läuft über mehrere Intervalle, holt die Änderung, endet auf SIGINT mit Exit 0 (bei der Planung grün).
+- [x] ✅ F8.1: GraphQL liefert `DateTime` als ISO 8601 mit Zone (`2026-11-18T03:37:57+00:00`); die Webhook-Karte zeigt 04:37 Ortszeit.
+- [x] ✅ F8.2: „Die Benachrichtigung ist nicht angekommen (Zeitüberschreitung).“
+- [x] ✅ F8.3: Wechsel GitHub → Allgemein leert das Feld, zurück zu GitHub zeigt den gespeicherten Wert und „Token gespeichert“.
+- [x] ✅ F8.5: `.mollo-planer` mit Zugang und Rechten 644 → Warnung mit `chmod 600 <pfad>`; mit 600 keine Warnung.
+- Test-Webhook danach wieder entfernt.
+
 ---
 
-Ergebnis: _offen_ (nach F8 Nachprüfung durch die Planung; ⏸ bei Oliver)
+Ergebnis: _bereit zur Abnahme_ (Planung: alle Befunde behoben; offen ⏸ bei Oliver: GitHub-Webhook und Action im Test-Repository, Cron auf Hostpoint, beides teilweise erst nach dem Deployment)
