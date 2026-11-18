@@ -11,6 +11,13 @@ return [
         'none' => 'No notification is set up for this project.',
         'test_ok' => 'The notification arrived.',
         'test_failed' => 'The notification did not arrive (:error).',
+        // The words of the short codes of lastError; the settings page uses the same ones.
+        'error' => [
+            'timeout' => 'timeout',
+            'connection' => 'no connection',
+            'target' => 'target not allowed',
+            'error' => 'error',
+        ],
     ],
     'validation' => [
         'required' => 'Required field is missing.',

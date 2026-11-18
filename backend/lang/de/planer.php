@@ -11,6 +11,13 @@ return [
         'none' => 'Für dieses Projekt ist keine Benachrichtigung eingerichtet.',
         'test_ok' => 'Die Benachrichtigung ist angekommen.',
         'test_failed' => 'Die Benachrichtigung ist nicht angekommen (:error).',
+        // The words of the short codes of lastError; the settings page uses the same ones.
+        'error' => [
+            'timeout' => 'Zeitüberschreitung',
+            'connection' => 'keine Verbindung',
+            'target' => 'Ziel nicht erlaubt',
+            'error' => 'Fehler',
+        ],
     ],
     'validation' => [
         'required' => 'Pflichtfeld fehlt.',

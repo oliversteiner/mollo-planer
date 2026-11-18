@@ -13,6 +13,7 @@ use App\Planer\Export;
 use App\Webhooks\WebhookFailed;
 use App\Webhooks\WebhookSender;
 use App\Webhooks\WebhookTarget;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -392,5 +393,18 @@ class WebhookTest extends GraphQLTestCase
         MolloPlanerServer::actingAs($this->users['owner'])->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => app(Export::class)->document($this->project->fresh())])->assertOk();
 
         Queue::assertNothingPushed();
+    }
+
+    public function test_the_message_after_testing_uses_the_words_of_the_status_line_in_both_languages(): void
+    {
+        $this->github();
+        $mutation = 'mutation ($p: ID!) { testProjectWebhook(projectId: $p) { ok message } }';
+
+        foreach (['de' => 'Die Benachrichtigung ist nicht angekommen (Zeitüberschreitung).', 'en' => 'The notification did not arrive (timeout).'] as $language => $message) {
+            Http::fake(['api.github.com/*' => fn () => throw new ConnectionException('cURL error 28: Operation timed out')]);
+
+            $this->as('manager')->withHeader('Accept-Language', $language)->gql($mutation, ['p' => $this->project->id])->assertJsonPath('data.testProjectWebhook.message', $message);
+            $this->assertSame('timeout', $this->project->webhook()->first()->last_error, 'the status keeps the code, not the words');
+        }
     }
 }

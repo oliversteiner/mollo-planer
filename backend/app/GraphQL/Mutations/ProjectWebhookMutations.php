@@ -77,6 +77,15 @@ class ProjectWebhookMutations
     }
 
     /**
+     * The short code in the language of the request: "timeout" becomes "Zeitüberschreitung". A code
+     * without a word ("HTTP 401") stays as it is.
+     */
+    private function errorText(string $code): string
+    {
+        return in_array($code, ['timeout', 'connection', 'target', 'error'], true) ? __("planer.webhook.error.{$code}") : $code;
+    }
+
+    /**
      * Sends now, in this request, and keeps the result in the status fields.
      *
      * @param  array{projectId: int|string}  $args
@@ -98,6 +107,6 @@ class ProjectWebhookMutations
             ? ['last_sent_revision' => $revision, 'last_sent_at' => now(), 'last_failed_at' => null, 'last_error' => null]
             : ['last_failed_at' => now(), 'last_error' => $error])->save();
 
-        return ['ok' => $error === null, 'message' => $error === null ? __('planer.webhook.test_ok') : __('planer.webhook.test_failed', ['error' => $error])];
+        return ['ok' => $error === null, 'message' => $error === null ? __('planer.webhook.test_ok') : __('planer.webhook.test_failed', ['error' => $this->errorText($error)])];
     }
 }
