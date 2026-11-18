@@ -3,14 +3,13 @@
 namespace App\GraphQL\Mutations;
 
 use App\Models\User;
-use App\Support\McpTokens;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use App\Services\UserSecurity;
 
 /**
  * Removes the authenticator app and all passkeys of a user (lost device),
  * ends their sessions, "remember me" logins and Claude access tokens, so
- * the next login sets up a new factor.
+ * the next login sets up a new factor. The steps are in UserSecurity, the
+ * artisan command app:user-2fa uses them too.
  */
 class ResetUserTwoFactor
 {
@@ -19,30 +18,10 @@ class ResetUserTwoFactor
      */
     public function __invoke(mixed $root, array $args): User
     {
-        return DB::transaction(function () use ($args): User {
-            $user = User::findOrFail($args['id']);
+        $user = User::findOrFail($args['id']);
 
-            // A new remember token also signs out "remember me" cookies,
-            // for example on the lost device.
-            $user->forceFill([
-                'two_factor_secret' => null,
-                'two_factor_recovery_codes' => null,
-                'two_factor_confirmed_at' => null,
-                'remember_token' => Str::random(60),
-            ])->save();
+        app(UserSecurity::class)->resetTwoFactor($user);
 
-            $user->passkeys()->delete();
-            // Also the access tokens for Claude, for example on a lost laptop.
-            McpTokens::revokeAll($user);
-
-            if (config('session.driver') === 'database') {
-                DB::connection(config('session.connection'))
-                    ->table(config('session.table', 'sessions'))
-                    ->where('user_id', $user->getKey())
-                    ->delete();
-            }
-
-            return $user;
-        });
+        return $user;
     }
 }
