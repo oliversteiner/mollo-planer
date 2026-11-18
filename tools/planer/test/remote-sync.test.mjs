@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -113,7 +113,7 @@ test('Konfiguration: sucht aufwärts bis zur Git-Wurzel und nicht darüber hinau
 test('Konfiguration: warnt, wenn der Zugang in einer nicht ignorierten Datei steht, nicht wenn sie ignoriert ist', () => {
   const w = workspace();
   try {
-    writeFileSync(join(w.dir, '.mollo-planer'), JSON.stringify({ url: 'https://x', token: 'geheim' }));
+    writeFileSync(join(w.dir, '.mollo-planer'), JSON.stringify({ url: 'https://x', token: 'geheim' }), { mode: 0o600 });
     const warnings = [];
     resolveSettings({ env: {}, cwd: w.dir, filePath: 'docs/x.planer.json', warn: (line) => warnings.push(line) });
     assert.equal(warnings.length, 1);
@@ -123,6 +123,53 @@ test('Konfiguration: warnt, wenn der Zugang in einer nicht ignorierten Datei ste
     const none = [];
     resolveSettings({ env: {}, cwd: w.dir, filePath: 'docs/x.planer.json', warn: (line) => none.push(line) });
     assert.deepEqual(none, []);
+  } finally {
+    w.cleanup();
+  }
+});
+
+test('Konfiguration: warnt, wenn .mollo-planer mit Zugang für andere lesbar ist, nicht bei 600 und nicht ohne Zugang (F8.5)', { skip: process.platform === 'win32' }, () => {
+  const w = workspace();
+  try {
+    writeFileSync(join(w.dir, '.gitignore'), '.mollo-planer\n');
+    const config = join(w.dir, '.mollo-planer');
+    const warningsFor = (data, mode, env = {}) => {
+      rmSync(config, { force: true });
+      writeFileSync(config, JSON.stringify(data));
+      chmodSync(config, mode);
+      const lines = [];
+      resolveSettings({ env, cwd: w.dir, filePath: 'docs/x.planer.json', warn: (line) => lines.push(line) });
+      return lines;
+    };
+    const withToken = { url: 'https://x', token: 'geheim' };
+
+    const lines = warningsFor(withToken, 0o644);
+    assert.equal(lines.length, 1);
+    assert.ok(lines[0].includes(`chmod 600 ${config}`), lines[0]);
+    assert.doesNotMatch(lines[0], /geheim/);
+    assert.equal(warningsFor(withToken, 0o640).length, 1, 'auch für die Gruppe');
+
+    assert.deepEqual(warningsFor(withToken, 0o600), []);
+    assert.deepEqual(warningsFor(withToken, 0o400), []);
+    assert.deepEqual(warningsFor({ url: 'https://x' }, 0o644, { MOLLO_PLANER_TOKEN: 'aus-env' }), [], 'ohne Zugang in der Datei gibt es nichts zu warnen');
+  } finally {
+    w.cleanup();
+  }
+});
+
+test('pull --project behält die Rechte von .mollo-planer', { skip: process.platform === 'win32' }, async () => {
+  const w = workspace();
+  try {
+    writeFileSync(join(w.dir, '.gitignore'), '.mollo-planer\n');
+    const config = join(w.dir, '.mollo-planer');
+    writeFileSync(config, JSON.stringify({ url: 'https://planer.example', token: 'bleibt' }));
+    chmodSync(config, 0o600);
+    const env = { MOLLO_PLANER_URL: '', MOLLO_PLANER_TOKEN: '', MOLLO_PLANER_PROJECT: '' };
+
+    assert.equal(await runSync('pull', ['docs/x.planer.json', '--project', '12'], w.ctx(exportApp(1).fetch, env)), EXIT.OK);
+    assert.equal(statSync(config).mode & 0o777, 0o600);
+    assert.equal(JSON.parse(readFileSync(config, 'utf8')).projects['docs/x.planer.json'], 12);
+    assert.deepEqual(w.err.filter((line) => /lesbar/.test(line)), []);
   } finally {
     w.cleanup();
   }

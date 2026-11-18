@@ -4,7 +4,7 @@
  * Dieses Modul liegt bewusst nicht in `core`: das Frontend nutzt `core` und braucht kein Netz.
  * Der Zugang steht nie in einer Ausgabe oder Fehlermeldung.
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 
@@ -59,6 +59,14 @@ export function configIsExposed(configPath) {
   return run('check-ignore', '-q', configPath).status !== 0;
 }
 
+/** Ist die Konfiguration für Gruppe oder andere lesbar? Unter Windows gibt es diese Rechte nicht. */
+export function configIsReadableByOthers(configPath) {
+  if (process.platform === 'win32') {
+    return false;
+  }
+  return (statSync(configPath).mode & 0o077) !== 0;
+}
+
 /** Schlüssel der Datei in `projects`: Pfad relativ zur Konfigurationsdatei, mit „/“. */
 export function projectKey(configPath, filePath) {
   return relative(dirname(configPath), resolve(filePath)).split(sep).join('/');
@@ -79,6 +87,9 @@ export function resolveSettings({ env, cwd, filePath, projectOption, warn }) {
 
   if (config && data.token && !env.MOLLO_PLANER_TOKEN && configIsExposed(config.path)) {
     warn(`Warnung: ${config.path} enthält den Zugang, ist aber in Git eingecheckt oder nicht in .gitignore. Zugang schützen.`);
+  }
+  if (config && data.token && configIsReadableByOthers(config.path)) {
+    warn(`Warnung: ${config.path} enthält den Zugang und ist für andere Benutzer lesbar. chmod 600 ${config.path}`);
   }
   if (!url) {
     throw new RemoteError('Keine Adresse der App. MOLLO_PLANER_URL setzen oder „url“ in .mollo-planer eintragen.', { exit: 1 });

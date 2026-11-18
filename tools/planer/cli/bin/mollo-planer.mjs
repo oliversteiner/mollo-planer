@@ -43,7 +43,7 @@ Verbindung (Vorrang von oben nach unten):
   Adresse   MOLLO_PLANER_URL, sonst "url" in .mollo-planer
   Zugang    MOLLO_PLANER_TOKEN, sonst "token" in .mollo-planer (nie als Option, wegen des Shell-Verlaufs)
   Projekt   --project, sonst MOLLO_PLANER_PROJECT, sonst "projects" in .mollo-planer (Pfad der Datei als Schlüssel)
-.mollo-planer ist JSON und gehört nicht ins Repository.
+.mollo-planer ist JSON, gehört nicht ins Repository und nur dem Benutzer: chmod 600 .mollo-planer.
 
 Exit-Codes: 0 ok oder unverändert, 1 Aufruf falsch, 2 Datei ungültig, 3 lokale Änderungen,
             4 Revision weicht ab, 5 Löschungen ohne --yes, 6 Verbindung oder Zugang.`;

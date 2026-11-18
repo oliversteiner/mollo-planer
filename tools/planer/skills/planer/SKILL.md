@@ -55,7 +55,7 @@ Ist nur eine `docs/*.planer.json` im Ordner, genügt der Befehl. Mehrere Dateien
 
 ## Mit der App abgleichen
 
-Die App ist die Quelle der Revision, die Datei im Repository die Arbeitskopie. Verbindung: `MOLLO_PLANER_URL` und `MOLLO_PLANER_TOKEN` in der Umgebung oder `.mollo-planer` (JSON, gehört nicht ins Repository); das Projekt mit `--project <id>`, `MOLLO_PLANER_PROJECT` oder `projects` in `.mollo-planer`. Den Zugang nie als Option, nie in den Chat, nie ins Repository.
+Die App ist die Quelle der Revision, die Datei im Repository die Arbeitskopie. Verbindung: `MOLLO_PLANER_URL` und `MOLLO_PLANER_TOKEN` in der Umgebung oder `.mollo-planer` (JSON, gehört nicht ins Repository); das Projekt mit `--project <id>`, `MOLLO_PLANER_PROJECT` oder `projects` in `.mollo-planer`. Den Zugang nie als Option, nie in den Chat, nie ins Repository. `.mollo-planer` mit Zugang gehört dem Benutzer allein: `chmod 600 .mollo-planer` (das Werkzeug warnt, wenn andere sie lesen können).
 
 | Befehl | Was es macht |
 |---|---|

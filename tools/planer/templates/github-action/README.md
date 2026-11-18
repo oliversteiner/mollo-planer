@@ -57,7 +57,7 @@ Mit **Testen** schickt die App sofort ein Ereignis; in *Actions* im Repository e
 
 ```bash
 export MOLLO_PLANER_URL=https://api.planer.mollo.dev
-export MOLLO_PLANER_TOKEN=…            # nie ins Repository
+export MOLLO_PLANER_TOKEN=…            # nie ins Repository (oder in .mollo-planer, dann mit chmod 600)
 git pull
 node tools/planer/cli/bin/mollo-planer.mjs pull docs/podcast.planer.json --project 7
 node tools/planer/cli/bin/mollo-planer.mjs add task --todo t-3 --title "Mikrofone testen"
