@@ -27,10 +27,10 @@ const progress = computed(() => {
     return null
   }
 
-  const second = (method.value === 'passkey' && passkeyAdded.value) || (method.value === 'app' && appStep.value === 'codes')
-  const title = !second ? 'stepFactor' : (method.value === 'passkey' ? 'stepFinish' : 'stepCodes')
+  const codes = method.value === 'app' && appStep.value === 'codes'
+  const title = codes ? 'stepCodes' : (passkeyAdded.value ? 'stepFinish' : 'stepFactor')
 
-  return t('auth.setup.progress', { current: second ? 2 : 1, total: 2, title: t(`auth.setup.${title}`) })
+  return t('auth.setup.progress', { current: codes || passkeyAdded.value ? 2 : 1, total: 2, title: t(`auth.setup.${title}`) })
 })
 
 /**
@@ -106,7 +106,10 @@ async function done(): Promise<void> {
         <p class="wa-body-s wa-color-text-quiet">
           {{ t('auth.setup.passkeyExplain') }}
         </p>
-        <SecurityPasskeyAdd @added="passkeyAdded = true" />
+        <SecurityPasskeyAdd
+          :toast-on-success="false"
+          @added="passkeyAdded = true"
+        />
       </template>
       <div
         v-else-if="method === 'passkey'"

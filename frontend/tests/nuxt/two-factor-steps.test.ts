@@ -80,7 +80,7 @@ describe('setup page: progress as text', () => {
     expect(page.text()).toContain('Schritt 2 von 2: Abschluss')
 
     await button(page, 'Authenticator-App einrichten').trigger('click')
-    expect(page.text()).toContain('Schritt 1 von 2: Faktor einrichten')
+    expect(page.text()).toContain('Schritt 2 von 2: Abschluss')
     await page.findComponent(TwoFactorSetup).vm.$emit('step', 'codes')
     expect(page.text()).toContain('Schritt 2 von 2: Codes sichern')
   })

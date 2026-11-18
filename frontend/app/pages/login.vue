@@ -102,6 +102,7 @@ function backToCredentials(): void {
     >
       <AppCallout
         v-if="passkeyHint"
+        role="status"
         variant="warning"
         :title="passkeyHint === 'use' ? t('auth.login.passkeyRequired') : t('auth.login.passkeyUnsupported')"
       />

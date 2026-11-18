@@ -16,6 +16,8 @@ const { proceed } = useAccountFlow()
 
 const checking = ref(false)
 const signedOut = ref(false)
+// The buttons that need a session wait for the first answer of the API (no flash after a reload without a session).
+const checked = ref(false)
 // Right after the registration the page looks the same for a new and for a taken address, whether or not
 // a session was made: the same hints, the form for the address, no buttons that need a session.
 const registered = useState('registrationDone', () => false)
@@ -41,6 +43,7 @@ async function check(): Promise<void> {
     })
   } finally {
     checking.value = false
+    checked.value = true
   }
 }
 
@@ -86,7 +89,7 @@ onMounted(check)
       </ul>
 
       <wa-button
-        v-if="!neutral"
+        v-if="checked && !neutral"
         variant="brand"
         :loading="checking"
         style="width: 100%"
@@ -130,7 +133,7 @@ onMounted(check)
     </div>
 
     <div
-      v-if="!neutral"
+      v-if="checked && !neutral"
       class="wa-split wa-gap-s"
       style="margin-block-start: var(--wa-space-m)"
     >

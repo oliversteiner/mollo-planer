@@ -3,6 +3,7 @@ import { browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { deviceName } from '~/utils/device-name'
 
 /** Add a passkey on this device; the browser asks for PIN or biometrics. */
+const props = withDefaults(defineProps<{ toastOnSuccess?: boolean }>(), { toastOnSuccess: true })
 const emit = defineEmits<{ added: [] }>()
 
 const { t } = useI18n()
@@ -26,7 +27,9 @@ async function add(): Promise<void> {
   try {
     if (await addPasskey(name.value.trim() || t('security.passkeys.defaultName'))) {
       name.value = suggestion.value
-      toast.add({ title: t('security.passkeys.added'), color: 'success' })
+      if (props.toastOnSuccess) {
+        toast.add({ title: t('security.passkeys.added'), color: 'success' })
+      }
       emit('added')
     }
   } catch (error) {

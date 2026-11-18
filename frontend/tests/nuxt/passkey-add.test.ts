@@ -49,4 +49,14 @@ describe('add a passkey', () => {
     expect(addPasskey.mock.calls[0]![0]).not.toBe('')
     expect(page.emitted('added')).toHaveLength(1)
   })
+
+  it('shows no success toast where a fixed step follows', async () => {
+    addPasskey.mockResolvedValue(true)
+    const page = await mountSuspended(PasskeyAdd, { props: { toastOnSuccess: false } })
+
+    await page.find('form').trigger('submit')
+    await vi.waitFor(() => expect(page.emitted('added')).toHaveLength(1))
+
+    expect(toast).not.toHaveBeenCalled()
+  })
 })
