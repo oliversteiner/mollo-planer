@@ -70,4 +70,24 @@ class ForgotPasswordTest extends TestCase
             $this->assertStringContainsString($locale === 'de' ? 'Wenn die Adresse' : 'If the address', $text);
         }
     }
+
+    public function test_forgot_password_is_throttled_per_ip(): void
+    {
+        Notification::fake();
+
+        foreach (range(1, 5) as $i) {
+            $this->postJson('/forgot-password', ['email' => "person$i@example.com"])->assertOk();
+        }
+
+        $this->postJson('/forgot-password', ['email' => 'person6@example.com'])->assertStatus(429);
+    }
+
+    public function test_reset_password_is_throttled_per_ip(): void
+    {
+        foreach (range(1, 5) as $i) {
+            $this->postJson('/reset-password', ['token' => 'x', 'email' => "person$i@example.com", 'password' => 'a', 'password_confirmation' => 'a'])->assertStatus(422);
+        }
+
+        $this->postJson('/reset-password', ['token' => 'x', 'email' => 'person6@example.com', 'password' => 'a', 'password_confirmation' => 'a'])->assertStatus(429);
+    }
 }

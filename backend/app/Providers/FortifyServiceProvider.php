@@ -48,6 +48,20 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->ip());
         });
 
+        // Forgot password and reset password: per IP, like registration (5 a minute), so nobody can flood
+        // mailboxes or try reset tokens in bulk. Fortify gives these two routes no limiter of their own.
+        RateLimiter::for('password-reset', function (Request $request) {
+            return Limit::perMinute(5)->by('password-reset:'.$request->ip());
+        });
+
+        $this->app->booted(function (): void {
+            Route::getRoutes()->refreshNameLookups();
+
+            foreach (['password.email', 'password.update'] as $name) {
+                Route::getRoutes()->getByName($name)?->middleware('throttle:password-reset');
+            }
+        });
+
         // The link of the mail (open and confirm): generous per IP, many people share one address (office, mobile network).
         // The link is signed, so guessing is no risk; the limit only keeps a flood away.
         RateLimiter::for('verification-link', function (Request $request) {
