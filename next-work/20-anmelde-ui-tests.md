@@ -1,6 +1,6 @@
 # 20 · Anmeldeablauf lokal mit UI-Tests durchspielen
 
-Status: offen
+Status: erledigt (Infrastruktur d7a71ca, Szenarien 78ea140, Funde der Prüfung 7f60dd6, auf `test/auth-flow-e2e`); Prüfung durch unabhängigen Agenten bestanden (eingebaute Abweichung gefunden); Befunde im Bericht; wartet auf Oliver
 Reihenfolge: nach den Aufträgen 19, 21, 22 und 23 (sonst testen die Szenarien den alten Stand), vor Auftrag 16. Branch `test/auth-flow-e2e` **von `fix/onboarding-frontend`** (Auftrag 23; die Aufträge sind gestapelt). Nichts mergen und nichts auf `dev` oder `main` pushen, bis Oliver es sagt; der Tag `v1.0.0` wird nach der Umsetzung des Onboardings gesetzt (Oliver).
 Anlass (Oliver, 2026-11-18): Auf dem Testserver ist der Anmeldeablauf nicht verlässlich (Bestätigungslink nur mit Sitzung, Seite blieb nach dem Passkey stehen). Die Szenarien 10 bis 14 und die Anpassung von Szenario 1 stammen aus dem Onboarding-Gutachten (Fable).
 
