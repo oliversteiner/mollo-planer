@@ -1,6 +1,6 @@
 # 25 · Korrekturen und Aufräumen nach dem Testlauf
 
-Status: offen
+Status: erledigt (A 6228b77, B c96aa7e, C 851fd5d, D dba125e, E und Docs in diesem Commit; auf `chore/aufraeumen-1-0`); wartet auf Oliver
 Reihenfolge: **nach Auftrag 24** (Fable), vor dem Tag `v1.0.0` und vor Auftrag 16. Branch `chore/aufraeumen-1-0` **von `fix/onboarding-nacharbeit`** (Auftrag 24, oberster Branch des Stapels). Nichts mergen und nichts auf `dev` oder `main` pushen, bis Oliver es sagt.
 Anlass: lokaler Testlauf durch Stuart am 2026-11-18 auf Olivers Mac (`test/auth-flow-e2e`): Backend 1315/1316 grün (SQLite/MariaDB), Pint, Lint, Typecheck, Vitest 518 grün; Browser-Tests 1. Lauf 20 von 21 (S3 rot), 2. Lauf 21 von 21; Larastan 195 Fehler.
 Prozess: Kein UI-Verhalten ändert sich. A ist ein Test, B bis D sind Code-Qualität, E ist Ablage. Ein Commit je Teil.
