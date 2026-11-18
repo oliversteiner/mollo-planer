@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Enums\Locale;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -22,11 +23,15 @@ class CreateNewUser implements CreatesNewUsers
     {
         $input = $this->validate($input);
 
-        return User::create([
+        $user = new User([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+        // The language of the request: mails that arise later (release, rejection) are written in it.
+        $user->forceFill(['locale' => Locale::tryFrom(app()->getLocale())?->value])->save();
+
+        return $user;
     }
 
     /**

@@ -115,11 +115,11 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     /**
      * The language of a mail that arises in somebody else's request (an admin resets the factor, releases or
      * rejects the account): the stored language of the account (users.locale), otherwise the application's
-     * (APP_LOCALE). Never the language of the admin's request.
+     * (APP_LOCALE, kept in app.default_locale: app.locale changes with every request). Never the language of the admin's request.
      */
     public function accountLocale(): string
     {
-        return Locale::tryFrom((string) $this->getAttribute('locale'))?->value ?? (string) config('app.locale');
+        return Locale::tryFrom((string) $this->getAttribute('locale'))?->value ?? (string) config('app.default_locale');
     }
 
     /**

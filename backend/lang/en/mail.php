@@ -81,6 +81,16 @@ return [
             'line' => 'New recovery codes were created for your account at :app. The old ones no longer work.',
         ],
     ],
+    'account_approved' => [
+        'subject' => 'Your account at :app is released',
+        'line' => 'Your account is released. You can sign in now.',
+        'action' => 'Sign in',
+    ],
+    'account_rejected' => [
+        'subject' => 'Your registration at :app',
+        'line' => 'Your account at :app was not released and has been deleted.',
+        'contact' => 'If you have questions, contact the person who knows you.',
+    ],
     'verify_email' => [
         'subject' => 'Please confirm your email address',
         'intro' => 'You registered at :app. Please confirm your email address with the button below.',

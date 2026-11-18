@@ -70,6 +70,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'activity', type: 'varchar', nullable: true, values: ['designer', 'entwicklung', 'tester', 'content', 'technik', 'volunteer'] },
       { name: 'notify_by_email', type: 'tinyint', default: '1' },
       { name: 'avatar_path', type: 'varchar', nullable: true, private: true },
+      { name: 'locale', type: 'varchar', nullable: true },
       { name: 'email_verified_at', type: 'timestamp', nullable: true, private: true },
       { name: 'approved_at', type: 'timestamp', nullable: true },
       { name: 'password', type: 'varchar', private: true },

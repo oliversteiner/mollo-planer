@@ -25,7 +25,7 @@ class UserInvitation
     public function invite(string $name, string $email, ?Role $role, Locale $locale, ?UserActivity $activity = null): User
     {
         return DB::transaction(function () use ($name, $email, $role, $locale, $activity): User {
-            $user = $this->create($name, $email, $role, Str::password(64), $activity);
+            $user = $this->create($name, $email, $role, Str::password(64), $activity, $locale);
 
             $token = Password::broker('invitations')->createToken($user);
             $user->notify((new UserInvited($token))->locale($locale->value));
@@ -38,7 +38,7 @@ class UserInvitation
      * Create the user with a password chosen right away (no mail). Created by
      * an admin, so the account is verified and approved at once.
      */
-    public function create(string $name, string $email, ?Role $role, string $password, ?UserActivity $activity = null): User
+    public function create(string $name, string $email, ?Role $role, string $password, ?UserActivity $activity = null, ?Locale $locale = null): User
     {
         $user = User::create([
             'name' => $name,
@@ -49,7 +49,7 @@ class UserInvitation
         ]);
 
         // An admin created the account: no registration checks apply.
-        $user->forceFill(['email_verified_at' => now(), 'approved_at' => now()])->save();
+        $user->forceFill(['email_verified_at' => now(), 'approved_at' => now(), 'locale' => $locale?->value])->save();
 
         return $user;
     }

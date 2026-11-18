@@ -81,6 +81,16 @@ return [
             'line' => 'Für dein Konto bei :app wurden neue Wiederherstellungscodes erzeugt. Die alten gelten nicht mehr.',
         ],
     ],
+    'account_approved' => [
+        'subject' => 'Dein Konto bei :app ist freigegeben',
+        'line' => 'Dein Konto ist freigegeben. Du kannst dich jetzt anmelden.',
+        'action' => 'Anmelden',
+    ],
+    'account_rejected' => [
+        'subject' => 'Deine Registrierung bei :app',
+        'line' => 'Dein Konto bei :app wurde nicht freigegeben und gelöscht.',
+        'contact' => 'Bei Fragen melde dich bei deiner Kontaktperson.',
+    ],
     'verify_email' => [
         'subject' => 'Bitte bestätige deine E-Mail-Adresse',
         'intro' => 'Du hast dich bei :app registriert. Bitte bestätige deine E-Mail-Adresse mit dem Button unten.',

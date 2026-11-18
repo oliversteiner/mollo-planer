@@ -933,6 +933,10 @@
           "label": "Profilbild",
           "description": "Ablage des Bildes (500 × 500, WebP). Nur die App setzt den Wert."
         },
+        "locale": {
+          "label": "Language",
+          "description": "Language of the account for mails that do not arise in a request of the person (release, rejection, notice after a reset). Empty means the language of the application."
+        },
         "email_verified_at": {
           "label": "E-Mail bestätigt am",
           "description": "Zeitpunkt, an dem die Adresse bestätigt wurde."
