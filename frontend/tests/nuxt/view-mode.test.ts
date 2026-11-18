@@ -5,7 +5,8 @@ import { isChord, shortcutBlocked } from '~/utils/shortcuts'
 describe('view mode', () => {
   beforeEach(async () => {
     useCookie('view_mode').value = null
-    await navigateTo({ path: '/', query: {} })
+    // A public page: the auth middleware does not ask the API (there is none in CI).
+    await navigateTo({ path: '/login', query: {} })
   })
 
   it('reads only calm from the cookie, everything else is full', () => {

@@ -5,6 +5,7 @@
  * Nichts davon berührt die Entwicklungsdatenbank. Braucht PHP und die installierten Pakete in backend/.
  */
 import { spawn, spawnSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -17,7 +18,9 @@ const work = mkdtempSync(join(tmpdir(), 'planer-remote-app-'));
 const database = join(work, 'app.sqlite');
 writeFileSync(database, '');
 
-const env = { ...process.env, APP_ENV: 'local', DB_CONNECTION: 'sqlite', DB_DATABASE: database, MAIL_MAILER: 'array', CACHE_STORE: 'array', SESSION_DRIVER: 'array', QUEUE_CONNECTION: 'sync' };
+// Without backend/.env (CI) there is no app key: a throwaway one, only for this run.
+const appKey = process.env.APP_KEY || `base64:${randomBytes(32).toString('base64')}`;
+const env = { ...process.env, APP_KEY: appKey, APP_ENV: 'local', DB_CONNECTION: 'sqlite', DB_DATABASE: database, MAIL_MAILER: 'array', CACHE_STORE: 'array', SESSION_DRIVER: 'array', QUEUE_CONNECTION: 'sync' };
 const php = (...args) => spawnSync('php', ['artisan', ...args], { cwd: backend, env, encoding: 'utf8' });
 
 function freePort() {
