@@ -19,7 +19,8 @@
     "version": "Version",
     "roles": "Roles",
     "trash": "Trash",
-    "templates": "Templates"
+    "templates": "Templates",
+    "ideas": "Ideas"
   },
   "settings": {
     "language": "Language",
@@ -576,14 +577,14 @@
   },
   "assistant": {
     "title": "AI assistant",
-    "imported": "Project “{name}” created.",
+    "imported": "Added.",
     "chat": {
       "title": "Chat",
       "log": "Conversation with the assistant",
       "you": "You",
       "assistant": "Assistant",
-      "emptyTitle": "Describe your project",
-      "emptyDescription": "Who takes part, what should come out of it, by when? Claude drafts milestones, todos and tasks from it. Nothing is saved until “Create now”.",
+      "emptyTitle": "What should be added or planned?",
+      "emptyDescription": "Describe a task, a to-do or a whole project. Where something is unclear the assistant asks with buttons. Nothing is saved until “Add now”.",
       "placeholder": "Message to the assistant (Enter sends, Shift+Enter new line)",
       "listening": "Listening …",
       "send": "Send",
@@ -593,7 +594,12 @@
       "voiceStart": "Start voice input",
       "voiceStop": "Stop voice input",
       "voiceHint": "Voice input: the browser sends the recording to its provider for recognition (Google in Chrome, Microsoft in Edge).",
-      "voiceError": "Voice input not possible ({error}). Is the microphone allowed?"
+      "voiceError": "Voice input not possible ({error}). Is the microphone allowed?",
+      "choices": "Answer options",
+      "recommended": "recommended",
+      "chose": "I choose: {label}",
+      "showAll": "Show me all options.",
+      "planIdea": "Plan this idea."
     },
     "preview": {
       "title": "Preview",
@@ -617,6 +623,19 @@
       "discard": "Discard",
       "import": "Create now",
       "importFailed": "Not created"
+    },
+    "ideaSaved": "Saved to ideas.",
+    "addingTo": "Adding to: {name}",
+    "plan": {
+      "title": "Preview",
+      "counts": "New: {milestones} milestones, {todos} to-dos, {tasks} tasks",
+      "errors": "The preview reports errors",
+      "hints": "Hints",
+      "notify": "Send assignment e-mails",
+      "notifyHint": "Whoever is assigned a task gets an e-mail.",
+      "importNow": "Add now",
+      "toIdeas": "Keep as idea",
+      "discard": "Discard"
     }
   },
   "labels": {
@@ -855,6 +874,14 @@
       "role_functions": {
         "title": "Functions per role",
         "description": "Which functions a role has."
+      },
+      "project_ai_contexts": {
+        "title": "AI context",
+        "description": "Background knowledge of a project for the assistant: a text and the text of a file, together up to 20,000 characters."
+      },
+      "ideas": {
+        "title": "Ideas",
+        "description": "Private ideas of a person, with an optional draft of the assistant. Deleted ones go to the trash."
       }
     },
     "columns": {
@@ -1122,6 +1149,10 @@
         "deletion_id": {
           "label": "Deletion",
           "description": "Shared number of all elements that went to the trash in one deletion."
+        },
+        "idea_id": {
+          "label": "Idea",
+          "description": "The idea the to-do came from, or empty."
         }
       },
       "tasks": {
@@ -1477,6 +1508,98 @@
           "label": "Changed at",
           "description": "When it was last changed, set by Laravel."
         }
+      },
+      "project_ai_contexts": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "The project (at most one context per project)."
+        },
+        "text": {
+          "label": "Text",
+          "description": "The text of the context."
+        },
+        "file_name": {
+          "label": "File name",
+          "description": "Name of the uploaded file (.txt or .md)."
+        },
+        "file_text": {
+          "label": "File text",
+          "description": "The text of the file as UTF-8."
+        },
+        "shared_with_tools": {
+          "label": "For tools",
+          "description": "Whether external tools (MCP) may read the context."
+        },
+        "updated_by": {
+          "label": "Changed by",
+          "description": "The person who last changed the context."
+        },
+        "created_at": {
+          "label": "Created",
+          "description": "Time of creation."
+        },
+        "updated_at": {
+          "label": "Changed",
+          "description": "Time of the last change."
+        }
+      },
+      "ideas": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number."
+        },
+        "user_id": {
+          "label": "Author",
+          "description": "The person the idea belongs to."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "The project the idea belongs to, or empty."
+        },
+        "title": {
+          "label": "Title",
+          "description": "Short title of the idea."
+        },
+        "description": {
+          "label": "Description",
+          "description": "Description as a TipTap document (JSON, never HTML)."
+        },
+        "draft": {
+          "label": "Draft",
+          "description": "A planer-v2 excerpt as canonical text, or empty."
+        },
+        "status": {
+          "label": "Status",
+          "description": "open, adopted or discarded."
+        },
+        "adopted_at": {
+          "label": "Adopted at",
+          "description": "When the idea was put into a plan."
+        },
+        "created_at": {
+          "label": "Created",
+          "description": "Time of creation."
+        },
+        "updated_at": {
+          "label": "Changed",
+          "description": "Time of the last change."
+        },
+        "deleted_at": {
+          "label": "Deleted at",
+          "description": "Time of deletion (trash), otherwise empty."
+        },
+        "deleted_by": {
+          "label": "Deleted by",
+          "description": "The person who deleted the idea."
+        },
+        "deletion_id": {
+          "label": "Deletion",
+          "description": "Shared number of all elements that went to the trash with one deletion."
+        }
       }
     }
   },
@@ -1707,14 +1830,16 @@
       "MILESTONE": "Milestone",
       "TODO": "Todo",
       "TASK": "Task",
-      "COMMENT": "Comment"
+      "COMMENT": "Comment",
+      "IDEA": "Idea"
     },
     "count": {
       "PROJECT": "{count} project | {count} projects",
       "MILESTONE": "{count} milestone | {count} milestones",
       "TODO": "{count} todo | {count} todos",
       "TASK": "{count} task | {count} tasks",
-      "COMMENT": "{count} comment | {count} comments"
+      "COMMENT": "{count} comment | {count} comments",
+      "IDEA": "{count} idea | {count} ideas"
     }
   },
   "planer": {
@@ -1828,6 +1953,53 @@
         "target": "target not allowed",
         "error": "error"
       }
-    }
+    },
+    "keep": "Add “{name}”"
+  },
+  "ideas": {
+    "title": "Ideas",
+    "intro": "Your private ideas. Plan them later with the assistant or keep drafts here.",
+    "new": "New idea",
+    "edit": "Edit idea",
+    "filter": "Filter",
+    "status": {
+      "ALL": "All",
+      "OPEN": "Open",
+      "ADOPTED": "Adopted",
+      "DISCARDED": "Discarded"
+    },
+    "empty": "No ideas",
+    "emptyDescription": "Create an idea or keep a draft of the assistant here.",
+    "plan": "Plan with the assistant",
+    "discard": "Discard",
+    "reopen": "Reopen",
+    "delete": "Delete",
+    "todos": "Became:",
+    "draftCounts": "Draft with {milestones} milestones, {todos} to-dos, {tasks} tasks",
+    "fieldTitle": "Title",
+    "fieldDescription": "Description",
+    "descriptionPlaceholder": "What is it about?",
+    "created": "Idea created.",
+    "saved": "Idea saved."
+  },
+  "aiContext": {
+    "title": "AI context",
+    "intro": "Background knowledge for the assistant: goals, terms, scope. The assistant reads it as knowledge, never as instructions.",
+    "text": "Text",
+    "textHint": "For example goal, audience, terms.",
+    "fileLabel": "File (.txt or .md, up to 100 KB)",
+    "chooseFile": "Choose file",
+    "replaceFile": "Replace file",
+    "removeFile": "Remove file",
+    "file": {
+      "type": "Only .txt or .md.",
+      "size": "The file is larger than 100 KB."
+    },
+    "counter": "{used} of {limit} characters",
+    "share": "Share with external tools",
+    "shareHint": "Claude Code and similar tools may read the context through the planner.",
+    "clear": "Remove everything",
+    "saved": "AI context saved.",
+    "fileSaved": "File saved."
   }
 }

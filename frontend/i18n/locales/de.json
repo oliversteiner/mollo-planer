@@ -19,7 +19,8 @@
     "version": "Version",
     "roles": "Rollen",
     "trash": "Papierkorb",
-    "templates": "Vorlagen"
+    "templates": "Vorlagen",
+    "ideas": "Ideen"
   },
   "settings": {
     "language": "Sprache",
@@ -576,14 +577,14 @@
   },
   "assistant": {
     "title": "KI-Assistent",
-    "imported": "Projekt «{name}» eingetragen.",
+    "imported": "Eingetragen.",
     "chat": {
       "title": "Chat",
       "log": "Verlauf mit dem Assistenten",
       "you": "Du",
       "assistant": "Assistent",
-      "emptyTitle": "Beschreibe dein Projekt",
-      "emptyDescription": "Wer macht mit, was soll entstehen, bis wann? Claude entwirft daraus Milestones, ToDo und Tasks. Gespeichert wird erst mit «Jetzt eintragen».",
+      "emptyTitle": "Was soll ergänzt oder geplant werden?",
+      "emptyDescription": "Beschreibe eine Aufgabe, ein ToDo oder ein ganzes Projekt. Wo etwas unklar ist, fragt der Assistent mit Knöpfen nach. Gespeichert wird erst mit «Jetzt eintragen».",
       "placeholder": "Nachricht an den Assistenten (Enter sendet, Shift+Enter neue Zeile)",
       "listening": "Ich höre zu …",
       "send": "Senden",
@@ -593,7 +594,12 @@
       "voiceStart": "Spracheingabe starten",
       "voiceStop": "Spracheingabe beenden",
       "voiceHint": "Spracheingabe: Der Browser schickt die Aufnahme zur Erkennung an seinen Anbieter (Google bei Chrome, Microsoft bei Edge).",
-      "voiceError": "Spracheingabe nicht möglich ({error}). Ist das Mikrofon erlaubt?"
+      "voiceError": "Spracheingabe nicht möglich ({error}). Ist das Mikrofon erlaubt?",
+      "choices": "Antwortmöglichkeiten",
+      "recommended": "empfohlen",
+      "chose": "Ich wähle: {label}",
+      "showAll": "Zeig mir alle Möglichkeiten.",
+      "planIdea": "Plane diese Idee."
     },
     "preview": {
       "title": "Vorschau",
@@ -617,6 +623,19 @@
       "discard": "Verwerfen",
       "import": "Jetzt eintragen",
       "importFailed": "Nicht eingetragen"
+    },
+    "ideaSaved": "In Ideen abgelegt.",
+    "addingTo": "Ergänzt wird: {name}",
+    "plan": {
+      "title": "Vorschau",
+      "counts": "Neu: {milestones} Milestones, {todos} ToDos, {tasks} Tasks",
+      "errors": "Die Vorschau meldet Fehler",
+      "hints": "Hinweise",
+      "notify": "Zuweisungs-Mails senden",
+      "notifyHint": "Wer einen Task zugewiesen bekommt, erhält eine Mail.",
+      "importNow": "Jetzt eintragen",
+      "toIdeas": "In Ideen ablegen",
+      "discard": "Verwerfen"
     }
   },
   "labels": {
@@ -855,6 +874,14 @@
       "role_functions": {
         "title": "Funktionen je Rolle",
         "description": "Welche Funktionen eine Rolle hat."
+      },
+      "project_ai_contexts": {
+        "title": "KI-Kontext",
+        "description": "Hintergrundwissen eines Projekts für den Assistenten: ein Text und der Text einer Datei, zusammen höchstens 20 000 Zeichen."
+      },
+      "ideas": {
+        "title": "Ideen",
+        "description": "Private Ideen einer Person, mit optionalem Entwurf des Assistenten. Gelöschte kommen in den Papierkorb."
       }
     },
     "columns": {
@@ -1122,6 +1149,10 @@
         "deletion_id": {
           "label": "Löschvorgang",
           "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
+        },
+        "idea_id": {
+          "label": "Idee",
+          "description": "Die Idee, aus der das ToDo entstand, oder leer."
         }
       },
       "tasks": {
@@ -1477,6 +1508,98 @@
           "label": "Geändert am",
           "description": "Zeitpunkt der letzten Änderung, von Laravel gesetzt."
         }
+      },
+      "project_ai_contexts": {
+        "id": {
+          "label": "ID",
+          "description": "Eindeutige Nummer."
+        },
+        "project_id": {
+          "label": "Projekt",
+          "description": "Das Projekt (höchstens ein Kontext je Projekt)."
+        },
+        "text": {
+          "label": "Text",
+          "description": "Der Text des Kontexts."
+        },
+        "file_name": {
+          "label": "Dateiname",
+          "description": "Name der hochgeladenen Datei (.txt oder .md)."
+        },
+        "file_text": {
+          "label": "Dateitext",
+          "description": "Der Text der Datei als UTF-8."
+        },
+        "shared_with_tools": {
+          "label": "Für Werkzeuge",
+          "description": "Ob externe Werkzeuge (MCP) den Kontext lesen dürfen."
+        },
+        "updated_by": {
+          "label": "Geändert von",
+          "description": "Die Person, die den Kontext zuletzt änderte."
+        },
+        "created_at": {
+          "label": "Erstellt",
+          "description": "Zeitpunkt des Anlegens."
+        },
+        "updated_at": {
+          "label": "Geändert",
+          "description": "Zeitpunkt der letzten Änderung."
+        }
+      },
+      "ideas": {
+        "id": {
+          "label": "ID",
+          "description": "Eindeutige Nummer."
+        },
+        "user_id": {
+          "label": "Autor:in",
+          "description": "Die Person, der die Idee gehört."
+        },
+        "project_id": {
+          "label": "Projekt",
+          "description": "Das Projekt, zu dem die Idee gehört, oder leer."
+        },
+        "title": {
+          "label": "Titel",
+          "description": "Kurzer Titel der Idee."
+        },
+        "description": {
+          "label": "Beschreibung",
+          "description": "Beschreibung als TipTap-Dokument (JSON, nie HTML)."
+        },
+        "draft": {
+          "label": "Entwurf",
+          "description": "Ein planer-v2-Ausschnitt als kanonischer Text, oder leer."
+        },
+        "status": {
+          "label": "Status",
+          "description": "open, adopted (angenommen) oder discarded (verworfen)."
+        },
+        "adopted_at": {
+          "label": "Angenommen am",
+          "description": "Zeitpunkt, an dem die Idee in einen Plan eingetragen wurde."
+        },
+        "created_at": {
+          "label": "Erstellt",
+          "description": "Zeitpunkt des Anlegens."
+        },
+        "updated_at": {
+          "label": "Geändert",
+          "description": "Zeitpunkt der letzten Änderung."
+        },
+        "deleted_at": {
+          "label": "Gelöscht am",
+          "description": "Zeitpunkt des Löschens (Papierkorb), sonst leer."
+        },
+        "deleted_by": {
+          "label": "Gelöscht von",
+          "description": "Die Person, die die Idee löschte."
+        },
+        "deletion_id": {
+          "label": "Löschvorgang",
+          "description": "Gemeinsame Nummer aller Elemente, die mit einem Löschvorgang in den Papierkorb kamen."
+        }
       }
     }
   },
@@ -1707,14 +1830,16 @@
       "MILESTONE": "Milestone",
       "TODO": "ToDo",
       "TASK": "Task",
-      "COMMENT": "Kommentar"
+      "COMMENT": "Kommentar",
+      "IDEA": "Idee"
     },
     "count": {
       "PROJECT": "{count} Projekt | {count} Projekte",
       "MILESTONE": "{count} Milestone | {count} Milestones",
       "TODO": "{count} ToDo | {count} ToDos",
       "TASK": "{count} Task | {count} Tasks",
-      "COMMENT": "{count} Kommentar | {count} Kommentare"
+      "COMMENT": "{count} Kommentar | {count} Kommentare",
+      "IDEA": "{count} Idee | {count} Ideen"
     }
   },
   "planer": {
@@ -1828,6 +1953,53 @@
         "target": "Ziel nicht erlaubt",
         "error": "Fehler"
       }
-    }
+    },
+    "keep": "«{name}» eintragen"
+  },
+  "ideas": {
+    "title": "Ideen",
+    "intro": "Deine privaten Ideen. Plane sie später mit dem Assistenten oder lege Entwürfe hier ab.",
+    "new": "Neue Idee",
+    "edit": "Idee bearbeiten",
+    "filter": "Filter",
+    "status": {
+      "ALL": "Alle",
+      "OPEN": "Offen",
+      "ADOPTED": "Angenommen",
+      "DISCARDED": "Verworfen"
+    },
+    "empty": "Keine Ideen",
+    "emptyDescription": "Lege eine Idee an oder bewahre einen Entwurf des Assistenten hier auf.",
+    "plan": "Mit dem Assistenten planen",
+    "discard": "Verwerfen",
+    "reopen": "Wieder öffnen",
+    "delete": "Löschen",
+    "todos": "Daraus entstanden:",
+    "draftCounts": "Entwurf mit {milestones} Milestones, {todos} ToDos, {tasks} Tasks",
+    "fieldTitle": "Titel",
+    "fieldDescription": "Beschreibung",
+    "descriptionPlaceholder": "Worum geht es?",
+    "created": "Idee angelegt.",
+    "saved": "Idee gespeichert."
+  },
+  "aiContext": {
+    "title": "KI-Kontext",
+    "intro": "Hintergrundwissen für den Assistenten: Ziele, Begriffe, Rahmen. Der Assistent liest es als Wissen, nie als Anweisung.",
+    "text": "Text",
+    "textHint": "Zum Beispiel Ziel, Zielgruppe, Fachbegriffe.",
+    "fileLabel": "Datei (.txt oder .md, bis 100 KB)",
+    "chooseFile": "Datei wählen",
+    "replaceFile": "Datei ersetzen",
+    "removeFile": "Datei entfernen",
+    "file": {
+      "type": "Nur .txt oder .md.",
+      "size": "Die Datei ist grösser als 100 KB."
+    },
+    "counter": "{used} von {limit} Zeichen",
+    "share": "Für externe Werkzeuge freigeben",
+    "shareHint": "Claude Code und ähnliche Werkzeuge dürfen den Kontext über den Planer lesen.",
+    "clear": "Alles entfernen",
+    "saved": "KI-Kontext gespeichert.",
+    "fileSaved": "Datei gespeichert."
   }
 }

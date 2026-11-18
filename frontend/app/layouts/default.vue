@@ -32,6 +32,7 @@ const mainItems = computed<NavItem[]>(() => [
   { label: t('nav.dashboard'), icon: 'gauge-high', to: '/', exact: true },
   { label: t('nav.myTasks'), icon: 'square-check', to: '/my-tasks' },
   { label: t('nav.assistant'), icon: 'wand-magic-sparkles', to: '/assistant' },
+  { label: t('nav.ideas'), icon: 'lightbulb', to: '/ideas' },
   ...(withTrash.value ? [{ label: t('nav.trash'), icon: 'trash-can', to: '/trash' }] : [])
 ].filter(allowed))
 

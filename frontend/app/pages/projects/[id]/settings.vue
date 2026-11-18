@@ -77,6 +77,10 @@ async function bringBack(): Promise<void> {
       v-if="can('PROJECT_UPDATE')"
       :project-id="project.id"
     />
+    <ProjectAiContextCard
+      v-if="can('AI_CONTEXT_UPDATE')"
+      :project-id="project.id"
+    />
 
     <wa-card v-if="can('PROJECT_ARCHIVE')">
       <h2

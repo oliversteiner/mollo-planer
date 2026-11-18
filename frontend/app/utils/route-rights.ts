@@ -5,7 +5,8 @@
  * need no right. The backend checks every action again.
  */
 export const ROUTE_RIGHTS: Readonly<Record<string, string>> = {
-  '/assistant': 'USERS_MANAGE',
+  '/assistant': 'ASSISTANT_USE',
+  '/ideas': 'IDEAS_CREATE',
   '/system/db': 'USERS_MANAGE',
   '/admin/users': 'USERS_MANAGE',
   '/admin/roles': 'ROLES_MANAGE',

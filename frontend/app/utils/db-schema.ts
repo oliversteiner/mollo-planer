@@ -44,6 +44,8 @@ export const DB_TABLE_NAMES = [
   'labels',
   'label_task',
   'project_webhooks',
+  'project_ai_contexts',
+  'ideas',
   'roles',
   'functions',
   'function_rights',
@@ -159,7 +161,8 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'updated_at', type: 'timestamp', nullable: true },
       { name: 'deleted_at', type: 'timestamp', nullable: true },
       { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
-      { name: 'deletion_id', type: 'varchar', nullable: true }
+      { name: 'deletion_id', type: 'varchar', nullable: true },
+      { name: 'idea_id', type: 'bigint', nullable: true, references: 'ideas' }
     ],
     indexes: [
       { kind: 'index', columns: ['deletion_id'] },
@@ -270,6 +273,45 @@ const TABLES: Record<DbTableName, DbTable> = {
     ],
     indexes: [
       { kind: 'unique', columns: ['project_id'] }
+    ]
+  },
+  project_ai_contexts: {
+    name: 'project_ai_contexts',
+    columns: [
+      { name: 'id', type: 'bigint', primary: true },
+      { name: 'project_id', type: 'bigint', references: 'projects' },
+      { name: 'text', type: 'longtext', nullable: true },
+      { name: 'file_name', type: 'varchar', nullable: true },
+      { name: 'file_text', type: 'longtext', nullable: true },
+      { name: 'shared_with_tools', type: 'boolean', default: '0' },
+      { name: 'updated_by', type: 'bigint', nullable: true, references: 'users' },
+      { name: 'created_at', type: 'timestamp', nullable: true },
+      { name: 'updated_at', type: 'timestamp', nullable: true }
+    ],
+    indexes: [
+      { kind: 'unique', columns: ['project_id'] }
+    ]
+  },
+  ideas: {
+    name: 'ideas',
+    columns: [
+      { name: 'id', type: 'bigint', primary: true },
+      { name: 'user_id', type: 'bigint', references: 'users' },
+      { name: 'project_id', type: 'bigint', nullable: true, references: 'projects' },
+      { name: 'title', type: 'varchar' },
+      { name: 'description', type: 'json', nullable: true },
+      { name: 'draft', type: 'longtext', nullable: true },
+      { name: 'status', type: 'varchar', default: 'open', values: ['open', 'adopted', 'discarded'] },
+      { name: 'adopted_at', type: 'timestamp', nullable: true },
+      { name: 'created_at', type: 'timestamp', nullable: true },
+      { name: 'updated_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_at', type: 'timestamp', nullable: true },
+      { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
+      { name: 'deletion_id', type: 'varchar', nullable: true }
+    ],
+    indexes: [
+      { kind: 'index', columns: ['deletion_id'] },
+      { kind: 'index', columns: ['user_id', 'status'] }
     ]
   },
   label_task: {

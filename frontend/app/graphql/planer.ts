@@ -9,8 +9,8 @@ export const exportPlanQuery = graphql(`
 
 /** Writes a planer file into a project, or into a new one (without projectId). dryRun: only report. */
 export const importPlanMutation = graphql(`
-  mutation ImportPlan($projectId: ID, $document: String!, $mode: ImportMode, $dryRun: Boolean) {
-    importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun) {
+  mutation ImportPlan($projectId: ID, $document: String!, $mode: ImportMode, $dryRun: Boolean, $notifyAssignees: Boolean, $templateId: ID, $ideaId: ID, $appendOnly: Boolean) {
+    importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notifyAssignees, templateId: $templateId, ideaId: $ideaId, appendOnly: $appendOnly) {
       ok
       dryRun
       projectId

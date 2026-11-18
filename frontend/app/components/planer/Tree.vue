@@ -12,7 +12,13 @@ const props = defineProps<{
   document: PlanerDocument
   /** ImportResult.changes; without them the tree only shows the plan. */
   changes?: readonly PlanerChange[]
+  /** The assistant's preview: new elements get a checkbox to strike them out (docs/auftrag-m6.md §4.4). */
+  strikable?: boolean
+  /** Ids of the struck elements. */
+  struck?: ReadonlySet<string>
 }>()
+
+const emit = defineEmits<{ toggle: [id: string] }>()
 
 const { t, locale } = useI18n()
 
@@ -59,6 +65,14 @@ function removedLabel(change: PlanerChange): string {
   return t(`planer.removed.${kind}`, { name: change.title || (id ?? '') })
 }
 
+function strikes(id: string): boolean {
+  return props.strikable === true && id.includes('-new-')
+}
+
+function isStruck(id: string): boolean {
+  return props.struck?.has(id) ?? false
+}
+
 function statusKey(status: string) {
   return status.toUpperCase() as 'IDEA' | 'PLANNED' | 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE'
 }
@@ -77,8 +91,19 @@ function statusKey(status: string) {
       >
         <span class="planer-row">
           <span class="planer-head">
+            <wa-checkbox
+              v-if="strikes(milestone.id)"
+              size="small"
+              :checked="!isStruck(milestone.id)"
+              :aria-label="t('planer.keep', { name: milestone.title })"
+              @click.stop
+              @change="emit('toggle', milestone.id)"
+            ></wa-checkbox>
             <wa-icon name="flag"></wa-icon>
-            <span class="planer-title">{{ milestone.title }}</span>
+            <span
+              class="planer-title"
+              :data-struck="isStruck(milestone.id) ? '' : undefined"
+            >{{ milestone.title }}</span>
             <PlanerMark
               v-if="mark(`milestones[${m}]`)"
               :mark="mark(`milestones[${m}]`)!"
@@ -105,8 +130,19 @@ function statusKey(status: string) {
         >
           <span class="planer-row">
             <span class="planer-head">
+              <wa-checkbox
+                v-if="strikes(todo.id)"
+                size="small"
+                :checked="!isStruck(todo.id)"
+                :aria-label="t('planer.keep', { name: todo.title })"
+                @click.stop
+                @change="emit('toggle', todo.id)"
+              ></wa-checkbox>
               <wa-icon name="list-check"></wa-icon>
-              <span class="planer-title">{{ todo.title }}</span>
+              <span
+                class="planer-title"
+                :data-struck="isStruck(todo.id) ? '' : undefined"
+              >{{ todo.title }}</span>
               <PlanerMark
                 v-if="mark(`milestones[${m}].todos[${d}]`)"
                 :mark="mark(`milestones[${m}].todos[${d}]`)!"
@@ -125,8 +161,19 @@ function statusKey(status: string) {
           >
             <span class="planer-row">
               <span class="planer-head">
+                <wa-checkbox
+                  v-if="strikes(task.id)"
+                  size="small"
+                  :checked="!isStruck(task.id)"
+                  :aria-label="t('planer.keep', { name: task.title })"
+                  @click.stop
+                  @change="emit('toggle', task.id)"
+                ></wa-checkbox>
                 <wa-icon name="square-check"></wa-icon>
-                <span class="planer-title">{{ task.title }}</span>
+                <span
+                  class="planer-title"
+                  :data-struck="isStruck(task.id) ? '' : undefined"
+                >{{ task.title }}</span>
                 <PlanerMark
                   v-if="mark(`milestones[${m}].todos[${d}].tasks[${k}]`)"
                   :mark="mark(`milestones[${m}].todos[${d}].tasks[${k}]`)!"
@@ -205,6 +252,11 @@ function statusKey(status: string) {
 .planer-title {
   min-inline-size: 0;
   overflow-wrap: anywhere;
+}
+
+.planer-title[data-struck] {
+  color: var(--wa-color-text-quiet);
+  text-decoration: line-through;
 }
 
 .planer-meta {

@@ -10,14 +10,25 @@ export interface ChatMessage {
   failed?: boolean
 }
 
+export interface ChatChoice {
+  kind: string
+  label: string
+  detail?: string | null
+  value?: string | null
+  recommended: boolean
+}
+
 const props = defineProps<{
   messages: ChatMessage[]
   pending?: boolean
+  /** Buttons of the last answer (docs/auftrag-m6.md §4.1) */
+  choices?: readonly ChatChoice[]
 }>()
 
 const emit = defineEmits<{
   send: [text: string]
   reset: []
+  choose: [choice: ChatChoice]
 }>()
 
 const { t, localeProperties } = useI18n()
@@ -107,6 +118,26 @@ watch(() => [props.messages.length, props.pending], async () => {
             <span class="wa-visually-hidden">{{ message.role === 'USER' ? t('assistant.chat.you') : t('assistant.chat.assistant') }}:</span>
             {{ message.content }}
           </div>
+        </div>
+
+        <div
+          v-if="choices?.length && !pending"
+          class="chat-choices"
+          role="group"
+          :aria-label="t('assistant.chat.choices')"
+        >
+          <wa-button
+            v-for="(choice, index) in choices"
+            :key="`${choice.kind}-${choice.value ?? index}`"
+            :variant="choice.recommended ? 'brand' : 'neutral'"
+            :appearance="choice.recommended ? 'filled' : 'outlined'"
+            @click="emit('choose', choice)"
+          >
+            <span class="chat-choice">
+              <span>{{ choice.label }}<span v-if="choice.recommended"> · {{ t('assistant.chat.recommended') }}</span></span>
+              <small v-if="choice.detail">{{ choice.detail }}</small>
+            </span>
+          </wa-button>
         </div>
 
         <div
@@ -253,6 +284,25 @@ watch(() => [props.messages.length, props.pending], async () => {
 .chat-bubble[data-failed] {
   background-color: var(--wa-color-danger-fill-quiet);
   color: var(--wa-color-danger-on-quiet);
+}
+
+.chat-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wa-space-xs);
+  padding-inline-start: calc(2rem + var(--wa-space-s));
+}
+
+.chat-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+  text-align: start;
+}
+
+.chat-choice small {
+  color: var(--wa-color-text-quiet);
 }
 
 .chat-thinking {

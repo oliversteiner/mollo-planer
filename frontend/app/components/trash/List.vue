@@ -29,7 +29,8 @@ const icons: Record<TrashEntry['type'], string> = {
   MILESTONE: 'flag',
   TODO: 'list-check',
   TASK: 'square-check',
-  COMMENT: 'comment'
+  COMMENT: 'comment',
+  IDEA: 'lightbulb'
 }
 
 function meta(entry: TrashEntry): string {

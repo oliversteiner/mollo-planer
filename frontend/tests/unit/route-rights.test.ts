@@ -12,6 +12,8 @@ describe('route rights (RF5)', () => {
     expect(routeRight('/admin/settings')).toBe('SETTINGS_MANAGE')
     expect(routeRight('/admin/users')).toBe('USERS_MANAGE')
     expect(routeRight('/system/db')).toBe('USERS_MANAGE')
+    expect(routeRight('/assistant')).toBe('ASSISTANT_USE')
+    expect(routeRight('/ideas')).toBe('IDEAS_CREATE')
   })
 
   it('takes sub-paths and the longest prefix', () => {

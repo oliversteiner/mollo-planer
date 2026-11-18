@@ -1,5 +1,5 @@
 /** Order of the children in „mit 2 Milestones, 3 ToDos, 12 Tasks“: from the top down. */
-const ORDER = ['PROJECT', 'MILESTONE', 'TODO', 'TASK', 'COMMENT'] as const
+const ORDER = ['PROJECT', 'MILESTONE', 'TODO', 'TASK', 'COMMENT', 'IDEA'] as const
 
 export type TrashType = typeof ORDER[number]
 

@@ -51,6 +51,7 @@ function columnsAfterMigrations(table: string): string[] {
       }
       if (/\$table->id\(\)/.test(body)) events.push({ at: body.indexOf('$table->id()'), add: ['id'] })
       if (/\$table->timestamps\(\)/.test(body)) events.push({ at: body.indexOf('$table->timestamps()'), add: ['created_at', 'updated_at'] })
+      if (/\$table->softDeletes\(\)/.test(body)) events.push({ at: body.indexOf('$table->softDeletes()'), add: ['deleted_at'] })
       if (/\$table->rememberToken\(\)/.test(body)) events.push({ at: body.indexOf('$table->rememberToken()'), add: ['remember_token'] })
 
       for (const event of events.sort((a, b) => a.at - b.at)) {
@@ -71,7 +72,7 @@ type Locale = typeof de
 
 describe('db documentation', () => {
   it('has a navigation entry and a title and description in both languages for every table', () => {
-    expect(DB_TABLE_NAMES).toHaveLength(16)
+    expect(DB_TABLE_NAMES).toHaveLength(18)
 
     for (const name of DB_TABLE_NAMES) {
       for (const locale of [de, en] as Locale[]) {
