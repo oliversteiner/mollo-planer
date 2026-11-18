@@ -513,7 +513,7 @@
       "title": "Planer-Datei, KI-Assistent und Zen-Modus",
       "description": "Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit Abgleich (Export, Import, Kommandozeile, GitHub-Action, Webhook), KI-Assistent und Ideen, Zen-Modus mit Stimmung.",
       "status": "veröffentlicht",
-      "releasedOn": null,
+      "releasedOn": "2026-11-18",
       "changes": [
         {
           "kind": "neu",
