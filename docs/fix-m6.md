@@ -57,3 +57,23 @@ Stand: 2026-11-18, Planung. Geprüft an `dev` bis `5a5d55a` mit frischen Demo-Da
 ## Ablauf
 
 F9.1 → F9.2 → F9.4 → F9.7 → F9.3 → F9.5 → F9.6 → F9.8, Prüfungen grün, im Browser ansehen (als Mitglied und mit einem neuen Projekt aus einer Vorlage, je ein echter Entwurf, falls der Schlüssel gesetzt ist), dann anhalten.
+
+## Nachprüfung (2026-11-18, Planung)
+
+F9.1 bis F9.8 mit echtem Claude nachgeprüft: alle ✅. Neu: F10.1 und F10.2 (unten). Details in `docs/abnahme-m6.md`.
+
+---
+
+# Fix M6 Nachtrag (F10)
+
+## F10.1 Vorlage im Text genannt: keine Verknüpfung
+
+**Befund:** Chiara schreibt „Nimm die Vorlage Event“ (ohne Knopf). Der Assistent plant auf dem Gerüst und mit den Labels der Vorlage, das Projekt entsteht aber mit `template` = `null`, `Template.projectCount` bleibt. Die Oberfläche übergibt `templateId` nur nach einem Klick auf `TEMPLATE`.
+**Umsetzung:** Die Ausgabe von Claude nennt die verwendete Vorlage (`templateKey` bzw. ID, im erzeugten Schema neben `plan`); der Server prüft sie (sichtbar, existiert) und liefert sie in `PlanDraft.templateId`; die Oberfläche übernimmt `templateId` aus jedem `PlanDraft` (nicht nur aus dem Knopf) und gibt sie beim Eintragen mit. Ohne Vorlage `null`. Test mit gefälschtem Client: Vorlage im Text → `templateId` gesetzt, Projekt verknüpft, `projectCount` +1.
+
+## F10.2 Interne ID und ISO-Datum in den Knöpfen (klein)
+
+**Befund:** `detail` der Knöpfe lautet z. B. „m-3, fällig 2027-01-29“; der Text kommt ungeprüft von Claude.
+**Umsetzung:** `detail` für `MILESTONE`, `PROJECT`, `TEMPLATE`, `APPEND_TO_TODO` baut der Server selbst aus den Daten (Fälligkeit im Format der Sprache, Version, Umfang), Claude liefert nur `kind`, `value`, `recommended` und optional eine Begründung (`NEW_MILESTONE`), aus der der Server IDs der Form `m-<Zahl>`/`t-<Zahl>`/`k-<Zahl>` entfernt. Daten in Antworten von Claude: Prompt verlangt das Datumsformat der Sprache (z. B. „31. Juli 2027“). Test.
+
+Ablauf: F10.1 → F10.2, Prüfungen grün, im Browser ansehen, anhalten.

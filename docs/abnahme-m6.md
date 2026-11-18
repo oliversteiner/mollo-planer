@@ -59,6 +59,20 @@ Personen: Anna (Admin, `ideas.viewAny`), Ben (Systemrolle Mitglied, Owner Websit
 - [ ] ⏸ MCP `create_idea`, `list_ideas`, `list_users` nach Konzept §8, `import_plan` mit `template_id`/`idea_id`/`append_only` (für Oliver mit dem Connector gegen die lokale Instanz).
 - [ ] ⏸ Hell, Englisch, Tastatur in den Knöpfen, Telefonbreite.
 
+## Nachprüfung F9 (2026-11-18, Planung, `dev` bis `25bb8e4`, echter Claude, 4 Entwürfe)
+
+- [x] ✅ F9.1: David (Mitglied) trägt einen Task in „Texte überarbeiten“ ein, sich selbst zugewiesen: „Eingetragen: 1 Task“, Zeitachse 0/1.
+- [x] ✅ F9.2: Chiara, „Herbstapéro 2027“ mit Vorlage Event: Vorschau ohne Fehler, angelegt mit 2 Milestones, 4 ToDos, 8 Tasks, Labels der Vorlage, Chiara Owner, Revision 1.
+- [x] ✅ F9.4: Ben, „Cookie-Banner …“ ohne Milestone: Rückfrage mit „Go-live · empfohlen“, „Inhalte migriert“, „Neuer Meilenstein“, „Eigener Meilenstein“, „Als Idee behalten“; mit genanntem ToDo direkt ein Plan.
+- [x] ✅ F9.7: Zustand je Person (`assistant-draft-v2:<id>`), David sieht nach dem Wechsel einen leeren Chat.
+- [x] ✅ F9.3: „Mit dem Assistenten ergänzen“ im Projektkopf, öffnet den Assistenten für das Projekt.
+- [x] ✅ F9.5: „In Ideen ablegen“ öffnet „Neue Idee“ mit Titel „Fotografin buchen“, Beschreibung aus der Nachricht, Projekt.
+- [x] ✅ F9.6: „Neu: 1 Task“, „Eingetragen: 2 Milestones, 4 ToDos, 8 Tasks“.
+- [x] ✅ F9.8: Hinweis auf der Karte KI-Kontext vorhanden.
+- [ ] ❌ Vorlage im Text genannt statt per Knopf gewählt: Projekt nach der Vorlage geplant, aber `template` = `null`, `projectCount` unverändert. → F10.1
+- [ ] ❌ (klein) Knöpfe zeigen interne ID und ISO-Datum („m-3, fällig 2027-01-29“). → F10.2
+- Hinweis: Der alte Schlüssel `assistant-draft-v2` (ohne Person) aus der Zeit vor F9.7 bleibt im Browser liegen; harmlos, wird nicht mehr gelesen.
+
 ---
 
-Ergebnis: _offen_ (nach F9 Nachprüfung durch die Planung)
+Ergebnis: **Abgenommen am 2026-11-18 durch Oliver.** F10 (Verknüpfung zur genannten Vorlage, Texte in den Knöpfen) folgt als kleiner Fix-Auftrag; ⏸ (Grenzen, MCP, Darstellung) bleiben bei Oliver.
