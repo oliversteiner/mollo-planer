@@ -42,3 +42,7 @@ Stand: 2026-11-18, Planung. Geprüft in Chrome an `dev` bis `cc56329` mit frisch
 ## Ablauf
 
 F7.1 → F7.2 → F7.3 → F7.4 → F7.5 → F7.6. Vorher oder danach `next-work/03` (`DevelopmentHistorySeeder`). Prüfungen, im Browser ansehen, dann anhalten. Für die Nachprüfung danach `php artisan migrate:fresh --seed --seeder=DemoSeeder` (macht Oliver, falls in der Sitzung nicht erlaubt).
+
+## Nachprüfung (2026-11-18, Planung)
+
+F7.1 bis F7.6 in Chrome nachgeprüft: alle ✅; `next-work/03` erledigt. Details in `docs/abnahme-m4.md`.

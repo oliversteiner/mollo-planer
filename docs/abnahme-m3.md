@@ -59,6 +59,13 @@ Personen aus den Demo-Daten: Anna (Admin), Ben (Owner Website-Relaunch), Chiara 
 
 - [x] ✅ DE/EN geprüft. ⏸ hell, Tastatur im Editor, Telefonbreite (Fenster ließ sich nicht verkleinern) für Oliver.
 
+## Nachprüfung F6 (2026-11-18, Planung, Chrome, frische Demo-Daten, `dev` bis `f1b024f`)
+
+- [x] ✅ F6.1: Doppelter englischer Name im Label-Editor → Meldung am **englischen** Feld der zweiten Zeile; API-Pfade `input.labels.1.names.en` bzw. `input.labels.0.names.de`.
+- [x] ✅ F6.2: „Bei 1 Label …“, „Bei 1 Label der Vorlage …“, „1 Label wird gelöscht und von 1 Task entfernt“; mit 3 die Mehrzahl (über die i18n der App geprüft).
+- [x] ✅ F6.3: „Höchstens 30 Labels.“
+- [x] ✅ Oliver: seine ⏸-Punkte geprüft und in Ordnung (2026-11-17).
+
 ---
 
-Ergebnis: _offen_
+Ergebnis: _bereit zur Abnahme_ (Planung: alle Befunde behoben; Abnahme durch Oliver)

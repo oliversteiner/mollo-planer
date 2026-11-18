@@ -22,3 +22,7 @@ Alles Kleinigkeiten; M3 ist sonst in Ordnung.
 ## Ablauf
 
 F6.1 → F6.2 → F6.3, Prüfungen, im Browser ansehen, dann anhalten. Keine Datenbank neu aufsetzen nötig.
+
+## Nachprüfung (2026-11-18, Planung)
+
+F6.1, F6.2, F6.3 in Chrome nachgeprüft: alle ✅. Details in `docs/abnahme-m3.md`.

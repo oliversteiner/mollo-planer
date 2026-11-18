@@ -59,8 +59,19 @@ Personen: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Owner Sommerfest 2
 
 - [x] ✅ Demo-Daten aus Planer-Dateien: `migrate:fresh --seed` läuft, Projekte mit Revision 1, Labels, Releases.
 - [ ] ⏸ MCP nur noch `list_projects`, `list_users`, `list_templates`, `export_plan`, `import_plan` (für Oliver gegen die Demo-Instanz); `docs/claude-connector.md`.
-- [ ] Offen: `DevelopmentHistorySeeder` auf planer-v2 (`next-work/03`).
+- [x] ✅ `DevelopmentHistorySeeder` auf planer-v2 (`next-work/03`, `f19cc17`).
+
+## Nachprüfung F7 (2026-11-18, Planung, Chrome, frische Demo-Daten, `dev` bis `f1b024f`)
+
+- [x] ✅ F7.1: Datei mit umgestellten Milestones/Tasks eingetragen, frischer Export danach ohne Änderungen; Revision bleibt; Teil-Import verschiebt nichts.
+- [x] ✅ F7.2: Trockenlauf zeigt `k-new-1`, `idMap` leer; erst der Import vergibt `k-12`.
+- [x] ✅ F7.3: Meldungen deutsch („Höchstens 5000 Zeichen (gefunden: 5001).“, „… ist kein Mitglied des Projekts.“, „Unbekanntes Feld.“).
+- [x] ✅ F7.4: Vorschau mit „Verschoben“, „Geändert: Titel, Reihenfolge“, gelöschtes Element als „ToDo »Texte überarbeiten«“; Zeilen brechen um.
+- [x] ✅ F7.5: Beschriftung „Sprache“, Hinweis darunter, keine Überlappung.
+- [x] ✅ F7.6: Task-Menü der Zeitachse mit „Ändern“, „Nach unten“, „Löschen“.
+- [x] ✅ `DevelopmentHistorySeeder` liest `docs/entwicklung.planer.json` (planer-v2) über `Import` (`f19cc17`); `migrate:fresh --seed` lief.
+- [ ] ⏸ Bleibt für Oliver: Downloads, „Neues Projekt › Aus Datei“ in der Oberfläche, Vorlage als Datei, MCP-Werkzeuge, `planer:check-limits`.
 
 ---
 
-Ergebnis: _offen_ (nach F7 und `next-work/03` Nachprüfung durch die Planung)
+Ergebnis: _bereit zur Abnahme_ (Planung: alle Befunde behoben; offen nur die ⏸-Punkte für Oliver)
