@@ -599,7 +599,8 @@
       "recommended": "empfohlen",
       "chose": "Ich wähle: {label}",
       "showAll": "Zeig mir alle Möglichkeiten.",
-      "planIdea": "Plane diese Idee."
+      "planIdea": "Plane diese Idee.",
+      "otherProject": "Anderes Projekt"
     },
     "preview": {
       "title": "Vorschau",

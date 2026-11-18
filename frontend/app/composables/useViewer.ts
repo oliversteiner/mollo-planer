@@ -2,6 +2,7 @@ import type { ViewerQuery } from '~/graphql/generated/graphql'
 import { viewerQuery } from '~/graphql/viewer'
 import type { ApiErrorKind } from '~/utils/api'
 import { classifyApolloError, readinessKind } from '~/utils/api'
+import { clearAssistantStorage } from '~/utils/assistant-storage'
 
 export type Viewer = ViewerQuery['me']
 
@@ -38,6 +39,8 @@ export function useViewer() {
     } catch (error) {
       viewer.value = null
       systemRights.value = []
+      // The session is over: the chat of the assistant must not reach the next person.
+      clearAssistantStorage()
 
       return classifyApolloError(error).kind
     }
@@ -48,6 +51,7 @@ export function useViewer() {
     try {
       await $backend('/logout', { method: 'POST' })
     } finally {
+      clearAssistantStorage()
       viewer.value = null
       systemRights.value = []
       await $apollo.clearStore()

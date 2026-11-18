@@ -599,7 +599,8 @@
       "recommended": "recommended",
       "chose": "I choose: {label}",
       "showAll": "Show me all options.",
-      "planIdea": "Plan this idea."
+      "planIdea": "Plan this idea.",
+      "otherProject": "Another project"
     },
     "preview": {
       "title": "Preview",

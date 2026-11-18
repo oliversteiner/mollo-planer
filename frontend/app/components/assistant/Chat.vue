@@ -21,6 +21,8 @@ export interface ChatChoice {
 const props = defineProps<{
   messages: ChatMessage[]
   pending?: boolean
+  /** Offer "start anew" even without messages (a project is set: "another project") */
+  canReset?: boolean
   /** Buttons of the last answer (docs/auftrag-m6.md §4.1) */
   choices?: readonly ChatChoice[]
 }>()
@@ -193,7 +195,7 @@ watch(() => [props.messages.length, props.pending], async () => {
               </wa-tooltip>
             </template>
             <wa-button
-              v-if="messages.length"
+              v-if="messages.length || canReset"
               appearance="plain"
               variant="neutral"
               :disabled="pending"
@@ -203,7 +205,7 @@ watch(() => [props.messages.length, props.pending], async () => {
                 slot="start"
                 name="arrow-rotate-left"
               ></wa-icon>
-              {{ t('assistant.chat.reset') }}
+              {{ messages.length ? t('assistant.chat.reset') : t('assistant.chat.otherProject') }}
             </wa-button>
           </div>
           <wa-button

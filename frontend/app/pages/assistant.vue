@@ -7,6 +7,7 @@ import { createIdeaMutation } from '~/graphql/ideas'
 import { importPlanMutation } from '~/graphql/planer'
 import { classifyApolloError } from '~/utils/api'
 import { planText, readPlan, withoutStruck } from '~/utils/assistant'
+import { assistantStorageKey } from '~/utils/assistant-storage'
 
 /**
  * AI assistant (assistant.use, docs/auftrag-m6.md §4): the person chats, by
@@ -25,7 +26,8 @@ const { $apiErrors } = useNuxtApp()
 
 useHead({ title: () => t('assistant.title') })
 
-const STORAGE_KEY = 'assistant-draft-v2'
+const { viewer } = useViewer()
+const storageKey = assistantStorageKey(viewer.value?.id)
 
 const messages = ref<ChatMessage[]>([])
 const choices = ref<ChatChoice[]>([])
@@ -41,7 +43,7 @@ const importError = ref<string | null>(null)
 // The chat survives a reload of the page (this tab only), unless an idea or project opens it.
 onMounted(() => {
   try {
-    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null') as Record<string, unknown> | null
+    const saved = JSON.parse(sessionStorage.getItem(storageKey) ?? 'null') as Record<string, unknown> | null
 
     if (saved && !ideaId && !route.query.project) {
       messages.value = saved.messages as ChatMessage[]
@@ -63,7 +65,7 @@ onMounted(() => {
 
 watch([messages, plan, projectId, templateId, hints, preview, choices], () => {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+    sessionStorage.setItem(storageKey, JSON.stringify({
       messages: messages.value,
       plan: plan.value,
       projectId: projectId.value,
@@ -77,8 +79,20 @@ watch([messages, plan, projectId, templateId, hints, preview, choices], () => {
   }
 }, { deep: true })
 
-const { result: projectResult } = useQuery(assistantProjectQuery, () => ({ id: projectId.value ?? '' }), () => ({ enabled: projectId.value !== null }))
+const { result: projectResult, error: projectError } = useQuery(assistantProjectQuery, () => ({ id: projectId.value ?? '' }), () => ({ enabled: projectId.value !== null, context: { silentErrors: true } }))
 const projectName = computed(() => (projectId.value ? projectResult.value?.project?.name ?? null : null))
+
+// A saved project the person does not see (or that is gone) is dropped.
+watch(projectResult, (value) => {
+  if (projectId.value && value && !value.project) {
+    projectId.value = null
+  }
+})
+watch(projectError, () => {
+  if (projectError.value) {
+    projectId.value = null
+  }
+})
 
 const silent = { context: { silentErrors: true } }
 const { mutate: draft, loading: drafting } = useMutation(draftPlanMutation, silent)
@@ -244,6 +258,17 @@ async function toIdeas(title?: string) {
   }
 }
 
+/** "Neu beginnen" empties the chat; without a chat it is "Anderes Projekt" and lets go of the project. */
+function startAnew() {
+  const idle = messages.value.length === 0
+
+  reset()
+
+  if (idle) {
+    projectId.value = null
+  }
+}
+
 function reset() {
   messages.value = []
   choices.value = []
@@ -341,9 +366,10 @@ watch(plan, (current, previous) => {
           :messages="messages"
           :choices="choices"
           :pending="drafting"
+          :can-reset="projectId !== null"
           @send="send"
           @choose="choose"
-          @reset="reset"
+          @reset="startAnew"
         />
       </section>
 
