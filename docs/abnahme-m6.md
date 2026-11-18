@@ -81,3 +81,9 @@ Ergebnis: **Abgenommen am 2026-11-18 durch Oliver.** F10 (Verknüpfung zur genan
 
 - [ ] ❌ Nach F10 scheitert jeder Entwurf: „Claude ist gerade nicht erreichbar.“, Log „compiled grammar too large“ (Feld `template` im Schema). → F10.3 (dringend)
 - F10.2 noch nicht prüfbar (keine Antwort von Claude).
+
+### Nachprüfung F10.3 (2026-11-18, `142f359`)
+
+- [x] ✅ F10.3: Claude antwortet wieder; `assistant:ping` laut Bob OK.
+- [x] ✅ F10.1: „Weihnachtsessen 2026 … Nimm die Vorlage Event“ → Projekt mit `template` Event, `projectCount` 2 → 3.
+- [x] ✅ F10.2: Knöpfe „Go-live · empfohlen, fällig 29. Januar 2027 · 2 ToDos“, „Design freigegeben, fällig 20. November 2026 · Version 1.1 · 2 ToDos“, keine internen IDs.
