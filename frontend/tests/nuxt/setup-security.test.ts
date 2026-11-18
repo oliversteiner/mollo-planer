@@ -2,6 +2,7 @@ import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import SecurityPasskeyAdd from '~/components/security/PasskeyAdd.vue'
+import SecurityTwoFactorSetup from '~/components/security/TwoFactorSetup.vue'
 import SetupSecurityPage from '~/pages/setup-security.vue'
 
 const { load, redirect, add } = vi.hoisted(() => ({ load: vi.fn(), redirect: vi.fn(), add: vi.fn() }))
@@ -27,6 +28,7 @@ async function setUp(redirectTo?: string) {
 
   await page.find('.setup-choice').trigger('click')
   await page.findComponent(SecurityPasskeyAdd).vm.$emit('added')
+  await page.findAll('wa-button').find((button: { text: () => string }) => button.text() === 'Weiter')!.trigger('click')
   await vi.waitFor(() => expect(load).toHaveBeenCalled())
   await vi.waitFor(() => expect(redirect.mock.calls.length + add.mock.calls.length).toBeGreaterThan(0))
 
@@ -111,9 +113,38 @@ describe('setup security page, after the first factor', () => {
 
     await page.find('.setup-choice').trigger('click')
     await page.findComponent(SecurityPasskeyAdd).vm.$emit('added')
+    await page.findAll('wa-button').find((button: { text: () => string }) => button.text() === 'Weiter')!.trigger('click')
     await vi.waitFor(() => expect(load).toHaveBeenCalled())
 
     expect(redirect).not.toHaveBeenCalled()
     expect(add).not.toHaveBeenCalled()
+  })
+
+  it('after the passkey it shows a fixed step with the hint about a second way, and goes on only with "Weiter"', async () => {
+    load.mockResolvedValue(null)
+    const page = await mountSuspended(SetupSecurityPage, { route: '/setup-security' })
+
+    await page.find('.setup-choice').trigger('click')
+    expect(page.text()).toContain('Ein Passkey ist ein Schlüssel auf deinem Gerät')
+    await page.findComponent(SecurityPasskeyAdd).vm.$emit('added')
+
+    expect(page.text()).toContain('Dein Passkey ist eingerichtet.')
+    expect(page.text()).toContain('Richte einen zweiten Weg ein, zum Beispiel die Authenticator-App oder einen Passkey auf einem zweiten Gerät.')
+    expect(page.text()).not.toContain('Zurück')
+    expect(load).not.toHaveBeenCalled()
+    expect(redirect).not.toHaveBeenCalled()
+
+    await page.findAll('wa-button').find((button: { text: () => string }) => button.text() === 'Weiter')!.trigger('click')
+    await vi.waitFor(() => expect(redirect).toHaveBeenCalledWith('/'))
+  })
+
+  it('offers the authenticator app as a second way on the same page, without a duty', async () => {
+    const page = await mountSuspended(SetupSecurityPage, { route: '/setup-security' })
+
+    await page.find('.setup-choice').trigger('click')
+    await page.findComponent(SecurityPasskeyAdd).vm.$emit('added')
+    await page.findAll('wa-button').find((button: { text: () => string }) => button.text() === 'Authenticator-App einrichten')!.trigger('click')
+
+    expect(page.findComponent(SecurityTwoFactorSetup).exists()).toBe(true)
   })
 })

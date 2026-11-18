@@ -158,7 +158,11 @@
       "description": "Bevor du loslegen kannst, sicherst du dein Konto mit einem zweiten Faktor ab.",
       "passkey": "Passkey einrichten (empfohlen)",
       "app": "Authenticator-App einrichten",
-      "signInAgain": "Dein Faktor ist eingerichtet. Melde dich jetzt damit an."
+      "signInAgain": "Dein Faktor ist eingerichtet. Melde dich jetzt damit an.",
+      "passkeyExplain": "Ein Passkey ist ein Schlüssel auf deinem Gerät oder in deinem Passwortmanager. Du bestätigst ihn mit Fingerabdruck, Gesichtserkennung oder PIN, ohne Passwort und ohne Code.",
+      "passkeyDone": "Dein Passkey ist eingerichtet.",
+      "secondFactorHint": "Richte einen zweiten Weg ein, zum Beispiel die Authenticator-App oder einen Passkey auf einem zweiten Gerät. So kommst du auch ohne dieses Gerät in dein Konto.",
+      "continue": "Weiter"
     },
     "register": {
       "title": "Konto anlegen",
@@ -500,9 +504,9 @@
     },
     "passkeys": {
       "title": "Passkeys",
-      "intro": "Mit einem Passkey meldest du dich ohne Code an, mit Fingerabdruck, Gesichtserkennung oder PIN deines Geräts. Richte am besten zwei ein, zum Beispiel auf Laptop und Telefon.",
+      "intro": "Mit einem Passkey meldest du dich ohne Code an, mit Fingerabdruck, Gesichtserkennung oder PIN deines Geräts.",
       "name": "Name",
-      "nameHint": "Zum Wiedererkennen, zum Beispiel «Laptop»",
+      "nameHint": "Zum Wiedererkennen. Du kannst den Namen ändern.",
       "defaultName": "Passkey",
       "add": "Passkey hinzufügen",
       "added": "Passkey hinzugefügt.",
@@ -513,7 +517,8 @@
       "neverUsed": "Noch nie benutzt",
       "remove": "Passkey «{name}» entfernen",
       "removeTitle": "Passkey «{name}» entfernen?",
-      "secondHint": "Tipp: Richte einen zweiten Passkey oder die Authenticator-App ein, falls dieses Gerät verloren geht."
+      "secondHint": "Tipp: Richte einen zweiten Passkey oder die Authenticator-App ein, falls dieses Gerät verloren geht.",
+      "notCreated": "Kein Passkey angelegt. Versuch es nochmals oder nimm die Authenticator-App."
     }
   },
   "admin": {

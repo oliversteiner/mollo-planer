@@ -17,6 +17,8 @@ const { proceed } = useAccountFlow()
 useHead({ title: () => t('auth.setup.title') })
 
 const method = ref<'app' | 'passkey' | null>(null)
+// After the first passkey: a fixed step with the hint about a second way, not a toast that disappears.
+const passkeyAdded = ref(false)
 
 /**
  * After the first factor was set up: ask the API again and go on (see utils/account-outcome.ts: no
@@ -79,10 +81,44 @@ async function done(): Promise<void> {
         </wa-button>
       </div>
 
-      <SecurityPasskeyAdd
+      <template v-else-if="method === 'passkey' && !passkeyAdded">
+        <p class="wa-body-s wa-color-text-quiet">
+          {{ t('auth.setup.passkeyExplain') }}
+        </p>
+        <SecurityPasskeyAdd @added="passkeyAdded = true" />
+      </template>
+      <div
         v-else-if="method === 'passkey'"
-        @added="done"
-      />
+        class="wa-stack wa-gap-m"
+      >
+        <AppCallout
+          variant="success"
+          :title="t('auth.setup.passkeyDone')"
+        />
+        <AppCallout
+          variant="brand"
+          :title="t('auth.setup.secondFactorHint')"
+        />
+        <wa-button
+          variant="brand"
+          style="width: 100%"
+          @click="done"
+        >
+          {{ t('auth.setup.continue') }}
+        </wa-button>
+        <wa-button
+          appearance="outlined"
+          variant="neutral"
+          style="width: 100%"
+          @click="method = 'app'"
+        >
+          <wa-icon
+            slot="start"
+            name="mobile-screen"
+          ></wa-icon>
+          {{ t('auth.setup.app') }}
+        </wa-button>
+      </div>
       <SecurityTwoFactorSetup
         v-else
         @done="done"
@@ -90,7 +126,7 @@ async function done(): Promise<void> {
 
       <div class="wa-split wa-gap-s">
         <wa-button
-          v-if="method !== null"
+          v-if="method !== null && !passkeyAdded"
           appearance="plain"
           variant="neutral"
           @click="method = null"

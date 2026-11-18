@@ -158,7 +158,11 @@
       "description": "Before you start, secure your account with a second factor.",
       "passkey": "Set up a passkey (recommended)",
       "app": "Set up an authenticator app",
-      "signInAgain": "Your second factor is set up. Sign in with it now."
+      "signInAgain": "Your second factor is set up. Sign in with it now.",
+      "passkeyExplain": "A passkey is a key on your device or in your password manager. You confirm it with fingerprint, face or PIN, without a password and without a code.",
+      "passkeyDone": "Your passkey is set up.",
+      "secondFactorHint": "Set up a second way, for example the authenticator app or a passkey on a second device. That way you can get into your account without this device.",
+      "continue": "Continue"
     },
     "register": {
       "title": "Create account",
@@ -500,9 +504,9 @@
     },
     "passkeys": {
       "title": "Passkeys",
-      "intro": "With a passkey you sign in without a code, using your device's fingerprint, face recognition or PIN. Best set up two, for example on laptop and phone.",
+      "intro": "With a passkey you sign in without a code, using the fingerprint, face or PIN of your device.",
       "name": "Name",
-      "nameHint": "To recognise it, for example “Laptop”",
+      "nameHint": "To recognise it later. You can change the name.",
       "defaultName": "Passkey",
       "add": "Add passkey",
       "added": "Passkey added.",
@@ -513,7 +517,8 @@
       "neverUsed": "Never used yet",
       "remove": "Remove passkey “{name}”",
       "removeTitle": "Remove passkey “{name}”?",
-      "secondHint": "Tip: set up a second passkey or the authenticator app in case this device gets lost."
+      "secondHint": "Tip: set up a second passkey or the authenticator app in case this device gets lost.",
+      "notCreated": "No passkey was created. Try again or use the authenticator app."
     }
   },
   "admin": {

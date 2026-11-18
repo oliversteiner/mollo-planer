@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser'
+import { deviceName } from '~/utils/device-name'
 
 /** Add a passkey on this device; the browser asks for PIN or biometrics. */
 const emit = defineEmits<{ added: [] }>()
@@ -12,17 +13,25 @@ const supported = browserSupportsWebAuthn()
 const name = ref('')
 const pending = ref(false)
 
+// A suggestion from system and browser ("Mac · Safari"): the browser does not tell the name of the device.
+// The name is no duty; the person may change or empty it (then the generic name is used).
+const suggestion = ref('')
+onMounted(() => {
+  suggestion.value = deviceName(navigator.userAgent) ?? t('security.passkeys.defaultName')
+  name.value = suggestion.value
+})
+
 async function add(): Promise<void> {
   pending.value = true
   try {
     if (await addPasskey(name.value.trim() || t('security.passkeys.defaultName'))) {
-      name.value = ''
+      name.value = suggestion.value
       toast.add({ title: t('security.passkeys.added'), color: 'success' })
       emit('added')
     }
   } catch (error) {
     if (error instanceof Error && ['NotAllowedError', 'AbortError'].includes(error.name)) {
-      toast.add({ title: t('security.passkeys.cancelled'), color: 'warning' })
+      toast.add({ title: t('security.passkeys.notCreated'), color: 'warning' })
     } else if (error instanceof Error && error.name === 'InvalidStateError') {
       toast.add({ title: t('security.passkeys.exists'), color: 'warning' })
     } else {
