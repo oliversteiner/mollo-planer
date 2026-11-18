@@ -138,6 +138,36 @@ describe('verify email page', () => {
     expect(button(page, 'Bestätigungsmail erneut senden').exists()).toBe(true)
   })
 
+  it('status=resend (from the mail "registration not confirmed") is no error: the form, without a session', async () => {
+    load.mockResolvedValue('unauthenticated')
+    const page = await mountSuspended(VerifyEmailPage, { route: '/verify-email?status=resend' })
+    await vi.waitFor(() => expect(load).toHaveBeenCalled())
+
+    expect(page.text()).toContain('Gib deine Adresse ein. Wir schicken dir die Bestätigungsmail nochmals.')
+    expect(page.text()).not.toContain('ungültig oder abgelaufen')
+    expect(page.find('wa-callout').exists()).toBe(false)
+    expect(field(page, 'email')).toBeDefined()
+    expect(page.text()).toContain('Zur Anmeldung')
+    expect(backend).not.toHaveBeenCalled()
+  })
+
+  it('status=resend with a session offers the button without the error', async () => {
+    load.mockResolvedValue('unverified')
+    const page = await mountSuspended(VerifyEmailPage, { route: '/verify-email?status=resend' })
+    await vi.waitFor(() => expect(field(page, 'email')).toBeUndefined())
+
+    expect(button(page, 'Bestätigungsmail erneut senden')).toBeDefined()
+    expect(page.text()).not.toContain('ungültig oder abgelaufen')
+  })
+
+  it('status=invalid still shows the error with the same form', async () => {
+    load.mockResolvedValue('unauthenticated')
+    const page = await mountSuspended(VerifyEmailPage, { route: '/verify-email?status=invalid' })
+
+    expect(page.text()).toContain('Der Link ist ungültig oder abgelaufen.')
+    expect(page.text()).not.toContain('Gib deine Adresse ein.')
+  })
+
   it('shows the error at once for status=invalid or an incomplete link, and asks the API for nothing', async () => {
     load.mockResolvedValue('unauthenticated')
 

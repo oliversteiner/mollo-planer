@@ -125,7 +125,7 @@ class RegistrationNeutralTest extends TestCase
             $pending = (new RegistrationForExistingAddress(false))->locale($locale)->toMail($user);
 
             $this->assertSame("$frontend/login", $confirmed->actionUrl);
-            $this->assertSame("$frontend/verify-email?status=invalid", $pending->actionUrl);
+            $this->assertSame("$frontend/verify-email?status=resend", $pending->actionUrl);
             $this->assertStringContainsString("$frontend/forgot-password", implode(' ', $confirmed->outroLines));
             $this->assertStringContainsString("$frontend/forgot-password", implode(' ', $pending->outroLines));
             $this->assertNotSame($confirmed->subject, $pending->subject);

@@ -116,6 +116,40 @@ test.describe('Registrierung', () => {
   })
 })
 
+test.describe('Unbestätigtes Konto', () => {
+  test('S1c Noch einmal mit derselben, unbestätigten Adresse: die Mail führt auf «erneut senden», ohne Fehlermeldung', async ({ page, browser }) => {
+    const email = uniqueEmail('s1c')
+    await register(page, 'Eva Neu', email)
+    await expect(page).toHaveURL(/\/account-pending/)
+    await logout(page)
+
+    // The second registration with the same address changes nothing and sends the mail "not confirmed yet".
+    const before = Date.now() - 1000
+    await register(page, 'Jemand Anders', email)
+    await expect(page).toHaveURL(/\/account-pending/)
+    const notice = await waitForMail(email, /noch nicht bestätigt/, { after: before })
+    expect(notice.text).toContain('Für diese Adresse gibt es bei Mollo Planer schon eine Registrierung, die noch nicht bestätigt ist.')
+
+    // Its button: no error, a sentence, the form for the address; "send again" sends the confirmation mail.
+    const context = await browser.newContext()
+    const other = await context.newPage()
+    const watched = watch(other)
+    await other.goto(linkIn(notice, /http:\/\/localhost:3100\/verify-email\?status=resend/))
+    await expect(other.locator('wa-card')).toContainText('Gib deine Adresse ein. Wir schicken dir die Bestätigungsmail nochmals.')
+    await expect(other.locator('wa-card')).not.toContainText('ungültig oder abgelaufen')
+    await expect(other.locator('wa-callout')).toHaveCount(0)
+
+    const resend = Date.now() - 1000
+    await fillField(other, 'email', email)
+    await other.getByRole('button', { name: 'Bestätigungsmail erneut senden' }).click()
+    await expect(other.locator('wa-card')).toContainText('Wenn ein Konto mit dieser Adresse auf Bestätigung wartet')
+    await waitForMail(email, /bestätige deine E-Mail-Adresse/, { after: resend })
+    expect(accountState(email).verified).toBe(false)
+    expect(unexpected(watched, [NO_SESSION])).toEqual([])
+    await context.close()
+  })
+})
+
 test.describe('Drossel', () => {
   test('S1b Die sechste Registrierung in einer Minute: verständliche Meldung, kein Absturz', async ({ page }) => {
     const watched = watch(page)

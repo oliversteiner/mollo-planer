@@ -14,13 +14,14 @@ const { proceed } = useAccountFlow()
 
 useHead({ title: () => t('auth.verify.title') })
 
-type Step = 'ready' | 'confirmed' | 'already' | 'invalid'
+type Step = 'ready' | 'confirmed' | 'already' | 'invalid' | 'resend'
 
 const param = (name: string): string => (typeof route.query[name] === 'string' ? route.query[name] : '')
 const link = computed(() => ({ id: param('id'), hash: param('hash'), expires: param('expires'), signature: param('signature') }))
 const complete = computed(() => Object.values(link.value).every(value => value !== ''))
 
-const step = ref<Step>(complete.value && route.query.status !== 'invalid' ? 'ready' : 'invalid')
+// status=resend comes from the mail "registration not confirmed yet": nothing is wrong, the person wants the mail again.
+const step = ref<Step>(route.query.status === 'resend' ? 'resend' : (complete.value && route.query.status !== 'invalid' ? 'ready' : 'invalid'))
 const pending = ref(false)
 const failed = ref(false)
 // After "invalid": logged in (an account that waits for the mail) or not decides how to send it again.
@@ -66,7 +67,7 @@ async function detectSession(): Promise<void> {
 }
 
 onMounted(() => {
-  if (step.value === 'invalid') {
+  if (step.value === 'invalid' || step.value === 'resend') {
     void detectSession()
   }
 })
@@ -103,6 +104,29 @@ onMounted(() => {
       >
         {{ t('auth.verify.confirm') }}
       </wa-button>
+    </div>
+
+    <div
+      v-else-if="step === 'resend'"
+      class="wa-stack wa-gap-m"
+    >
+      <p class="wa-body-s">
+        {{ t('auth.verify.resendIntro') }}
+      </p>
+
+      <AuthResendVerification
+        :mode="loggedIn ? 'session' : 'address'"
+        @confirmed="goOn"
+      />
+
+      <p class="wa-text-center wa-body-s">
+        <NuxtLink
+          to="/login"
+          class="wa-link"
+        >
+          {{ t('auth.verify.toLogin') }}
+        </NuxtLink>
+      </p>
     </div>
 
     <div

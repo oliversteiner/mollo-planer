@@ -190,7 +190,8 @@
       "resend": "Send the confirmation mail again",
       "resendIn": "Send again in {seconds} s",
       "resent": "We sent you a new mail. It can take a minute.",
-      "resentNeutral": "If an account with this address is waiting for confirmation, we sent a mail. It can take a minute."
+      "resentNeutral": "If an account with this address is waiting for confirmation, we sent a mail. It can take a minute.",
+      "resendIntro": "Enter your address. We will send you the confirmation mail again."
     },
     "pending": {
       "emailTitle": "Confirm email address",

@@ -190,7 +190,8 @@
       "resend": "Bestätigungsmail erneut senden",
       "resendIn": "Erneut senden in {seconds} s",
       "resent": "Wir haben dir eine neue Mail geschickt. Sie kann eine Minute brauchen.",
-      "resentNeutral": "Wenn ein Konto mit dieser Adresse auf Bestätigung wartet, haben wir eine Mail geschickt. Sie kann eine Minute brauchen."
+      "resentNeutral": "Wenn ein Konto mit dieser Adresse auf Bestätigung wartet, haben wir eine Mail geschickt. Sie kann eine Minute brauchen.",
+      "resendIntro": "Gib deine Adresse ein. Wir schicken dir die Bestätigungsmail nochmals."
     },
     "pending": {
       "emailTitle": "E-Mail-Adresse bestätigen",

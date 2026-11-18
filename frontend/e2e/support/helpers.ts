@@ -143,6 +143,8 @@ export async function fillField(page: Page, name: string, value: string): Promis
 
 export async function register(page: Page, name: string, email: string, password = PASSWORD): Promise<void> {
   await page.goto('/register')
+  // The page is a SPA: what is typed before it has started is lost when it starts.
+  await page.waitForLoadState('networkidle')
   await fillField(page, 'name', name)
   await fillField(page, 'email', email)
   await fillField(page, 'password', password)
@@ -152,6 +154,7 @@ export async function register(page: Page, name: string, email: string, password
 
 export async function login(page: Page, email: string, password = PASSWORD): Promise<void> {
   await page.goto('/login')
+  await page.waitForLoadState('networkidle')
   await fillField(page, 'email', email)
   await fillField(page, 'password', password)
   await page.getByRole('button', { name: 'Anmelden', exact: true }).click()

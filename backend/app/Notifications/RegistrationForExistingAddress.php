@@ -14,7 +14,7 @@ use Illuminate\Notifications\Notification;
  *
  * Confirmed account: "you already have an account", links to sign in and to "forgot password".
  * Account never confirmed (maybe by somebody else): the registration is still open, the links lead
- * to the page that sends the confirmation mail again and to "forgot password".
+ * to the page that sends the confirmation mail again (/verify-email?status=resend, no error message) and to "forgot password".
  */
 class RegistrationForExistingAddress extends Notification implements ShouldQueue
 {
@@ -37,7 +37,7 @@ class RegistrationForExistingAddress extends Notification implements ShouldQueue
     {
         $frontend = rtrim((string) config('app.frontend_url'), '/');
         $key = $this->confirmed ? 'mail.already_registered' : 'mail.registration_pending';
-        $primary = $this->confirmed ? $frontend.'/login' : $frontend.'/verify-email?status=invalid';
+        $primary = $this->confirmed ? $frontend.'/login' : $frontend.'/verify-email?status=resend';
 
         return (new MailMessage)
             ->subject(__("$key.subject", ['app' => config('app.name')]))
