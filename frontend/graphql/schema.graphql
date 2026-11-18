@@ -349,6 +349,8 @@ type Mutation {
  "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
  rejectUser(id: ID!): User!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
+ "Entfernt die Benachrichtigung (project.update)"
+ removeProjectWebhook(projectId: ID!): Project!
  "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
  resetRole(id: ID!): Role!
  "Standard wiederherstellen: Namen und Rechte einer mitgelieferten Funktion."
@@ -363,8 +365,12 @@ type Mutation {
  setProjectCreatorRole(roleKey: String!): AppSettings!
  "Fügt eine Person hinzu oder ändert ihre Rolle"
  setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
+ "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
+ setProjectWebhook(input: ProjectWebhookInput!, projectId: ID!): Project!
  "Setzt die Labels eines Tasks. Neue Labels müssen aus den Labels des Projekts stammen; bisherige dürfen bleiben."
  setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
+ "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
+ testProjectWebhook(projectId: ID!): WebhookTestResult!
  "Holt ein archiviertes Projekt zurück."
  unarchiveProject(id: ID!): Project!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
@@ -476,6 +482,8 @@ type Project {
  viewerRights: [Right!]!
  "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
  viewerRole: Role
+ "Benachrichtigung bei Änderungen der Planer-Datei (GitHub oder allgemein). Nur mit project.update, sonst null."
+ webhook: ProjectWebhook
 }
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
@@ -563,6 +571,27 @@ enum ProjectRole {
  MANAGER
  MEMBER
  OWNER
+}
+"Wohin die App meldet, dass die Planer-Datei eine neue Revision hat. Das Geheimnis (Token oder HMAC-Geheimnis) gibt kein Feld zurück."
+type ProjectWebhook {
+ "Ein Geheimnis ist gespeichert (der Wert nie)"
+ hasSecret: Boolean!
+ kind: WebhookKind!
+ "Kurzer Code: timeout, connection, target, HTTP <Status>, error. Nie Kopfzeilen oder Antworttext."
+ lastError: String
+ lastFailedAt: DateTime
+ lastSentAt: DateTime
+ lastSentRevision: Int
+ "GitHub: besitzer/name. Allgemein: die Adresse."
+ target: String!
+}
+"Benachrichtigung bei Änderungen. Das Geheimnis ist beim Anlegen und beim Wechsel der Art Pflicht, sonst optional (fehlt es, bleibt das gespeicherte)."
+input ProjectWebhookInput {
+ kind: WebhookKind!
+ "GitHub: Token. Allgemein: Geheimnis für die Signatur. Wird nie wieder angezeigt."
+ secret: String
+ "GitHub: besitzer/name. Allgemein: https-Adresse."
+ target: String!
 }
 type Query {
  "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
@@ -1005,5 +1034,17 @@ input UserStoryInput {
  benefit: String!
  goal: String!
  role: String!
+}
+"Art der Benachrichtigung bei Änderungen"
+enum WebhookKind {
+ "POST an eine Adresse, der Body mit HMAC-SHA256 signiert"
+ GENERIC
+ "repository_dispatch an GitHub, mit einem fein eingeschränkten Token"
+ GITHUB
+}
+"Ergebnis eines Testversands"
+type WebhookTestResult {
+ message: String!
+ ok: Boolean!
 }
 

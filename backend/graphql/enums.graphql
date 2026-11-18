@@ -144,3 +144,11 @@ enum ImportChangeKind {
   MOVE @enum(value: "move")
   DELETE @enum(value: "delete")
 }
+
+"Art der Benachrichtigung bei Änderungen"
+enum WebhookKind {
+  "repository_dispatch an GitHub, mit einem fein eingeschränkten Token"
+  GITHUB @enum(value: "github")
+  "POST an eine Adresse, der Body mit HMAC-SHA256 signiert"
+  GENERIC @enum(value: "generic")
+}

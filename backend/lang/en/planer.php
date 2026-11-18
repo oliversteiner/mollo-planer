@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'webhook' => [
+        'github_target' => 'Give the repository as owner/name.',
+        'url_invalid' => 'This is not a valid address.',
+        'url_https' => 'The address must start with https://.',
+        'url_private' => 'This address is not allowed: it leads into a private or local network or cannot be resolved.',
+        'secret_required' => 'The secret is missing. It is required when you set it up and when you change the kind.',
+        'secret_long' => 'The secret is too long.',
+        'none' => 'No notification is set up for this project.',
+        'test_ok' => 'The notification arrived.',
+        'test_failed' => 'The notification did not arrive (:error).',
+    ],
     'validation' => [
         'required' => 'Required field is missing.',
         'unknown_field' => 'Unknown field.',

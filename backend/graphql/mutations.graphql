@@ -187,6 +187,18 @@ type Mutation @guard {
   importProjectPlan(plan: ProjectPlanInput!, notifyAssignees: Boolean = false): Project!
     @can(ability: "create", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\ImportProjectPlan")
+  "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
+  setProjectWebhook(projectId: ID!, input: ProjectWebhookInput!): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ProjectWebhookMutations@set")
+  "Entfernt die Benachrichtigung (project.update)"
+  removeProjectWebhook(projectId: ID!): Project!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ProjectWebhookMutations@remove")
+  "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
+  testProjectWebhook(projectId: ID!): WebhookTestResult!
+    @can(ability: "update", find: "projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\ProjectWebhookMutations@test")
   "Fügt eine Person hinzu oder ändert ihre Rolle"
   setProjectMember(projectId: ID!, userId: ID!, role: String! @rules(apply: ["max:64"])): Project!
     @can(ability: "manageMembers", find: "projectId", model: "App\\Models\\Project")

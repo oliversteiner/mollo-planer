@@ -192,3 +192,12 @@ input UpdateRoleFunctionInput {
   names: LocalizedNameInput
   rights: [Right!]
 }
+
+"Benachrichtigung bei Änderungen. Das Geheimnis ist beim Anlegen und beim Wechsel der Art Pflicht, sonst optional (fehlt es, bleibt das gespeicherte)."
+input ProjectWebhookInput {
+  kind: WebhookKind!
+  "GitHub: besitzer/name. Allgemein: https-Adresse."
+  target: String!
+  "GitHub: Token. Allgemein: Geheimnis für die Signatur. Wird nie wieder angezeigt."
+  secret: String
+}

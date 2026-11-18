@@ -77,6 +77,8 @@ type Project {
   milestones: [Milestone!]! @hasMany
   "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
   planerRevision: Int! @rename(attribute: "planer_revision")
+  "Benachrichtigung bei Änderungen der Planer-Datei (GitHub oder allgemein). Nur mit project.update, sonst null."
+  webhook: ProjectWebhook @field(resolver: "App\\GraphQL\\Resolvers\\ProjectWebhookField")
   "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
   archivedAt: DateTime @rename(attribute: "archived_at")
   "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
@@ -460,4 +462,24 @@ type ImportError {
 type ImportId {
   from: String!
   to: String!
+}
+
+"Wohin die App meldet, dass die Planer-Datei eine neue Revision hat. Das Geheimnis (Token oder HMAC-Geheimnis) gibt kein Feld zurück."
+type ProjectWebhook {
+  kind: WebhookKind!
+  "GitHub: besitzer/name. Allgemein: die Adresse."
+  target: String!
+  "Ein Geheimnis ist gespeichert (der Wert nie)"
+  hasSecret: Boolean!
+  lastSentAt: DateTime @rename(attribute: "last_sent_at")
+  lastSentRevision: Int @rename(attribute: "last_sent_revision")
+  lastFailedAt: DateTime @rename(attribute: "last_failed_at")
+  "Kurzer Code: timeout, connection, target, HTTP <Status>, error. Nie Kopfzeilen oder Antworttext."
+  lastError: String @rename(attribute: "last_error")
+}
+
+"Ergebnis eines Testversands"
+type WebhookTestResult {
+  ok: Boolean!
+  message: String!
 }

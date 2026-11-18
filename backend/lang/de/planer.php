@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'webhook' => [
+        'github_target' => 'Das Repository im Format besitzer/name angeben.',
+        'url_invalid' => 'Das ist keine gültige Adresse.',
+        'url_https' => 'Die Adresse muss mit https:// beginnen.',
+        'url_private' => 'Diese Adresse ist nicht erlaubt: sie führt in ein privates oder lokales Netz oder lässt sich nicht auflösen.',
+        'secret_required' => 'Das Geheimnis fehlt. Beim Anlegen und beim Wechsel der Art ist es Pflicht.',
+        'secret_long' => 'Das Geheimnis ist zu lang.',
+        'none' => 'Für dieses Projekt ist keine Benachrichtigung eingerichtet.',
+        'test_ok' => 'Die Benachrichtigung ist angekommen.',
+        'test_failed' => 'Die Benachrichtigung ist nicht angekommen (:error).',
+    ],
     'validation' => [
         'required' => 'Pflichtfeld fehlt.',
         'unknown_field' => 'Unbekanntes Feld.',

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['name', 'description', 'icon', 'locale'])]
@@ -83,6 +84,16 @@ class Project extends Model
             ->as('membership')
             ->withPivot('id', 'role_id')
             ->withTimestamps();
+    }
+
+    /**
+     * Where the app announces a new revision of the planer file (docs/auftrag-m5.md §4).
+     *
+     * @return HasOne<ProjectWebhook, $this>
+     */
+    public function webhook(): HasOne
+    {
+        return $this->hasOne(ProjectWebhook::class);
     }
 
     /**

@@ -39,6 +39,8 @@ class LabelSetMigrationTest extends TestCase
             ->sort()->map(fn (string $name): string => "database/migrations/{$name}.php")->values()->all();
 
         Artisan::call('migrate:fresh', ['--path' => $before]);
+        // The webhooks of projects are asked for at every change of a plan: their table is needed, whatever the date of its migration.
+        Artisan::call('migrate', ['--path' => 'database/migrations/2026_11_18_100000_create_project_webhooks_table.php']);
         $this->assertTrue(Schema::hasTable('label_sets'));
 
         $now = now();

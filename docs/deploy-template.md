@@ -172,6 +172,18 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
 
 ---
 
+### Cron (Queue und Scheduler)
+
+Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in der Queue (`QUEUE_CONNECTION=database`). Auf dem Hostpoint-Server läuft kein Dauerprozess. Darum startet der Scheduler jede Minute einen Worker, der arbeitet, bis die Queue leer ist (`routes/console.php`: `queue:work --stop-when-empty --max-time=55`). Dazu genügt **ein** Cron-Eintrag im Hostpoint-Panel (Cron-Jobs), jede Minute:
+
+```
+* * * * * cd <api-pfad> && <php-pfad> artisan schedule:run >> /dev/null 2>&1
+```
+
+`<api-pfad>` ist der Ordner des Backends (`~/apps/<projekt>/backend`), `<php-pfad>` das PHP 8.5 des Servers (`php -v` prüfen, im Panel den vollen Pfad eintragen).
+
+**Ohne diesen Eintrag gehen weder Mails noch Webhooks raus**, und es erscheint kein Fehler. Prüfen: In der App einen Task zuweisen oder in den Projekteinstellungen „Testen“ drücken; innerhalb von zwei Minuten kommt die Mail bzw. der Test an. Der Eintrag ist ein einmaliger Schritt (macht Oliver im Panel).
+
 ## 9. Skript und Workflow anpassen
 
 Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `mollo-planer`.

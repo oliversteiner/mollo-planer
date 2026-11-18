@@ -2,6 +2,7 @@
 
 namespace App\Planer;
 
+use App\Webhooks\PlanerWebhooks;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -47,6 +48,8 @@ final class PlanerRevision
 
         if ($ids !== []) {
             DB::table('projects')->whereIn('id', $ids)->increment('planer_revision');
+            // Projects with a webhook announce the new revision (bundled, at most every five minutes).
+            app(PlanerWebhooks::class)->changed($ids);
         }
     }
 
