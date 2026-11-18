@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ideaTitle, isNewId, newCounts, readPlan, textDocument, withoutStruck } from '../../app/utils/assistant'
+import { countsText, ideaTitle, isNewId, newCounts, readPlan, textDocument, withoutStruck } from '../../app/utils/assistant'
 
 const text = JSON.stringify({
   format: 'planer-v2',
@@ -49,5 +49,12 @@ describe('assistant plan', () => {
   it('makes paragraphs of a text', () => {
     expect(textDocument('Eins\n\nZwei')?.content).toHaveLength(2)
     expect(textDocument('  ')).toBeNull()
+  })
+
+  it('words the counts without zeros and with their own plural', () => {
+    const name = (kind: string, count: number) => `${count} ${kind}${count === 1 ? '' : 's'}`
+
+    expect(countsText({ milestones: 0, todos: 1, tasks: 2 }, name)).toBe('1 todo, 2 tasks')
+    expect(countsText({ milestones: 0, todos: 0, tasks: 0 }, name)).toBeNull()
   })
 })

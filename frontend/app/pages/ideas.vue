@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { IdeasQuery } from '~/graphql/generated/graphql'
 import { createIdeaMutation, deleteIdeaMutation, ideasQuery, setIdeaStatusMutation, updateIdeaMutation } from '~/graphql/ideas'
 import { formatDateTime } from '~/utils/dates'
-import { readPlan, newCounts } from '~/utils/assistant'
+import { countsText, newCounts, readPlan } from '~/utils/assistant'
 
 /**
  * Ideas (docs/auftrag-m6.md §6): private notes, optionally with the draft of
@@ -70,7 +70,9 @@ function planWith(idea: Idea) {
 function draftSummary(idea: Idea): string | null {
   const document = readPlan(idea.draft ?? null)
 
-  return document ? t('ideas.draftCounts', newCounts(document)) : null
+  const line = document ? countsText(newCounts(document), (kind, count) => t(`assistant.counts.${kind}`, { count }, count)) : null
+
+  return line ? t('ideas.draftCounts', { list: line }) : null
 }
 
 function descriptionOf(idea: Idea): Record<string, unknown> | null {

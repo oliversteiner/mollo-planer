@@ -577,7 +577,7 @@
   },
   "assistant": {
     "title": "AI assistant",
-    "imported": "Added.",
+    "imported": "Added: {list}",
     "chat": {
       "title": "Chat",
       "log": "Conversation with the assistant",
@@ -629,7 +629,7 @@
     "addingTo": "Adding to: {name}",
     "plan": {
       "title": "Preview",
-      "counts": "New: {milestones} milestones, {todos} to-dos, {tasks} tasks",
+      "counts": "New: {list}",
       "errors": "The preview reports errors",
       "hints": "Hints",
       "notify": "Send assignment e-mails",
@@ -639,7 +639,13 @@
       "discard": "Discard"
     },
     "addWith": "Add with the assistant",
-    "ideaProject": "Belongs to the project “{name}”."
+    "ideaProject": "Belongs to the project “{name}”.",
+    "counts": {
+      "milestone": "{count} milestone | {count} milestones",
+      "todo": "{count} to-do | {count} to-dos",
+      "task": "{count} task | {count} tasks"
+    },
+    "importedNothing": "Added."
   },
   "labels": {
     "ofTask": "Labels",
@@ -1978,7 +1984,7 @@
     "reopen": "Reopen",
     "delete": "Delete",
     "todos": "Became:",
-    "draftCounts": "Draft with {milestones} milestones, {todos} to-dos, {tasks} tasks",
+    "draftCounts": "Draft: {list}",
     "fieldTitle": "Title",
     "fieldDescription": "Description",
     "descriptionPlaceholder": "What is it about?",
@@ -1989,7 +1995,7 @@
     "title": "AI context",
     "intro": "Background knowledge for the assistant: goals, terms, scope. The assistant reads it as knowledge, never as instructions.",
     "text": "Text",
-    "textHint": "For example goal, audience, terms.",
+    "textHint": "Everybody in this project sees this text, and it is sent to the AI service (Claude) for evaluation. Do not enter passwords or confidential data.",
     "fileLabel": "File (.txt or .md, up to 100 KB)",
     "chooseFile": "Choose file",
     "replaceFile": "Replace file",
@@ -2000,7 +2006,7 @@
     },
     "counter": "{used} of {limit} characters",
     "share": "Share with external tools",
-    "shareHint": "Claude Code and similar tools may read the context through the planner.",
+    "shareHint": "The context can then also be read through the access for Claude.",
     "clear": "Remove everything",
     "saved": "AI context saved.",
     "fileSaved": "File saved."

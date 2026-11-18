@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DraftPlanMutation } from '~/graphql/generated/graphql'
-import { newCounts, readPlan } from '~/utils/assistant'
+import { countsText, newCounts, readPlan } from '~/utils/assistant'
 
 /**
  * The preview of the assistant (docs/auftrag-m6.md §4.4): the plan as a tree
@@ -34,6 +34,7 @@ const notifyAssignees = ref(false)
 
 const document = computed(() => readPlan(props.plan))
 const counts = computed(() => (document.value ? newCounts(document.value, props.struck) : { milestones: 0, todos: 0, tasks: 0 }))
+const countsLine = computed(() => countsText(counts.value, (kind, count) => t(`assistant.counts.${kind}`, { count }, count)))
 const errors = computed(() => props.preview?.errors ?? [])
 const canImport = computed(() => !props.busy && !props.checking && props.preview !== null && props.preview.ok && (props.preview.changes?.length ?? 0) > 0)
 </script>
@@ -47,8 +48,11 @@ const canImport = computed(() => !props.busy && !props.checking && props.preview
       <h2 class="wa-heading-m">
         {{ document.project.name || t('assistant.plan.title') }}
       </h2>
-      <p class="plan-quiet">
-        {{ t('assistant.plan.counts', counts) }}
+      <p
+        v-if="countsLine"
+        class="plan-quiet"
+      >
+        {{ t('assistant.plan.counts', { list: countsLine }) }}
       </p>
     </div>
 

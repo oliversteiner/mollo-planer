@@ -58,7 +58,8 @@ class ImportExtensionsTest extends GraphQLTestCase
         $this->send($document, ['dry' => true])
             ->assertJsonPath('data.importPlan.ok', false)
             ->assertJsonPath('data.importPlan.errors.0.kind', 'append_only')
-            ->assertJsonPath('data.importPlan.errors.0.path', 'milestones[0]');
+            ->assertJsonPath('data.importPlan.errors.0.path', 'milestones[0]')
+            ->assertJsonPath('data.importPlan.errors.0.message', __('planer.import.append_only', ['what' => $this->milestone->title]));
 
         $other = Todo::factory()->for(Milestone::factory()->for($this->project))->create();
         $document = $this->exported();

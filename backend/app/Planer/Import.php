@@ -61,6 +61,9 @@ final class Import
 
     private bool $appendOnly = false;
 
+    /** @var array<string, string> Titles by id (m-12, t-4, k-9) before the run, for the messages of appendOnly */
+    private array $titles = [];
+
     private ?int $templateId = null;
 
     /** @var list<int> Todos this run created, for the idea they came from */
@@ -139,6 +142,7 @@ final class Import
         $this->dryRun = $dryRun;
         $this->appendOnly = $appendOnly && $project !== null; // a new project has nothing existing to protect
         $this->templateId = $project === null ? $templateId : null;
+        $this->titles = $this->appendOnly ? $this->titlesOf($project) : [];
 
         if ($idea !== null && ! $actor->can('update', $idea)) {
             $this->error('', 'denied', __('planer.import.denied', ['what' => __('planer.import.what.idea')]));
@@ -1093,9 +1097,30 @@ final class Import
 
         foreach ($this->changes as $change) {
             if ($change['kind'] !== 'create') {
-                $this->error($change['path'], 'append_only', __('planer.import.append_only', ['what' => $change['id'] ?? $change['path']]));
+                $this->error($change['path'], 'append_only', __('planer.import.append_only', ['what' => $this->titleOf($change['id'] ?? null) ?? $change['id'] ?? $change['path']]));
             }
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function titlesOf(Project $project): array
+    {
+        $titles = [];
+
+        foreach ([['m', Milestone::query()], ['t', Todo::query()], ['k', Task::query()]] as [$prefix, $query]) {
+            foreach ($query->where('project_id', $project->getKey())->pluck('title', 'id') as $id => $title) {
+                $titles["{$prefix}-{$id}"] = (string) $title;
+            }
+        }
+
+        return $titles;
+    }
+
+    private function titleOf(?string $id): ?string
+    {
+        return $id === null ? null : ($this->titles[$id] ?? null);
     }
 
     /** The idea is put into the project: adopted, its new todos know it, the project is set if it had none. */

@@ -6,7 +6,7 @@ import { assistantProjectQuery, draftPlanMutation } from '~/graphql/assistant'
 import { createIdeaMutation } from '~/graphql/ideas'
 import { importPlanMutation } from '~/graphql/planer'
 import { classifyApolloError } from '~/utils/api'
-import { ideaTitle, planText, readPlan, textDocument, withoutStruck } from '~/utils/assistant'
+import { countsText, ideaTitle, newCounts, planText, readPlan, textDocument, withoutStruck } from '~/utils/assistant'
 import { assistantStorageKey } from '~/utils/assistant-storage'
 
 /**
@@ -124,13 +124,13 @@ function currentPlanText(): string | null {
   return document ? planText(withoutStruck(document, struck.value)) : null
 }
 
-async function send(text: string) {
-  messages.value.push({ role: 'USER', content: text })
+async function send(text: string, note?: string) {
+  messages.value.push({ role: 'USER', content: text, note })
   choices.value = []
 
   try {
     const response = await draft({
-      messages: messages.value.filter(message => !message.failed).map(({ role, content }) => ({ role, content })),
+      messages: messages.value.filter(message => !message.failed).map(({ role, content, note }) => ({ role, content: note ? `${content} (${note})` : content })),
       projectId: projectId.value,
       templateId: templateId.value,
       currentPlan: currentPlanText(),
@@ -175,9 +175,10 @@ function choose(choice: ChatChoice) {
 
   const text = choice.kind === 'SHOW_ALL'
     ? t('assistant.chat.showAll')
-    : t('assistant.chat.chose', { label: choice.label }) + (choice.value && ['MILESTONE', 'APPEND_TO_TODO'].includes(choice.kind) ? ` (${choice.value})` : '')
+    : t('assistant.chat.chose', { label: choice.label })
 
-  void send(text)
+  // The id goes with the message for Claude, but the person does not see it.
+  void send(text, choice.value && ['MILESTONE', 'APPEND_TO_TODO'].includes(choice.kind) ? choice.value : undefined)
 }
 
 /** Striking out an element checks the rest again (dry run). */
@@ -217,6 +218,7 @@ async function save(notifyAssignees: boolean) {
   }
 
   importError.value = null
+  const counts = newCounts(readPlan(text)!)
 
   try {
     const response = await importPlan({
@@ -232,7 +234,9 @@ async function save(notifyAssignees: boolean) {
     const result = response?.data?.importPlan
 
     if (result?.ok && result.projectId) {
-      toast.add({ title: t('assistant.imported'), color: 'success' })
+      const added = countsText(counts, (kind, count) => t(`assistant.counts.${kind}`, { count }, count))
+
+      toast.add({ title: added ? t('assistant.imported', { list: added }) : t('assistant.importedNothing'), color: 'success' })
       reset()
       await navigateTo(`/projects/${result.projectId}`)
     } else if (result) {

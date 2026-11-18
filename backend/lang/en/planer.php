@@ -44,6 +44,7 @@ return [
         'markdown' => 'Description (line :line): :kind – :excerpt',
     ],
     'import' => [
+        'draft_invalid' => 'The draft is not valid: :message',
         'invalid' => 'The file is not valid: :message',
         'revision' => 'The file has revision :file, the project is at :project. Export it again first.',
         'unknown_id' => ':id does not belong to this project or is in the trash.',

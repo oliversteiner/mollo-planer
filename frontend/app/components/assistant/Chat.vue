@@ -8,6 +8,8 @@ export interface ChatMessage {
   content: string
   /** Shown in red; not sent to Claude again */
   failed?: boolean
+  /** Goes to Claude with the message (an id), not shown */
+  note?: string
 }
 
 export interface ChatChoice {

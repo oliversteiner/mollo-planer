@@ -89,3 +89,14 @@ export function textDocument(text: string): Record<string, unknown> | null {
     ? { type: 'doc', content: paragraphs.map(part => ({ type: 'paragraph', content: [{ type: 'text', text: part }] })) }
     : null
 }
+
+/** "1 ToDo, 2 Tasks": only what is not zero, each with its own plural; null when everything is zero. */
+export function countsText(counts: { milestones: number, todos: number, tasks: number }, name: (kind: 'milestone' | 'todo' | 'task', count: number) => string): string | null {
+  const parts = [
+    counts.milestones > 0 ? name('milestone', counts.milestones) : null,
+    counts.todos > 0 ? name('todo', counts.todos) : null,
+    counts.tasks > 0 ? name('task', counts.tasks) : null
+  ].filter(Boolean)
+
+  return parts.length ? parts.join(', ') : null
+}

@@ -24,17 +24,17 @@ final class IdeaDraft
         try {
             $document = json_decode($text, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $error) {
-            throw ValidationException::withMessages(['input.draft' => __('planer.import.invalid', ['message' => $error->getMessage()])]);
+            throw ValidationException::withMessages(['input.draft' => __('planer.import.draft_invalid', ['message' => $error->getMessage()])]);
         }
 
         if (! is_array($document)) {
-            throw ValidationException::withMessages(['input.draft' => __('planer.import.invalid', ['message' => 'not an object'])]);
+            throw ValidationException::withMessages(['input.draft' => __('planer.import.draft_invalid', ['message' => 'not an object'])]);
         }
 
         $issues = Validator::errors($document);
 
         if ($issues !== []) {
-            throw ValidationException::withMessages(['input.draft' => __('planer.import.invalid', ['message' => "{$issues[0]['path']}: {$issues[0]['message']}"])]);
+            throw ValidationException::withMessages(['input.draft' => __('planer.import.draft_invalid', ['message' => "{$issues[0]['path']}: {$issues[0]['message']}"])]);
         }
 
         return Canonical::text($document);

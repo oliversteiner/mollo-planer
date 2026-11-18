@@ -44,6 +44,7 @@ return [
         'markdown' => 'Beschreibung (Zeile :line): :kind – :excerpt',
     ],
     'import' => [
+        'draft_invalid' => 'Der Entwurf ist ungültig: :message',
         'invalid' => 'Die Datei ist ungültig: :message',
         'revision' => 'Die Datei hat die Revision :file, das Projekt ist bei :project. Exportiere es zuerst neu.',
         'unknown_id' => ':id gehört nicht zu diesem Projekt oder liegt im Papierkorb.',

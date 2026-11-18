@@ -577,7 +577,7 @@
   },
   "assistant": {
     "title": "KI-Assistent",
-    "imported": "Eingetragen.",
+    "imported": "Eingetragen: {list}",
     "chat": {
       "title": "Chat",
       "log": "Verlauf mit dem Assistenten",
@@ -629,7 +629,7 @@
     "addingTo": "Ergänzt wird: {name}",
     "plan": {
       "title": "Vorschau",
-      "counts": "Neu: {milestones} Milestones, {todos} ToDos, {tasks} Tasks",
+      "counts": "Neu: {list}",
       "errors": "Die Vorschau meldet Fehler",
       "hints": "Hinweise",
       "notify": "Zuweisungs-Mails senden",
@@ -639,7 +639,13 @@
       "discard": "Verwerfen"
     },
     "addWith": "Mit dem Assistenten ergänzen",
-    "ideaProject": "Gehört zum Projekt «{name}»."
+    "ideaProject": "Gehört zum Projekt «{name}».",
+    "counts": {
+      "milestone": "{count} Milestone | {count} Milestones",
+      "todo": "{count} ToDo | {count} ToDos",
+      "task": "{count} Task | {count} Tasks"
+    },
+    "importedNothing": "Eingetragen."
   },
   "labels": {
     "ofTask": "Labels",
@@ -1978,7 +1984,7 @@
     "reopen": "Wieder öffnen",
     "delete": "Löschen",
     "todos": "Daraus entstanden:",
-    "draftCounts": "Entwurf mit {milestones} Milestones, {todos} ToDos, {tasks} Tasks",
+    "draftCounts": "Entwurf: {list}",
     "fieldTitle": "Titel",
     "fieldDescription": "Beschreibung",
     "descriptionPlaceholder": "Worum geht es?",
@@ -1989,7 +1995,7 @@
     "title": "KI-Kontext",
     "intro": "Hintergrundwissen für den Assistenten: Ziele, Begriffe, Rahmen. Der Assistent liest es als Wissen, nie als Anweisung.",
     "text": "Text",
-    "textHint": "Zum Beispiel Ziel, Zielgruppe, Fachbegriffe.",
+    "textHint": "Alle in diesem Projekt sehen diesen Text, und er geht zur Auswertung an den KI-Dienst (Claude). Keine Passwörter oder vertraulichen Daten eintragen.",
     "fileLabel": "Datei (.txt oder .md, bis 100 KB)",
     "chooseFile": "Datei wählen",
     "replaceFile": "Datei ersetzen",
@@ -2000,7 +2006,7 @@
     },
     "counter": "{used} von {limit} Zeichen",
     "share": "Für externe Werkzeuge freigeben",
-    "shareHint": "Claude Code und ähnliche Werkzeuge dürfen den Kontext über den Planer lesen.",
+    "shareHint": "Der Kontext ist dann auch über den Zugang für Claude lesbar.",
     "clear": "Alles entfernen",
     "saved": "KI-Kontext gespeichert.",
     "fileSaved": "Datei gespeichert."
