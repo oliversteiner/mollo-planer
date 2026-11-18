@@ -21,7 +21,7 @@ const language = computed(() => localeProperties.value.language ?? 'de-CH')
 useHead({ title: () => t('ideas.title') })
 
 const filter = ref<Filter>('OPEN')
-const { result, loading } = useQuery(ideasQuery, () => ({ status: filter.value === 'ALL' ? null : filter.value, first: 40 }), { fetchPolicy: 'cache-and-network' })
+const { result, loading } = useQuery(ideasQuery, () => ({ status: filter.value === 'ALL' ? null : filter.value, first: 15 }), { fetchPolicy: 'cache-and-network' })
 const ideas = computed(() => result.value?.ideas.data ?? [])
 
 const silent = { context: { silentErrors: true }, refetchQueries: ['Ideas'] }

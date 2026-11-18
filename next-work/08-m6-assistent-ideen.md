@@ -1,6 +1,6 @@
 # Auftrag: M6 Assistent und Ideen (B5a, B6)
 
-Status: offen — erst beginnen, wenn `07-fix-m5.md` erledigt ist.
+Status: erledigt (503874b, 5f5ab87, 61230f7, 1530c30, fda0b9c und der Commit danach); Abnahme durch die Planung
 Stand: 2026-11-18, `dev` bis `9f7b4c1`.
 Dokument: `docs/auftrag-m6.md` (maßgeblich), Grundlage `docs/assistent-ideen-konzept.md`.
 

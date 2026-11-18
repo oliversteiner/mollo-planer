@@ -67,7 +67,7 @@ class AssistantPrompt
         - Descriptions are Markdown: paragraphs, "- " lists, bold, italic, links. No tables, no HTML, no images.
         - Give a task a userStory (role, goal, benefit) when it has a use for a role, otherwise null.
         - Dates are YYYY-MM-DD; "bis Freitag" becomes a real date after today. Tasks before their todo, todos before their milestone.
-        - Do not set release status, commits, icons or statuses of milestones and todos. A release version only when the person names one.
+        - Do not set releases, commits, icons or statuses of milestones and todos.
         - Respect what the person may do (below): assign tasks only as allowed; put nobody who is not in the people list.
 
         If the request is too vague to plan anything sensible, set plan to null and ask one or two short questions (with choices where they fit). Otherwise make reasonable assumptions and mention the main ones in the reply.

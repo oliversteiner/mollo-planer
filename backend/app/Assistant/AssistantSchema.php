@@ -5,7 +5,7 @@ namespace App\Assistant;
 /**
  * The JSON schema of the answer of Claude (structured output), made from spec/planer-v2.schema.json
  * (docs/auftrag-m6.md §4.2): the excerpt `plan` has the fields of the format that the assistant may set, and
- * nothing else (no revision, changed, release.status, commit, status of milestone or todo, no icon). No second schema is kept by hand;
+ * nothing else (no revision, changed, members, release, commit, status of milestone or todo, no icon; members and releases are the server's and the person's business, and the grammar the API builds from a bigger schema is refused as too large). No second schema is kept by hand;
  * AssistantSchemaTest compares the fields with spec/.
  *
  * What the API takes of JSON Schema for structured output: objects with `additionalProperties: false` and all
@@ -19,11 +19,10 @@ final class AssistantSchema
     /** The fields of each object the assistant sets, by the name of its definition in the spec. */
     public const FIELDS = [
         '#' => ['project', 'milestones'],
-        'project' => ['name', 'description', 'locale', 'members', 'labels'],
+        'project' => ['name', 'description', 'locale', 'labels'],
         'member' => ['email', 'role'],
         'label' => ['key', 'names', 'category', 'color'],
-        'milestone' => ['id', 'title', 'description', 'dueDate', 'release', 'todos'],
-        'release' => ['version'],
+        'milestone' => ['id', 'title', 'description', 'dueDate', 'todos'],
         'todo' => ['id', 'title', 'description', 'dueDate', 'tasks'],
         'task' => ['id', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labels', 'userStory'],
         'userStory' => ['role', 'goal', 'benefit'],
