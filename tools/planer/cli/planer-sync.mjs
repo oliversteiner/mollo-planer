@@ -266,7 +266,9 @@ export async function sync(ctx, args) {
 
 /** pull in einer Schleife. Fehler 429 und Netz brechen nicht ab, ein ungültiger Zugang schon. */
 export async function watch(ctx, args) {
-  const seconds = Math.max(10, args.interval);
+  // Mindestens 10 s; MOLLO_PLANER_WATCH_MIN (Sekunden) senkt die Grenze nur für Tests des echten Programms.
+  const minimum = Number(ctx.env.MOLLO_PLANER_WATCH_MIN ?? 10);
+  const seconds = Math.max(minimum, args.interval);
   const path = filePath(ctx, args);
   let warned = false;
 

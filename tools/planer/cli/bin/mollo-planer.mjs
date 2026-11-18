@@ -281,9 +281,19 @@ function syncContext() {
     out: (line) => console.log(line),
     err: (line) => console.error(line),
     stopped: () => stop,
+    // Der Timer hält die Event-Loop am Leben (kein unref): sonst beendet Node das Programm mitten im await.
+    // Strg-C weckt den Schlaf und räumt den Timer ab.
     sleep: (ms) => new Promise((resolveSleep) => {
-      wake.push(resolveSleep);
-      setTimeout(resolveSleep, ms).unref?.();
+      const timer = setTimeout(done, ms);
+      function done() {
+        clearTimeout(timer);
+        const index = wake.indexOf(done);
+        if (index !== -1) {
+          wake.splice(index, 1);
+        }
+        resolveSleep();
+      }
+      wake.push(done);
     }),
   };
 }
