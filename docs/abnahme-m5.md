@@ -60,4 +60,4 @@ Personen: Ben (Owner Website-Relaunch), Chiara (Manager), David (Mitglied). Je P
 
 ---
 
-Ergebnis: _bereit zur Abnahme_ (Planung: alle Befunde behoben; offen ⏸ bei Oliver: GitHub-Webhook und Action im Test-Repository, Cron auf Hostpoint, beides teilweise erst nach dem Deployment)
+Ergebnis: **Abgenommen am 2026-11-18 durch Oliver.** Offen als Betriebsschritte nach dem Deployment: GitHub-Webhook und Action im Test-Repository (kompletter Kreislauf gegen den Server), Cron-Eintrag `schedule:run` auf Hostpoint.
