@@ -16,6 +16,10 @@ const { proceed } = useAccountFlow()
 
 const checking = ref(false)
 const signedOut = ref(false)
+// Right after the registration the page looks the same for a new and for a taken address, whether or not
+// a session was made: the same hints, the form for the address, no buttons that need a session.
+const registered = useState('registrationDone', () => false)
+const neutral = computed(() => signedOut.value || registered.value)
 const reason = computed(() => (route.query.reason === 'approval' ? 'approval' : 'email'))
 
 useHead({ title: () => (reason.value === 'email' ? t('auth.pending.emailTitle') : t('auth.pending.approvalTitle')) })
@@ -43,6 +47,7 @@ async function check(): Promise<void> {
 /** Wrong address: end the session (if there is one) and register again. */
 async function registerAgain(): Promise<void> {
   pendingEmail.value = null
+  registered.value = false
 
   if (signedOut.value) {
     await navigateTo('/register')
@@ -50,6 +55,10 @@ async function registerAgain(): Promise<void> {
     await logout('/register')
   }
 }
+
+onBeforeUnmount(() => {
+  registered.value = false
+})
 
 onMounted(check)
 </script>
@@ -77,7 +86,7 @@ onMounted(check)
       </ul>
 
       <wa-button
-        v-if="!signedOut"
+        v-if="!neutral"
         variant="brand"
         :loading="checking"
         style="width: 100%"
@@ -87,7 +96,7 @@ onMounted(check)
       </wa-button>
 
       <AuthResendVerification
-        :mode="signedOut ? 'address' : 'session'"
+        :mode="neutral ? 'address' : 'session'"
         :email="pendingEmail"
         @confirmed="check"
       />
@@ -121,7 +130,7 @@ onMounted(check)
     </div>
 
     <div
-      v-if="!signedOut"
+      v-if="!neutral"
       class="wa-split wa-gap-s"
       style="margin-block-start: var(--wa-space-m)"
     >

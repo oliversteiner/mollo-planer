@@ -160,3 +160,25 @@ describe('registration page', () => {
     expect(memory.pendingEmail.value).toBe('eva@example.org')
   })
 })
+
+describe('right after the registration', () => {
+  it('looks the same with and without a session: the same hints, the form for the address, no buttons that need a session', async () => {
+    const views: string[] = []
+
+    for (const answer of ['unverified', 'unauthenticated']) {
+      load.mockResolvedValue(answer)
+      memory.pendingEmail.value = 'eva@example.org'
+      useState('registrationDone').value = true
+      const page = await mountSuspended(AccountPendingPage, { route: '/account-pending?reason=email' })
+      await vi.waitFor(() => expect(load).toHaveBeenCalled())
+      load.mockClear()
+
+      views.push(`${text(page)}|${page.findAll('wa-button').map((candidate: { text: () => string }) => candidate.text()).join(',')}|${field(page, 'email') ? 'form' : 'no form'}`)
+    }
+
+    expect(views[0]).toBe(views[1])
+    expect(views[0]).toContain('form')
+    expect(views[0]).not.toContain('Abmelden')
+    expect(views[0]).not.toContain('Erneut prüfen')
+  })
+})

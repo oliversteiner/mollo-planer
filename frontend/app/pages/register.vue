@@ -5,6 +5,7 @@ const { t } = useI18n()
 const { $backend } = useNuxtApp()
 const { errors, pending, run } = useServerForm()
 const { pendingEmail } = useViewer()
+const registered = useState('registrationDone', () => false)
 
 useHead({ title: () => t('auth.register.title') })
 
@@ -20,6 +21,7 @@ async function submit(): Promise<void> {
 
   if (ok) {
     pendingEmail.value = state.email.trim()
+    registered.value = true
     await navigateTo('/account-pending?reason=email')
   }
 }
