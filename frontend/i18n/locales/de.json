@@ -638,7 +638,8 @@
       "toIdeas": "In Ideen ablegen",
       "discard": "Verwerfen"
     },
-    "addWith": "Mit dem Assistenten ergänzen"
+    "addWith": "Mit dem Assistenten ergänzen",
+    "ideaProject": "Gehört zum Projekt «{name}»."
   },
   "labels": {
     "ofTask": "Labels",

@@ -638,7 +638,8 @@
       "toIdeas": "Keep as idea",
       "discard": "Discard"
     },
-    "addWith": "Add with the assistant"
+    "addWith": "Add with the assistant",
+    "ideaProject": "Belongs to the project “{name}”."
   },
   "labels": {
     "ofTask": "Labels",

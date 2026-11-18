@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isNewId, newCounts, readPlan, withoutStruck } from '../../app/utils/assistant'
+import { ideaTitle, isNewId, newCounts, readPlan, textDocument, withoutStruck } from '../../app/utils/assistant'
 
 const text = JSON.stringify({
   format: 'planer-v2',
@@ -36,5 +36,18 @@ describe('assistant plan', () => {
 
     expect(newCounts(document)).toEqual({ milestones: 1, todos: 1, tasks: 2 })
     expect(newCounts(document, new Set(['m-new-1']))).toEqual({ milestones: 0, todos: 0, tasks: 1 })
+  })
+
+  it('suggests an idea title from the first new todo, else task, else milestone, or the name of a new project', () => {
+    const document = readPlan(text)!
+
+    expect(ideaTitle(document, false, 'Hallo')).toBe('T')
+    expect(ideaTitle(document, true, 'Hallo')).toBe('P')
+    expect(ideaTitle(null, false, 'Erste Zeile\nzweite')).toBe('Erste Zeile')
+  })
+
+  it('makes paragraphs of a text', () => {
+    expect(textDocument('Eins\n\nZwei')?.content).toHaveLength(2)
+    expect(textDocument('  ')).toBeNull()
   })
 })

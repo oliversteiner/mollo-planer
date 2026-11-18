@@ -57,3 +57,35 @@ export function newCounts(document: PlanerDocument, struck: ReadonlySet<string> 
 export function planText(document: PlanerDocument): string {
   return JSON.stringify(document)
 }
+
+/**
+ * The title an idea gets from a draft (docs/fix-m6.md F9.5): the first new todo, else the first new task, else the
+ * first new milestone; for a new project its name. Without a draft the start of the first message.
+ */
+export function ideaTitle(document: PlanerDocument | null, newProject: boolean, firstMessage: string): string {
+  const fromMessage = firstMessage.trim().split('\n')[0]?.slice(0, 200) ?? ''
+
+  if (!document) {
+    return fromMessage
+  }
+
+  if (newProject && document.project.name) {
+    return document.project.name.slice(0, 200)
+  }
+
+  const milestones = document.milestones
+  const todo = milestones.flatMap(milestone => milestone.todos).find(item => isNewId(item.id))
+  const task = milestones.flatMap(milestone => milestone.todos).flatMap(item => item.tasks).find(item => isNewId(item.id))
+  const milestone = milestones.find(item => isNewId(item.id))
+
+  return (todo?.title ?? task?.title ?? milestone?.title ?? fromMessage).slice(0, 200)
+}
+
+/** A text as a rich-text document: blank lines separate the paragraphs; null for no text. */
+export function textDocument(text: string): Record<string, unknown> | null {
+  const paragraphs = text.split(/\n\s*\n/).map(part => part.trim()).filter(Boolean)
+
+  return paragraphs.length
+    ? { type: 'doc', content: paragraphs.map(part => ({ type: 'paragraph', content: [{ type: 'text', text: part }] })) }
+    : null
+}

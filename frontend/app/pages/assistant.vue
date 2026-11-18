@@ -6,7 +6,7 @@ import { assistantProjectQuery, draftPlanMutation } from '~/graphql/assistant'
 import { createIdeaMutation } from '~/graphql/ideas'
 import { importPlanMutation } from '~/graphql/planer'
 import { classifyApolloError } from '~/utils/api'
-import { planText, readPlan, withoutStruck } from '~/utils/assistant'
+import { ideaTitle, planText, readPlan, textDocument, withoutStruck } from '~/utils/assistant'
 import { assistantStorageKey } from '~/utils/assistant-storage'
 
 /**
@@ -158,7 +158,7 @@ async function send(text: string) {
 /** A button: it fixes project or template where it says so, and goes on as a message. */
 function choose(choice: ChatChoice) {
   if (choice.kind === 'IDEA') {
-    void toIdeas(choice.label)
+    toIdeas()
 
     return
   }
@@ -243,18 +243,41 @@ async function save(notifyAssignees: boolean) {
   }
 }
 
-/** Keeps the draft (or just the request) as an idea. */
-async function toIdeas(title?: string) {
+/** "In Ideen ablegen" opens the idea dialog with a suggestion (docs/fix-m6.md F9.5); saving keeps the draft. */
+const ideaOpen = ref(false)
+const ideaTitleText = ref('')
+const ideaDescription = ref<Record<string, unknown> | null>(null)
+const ideaProjectId = ref<string | null>(null)
+const ideaErrors = ref<Record<string, string>>({})
+
+function toIdeas() {
   const firstUser = messages.value.find(message => message.role === 'USER')?.content ?? ''
-  const name = (readPlan(plan.value)?.project.name || firstUser || title || t('assistant.title')).trim().slice(0, 200)
+
+  ideaTitleText.value = ideaTitle(readPlan(plan.value), projectId.value === null, firstUser)
+  ideaDescription.value = textDocument(firstUser)
+  ideaProjectId.value = projectId.value
+  ideaErrors.value = {}
+  importError.value = null
+  ideaOpen.value = true
+}
+
+async function saveIdea() {
+  ideaErrors.value = {}
 
   try {
-    await createIdea({ input: { title: name.length >= 2 ? name : t('assistant.title'), projectId: projectId.value, draft: currentPlanText() } })
+    await createIdea({ input: { title: ideaTitleText.value.trim(), description: ideaDescription.value, projectId: ideaProjectId.value, draft: currentPlanText() } })
+    ideaOpen.value = false
     toast.add({ title: t('assistant.ideaSaved'), color: 'success' })
     reset()
     await navigateTo('/ideas')
   } catch (error) {
-    importError.value = failure(error)
+    const apiError = classifyApolloError(error)
+
+    ideaErrors.value = Object.fromEntries(Object.entries(apiError.fields).map(([field, messages]) => [field.replace(/^input\./, ''), messages.join(' ')]))
+
+    if (Object.keys(ideaErrors.value).length === 0) {
+      ideaErrors.value = { title: failure(error) }
+    }
   }
 }
 
@@ -404,12 +427,63 @@ watch(plan, (current, previous) => {
             :error="importError"
             @toggle="toggle"
             @import="save"
-            @ideas="toIdeas()"
+            @ideas="toIdeas"
             @discard="reset"
           />
         </div>
       </section>
     </wa-split-panel>
+
+    <AppDialog
+      v-model:open="ideaOpen"
+      :label="t('ideas.new')"
+    >
+      <form
+        class="wa-stack wa-gap-m"
+        @submit.prevent="saveIdea"
+      >
+        <FormInput
+          v-model="ideaTitleText"
+          :label="t('ideas.fieldTitle')"
+          :error="ideaErrors.title"
+          required
+        />
+        <div class="wa-stack wa-gap-2xs">
+          <span class="wa-caption-m">{{ t('ideas.fieldDescription') }}</span>
+          <RichTextEditor v-model="ideaDescription" />
+          <p
+            v-if="ideaErrors.description"
+            class="wa-caption-s"
+            data-form-error
+          >
+            {{ ideaErrors.description }}
+          </p>
+        </div>
+        <p
+          v-if="projectName && ideaProjectId"
+          class="wa-caption-s"
+        >
+          {{ t('assistant.ideaProject', { name: projectName }) }}
+        </p>
+      </form>
+      <template #footer>
+        <wa-button
+          appearance="plain"
+          variant="neutral"
+          @click="ideaOpen = false"
+        >
+          {{ t('common.cancel') }}
+        </wa-button>
+        <wa-button
+          variant="brand"
+          :loading="savingIdea"
+          :disabled="ideaTitleText.trim().length < 2"
+          @click="saveIdea"
+        >
+          {{ t('common.save') }}
+        </wa-button>
+      </template>
+    </AppDialog>
   </PageFrame>
 </template>
 
