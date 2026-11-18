@@ -320,3 +320,8 @@ U0 → T1 → T0 → T5 → T4 (Rest) → T6 → S2 → S3 → R1 → S3b → S3
 ## Nicht in diesem Auftrag (wird in der Planung geklärt)
 
 - Keine offenen Punkte.
+
+
+## Larastan-Baseline (Auftrag 25 C)
+
+`backend/phpstan-baseline.neon` hält 187 ältere Meldungen (Level 5), `composer analyse` ist grün und läuft in der CI (`backend.yml`, Job «Code style»). Neue Meldungen fallen auf; die Baseline wird gezielt abgebaut (eigener Auftrag von Stuart). Grösste Posten: `Planer/Import.php` 37, `Planer/Export.php` 19, `Assistant/AssistantPrompt.php` 10, `Services/Deletion.php` 10, `Services/TrashListing.php` 10, `Services/KanbanOrdering.php` 9, `Services/ReleaseRules.php` 7, `GraphQL/Mutations/CreateProject.php` 5. Keine davon sieht nach einem Laufzeitfehler aus (meist fehlende Typangaben bei Casts, Relationen und Builder-Generics); `ClaudeClient.php:78` prüft `instanceof BetaStopReason` defensiv, das SDK typisiert es als `string|null`.

@@ -1,0 +1,901 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Instanceof between App\\Models\\User and Illuminate\\Contracts\\Auth\\MustVerifyEmail will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: app/Actions/Fortify/UpdateUserProfileInformation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$membership\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Assistant/AssistantPrompt.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Assistant/AssistantPrompt.php
+
+		-
+			message: '#^Offset ''milestones'' on array\{\}\|string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: app/Assistant/AssistantPrompt.php
+
+		-
+			message: '#^Offset ''project'' on array\{\}\|string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: app/Assistant/AssistantPrompt.php
+
+		-
+			message: '#^Offset ''todos'' on \*NEVER\* on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Assistant/AssistantPrompt.php
+
+		-
+			message: '#^Parameter \#1 \$doc of static method App\\Planer\\RichText\\TiptapToMarkdown\:\:convert\(\) expects array\<string, mixed\>, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Assistant/AssistantPrompt.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>key" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Assistant/AssistantPrompt.php
+
+		-
+			message: '#^Instanceof between string\|null and Anthropic\\Beta\\Messages\\BetaStopReason will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Assistant/ClaudeClient.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Assistant/DraftProcessor.php
+
+		-
+			message: '#^Offset ''milestones'' on string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Assistant/PlanChoices.php
+
+		-
+			message: '#^Offset ''todos'' on \*NEVER\* on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Assistant/PlanChoices.php
+
+		-
+			message: '#^Parameter \#1 \$user of static method App\\Support\\Rights\:\:allows\(\) expects App\\Models\\User\|null, Illuminate\\Contracts\\Auth\\Authenticatable\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Builders/IdeaBuilder.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\Relation\<Illuminate\\Database\\Eloquent\\Model\> in PHPDoc tag @param for parameter \$builder does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\Relation\: TRelatedModel, TDeclaringModel, TResult$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/GraphQL/Directives/FilterDirective.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\Relation\<Illuminate\\Database\\Eloquent\\Model\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\Relation\: TRelatedModel, TDeclaringModel, TResult$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/GraphQL/Directives/FilterDirective.php
+
+		-
+			message: '#^Offset ''sharedWithTools'' on array\{text\: string, sharedWithTools\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/GraphQL/Mutations/AiContextMutations.php
+
+		-
+			message: '#^Offset ''text'' on array\{text\: string, sharedWithTools\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/GraphQL/Mutations/AiContextMutations.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/GraphQL/Mutations/CreateProject.php
+
+		-
+			message: '#^Cannot unset offset ''description'' on array\{name\: string, locale\: mixed, members\: array\{\}\}\.$#'
+			identifier: unset.offset
+			count: 1
+			path: app/GraphQL/Mutations/CreateProject.php
+
+		-
+			message: '#^Empty array passed to foreach\.$#'
+			identifier: foreach.emptyArray
+			count: 1
+			path: app/GraphQL/Mutations/CreateProject.php
+
+		-
+			message: '#^Offset ''labels'' on array\{name\: string, locale\: mixed, members\: array\{\}\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/GraphQL/Mutations/CreateProject.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<array\{userId\: int\|string, role\: string\}\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/GraphQL/Mutations/CreateProject.php
+
+		-
+			message: '#^Property App\\Models\\Task\:\:\$status \(string\) does not accept App\\Enums\\TaskStatus\:\:OPEN\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/GraphQL/Mutations/CreateTask.php
+
+		-
+			message: '#^Parameter \#1 \$content of static method App\\Planer\\TemplateContent\:\:withMeta\(\) expects array\<string, mixed\>, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/DuplicateTemplate.php
+
+		-
+			message: '#^Property App\\Models\\Idea\:\:\$status \(string\) does not accept App\\Enums\\IdeaState\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/GraphQL/Mutations/IdeaMutations.php
+
+		-
+			message: '#^Parameter \#3 \$target of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Milestone\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/MoveMilestone.php
+
+		-
+			message: '#^Left side of && is always false\.$#'
+			identifier: booleanAnd.leftAlwaysFalse
+			count: 1
+			path: app/GraphQL/Mutations/MoveTask.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: app/GraphQL/Mutations/MoveTask.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\TaskStatus\:\:IDEA will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/GraphQL/Mutations/MoveTask.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\TaskStatus\:\:IDEA will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/GraphQL/Mutations/MoveTask.php
+
+		-
+			message: '#^Parameter \#3 \$target of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/MoveTaskInTodo.php
+
+		-
+			message: '#^Parameter \#3 \$target of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/MoveTaskToTodo.php
+
+		-
+			message: '#^Parameter \#5 \$source of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\|null, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/MoveTaskToTodo.php
+
+		-
+			message: '#^Parameter \#3 \$target of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Todo\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/MoveTodo.php
+
+		-
+			message: '#^Parameter \#5 \$source of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\|null, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Todo\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/MoveTodo.php
+
+		-
+			message: '#^Parameter \#1 \$content of static method App\\Planer\\TemplateContent\:\:withMeta\(\) expects array\<string, mixed\>, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Mutations/SaveTemplate.php
+
+		-
+			message: '#^Method App\\GraphQL\\Mutations\\SetProjectCreatorRole\:\:__invoke\(\) should return array\{twoFactorEnabled\: bool, twoFactorSwitchable\: bool, projectCreatorRole\: App\\Models\\Role\} but returns array\{twoFactorEnabled\: bool, twoFactorSwitchable\: bool, projectCreatorRole\: App\\GraphQL\\Queries\\Role\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/GraphQL/Mutations/SetProjectCreatorRole.php
+
+		-
+			message: '#^Method App\\GraphQL\\Queries\\AppSettings\:\:__invoke\(\) has invalid return type App\\GraphQL\\Queries\\Role\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/GraphQL/Queries/AppSettings.php
+
+		-
+			message: '#^Method App\\GraphQL\\Queries\\AppSettings\:\:__invoke\(\) should return array\{twoFactorEnabled\: bool, twoFactorSwitchable\: bool, projectCreatorRole\: App\\GraphQL\\Queries\\Role\} but returns array\{twoFactorEnabled\: bool, twoFactorSwitchable\: bool, projectCreatorRole\: App\\Models\\Role\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/GraphQL/Queries/AppSettings.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/GraphQL/Queries/Kanban.php
+
+		-
+			message: '#^Parameter \#1 \$names of static method App\\GraphQL\\Resolvers\\LabelText\:\:namesList\(\) expects array\<string, string\>, array\<int, string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Resolvers/LabelText.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$membership\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/GraphQL/Resolvers/ProjectMembers.php
+
+		-
+			message: '#^Parameter \#1 \$plan of static method App\\Planer\\Canonical\:\:text\(\) expects array\<string, mixed\>, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/GraphQL/Resolvers/TemplateFile.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$membership\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Mcp/Tools/ListUsersTool.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Models/Label.php
+
+		-
+			message: '#^Offset 0 on array\{string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Models/Label.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{string\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Models/Label.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Models/Milestone.php
+
+		-
+			message: '#^Parameter \#1 \$projects of static method App\\Support\\Rights\:\:constrainToVisibleProjects\(\) expects Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Project\>, Illuminate\\Database\\Eloquent\\Builder\<static\(App\\Models\\Milestone\)\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Models/Milestone.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$membership\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Project.php
+
+		-
+			message: '#^Parameter \#1 \$projects of static method App\\Support\\Rights\:\:constrainToVisibleProjects\(\) expects Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Project\>, Illuminate\\Database\\Eloquent\\Builder\<static\(App\\Models\\Project\)\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Models/Project.php
+
+		-
+			message: '#^Method App\\Models\\ProjectAiContext\:\:characters\(\) should return Illuminate\\Database\\Eloquent\\Casts\\Attribute\<int, never\> but returns Illuminate\\Database\\Eloquent\\Casts\\Attribute\<int\<0, max\>, never\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/ProjectAiContext.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:parentProjectId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Task.php
+
+		-
+			message: '#^Parameter \#1 \$projects of static method App\\Support\\Rights\:\:constrainToVisibleProjects\(\) expects Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Project\>, Illuminate\\Database\\Eloquent\\Builder\<static\(App\\Models\\Task\)\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Models/Task.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:parentProjectId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Todo.php
+
+		-
+			message: '#^Parameter \#1 \$projects of static method App\\Support\\Rights\:\:constrainToVisibleProjects\(\) expects Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Project\>, Illuminate\\Database\\Eloquent\\Builder\<static\(App\\Models\\Todo\)\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Models/Todo.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Notifications/TaskAssigned.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Notifications/TaskNotification.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Milestone\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Observers/MilestoneObserver.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:nextPosition\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Milestone\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Observers/MilestoneObserver.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:openSlot\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Milestone\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Observers/MilestoneObserver.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\<0, max\> and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Observers/MilestoneObserver.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Observers/TaskObserver.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:nextPosition\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Observers/TaskObserver.php
+
+		-
+			message: '#^Parameter \#2 \$status of method App\\Services\\KanbanOrdering\:\:nextPosition\(\) expects App\\Enums\\TaskStatus, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Observers/TaskObserver.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$statuses of method App\\Services\\KanbanOrdering\:\:close\(\) expects App\\Enums\\TaskStatus, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Observers/TaskObserver.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Todo\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Observers/TodoObserver.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:nextPosition\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Todo\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Observers/TodoObserver.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:openSlot\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Todo\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Observers/TodoObserver.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\<0, max\> and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Observers/TodoObserver.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$membership\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 4
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Offset ''benefit'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Offset ''goal'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Offset ''role'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Label\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Milestone\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Todo\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Parameter \#1 \$document of method App\\Planer\\Export\:\:markdown\(\) expects array\<string, mixed\>\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>key" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Planer/Export.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$commit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$due_date\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$milestone_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$release_status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$release_version\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_story\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Planer/Import.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 2
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Left side of && is always false\.$#'
+			identifier: booleanAnd.leftAlwaysFalse
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Method App\\Planer\\Import\:\:milestone\(\) should return App\\Models\\Milestone\|null but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Method App\\Planer\\Import\:\:task\(\) should return App\\Models\\Task\|null but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Method App\\Planer\\Import\:\:todo\(\) should return App\\Models\\Todo\|null but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Parameter \#1 \$current of method App\\Planer\\Import\:\:sameDocument\(\) expects array\<string, mixed\>\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Parameter \#1 \$names of method App\\Planer\\Import\:\:sorted\(\) expects array\<string, string\>, array\<int, string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Parameter \#1 \$task of method App\\Planer\\Import\:\:labelKeysOf\(\) expects App\\Models\\Task, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Parameter \#1 \$task of method App\\Planer\\Import\:\:updateTask\(\) expects App\\Models\\Task, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Todo\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Property App\\Models\\Idea\:\:\$status \(string\) does not accept App\\Enums\\IdeaState\:\:ADOPTED\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between App\\Enums\\TaskStatus and string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-list\<string\> and array\{\} will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\TaskStatus\:\:IDEA will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>milestone_id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Planer/Import.php
+
+		-
+			message: '#^Method App\\Planer\\RichText\\TiptapToMarkdown\:\:closeAll\(\) never assigns string to &\$href so it can be removed from the by\-ref type\.$#'
+			identifier: parameterByRef.unusedType
+			count: 1
+			path: app/Planer/RichText/TiptapToMarkdown.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Task\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Policies/TaskPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$project_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$todo_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:restore\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Call to an undefined static method Illuminate\\Database\\Eloquent\\Model\:\:onlyTrashed\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Milestone\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Todo\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/Deletion.php
+
+		-
+			message: '#^Property App\\Models\\Milestone\:\:\$status \(string\) does not accept App\\Enums\\ItemStatus\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/ItemStatusSync.php
+
+		-
+			message: '#^Property App\\Models\\Todo\:\:\$status \(string\) does not accept App\\Enums\\ItemStatus\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/ItemStatusSync.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:close\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Parameter \#2 \$group of method App\\Services\\Ordering\:\:nextPosition\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Parameter \#2 \$status of method App\\Services\\KanbanOrdering\:\:column\(\) expects App\\Enums\\TaskStatus, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Parameter \#3 \$target of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Parameter \#5 \$source of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\|null, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Task\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Property App\\Models\\Task\:\:\$status \(string\) does not accept App\\Enums\\TaskStatus\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\TaskStatus will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/KanbanOrdering.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<array\<string, mixed\>\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Services/LabelInputs.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 4
+			path: app/Services/ProjectLabels.php
+
+		-
+			message: '#^Method App\\Services\\ProjectLabels\:\:asData\(\) should return array\{key\: string, names\: array\<string, string\>, category\: string\|null, color\: string\} but returns array\{key\: string, names\: array\{string\}, category\: string\|null, color\: mixed\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/ProjectLabels.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\TaskStatus\:\:IDEA, App\\Enums\\TaskStatus\:\:PLANNED\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Services/ReleaseRules.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: app/Services/ReleaseRules.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\TaskStatus\:\:DONE will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 3
+			path: app/Services/ReleaseRules.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\TaskStatus\:\:DONE will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Services/ReleaseRules.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string\|null and App\\Enums\\ReleaseStatus\:\:RELEASED will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Services/ReleaseRules.php
+
+		-
+			message: '#^Offset ''de''\|''en'' on array\{de\: string, en\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/RoleAdministration.php
+
+		-
+			message: '#^Parameter \#1 \$users of method App\\Services\\TaskNotifier\:\:filter\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\User\|null\>, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/TaskNotifier.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\TaskStatus\:\:IDEA will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Services/TaskNotifier.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$deleted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$deleted_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$deletion_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$project\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),Illuminate\\Support\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:sortBy\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Parameter \#1 \$document of static method App\\Support\\RichTextDocument\:\:excerpt\(\) expects array\<string, mixed\>\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Parameter \#1 \$rows of method App\\Services\\TrashListing\:\:items\(\) expects Illuminate\\Support\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Idea\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/TrashListing.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$membership\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Rights.php
+
+		-
+			message: '#^Cannot call method copy\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Webhooks/PlanerWebhooks.php
