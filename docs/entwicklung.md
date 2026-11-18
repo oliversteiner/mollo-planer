@@ -659,7 +659,62 @@ Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit A
 - [x] [feature] Rechte nur über Rights, eine Liste für Seiten- und Menürechte
   Commit 9673541
 
-## Browser-Tests der Anmeldung (Auftrag 20, 2026-11-18)
+## v1.1 Sicheres Onboarding
+Status: geplant
+
+Der Weg vom Konto bis zur Arbeitsfläche ist gehärtet: Nutzerbefehle für den Betrieb, ein Bestätigungslink ohne Sitzung, neutrale Antworten bei Registrierung und «Passwort vergessen», eine Passwortregel mit Leak-Prüfung, Mails zu Freigabe, Ablehnung und Sicherheitsänderungen, die Sprache pro Konto, Browser-Tests der Anmeldung und Larastan in der CI (Aufträge 18 bis 25).
+
+### Nutzerbefehle und Konto absichern
+
+- [x] [feature] Artisan-Befehle für Passwort, E-Mail-Adresse und zweiten Faktor eines Kontos (Auftrag 18)
+  Commit 73b8aa2
+
+- [x] [bug] Nach dem ersten Faktor verlässt die Seite «Konto absichern» (Auftrag 19)
+  Commit 0806fdb
+
+### Bestätigungslink und Registrierung
+
+- [x] [bug] Der Bestätigungslink funktioniert ohne Sitzung und bestätigt per Klick, die Bestätigungsmail lässt sich erneut senden (Auftrag 21)
+  Commit ed8fde8
+
+- [x] [bug] «Passwort vergessen» und die Registrierung antworten für jede Adresse gleich (Auftrag 22 O1, O3)
+  Commit 55a2f6b
+
+- [x] [bug] «Passwort vergessen» und «Passwort zurücksetzen» sind pro IP gedrosselt (Auftrag 22 O2)
+  Commit 92fbc48
+
+- [x] [bug] Die Mail «Registrierung noch nicht bestätigt» führt auf «erneut senden» statt auf eine Fehlermeldung (Auftrag 24 N1)
+  Commit b1d4ca1
+
+### Passwort und Mails
+
+- [x] [feature] Passwortregel: mindestens 12 Zeichen, höchstens 72 Bytes, Prüfung gegen bekannte Leaks (Auftrag 22 O4)
+  Commit 6b4c15d
+
+- [x] [feature] Nach dem Zurücksetzen enden Sitzungen und Zugänge, jede Änderung der Anmeldung löst eine Hinweismail aus (Auftrag 22 O5, O7)
+  Commit c492233
+
+- [x] [bug] Die Anmeldung mit Passwort gilt als Passwortbestätigung (Auftrag 22 O6)
+  Commit 8e40121
+
+- [x] [feature] users.locale: Mails bei Freigabe und Ablehnung einer Registrierung in der Sprache der Person (Auftrag 22 O8)
+  Commit e37c730
+
+- [x] [feature] Zustandsseiten für Bestätigung und Freigabe, neutrale Texte, Passkey erklärt, Fortschritt als Text (Auftrag 23)
+  Commit 11724b4
+
+### Tests und Qualität
+
+- [x] [bug] Der Erfolg wird in den Browser-Tests am bleibenden Ergebnis geprüft, nicht an einem Toast (Auftrag 25 A)
+  Commit 6228b77
+
+- [x] [feature] Larastan-Baseline und `composer analyse` in der CI (Auftrag 25 B, C)
+  Commit c96aa7e
+
+### Browser-Tests der Anmeldung (Auftrag 20, 2026-11-18)
+
+- [x] [feature] Browser-Tests der Anmeldung mit Playwright (Auftrag 20)
+  Commit d7a71ca
 
 Der ganze Weg vom Konto bis zur Arbeitsfläche läuft als Browser-Test (Playwright, Chromium) in `frontend/e2e/`: Registrierung, Bestätigungslink (auch im zweiten Browserprofil), «Konto absichern» mit Passkey und Authenticator-App, Anmelden mit Code, Wiederherstellungscode und Passkey, «Passwort vergessen», Freigabe, Ablehnung, Reset des zweiten Faktors durch den Admin, Drossel, ein Durchlauf auf Englisch. Szenarien: `e2e/auth-flow.spec.ts` (Nummern wie in `next-work/20-anmelde-ui-tests.md`). Je Szenario werden die Zielseite, die sichtbare Meldung, Fehler in der Browser-Konsole und unerwartete 4xx/5xx geprüft; erwartete Antworten (zum Beispiel 422, 429, 403 bei gesperrtem Konto) stehen je Szenario im Test.
 
