@@ -23,8 +23,6 @@ class RightUsageTest extends TestCase
     private const PENDING = [
         'aiContext.update' => 'B6',
         'assistant.use' => 'B5a',
-        'ideas.create' => 'B6',
-        'ideas.viewAny' => 'B6',
         'system.view' => 'system-plan.md',
         'database.view' => 'system-plan.md',
     ];

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Comment;
+use App\Models\Idea;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
@@ -41,7 +42,7 @@ final class Deletion
      *
      * @var list<class-string<Model>>
      */
-    public const TYPES = [Project::class, Milestone::class, Todo::class, Task::class, Comment::class];
+    public const TYPES = [Project::class, Milestone::class, Todo::class, Task::class, Comment::class, Idea::class];
 
     public function __construct(
         private readonly KanbanOrdering $kanban,

@@ -12,7 +12,7 @@ use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 /**
  * Query.trash: with projectId the trash of that project (for people with
  * trash.restore or trash.purge there, otherwise empty), without it the
- * deleted projects the viewer may bring back.
+ * deleted projects the viewer may bring back and the viewer's own deleted ideas.
  */
 class Trash
 {
@@ -29,7 +29,7 @@ class Trash
         $viewer = $this->viewer($context);
 
         if (($args['projectId'] ?? null) === null) {
-            return $this->listing->deletedProjects($viewer);
+            return [...$this->listing->deletedProjects($viewer), ...$this->listing->ownIdeas($viewer)];
         }
 
         $project = Project::query()->visibleTo($viewer)->find($args['projectId']);

@@ -3,6 +3,7 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
+use App\Models\Idea;
 use App\Models\Task;
 use App\Models\Template;
 use App\Services\Deletion;
@@ -90,6 +91,10 @@ class OutsiderAccessTest extends GraphQLTestCase
             'setProjectWebhook' => ['stranger', 'mutation ($p: ID!) { setProjectWebhook(projectId: $p, input: {kind: GITHUB, target: "a/b", secret: "x"}) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'removeProjectWebhook' => ['stranger', 'mutation ($p: ID!) { removeProjectWebhook(projectId: $p) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'testProjectWebhook' => ['stranger', 'mutation ($p: ID!) { testProjectWebhook(projectId: $p) { ok } }', fn (self $test) => ['p' => $test->project->id]],
+            'createIdea' => ['lesend', 'mutation { createIdea(input: {title: "Nicht erlaubt"}) { id } }', fn (self $test) => []],
+            'updateIdea' => ['stranger', 'mutation ($id: ID!) { updateIdea(id: $id, input: {title: "Hack"}) { id } }', fn (self $test) => ['id' => Idea::factory()->create(['user_id' => $test->users['member']->id])->id]],
+            'setIdeaStatus' => ['stranger', 'mutation ($id: ID!) { setIdeaStatus(id: $id, status: DISCARDED) { id } }', fn (self $test) => ['id' => Idea::factory()->create(['user_id' => $test->users['member']->id])->id]],
+            'deleteIdea' => ['stranger', 'mutation ($id: ID!) { deleteIdea(id: $id) { id } }', fn (self $test) => ['id' => Idea::factory()->create(['user_id' => $test->users['member']->id])->id]],
             'importPlan' => ['stranger', 'mutation ($p: ID!, $d: String!) { importPlan(projectId: $p, document: $d) { ok } }', fn (self $test) => ['p' => $test->project->id, 'd' => '{}']],
             'moveTaskInTodo' => ['stranger', 'mutation ($id: ID!) { moveTaskInTodo(id: $id, position: 0) { id } }', $task],
             'moveTaskToTodo' => ['stranger', 'mutation ($id: ID!, $t: ID!) { moveTaskToTodo(id: $id, todoId: $t) { id } }', fn (self $test) => ['id' => $test->task->id, 't' => $test->todo->id]],

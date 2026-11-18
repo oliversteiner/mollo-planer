@@ -39,6 +39,14 @@ type Comment {
  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
  viewerCanEdit: Boolean!
 }
+input CreateIdeaInput {
+ description: RichText
+ "Entwurf: ein planer-v2-Ausschnitt als Text. Wird gegen das Schema geprüft und kanonisch gespeichert."
+ draft: String
+ "Ein Projekt, das die Person sieht"
+ projectId: ID
+ title: String!
+}
 input CreateMilestoneInput {
  description: RichText
  dueDate: Date
@@ -117,6 +125,39 @@ type Dashboard {
 scalar Date
 "Zeitpunkt, Format ISO 8601"
 scalar DateTime
+"Eine private Idee. Nur die Autorin oder der Autor ändert sie; wer ideas.viewAny hat, liest alle."
+type Idea {
+ adoptedAt: DateTime
+ author: User!
+ createdAt: DateTime!
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ description: RichText
+ "Entwurf: ein planer-v2-Ausschnitt als kanonischer Text, oder null"
+ draft: String
+ id: ID!
+ "Das Projekt, zu dem die Idee gehört, oder null"
+ project: Project
+ status: IdeaStatus!
+ title: String!
+ "Die ToDos, die aus dieser Idee entstanden sind"
+ todos: [Todo!]!
+ "Darf die angemeldete Person die Idee ändern (nur die Autorin)?"
+ viewerCanUpdate: Boolean!
+}
+"A paginated list of Idea items."
+type IdeaPaginator {
+ "A list of Idea items."
+ data: [Idea!]!
+ "Pagination information about the list of items."
+ paginatorInfo: PaginatorInfo!
+}
+"Wo eine Idee steht. Nicht der Status IDEA eines Tasks: der gehört zu einem Projekt."
+enum IdeaStatus {
+ ADOPTED
+ DISCARDED
+ OPEN
+}
 type ImportChange {
  "Welche Felder betroffen sind"
  fields: [String!]!
@@ -285,6 +326,8 @@ type Mutation {
  assignTask(assigneeId: ID, id: ID!): Task!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
+ "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
+ createIdea(input: CreateIdeaInput!): Idea!
  createMilestone(input: CreateMilestoneInput!): Milestone!
  createProject(input: CreateProjectInput!): Project!
  "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
@@ -304,6 +347,8 @@ type Mutation {
  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
  deleteApiToken(id: ID!): ApiToken
  deleteComment(id: ID!): Comment!
+ "Löscht eine eigene Idee in den Papierkorb"
+ deleteIdea(id: ID!): Idea!
  deleteMilestone(id: ID!): Milestone!
  deleteProject(id: ID!): Project!
  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
@@ -361,6 +406,8 @@ type Mutation {
  restoreFromTrash(deletionId: ID!): TrashItem!
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
+ "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
+ setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
  setProjectCreatorRole(roleKey: String!): AppSettings!
  "Fügt eine Person hinzu oder ändert ihre Rolle"
@@ -376,6 +423,8 @@ type Mutation {
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ "Ändert eine eigene Idee"
+ updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
  updateMyAvatar(avatar: Upload!): User!
@@ -424,6 +473,25 @@ enum OrderByRelationWithColumnAggregateFunction {
  MIN
  "Sum."
  SUM
+}
+"Information about pagination using a fully featured paginator."
+type PaginatorInfo {
+ "Number of items in the current page."
+ count: Int!
+ "Index of the current page."
+ currentPage: Int!
+ "Index of the first item in the current page."
+ firstItem: Int
+ "Are there more pages after this one?"
+ hasMorePages: Boolean!
+ "Index of the last item in the current page."
+ lastItem: Int
+ "Index of the last available page."
+ lastPage: Int!
+ "Number of items per page."
+ perPage: Int!
+ "Number of total available items."
+ total: Int!
 }
 "Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"
 type Passkey {
@@ -600,6 +668,18 @@ type Query {
  dashboard: Dashboard!
  "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
  exportPlan(projectId: ID!): String!
+ "Eine Idee, oder null, wenn es sie nicht gibt oder du sie nicht lesen darfst"
+ idea(id: ID!): Idea
+ "Deine Ideen, neueste zuerst. Mit ideas.viewAny alle, oder die einer Autorin mit authorId (nur mit diesem Recht)."
+ ideas(
+ authorId: ID
+ "Limits number of fetched items. Maximum allowed value: 100."
+ first: Int! = 20
+ "The offset from which items are returned."
+ page: Int
+ projectId: ID
+ status: IdeaStatus
+ ): IdeaPaginator!
  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
  kanban(projectId: ID!): [KanbanColumn!]!
  "Der angemeldete Benutzer"
@@ -631,7 +711,7 @@ type Query {
  todo(id: ID!): Todo
  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
  todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
- "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst."
+ "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst, und deine gelöschten Ideen."
  trash(projectId: ID): [TrashItem!]!
  "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
  users: [User!]!
@@ -909,6 +989,7 @@ type TrashItem {
 "Art eines Elements im Papierkorb"
 enum TrashItemType {
  COMMENT
+ IDEA
  MILESTONE
  PROJECT
  TASK
@@ -925,6 +1006,13 @@ enum Trashed {
 }
 input UpdateCommentInput {
  body: RichText!
+}
+"Nur die genannten Felder ändern sich; null leert Beschreibung, Projekt und Entwurf."
+input UpdateIdeaInput {
+ description: RichText
+ draft: String
+ projectId: ID
+ title: String
 }
 input UpdateMilestoneInput {
  description: RichText

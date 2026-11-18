@@ -109,6 +109,7 @@ enum TrashItemType {
   TODO
   TASK
   COMMENT
+  IDEA
 }
 
 "Spalten im Kanban-Board"
@@ -151,4 +152,11 @@ enum WebhookKind {
   GITHUB @enum(value: "github")
   "POST an eine Adresse, der Body mit HMAC-SHA256 signiert"
   GENERIC @enum(value: "generic")
+}
+
+"Wo eine Idee steht. Nicht der Status IDEA eines Tasks: der gehört zu einem Projekt."
+enum IdeaStatus {
+  OPEN @enum(value: "open")
+  ADOPTED @enum(value: "adopted")
+  DISCARDED @enum(value: "discarded")
 }

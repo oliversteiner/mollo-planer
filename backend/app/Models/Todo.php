@@ -75,6 +75,16 @@ class Todo extends Model implements BelongsToProject
     }
 
     /**
+     * The idea this todo was made from, if any (docs/auftrag-m6.md §2.3).
+     *
+     * @return BelongsTo<Idea, $this>
+     */
+    public function idea(): BelongsTo
+    {
+        return $this->belongsTo(Idea::class)->withTrashed();
+    }
+
+    /**
      * @return HasMany<Task, $this>
      */
     public function tasks(): HasMany

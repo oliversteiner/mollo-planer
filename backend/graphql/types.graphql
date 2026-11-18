@@ -483,3 +483,24 @@ type WebhookTestResult {
   ok: Boolean!
   message: String!
 }
+
+"Eine private Idee. Nur die Autorin oder der Autor ändert sie; wer ideas.viewAny hat, liest alle."
+type Idea {
+  id: ID!
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
+  title: String!
+  description: RichText
+  author: User! @belongsTo(relation: "author")
+  "Das Projekt, zu dem die Idee gehört, oder null"
+  project: Project @belongsTo
+  status: IdeaStatus!
+  "Entwurf: ein planer-v2-Ausschnitt als kanonischer Text, oder null"
+  draft: String
+  createdAt: DateTime! @rename(attribute: "created_at")
+  adoptedAt: DateTime @rename(attribute: "adopted_at")
+  "Die ToDos, die aus dieser Idee entstanden sind"
+  todos: [Todo!]! @hasMany
+  "Darf die angemeldete Person die Idee ändern (nur die Autorin)?"
+  viewerCanUpdate: Boolean! @field(resolver: "App\\GraphQL\\Resolvers\\IdeaViewerCan@update")
+}

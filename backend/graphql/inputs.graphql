@@ -201,3 +201,20 @@ input ProjectWebhookInput {
   "GitHub: Token. Allgemein: Geheimnis für die Signatur. Wird nie wieder angezeigt."
   secret: String
 }
+
+input CreateIdeaInput {
+  title: String! @rules(apply: ["min:2", "max:200"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
+  "Ein Projekt, das die Person sieht"
+  projectId: ID
+  "Entwurf: ein planer-v2-Ausschnitt als Text. Wird gegen das Schema geprüft und kanonisch gespeichert."
+  draft: String
+}
+
+"Nur die genannten Felder ändern sich; null leert Beschreibung, Projekt und Entwurf."
+input UpdateIdeaInput {
+  title: String @rules(apply: ["min:2", "max:200"])
+  description: RichText @rules(apply: ["App\\Rules\\DescriptionRule"])
+  projectId: ID
+  draft: String
+}

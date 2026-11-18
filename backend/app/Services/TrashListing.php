@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Comment;
+use App\Models\Idea;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
@@ -67,6 +68,16 @@ final class TrashListing
     }
 
     /**
+     * The ideas of the viewer in the trash (ideas are private: nobody else sees or restores them).
+     *
+     * @return list<TrashItem>
+     */
+    public function ownIdeas(User $viewer): array
+    {
+        return $this->items(Idea::onlyTrashed()->where('user_id', $viewer->getKey())->whereNotNull('deletion_id')->get(), $viewer);
+    }
+
+    /**
      * The entry of one deletion, read before it is restored (afterwards
      * it has no deletion data any more).
      *
@@ -81,6 +92,7 @@ final class TrashListing
         $project = match (true) {
             $top instanceof Project => $top,
             $top instanceof Comment => $top->task->project,
+            $top instanceof Idea => null,
             $top !== null => $top->project,
             default => null,
         };
@@ -113,7 +125,12 @@ final class TrashListing
                     'type' => strtoupper(Deletion::typeOf($top)),
                     'id' => $top->getKey(),
                     'title' => $this->titleOf($top),
-                    'project' => $top instanceof Project ? $top : ($top instanceof Comment ? $top->task->project : $top->project),
+                    'project' => match (true) {
+                        $top instanceof Project => $top,
+                        $top instanceof Comment => $top->task->project,
+                        $top instanceof Idea => null,
+                        default => $top->project,
+                    },
                     'deletedBy' => $deletedBy->get($top->deleted_by),
                     'deletedAt' => $top->deleted_at,
                     'childCount' => $others->count(),

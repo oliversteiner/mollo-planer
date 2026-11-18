@@ -59,9 +59,14 @@ type Query @guard {
     @field(resolver: "App\\GraphQL\\Queries\\RoleFunctions")
   "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
   permissionMatrix: PermissionMatrix! @can(ability: "viewAny", model: "App\\Models\\User") @field(resolver: "App\\GraphQL\\Queries\\PermissionMatrixQuery")
+  "Deine Ideen, neueste zuerst. Mit ideas.viewAny alle, oder die einer Autorin mit authorId (nur mit diesem Recht)."
+  ideas(status: IdeaStatus, projectId: ID, authorId: ID): [Idea!]!
+    @paginate(builder: "App\\GraphQL\\Builders\\IdeaBuilder@visible", defaultCount: 20, maxCount: 100)
+  "Eine Idee, oder null, wenn es sie nicht gibt oder du sie nicht lesen darfst"
+  idea(id: ID!): Idea @field(resolver: "App\\GraphQL\\Queries\\IdeaQuery")
   "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
   appSettings: AppSettings! @field(resolver: "App\\GraphQL\\Queries\\AppSettings")
 
-  "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst."
+  "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst, und deine gelöschten Ideen."
   trash(projectId: ID): [TrashItem!]! @field(resolver: "App\\GraphQL\\Queries\\Trash")
 }
