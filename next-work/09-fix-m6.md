@@ -1,6 +1,6 @@
 # Auftrag: Fix M6 (F9)
 
-Status: offen
+Status: erledigt (c9adff5, da207b5, F9.3 und F9.5 je ein Commit, acdc039); Browser-Sicht bei der Nachprüfung durch die Planung
 Stand: 2026-11-18, `dev` bis `5a5d55a`.
 Dokument: `docs/fix-m6.md` (maßgeblich). Ergebnisse der Abnahme: `docs/abnahme-m6.md`.
 
