@@ -1,6 +1,6 @@
 # 22 · Onboarding härten (Backend)
 
-Status: offen
+Status: erledigt (O1 55a2f6b, O2, O3, O4 6b4c15d, O5 c492233, O6 8e40121, O7 eb4da8d und 54309b8, O8 e37c730, O9 9827aa0, Doku 7f44cda auf `fix/onboarding-backend`); wartet auf Oliver
 Reihenfolge: nach Auftrag 21, vor Auftrag 23 (Frontend) und 20 (Browser-Tests). Ein Commit je Punkt (O1 bis O9), Tests im jeweiligen Commit.
 Branch: `fix/onboarding-backend` **von `fix/verify-email-public`** (Auftrag 21; die Aufträge sind gestapelt). **Zuerst** `feature/user-commands` (Auftrag 18) hineinmergen, als eigener Merge-Commit: O5 und O7 brauchen den Dienst `App\Services\UserSecurity` und `app:user-2fa` von dort. Konflikte beim Merge löst Bob nicht still, sondern nennt sie im Bericht. Nichts mergen nach und nichts pushen auf `dev` oder `main`, bis Oliver es sagt; der Tag `v1.0.0` wird heute nach der Umsetzung des Onboardings gesetzt (Oliver).
 Grundlage: `docs/onboarding-gutachten.md` (Fable, 2026-11-18), Empfehlungen E4, E7 bis E12, E16. Dieser Auftrag ist ohne das Gutachten lesbar; die genannten Fundstellen sind die des Gutachtens und von Bob nachzuprüfen.
