@@ -1,0 +1,23 @@
+<?php
+
+return [
+    'not_configured' => 'The AI assistant is not set up yet. ANTHROPIC_API_KEY is missing in the backend .env.',
+    'invalid_key' => 'Claude refuses the API key. Check ANTHROPIC_API_KEY in the .env of the backend (it starts with sk-ant-).',
+    'unavailable' => 'Claude is not reachable right now. Please try again in a moment.',
+    'refused' => 'Claude refused this request. Please word it differently.',
+    'too_large' => 'The plan became too big. Please narrow it down, for example to fewer milestones.',
+    'limit_hour' => 'You asked for :max drafts this hour. Possible again from :time.',
+    'limit_day' => 'You asked for :max drafts today. Possible again from :time.',
+    'show_all' => 'Show all',
+    'invalid_draft' => 'The draft was not valid. Could you describe the request a little more exactly?',
+    'no_project' => 'This project does not exist, or you may not add to it.',
+    'archived' => 'The project is archived. Nothing can be added here. You can keep the idea in your ideas.',
+    'unknown_person' => 'Assignment to :name by an authorised person.',
+    'unclear_person' => 'There is no clear account for “:name”. The assignment stays empty.',
+    'only_self' => 'You may only assign tasks to yourself. The assignment to :name was left empty; an authorised person can set it.',
+    'duplicate_todo' => 'The to-do “:title” already exists in the milestone “:milestone”.',
+    'duplicate_task' => 'The task “:title” already exists in the to-do “:todo”.',
+    'description_warning' => ':where: :kind (line :line) became text.',
+    'preview_failed' => 'The preview reports errors. Check the draft or ask for a change.',
+    'idea_unknown' => 'This idea does not exist.',
+];

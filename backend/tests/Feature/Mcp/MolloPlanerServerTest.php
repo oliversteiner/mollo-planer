@@ -46,6 +46,24 @@ class MolloPlanerServerTest extends McpTestCase
             ->assertSee('lindita@example.ch');
     }
 
+    public function test_list_users_without_a_project_gives_names_only_to_somebody_who_does_not_manage_users(): void
+    {
+        MolloPlanerServer::actingAs($this->member)->tool(ListUsersTool::class)
+            ->assertOk()
+            ->assertSee($this->owner->name)
+            ->assertDontSee($this->owner->email);
+    }
+
+    public function test_list_users_with_a_project_gives_its_members_with_e_mail_and_hides_foreign_projects(): void
+    {
+        MolloPlanerServer::actingAs($this->owner)->tool(ListUsersTool::class, ['project_id' => (string) $this->project->id])
+            ->assertOk()
+            ->assertSee($this->owner->email);
+
+        MolloPlanerServer::actingAs($this->stranger)->tool(ListUsersTool::class, ['project_id' => (string) $this->project->id])
+            ->assertHasErrors();
+    }
+
     public function test_the_server_offers_exactly_one_way_to_read_and_one_to_write_a_plan(): void
     {
         $list = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'];

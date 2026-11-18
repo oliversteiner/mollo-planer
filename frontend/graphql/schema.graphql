@@ -364,12 +364,18 @@ type Mutation {
  deleteUser(id: ID!): User!
  "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
  deleteUserAvatar(id: ID!): User!
- "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
- draftProjectPlan(
- "Der Entwurf in der Vorschau, damit Claude ihn ändert statt neu beginnt"
- currentPlan: ProjectPlanInput
+ "KI-Assistent (assistant.use): der nächste Schritt eines Plans aus dem Chat, mit Rückfrage-Knöpfen und Vorschau (Trockenlauf mit appendOnly). Speichert nichts. Grenzen je Person und Stunde/Tag."
+ draftPlan(
+ "Der Plan der Vorschau (kanonischer Text), damit Claude ihn ändert statt neu beginnt"
+ currentPlan: String
+ "Die Idee, aus der der Plan entsteht"
+ ideaId: ID
  messages: [PlanChatMessageInput!]!
- ): ProjectPlanDraft!
+ "Das Projekt, zu dem ergänzt wird; ohne: neues Projekt oder noch offen"
+ projectId: ID
+ "Die gewählte Vorlage eines neuen Projekts"
+ templateId: ID
+ ): PlanDraft!
  "Kopiert eine Rolle mit ihren Funktionen als eigene Rolle."
  duplicateRole(id: ID!): Role!
  "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
@@ -392,8 +398,6 @@ type Mutation {
  "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
  templateId: ID
  ): ImportResult!
- "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
- importProjectPlan(notifyAssignees: Boolean = false, plan: ProjectPlanInput!): Project!
  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
  moveMilestone(id: ID!, position: Int!): Milestone!
  "Verschiebt einen Task im Kanban"
@@ -534,6 +538,46 @@ enum PlanChatRole {
  ASSISTANT
  USER
 }
+type PlanChoice {
+ detail: String
+ kind: PlanChoiceKind!
+ label: String!
+ recommended: Boolean!
+ value: String
+}
+"Welche Art Antwort-Knopf der Assistent anbietet"
+enum PlanChoiceKind {
+ "An ein vorhandenes ToDo anhängen (value = t-<id>)"
+ APPEND_TO_TODO
+ CUSTOM_MILESTONE
+ "Als Idee ablegen"
+ IDEA
+ "Ein vorhandener Milestone (value = m-<id>)"
+ MILESTONE
+ NEW_MILESTONE
+ NEW_PROJECT
+ NO_TEMPLATE
+ "Ein vorhandenes Projekt (value = ID)"
+ PROJECT
+ SHOW_ALL
+ "Eine Vorlage für das neue Projekt (value = ID)"
+ TEMPLATE
+}
+"Antwort des Assistenten"
+type PlanDraft {
+ "Rückfrage-Knöpfe (höchstens fünf, dann „Alle anzeigen“), sonst leer"
+ choices: [PlanChoice!]!
+ "Hinweise der Nachbearbeitung (unbekannte Person, Duplikat, Beschreibung zu Text geworden …)"
+ hints: [String!]!
+ "Der Auszug als kanonischer Text, null solange Angaben fehlen; geht mit der nächsten Nachricht als currentPlan zurück"
+ plan: String
+ "Trockenlauf des Imports mit appendOnly; null ohne Plan"
+ preview: ImportResult
+ projectId: ID
+ "Text für den Chat"
+ reply: String!
+ templateId: ID
+}
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
 type Progress {
  done: Int!
@@ -604,81 +648,10 @@ input ProjectMemberInput {
  role: String!
  userId: ID!
 }
-type ProjectPlan {
- description: String
- locale: Locale!
- members: [ProjectPlanMember!]!
- milestones: [ProjectPlanMilestone!]!
- name: String!
-}
-"Antwort des Assistenten: Text für den Chat und der ganze Plan (null, solange er noch Angaben braucht)"
-type ProjectPlanDraft {
- plan: ProjectPlan
- reply: String!
-}
-input ProjectPlanInput {
- description: String
- locale: Locale = DE
- members: [ProjectPlanMemberInput!]!
- milestones: [ProjectPlanMilestoneInput!]!
- name: String!
-}
-type ProjectPlanMember {
- email: String!
- role: ProjectRole!
-}
-input ProjectPlanMemberInput {
- email: String!
- role: ProjectRole!
-}
-type ProjectPlanMilestone {
- description: String
- dueDate: Date
- title: String!
- todos: [ProjectPlanTodo!]!
-}
-input ProjectPlanMilestoneInput {
- description: String
- dueDate: Date
- title: String!
- todos: [ProjectPlanTodoInput!]!
-}
-type ProjectPlanTask {
- "E-Mail eines Mitglieds aus members"
- assigneeEmail: String
- description: String
- dueDate: Date
- title: String!
-}
-input ProjectPlanTaskInput {
- assigneeEmail: String
- description: String
- dueDate: Date
- title: String!
-}
-type ProjectPlanTodo {
- description: String
- dueDate: Date
- tasks: [ProjectPlanTask!]!
- title: String!
-}
-input ProjectPlanTodoInput {
- description: String
- dueDate: Date
- tasks: [ProjectPlanTaskInput!]!
- title: String!
-}
 "Ein Projektrecht und die Projektrollen, die es haben. Wer das Systemrecht projects.manageAny hat, hat in jedem Projekt alle Projektrechte."
 type ProjectRightRow {
  right: Right!
  roles: [Role!]!
-}
-"Schlüssel der mitgelieferten Projektrollen. Nur noch im alten Projektplan (plan.graphql) verwendet, sonst gilt der Typ Role."
-enum ProjectRole {
- GUEST
- MANAGER
- MEMBER
- OWNER
 }
 "Wohin die App meldet, dass die Planer-Datei eine neue Revision hat. Das Geheimnis (Token oder HMAC-Geheimnis) gibt kein Feld zurück."
 type ProjectWebhook {

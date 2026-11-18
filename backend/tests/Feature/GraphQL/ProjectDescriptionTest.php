@@ -36,16 +36,4 @@ class ProjectDescriptionTest extends GraphQLTestCase
             'd' => ['type' => 'doc', 'content' => [['type' => 'paragraph']]],
         ])->assertJsonPath('data.updateProject.description', null);
     }
-
-    public function test_the_plan_of_the_assistant_gives_plain_text_that_becomes_paragraphs(): void
-    {
-        $id = $this->as('admin')->gql('mutation { importProjectPlan(plan: {name: "Podcast", description: "Erster Absatz.\n\nZweiter Absatz.", members: [], milestones: [{title: "Start", todos: []}]}) { id } }')
-            ->assertJsonMissingPath('errors')
-            ->json('data.importProjectPlan.id');
-
-        $this->assertSame(
-            ['Erster Absatz.', 'Zweiter Absatz.'],
-            array_map(fn (array $block): string => $block['content'][0]['text'], Project::findOrFail($id)->description['content']),
-        );
-    }
 }

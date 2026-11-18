@@ -57,7 +57,7 @@
 #             inputs.graphql     Eingaben (CreateTaskInput …)
 #             queries.graphql    Abfragen (type Query)
 #             mutations.graphql  Änderungen (type Mutation)
-#             plan.graphql       KI-Assistent: Projektplan per Chat
+#             plan.graphql       KI-Assistent: Plan per Chat
 
 #import scalars.graphql
 #import enums.graphql

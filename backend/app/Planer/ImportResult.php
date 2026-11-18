@@ -29,6 +29,24 @@ final class ImportResult
     }
 
     /**
+     * The shape of the GraphQL type ImportResult.
+     *
+     * @return array<string, mixed>
+     */
+    public function forGraphQL(): array
+    {
+        return [
+            'ok' => $this->ok(),
+            'dryRun' => $this->dryRun,
+            'projectId' => $this->projectId,
+            'changes' => $this->changes,
+            'errors' => $this->errors,
+            'idMap' => array_map(fn (string $from, string $to): array => ['from' => $from, 'to' => $to], array_keys($this->idMap), array_values($this->idMap)),
+            'document' => $this->document === null ? null : Canonical::text($this->document),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array

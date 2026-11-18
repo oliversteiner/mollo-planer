@@ -21,7 +21,6 @@ class RightUsageTest extends TestCase
      * @var array<string, string>
      */
     private const PENDING = [
-        'assistant.use' => 'B5a',
         'system.view' => 'system-plan.md',
         'database.view' => 'system-plan.md',
     ];

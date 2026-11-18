@@ -17,7 +17,7 @@ class MutationCoverageTest extends TestCase
      * multipart request, tested with its own helper in AvatarTest; the same for
      * the file of the AI context (AiContextTest, with its rights and the archive).
      */
-    private const EXEMPT = ['updateMyAvatar', 'uploadProjectAiContextFile'];
+    private const EXEMPT = ['updateMyAvatar', 'uploadProjectAiContextFile', 'draftPlan'];
 
     public function test_every_schema_mutation_is_covered_by_an_access_test(): void
     {

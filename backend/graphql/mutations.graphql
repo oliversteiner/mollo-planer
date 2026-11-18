@@ -180,19 +180,19 @@ type Mutation @guard {
     appendOnly: Boolean = false
   ): ImportResult!
     @field(resolver: "App\\GraphQL\\Mutations\\ImportPlan")
-  "KI-Assistent (nur Admins): entwirft aus dem Chat einen Projektplan mit Claude. Speichert nichts."
-  draftProjectPlan(
+  "KI-Assistent (assistant.use): der nächste Schritt eines Plans aus dem Chat, mit Rückfrage-Knöpfen und Vorschau (Trockenlauf mit appendOnly). Speichert nichts. Grenzen je Person und Stunde/Tag."
+  draftPlan(
     messages: [PlanChatMessageInput!]! @rules(apply: ["min:1", "max:40"])
-    "Der Entwurf in der Vorschau, damit Claude ihn ändert statt neu beginnt"
-    currentPlan: ProjectPlanInput
-  ): ProjectPlanDraft!
-    @can(ability: "create", model: "App\\Models\\Project")
-    @throttle(name: "plan-assistant")
-    @field(resolver: "App\\GraphQL\\Mutations\\DraftProjectPlan")
-  "Trägt einen Entwurf ein: Projekt, Mitglieder, Milestones, ToDos, Tasks. Alles oder nichts."
-  importProjectPlan(plan: ProjectPlanInput!, notifyAssignees: Boolean = false): Project!
-    @can(ability: "create", model: "App\\Models\\Project")
-    @field(resolver: "App\\GraphQL\\Mutations\\ImportProjectPlan")
+    "Das Projekt, zu dem ergänzt wird; ohne: neues Projekt oder noch offen"
+    projectId: ID
+    "Die gewählte Vorlage eines neuen Projekts"
+    templateId: ID
+    "Der Plan der Vorschau (kanonischer Text), damit Claude ihn ändert statt neu beginnt"
+    currentPlan: String @rules(apply: ["max:400000"])
+    "Die Idee, aus der der Plan entsteht"
+    ideaId: ID
+  ): PlanDraft!
+    @field(resolver: "App\\GraphQL\\Mutations\\DraftPlan")
   "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
   setProjectWebhook(projectId: ID!, input: ProjectWebhookInput!): Project!
     @can(ability: "update", find: "projectId", model: "App\\Models\\Project")

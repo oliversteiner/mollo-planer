@@ -4,7 +4,6 @@ namespace Tests\Unit;
 
 use App\Enums\ItemStatus;
 use App\Enums\Locale;
-use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Enums\TaskStatus;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -22,7 +21,6 @@ class GraphqlEnumBindingTest extends TestCase
     public static function enums(): array
     {
         return [
-            'ProjectRole' => [ProjectRole::class],
             'Right' => [Right::class],
             'ItemStatus' => [ItemStatus::class],
             'TaskStatus' => [TaskStatus::class],
