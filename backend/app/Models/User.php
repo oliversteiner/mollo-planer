@@ -103,13 +103,23 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     }
 
     /**
-     * The language of mails that do not arise in a request of this person (a security notice, the
-     * approval): the stored language of the account (users.locale), otherwise the one of the
-     * current request, otherwise the application's.
+     * The language of a mail about a change the person made in their own request (a security notice):
+     * the stored language of the account (users.locale), otherwise the one of the current request,
+     * otherwise the application's.
      */
     public function mailLocale(): string
     {
         return Locale::tryFrom((string) $this->getAttribute('locale'))?->value ?? app()->getLocale();
+    }
+
+    /**
+     * The language of a mail that arises in somebody else's request (an admin resets the factor, releases or
+     * rejects the account): the stored language of the account (users.locale), otherwise the application's
+     * (APP_LOCALE). Never the language of the admin's request.
+     */
+    public function accountLocale(): string
+    {
+        return Locale::tryFrom((string) $this->getAttribute('locale'))?->value ?? (string) config('app.locale');
     }
 
     /**

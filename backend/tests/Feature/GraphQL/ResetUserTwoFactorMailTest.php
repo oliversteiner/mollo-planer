@@ -22,10 +22,11 @@ class ResetUserTwoFactorMailTest extends GraphQLTestCase
         $admin = $this->users['admin'];
 
         // The admin asks in German, the person has no stored language: the application's (never the admin's request).
+        config(['app.locale' => 'en']);
         $this->as('admin')->withHeader('Accept-Language', 'de')->gql(self::MUTATION, ['id' => $member->id])->assertJsonMissingPath('errors');
 
         Notification::assertSentToTimes($member, SecurityChange::class, 1);
-        Notification::assertSentTo($member, SecurityChange::class, fn (SecurityChange $notification): bool => $notification->kind === SecurityChange::ADMIN_RESET && $notification->locale === $member->mailLocale());
+        Notification::assertSentTo($member, SecurityChange::class, fn (SecurityChange $notification): bool => $notification->kind === SecurityChange::ADMIN_RESET && $notification->locale === 'en');
         Log::shouldHaveReceived('warning')->once()->withArgs(function (string $message, array $context) use ($member, $admin): bool {
             $text = json_encode($context);
 

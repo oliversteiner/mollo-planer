@@ -89,7 +89,7 @@ class UserSecurity
 
         // The only way around the second factor must not go unnoticed: the person hears of it (in their own
         // language, not the admin's) and the log names who did it, never an address or a secret.
-        $user->notify((new SecurityChange(SecurityChange::ADMIN_RESET))->locale($user->mailLocale()));
+        $user->notify((new SecurityChange(SecurityChange::ADMIN_RESET))->locale($user->accountLocale()));
         Log::warning('Second factor of a user reset.', [
             'action' => 'reset',
             'by' => $by,
