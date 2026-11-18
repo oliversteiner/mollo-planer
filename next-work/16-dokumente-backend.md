@@ -1,6 +1,6 @@
 # 16 · Dokumentenverwaltung, Backend (D0 bis D5, D9)
 
-Status: offen
+Status: offen. **D0 erledigt** (Ergebnis `docs/dokumente-versuch.md`), wartet auf Bestätigung von Profil und PDF-Bibliothek (Stuart und Oliver), dann D1 bis D5 und D9.
 Plan: `docs/dokumentenverwaltung.md` (dritte Fassung, 2026-11-18). Maßgeblich ist der Plan; hier die Zusammenfassung. Die Abnahmekriterien je Ticket stehen im Plan §12.
 
 ## Vorab
