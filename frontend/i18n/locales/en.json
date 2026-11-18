@@ -154,7 +154,8 @@
       "title": "Secure your account",
       "description": "Before you start, secure your account with a second factor.",
       "passkey": "Set up a passkey (recommended)",
-      "app": "Set up an authenticator app"
+      "app": "Set up an authenticator app",
+      "signInAgain": "Your second factor is set up. Sign in with it now."
     },
     "register": {
       "title": "Create account",

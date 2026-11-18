@@ -154,7 +154,8 @@
       "title": "Konto absichern",
       "description": "Bevor du loslegen kannst, sicherst du dein Konto mit einem zweiten Faktor ab.",
       "passkey": "Passkey einrichten (empfohlen)",
-      "app": "Authenticator-App einrichten"
+      "app": "Authenticator-App einrichten",
+      "signInAgain": "Dein Faktor ist eingerichtet. Melde dich jetzt damit an."
     },
     "register": {
       "title": "Konto anlegen",
