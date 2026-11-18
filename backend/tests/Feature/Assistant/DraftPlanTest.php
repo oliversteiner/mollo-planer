@@ -19,13 +19,18 @@ use Tests\Feature\GraphQL\GraphQLTestCase;
  */
 class DraftPlanTest extends GraphQLTestCase
 {
-    private const DRAFT = 'mutation ($p: ID, $t: ID, $plan: String, $idea: ID, $text: String = "Ergänze etwas in m-1 und t-1") {
+    private const DRAFT = 'mutation ($p: ID, $t: ID, $plan: String, $idea: ID, $text: String!) {
         draftPlan(messages: [{role: USER, content: $text}], projectId: $p, templateId: $t, currentPlan: $plan, ideaId: $idea) {
             reply plan projectId hints
             choices { kind label value recommended }
             preview { ok changes { kind path } errors { kind path } }
         }
     }';
+
+    private function draft(string $as, array $variables = [])
+    {
+        return $this->as($as)->gql(self::DRAFT, ['text' => "Ergänze etwas in m-{$this->milestone->id} und t-{$this->todo->id}", ...$variables]);
+    }
 
     /** @var array{system: string, messages: array}|null */
     private ?array $sent = null;
@@ -68,7 +73,7 @@ class DraftPlanTest extends GraphQLTestCase
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
         $before = Todo::query()->count();
 
-        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->assertJsonMissingPath('errors')->json('data.draftPlan');
+        $result = $this->draft('manager', ['p' => $this->project->id])->assertJsonMissingPath('errors')->json('data.draftPlan');
 
         $this->assertSame('Erledigt.', $result['reply']);
         $this->assertTrue($result['preview']['ok']);
@@ -85,7 +90,7 @@ class DraftPlanTest extends GraphQLTestCase
         $other = Milestone::factory()->for($this->project)->create(['title' => 'Go-live']);
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
 
-        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => 'Kontaktformular absichern bis Ende Dezember'])->json('data.draftPlan');
+        $result = $this->draft('manager', ['p' => $this->project->id, 'text' => 'Kontaktformular absichern bis Ende Dezember'])->json('data.draftPlan');
 
         $this->assertNull($result['plan']);
         $this->assertNull($result['preview']);
@@ -99,8 +104,8 @@ class DraftPlanTest extends GraphQLTestCase
     {
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
 
-        $byTitle = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => 'Plakate im Milestone '.strtoupper($this->milestone->title)])->json('data.draftPlan');
-        $byButton = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => "Ich wähle: Irgendwas (m-{$this->milestone->id})"])->json('data.draftPlan');
+        $byTitle = $this->draft('manager', ['p' => $this->project->id, 'text' => 'Plakate im Milestone '.strtoupper($this->milestone->title)])->json('data.draftPlan');
+        $byButton = $this->draft('manager', ['p' => $this->project->id, 'text' => "Ich wähle: Irgendwas (m-{$this->milestone->id})"])->json('data.draftPlan');
 
         $this->assertNotNull($byTitle['plan']);
         $this->assertNotNull($byButton['plan']);
@@ -112,7 +117,7 @@ class DraftPlanTest extends GraphQLTestCase
         $document['milestones'][0]['todos'] = [['id' => "t-{$this->todo->id}", 'title' => 'egal', 'description' => null, 'dueDate' => null, 'tasks' => [['id' => 'k', 'title' => 'Neuer Task', 'description' => null, 'dueDate' => null, 'status' => null, 'assigneeEmail' => null, 'labels' => [], 'userStory' => null]]]];
         $this->claude($this->answer($document));
 
-        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => "Neuer Task im Milestone m-{$this->milestone->id}"])->json('data.draftPlan');
+        $result = $this->draft('manager', ['p' => $this->project->id, 'text' => "Neuer Task im Milestone m-{$this->milestone->id}"])->json('data.draftPlan');
 
         $this->assertNull($result['plan']);
         $this->assertSame(['APPEND_TO_TODO'], array_unique(array_column($result['choices'], 'kind')));
@@ -123,7 +128,7 @@ class DraftPlanTest extends GraphQLTestCase
     {
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
 
-        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->json('data.draftPlan');
+        $result = $this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan');
         $todo = collect(json_decode($result['plan'], true)['milestones'][0]['todos'])->firstWhere('title', 'Neues ToDo');
 
         $this->assertArrayNotHasKey('dueDate', $todo);
@@ -134,7 +139,7 @@ class DraftPlanTest extends GraphQLTestCase
     {
         $this->claude($this->answer($this->todoPlan('m-999999')));
 
-        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->json('data.draftPlan');
+        $result = $this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan');
 
         $this->assertFalse($result['preview']['ok']);
     }
@@ -149,7 +154,7 @@ class DraftPlanTest extends GraphQLTestCase
             ['kind' => 'IDEA', 'label' => 'Idee', 'detail' => null, 'value' => null, 'recommended' => false],
         ]));
 
-        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->json('data.draftPlan');
+        $result = $this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan');
 
         $this->assertNull($result['plan']);
         $this->assertNull($result['preview']);
@@ -162,7 +167,7 @@ class DraftPlanTest extends GraphQLTestCase
         $choices = array_map(fn (int $i): array => ['kind' => 'CUSTOM_MILESTONE', 'label' => "Wahl {$i}", 'detail' => null, 'value' => null, 'recommended' => false], range(1, 7));
         $this->claude($this->answer(null, $choices));
 
-        $kinds = array_column($this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->json('data.draftPlan.choices'), 'kind');
+        $kinds = array_column($this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan.choices'), 'kind');
 
         $this->assertCount(6, $kinds);
         $this->assertSame('SHOW_ALL', end($kinds));
@@ -173,7 +178,7 @@ class DraftPlanTest extends GraphQLTestCase
         $other = $this->users['manager']->email;
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}", ['assigneeEmail' => $other])));
 
-        $result = $this->as('owner')->gql(self::DRAFT, ['p' => $this->project->id])->json('data.draftPlan');
+        $result = $this->draft('owner', ['p' => $this->project->id])->json('data.draftPlan');
 
         $this->assertTrue($result['preview']['ok']);
     }
@@ -182,7 +187,7 @@ class DraftPlanTest extends GraphQLTestCase
     {
         $this->claude($this->answer());
 
-        $this->as('stranger')->gql(self::DRAFT, ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.no_project'));
+        $this->draft('stranger', ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.no_project'));
     }
 
     public function test_an_archived_project_gives_a_message_not_a_draft(): void
@@ -190,7 +195,7 @@ class DraftPlanTest extends GraphQLTestCase
         $this->claude($this->answer());
         $this->project->forceFill(['archived_at' => now()])->save();
 
-        $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.archived'));
+        $this->draft('manager', ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.archived'));
     }
 
     public function test_a_new_project_from_a_template_goes_from_the_draft_to_the_import(): void
@@ -201,7 +206,7 @@ class DraftPlanTest extends GraphQLTestCase
             'milestones' => [['id' => 'x', 'title' => 'Start', 'description' => null, 'dueDate' => null, 'todos' => [['id' => 'y', 'title' => 'Plakate', 'description' => null, 'dueDate' => null, 'tasks' => [['id' => 'z', 'title' => 'Plakat entwerfen', 'description' => null, 'dueDate' => null, 'status' => null, 'assigneeEmail' => null, 'labels' => ['presse'], 'userStory' => null]]]]]],
         ]));
 
-        $draft = $this->as('admin')->gql(self::DRAFT, ['t' => $template->id])->json('data.draftPlan');
+        $draft = $this->draft('admin', ['t' => $template->id])->json('data.draftPlan');
 
         $this->assertTrue($draft['preview']['ok']);
 
@@ -218,20 +223,20 @@ class DraftPlanTest extends GraphQLTestCase
         config(['services.anthropic.limits' => ['hour' => 2, 'day' => 200]]);
         RateLimiter::clear('assistant-hour:'.$this->users['manager']->id);
 
-        $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->assertJsonMissingPath('errors');
-        $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->assertJsonMissingPath('errors');
-        $message = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->json('errors.0.message');
+        $this->draft('manager', ['p' => $this->project->id])->assertJsonMissingPath('errors');
+        $this->draft('manager', ['p' => $this->project->id])->assertJsonMissingPath('errors');
+        $message = $this->draft('manager', ['p' => $this->project->id])->json('errors.0.message');
 
         $this->assertStringStartsWith(strstr(__('assistant.limit_hour', ['max' => 2, 'time' => '']), 'Possible', true) ?: '', $message);
         $this->assertMatchesRegularExpression('/\d{2}:\d{2}/', $message);
-        $this->as('owner')->gql(self::DRAFT, ['p' => $this->project->id])->assertJsonMissingPath('errors');
+        $this->draft('owner', ['p' => $this->project->id])->assertJsonMissingPath('errors');
     }
 
     public function test_an_api_error_is_a_sentence_and_nothing_is_saved(): void
     {
         $this->partialMock(ClaudeClient::class, fn (MockInterface $mock) => $mock->shouldReceive('ask')->andReturnUsing(fn () => throw new AssistantError(__('assistant.unavailable'))));
 
-        $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.unavailable'));
+        $this->draft('manager', ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.unavailable'));
     }
 
     public function test_the_idea_goes_into_the_prompt_and_only_its_author_may_use_it(): void
@@ -240,9 +245,9 @@ class DraftPlanTest extends GraphQLTestCase
         $mine = Idea::factory()->create(['user_id' => $this->users['manager']->id, 'title' => 'Mein Einfall']);
         $foreign = Idea::factory()->create(['user_id' => $this->users['owner']->id]);
 
-        $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'idea' => $mine->id])->assertJsonMissingPath('errors');
+        $this->draft('manager', ['p' => $this->project->id, 'idea' => $mine->id])->assertJsonMissingPath('errors');
         $this->assertStringContainsString('Mein Einfall', $this->sent['system']);
-        $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'idea' => $foreign->id])->assertGraphQLValidationKeys(['ideaId']);
+        $this->draft('manager', ['p' => $this->project->id, 'idea' => $foreign->id])->assertGraphQLValidationKeys(['ideaId']);
     }
 
     public function test_the_ai_context_is_fenced_as_background_knowledge(): void
@@ -250,7 +255,7 @@ class DraftPlanTest extends GraphQLTestCase
         $this->claude($this->answer());
         $this->project->aiContext()->create(['text' => 'Wir bauen ein Haus.']);
 
-        $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->assertJsonMissingPath('errors');
+        $this->draft('manager', ['p' => $this->project->id])->assertJsonMissingPath('errors');
 
         $this->assertStringContainsString('<project_background', $this->sent['system']);
         $this->assertStringContainsString('Wir bauen ein Haus.', $this->sent['system']);
