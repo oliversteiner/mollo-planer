@@ -224,6 +224,16 @@ function resetFilters(): void {
 }
 
 /** The button follows the view; the scope of the tab is preset in the form. */
+// The button is in the page actions, which the calm view hides.
+useCommands(() => [{
+  id: 'roles-create',
+  label: state.value.view === 'functions' ? t('roleSettings.createFunction') : t('roleSettings.createRole'),
+  icon: 'plus',
+  group: 'action',
+  visible: () => state.value.view !== 'matrix',
+  run: () => create()
+}])
+
 function create(): void {
   if (state.value.view === 'functions') {
     editingFunction.value = { scope: state.value.scope }

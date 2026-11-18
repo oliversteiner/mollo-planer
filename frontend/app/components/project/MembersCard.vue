@@ -125,7 +125,10 @@ async function confirmRemove(): Promise<void> {
       <h2 class="wa-heading-m">
         {{ t('settings.members.title') }}
       </h2>
-      <p class="wa-body-s wa-color-text-quiet">
+      <p
+        class="wa-body-s wa-color-text-quiet"
+        data-zen="hide"
+      >
         {{ t('settings.members.intro') }}
       </p>
     </div>

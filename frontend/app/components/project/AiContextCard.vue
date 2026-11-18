@@ -97,7 +97,10 @@ async function clearAll(): Promise<void> {
       <h2 class="wa-heading-m">
         {{ t('aiContext.title') }}
       </h2>
-      <p class="wa-body-s wa-color-text-quiet">
+      <p
+        class="wa-body-s wa-color-text-quiet"
+        data-zen="hide"
+      >
         {{ t('aiContext.intro') }}
       </p>
     </div>

@@ -33,6 +33,20 @@ const { mutate: deleteTemplate } = useMutation(deleteTemplateMutation, templateR
 const { mutate: createFromFile } = useMutation(createTemplateFromFileMutation, templateRefresh)
 const { errors: uploadErrors, run: runUpload } = useGraphqlForm()
 const fileInput = ref<HTMLInputElement | null>(null)
+
+// The buttons are in the page actions, which the calm view hides.
+useCommands(() => [
+  { id: 'templates-upload', label: t('templates.upload'), icon: 'file-import', group: 'action', run: () => fileInput.value?.click() },
+  {
+    id: 'templates-create',
+    label: t('templates.create'),
+    icon: 'plus',
+    group: 'action',
+    run: () => {
+      editing.value = {}
+    }
+  }
+])
 const uploadProblem = ref<string | null>(null)
 
 async function upload(event: Event): Promise<void> {

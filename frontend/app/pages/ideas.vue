@@ -80,6 +80,20 @@ function descriptionOf(idea: Idea): Record<string, unknown> | null {
 }
 
 const filters: Filter[] = ['OPEN', 'ADOPTED', 'DISCARDED', 'ALL']
+
+// The new-idea button and the filters are hidden in the calm view: the palette keeps them reachable.
+useCommands(() => [
+  { id: 'ideas-new', label: t('ideas.new'), icon: 'plus', group: 'action' as const, run: () => openDialog() },
+  ...filters.map(value => ({
+    id: `ideas-filter-${value}`,
+    label: `${t('ideas.title')}: ${t(`ideas.status.${value}`)}`,
+    icon: 'filter',
+    group: 'action' as const,
+    run: () => {
+      filter.value = value
+    }
+  }))
+])
 </script>
 
 <template>
@@ -106,6 +120,7 @@ const filters: Filter[] = ['OPEN', 'ADOPTED', 'DISCARDED', 'ALL']
         class="wa-cluster wa-gap-xs"
         role="group"
         :aria-label="t('ideas.filter')"
+        data-zen="hide"
       >
         <wa-button
           v-for="value in filters"
@@ -147,7 +162,10 @@ const filters: Filter[] = ['OPEN', 'ADOPTED', 'DISCARDED', 'ALL']
             </wa-badge>
           </div>
 
-          <p class="idea-meta">
+          <p
+            class="idea-meta"
+            data-zen="hide"
+          >
             {{ formatDateTime(idea.createdAt, language) }}
             <template v-if="idea.project">
               · <NuxtLink :to="`/projects/${idea.project.id}`">

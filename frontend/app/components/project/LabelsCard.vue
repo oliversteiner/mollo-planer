@@ -24,7 +24,10 @@ const fromTemplate = ref(false)
       <h2 class="wa-heading-m">
         {{ t('labels.cardTitle') }}
       </h2>
-      <p class="wa-body-s wa-color-text-quiet">
+      <p
+        class="wa-body-s wa-color-text-quiet"
+        data-zen="hide"
+      >
         {{ t('labels.cardIntro') }}
       </p>
     </div>

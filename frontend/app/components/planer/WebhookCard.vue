@@ -110,7 +110,10 @@ function errorText(code: string | null | undefined): string {
       <h2 class="wa-heading-m">
         {{ t('planer.webhook.title') }}
       </h2>
-      <p class="wa-body-s wa-color-text-quiet">
+      <p
+        class="wa-body-s wa-color-text-quiet"
+        data-zen="hide"
+      >
         {{ t('planer.webhook.intro') }}
       </p>
     </div>

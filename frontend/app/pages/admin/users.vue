@@ -16,6 +16,15 @@ useHead({ title: () => t('admin.users.title') })
 
 const { result, loading, refetch } = useQuery(adminUsersQuery, null, { fetchPolicy: 'cache-and-network' })
 const query = ref('')
+
+// The button is in the page actions, which the calm view hides.
+useCommands(() => [{
+  id: 'users-invite',
+  label: t('admin.users.invite'),
+  icon: 'user-plus',
+  group: 'action',
+  run: () => startEditing()
+}])
 const allUsers = computed(() => [...(result.value?.users ?? [])])
 const users = computed(() => {
   const words = query.value.toLowerCase().split(/\s+/).filter(Boolean)

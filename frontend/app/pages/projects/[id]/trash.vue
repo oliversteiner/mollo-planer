@@ -36,6 +36,18 @@ const purging = useConfirmedDelete<TrashEntry>(entry => purge({ deletionId: entr
 
 const emptying = ref(false)
 
+// The button is in the page actions, which the calm view hides.
+useCommands(() => [{
+  id: 'trash-empty',
+  label: t('trash.emptyTrash'),
+  icon: 'trash-can-xmark',
+  group: 'action',
+  visible: () => can('TRASH_PURGE') && items.value.length > 0,
+  run: () => {
+    emptying.value = true
+  }
+}])
+
 async function confirmEmpty(): Promise<void> {
   await emptyTrash({ projectId: projectId.value })
   toast.add({ title: t('trash.emptied'), color: 'success' })
@@ -62,7 +74,10 @@ async function confirmEmpty(): Promise<void> {
       </wa-button>
     </Teleport>
 
-    <p class="trash-hint">
+    <p
+      class="trash-hint"
+      data-zen="hide"
+    >
       {{ t('trash.hint') }}
     </p>
 
