@@ -45,6 +45,7 @@ describe('Steingarten palette', () => {
         expect(contrastRatio(colours.text, colours.bg), `text ${at}`).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(colours.textMuted, colours.bg), `muted ${at}`).toBeGreaterThanOrEqual(3)
         expect(contrastRatio(colours.onAccent, colours.accent), `on accent ${at}`).toBeGreaterThanOrEqual(4.5)
+        expect(contrastRatio(colours.danger, colours.bg), `danger ${at}`).toBeGreaterThanOrEqual(4.5)
       }
     }
   })

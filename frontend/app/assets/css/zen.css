@@ -88,6 +88,13 @@ html[data-view='focus'] {
   --wa-color-brand-on-normal: var(--zen-text);
   --wa-color-brand-border-loud: var(--zen-accent);
   --wa-color-brand-border-normal: color-mix(in srgb, var(--zen-accent) 50%, var(--zen-bg));
+  --wa-color-focus: var(--zen-accent);
+  --wa-focus-ring-color: var(--zen-accent);
+  --wa-color-danger-fill-loud: var(--zen-danger);
+  --wa-color-danger-on-quiet: var(--zen-danger);
+  --wa-color-danger-border-loud: var(--zen-danger);
+  --wa-color-danger-border-normal: color-mix(in srgb, var(--zen-danger) 50%, var(--zen-bg));
+  --wa-color-danger-fill-quiet: color-mix(in srgb, var(--zen-danger) 14%, var(--zen-bg));
   --wa-color-warning-fill-loud: var(--zen-warn);
   --wa-color-warning-fill-quiet: color-mix(in srgb, var(--zen-warn) 16%, var(--zen-bg));
   --wa-color-warning-on-quiet: var(--zen-warn);
@@ -112,7 +119,7 @@ html[data-view='focus'] {
 }
 
 .mood-drawer::part(dialog) {
-  background-color: color-mix(in srgb, var(--zen-surface, var(--wa-color-surface-default)) 85%, transparent);
+  background-color: color-mix(in srgb, var(--zen-surface, var(--wa-color-surface-default)) 96%, transparent);
   border: var(--wa-border-width-s) var(--wa-border-style) var(--zen-border, var(--wa-color-surface-border));
   box-shadow: none;
   backdrop-filter: none;
@@ -121,4 +128,35 @@ html[data-view='focus'] {
 /* Hidden in the focus view only (for example the "Fokus" button, which is still useful in calm). */
 [data-view='focus'] [data-zen='focus-hide'] {
   display: none !important;
+}
+
+/*
+ * Status badges (StatusBadge sets its own colours by status, also in the dark mode of the normal view): in the zen
+ * views done is moss, in progress and review are ochre, the rest is neutral. !important beats the rules of the
+ * component and `.wa-dark`.
+ */
+html[data-view='calm'] .status-badge,
+html[data-view='focus'] .status-badge {
+  --wa-color-fill-normal: color-mix(in srgb, var(--zen-text) 12%, var(--zen-bg)) !important;
+  --wa-color-on-normal: var(--zen-text) !important;
+}
+
+html[data-view='calm'] .status-badge[data-status='DONE'],
+html[data-view='focus'] .status-badge[data-status='DONE'] {
+  --wa-color-fill-normal: color-mix(in srgb, var(--zen-accent) 22%, var(--zen-bg)) !important;
+  --wa-color-on-normal: color-mix(in srgb, var(--zen-accent) 65%, var(--zen-text)) !important;
+}
+
+html[data-view='calm'] .status-badge:is([data-status='IN_PROGRESS'], [data-status='REVIEW']),
+html[data-view='focus'] .status-badge:is([data-status='IN_PROGRESS'], [data-status='REVIEW']) {
+  --wa-color-fill-normal: color-mix(in srgb, var(--zen-warn) 22%, var(--zen-bg)) !important;
+  --wa-color-on-normal: color-mix(in srgb, var(--zen-warn) 65%, var(--zen-text)) !important;
+}
+
+/* Scroll bars in the zen views (search, panels, pages) in the colours of the mood. */
+html[data-view='calm'],
+html[data-view='calm'] *,
+html[data-view='focus'],
+html[data-view='focus'] * {
+  scrollbar-color: var(--zen-border) var(--zen-surface);
 }

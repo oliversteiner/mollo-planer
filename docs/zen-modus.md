@@ -137,7 +137,7 @@ Zen (`calm` und `focus`) hat ein eigenes Farbschema mit den Farben Leinen, Sand,
 
 **Slide-In „Stimmung“:**
 - **Aufbau:** `components/zen/MoodDrawer.vue` auf Basis `AppDrawer`/`wa-drawer`, von rechts (auf dem Telefon von unten), Titel „Stimmung“ (EN „Mood“).
-- **Transparenter Hintergrund:** Der Drawer dunkelt die Seite nicht ab, die Seite bleibt voll sichtbar und ändert sich live mit. Die Fläche des Drawers ist in `--zen-surface` mit 85 % Deckkraft, ohne Unschärfe und ohne Schatten (nur Rahmen `--zen-border`). Klick neben den Drawer und `Esc` schließen ihn.
+- **Transparenter Hintergrund:** Der Drawer dunkelt die Seite nicht ab, die Seite bleibt voll sichtbar und ändert sich live mit. Die Fläche des Drawers ist in `--zen-surface` mit 96 % Deckkraft, ohne Unschärfe und ohne Schatten (nur Rahmen `--zen-border`). Klick neben den Drawer und `Esc` schließen ihn.
 - **Inhalt**, genau wie in der Vorschau:
   1. Regler „Helligkeit“ mit Anzeige des Tons und der Prozent (z. B. „Leinen · 12 %“).
   2. Regler „Kontrast“ mit Prozent.

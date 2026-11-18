@@ -13,6 +13,7 @@ export interface Palette {
   accent: string
   onAccent: string
   warn: string
+  danger: string
 }
 
 type Rgb = [number, number, number]
@@ -137,9 +138,18 @@ export function palette(brightness: number, contrast: number): Palette {
   // Accent: moss green, from light to deep by contrast; light moss on a dark ground.
   const accent = dark ? '#B3C08F' : mix('#55633C', '#343E24', c)
   const warn = dark ? '#D6AA6E' : '#966226'
+  // Danger stays red (light on dark grounds) and is moved towards the text until it reads (4.5:1).
+  let danger = dark ? '#F2B8B5' : '#B3261E'
+  let dangerShare = 0
+
+  while (contrastRatio(danger, bg) < 4.5 && dangerShare < 1) {
+    dangerShare = Math.min(1, dangerShare + 0.1)
+    danger = mix(dark ? '#F2B8B5' : '#B3261E', text, dangerShare)
+  }
+
   const onAccent = [bg, text, '#FFFFFF', '#000000'].reduce((best, candidate) => (contrastRatio(candidate, accent) > contrastRatio(best, accent) ? candidate : best))
 
-  return { bg, surface, border, text, textMuted, accent, onAccent, warn }
+  return { bg, surface, border, text, textMuted, accent, onAccent, warn, danger }
 }
 
 /** The palette as CSS variables for <html>. */
@@ -152,6 +162,7 @@ export function paletteVariables(colours: Palette): Record<string, string> {
     '--zen-text-muted': colours.textMuted,
     '--zen-accent': colours.accent,
     '--zen-on-accent': colours.onAccent,
-    '--zen-warn': colours.warn
+    '--zen-warn': colours.warn,
+    '--zen-danger': colours.danger
   }
 }

@@ -1,6 +1,6 @@
 # Auftrag: Zen-Farben nachziehen (ZG1 bis ZG3)
 
-Status: offen
+Status: erledigt (Commit dieser Änderung)
 Stand: 2026-11-18, `dev` bis `c4dd8eb`.
 Dokumente: `docs/zen-modus.md` §4.6, `docs/abnahme-zen.md` (Nachprüfung ZF).
 
