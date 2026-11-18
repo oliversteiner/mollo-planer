@@ -544,7 +544,7 @@
       "factorNone": "No second factor",
       "resetTwoFactor": "Reset 2FA",
       "resetTitle": "Reset 2FA of {name}?",
-      "resetDescription": "Removes the authenticator app and all passkeys and signs them out everywhere, for example after a lost device. At the next sign-in they set up a new second factor.",
+      "resetDescription": "The authenticator app and passkeys of {name} are removed and all sessions are ended. {name} gets a mail and sets up a new factor the next time they sign in. Have you checked by other means that the request really comes from {name} (a call, in person)?",
       "resetDone": "2FA of {name} reset.",
       "removeAvatar": "Remove avatar",
       "avatarTitle": "Remove the avatar of {name}?",
@@ -568,7 +568,8 @@
         "rejectTitle": "Reject {name}?",
         "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards.",
         "failed": "That did not work. The list has been updated."
-      }
+      },
+      "resetConfirm": "Yes, reset"
     },
     "settings": {
       "title": "App settings",

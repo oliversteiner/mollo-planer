@@ -544,7 +544,7 @@
       "factorNone": "Kein zweiter Faktor",
       "resetTwoFactor": "2FA zurücksetzen",
       "resetTitle": "2FA von {name} zurücksetzen?",
-      "resetDescription": "Entfernt die Authenticator-App und alle Passkeys und meldet die Person überall ab, zum Beispiel bei verlorenem Gerät. Beim nächsten Login richtet sie einen neuen zweiten Faktor ein.",
+      "resetDescription": "Authenticator-App und Passkeys von {name} werden entfernt, alle Sitzungen beendet. {name} bekommt eine Mail und richtet bei der nächsten Anmeldung einen neuen Faktor ein. Hast du auf anderem Weg geprüft, dass die Anfrage wirklich von {name} kommt (Anruf, persönlich)?",
       "resetDone": "2FA von {name} zurückgesetzt.",
       "removeAvatar": "Avatarbild entfernen",
       "avatarTitle": "Avatarbild von {name} entfernen?",
@@ -568,7 +568,8 @@
         "rejectTitle": "{name} ablehnen?",
         "rejectDescription": "Das wartende Konto wird gelöscht. Die Person kann sich danach nicht mehr anmelden.",
         "failed": "Das hat nicht geklappt. Die Liste wurde aktualisiert."
-      }
+      },
+      "resetConfirm": "Ja, zurücksetzen"
     },
     "settings": {
       "title": "App-Einstellungen",
