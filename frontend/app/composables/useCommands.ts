@@ -25,6 +25,18 @@ export function usePageCommands() {
   return computed(() => registry.value.flatMap(entry => entry.commands))
 }
 
+/** Open state of the mood drawer (docs/zen-modus.md §4.6). */
+export function useMoodDrawer() {
+  const open = useState<boolean>('mood-drawer', () => false)
+
+  return {
+    open,
+    show: () => {
+      open.value = true
+    }
+  }
+}
+
 /** Open state of the palette, shared by the shortcut, the zen frame and the palette itself. */
 export function useCommandPalette() {
   const open = useState<boolean>('command-palette', () => false)

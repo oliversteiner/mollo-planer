@@ -2026,7 +2026,24 @@
     "collapseMilestone": "Zuklappen",
     "focus": "Fokus",
     "focusTask": "Task im Fokus öffnen",
-    "focusTodo": "ToDo im Fokus öffnen"
+    "focusTodo": "ToDo im Fokus öffnen",
+    "mood": {
+      "title": "Stimmung",
+      "brightness": "Helligkeit",
+      "contrast": "Kontrast",
+      "presets": "Vorschläge",
+      "strip": "Farbleiste, aktuell {tone}",
+      "ratio": "Kontrast Text zu Fläche {ratio} : 1",
+      "reset": "Zurücksetzen",
+      "percent": "{value} Prozent",
+      "tones": {
+        "linen": "Leinen",
+        "sand": "Sand",
+        "stone": "Stein",
+        "taupe": "Taupe",
+        "leather": "Leder"
+      }
+    }
   },
   "command": {
     "title": "Befehle",

@@ -221,6 +221,7 @@ function skipToContent(): void {
 
     <PasswordPromptModal />
     <CommandPalette />
+    <ZenMoodDrawer />
   </wa-page>
 </template>
 

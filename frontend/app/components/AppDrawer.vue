@@ -9,7 +9,7 @@ defineProps<{
   label: string
   /** Line under the title, as text. */
   description?: string
-  placement?: 'end' | 'start'
+  placement?: 'end' | 'start' | 'bottom'
 }>()
 
 const open = defineModel<boolean>('open', { default: false })

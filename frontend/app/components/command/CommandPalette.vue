@@ -14,6 +14,7 @@ const { viewer, can, logout } = useViewer()
 const { open, hide } = useCommandPalette()
 const { mode, calm, toggleCalm, leaveFocus } = useViewMode()
 const pageActions = usePageCommands()
+const mood = useMoodDrawer()
 
 const { result } = useQuery(sidebarProjectsQuery, null, { fetchPolicy: 'cache-first', enabled: computed(() => viewer.value !== null) })
 
@@ -37,6 +38,21 @@ const general = computed<Command[]>(() => [
     group: 'action',
     visible: () => mode.value === 'focus',
     run: () => leaveFocus()
+  },
+  {
+    id: 'mood',
+    label: t('zen.mood.title'),
+    icon: 'palette',
+    group: 'action',
+    keywords: ['stimmung', 'mood', 'farbe', 'colour', 'zen'],
+    run: () => {
+      // Without zen the colours would not show: it starts first (docs/zen-modus.md §4.6).
+      if (mode.value === 'full') {
+        toggleCalm()
+      }
+
+      mood.show()
+    }
   },
   { id: 'logout', label: t('auth.logout'), icon: 'right-from-bracket', group: 'action', run: () => logout() }
 ])

@@ -65,3 +65,55 @@
 [data-view='focus'] .task-drawer::part(body) {
   padding-inline: max(var(--wa-space-l), calc((100vw - 44rem) / 2));
 }
+
+/*
+ * Steingarten (docs/zen-modus.md §4.6): the plugin zen-colors puts --zen-* on <html> in the zen views; here they
+ * become the tokens of Web Awesome, so no component has colours of its own. Specificity above `.wa-dark`.
+ * Danger (delete, errors) keeps its red.
+ */
+html[data-view='calm'],
+html[data-view='focus'] {
+  --wa-color-surface-default: var(--zen-surface);
+  --wa-color-surface-raised: var(--zen-surface);
+  --wa-color-surface-lowered: var(--zen-bg);
+  --wa-color-surface-border: var(--zen-border);
+  --wa-color-text-normal: var(--zen-text);
+  --wa-color-text-quiet: var(--zen-text-muted);
+  --wa-color-text-link: var(--zen-accent);
+  --wa-color-brand-fill-loud: var(--zen-accent);
+  --wa-color-brand-on-loud: var(--zen-on-accent);
+  --wa-color-brand-fill-normal: color-mix(in srgb, var(--zen-accent) 35%, var(--zen-bg));
+  --wa-color-brand-fill-quiet: color-mix(in srgb, var(--zen-accent) 16%, var(--zen-bg));
+  --wa-color-brand-on-quiet: var(--zen-accent);
+  --wa-color-brand-on-normal: var(--zen-text);
+  --wa-color-brand-border-loud: var(--zen-accent);
+  --wa-color-brand-border-normal: color-mix(in srgb, var(--zen-accent) 50%, var(--zen-bg));
+  --wa-color-warning-fill-loud: var(--zen-warn);
+  --wa-color-warning-fill-quiet: color-mix(in srgb, var(--zen-warn) 16%, var(--zen-bg));
+  --wa-color-warning-on-quiet: var(--zen-warn);
+  --wa-color-neutral-fill-quiet: color-mix(in srgb, var(--zen-text) 8%, var(--zen-bg));
+  --wa-color-neutral-fill-normal: color-mix(in srgb, var(--zen-text) 14%, var(--zen-bg));
+  --wa-color-neutral-border-normal: var(--zen-border);
+  --wa-color-neutral-on-quiet: var(--zen-text);
+  background-color: var(--zen-bg);
+  color: var(--zen-text);
+}
+
+[data-view='calm'] body,
+[data-view='focus'] body {
+  background-color: var(--zen-bg);
+  color: var(--zen-text);
+}
+
+/* The mood drawer (MoodDrawer): the page stays visible and changes live; no dimming, no blur, no shadow. */
+.mood-drawer {
+  --wa-color-overlay-modal: transparent;
+  --backdrop-filter: none;
+}
+
+.mood-drawer::part(dialog) {
+  background-color: color-mix(in srgb, var(--zen-surface, var(--wa-color-surface-default)) 85%, transparent);
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--zen-border, var(--wa-color-surface-border));
+  box-shadow: none;
+  backdrop-filter: none;
+}

@@ -2026,7 +2026,24 @@
     "collapseMilestone": "Collapse",
     "focus": "Focus",
     "focusTask": "Open task in focus",
-    "focusTodo": "Open to-do in focus"
+    "focusTodo": "Open to-do in focus",
+    "mood": {
+      "title": "Mood",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "presets": "Presets",
+      "strip": "Colour strip, now {tone}",
+      "ratio": "Contrast text to ground {ratio} : 1",
+      "reset": "Reset",
+      "percent": "{value} percent",
+      "tones": {
+        "linen": "Linen",
+        "sand": "Sand",
+        "stone": "Stone",
+        "taupe": "Taupe",
+        "leather": "Leather"
+      }
+    }
   },
   "command": {
     "title": "Commands",
