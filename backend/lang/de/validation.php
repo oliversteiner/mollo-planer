@@ -35,6 +35,7 @@ return [
     'string' => 'Das Feld :attribute muss ein Text sein.',
     'unique' => 'Dieser Wert für :attribute ist bereits vergeben.',
     'uploaded' => 'Das Feld :attribute konnte nicht hochgeladen werden.',
+    'password_too_long' => 'Das Passwort darf höchstens :max Zeichen (Bytes) lang sein.',
     'password' => [
         'letters' => 'Das Feld :attribute muss mindestens einen Buchstaben enthalten.',
         'mixed' => 'Das Feld :attribute muss Gross- und Kleinbuchstaben enthalten.',

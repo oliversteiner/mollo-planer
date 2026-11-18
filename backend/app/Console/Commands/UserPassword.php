@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use App\Console\Concerns\ManagesUserAccounts;
 use App\Services\UserSecurity;
+use App\Support\PasswordPolicy;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
-use Illuminate\Validation\Rules\Password;
 
 use function Laravel\Prompts\password;
 
@@ -58,7 +58,7 @@ class UserPassword extends Command implements PromptsForMissingInput
         $password = password(
             label: __('console.user_password.password'),
             required: true,
-            validate: ['password' => Password::default()],
+            validate: ['password' => PasswordPolicy::rules()],
         );
 
         password(

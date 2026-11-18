@@ -123,4 +123,17 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Check New Passwords Against Known Leaks
+    |--------------------------------------------------------------------------
+    |
+    | New passwords are checked against haveibeenpwned (only the first characters
+    | of the hash leave the server). Off only where there is no network: browser
+    | tests, the test suite. In production it stays on (App\Support\PasswordPolicy).
+    |
+    */
+
+    'password_uncompromised' => env('PASSWORD_UNCOMPROMISED_CHECK', true),
+
 ];
