@@ -49,7 +49,7 @@ Mollo Planer ist eine Web-App zur Projektverwaltung:
 
 ## Meilensteine (Stand 2026-11-13)
 
-M1 Fundament (Rechte einstellbar, Status `idea`/`planned`, Release/Commit, Neuladen über Revision) → M2 Archiv und Papierkorb → M3 Vorlagen und Labels je Projekt → M4 Datei-Abgleich (Export, Import, neuer Connector) → M5 Synchronisation (`pull`/`push`, GitHub Action, Webhook) → M6 KI-Assistent für alle, Ideen, KI-Kontext. Aktueller Stand: `docs/umsetzung.md`.
+M1 Fundament (Rechte einstellbar, Status `idea`/`planned`, Release/Commit, Neuladen über Revision) → M2 Archiv und Papierkorb → M3 Vorlagen und Labels je Projekt → M4 Datei-Abgleich (Export, Import, neuer Connector) → M5 Synchronisation (`pull`/`push`, GitHub Action, Webhook) → M6 KI-Assistent für alle, Ideen, KI-Kontext. Danach der Zen-Modus (Z1 bis Z7, `docs/zen-modus.md`): Darstellung „Ruhig“ und „Fokus“ über `data-view` und `zen.css`, Befehlspalette (Ctrl/Cmd+K), Kürzel Ctrl/Cmd+. für „Ruhig“. Aktueller Stand: `docs/umsetzung.md`.
 
 ## Anmeldung und Sicherheit (unverändert)
 

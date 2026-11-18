@@ -1,6 +1,6 @@
 # Auftrag: Zen-Modus (Z1 bis Z7)
 
-Status: offen — nach `10-fix-m6-nachtrag.md`.
+Status: erledigt (c497ae3, 03404f6, feeae53, aa00978, b9a2350, 3d1b305 und der Commit dieser Änderung); Freigabe der Tabelle durch Oliver am 2026-11-18; Telefonbreite, hell/dunkel und EN offen für die Nachprüfung
 Stand: 2026-11-18, `dev` bis `f8115ae`.
 Dokument: `docs/zen-modus.md` (maßgeblich, Fassung 2).
 
