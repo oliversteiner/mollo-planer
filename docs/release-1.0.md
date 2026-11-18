@@ -76,6 +76,23 @@ Wenn eine Migration scheitert oder die Nachkontrolle einen schweren Fehler zeigt
 
 Kein `migrate:rollback` in Produktion (Datenverlust, siehe oben).
 
+## Prüfung der Migrationen (Bob, 2026-11-18)
+
+Kein Probelauf mit Produktionsdaten (Entscheidung Oliver). Ersatz: Datenbank (MariaDB, die Test-Datenbank `molloplaner_test`, da der Benutzer keine neue anlegen darf) mit dem Stand `d3e50c7` (0.9) aufgesetzt (`migrate:fresh --seed --seeder=DemoSeeder` im ausgecheckten 0.9-Stand), dann mit dem Stand von `dev` `migrate --force` und `planer:sync-templates`.
+
+| Prüfung | Vorher (0.9) | Nachher (dev) |
+|---|---|---|
+| Migrationen | 0.9-Schema | alle 19 neuen liefen ohne Fehler (bis `2026_11_18_120000`) |
+| Rollen der Nutzer | Text (`admin`, `mitglied`, `projektleitung`) | über `role_id` dieselben Schlüssel, niemand ohne Rolle |
+| Projekt-Rollen | Text (owner, manager, member) | über `role_id` dieselben Schlüssel |
+| Label-Sätze | 3 Sätze (`label_sets`) | Tabelle weg, 3 mitgelieferte Vorlagen (`templates`) |
+| Labels | 14 (Sätze und Projekte) | 10, nur noch die der 2 Projekte (6 und 4); die der Sätze stehen in den Vorlagen |
+| Zuordnung Task–Label | 7 | 7 |
+| Projektbeschreibung | Text | Rich-Text (TipTap-Dokument), lesbar |
+| Export je Projekt | – | beide Projekte exportieren und bestehen die Prüfung des Formats (0 Fehler) |
+
+Offen bleibt nur, was nur echte Daten zeigen (unbekannte Rollen-Texte werden zu „mitglied“/„member“, siehe Ausgangslage). Der Rückweg bleibt die Sicherung vor dem Deploy.
+
 ## Nach 1.0 (nicht Teil des Releases)
 
 - M6 ⏸: Limits im Betrieb beobachten, MCP-Werkzeuge für Ideen/KI-Kontext, heller Modus/Englisch/Telefonbreite.
