@@ -21,6 +21,17 @@ Stand: 2026-11-18, Planung. Geprüft an `dev` bis `9a79a76` mit frischen Demo-Da
 **Befund:** Gespeichert ist GitHub `mollo-test/planer-test`; Wechsel auf „Allgemein“ zeigt den Repository-Namen im Feld „Adresse“.
 **Umsetzung:** Beim Wechsel der Art das Feld leeren; beim Zurückwechseln zur gespeicherten Art deren gespeicherten Wert wieder einsetzen. Geheimnis bzw. Token beim Wechsel Pflicht (wie jetzt). Test.
 
+## F8.4 `pull --watch` endet nach dem ersten Durchlauf (wichtig)
+
+**Befund** (CLI-Prüfung durch Oliver, `~/planer-test/bericht-m5.md`): `mp pull --watch --interval 10` macht das erste `pull` und endet nach etwa 1 s mit Exit 13 und „Warning: Detected unsettled top-level await … bin/mollo-planer.mjs:291“. Änderungen aus der App kommen nicht mehr an.
+**Ursache (gelesen):** `syncContext()` in `bin/mollo-planer.mjs` legt den Schlaf-Timer mit `setTimeout(…).unref?.()` an; der Timer hält die Event-Loop nicht am Leben, Node beendet mit offenem `await`. Die Einheitstests mit Zeit-Attrappe sehen das nicht.
+**Umsetzung:** Den Timer nicht `unref`en (Strg-C beendet über das vorhandene `stopped`/Aufwecken). Test, der den echten Einstiegspunkt als Kindprozess startet: läuft nach 2 Intervallen noch, holt eine Änderung (gegen den Integrations-Server oder einen kleinen lokalen HTTP-Server), endet auf SIGINT mit Exit 0.
+
+## F8.5 Hinweis auf lesbaren Zugang in `.mollo-planer` (klein)
+
+**Befund:** `.mollo-planer` mit Zugang hatte Rechte 644 (für alle Benutzer des Rechners lesbar). Die CLI warnt nur bei Git.
+**Umsetzung:** Enthält `.mollo-planer` einen `token` und ist sie für Gruppe oder andere lesbar (nicht unter Windows), Warnung auf stderr: „… ist für andere lesbar. `chmod 600 <pfad>`.“ `pull --project`, das die Datei ergänzt, behält die Rechte. README und `SKILL.md` erwähnen `chmod 600`. Test.
+
 ## Ablauf
 
-F8.1 → F8.2 → F8.3, Prüfungen grün, im Browser ansehen, dann anhalten. Keine Datenbank neu aufsetzen nötig.
+F8.4 → F8.1 → F8.2 → F8.3 → F8.5, Prüfungen grün, im Browser ansehen, dann anhalten. Keine Datenbank neu aufsetzen nötig.

@@ -3,7 +3,7 @@
 Stand: 2026-11-18, geprüft durch die Planung an `9a79a76` mit frischen Demo-Daten (Chrome; Node-Tests in der Werkzeug-Umgebung ohne PHP). Fixes in `docs/fix-m5.md` (F8). Rolle: Checkliste für Oliver.
 Personen: Ben (Owner Website-Relaunch), Chiara (Manager), David (Mitglied). Je Punkt: ✅ passt, ❌ Fehler (→ F8.x), ⏸ für Oliver.
 
-**Ergebnis der Prüfung:** 15 ✅, 3 Befunde (F8.1 betrifft die ganze App, F8.2 und F8.3 klein), 5 ⏸ für Oliver.
+**Ergebnis der Prüfung:** 20 ✅, 5 Befunde (F8.4 wichtig, F8.1 betrifft die ganze App, F8.2, F8.3, F8.5 klein), 4 ⏸ für Oliver.
 
 ---
 
@@ -12,7 +12,14 @@ Personen: Ben (Owner Website-Relaunch), Chiara (Manager), David (Mitglied). Je P
 - [x] ✅ `npm test` in `tools/planer`: 173 bestanden, 6 übersprungen (die Integrationstests, ohne PHP hier).
 - [x] ✅ Code gegen den Auftrag gelesen (`planer-remote.mjs`, `planer-sync.mjs`): Vorrang der Konfiguration, keine Option `--token`, Warnung bei eingecheckter `.mollo-planer`, `pull` bricht bei `changed` ab (Exit 3), unverändert schreibt nichts, `push` prüft lokal, Trockenlauf, Revisionshinweis (Exit 4), Löschungen nur mit `--yes` (Exit 5), ohne Änderungen nur `changed` entfernen, `sync`, `--watch` mit mindestens 10 s und Weiterlaufen bei 429/Netz.
 - [x] ✅ `SKILL.md` „Mit der App abgleichen“, CI-Job `remote` in `tools.yml`.
-- [ ] ⏸ `composer test:planer-remote` (Integration gegen den echten MCP-Server) und ein kurzer Durchlauf von Hand: `pull` neue Datei, zweites `pull` „unverändert“, Helfer ändert → `pull` bricht ab, `push` → echte ID und Revision +1 (für Oliver; die Werkzeug-Umgebung der Planung erreicht `localhost` nicht und hat kein PHP).
+- [x] ✅ Oliver (Claude im Terminal, `~/planer-test/bericht-m5.md`): `composer test:planer-remote` 6/6 grün, nichts übersprungen.
+- [x] ✅ Von Hand gegen die lokale App: `pull` legt an (Rev. 1), zweites `pull` unverändert (mtime gleich), Helfer → `changed`, `pull` bricht ab (Exit 3, Datei unverändert), `push` → „1 neu“, Rev. 1 → 2, `k-new-1` → `k-12`, danach unverändert.
+- [x] ✅ Revisionskonflikt aus zweitem Ordner: Exit 4 „Die App ist bei Revision 3, die Datei bei 2.“; `pull --force` verwirft.
+- [x] ✅ Löschung ohne `--yes` Exit 5 mit Liste, mit `--yes` eingetragen (Task fehlt im Export; Papierkorb nicht in der App angesehen); `sync` ohne Änderung wie `pull`.
+- [x] ✅ Fehlerfälle: falscher Zugang und falsche URL Exit 6 mit Text, ohne Projekt Exit 1; `.mollo-planer` mit `projects` ohne Token findet das Projekt.
+- [ ] ❌ `pull --watch` endet nach dem ersten Durchlauf mit Exit 13 („unsettled top-level await“), der Schlaf-Timer ist `unref`. → F8.4
+- [ ] ❌ (klein) `.mollo-planer` mit Zugang war für andere lesbar (644), die CLI warnt nicht. → F8.5
+- Git-Warnung bei nicht ignorierter `.mollo-planer`: nicht geprüft (Testordner ohne Git), durch Einheitstests abgedeckt.
 - Hinweis: Fehlt der Zugang ganz, endet die CLI mit Exit 1 (Aufruf) statt 6; vertretbar, da es ein Konfigurationsfehler ist.
 
 ## 2. T3 GitHub Action
