@@ -2018,5 +2018,16 @@
     "leaveFocus": "Zurück",
     "announceOn": "Ruhige Ansicht ein.",
     "announceOff": "Normale Ansicht."
+  },
+  "command": {
+    "title": "Befehle",
+    "search": "Befehl suchen",
+    "placeholder": "Seite, Projekt oder Aktion …",
+    "none": "Nichts gefunden.",
+    "group": {
+      "action": "Aktionen",
+      "page": "Seiten",
+      "project": "Projekte"
+    }
   }
 }

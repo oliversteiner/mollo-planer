@@ -2018,5 +2018,16 @@
     "leaveFocus": "Back",
     "announceOn": "Calm view on.",
     "announceOff": "Normal view."
+  },
+  "command": {
+    "title": "Commands",
+    "search": "Search commands",
+    "placeholder": "Page, project or action …",
+    "none": "Nothing found.",
+    "group": {
+      "action": "Actions",
+      "page": "Pages",
+      "project": "Projects"
+    }
   }
 }

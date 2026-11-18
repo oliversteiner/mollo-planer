@@ -220,6 +220,7 @@ function skipToContent(): void {
     </p>
 
     <PasswordPromptModal />
+    <CommandPalette />
   </wa-page>
 </template>
 
