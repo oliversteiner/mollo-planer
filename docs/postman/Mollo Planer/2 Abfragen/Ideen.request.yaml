@@ -1,0 +1,15 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api"
+method: POST
+body:
+  type: graphql
+  content:
+    query: |
+      query Ideas {
+        ideas(first: 15) {
+          data { id title status draft project { name } todos { title } }
+        }
+      }
+    variables: "{}"
+order: 10000

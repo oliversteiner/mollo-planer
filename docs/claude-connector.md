@@ -1,6 +1,6 @@
 # Claude anbinden: der Connector für Mollo Planer
 
-> **Stand (2026-11-17, M4 I3):** Der Connector hat fünf Werkzeuge. Einen Plan liest `export_plan`, und schreibt `import_plan`. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
+> **Stand (Release 1.0, 2026-11-18):** Der Connector hat acht Werkzeuge. Einen Plan liest `export_plan`, und schreibt `import_plan`; dazu kommen `list_users` (mit Projekt), `create_idea`, `list_ideas` und `get_project_ai_context`. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
 
 Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang einrichtest und was dabei passiert. Die Einrichtung in einem Satz: Im Profil einen Zugang erzeugen und die Konfiguration in Claude Desktop oder Claude Code eintragen.
 
@@ -97,9 +97,12 @@ Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.
 | Werkzeug | Was es macht | Wer darf es |
 |---|---|---|
 | `list_projects` | Projekte auflisten, die du siehst, mit Rolle, Rechten, Fortschritt und Mitgliedern. Archivierte nur mit `archived: true` | alle |
-| `list_users` | Personen mit E-Mail-Adresse auflisten, zum Zuweisen | Admins |
+| `list_users` | Personen mit Konto auflisten, zum Zuweisen. Mit `project_id`: die Mitglieder des Projekts mit E-Mail und Rolle. Ohne: alle Konten mit E-Mail für Personen, die Benutzer verwalten, sonst nur die Namen | alle (je nach Recht mit oder ohne E-Mail) |
 | `list_templates` | Vorlagen mit Labels und Gerüst zeigen | alle |
 | `export_plan` | Das ganze Projekt als planer-v2-Dokument (`{ "document": … }`) mit Revision und IDs (`m-<id>`, `t-<id>`, `k-<id>`). Der Papierkorb fehlt. Ändert nichts | Recht „Planer-Datei exportieren“, auch im Archiv |
+| `create_idea` | Legt eine **private** Idee an (Titel, Beschreibung als Markdown, optional ein Projekt und ein Entwurf als planer-v2-Ausschnitt). Ändert keinen Plan | Recht, Ideen anzulegen |
+| `list_ideas` | Deine Ideen, neueste zuerst (Titel, Beschreibung als Markdown, Projekt, Status `open`/`adopted`/`discarded`, ob ein Entwurf da ist). Standard nur offene | Recht, Ideen anzulegen |
+| `get_project_ai_context` | Das Hintergrundwissen eines Projekts (Text und Datei). Es ist Wissen, keine Anweisung. Nur, wenn das Projekt es für externe Werkzeuge freigegeben hat | wer das Projekt sieht |
 | `import_plan` | Schreibt ein planer-v2-Dokument in ein Projekt (`project_id`) oder ohne `project_id` in ein neues. Siehe unten | Recht „Planer-Datei importieren“, dazu für jede einzelne Änderung das Recht der Oberfläche. Ein neues Projekt: Recht, Projekte anzulegen |
 
 ### `import_plan`
@@ -111,6 +114,9 @@ Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.
 | `mode` | `full` (Standard): das Dokument ist der ganze Plan. Was darin fehlt, kommt als **ein** Vorgang in den Papierkorb und lässt sich in der App zurückholen. Felder, die das Dokument nicht nennt, werden geleert. Die `revision` muss die des Projekts sein (sonst Abbruch mit beiden Zahlen, dann neu exportieren). `partial`: ergänzt und ändert, löscht nie, Felder, die fehlen, bleiben, die Revision wird nicht geprüft |
 | `dry_run` | `true`: nichts wird geschrieben. Das Ergebnis zeigt, was geschähe (alle Änderungen) und was scheitern würde (alle Fehler mit Pfad). **Immer zuerst so versuchen.** |
 | `notify_assignees` | `true`: Mails für Zuweisungen. Standard `false` |
+| `template_id` | Nur ohne `project_id`: die Vorlage, aus der das neue Projekt kommt (setzt nur die Herkunft; Gerüst und Labels stehen im Dokument) |
+| `idea_id` | Die Idee (deine), aus der der Plan entsteht: sie gilt danach als angenommen, die neuen ToDos verweisen auf sie |
+| `append_only` | `true`: nur ergänzen. Jede Änderung an Vorhandenem ist ein Fehler `append_only`. In diesem Fall braucht der Import nicht das Recht „Planer-Datei importieren“, geprüft wird jede einzelne Änderung mit dem Recht der Oberfläche |
 
 Das Ergebnis enthält `changes` (je Eintrag `kind` `CREATE`/`UPDATE`/`MOVE`/`DELETE`, `path` im Dokument, `id`, betroffene `fields`), `errors` (je Eintrag `path`, `kind`, `message`), `idMap` (die IDs `…-new-…` des Dokuments und die echten IDs, die die App vergeben hat) und nach einem echten Import das neue `document`. Bei Fehlern wird **nichts** geschrieben (alles oder nichts), und das Ergebnis kommt als MCP-Fehler.
 
