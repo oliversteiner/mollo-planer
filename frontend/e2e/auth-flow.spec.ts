@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import {
-  accountState, addVirtualAuthenticator, artisan, confirmPasswordIfAsked, consoleWarnings, expiredVerificationLink, passwordDialog, resetTwoFactorInUi, enterCode, fillField, freshTotp, linkIn, login, logout, mailsTo,
+  accountState, addVirtualAuthenticator, approveInUi, rejectInUi, artisan, confirmPasswordIfAsked, consoleWarnings, expiredVerificationLink, passwordDialog, resetTwoFactorInUi, enterCode, fillField, freshTotp, linkIn, login, logout, mailsTo,
   openAdmin, PASSWORD, register, resetThrottles, seedAccount, TOTP_SECRET, uniqueEmail, unexpected, waitForMail, watch
 } from './support/helpers'
 
@@ -225,10 +225,8 @@ test.describe('E-Mail bestätigen', () => {
 
     const admin = await openAdmin(browser)
     await admin.page.goto('/admin/users')
-    const row = admin.page.locator('li').filter({ hasText: email })
     const before = Date.now() - 1000
-    await row.getByRole('button', { name: 'Freigeben' }).click()
-    await expect(admin.page.getByText('ist freigegeben', { exact: false }).first()).toBeVisible()
+    await approveInUi(admin.page, email)
     expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
 
@@ -278,7 +276,10 @@ test.describe('Konto absichern', () => {
     await confirmPasswordIfAsked(page)
 
     await expect(page.getByText('Kein Passkey angelegt. Versuch es nochmals oder nimm die Authenticator-App.').first()).toBeVisible()
+    // What stays: the page is still at the first step and the button works again (the toast is gone after seconds).
     await expect(page).toHaveURL(/\/setup-security/)
+    await expect(page.locator('wa-card')).toContainText('Schritt 1 von 2: Faktor einrichten')
+    await expect(page.getByRole('button', { name: 'Passkey hinzufügen' })).toBeEnabled()
     await expect(page.locator('wa-card')).not.toContainText('Dein Passkey ist eingerichtet.')
     expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
@@ -347,8 +348,7 @@ test.describe('Anmelden', () => {
     await expect(page.getByRole('heading', { name: 'Freigabe ausstehend' })).toBeVisible()
     const admin = await openAdmin(browser)
     await admin.page.goto('/admin/users')
-    await admin.page.locator('li').filter({ hasText: email }).getByRole('button', { name: 'Freigeben' }).click()
-    await expect(admin.page.getByText('ist freigegeben', { exact: false }).first()).toBeVisible()
+    await approveInUi(admin.page, email)
     expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
 
@@ -482,9 +482,7 @@ test.describe('Konto zurücksetzen und ablehnen', () => {
     const admin = await openAdmin(browser)
     await admin.page.goto('/admin/users')
     const before = Date.now() - 1000
-    await admin.page.locator('li').filter({ hasText: rejected }).getByRole('button', { name: 'Ablehnen' }).click()
-    await admin.page.getByRole('button', { name: 'Ablehnen' }).last().click()
-    await expect(admin.page.getByText('wurde abgelehnt').first()).toBeVisible()
+    await rejectInUi(admin.page, rejected)
     expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
     expect(accountState(rejected).exists).toBe(false)
@@ -578,11 +576,8 @@ test.describe('Mails von Freigabe und Ablehnung', () => {
     const admin = await openAdmin(browser)
     await admin.page.goto('/admin/users')
     const before = Date.now() - 1000
-    await admin.page.locator('li').filter({ hasText: approved }).getByRole('button', { name: 'Freigeben' }).click()
-    await expect(admin.page.getByText('ist freigegeben', { exact: false }).first()).toBeVisible()
-    await admin.page.locator('li').filter({ hasText: rejected }).getByRole('button', { name: 'Ablehnen' }).click()
-    await admin.page.getByRole('button', { name: 'Ablehnen' }).last().click()
-    await expect(admin.page.getByText('wurde abgelehnt').first()).toBeVisible()
+    await approveInUi(admin.page, approved)
+    await rejectInUi(admin.page, rejected)
     await resetTwoFactorInUi(admin.page, reset)
     expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()

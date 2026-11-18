@@ -301,5 +301,22 @@ export async function resetTwoFactorInUi(adminPage: Page, email: string, name = 
   await row.locator('wa-dropdown-item', { hasText: '2FA zurücksetzen' }).click()
   await expect(adminPage.getByText(`Hast du auf anderem Weg geprüft, dass die Anfrage wirklich von ${name} kommt (Anruf, persönlich)?`)).toBeVisible()
   await adminPage.getByRole('button', { name: 'Ja, zurücksetzen' }).click()
-  await expect(adminPage.getByText('zurückgesetzt', { exact: false }).first()).toBeVisible()
+  // The result that stays: the row of the person now says that they have no second factor (a toast is gone after seconds).
+  await expect(row).toContainText('Kein zweiter Faktor')
+}
+
+/** The admin releases a person: the row leaves "Wartet auf Freigabe" and shows in the members with its menu. */
+export async function approveInUi(adminPage: Page, email: string): Promise<void> {
+  const row = adminPage.locator('li').filter({ hasText: email })
+
+  await row.getByRole('button', { name: 'Freigeben' }).click()
+  await expect(row.getByRole('button', { name: 'Freigeben' })).toHaveCount(0)
+  await expect(row.locator('wa-button[aria-label^="Aktionen für"]')).toHaveCount(1)
+}
+
+/** The admin rejects a person (with the question before): the row is gone. */
+export async function rejectInUi(adminPage: Page, email: string): Promise<void> {
+  await adminPage.locator('li').filter({ hasText: email }).getByRole('button', { name: 'Ablehnen' }).click()
+  await adminPage.getByRole('button', { name: 'Ablehnen' }).last().click()
+  await expect(adminPage.locator('li').filter({ hasText: email })).toHaveCount(0)
 }
