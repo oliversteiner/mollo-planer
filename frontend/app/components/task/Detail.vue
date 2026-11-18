@@ -36,11 +36,30 @@ watch(() => props.taskId, () => {
   closing.value = false
 })
 
+/**
+ * Esc in the focus view closes the panel by itself (wa-drawer); the focus ends and the detail stays as it was, so the
+ * panel is shown again: `open` goes false for one tick, then true, which sets the attribute anew.
+ */
+const reopening = ref(false)
+
+async function leaveFocusKeepOpen(): Promise<void> {
+  reopening.value = true
+  await leaveFocus()
+  // The panel is still closing (its animation); it opens again when that is over.
+  await new Promise(resolve => setTimeout(resolve, 400))
+  reopening.value = false
+}
+
 const open = computed({
-  get: () => props.taskId !== null && !closing.value,
+  get: () => props.taskId !== null && !closing.value && !reopening.value,
   set: (value: boolean) => {
     if (!value) {
-      emit('close')
+      // Esc or "back" in the focus view leave only the focus: the detail stays open as before (ZF5).
+      if (focusing.value) {
+        void leaveFocusKeepOpen()
+      } else {
+        emit('close')
+      }
     }
   }
 })
@@ -67,7 +86,7 @@ const { mutate: setTaskLabels } = useProjectMutation(setTaskLabelsMutation)
 const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
 const { errors: commitErrors, run: runCommit } = useGraphqlForm()
 
-const { mode, focusing, enterFocus } = useViewMode()
+const { mode, focusing, enterFocus, leaveFocus } = useViewMode()
 /** Open in the normal view, closed in the calm and focus views; the person can still change it. */
 const commentsOpen = ref(mode.value === 'full')
 
@@ -192,7 +211,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), {
             appearance="plain"
             variant="neutral"
             size="s"
-            data-zen="hide"
+            data-zen="focus-hide"
             @click="enterFocus({ kind: 'task', id: task.id })"
           >
             <wa-icon

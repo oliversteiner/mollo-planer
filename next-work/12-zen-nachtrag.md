@@ -1,6 +1,6 @@
 # Auftrag: Zen-Nachtrag (ZF1 bis ZF6)
 
-Status: offen
+Status: erledigt (7ece663 ZF6, a276eec ZF1, 56f3084 ZF2/ZF3 und der Commit dieser Änderung ZF4/ZF5); Telefonbreite, hell/dunkel und EN offen für die Nachprüfung
 Stand: 2026-11-18, `dev` bis `142f359`.
 Dokumente: `docs/zen-modus.md` (maßgeblich: §1, §4.4, §4.6, Tickets Z2, Z2b, Z3) und `docs/abnahme-zen.md`.
 

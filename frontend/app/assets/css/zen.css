@@ -117,3 +117,8 @@ html[data-view='focus'] {
   box-shadow: none;
   backdrop-filter: none;
 }
+
+/* Hidden in the focus view only (for example the "Fokus" button, which is still useful in calm). */
+[data-view='focus'] [data-zen='focus-hide'] {
+  display: none !important;
+}
