@@ -2010,5 +2010,13 @@
     "clear": "Alles entfernen",
     "saved": "KI-Kontext gespeichert.",
     "fileSaved": "Datei gespeichert."
+  },
+  "zen": {
+    "menu": "Menü",
+    "enter": "Ruhige Ansicht",
+    "leave": "Zen verlassen",
+    "leaveFocus": "Zurück",
+    "announceOn": "Ruhige Ansicht ein.",
+    "announceOff": "Normale Ansicht."
   }
 }

@@ -45,6 +45,7 @@ function follow(event: MouseEvent, to: string): void {
         v-if="breadcrumbs?.length"
         :label="t('nav.breadcrumb')"
         class="page-breadcrumb"
+        data-zen="hide"
       >
         <wa-breadcrumb-item
           v-for="(crumb, index) in breadcrumbs"

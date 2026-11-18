@@ -2010,5 +2010,13 @@
     "clear": "Remove everything",
     "saved": "AI context saved.",
     "fileSaved": "File saved."
+  },
+  "zen": {
+    "menu": "Menu",
+    "enter": "Calm view",
+    "leave": "Leave zen",
+    "leaveFocus": "Back",
+    "announceOn": "Calm view on.",
+    "announceOff": "Normal view."
   }
 }

@@ -12,6 +12,16 @@ import { currentVersion, type VersionFile } from '~/utils/versions'
  */
 const { t, localeProperties } = useI18n()
 const { viewer, can, logout } = useViewer()
+const { calm, toggleCalm } = useViewMode()
+
+/** The change of view is announced to screen readers (docs/zen-modus.md §6). */
+const announcement = ref('')
+
+watch(calm, (value) => {
+  announcement.value = value ? t('zen.announceOn') : t('zen.announceOff')
+})
+
+useViewShortcuts()
 const roleName = useRoleName()
 
 /** The current (highest released) version, shown under the user menu. */
@@ -50,6 +60,8 @@ const adminItems = computed<NavItem[]>(() => [
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   if (event.detail.item.value === 'profile') {
     void navigateTo('/profile')
+  } else if (event.detail.item.value === 'calm') {
+    toggleCalm()
   } else if (event.detail.item.value === 'logout') {
     void logout()
   }
@@ -93,6 +105,7 @@ function skipToContent(): void {
     <div
       slot="navigation-header"
       class="app-header"
+      data-zen="hide"
     >
       <NuxtLink
         to="/"
@@ -105,6 +118,7 @@ function skipToContent(): void {
     <div
       slot="navigation"
       class="app-navigation"
+      data-zen="hide"
     >
       <NavList
         :items="mainItems"
@@ -131,6 +145,7 @@ function skipToContent(): void {
     <div
       slot="navigation-footer"
       class="app-footer"
+      data-zen="hide"
     >
       <wa-dropdown
         v-if="viewer"
@@ -161,6 +176,13 @@ function skipToContent(): void {
           ></wa-icon>
           {{ t('profile.title') }}
         </wa-dropdown-item>
+        <wa-dropdown-item value="calm">
+          <wa-icon
+            slot="icon"
+            name="leaf"
+          ></wa-icon>
+          {{ calm ? t('zen.leave') : t('zen.enter') }}
+        </wa-dropdown-item>
         <wa-dropdown-item value="logout">
           <wa-icon
             slot="icon"
@@ -186,8 +208,16 @@ function skipToContent(): void {
       id="main-content"
       tabindex="-1"
     >
+      <ZenShell />
       <slot />
     </main>
+    <p
+      class="wa-visually-hidden"
+      role="status"
+      aria-live="polite"
+    >
+      {{ announcement }}
+    </p>
 
     <PasswordPromptModal />
   </wa-page>

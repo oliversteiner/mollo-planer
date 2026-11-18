@@ -1,0 +1,54 @@
+/*
+ * Zen mode (docs/zen-modus.md §4.2): all rules for the views live here, over [data-view] and --wa-* tokens. The
+ * components only mark what goes (data-zen), they never ask for the mode. display: none on the host, so screen
+ * readers and the tab order agree with the eye. Nothing goes into a shadow DOM.
+ *
+ *   data-zen="hide"   gone in "calm" and "focus"
+ *   data-zen="hover"  in "calm" only when the row is hovered or has focus (devices with a pointer);
+ *                     on touch it is gone (its action is in the "..." menu)
+ *   data-zen="only"   shown only in "calm" and "focus" (the zen frame)
+ */
+
+[data-view='full'] [data-zen='only'] {
+  display: none !important;
+}
+
+[data-view='calm'] [data-zen='hide'],
+[data-view='focus'] [data-zen='hide'] {
+  display: none !important;
+}
+
+[data-view='calm'] [data-zen='hover'],
+[data-view='focus'] [data-zen='hover'] {
+  display: none !important;
+}
+
+@media (hover: hover) {
+  [data-view='calm'] :is(:hover, :focus-within) > [data-zen='hover'],
+  [data-view='calm'] [data-zen-row]:is(:hover, :focus-within) [data-zen='hover'] {
+    display: revert !important;
+  }
+}
+
+/* The frame: no sidebar, no header bar; the content is one column of a reading width. */
+[data-view='calm'] .app-shell,
+[data-view='focus'] .app-shell {
+  --menu-width: 0px;
+}
+
+[data-view='calm'] .app-shell::part(menu),
+[data-view='focus'] .app-shell::part(menu),
+[data-view='calm'] .app-shell::part(navigation-toggle),
+[data-view='focus'] .app-shell::part(navigation-toggle) {
+  display: none;
+}
+
+[data-view='calm'] main,
+[data-view='focus'] main {
+  max-inline-size: 52rem;
+  margin-inline: auto;
+}
+
+[data-view='focus'] main {
+  max-inline-size: 44rem;
+}
