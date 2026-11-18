@@ -637,7 +637,8 @@
       "importNow": "Add now",
       "toIdeas": "Keep as idea",
       "discard": "Discard"
-    }
+    },
+    "addWith": "Add with the assistant"
   },
   "labels": {
     "ofTask": "Labels",

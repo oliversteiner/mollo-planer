@@ -17,7 +17,8 @@ const route = useRoute()
 // Someone else's changes show up within 30 seconds (S3f).
 useProjectRevisionPolling()
 const router = useRouter()
-const { projectId, can } = useProject()
+const { projectId, project, can } = useProject()
+const { can: canSystem } = useViewer()
 
 /** Only the milestones (?milestones=only). */
 const milestonesOnly = computed({
@@ -130,6 +131,24 @@ function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace)
 
 <template>
   <div class="wa-stack wa-gap-l">
+    <Teleport
+      v-if="canSystem('ASSISTANT_USE') && !project?.archivedAt"
+      to="#page-actions"
+      defer
+    >
+      <wa-button
+        appearance="outlined"
+        variant="neutral"
+        @click="navigateTo({ path: '/assistant', query: { project: projectId } })"
+      >
+        <wa-icon
+          slot="start"
+          name="wand-magic-sparkles"
+        ></wa-icon>
+        {{ t('assistant.addWith') }}
+      </wa-button>
+    </Teleport>
+
     <Teleport
       v-if="can('MILESTONE_CREATE')"
       to="#page-actions"

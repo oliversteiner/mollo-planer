@@ -637,7 +637,8 @@
       "importNow": "Jetzt eintragen",
       "toIdeas": "In Ideen ablegen",
       "discard": "Verwerfen"
-    }
+    },
+    "addWith": "Mit dem Assistenten ergänzen"
   },
   "labels": {
     "ofTask": "Labels",
