@@ -1,5 +1,7 @@
 # 14 · Release 1.0 vorbereiten
 
+Status: erledigt (d5e96e7 R1, e8dca05 R2, e234eab R3, e8851d8 R4); Entwurf-PR: https://github.com/oliversteiner/mollo-planer/pull/16
+
 Plan: `docs/release-1.0.md`. Erst nach Zen-Abnahme und Ticket 13 mergen; vorbereiten kannst du jetzt.
 Keine Secrets, keine echten Server-Angaben ins Repo. Nicht deployen, nicht mergen, nicht taggen – das macht Oliver.
 
