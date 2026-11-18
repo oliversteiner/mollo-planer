@@ -37,6 +37,18 @@ return [
         'intro' => ':name registered and confirmed the email address. The account is waiting for approval.',
         'action' => 'Open users',
     ],
+    'already_registered' => [
+        'subject' => 'You already have an account at :app',
+        'intro' => 'Somebody registered at :app with your email address, but you already have an account. If that was you, sign in.',
+        'action' => 'Sign in',
+        'forgot' => 'Forgot your password? Set a new one here: :url',
+        'ignore' => 'If you did not register, you need not do anything. Your account stays as it is.',
+    ],
+    'registration_pending' => [
+        'subject' => 'Your registration at :app is not confirmed yet',
+        'intro' => 'There is already a registration for this address at :app that is not confirmed yet. If it is yours: have the confirmation mail sent again. If you do not know the password: set a new one with “Forgot password”.',
+        'action' => 'Send the confirmation mail again',
+    ],
     'verify_email' => [
         'subject' => 'Please confirm your email address',
         'intro' => 'You registered at :app. Please confirm your email address with the button below.',

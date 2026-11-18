@@ -37,6 +37,18 @@ return [
         'intro' => ':name hat sich registriert und die E-Mail-Adresse bestätigt. Das Konto wartet auf Freigabe.',
         'action' => 'Benutzer öffnen',
     ],
+    'already_registered' => [
+        'subject' => 'Du hast schon ein Konto bei :app',
+        'intro' => 'Jemand hat sich mit deiner E-Mail-Adresse bei :app registriert, aber du hast schon ein Konto. Wenn du das warst, melde dich an.',
+        'action' => 'Anmelden',
+        'forgot' => 'Passwort vergessen? Setze es hier neu: :url',
+        'ignore' => 'Wenn du dich nicht registriert hast, musst du nichts tun. Dein Konto bleibt, wie es ist.',
+    ],
+    'registration_pending' => [
+        'subject' => 'Deine Registrierung bei :app ist noch nicht bestätigt',
+        'intro' => 'Für diese Adresse gibt es bei :app schon eine Registrierung, die noch nicht bestätigt ist. Ist sie von dir: Lass dir die Bestätigungsmail erneut senden. Kennst du das Passwort nicht: Setze es mit «Passwort vergessen» neu.',
+        'action' => 'Bestätigungsmail erneut senden',
+    ],
     'verify_email' => [
         'subject' => 'Bitte bestätige deine E-Mail-Adresse',
         'intro' => 'Du hast dich bei :app registriert. Bitte bestätige deine E-Mail-Adresse mit dem Button unten.',

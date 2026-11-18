@@ -20,16 +20,29 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
-            'name' => ['required', 'string', 'min:2', 'max:120'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-            'password' => $this->passwordRules(),
-        ])->validate();
+        $input = $this->validate($input);
 
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+    }
+
+    /**
+     * The rules of the registration. Whether the address is taken is not a rule: that would tell
+     * the form which addresses have an account (RegisterController answers both cases alike, the
+     * unique index of the database is the last safeguard).
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    public function validate(array $input): array
+    {
+        return Validator::make($input, [
+            'name' => ['required', 'string', 'min:2', 'max:120'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
+            'password' => $this->passwordRules(),
+        ])->validate();
     }
 }

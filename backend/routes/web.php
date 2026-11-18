@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AcceptInvitationController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\StatusController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/invitation', AcceptInvitationController::class)
     ->middleware(['guest:web', 'throttle:6,1'])
     ->name('invitation.accept');
+
+// Self-registration. Replaces the route of Fortify (feature off): a taken address gets the same answer as a new one.
+Route::post('/register', RegisterController::class)
+    ->middleware(['guest:web', 'throttle:register'])
+    ->name('register.store');
 
 // Confirmation of the e-mail address. These replace the routes of Fortify (feature switched off in
 // config/fortify.php): the link must work without a session and must not confirm on a mere call.
