@@ -38,6 +38,8 @@ export type ApiErrorKind
     | 'validation'
   /** CSRF token expired (419): fetch a new cookie and retry. */
     | 'csrf'
+  /** Too many requests (429): the throttle of the API. */
+    | 'throttled'
   /** Self-registered account whose mail address is not confirmed yet. */
     | 'unverified'
   /** Self-registered account waiting for an admin's approval. */
@@ -117,6 +119,9 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
     }
     if (status === 419) {
       return 'csrf'
+    }
+    if (status === 429) {
+      return 'throttled'
     }
     if (status === 401 || categories.includes('authentication') || message === 'Unauthenticated.') {
       return 'unauthenticated'

@@ -4,6 +4,7 @@ import { accountOutcome } from '~/utils/account-outcome'
 const FAILURES: Record<Failure, { key: string, color: 'error' | 'warning' }> = {
   unauthorized: { key: 'apiError.unauthorized', color: 'error' },
   csrf: { key: 'apiError.csrf', color: 'warning' },
+  throttled: { key: 'apiError.throttled', color: 'warning' },
   network: { key: 'apiError.network', color: 'error' },
   unknown: { key: 'apiError.unknown', color: 'error' }
 }

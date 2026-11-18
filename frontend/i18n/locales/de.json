@@ -99,7 +99,8 @@
     "unauthorized": "Dafür fehlt dir die Berechtigung.",
     "csrf": "Die Sitzung war abgelaufen. Bitte versuche es nochmals.",
     "network": "Der Server ist nicht erreichbar.",
-    "unknown": "Die Anfrage ist fehlgeschlagen."
+    "unknown": "Die Anfrage ist fehlgeschlagen.",
+    "throttled": "Zu viele Versuche. Versuch es in einer Minute nochmals."
   },
   "auth": {
     "email": "E-Mail",

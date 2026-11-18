@@ -99,7 +99,8 @@
     "unauthorized": "You are not allowed to do this.",
     "csrf": "Your session had expired. Please try again.",
     "network": "The server cannot be reached.",
-    "unknown": "The request failed."
+    "unknown": "The request failed.",
+    "throttled": "Too many attempts. Try again in a minute."
   },
   "auth": {
     "email": "Email",

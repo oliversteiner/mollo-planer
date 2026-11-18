@@ -16,7 +16,7 @@ export type Occasion
   /** A step is done (first factor set up, address confirmed) or the person asked to check again. */
     | 'continued'
 
-export type Failure = 'unauthorized' | 'csrf' | 'network' | 'unknown'
+export type Failure = 'unauthorized' | 'csrf' | 'throttled' | 'network' | 'unknown'
 
 export type AccountOutcome
   /** Go on to this page. */
@@ -69,7 +69,7 @@ export function accountOutcome(problem: ApiErrorKind | null, context: OutcomeCon
     return occasion === 'submitted' ? { kind: 'failed', failure: 'unknown' } : { kind: 'signed-out' }
   }
 
-  if (problem === 'unauthorized' || problem === 'csrf' || problem === 'network') {
+  if (problem === 'unauthorized' || problem === 'csrf' || problem === 'throttled' || problem === 'network') {
     return { kind: 'failed', failure: problem }
   }
 

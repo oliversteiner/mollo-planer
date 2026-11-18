@@ -119,3 +119,10 @@ describe('readinessKind', () => {
     expect(readinessKind({ approved: false, emailVerified: false })).toBe('unverified')
   })
 })
+
+describe('too many requests', () => {
+  it('is its own kind, for REST and GraphQL, so the app can say "try again in a minute"', () => {
+    expect(classifyRestError(429, { message: 'Too Many Attempts.' }).kind).toBe('throttled')
+    expect(classifyApiError(429, []).kind).toBe('throttled')
+  })
+})
