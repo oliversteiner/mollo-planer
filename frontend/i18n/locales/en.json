@@ -2043,17 +2043,21 @@
         "taupe": "Taupe",
         "leather": "Leather"
       }
-    }
+    },
+    "name": "Zen",
+    "start": "Start Zen",
+    "startHit": "Zen · {area}"
   },
   "command": {
-    "title": "Commands",
-    "search": "Search commands",
-    "placeholder": "Page, project or action …",
+    "title": "Search",
+    "search": "Search",
+    "placeholder": "Page, project, action or “Zen” …",
     "none": "Nothing found.",
     "group": {
       "action": "Actions",
       "page": "Pages",
       "project": "Projects"
-    }
+    },
+    "open": "Open search"
   }
 }

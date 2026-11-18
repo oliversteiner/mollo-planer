@@ -12,7 +12,13 @@ import { currentVersion, type VersionFile } from '~/utils/versions'
  */
 const { t, localeProperties } = useI18n()
 const { viewer, can, logout } = useViewer()
-const { calm, toggleCalm } = useViewMode()
+const { calm } = useViewMode()
+const zen = useZen()
+const route = useRoute()
+const palette = useCommandPalette()
+
+// The content area last visited is where Zen starts from other pages (docs/zen-modus.md §4.4).
+watch(() => route.path, () => zen.remember(), { immediate: true })
 
 /** The change of view is announced to screen readers (docs/zen-modus.md §6). */
 const announcement = ref('')
@@ -60,8 +66,6 @@ const adminItems = computed<NavItem[]>(() => [
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   if (event.detail.item.value === 'profile') {
     void navigateTo('/profile')
-  } else if (event.detail.item.value === 'calm') {
-    toggleCalm()
   } else if (event.detail.item.value === 'logout') {
     void logout()
   }
@@ -101,6 +105,34 @@ function skipToContent(): void {
       class="skip-link"
       @click.prevent="skipToContent"
     >{{ t('nav.skipToContent') }}</a>
+
+    <!-- The header bar: search (the magnifier) and Zen. Zen has its own frame, so it is hidden there. -->
+    <div
+      slot="header"
+      class="app-topbar"
+      data-zen="hide"
+    >
+      <wa-button
+        appearance="plain"
+        variant="neutral"
+        :aria-label="t('command.open')"
+        @click="palette.show()"
+      >
+        <wa-icon name="magnifying-glass"></wa-icon>
+      </wa-button>
+      <wa-button
+        appearance="outlined"
+        variant="neutral"
+        :aria-label="t('zen.start')"
+        @click="zen.start()"
+      >
+        <wa-icon
+          slot="start"
+          name="leaf"
+        ></wa-icon>
+        <span class="app-topbar-label">{{ t('zen.name') }}</span>
+      </wa-button>
+    </div>
 
     <div
       slot="navigation-header"
@@ -176,13 +208,6 @@ function skipToContent(): void {
           ></wa-icon>
           {{ t('profile.title') }}
         </wa-dropdown-item>
-        <wa-dropdown-item value="calm">
-          <wa-icon
-            slot="icon"
-            name="leaf"
-          ></wa-icon>
-          {{ calm ? t('zen.leave') : t('zen.enter') }}
-        </wa-dropdown-item>
         <wa-dropdown-item value="logout">
           <wa-icon
             slot="icon"
@@ -226,6 +251,21 @@ function skipToContent(): void {
 </template>
 
 <style scoped>
+.app-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--wa-space-xs);
+  padding: var(--wa-space-2xs) var(--wa-space-m);
+}
+
+/* On the phone only the icon of Zen stays (the aria-label names it). */
+@media (max-width: 40em) {
+  .app-topbar-label {
+    display: none;
+  }
+}
+
 /*
  * The sidebar stands out: it keeps the surface of cards and panels, the
  * content area behind the pages is one step lower.

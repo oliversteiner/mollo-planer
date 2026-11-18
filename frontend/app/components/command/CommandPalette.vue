@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useQuery } from '@vue/apollo-composable'
 import { sidebarProjectsQuery } from '~/graphql/projects'
-import { filterCommands, pageCommands, visibleCommands, type Command } from '~/utils/commands'
+import { filterCommands, isZenQuery, pageCommands, visibleCommands, withFirst, type Command } from '~/utils/commands'
 
 /**
  * The command palette (docs/zen-modus.md §4.4): Ctrl/Cmd+K or the corner button of the zen frame. Search without
@@ -12,7 +12,8 @@ import { filterCommands, pageCommands, visibleCommands, type Command } from '~/u
 const { t } = useI18n()
 const { viewer, can, logout } = useViewer()
 const { open, hide } = useCommandPalette()
-const { mode, calm, toggleCalm, leaveFocus } = useViewMode()
+const { mode, focusing, setMode, leaveFocus } = useViewMode()
+const zen = useZen()
 const pageActions = usePageCommands()
 const mood = useMoodDrawer()
 
@@ -24,12 +25,26 @@ const list = ref<HTMLElement | null>(null)
 
 const general = computed<Command[]>(() => [
   {
-    id: 'zen-toggle',
-    label: calm.value ? t('zen.leave') : t('zen.enter'),
+    id: 'zen-start',
+    label: t('zen.startHit', { area: zen.areaLabel.value }),
     icon: 'leaf',
     group: 'action',
     keywords: ['zen', 'ruhig', 'calm'],
-    run: () => toggleCalm()
+    visible: () => mode.value === 'full',
+    run: () => zen.start()
+  },
+  {
+    id: 'zen-leave',
+    label: t('zen.leave'),
+    icon: 'expand',
+    group: 'action',
+    keywords: ['zen', 'ruhig', 'calm'],
+    visible: () => mode.value !== 'full',
+    run: () => {
+      setMode('full')
+
+      return focusing.value ? leaveFocus() : undefined
+    }
   },
   {
     id: 'focus-leave',
@@ -45,10 +60,10 @@ const general = computed<Command[]>(() => [
     icon: 'palette',
     group: 'action',
     keywords: ['stimmung', 'mood', 'farbe', 'colour', 'zen'],
-    run: () => {
+    run: async () => {
       // Without zen the colours would not show: it starts first (docs/zen-modus.md §4.6).
       if (mode.value === 'full') {
-        toggleCalm()
+        await zen.start()
       }
 
       mood.show()
@@ -75,7 +90,14 @@ const all = computed(() => visibleCommands(
   }), ...projects.value],
   can
 ))
-const shown = computed(() => filterCommands(all.value, query.value).slice(0, 50))
+/** Zen entries first: for "zen" and its relatives, and in Zen with an empty input (leave and mood at the top). */
+const zenIds = computed(() => (mode.value !== 'full' ? ['zen-leave', 'mood'] : ['zen-start', 'mood']))
+const shown = computed(() => {
+  const found = filterCommands(all.value, query.value)
+  const first = isZenQuery(query.value) || (mode.value !== 'full' && query.value.trim() === '')
+
+  return withFirst(found, first ? zenIds.value : []).slice(0, 50)
+})
 
 const groups = computed(() => (['action', 'page', 'project'] as const)
   .map(group => ({ group, items: shown.value.filter(command => command.group === group) }))

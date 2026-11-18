@@ -1,5 +1,5 @@
 import { routeRight } from './route-rights'
-import { matchesSearch } from './text-search'
+import { matchesSearch, normalizeText } from './text-search'
 
 /**
  * One entry of the command palette (docs/zen-modus.md §4.4). `right` is a system right (viewerRights, for example
@@ -64,4 +64,18 @@ export function pageCommands(t: (key: string) => string, go: (to: string) => voi
     group: 'page' as const,
     run: () => go(page.to)
   }))
+}
+
+/** The words that bring the zen entries to the top: from two letters of "zen", "ruhig", "calm", "stimmung" or "mood". */
+export function isZenQuery(query: string): boolean {
+  const word = normalizeText(query).trim()
+
+  return word.length >= 2 && ['zen', 'ruhig', 'calm', 'stimmung', 'mood'].some(candidate => candidate.startsWith(word))
+}
+
+/** The entries by their ids first, in the order given; the rest stays as it was. */
+export function withFirst<T extends { id: string }>(items: readonly T[], ids: readonly string[]): T[] {
+  const first = ids.flatMap(id => items.filter(item => item.id === id))
+
+  return [...first, ...items.filter(item => !ids.includes(item.id))]
 }
