@@ -23,7 +23,9 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
   webServer: [
     {
-      command: 'php artisan serve --host=127.0.0.1 --port=8100',
+      // --no-reload: the environment below reaches the server unchanged (without it, artisan serve hands the variables of
+      // backend/.env back to the server and could point it at the development database).
+      command: 'php artisan serve --host=127.0.0.1 --port=8100 --no-reload',
       cwd: '../backend',
       url: `${BACKEND_URL}/up`,
       env: backendEnv,

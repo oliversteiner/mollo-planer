@@ -13,6 +13,11 @@ import {
  * with test.fail() and the reason, and the deviation goes into the report to the planning.
  */
 
+/** The API answers 403 with a code while an account is locked (second factor, confirmation, release): expected while it is shown. */
+const LOCKED = /(GET|POST) 403 \/api (SECOND_FACTOR_SETUP_REQUIRED|ACCOUNT_NOT_READY|STRONG_AUTHENTICATION_REQUIRED)/
+/** Asking for the state without a session (the viewer, the password confirmation) or logging out of a session that is gone. */
+const NO_SESSION = /(GET|POST) 401 \/(api|logout|user\/confirmed-password-status)/
+
 test.beforeEach(() => {
   resetThrottles()
 })
@@ -46,7 +51,7 @@ async function registerAndConfirm(page: Page, email: string, name = 'Eva Neu'): 
 
 async function setUpPasskey(page: Page): Promise<void> {
   await addVirtualAuthenticator(page)
-  await page.locator('.setup-choice').first().click()
+  await page.locator('.setup-choice', { hasText: 'Passkey einrichten' }).click()
   await page.getByRole('button', { name: 'Passkey hinzufügen' }).click()
   // After the registration the password is asked once (scenario 16b); after a login it is not.
   await confirmPasswordIfAsked(page)
@@ -58,7 +63,15 @@ test.describe('Registrierung', () => {
     await page.goto('/register')
 
     // Required fields: nothing is sent, the page stays.
+    let sent = 0
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().endsWith('/register')) {
+        sent += 1
+      }
+    })
     await page.getByRole('button', { name: 'Konto anlegen' }).click()
+    await page.waitForTimeout(500)
+    expect(sent).toBe(0)
     await expect(page).toHaveURL(/\/register$/)
 
     // Too short a password (11 characters): the field says so, the page stays.
@@ -80,6 +93,9 @@ test.describe('Registrierung', () => {
       await expect(page).toHaveURL(/\/register$/)
     }
 
+    // The checks above used up the throttle of the registration (5 a minute): a clean slate for the two that follow.
+    resetThrottles()
+
     // A new address and a taken one (other case, spaces at the edge) end on the same page with the same text.
     const fresh = uniqueEmail('neu')
     await register(page, 'Eva Neu', fresh)
@@ -96,7 +112,7 @@ test.describe('Registrierung', () => {
     const notice = await waitForMail('admin@e2e.test', /Du hast schon ein Konto/, { after: before })
     expect(notice.text).toContain('melde dich an')
 
-    expect(unexpected(watched, [/POST 422 \/register/, /GET 403 \/api/, /POST 403 \/api/, /GET 401/])).toEqual([])
+    expect(unexpected(watched, [/POST 422 \/register/, LOCKED, NO_SESSION])).toEqual([])
   })
 })
 
@@ -161,7 +177,7 @@ test.describe('E-Mail bestätigen', () => {
     expect(accountState(email).verified).toBe(true)
     await expect(page.getByRole('heading', { name: 'Konto absichern' })).toBeVisible()
 
-    expect(unexpected(watched, [/POST 403 \/api/, /GET 403 \/api/, /POST 401/])).toEqual([])
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 
   test('S3 Der Admin gibt frei: Mail an die Person, «Erneut prüfen» führt auf die Arbeitsfläche', async ({ page, browser }) => {
@@ -179,6 +195,7 @@ test.describe('E-Mail bestätigen', () => {
     const before = Date.now() - 1000
     await row.getByRole('button', { name: 'Freigeben' }).click()
     await expect(admin.page.getByText('ist freigegeben', { exact: false }).first()).toBeVisible()
+    expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
 
     const mail = await waitForMail(email, /ist freigegeben/, { after: before })
@@ -187,7 +204,7 @@ test.describe('E-Mail bestätigen', () => {
     await page.getByRole('button', { name: 'Erneut prüfen' }).click()
     await expect(page.getByRole('heading', { name: /Guten (Morgen|Tag|Abend)/ })).toBeVisible()
 
-    expect(unexpected(watched, [/POST 403 \/api/, /GET 403 \/api/, /POST 401/])).toEqual([])
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 })
 
@@ -197,7 +214,7 @@ test.describe('Konto absichern', () => {
     await registerAndConfirm(page, uniqueEmail('s4'))
 
     await addVirtualAuthenticator(page)
-    await page.locator('.setup-choice').first().click()
+    await page.locator('.setup-choice', { hasText: 'Passkey einrichten' }).click()
     await expect(page.locator('wa-card')).toContainText('Schritt 1 von 2: Faktor einrichten')
     await expect(page.locator('wa-card')).toContainText('Ein Passkey ist ein Schlüssel auf deinem Gerät')
     await expect(page.locator('wa-input').locator('input').first()).not.toHaveValue('')
@@ -207,14 +224,14 @@ test.describe('Konto absichern', () => {
     await expect(page.locator('wa-card')).toContainText('Dein Passkey ist eingerichtet.')
     await expect(page.locator('wa-card')).toContainText('Schritt 2 von 2: Abschluss')
     await expect(page.locator('wa-card')).toContainText('Richte einen zweiten Weg ein')
-    // The password was not asked for a second time (scenario 16 is about the login; here it is the registration).
     await page.getByRole('button', { name: 'Weiter' }).click()
     await expect(page.getByRole('heading', { name: 'Freigabe ausstehend' })).toBeVisible()
 
-    expect(unexpected(watched, [/POST 403 \/api/, /GET 403 \/api/, /POST 401/, /POST 423/])).toEqual([])
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 
   test('S13b Abbruch des Passkey-Dialogs: Meldung, die Seite bleibt', async ({ page }) => {
+    const watched = watch(page)
     await registerAndConfirm(page, uniqueEmail('s13'))
     const client = await page.context().newCDPSession(page)
     await client.send('WebAuthn.enable')
@@ -222,20 +239,21 @@ test.describe('Konto absichern', () => {
       options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: false, automaticPresenceSimulation: true }
     })
 
-    await page.locator('.setup-choice').first().click()
+    await page.locator('.setup-choice', { hasText: 'Passkey einrichten' }).click()
     await page.getByRole('button', { name: 'Passkey hinzufügen' }).click()
     await confirmPasswordIfAsked(page)
 
     await expect(page.getByText('Kein Passkey angelegt. Versuch es nochmals oder nimm die Authenticator-App.').first()).toBeVisible()
     await expect(page).toHaveURL(/\/setup-security/)
     await expect(page.locator('wa-card')).not.toContainText('Dein Passkey ist eingerichtet.')
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 
   test('S5 Authenticator-App und Wiederherstellungscodes', async ({ page }) => {
     const watched = watch(page)
     await registerAndConfirm(page, uniqueEmail('s5'))
 
-    await page.locator('.setup-choice').nth(1).click()
+    await page.locator('.setup-choice', { hasText: 'Authenticator-App' }).click()
     await expect(page.locator('wa-card')).toContainText('Schritt 1 von 2: Faktor einrichten')
     await page.getByRole('button', { name: 'Authenticator-App einrichten' }).last().click()
     await confirmPasswordIfAsked(page)
@@ -244,6 +262,7 @@ test.describe('Konto absichern', () => {
     await page.getByRole('button', { name: 'Bestätigen' }).click()
 
     await expect(page.locator('wa-card')).toContainText('Schritt 2 von 2: Codes sichern')
+    await expect(page.locator('.recovery-codes li')).toHaveCount(8)
     const done = page.getByRole('button', { name: 'Fertig' })
     await expect(done).toBeDisabled()
     await page.getByText('Ich habe die Codes gespeichert.').click()
@@ -251,7 +270,7 @@ test.describe('Konto absichern', () => {
     await done.click()
     await expect(page.getByRole('heading', { name: 'Freigabe ausstehend' })).toBeVisible()
 
-    expect(unexpected(watched, [/POST 403 \/api/, /GET 403 \/api/, /POST 401/, /POST 422 \/user\/confirmed-two-factor-authentication/])).toEqual([])
+    expect(unexpected(watched, [LOCKED, NO_SESSION, /POST 422 \/user\/confirmed-two-factor-authentication/])).toEqual([])
   })
 })
 
@@ -283,7 +302,7 @@ test.describe('Anmelden', () => {
     await page.getByRole('button', { name: 'Bestätigen' }).click()
     await expect(page.locator('wa-card')).toContainText(/ungültig|nicht|falsch/i)
 
-    expect(unexpected(watched, [/POST 422 \/two-factor-challenge/, /GET 403 \/api/, /POST 403 \/api/, /GET 401/, /POST 401/])).toEqual([])
+    expect(unexpected(watched, [/POST 422 \/two-factor-challenge/, LOCKED, NO_SESSION])).toEqual([])
   })
 
   test('S6b Anmelden mit dem Passkey', async ({ page, browser }) => {
@@ -296,6 +315,7 @@ test.describe('Anmelden', () => {
     await admin.page.goto('/admin/users')
     await admin.page.locator('li').filter({ hasText: email }).getByRole('button', { name: 'Freigeben' }).click()
     await expect(admin.page.getByText('ist freigegeben', { exact: false }).first()).toBeVisible()
+    expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
 
     await logout(page)
@@ -322,10 +342,10 @@ test.describe('Anmelden', () => {
     await expect(page).toHaveURL(/\/login/)
     const passkeyButton = page.locator('wa-button', { hasText: 'Mit Passkey anmelden' })
     expect(await passkeyButton.evaluate(element => (element as HTMLElement & { variant: string }).variant)).toBe('brand')
-    const submit = page.locator('wa-button').filter({ hasText: 'Anmelden' }).first()
+    const submit = page.locator('wa-button').filter({ hasText: 'Anmelden' }).filter({ hasNotText: 'Passkey' })
     expect(await submit.evaluate(element => (element as HTMLElement & { appearance: string }).appearance)).toBe('outlined')
 
-    expect(unexpected(watched, [/GET 403 \/api/, /POST 403 \/api/, /GET 401/])).toEqual([])
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 })
 
@@ -352,6 +372,11 @@ test.describe('Passwort vergessen', () => {
     await fillField(page, 'password_confirmation', 'neues-passwort-98765')
     await page.getByRole('button', { name: 'Passwort speichern' }).click()
     await expect(page.getByText('Dein Passwort ist geändert').first()).toBeVisible()
+    await login(page, email, 'neues-passwort-98765')
+    await expect(page.getByRole('heading', { name: 'Zweiter Faktor' })).toBeVisible()
+    await enterCode(page, await freshTotp(TOTP_SECRET))
+    await expect(page.getByRole('heading', { name: /Guten (Morgen|Tag|Abend)/ })).toBeVisible()
+    await logout(page)
 
     // Used: the same link does nothing any more, and says so in words.
     await page.goto(link)
@@ -374,6 +399,7 @@ test.describe('Passwort vergessen', () => {
   })
 
   test('S14 Bekannte und unbekannte Adresse zeigen denselben Text', async ({ page }) => {
+    const watched = watch(page)
     const known = uniqueEmail('s14')
     seedAccount(known, { factor: 'app' })
     const texts: string[] = []
@@ -388,15 +414,18 @@ test.describe('Passwort vergessen', () => {
 
     expect(texts[0]).toBe(texts[1])
     expect((await mailsTo(known)).length).toBeGreaterThan(0)
+    expect(unexpected(watched, [])).toEqual([])
   })
 })
 
 test.describe('Konto zurücksetzen und ablehnen', () => {
   test('S8 Zurückgesetzter zweiter Faktor: die Anmeldung führt wieder durch «Konto absichern»', async ({ page, browser }) => {
+    const watched = watch(page)
     const email = uniqueEmail('s8')
     seedAccount(email, { factor: 'app-and-passkey' })
     const admin = await openAdmin(browser)
     await resetTwoFactorInUi(admin.page, email)
+    expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
     // The old passkey is gone with the reset: nothing of it works any more.
     expect(accountState(email)).toMatchObject({ app: false, passkeys: 0 })
@@ -406,6 +435,7 @@ test.describe('Konto zurücksetzen und ablehnen', () => {
     await setUpPasskey(page)
     await page.getByRole('button', { name: 'Weiter' }).click()
     await expect(page.getByRole('heading', { name: /Guten (Morgen|Tag|Abend)/ })).toBeVisible()
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 
   test('S9 Abgelehnt und nicht bestätigt: richtige Zielseite, kein Absturz', async ({ page, browser }) => {
@@ -421,6 +451,7 @@ test.describe('Konto zurücksetzen und ablehnen', () => {
     await admin.page.locator('li').filter({ hasText: rejected }).getByRole('button', { name: 'Ablehnen' }).click()
     await admin.page.getByRole('button', { name: 'Ablehnen' }).last().click()
     await expect(admin.page.getByText('wurde abgelehnt').first()).toBeVisible()
+    expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
     expect(accountState(rejected).exists).toBe(false)
     const mail = await waitForMail(rejected, /Deine Registrierung/, { after: before })
@@ -436,7 +467,7 @@ test.describe('Konto zurücksetzen und ablehnen', () => {
     await expect(page).toHaveURL(/\/account-pending\?reason=email/)
     await expect(page.getByRole('heading', { name: 'E-Mail-Adresse bestätigen' })).toBeVisible()
 
-    expect(unexpected(watched, [/POST 422 \/login/, /GET 403 \/api/, /POST 403 \/api/, /GET 401/, /POST 401 \/logout/])).toEqual([])
+    expect(unexpected(watched, [/POST 422 \/login/, LOCKED, NO_SESSION])).toEqual([])
   })
 })
 
@@ -477,7 +508,7 @@ test.describe('Link im zweiten Browserprofil', () => {
     await other.getByRole('button', { name: 'Bestätigungsmail erneut senden' }).click()
     await expect(other.locator('wa-card')).toContainText('Wenn ein Konto mit dieser Adresse auf Bestätigung wartet')
 
-    expect(unexpected(watched, [/GET 401/, /GET 403 \/api/])).toEqual([])
+    expect(unexpected(watched, [NO_SESSION, LOCKED])).toEqual([])
     await second.close()
   })
 })
@@ -519,6 +550,7 @@ test.describe('Mails von Freigabe und Ablehnung', () => {
     await admin.page.getByRole('button', { name: 'Ablehnen' }).last().click()
     await expect(admin.page.getByText('wurde abgelehnt').first()).toBeVisible()
     await resetTwoFactorInUi(admin.page, reset)
+    expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
 
     const approval = await waitForMail(approved, /released/, { after: before })
@@ -540,6 +572,7 @@ test.describe('Admin', () => {
     const before = Date.now() - 1000
 
     await resetTwoFactorInUi(admin.page, email)
+    expect(unexpected(admin.watched)).toEqual([])
     await admin.context.close()
 
     expect(accountState(email).app).toBe(false)
@@ -551,24 +584,26 @@ test.describe('Admin', () => {
 
 test.describe('Passwort', () => {
   test('S16 Nach der Anmeldung mit Passwort fragt «Konto absichern» das Passwort nicht nochmals ab', async ({ page }) => {
+    const watched = watch(page)
     const email = uniqueEmail('s16')
     seedAccount(email, { factor: 'none' })
 
     await login(page, email)
     await expect(page).toHaveURL(/\/setup-security/)
     await addVirtualAuthenticator(page)
-    await page.locator('.setup-choice').first().click()
+    await page.locator('.setup-choice', { hasText: 'Passkey einrichten' }).click()
     await page.getByRole('button', { name: 'Passkey hinzufügen' }).click()
 
     await expect(page.locator('wa-card')).toContainText('Dein Passkey ist eingerichtet.')
     await expect(passwordDialog(page)).toHaveCount(0)
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
   })
 
   test('S16b Nach der Registrierung wird das Passwort beim Einrichten abgefragt (Befund)', async ({ page }) => {
     test.fail(true, 'Befund: Die Registrierung meldet an, setzt aber die Passwortbestätigung nicht (nur /login und die Abfrage des zweiten Faktors tun das, Auftrag 22 O6). Das erste Einrichten fragt das Passwort darum nochmals ab.')
     await registerAndConfirm(page, uniqueEmail('s16b'))
     await addVirtualAuthenticator(page)
-    await page.locator('.setup-choice').first().click()
+    await page.locator('.setup-choice', { hasText: 'Passkey einrichten' }).click()
     await page.getByRole('button', { name: 'Passkey hinzufügen' }).click()
     await page.getByText('Bitte bestätige dein Passwort').waitFor({ state: 'visible', timeout: 3000 }).catch(() => undefined)
     // For the report: the screenshot stays in test-results (a test that is expected to fail keeps no attachment).
@@ -600,7 +635,7 @@ test.describe('Englisch', () => {
     expect(mail.text).toContain('The link is valid for 60 minutes.')
     expect(accountState(email).locale).toBe('en')
 
-    expect(unexpected(watched, [/GET 403 \/api/, /POST 403 \/api/, /GET 401/])).toEqual([])
+    expect(unexpected(watched, [LOCKED, NO_SESSION])).toEqual([])
     await context.close()
   })
 })

@@ -113,11 +113,15 @@ export function watch(page: Page): Watch {
     }
   })
   page.on('pageerror', error => result.problems.push(`page error: ${error.message}`))
-  page.on('response', (response) => {
+  page.on('response', async (response) => {
     const url = new URL(response.url())
 
     if (response.status() >= 400 && !url.pathname.startsWith('/_nuxt') && !url.pathname.startsWith('/__nuxt')) {
-      result.failures.push(`${response.request().method()} ${response.status()} ${url.pathname}`)
+      // The lock of the API answers 403 with a code (setup required, account not ready, strong authentication): name it.
+      const code = response.status() === 403 && url.pathname === '/api'
+        ? await response.json().then((body: { errors?: { extensions?: { code?: string } }[] }) => body.errors?.[0]?.extensions?.code ?? '').catch(() => '')
+        : ''
+      result.failures.push(`${response.request().method()} ${response.status()} ${url.pathname}${code ? ` ${code}` : ''}`)
 
       if (response.status() >= 500) {
         result.problems.push(`server error: ${response.request().method()} ${response.status()} ${url.pathname}`)
@@ -235,11 +239,12 @@ export function accountState(email: string): { exists: boolean, verified: boolea
 /** The admin: logged in once, the session is reused by the scenarios that need an admin. */
 let adminState: Awaited<ReturnType<BrowserContext['storageState']>> | null = null
 
-export async function openAdmin(browser: Browser): Promise<{ context: BrowserContext, page: Page }> {
+export async function openAdmin(browser: Browser): Promise<{ context: BrowserContext, page: Page, watched: Watch }> {
   if (adminState) {
     const context = await browser.newContext({ storageState: adminState })
+    const page = await context.newPage()
 
-    return { context, page: await context.newPage() }
+    return { context, page, watched: watch(page) }
   }
 
   const context = await browser.newContext()
@@ -251,7 +256,7 @@ export async function openAdmin(browser: Browser): Promise<{ context: BrowserCon
   await expect(page.getByRole('heading', { name: /Guten (Morgen|Tag|Abend)/ })).toBeVisible()
   adminState = await context.storageState()
 
-  return { context, page }
+  return { context, page, watched: watch(page) }
 }
 
 /** The dialog that asks for the password before the security of the account is changed. */
