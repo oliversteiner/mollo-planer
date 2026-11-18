@@ -31,3 +31,34 @@ export const createTemplateFromFileMutation = graphql(`
     createTemplateFromFile(document: $document) { id name }
   }
 `)
+
+/** The notification of a project when its planer file changes (project.update; null without the right). */
+export const projectWebhookQuery = graphql(`
+  query ProjectWebhook($id: ID!) {
+    project(id: $id) {
+      id
+      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }
+    }
+  }
+`)
+
+export const setProjectWebhookMutation = graphql(`
+  mutation SetProjectWebhook($projectId: ID!, $input: ProjectWebhookInput!) {
+    setProjectWebhook(projectId: $projectId, input: $input) {
+      id
+      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }
+    }
+  }
+`)
+
+export const removeProjectWebhookMutation = graphql(`
+  mutation RemoveProjectWebhook($projectId: ID!) {
+    removeProjectWebhook(projectId: $projectId) { id webhook { kind } }
+  }
+`)
+
+export const testProjectWebhookMutation = graphql(`
+  mutation TestProjectWebhook($projectId: ID!) {
+    testProjectWebhook(projectId: $projectId) { ok message }
+  }
+`)

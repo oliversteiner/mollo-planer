@@ -832,6 +832,10 @@
         "title": "Task-Labels",
         "description": "Zuordnung: welche Labels an einem Task hängen."
       },
+      "project_webhooks": {
+        "title": "Webhooks",
+        "description": "Pro Projekt eine Benachrichtigung bei Änderungen der Planer-Datei: GitHub oder eine Adresse. Das Geheimnis ist verschlüsselt gespeichert."
+      },
       "app_settings": {
         "title": "App-Einstellungen",
         "description": "Einstellungen der ganzen App, zum Beispiel die Pflicht zur 2FA."
@@ -1282,6 +1286,52 @@
         "task_id": {
           "label": "Task",
           "description": "Der Task, an dem das Label hängt."
+        }
+      },
+      "project_webhooks": {
+        "id": {
+          "label": "ID",
+          "description": "Eindeutige Nummer."
+        },
+        "project_id": {
+          "label": "Projekt",
+          "description": "Das Projekt (höchstens eine Benachrichtigung je Projekt)."
+        },
+        "kind": {
+          "label": "Art",
+          "description": "github (repository_dispatch) oder generic (signierter POST)."
+        },
+        "target": {
+          "label": "Ziel",
+          "description": "GitHub: besitzer/name. Allgemein: die Adresse."
+        },
+        "secret": {
+          "label": "Geheimnis",
+          "description": "Token bzw. Geheimnis der Signatur, verschlüsselt. Wird nie angezeigt."
+        },
+        "last_sent_revision": {
+          "label": "Letzte Revision",
+          "description": "Revision der Planer-Datei bei der letzten erfolgreichen Meldung."
+        },
+        "last_sent_at": {
+          "label": "Zuletzt gesendet",
+          "description": "Zeitpunkt der letzten erfolgreichen Meldung."
+        },
+        "last_failed_at": {
+          "label": "Zuletzt fehlgeschlagen",
+          "description": "Zeitpunkt der letzten Meldung, die nach allen Versuchen nicht ankam."
+        },
+        "last_error": {
+          "label": "Letzter Fehler",
+          "description": "Kurzer Code, zum Beispiel HTTP 401 oder timeout. Nie Kopfzeilen oder Antworttext."
+        },
+        "created_at": {
+          "label": "Angelegt",
+          "description": "Zeitpunkt des Anlegens."
+        },
+        "updated_at": {
+          "label": "Geändert",
+          "description": "Zeitpunkt der letzten Änderung."
         }
       },
       "app_settings": {
@@ -1743,6 +1793,41 @@
       "confirmTitle": "Eintragen und löschen?",
       "confirmDescription": "Die Datei lässt 1 Element weg. Es kommt in den Papierkorb und lässt sich dort zurückholen. | Die Datei lässt 1 Element weg. Es kommt in den Papierkorb und lässt sich dort zurückholen. | Die Datei lässt {count} Elemente weg. Sie kommen zusammen in den Papierkorb und lassen sich dort zurückholen.",
       "done": "Die Datei ist eingetragen."
+    },
+    "webhook": {
+      "title": "Benachrichtigung bei Änderungen",
+      "intro": "Die App meldet, wenn sich die Planer-Datei geändert hat, höchstens alle fünf Minuten. So kann eine GitHub Action die Datei im Repository aktuell halten.",
+      "kind": "Art",
+      "kinds": {
+        "GITHUB": "GitHub",
+        "GENERIC": "Allgemein"
+      },
+      "repository": "Repository",
+      "repositoryHint": "Im Format besitzer/name, zum Beispiel oliver/podcast.",
+      "url": "Adresse",
+      "urlHint": "Die App schickt einen signierten POST an diese Adresse (nur https).",
+      "token": "Token",
+      "tokenHint": "Fein eingeschränkter Token, nur dieses Repository, Berechtigung Contents: write.",
+      "tokenSaved": "Token gespeichert",
+      "secret": "Geheimnis",
+      "secretHint": "Damit signiert die App den Body (HMAC-SHA256, Kopfzeile X-Mollo-Signature).",
+      "secretSaved": "Geheimnis gespeichert",
+      "replace": "Ersetzen",
+      "test": "Testen",
+      "remove": "Entfernen",
+      "saved": "Benachrichtigung gespeichert.",
+      "removed": "Benachrichtigung entfernt.",
+      "removeTitle": "Benachrichtigung entfernen?",
+      "removeDescription": "Die App meldet Änderungen danach nicht mehr. Der gespeicherte Token bzw. das Geheimnis wird gelöscht.",
+      "sent": "Zuletzt gesendet am {date} (Revision {revision}).",
+      "failed": "Letzte Benachrichtigung fehlgeschlagen am {date}: {error}",
+      "notSent": "Noch nichts gesendet.",
+      "error": {
+        "timeout": "Zeitüberschreitung",
+        "connection": "keine Verbindung",
+        "target": "Ziel nicht erlaubt",
+        "error": "Fehler"
+      }
     }
   }
 }

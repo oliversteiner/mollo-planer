@@ -41,6 +41,10 @@ type Documents = {
     "\n  mutation ImportPlan($projectId: ID, $document: String!, $mode: ImportMode, $dryRun: Boolean) {\n    importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun) {\n      ok\n      dryRun\n      projectId\n      changes { kind path id fields title }\n      errors { path kind message }\n    }\n  }\n": typeof types.ImportPlanDocument,
     "\n  mutation CreateTemplateFromProject($projectId: ID!, $name: String!) {\n    createTemplateFromProject(projectId: $projectId, name: $name) { id name }\n  }\n": typeof types.CreateTemplateFromProjectDocument,
     "\n  mutation CreateTemplateFromFile($document: String!) {\n    createTemplateFromFile(document: $document) { id name }\n  }\n": typeof types.CreateTemplateFromFileDocument,
+    "\n  query ProjectWebhook($id: ID!) {\n    project(id: $id) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n": typeof types.ProjectWebhookDocument,
+    "\n  mutation SetProjectWebhook($projectId: ID!, $input: ProjectWebhookInput!) {\n    setProjectWebhook(projectId: $projectId, input: $input) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n": typeof types.SetProjectWebhookDocument,
+    "\n  mutation RemoveProjectWebhook($projectId: ID!) {\n    removeProjectWebhook(projectId: $projectId) { id webhook { kind } }\n  }\n": typeof types.RemoveProjectWebhookDocument,
+    "\n  mutation TestProjectWebhook($projectId: ID!) {\n    testProjectWebhook(projectId: $projectId) { ok message }\n  }\n": typeof types.TestProjectWebhookDocument,
     "\n  query MyTasks($status: TaskStatus) {\n    myTasks(status: $status) {\n      id\n      title\n      icon\n      status\n      dueDate\n      userStory { role goal benefit }\n      commentCount\n      description\n      assignee { id name }\n      labels { id name color position }\n      todo {\n        id\n        title\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n    }\n  }\n": typeof types.MyTasksDocument,
     "\n  mutation UpdateMyNotifications($notifyByEmail: Boolean!) {\n    updateMyNotifications(notifyByEmail: $notifyByEmail) { id notifyByEmail }\n  }\n": typeof types.UpdateMyNotificationsDocument,
     "\n  mutation UpdateMyAvatar($avatar: Upload!) {\n    updateMyAvatar(avatar: $avatar) { id avatarUrl }\n  }\n": typeof types.UpdateMyAvatarDocument,
@@ -133,6 +137,10 @@ const documents: Documents = {
     "\n  mutation ImportPlan($projectId: ID, $document: String!, $mode: ImportMode, $dryRun: Boolean) {\n    importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun) {\n      ok\n      dryRun\n      projectId\n      changes { kind path id fields title }\n      errors { path kind message }\n    }\n  }\n": types.ImportPlanDocument,
     "\n  mutation CreateTemplateFromProject($projectId: ID!, $name: String!) {\n    createTemplateFromProject(projectId: $projectId, name: $name) { id name }\n  }\n": types.CreateTemplateFromProjectDocument,
     "\n  mutation CreateTemplateFromFile($document: String!) {\n    createTemplateFromFile(document: $document) { id name }\n  }\n": types.CreateTemplateFromFileDocument,
+    "\n  query ProjectWebhook($id: ID!) {\n    project(id: $id) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n": types.ProjectWebhookDocument,
+    "\n  mutation SetProjectWebhook($projectId: ID!, $input: ProjectWebhookInput!) {\n    setProjectWebhook(projectId: $projectId, input: $input) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n": types.SetProjectWebhookDocument,
+    "\n  mutation RemoveProjectWebhook($projectId: ID!) {\n    removeProjectWebhook(projectId: $projectId) { id webhook { kind } }\n  }\n": types.RemoveProjectWebhookDocument,
+    "\n  mutation TestProjectWebhook($projectId: ID!) {\n    testProjectWebhook(projectId: $projectId) { ok message }\n  }\n": types.TestProjectWebhookDocument,
     "\n  query MyTasks($status: TaskStatus) {\n    myTasks(status: $status) {\n      id\n      title\n      icon\n      status\n      dueDate\n      userStory { role goal benefit }\n      commentCount\n      description\n      assignee { id name }\n      labels { id name color position }\n      todo {\n        id\n        title\n        milestone {\n          id\n          title\n          project { id name }\n        }\n      }\n    }\n  }\n": types.MyTasksDocument,
     "\n  mutation UpdateMyNotifications($notifyByEmail: Boolean!) {\n    updateMyNotifications(notifyByEmail: $notifyByEmail) { id notifyByEmail }\n  }\n": types.UpdateMyNotificationsDocument,
     "\n  mutation UpdateMyAvatar($avatar: Upload!) {\n    updateMyAvatar(avatar: $avatar) { id avatarUrl }\n  }\n": types.UpdateMyAvatarDocument,
@@ -320,6 +328,22 @@ export function graphql(source: "\n  mutation CreateTemplateFromProject($project
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateTemplateFromFile($document: String!) {\n    createTemplateFromFile(document: $document) { id name }\n  }\n"): (typeof documents)["\n  mutation CreateTemplateFromFile($document: String!) {\n    createTemplateFromFile(document: $document) { id name }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ProjectWebhook($id: ID!) {\n    project(id: $id) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n"): (typeof documents)["\n  query ProjectWebhook($id: ID!) {\n    project(id: $id) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SetProjectWebhook($projectId: ID!, $input: ProjectWebhookInput!) {\n    setProjectWebhook(projectId: $projectId, input: $input) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n"): (typeof documents)["\n  mutation SetProjectWebhook($projectId: ID!, $input: ProjectWebhookInput!) {\n    setProjectWebhook(projectId: $projectId, input: $input) {\n      id\n      webhook { kind target hasSecret lastSentAt lastSentRevision lastFailedAt lastError }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RemoveProjectWebhook($projectId: ID!) {\n    removeProjectWebhook(projectId: $projectId) { id webhook { kind } }\n  }\n"): (typeof documents)["\n  mutation RemoveProjectWebhook($projectId: ID!) {\n    removeProjectWebhook(projectId: $projectId) { id webhook { kind } }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation TestProjectWebhook($projectId: ID!) {\n    testProjectWebhook(projectId: $projectId) { ok message }\n  }\n"): (typeof documents)["\n  mutation TestProjectWebhook($projectId: ID!) {\n    testProjectWebhook(projectId: $projectId) { ok message }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

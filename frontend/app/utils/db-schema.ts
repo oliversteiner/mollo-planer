@@ -43,6 +43,7 @@ export const DB_TABLE_NAMES = [
   'templates',
   'labels',
   'label_task',
+  'project_webhooks',
   'roles',
   'functions',
   'function_rights',
@@ -250,6 +251,25 @@ const TABLES: Record<DbTableName, DbTable> = {
     ],
     indexes: [
       { kind: 'unique', columns: ['project_id', 'key'] }
+    ]
+  },
+  project_webhooks: {
+    name: 'project_webhooks',
+    columns: [
+      { name: 'id', type: 'bigint', primary: true },
+      { name: 'project_id', type: 'bigint', references: 'projects' },
+      { name: 'kind', type: 'varchar', values: ['github', 'generic'] },
+      { name: 'target', type: 'varchar' },
+      { name: 'secret', type: 'text', private: true },
+      { name: 'last_sent_revision', type: 'int', nullable: true },
+      { name: 'last_sent_at', type: 'timestamp', nullable: true },
+      { name: 'last_failed_at', type: 'timestamp', nullable: true },
+      { name: 'last_error', type: 'varchar', nullable: true },
+      { name: 'created_at', type: 'timestamp', nullable: true },
+      { name: 'updated_at', type: 'timestamp', nullable: true }
+    ],
+    indexes: [
+      { kind: 'unique', columns: ['project_id'] }
     ]
   },
   label_task: {

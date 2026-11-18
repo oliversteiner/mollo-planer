@@ -832,6 +832,10 @@
         "title": "Task labels",
         "description": "Assignment: which labels are on a task."
       },
+      "project_webhooks": {
+        "title": "Webhooks",
+        "description": "One notification per project when the planer file changes: GitHub or an address. The secret is stored encrypted."
+      },
       "app_settings": {
         "title": "App settings",
         "description": "Settings of the whole app, for example whether 2FA is required."
@@ -1282,6 +1286,52 @@
         "task_id": {
           "label": "Task",
           "description": "Der Task, an dem das Label hängt."
+        }
+      },
+      "project_webhooks": {
+        "id": {
+          "label": "ID",
+          "description": "Unique number."
+        },
+        "project_id": {
+          "label": "Project",
+          "description": "The project (at most one notification per project)."
+        },
+        "kind": {
+          "label": "Kind",
+          "description": "github (repository_dispatch) or generic (signed POST)."
+        },
+        "target": {
+          "label": "Target",
+          "description": "GitHub: owner/name. Generic: the address."
+        },
+        "secret": {
+          "label": "Secret",
+          "description": "Token or signing secret, encrypted. Never shown."
+        },
+        "last_sent_revision": {
+          "label": "Last revision",
+          "description": "Revision of the planer file at the last successful notification."
+        },
+        "last_sent_at": {
+          "label": "Last sent",
+          "description": "Time of the last successful notification."
+        },
+        "last_failed_at": {
+          "label": "Last failed",
+          "description": "Time of the last notification that did not arrive after all tries."
+        },
+        "last_error": {
+          "label": "Last error",
+          "description": "Short code, for example HTTP 401 or timeout. Never headers or body."
+        },
+        "created_at": {
+          "label": "Created",
+          "description": "Time it was created."
+        },
+        "updated_at": {
+          "label": "Changed",
+          "description": "Time of the last change."
         }
       },
       "app_settings": {
@@ -1743,6 +1793,41 @@
       "confirmTitle": "Import and delete?",
       "confirmDescription": "The file leaves out 1 item. It goes to the trash and can be restored there. | The file leaves out 1 item. It goes to the trash and can be restored there. | The file leaves out {count} items. They go to the trash together and can be restored there.",
       "done": "The file has been imported."
+    },
+    "webhook": {
+      "title": "Notification on changes",
+      "intro": "The app tells you when the planer file has changed, at most every five minutes. A GitHub Action can use it to keep the file in the repository up to date.",
+      "kind": "Kind",
+      "kinds": {
+        "GITHUB": "GitHub",
+        "GENERIC": "Generic"
+      },
+      "repository": "Repository",
+      "repositoryHint": "In the form owner/name, for example oliver/podcast.",
+      "url": "Address",
+      "urlHint": "The app sends a signed POST to this address (https only).",
+      "token": "Token",
+      "tokenHint": "Fine-grained token, this repository only, permission Contents: write.",
+      "tokenSaved": "Token saved",
+      "secret": "Secret",
+      "secretHint": "The app signs the body with it (HMAC-SHA256, header X-Mollo-Signature).",
+      "secretSaved": "Secret saved",
+      "replace": "Replace",
+      "test": "Test",
+      "remove": "Remove",
+      "saved": "Notification saved.",
+      "removed": "Notification removed.",
+      "removeTitle": "Remove the notification?",
+      "removeDescription": "The app no longer tells anyone about changes. The stored token or secret is deleted.",
+      "sent": "Last sent on {date} (revision {revision}).",
+      "failed": "Last notification failed on {date}: {error}",
+      "notSent": "Nothing sent yet.",
+      "error": {
+        "timeout": "timeout",
+        "connection": "no connection",
+        "target": "target not allowed",
+        "error": "error"
+      }
     }
   }
 }
