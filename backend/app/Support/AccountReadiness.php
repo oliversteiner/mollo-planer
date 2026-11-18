@@ -28,12 +28,17 @@ final class AccountReadiness
         return in_array($request->input('operationName'), self::OPEN_OPERATIONS, true);
     }
 
-    public static function locked(string $reason): JsonResponse
+    /**
+     * @param  ?string  $email  The address of the logged-in account, for the reason "email" only: the page
+     *                          "confirm your address" shows it (also after a reload, when the frontend no longer
+     *                          knows it). It is the address of the account of this session, nothing for third parties.
+     */
+    public static function locked(string $reason, ?string $email = null): JsonResponse
     {
         return response()->json([
             'errors' => [[
                 'message' => __('graphql.account_not_ready_'.$reason),
-                'extensions' => ['code' => self::CODE, 'reason' => $reason],
+                'extensions' => ['code' => self::CODE, 'reason' => $reason] + ($reason === self::REASON_EMAIL && $email !== null ? ['email' => $email] : []),
             ]],
         ], Response::HTTP_FORBIDDEN);
     }
