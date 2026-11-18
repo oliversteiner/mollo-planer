@@ -88,4 +88,26 @@ describe('WebhookCard', () => {
     expect(prop(input(wrapper, 'target'), 'label')).toBe('Adresse')
     expect(wrapper.text()).toContain('Geheimnis gespeichert')
   })
+
+  it('empties the target when the kind changes and brings the saved one back on returning (F8.3)', async () => {
+    answer.value = { project: { id: '1', webhook: github } }
+    const wrapper = await card()
+    const select = wrapper.find('wa-select')
+    const choose = async (value: string) => {
+      (select.element as unknown as { value: string }).value = value
+      await select.trigger('change')
+      await flushPromises()
+    }
+
+    expect(prop(input(wrapper, 'target'), 'value')).toBe('oliver/podcast')
+
+    await choose('GENERIC')
+    expect(prop(input(wrapper, 'target'), 'label')).toBe('Adresse')
+    expect(prop(input(wrapper, 'target'), 'value')).toBe('')
+    expect(input(wrapper, 'secret')).toBeDefined()
+
+    await choose('GITHUB')
+    expect(prop(input(wrapper, 'target'), 'value')).toBe('oliver/podcast')
+    expect(wrapper.text()).toContain('Token gespeichert')
+  })
 })

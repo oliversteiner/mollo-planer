@@ -33,6 +33,17 @@ watch(saved, (webhook) => {
   replacing.value = false
 }, { immediate: true })
 
+/**
+ * Another kind has another target (owner/name or an address): the field is emptied, so the old value does
+ * not stand there as an address. Back to the saved kind, the saved target is back. The token or secret
+ * of the old kind is no use for the new one, so a new one is asked for.
+ */
+watch(() => form.kind, (kind) => {
+  form.target = saved.value && saved.value.kind === kind ? saved.value.target : ''
+  form.secret = ''
+  replacing.value = false
+})
+
 const kinds = computed(() => [
   { label: t('planer.webhook.kinds.GITHUB'), value: 'GITHUB' },
   { label: t('planer.webhook.kinds.GENERIC'), value: 'GENERIC' }
