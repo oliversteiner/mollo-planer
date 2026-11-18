@@ -4,7 +4,7 @@ Status: offen — nach `10-fix-m6-nachtrag.md`.
 Stand: 2026-11-18, `dev` bis `f8115ae`.
 Dokument: `docs/zen-modus.md` (maßgeblich, Fassung 2).
 
-**Nachtrag 2026-11-18 (nach Z2, bitte zuerst):** Zen startet nur über die Suche (`Cmd/Ctrl+K`, „Zen“ eingeben) mit dem aktiven bzw. zuletzt aktiven Bereich (§1, §4.4). Das Kürzel `Cmd/Ctrl+.` und der Umschalter im Benutzermenü aus Z2 entfallen wieder; der Eck-Knopf öffnet die Suche. Stimmung nur über Eck-Knopf und Suche.
+**Nachtrag 2026-11-18 (nach Z2, bitte zuerst):** Zen startet über die Suche (`Cmd/Ctrl+K`, „Zen“ eingeben) **und** über einen Knopf „Zen“ in der Kopfleiste, beide mit dem aktiven bzw. zuletzt aktiven Bereich (§1, §4.4). Das Kürzel `Cmd/Ctrl+.` und der Umschalter im Benutzermenü aus Z2 entfallen wieder; der Eck-Knopf öffnet die Suche. Stimmung nur über Eck-Knopf und Suche.
 
 1. Z1 Erhebung: Tabelle in `docs/zen-modus.md` §5 ergänzen, **auf Freigabe durch Oliver warten** (Z2 und Z3 dürfen schon laufen, Z4 erst nach Freigabe).
 2. Z2 Zustand und Rahmen (`useViewMode`, Cookie `view_mode`, `data-view`, `zen.css`, `ZenShell`, Kürzel).

@@ -12,7 +12,7 @@ Stand: 2026-11-18, Fassung 2 (Fassung 1 vom 2026-11-17 an den Stand nach M6 ange
 **2026-11-18:**
 - **Aktueller Milestone** (Zeitachse in „Ruhig“): der erste nicht erledigte in der Reihenfolge des Projekts; sind alle erledigt, der letzte. Die übrigen eingeklappt darunter.
 - **Farbschema „Steingarten“** mit den Reglern Helligkeit und Kontrast und den Vorschlägen Leinen, Sand, Stein und Leder, genau wie in der Vorschau; pro Gerät gespeichert; aufgerufen über das Slide-In „Stimmung“ mit transparentem Hintergrund (§4.6).
-- **Aufruf nur über die Suche (2026-11-18, Nachtrag):** `Cmd/Ctrl+K` öffnet die Suche (bisher „Befehlspalette“ genannt). Wer dort „Zen“ eingibt, startet Zen mit dem Bereich, der gerade aktiv ist oder zuletzt aktiv war (§4.4). Kein eigenes Kürzel `Cmd/Ctrl+.`, kein Umschalter im Benutzermenü. Hinaus über die Suche („Zen verlassen“) oder den Eck-Knopf.
+- **Aufruf nur über die Suche (2026-11-18, Nachtrag):** `Cmd/Ctrl+K` öffnet die Suche (bisher „Befehlspalette“ genannt). Wer dort „Zen“ eingibt, startet Zen mit dem Bereich, der gerade aktiv ist oder zuletzt aktiv war (§4.4). **Korrektur:** Zusätzlich ein Knopf „Zen“ in der Kopfleiste, der dasselbe tut. Kein eigenes Kürzel `Cmd/Ctrl+.`, kein Umschalter im Benutzermenü. Hinaus über die Suche („Zen verlassen“) oder den Eck-Knopf.
 - **Ohne Dokumente:** Die Dokumentenverwaltung gibt es noch nicht. Zen gilt jetzt für alle vorhandenen Seiten, „Fokus“ für Task und ToDo. Dokumente bekommen Zen mit ihrem eigenen Auftrag (die Mechanik hier muss das ohne Umbau erlauben).
 
 ## 2. Grundsatz
@@ -77,6 +77,7 @@ Zen ist eine Darstellungsschicht, keine zweite App.
   - `Ctrl/Cmd+K`: Suche öffnen (überall, auch im Normalmodus; zusätzlich ein Lupen-Knopf in der Kopfleiste für Maus und Touch)
   - `Esc`: schließt die Suche bzw. verlässt „Fokus“
   - Kein weiteres Kürzel für Zen.
+- **Knopf „Zen“:** in der Kopfleiste neben der Lupe (Icon und Text „Zen“, auf dem Telefon nur Icon mit `aria-label`). Er startet Zen genau wie der Treffer „Zen · <Bereich>“ in der Suche, mit derselben Wahl des Bereichs. In Zen gibt es ihn nicht, dort führt der Eck-Knopf hinaus.
 - `Ctrl/Cmd+K` greift nicht, solange ein Dialog oder Drawer offen ist oder ein Eingabefeld bzw. der TipTap-Editor das Kürzel selbst braucht.
 
 **Zen über die Suche:**
@@ -217,7 +218,7 @@ Die Reihenfolge ist verbindlich. Je Schritt ein Commit, `lint`, `typecheck` und 
 - **Bauen:**
   - `useViewMode`, Cookie und Plugin für `data-view`
   - `zen.css` mit den Grundregeln und `ZenShell`
-  - Start und Ende von Zen nur über die Suche bzw. den Eck-Knopf (siehe §4.4); **kein** Kürzel `Cmd/Ctrl+.`, **kein** Umschalter im Benutzermenü; i18n DE/EN
+  - Start über die Suche und den Knopf „Zen“ in der Kopfleiste, Ende über die Suche bzw. den Eck-Knopf (siehe §4.4); **kein** Kürzel `Cmd/Ctrl+.`, **kein** Umschalter im Benutzermenü; i18n DE/EN
 - **Abnahme:**
   - Neuladen in `calm` zeigt serverseitig sofort den Zen-Rahmen, ohne Aufblitzen und ohne Hydration-Warnung.
   - Vitest für `useViewMode`: Übergänge und Rückkehr aus `focus`.
@@ -236,7 +237,7 @@ Die Reihenfolge ist verbindlich. Je Schritt ein Commit, `lint`, `typecheck` und 
   - Mit der Tastatur bedienbar.
 
 **Z3 Suche (`Cmd/Ctrl+K`) mit Zen-Aufruf**
-- **Bauen:** `CommandPalette` („Suche“) und `useCommands`, mit Seiten, Projekten und Seitenaktionen als Quellen und Rechteprüfung über `viewerRights`; Lupen-Knopf in der Kopfleiste; Treffer „Zen · <Bereich>“ mit der Wahl des Bereichs aus §4.4 und Cookie `zen_area`; „Zen verlassen“ und „Stimmung“ in Zen.
+- **Bauen:** `CommandPalette` („Suche“) und `useCommands`, mit Seiten, Projekten und Seitenaktionen als Quellen und Rechteprüfung über `viewerRights`; Lupen-Knopf und Knopf „Zen“ in der Kopfleiste; Treffer „Zen · <Bereich>“ mit der Wahl des Bereichs aus §4.4 und Cookie `zen_area`; „Zen verlassen“ und „Stimmung“ in Zen.
 - **Abnahme:**
   - Einträge ohne Recht fehlen (Test je Systemrolle).
   - Vollständig per Tastatur bedienbar, auch im Normalmodus.
