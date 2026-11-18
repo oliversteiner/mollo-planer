@@ -109,7 +109,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_MODEL=claude-opus-5-5
 ```
 
-Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).
+Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Je Person gelten Grenzen (Standard 30 Entwürfe je Stunde und 200 je Tag, einstellbar mit `ASSISTANT_LIMIT_HOUR` und `ASSISTANT_LIMIT_DAY`). `php artisan assistant:ping` schickt eine kleine echte Anfrage mit dem echten Schema und meldet OK oder den Fehler der API; vor jeder Änderung am Assistenten oder an seinem Schema laufen lassen. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).
 
 ## Deployment (Produktion)
 
@@ -125,7 +125,7 @@ Die Datei `.github/workflows/deploy.yml` läuft bei jedem Push auf `main` (oder 
 4. **Übertragung:** Das Archiv `frontend/.output/public` geht per SSH an den Server. Der Schlüssel darf nur das Skript `deploy/deploy.sh` starten, keine Shell.
 5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/main`, sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force`, `planer:sync-templates` (die mitgelieferten Vorlagen aus `spec/templates/`) und die Caches aus, kopiert das Frontend nach `~/www/planer.mollo.dev` und schaltet den Wartungsmodus wieder aus.
 
-Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen.
+Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen. `CORS_ALLOWED_ORIGINS` bleibt dort leer (nur für die Entwicklung im lokalen Netz). Mails und Webhooks brauchen den Cron-Eintrag `schedule:run` jede Minute (siehe `docs/deploy-template.md`, Abschnitt „Cron“). **Kein `php artisan migrate:rollback` in Produktion:** einige Rückwärts-Migrationen verlieren Daten, der Rückweg ist die Sicherung vor dem Deploy plus der vorherige Release.
 
 ### Deployment auslösen
 

@@ -76,7 +76,8 @@ DB_PASSWORD=
 SESSION_DRIVER=database
 SESSION_DOMAIN=.<domain>
 FRONTEND_URL=https://<frontend-domain>
-SANCTUM_STATEFUL_DOMAINS=<frontend-domain>
+SANCTUM_STATEFUL_DOMAINS=<frontend-domain>   # ohne lokale IP
+# CORS_ALLOWED_ORIGINS bleibt leer: nur für die Entwicklung im lokalen Netz
 QUEUE_CONNECTION=database
 CACHE_STORE=database
 
@@ -89,7 +90,9 @@ MAIL_PASSWORD=
 MAIL_FROM_ADDRESS="<absender@domain>"
 MAIL_FROM_NAME="${APP_NAME}"
 
-ANTHROPIC_API_KEY=             # nur, falls der KI-Assistent genutzt wird
+ANTHROPIC_API_KEY=             # nur, falls der KI-Assistent genutzt wird (ohne Schlüssel bleibt er aus)
+# ASSISTANT_LIMIT_HOUR=30      # Entwürfe je Person und Stunde (Standard)
+# ASSISTANT_LIMIT_DAY=200      # und je Tag (Standard)
 ```
 
 Bei einem Frontend ohne Backend entfällt dieser Abschnitt.
@@ -183,6 +186,12 @@ Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in
 `<api-pfad>` ist der Ordner des Backends (`~/apps/<projekt>/backend`), `<php-pfad>` das PHP 8.5 des Servers (`php -v` prüfen, im Panel den vollen Pfad eintragen).
 
 **Ohne diesen Eintrag gehen weder Mails noch Webhooks raus**, und es erscheint kein Fehler. Prüfen: In der App einen Task zuweisen oder in den Projekteinstellungen „Testen“ drücken; innerhalb von zwei Minuten kommt die Mail bzw. der Test an. Der Eintrag ist ein einmaliger Schritt (macht Oliver im Panel).
+
+### Nach dem Deploy und bei Problemen
+
+- **Assistent prüfen:** `php artisan assistant:ping` schickt eine kleine echte Anfrage mit dem echten Schema an die Claude-API und meldet OK oder den Fehler der API (schreibt nichts, braucht `ANTHROPIC_API_KEY`). Nach dem Deploy auf dem Server laufen lassen, dann einen Entwurf im Browser auslösen.
+- **Kein `migrate:rollback` in Produktion.** Einige `down()`-Migrationen verlieren Daten. Der Rückweg ist die Datenbank-Sicherung (`deploy.sh` legt sie vor den Migrationen an) plus der vorherige Release.
+- **Frontend-Build:** `NUXT_PUBLIC_API_BASE` ist die Build-Variable mit der API-Adresse. Leer gilt nur in der Entwicklung (dort wird die Adresse aus dem Host der Seite abgeleitet), in Produktion muss sie gesetzt sein.
 
 ## 9. Skript und Workflow anpassen
 
