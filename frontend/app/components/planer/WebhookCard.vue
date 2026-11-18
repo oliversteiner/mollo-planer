@@ -2,7 +2,7 @@
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { projectWebhookQuery, removeProjectWebhookMutation, setProjectWebhookMutation, testProjectWebhookMutation } from '~/graphql/planer'
 import type { WebhookKind } from '~/graphql/generated/graphql'
-import { formatDateTime } from '~/utils/dates'
+import { formatDateTime, isAtOrAfter } from '~/utils/dates'
 
 /**
  * Project settings: the notification when the planer file changes (project.update, docs/auftrag-m5.md §4.5).
@@ -199,7 +199,7 @@ function errorText(code: string | null | undefined): string {
       />
 
       <p
-        v-if="saved?.lastFailedAt && (!saved.lastSentAt || saved.lastFailedAt >= saved.lastSentAt)"
+        v-if="saved?.lastFailedAt && (!saved.lastSentAt || isAtOrAfter(saved.lastFailedAt, saved.lastSentAt))"
         class="webhook-status"
         data-status="failed"
       >

@@ -29,7 +29,16 @@ export function formatDate(dueDate: string, language: string, monthName = false)
   return new Intl.DateTimeFormat(language, options).format(new Date(year, month - 1, day))
 }
 
-/** Point in time (ISO 8601 from the API) with date and time, local zone. */
+/** Whether the point in time `a` is the same as or later than `b` (both ISO 8601 with their zone, as the API gives them). */
+export function isAtOrAfter(a: string, b: string): boolean {
+  return Date.parse(a) >= Date.parse(b)
+}
+
+/**
+ * Point in time (ISO 8601 with its zone from the API, for example 2026-11-18T02:13:49+00:00) with date and
+ * time, in the local zone of the browser. A value without a zone would be read as local time: the API
+ * always gives one (docs/fix-m5.md F8.1).
+ */
 export function formatDateTime(value: string, language: string): string {
   return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }
