@@ -12,6 +12,7 @@ Stand: 2026-11-18, Fassung 2 (Fassung 1 vom 2026-11-17 an den Stand nach M6 ange
 **2026-11-18:**
 - **Aktueller Milestone** (Zeitachse in „Ruhig“): der erste nicht erledigte in der Reihenfolge des Projekts; sind alle erledigt, der letzte. Die übrigen eingeklappt darunter.
 - **Farbschema „Steingarten“** mit den Reglern Helligkeit und Kontrast und den Vorschlägen Leinen, Sand, Stein und Leder, genau wie in der Vorschau; pro Gerät gespeichert; aufgerufen über das Slide-In „Stimmung“ mit transparentem Hintergrund (§4.6).
+- **Aufruf nur über die Suche (2026-11-18, Nachtrag):** `Cmd/Ctrl+K` öffnet die Suche (bisher „Befehlspalette“ genannt). Wer dort „Zen“ eingibt, startet Zen mit dem Bereich, der gerade aktiv ist oder zuletzt aktiv war (§4.4). Kein eigenes Kürzel `Cmd/Ctrl+.`, kein Umschalter im Benutzermenü. Hinaus über die Suche („Zen verlassen“) oder den Eck-Knopf.
 - **Ohne Dokumente:** Die Dokumentenverwaltung gibt es noch nicht. Zen gilt jetzt für alle vorhandenen Seiten, „Fokus“ für Task und ToDo. Dokumente bekommen Zen mit ihrem eigenen Auftrag (die Mechanik hier muss das ohne Umbau erlauben).
 
 ## 2. Grundsatz
@@ -60,12 +61,12 @@ Zen ist eine Darstellungsschicht, keine zweite App.
 ### 4.3 Rahmen
 
 - `layouts/default.vue` rendert je nach Zustand Seitenmenü und Kopfleiste oder den Zen-Rahmen `components/zen/ZenShell.vue`: Eck-Knopf, Projektname, Sichern-Status.
-- Der Eck-Knopf öffnet die Befehlspalette. Ein Eintrag darin heißt „Zen verlassen“.
+- Der Eck-Knopf öffnet die Suche (§4.4). Darin stehen in Zen oben „Zen verlassen“ und „Stimmung“.
 - Telefonbreite: Der Eck-Knopf überdeckt keine Eingabefelder, keine Sichern-Leiste und keine Meldungen.
 
-### 4.4 Befehlspalette (Voraussetzung, nicht Zugabe)
+### 4.4 Suche (`Cmd/Ctrl+K`) und Aufruf von Zen
 
-- **Baustein:** `components/command/CommandPalette.vue` auf Basis `AppDialog`/`wa-dialog`, mit Suchfeld und Ergebnisliste. Bedienung mit Pfeilen, Enter und Esc. Die Suche ignoriert Akzente (`utils/text-search.ts`).
+- **Baustein:** `components/command/CommandPalette.vue` auf Basis `AppDialog`/`wa-dialog`, für die Person „Suche“ genannt (Titel „Suche“, Platzhalter „Seite, Projekt, Aktion oder ‚Zen‘ …“), mit Suchfeld und Ergebnisliste. Bedienung mit Pfeilen, Enter und Esc. Die Suche ignoriert Akzente (`utils/text-search.ts`).
 - **Quellen:**
   - Seiten aus `utils/route-rights.ts` und dem Menü (RF5)
   - Projekte (`SidebarProjectList`)
@@ -73,10 +74,24 @@ Zen ist eine Darstellungsschicht, keine zweite App.
 - **Aktionen:** Seiten melden sie über `useCommands([{ id, label, icon, right, run }])` an. Einträge ohne Recht erscheinen nicht. Beim Verlassen der Seite verschwinden sie.
 - Die Palette gibt es auch im Normalmodus.
 - **Kürzel:**
-  - `Ctrl/Cmd+K`: Palette
-  - `Ctrl/Cmd+.`: „Ruhig“ umschalten
-  - `Esc`: verlässt „Fokus“
-- Die Kürzel greifen nicht, solange ein Dialog oder Drawer offen ist oder ein Eingabefeld bzw. der TipTap-Editor das Kürzel selbst braucht.
+  - `Ctrl/Cmd+K`: Suche öffnen (überall, auch im Normalmodus; zusätzlich ein Lupen-Knopf in der Kopfleiste für Maus und Touch)
+  - `Esc`: schließt die Suche bzw. verlässt „Fokus“
+  - Kein weiteres Kürzel für Zen.
+- `Ctrl/Cmd+K` greift nicht, solange ein Dialog oder Drawer offen ist oder ein Eingabefeld bzw. der TipTap-Editor das Kürzel selbst braucht.
+
+**Zen über die Suche:**
+- **Treffer:** Die Eingabe „zen“ (ohne Groß/Klein, auch „ze“, „ruhig“, EN „calm“) zeigt als ersten Treffer „Zen · <Bereich>“, z. B. „Zen · Website-Relaunch, Zeitachse“. Enter startet Zen (`calm`) mit diesem Bereich.
+- **Inhaltsbereiche:**
+  - im Projekt Zeitachse, Kanban, ToDos und Tasks
+  - Task- bzw. ToDo-Detail
+  - Ideen, KI-Assistent, Meine Tasks, Dashboard
+- **Welcher Bereich:**
+  - Ist die aktuelle Seite ein Inhaltsbereich, dann diese.
+  - Ist ein Task- oder ToDo-Detail offen, wird es in Zen gezeigt; für das Vollbild gibt es „Fokus“.
+  - Andere Seiten (Einstellungen, Mitglieder, Vorlagen, Papierkorb, Admin, Profil, System): der **zuletzt aktive** Inhaltsbereich. Ihn merkt sich das Gerät bei jedem Besuch eines Inhaltsbereichs als Pfad, im Cookie `zen_area` (wie `view_mode`, ein Jahr). Ein gemerkter Pfad, den die Person nicht mehr sehen darf oder den es nicht mehr gibt, wird verworfen.
+  - Ohne gemerkten Bereich: „Meine Tasks“.
+- **In Zen** zeigt die Suche bei leerer Eingabe oben „Zen verlassen“ und „Stimmung“. „Zen verlassen“ kehrt zum Normalmodus auf derselben Seite zurück.
+- Unit-Tests für die Wahl des Bereichs: aktuelle Seite, Detail offen, andere Seite mit und ohne gemerkten Bereich, ungültiger gemerkter Bereich.
 
 ### 4.5 Stufe 2 „Fokus“
 
@@ -132,8 +147,7 @@ Zen (`calm` und `focus`) hat ein eigenes Farbschema mit den Farben Leinen, Sand,
 - **Speichern:** Änderungen wirken sofort. Gespeichert wird beim Loslassen des Reglers bzw. beim Klick, mit 300 ms Verzögerung, ohne eigenen Speichern-Knopf.
 - **Aufruf:**
   - Eintrag „Stimmung“ im Menü des Eck-Knopfs (`ZenShell`).
-  - Befehl „Stimmung“ in der Palette.
-  - Im Normalmodus über den Befehl oder das Benutzermenü (neben „Zen“). Ist Zen aus, schaltet „Stimmung“ zuerst auf `calm`, damit die Wirkung sichtbar ist.
+  - Treffer „Stimmung“ in der Suche. Ist Zen aus, startet „Stimmung“ zuerst Zen wie oben, damit die Wirkung sichtbar ist.
 - **Tastatur:** Regler mit Pfeiltasten (1) und Bild auf/ab (10). Der Fokus springt beim Öffnen auf den ersten Regler und beim Schließen zurück zum Auslöser. Werte werden per `aria-valuetext` angesagt („Sand, 30 Prozent“).
 
 ## 5. Was je Seite ausgeblendet wird (Z1, Erhebung vom 2026-11-18, wartet auf Freigabe)
@@ -203,7 +217,7 @@ Die Reihenfolge ist verbindlich. Je Schritt ein Commit, `lint`, `typecheck` und 
 - **Bauen:**
   - `useViewMode`, Cookie und Plugin für `data-view`
   - `zen.css` mit den Grundregeln und `ZenShell`
-  - Umschalter im Benutzermenü, Kürzel, i18n DE/EN
+  - Start und Ende von Zen nur über die Suche bzw. den Eck-Knopf (siehe §4.4); **kein** Kürzel `Cmd/Ctrl+.`, **kein** Umschalter im Benutzermenü; i18n DE/EN
 - **Abnahme:**
   - Neuladen in `calm` zeigt serverseitig sofort den Zen-Rahmen, ohne Aufblitzen und ohne Hydration-Warnung.
   - Vitest für `useViewMode`: Übergänge und Rückkehr aus `focus`.
@@ -214,18 +228,19 @@ Die Reihenfolge ist verbindlich. Je Schritt ein Commit, `lint`, `typecheck` und 
   - Plugin für `--zen-*`, Abbildung auf `--wa-*` in `zen.css`
   - Cookies `zen_brightness` und `zen_contrast`
   - `MoodDrawer` mit Reglern, Vorschlägen, Farbleiste und Kontrastanzeige
-  - Einstieg über Eck-Knopf und Benutzermenü (die Palette folgt mit Z3)
+  - Einstieg über den Eck-Knopf und den Treffer „Stimmung“ in der Suche (mit Z3)
 - **Abnahme:**
   - Neuladen in `calm` zeigt sofort die gespeicherte Stimmung, ohne Aufblitzen des Normal-Schemas.
   - Vitest für `palette()`: Stützpunkte, Kippen bei 50 und Mindestkontrast über das ganze Raster.
   - Der Drawer dunkelt nicht ab, und die Seite ändert sich live.
   - Mit der Tastatur bedienbar.
 
-**Z3 Befehlspalette**
-- **Bauen:** `CommandPalette` und `useCommands`, mit Seiten, Projekten und Seitenaktionen als Quellen und Rechteprüfung über `viewerRights`.
+**Z3 Suche (`Cmd/Ctrl+K`) mit Zen-Aufruf**
+- **Bauen:** `CommandPalette` („Suche“) und `useCommands`, mit Seiten, Projekten und Seitenaktionen als Quellen und Rechteprüfung über `viewerRights`; Lupen-Knopf in der Kopfleiste; Treffer „Zen · <Bereich>“ mit der Wahl des Bereichs aus §4.4 und Cookie `zen_area`; „Zen verlassen“ und „Stimmung“ in Zen.
 - **Abnahme:**
   - Einträge ohne Recht fehlen (Test je Systemrolle).
   - Vollständig per Tastatur bedienbar, auch im Normalmodus.
+  - „zen“ eintippen und Enter startet Zen mit dem richtigen Bereich (Tests nach §4.4).
 
 **Z4 Seiten markieren, Gruppe A: Dashboard, Meine Tasks, Projektliste, Projekt/Zeitachse, Kanban, Task, ToDo**
 - **Bauen:**
