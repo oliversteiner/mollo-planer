@@ -136,25 +136,55 @@ Zen (`calm` und `focus`) hat ein eigenes Farbschema mit den Farben Leinen, Sand,
   - Im Normalmodus über den Befehl oder das Benutzermenü (neben „Zen“). Ist Zen aus, schaltet „Stimmung“ zuerst auf `calm`, damit die Wirkung sichtbar ist.
 - **Tastatur:** Regler mit Pfeiltasten (1) und Bild auf/ab (10). Der Fokus springt beim Öffnen auf den ersten Regler und beim Schließen zurück zum Auslöser. Werte werden per `aria-valuetext` angesagt („Sand, 30 Prozent“).
 
-## 5. Was je Seitentyp ausgeblendet wird (Leitlinie, die genaue Liste entsteht in Z1)
+## 5. Was je Seite ausgeblendet wird (Z1, Erhebung vom 2026-11-18, wartet auf Freigabe)
 
-| Seitentyp | Bleibt in `calm` | Geht ins „…“-Menü oder verschwindet |
+Entscheidungen je Element: **bleibt** (in `calm` sichtbar), **hide** (`data-zen="hide"`, in `calm` und `focus` weg), **hover** (`data-zen="hover"`, nur bei Hover oder Fokus, auf Touch im „…“-Menü), **Menü** (Aktion wandert ins „…“-Menü der Seite und in die Befehlspalette). „Palette“ heißt: als Aktion der Seite über `useCommands` erreichbar. Alles, was nicht aufgeführt ist, bleibt. Immer sichtbar (§2): Fehler, Validierung, Archiv-Leiste, Hinweis „inzwischen geändert“, Meldungen mit „Rückgängig“.
+
+### Gruppe A (Z4)
+
+| Seite | Bleibt | hide | hover | Menü und Palette |
+|---|---|---|---|---|
+| Dashboard `/` | „Meine offenen Tasks“ (Titel, Projekt, Fälligkeit, Status) | Untertitel, Karte „Projekte“ mit Fortschrittsbalken, Karte „Anstehende ToDos“, Link „Alle Projekte“ | Fortschrittswerte | „Alle Projekte“, „Meine Tasks“ als Palette-Seiten |
+| Meine Tasks `/my-tasks` | Liste: Titel, Projekt, Fälligkeit, Status | Labels, Spalte „ToDo-Status“ | Labels | Schalter „Ideen anzeigen“ ins Menü |
+| Projektliste `/projects` | Name, Status, eigener Anteil offener Tasks | Avatare, Zähler, Bereich „Archiv“ (eingeklappt, im Menü „Archiv zeigen“) | Fortschritt | „Projekt anlegen“ ins Menü |
+| Projektrahmen `/projects/:id` | Titel, Archiv-Leiste, Hinweis „inzwischen geändert“ | Reiter (Zeitachse, ToDos, Kanban, Mitglieder, Einstellungen, Papierkorb) | — | Reiter als Palette-Seiten des Projekts; „Mit dem Assistenten ergänzen“ und „Milestone anlegen“ ins Menü |
+| Zeitachse `/projects/:id` | aktueller Milestone (erster nicht erledigter, sonst der letzte; §1), seine ToDos und offenen Tasks: Titel, Status, Person | Labels, Commits, Release-Angaben, Fälligkeit der ToDos | Fälligkeit der Tasks, Zeilenmenü | übrige Milestones eingeklappt unter „Weitere Milestones“; „Nur Milestones“, „Task anlegen“, „ToDo anlegen“ ins Menü |
+| ToDo-Liste `/projects/:id/todos` | ToDos mit Titel, Status, Milestone | Zähler der Tasks, Spalte „Aktionen“ | Fälligkeit, Zeilenmenü | „ToDo anlegen“ ins Menü |
+| Kanban `/projects/:id/kanban` | Spalten, Karten mit Titel und Person | Labels auf den Karten, Spaltenzähler | Fälligkeit | Labelfilter und Schalter „Ideen und Geplantes“ ins Menü; „Task anlegen“ ins Menü |
+| Task-Detail (Drawer) | Titel, Status, Beschreibung, Zuweisung | technische IDs, Commit, Labels, Verlauf | Fälligkeit | „Fokus“, Nebenaktionen ins „…“; Kommentare eingeklappt |
+| ToDo-Detail | Titel, Status, Beschreibung, Tasks | Fälligkeit, Icon-Wahl | — | „Fokus“, „Task anlegen“ ins „…“ |
+
+### Gruppe B (Z5)
+
+| Seite | Bleibt | hide | hover | Menü und Palette |
+|---|---|---|---|---|
+| Ideen `/ideas` | Titel, Status, „Mit dem Assistenten planen“ | Projektzeile, Datum | Umfang des Entwurfs | Filter eingeklappt, „Neue Idee“, Bearbeiten, Verwerfen, Löschen ins Menü |
+| KI-Assistent `/assistant` | Chat, Knöpfe, Vorschau | Erklärtext, Zeile „Ergänzt wird“ | — | „Neu beginnen“, „Anderes Projekt“ |
+| Mitglieder | Name, Rolle | Avatare-Zusätze, Hilfetext, Suchhinweis | — | „Mitglied hinzufügen“ ins Menü |
+| Einstellungen (Projekt) | Karten in einer Spalte | Hilfetexte, Intro der Karten (nicht Hinweise zu Datenschutz im KI-Kontext, Zähler 20 000) | — | Karten bleiben; Archivieren und Löschen bleiben erreichbar |
+| Vorlagen `/templates`, Label-Sets | Namen, Inhalt | Badge „mitgeliefert“, Zähler `projectCount` | — | „Neu“, „Duplizieren“ ins Menü |
+| Papierkorb (global und Projekt) | Einträge mit Titel und Art | Zähler „mit 3 ToDos“, Löscher | Wer und wann | „Wiederherstellen“ bleibt sichtbar, „Endgültig löschen“ ins Menü |
+| Admin: Benutzer, Rollen, App-Einstellungen | Inhalt in einer Spalte | Hilfetexte, Badges, Zähler | — | Filter eingeklappt, Anlegen ins Menü |
+| System: Datenbank, Status, Version | Inhalt | Erklärtexte | — | — |
+| Rechte-Übersicht `/system/rechte` | Matrix unverändert | nichts | — | nur ohne Rahmen |
+| Profil | Name, Sprache, Sicherheit (2FA, Passkeys) | Hilfetexte, Avatar-Hinweise | — | Sicherheitshinweise und 2FA-Pflicht bleiben immer sichtbar |
+| Anmelden, Registrieren, Passwort, 2FA, Einladung, Warten | unverändert | — | — | kein Zen ohne Anmeldung |
+
+### Rahmen
+
+| Teil | `calm` | `focus` |
 |---|---|---|
-| Dashboard, Meine Tasks | eigene offene Tasks: Titel, Projekt, Fälligkeit, Status | Zähler, Diagramme, Schalter „Ideen anzeigen“ (ins Menü) |
-| Projektliste | Name, Status, eigener Anteil offener Tasks | Zähler, Avatare, Filterleiste (eingeklappt), Bereich „Archiv“ |
-| Projekt / Zeitachse | aktueller Milestone (§1), seine ToDos und offenen Tasks: Titel, Status, zuständige Person | übrige Milestones eingeklappt, Labels, Commits, Release-Angaben, „Mit dem Assistenten ergänzen“ und „Milestone anlegen“ ins Menü |
-| Kanban | Spalten und Karten mit Titel und zuständiger Person | Labels, Fälligkeit (`hover`), Schalter „Ideen und Geplantes“ ins Menü |
-| Task / ToDo | Titel, Status, Beschreibung, Zuweisung | Verlauf, technische IDs, Commit, Nebenaktionen |
-| Ideen | Titel, Status | Projekt, Umfang des Entwurfs (`hover`), Filter eingeklappt |
-| KI-Assistent | Chat und Vorschau | Erklärtexte, Projektzeile |
-| Einstellungen, Vorlagen, Mitglieder, Papierkorb, Admin | Inhalt in einer Spalte, Filter eingeklappt | Hilfetexte, Zähler, Badges „mitgeliefert“ |
-| Rechte-Übersicht (Matrix) | unverändert, nur ohne Rahmen | nichts, eine Matrix lässt sich nicht sinnvoll kürzen |
-| Anmelden, Registrieren, 2FA, Einladung | unverändert (kein Zen ohne Anmeldung) | — |
+| Seitenmenü, Kopfleiste, Brotkrumen | weg (`hide`) | weg |
+| Eck-Knopf (öffnet Befehlspalette), Projektname | sichtbar | weg |
+| Sichern-Status, „Zurück“ | sichtbar | sichtbar |
+| Benutzermenü | über die Befehlspalette (Profil, Abmelden, „Zen verlassen“) | — |
+
+Offen für Oliver: (1) Reiter des Projekts in `calm` ganz weg (nur Palette) oder als schmale Zeile? Vorschlag: weg. (2) Kommentare im Task-Detail in `calm` eingeklappt (Vorschlag) oder weg? (3) Das Dashboard in `calm` ohne Projektkarten: einverstanden?
 
 ## 6. Risiken
 
 1. **Umfang:** Je Seitengruppe ein Commit, damit die Abnahme prüfbar bleibt.
-2. **Zeitachse:** `Timeline.vue` hat 713 Zeilen. Die Sicht „aktueller Milestone“ ist der Anlass, sie in Teilkomponenten zu zerlegen (Milestone, ToDo-Zeile, Task-Zeile). Das Verhalten im Normalmodus bleibt unverändert, die bestehenden Tests müssen grün bleiben.
+2. **Zeitachse:** `Timeline.vue` hat 713 Zeilen. Die Sicht „aktueller Milestone“ (entschieden: erster nicht erledigter in der Reihenfolge des Projekts, sonst der letzte) ist der Anlass, sie in Teilkomponenten zu zerlegen (Milestone, ToDo-Zeile, Task-Zeile). Das Verhalten im Normalmodus bleibt unverändert, die bestehenden Tests müssen grün bleiben.
 3. **Barrierefreiheit:**
    - Moduswechsel per `aria-live` ansagen.
    - Der Fokus bleibt auf dem auslösenden Element.
