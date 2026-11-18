@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { pendingAccountPath } from '~/utils/api'
-
 /**
  * Target of the link in the confirmation mail (the API hands over here, also when nobody is
  * logged in). Opening the page confirms nothing, mail scanners open links in advance: the
@@ -12,6 +10,7 @@ const { t } = useI18n()
 const route = useRoute()
 const { $backend } = useNuxtApp()
 const { load } = useViewer()
+const { proceed } = useAccountFlow()
 
 useHead({ title: () => t('auth.verify.title') })
 
@@ -55,17 +54,11 @@ async function confirm(): Promise<void> {
 
 /** Confirmed: logged in, the state of the account decides where to go; otherwise say what comes next. */
 async function goOn(): Promise<void> {
-  const problem = await load()
-
-  if (problem === null) {
-    await navigateTo('/')
-  } else if (problem === 'setup-required') {
-    await navigateTo('/setup-security')
-  } else if (pendingAccountPath(problem)) {
-    await navigateTo(pendingAccountPath(problem))
-  } else {
-    nextSteps.value = true
-  }
+  await proceed('continued', {
+    onSignedOut: () => {
+      nextSteps.value = true
+    }
+  })
 }
 
 async function detectSession(): Promise<void> {

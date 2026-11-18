@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { pendingAccountPath, safeRedirect } from '~/utils/api'
+import { safeRedirect } from '~/utils/api'
 
 /**
  * First setup after the invitation: an account needs an authenticator app
@@ -11,39 +11,24 @@ definePageMeta({ layout: 'auth' })
 const { t } = useI18n()
 const route = useRoute()
 const toast = useToast()
-const { load, logout } = useViewer()
+const { logout } = useViewer()
+const { proceed } = useAccountFlow()
 
 useHead({ title: () => t('auth.setup.title') })
 
 const method = ref<'app' | 'passkey' | null>(null)
 
 /**
- * After the first factor was set up: ask the API again and go on. Every answer leads
- * somewhere or says why not; none is ignored (the viewer query is silent, so the
- * app-wide handler in plugins/api-errors.ts does not speak up here).
+ * After the first factor was set up: ask the API again and go on (see utils/account-outcome.ts: no
+ * answer is ignored). A session that does not count as strong yet leads to the login with the new factor.
  */
 async function done(): Promise<void> {
-  const problem = await load()
-
-  if (problem === null) {
-    await navigateTo(safeRedirect(route.query.redirect))
-  } else if (pendingAccountPath(problem)) {
-    await navigateTo(pendingAccountPath(problem))
-  } else if (problem === 'unauthenticated' || problem === 'reauth-required') {
-    // The session does not count as strong (or is gone): log in with the new factor.
-    toast.add({ title: t('auth.setup.signInAgain'), color: 'info' })
-    await navigateTo({ path: '/login', query: { redirect: safeRedirect(route.query.redirect) } })
-  } else if (problem !== 'setup-required') {
-    // Same messages as the app-wide handler; the page stays and the person can try again.
-    const failures = {
-      unauthorized: { key: 'apiError.unauthorized', color: 'error' },
-      csrf: { key: 'apiError.csrf', color: 'warning' },
-      network: { key: 'apiError.network', color: 'error' }
-    } as const
-    const failure = failures[problem as keyof typeof failures] ?? { key: 'apiError.unknown', color: 'error' }
-
-    toast.add({ title: t(failure.key), color: failure.color })
-  }
+  await proceed('continued', {
+    onSignedOut: async () => {
+      toast.add({ title: t('auth.setup.signInAgain'), color: 'info' })
+      await navigateTo({ path: '/login', query: { redirect: safeRedirect(route.query.redirect) } })
+    }
+  })
 }
 </script>
 

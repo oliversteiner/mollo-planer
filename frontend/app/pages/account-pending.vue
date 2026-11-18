@@ -8,7 +8,8 @@ definePageMeta({ layout: 'auth', public: true })
 
 const { t } = useI18n()
 const route = useRoute()
-const { load, logout } = useViewer()
+const { logout } = useViewer()
+const { proceed } = useAccountFlow()
 
 useHead({ title: () => t('auth.pending.title') })
 
@@ -19,20 +20,7 @@ async function check(): Promise<void> {
   checking.value = true
 
   try {
-    const problem = await load()
-    const pendingPath = pendingAccountPath(problem)
-
-    if (problem === null) {
-      await navigateTo('/')
-    } else if (problem === 'setup-required') {
-      await navigateTo('/setup-security')
-    } else if (pendingPath) {
-      if (pendingPath !== route.fullPath) {
-        await navigateTo(pendingPath, { replace: true })
-      }
-    } else {
-      await navigateTo('/login')
-    }
+    await proceed('continued')
   } finally {
     checking.value = false
   }

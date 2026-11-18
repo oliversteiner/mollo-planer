@@ -107,7 +107,7 @@ describe('setup security page, after the first factor', () => {
 
   it('stays on the page without a message while the setup is still open', async () => {
     load.mockResolvedValue('setup-required')
-    const page = await mountSuspended(SetupSecurityPage)
+    const page = await mountSuspended(SetupSecurityPage, { route: '/setup-security' })
 
     await page.find('.setup-choice').trigger('click')
     await page.findComponent(SecurityPasskeyAdd).vm.$emit('added')

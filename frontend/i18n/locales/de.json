@@ -113,7 +113,9 @@
       "forgot": "Passwort vergessen?",
       "or": "oder",
       "passkey": "Mit Passkey anmelden",
-      "register": "Konto anlegen"
+      "register": "Konto anlegen",
+      "passkeyRequired": "Dein Konto ist mit einem Passkey geschützt. Melde dich mit dem Passkey an.",
+      "passkeyUnsupported": "Dein Konto ist mit einem Passkey geschützt. Öffne die Seite auf einem Gerät mit deinem Passkey oder melde dich bei einem Admin."
     },
     "challenge": {
       "title": "Zweiter Faktor",

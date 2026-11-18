@@ -113,7 +113,9 @@
       "forgot": "Forgot your password?",
       "or": "or",
       "passkey": "Sign in with a passkey",
-      "register": "Create account"
+      "register": "Create account",
+      "passkeyRequired": "Your account is protected by a passkey. Sign in with the passkey.",
+      "passkeyUnsupported": "Your account is protected by a passkey. Open this page on a device with your passkey or contact an admin."
     },
     "challenge": {
       "title": "Second factor",
