@@ -14,7 +14,7 @@ Personen: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Owner Sommerfest 2
 - [x] ✅ Grenze: 51. Task in einem ToDo abgelehnt mit „Ein ToDo hat höchstens 50 Tasks.“
 - [x] ✅ Beschreibung über 5000 Zeichen und HTML in der Datei werden mit Pfad abgelehnt.
 - [ ] ❌ Meldungen der Datei-Prüfung teils englisch („Maximum string length is 5000, found 5001“, „is not a member of the project“). → F7.3
-- [ ] ⏸ `php artisan planer:check-limits` auf der laufenden Instanz vor dem Deployment (für Oliver).
+- [x] ✅ (Oliver) `php artisan planer:check-limits` auf der laufenden Instanz vor dem Deployment (für Oliver).
 
 ## 2. Reihenfolge der Tasks (§2.3)
 
@@ -27,7 +27,7 @@ Personen: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Owner Sommerfest 2
 - [x] ✅ `exportPlan` liefert kanonischen Text (`format`, `revision`, Projekt, Mitglieder, Labels mit `names`, Milestones …).
 - [x] ✅ Mitglied (David) darf exportieren; archiviertes Projekt lässt sich exportieren.
 - [x] ✅ Gemischt verschachtelte Liste und Fett/Kursiv/Link kommen als kanonisches Markdown heraus.
-- [ ] ⏸ Downloads „Als planer.json“ und „Als Markdown“ (Sprache, Übersetzungen in der Legende) öffnen (Dateien auf dem Rechner, für Oliver).
+- [x] ✅ (Oliver) Downloads „Als planer.json“ und „Als Markdown“ (Sprache, Übersetzungen in der Legende) öffnen (Dateien auf dem Rechner, für Oliver).
 - [ ] ❌ Beschriftung „Sprache der Markdown-Ansicht“ läuft in das Auswahlfeld. → F7.5
 
 ## 4. Import (I2)
@@ -46,19 +46,19 @@ Personen: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Owner Sommerfest 2
 - [x] ✅ Projekteinstellungen › „Datei eintragen …“: Datei wählen, Modus „Ganzer Plan“, Vorschau mit Anzahl Änderungen und `PlanerTree`, Hinweis auf den Papierkorb, Bestätigung „Eintragen und löschen?“, Meldung „Die Datei ist eingetragen.“
 - [x] ✅ Markierung „Neu“ am neuen Task.
 - [ ] ❌ Geänderter Task ohne Markierung „Geändert“; gelöschtes Element nur als „ToDo t-7“ ohne Titel; Vorschau scrollt seitlich. → F7.4
-- [ ] ⏸ „Neues Projekt › Aus Datei“ in der Oberfläche (per API geprüft: neues Projekt, Revision 1, Anna als Owner).
+- [x] ✅ (Oliver) „Neues Projekt › Aus Datei“ in der Oberfläche (per API geprüft: neues Projekt, Revision 1, Anna als Owner).
 
 ## 6. Vorlagen aus Dateien (I5)
 
 - [x] ✅ „Als Vorlage speichern“: Vorlage ohne Mitglieder, Fälligkeiten, Zuweisungen; alle Tasks „geplant“, Version auf „geplant“.
 - [x] ✅ Vorlage aus hochgeladener Datei; eine volle Projektdatei wird dabei in eine Vorlage umgewandelt (statt abgelehnt).
 - [x] ✅ Projekt aus Datei/Vorlage mit Markdown-Beschreibungen: Formatierung kommt an (offener Punkt aus M3).
-- [ ] ⏸ Download einer Vorlage als Datei (für Oliver).
+- [x] ✅ (Oliver) Download einer Vorlage als Datei (für Oliver).
 
 ## 7. MCP (I3) und Demo-Daten (I4)
 
 - [x] ✅ Demo-Daten aus Planer-Dateien: `migrate:fresh --seed` läuft, Projekte mit Revision 1, Labels, Releases.
-- [ ] ⏸ MCP nur noch `list_projects`, `list_users`, `list_templates`, `export_plan`, `import_plan` (für Oliver gegen die Demo-Instanz); `docs/claude-connector.md`.
+- [x] ✅ (Oliver) MCP nur noch `list_projects`, `list_users`, `list_templates`, `export_plan`, `import_plan` (für Oliver gegen die Demo-Instanz); `docs/claude-connector.md`.
 - [x] ✅ `DevelopmentHistorySeeder` auf planer-v2 (`next-work/03`, `f19cc17`).
 
 ## Nachprüfung F7 (2026-11-18, Planung, Chrome, frische Demo-Daten, `dev` bis `f1b024f`)
@@ -70,7 +70,7 @@ Personen: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Owner Sommerfest 2
 - [x] ✅ F7.5: Beschriftung „Sprache“, Hinweis darunter, keine Überlappung.
 - [x] ✅ F7.6: Task-Menü der Zeitachse mit „Ändern“, „Nach unten“, „Löschen“.
 - [x] ✅ `DevelopmentHistorySeeder` liest `docs/entwicklung.planer.json` (planer-v2) über `Import` (`f19cc17`); `migrate:fresh --seed` lief.
-- [ ] ⏸ Bleibt für Oliver: Downloads, „Neues Projekt › Aus Datei“ in der Oberfläche, Vorlage als Datei, MCP-Werkzeuge, `planer:check-limits`.
+- [x] ✅ Oliver (2026-11-18): Downloads „Als planer.json“/„Als Markdown“, „Projekt anlegen › Aus Datei“ (als Anna, Seite „Projekte“), Vorlage als Datei, MCP mit genau fünf Werkzeugen und `export_plan` wie Download, `planer:check-limits` ohne Befund.
 
 ---
 
