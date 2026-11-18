@@ -151,7 +151,7 @@ Zen (`calm` und `focus`) hat ein eigenes Farbschema mit den Farben Leinen, Sand,
   - Treffer „Stimmung“ in der Suche. Ist Zen aus, startet „Stimmung“ zuerst Zen wie oben, damit die Wirkung sichtbar ist.
 - **Tastatur:** Regler mit Pfeiltasten (1) und Bild auf/ab (10). Der Fokus springt beim Öffnen auf den ersten Regler und beim Schließen zurück zum Auslöser. Werte werden per `aria-valuetext` angesagt („Sand, 30 Prozent“).
 
-## 5. Was je Seite ausgeblendet wird (Z1, Erhebung vom 2026-11-18, wartet auf Freigabe)
+## 5. Was je Seite ausgeblendet wird (Z1, Erhebung vom 2026-11-18, von Oliver freigegeben)
 
 Entscheidungen je Element: **bleibt** (in `calm` sichtbar), **hide** (`data-zen="hide"`, in `calm` und `focus` weg), **hover** (`data-zen="hover"`, nur bei Hover oder Fokus, auf Touch im „…“-Menü), **Menü** (Aktion wandert ins „…“-Menü der Seite und in die Befehlspalette). „Palette“ heißt: als Aktion der Seite über `useCommands` erreichbar. Alles, was nicht aufgeführt ist, bleibt. Immer sichtbar (§2): Fehler, Validierung, Archiv-Leiste, Hinweis „inzwischen geändert“, Meldungen mit „Rückgängig“.
 
@@ -194,7 +194,9 @@ Entscheidungen je Element: **bleibt** (in `calm` sichtbar), **hide** (`data-zen=
 | Sichern-Status, „Zurück“ | sichtbar | sichtbar |
 | Benutzermenü | über die Befehlspalette (Profil, Abmelden, „Zen verlassen“) | — |
 
-Offen für Oliver: (1) Reiter des Projekts in `calm` ganz weg (nur Palette) oder als schmale Zeile? Vorschlag: weg. (2) Kommentare im Task-Detail in `calm` eingeklappt (Vorschlag) oder weg? (3) Das Dashboard in `calm` ohne Projektkarten: einverstanden?
+Entschieden (Oliver, 2026-11-18): (1) Die Reiter des Projekts sind in `calm` ganz weg und nur über die Palette erreichbar. (2) Kommentare im Task-Detail sind in `calm` eingeklappt. (3) Das Dashboard zeigt in `calm` keine Projektkarten und keine anstehenden ToDos.
+
+Umsetzung Z4 (Abweichungen von der Tabelle): Die Seitenaktionen (`#page-actions`), der Erklärtext und die Reiter blenden alle Seiten über `PageFrame` aus; jede Seite meldet ihre Aktionen über `useCommands` an. Der Bereich „Archiv“ der Projektliste bleibt sichtbar, ist aber eingeklappt (so bleibt er ohne eigenen Befehl erreichbar). Ein eigenes ToDo-Detail gibt es nicht; die ToDo-Liste und die Zeitachse sind markiert. Auf der Zeitachse bleibt in `calm` nur der aktuelle Milestone aufgeklappt, die anderen haben „Aufklappen“; erledigte Tasks sind weg. Die Task-Zeile ist eine eigene Komponente (`TimelineTask`).
 
 ## 6. Risiken
 

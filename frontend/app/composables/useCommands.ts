@@ -8,11 +8,10 @@ export function useCommands(commands: Command[] | (() => Command[])): void {
   const registry = useState<{ owner: number, commands: Command[] }[]>('commands', () => [])
   const owner = getCurrentInstance()?.uid ?? Math.random()
 
-  watchEffect(() => {
-    const list = typeof commands === 'function' ? commands() : commands
-
+  // Only the list is a source; writing the registry in the callback must not trigger this watcher again.
+  watch(() => (typeof commands === 'function' ? commands() : commands), (list) => {
     registry.value = [...registry.value.filter(entry => entry.owner !== owner), { owner, commands: list }]
-  })
+  }, { immediate: true })
 
   onBeforeUnmount(() => {
     registry.value = registry.value.filter(entry => entry.owner !== owner)

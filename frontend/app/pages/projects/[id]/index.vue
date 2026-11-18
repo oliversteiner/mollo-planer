@@ -97,6 +97,29 @@ const deletion = useDelete<{ kind: 'milestone' | 'todo', item: Item }>(target =>
   target.kind === 'milestone' ? deleteMilestone({ id: target.item.id }) : deleteTodo({ id: target.item.id })
 )
 
+// The buttons are in the page actions, which the calm view hides.
+useCommands(() => [
+  {
+    id: 'milestone-create',
+    label: t('item.milestone.create'),
+    icon: 'plus',
+    group: 'action',
+    visible: () => can('MILESTONE_CREATE'),
+    run: () => {
+      editing.value = { kind: 'milestone', parentId: projectId.value }
+    }
+  },
+  {
+    id: 'milestones-only',
+    label: t('zen.milestonesOnly'),
+    icon: 'flag',
+    group: 'action',
+    run: () => {
+      milestonesOnly.value = !milestonesOnly.value
+    }
+  }
+])
+
 function startEditing(target: ItemFormTarget): void {
   editing.value = target
 }

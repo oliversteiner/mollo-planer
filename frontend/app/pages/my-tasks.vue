@@ -32,6 +32,17 @@ const projects = computed(() => projectOptions(result.value?.myTasks ?? [], task
  */
 const showIdeas = useStoredSwitch('mollo.myTasks.showIdeas')
 
+// The switch is in the page actions, which the calm view hides: the palette keeps it reachable.
+useCommands(() => [{
+  id: 'my-tasks-ideas',
+  label: t(showIdeas.value ? 'zen.hideIdeas' : 'zen.showIdeas'),
+  icon: 'lightbulb',
+  group: 'action',
+  run: () => {
+    showIdeas.value = !showIdeas.value
+  }
+}])
+
 /** By due date (without date last), then by title. */
 const tasks = computed(() => [...filterByProject(result.value?.myTasks ?? [], project.value, task => task.todo.milestone.project.id)]
   .filter(task => filter.value !== 'open' || task.status !== 'DONE')
@@ -112,10 +123,14 @@ const shareTasks = computed<ShareTask[]>(() => tasks.value.map(task => ({
             <span class="my-tasks-title">{{ task.title }}</span>
             <span class="my-tasks-sub">{{ task.todo.milestone.project.name }} · {{ task.todo.milestone.title }} · {{ task.todo.title }}</span>
           </span>
-          <TaskLabels :labels="task.labels" />
+          <TaskLabels
+            :labels="task.labels"
+            data-zen="hide"
+          />
           <span
             v-if="task.commentCount"
             class="my-tasks-comments"
+            data-zen="hide"
           >
             <wa-icon name="comments"></wa-icon>
             {{ task.commentCount }}

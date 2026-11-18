@@ -393,7 +393,8 @@
     },
     "onlyMembers": "Only project members can be assigned.",
     "onlySelf": "You can assign tasks only to yourself.",
-    "joined": "{name} is a member now (role {role})."
+    "joined": "{name} is a member now (role {role}).",
+    "commentsSummary": "No comments | 1 comment | {count} comments"
   },
   "comments": {
     "title": "Comments ({count})",
@@ -2017,7 +2018,12 @@
     "leave": "Leave zen",
     "leaveFocus": "Back",
     "announceOn": "Calm view on.",
-    "announceOff": "Normal view."
+    "announceOff": "Normal view.",
+    "showIdeas": "Show ideas",
+    "hideIdeas": "Hide ideas",
+    "milestonesOnly": "Toggle milestones only",
+    "expandMilestone": "Expand",
+    "collapseMilestone": "Collapse"
   },
   "command": {
     "title": "Commands",

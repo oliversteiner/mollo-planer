@@ -37,6 +37,7 @@ const roleName = useRoleName()
         <span
           v-if="documentText(project.description)"
           class="projects-description"
+          data-zen="hide"
         >{{ documentText(project.description) }}</span>
         <span class="projects-footer">
           <wa-progress-bar
@@ -48,6 +49,7 @@ const roleName = useRoleName()
             <UserAvatarGroup
               :people="project.members.map(member => member.user)"
               :max="5"
+              data-zen="hide"
             />
           </span>
         </span>

@@ -174,6 +174,31 @@ function openWhileDragging(todoId: string) {
   }
 }
 
+/**
+ * Calm view (docs/zen-modus.md §1, §5): the current milestone shows its todos open, the other milestones stay closed
+ * until "Aufklappen". This is state of the data; what is hidden is decided by zen.css.
+ */
+const { calm } = useViewMode()
+const zenOpened = ref(new Set<string>())
+
+function toggleZenOpen(id: string): void {
+  const next = new Set(zenOpened.value)
+
+  if (!next.delete(id)) {
+    next.add(id)
+  }
+
+  zenOpened.value = next
+}
+
+watch([calm, current, milestones], () => {
+  if (calm.value) {
+    const todos = milestones.value.find(milestone => milestone.id === current.value)?.todos ?? []
+
+    openTodos.value = new Set([...openTodos.value, ...todos.map(todo => todo.id)])
+  }
+}, { immediate: true })
+
 /** Only the milestones: without descriptions and todos, as an outline. */
 const milestonesOnly = defineModel<boolean>('milestonesOnly', { default: false })
 
@@ -205,7 +230,10 @@ function toggleAll() {
     />
 
     <template v-else>
-      <div class="wa-cluster wa-gap-s wa-justify-content-end">
+      <div
+        class="wa-cluster wa-gap-s wa-justify-content-end"
+        data-zen="hide"
+      >
         <wa-button
           appearance="plain"
           variant="neutral"
@@ -254,12 +282,14 @@ function toggleAll() {
             <span
               v-if="item.milestone.release"
               class="timeline-release wa-caption-s"
+              data-zen="hide"
             >
               {{ item.milestone.release.version }} · {{ t(`release.${item.milestone.release.status.toLowerCase()}`) }}
             </span>
             <StatusBadge :status="item.milestone.status" />
             <ActionMenu
               v-if="menu('milestone', item.milestone).length"
+              data-zen="hide"
               :items="menu('milestone', item.milestone)"
               :label="t('project.timeline.milestoneActions', { title: item.milestone.title })"
             />
@@ -285,7 +315,30 @@ function toggleAll() {
               <span class="milestone-progress-text">{{ t('projects.progress', { done: item.milestone.progress.done, total: item.milestone.progress.total }) }}</span>
             </div>
 
-            <template v-if="!milestonesOnly">
+            <!--
+              Calm view: only the current milestone shows its todos; the others are closed, "Aufklappen" opens one.
+              The marking is data (is it the current one?), the hiding is zen.css.
+            -->
+            <wa-button
+              v-if="!milestonesOnly && item.milestone.id !== current"
+              appearance="plain"
+              variant="neutral"
+              size="s"
+              data-zen="only"
+              :aria-expanded="zenOpened.has(item.milestone.id)"
+              @click="toggleZenOpen(item.milestone.id)"
+            >
+              <wa-icon
+                slot="start"
+                :name="zenOpened.has(item.milestone.id) ? 'chevron-up' : 'chevron-down'"
+              ></wa-icon>
+              {{ zenOpened.has(item.milestone.id) ? t('zen.collapseMilestone') : t('zen.expandMilestone') }}
+            </wa-button>
+            <div
+              v-if="!milestonesOnly"
+              class="wa-stack wa-gap-s"
+              :data-zen="item.milestone.id === current || zenOpened.has(item.milestone.id) ? undefined : 'hide'"
+            >
               <ul
                 v-if="item.milestone.todos.length"
                 class="todo-list wa-list-plain"
@@ -316,11 +369,15 @@ function toggleAll() {
                         class="todo-icon"
                       />
                       <span class="todo-title">{{ todo.title }}</span>
-                      <span class="todo-count">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
+                      <span
+                        class="todo-count"
+                        data-zen="hide"
+                      >{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
                       <StatusBadge :status="todo.status" />
                       <DueDate
                         :date="todo.dueDate"
                         :done="todo.status === 'DONE'"
+                        data-zen="hide"
                       />
                     </button>
                     <ActionMenu
@@ -355,73 +412,14 @@ function toggleAll() {
                         @start="dragging = true"
                         @end="onDrop"
                       >
-                        <li
+                        <ProjectTimelineTask
                           v-for="task in taskLists[todo.id]"
                           :key="task.id"
-                          :data-id="task.id"
-                          class="task"
-                          @click="emit('openTask', task.id)"
-                          @dblclick="editTask(task)"
-                        >
-                          <ItemIcon
-                            :name="task.icon"
-                            fallback="square-check"
-                            class="task-icon"
-                          />
-                          <div class="task-text">
-                            <button
-                              type="button"
-                              class="task-title plain-button"
-                              :data-done="task.status === 'DONE' ? '' : undefined"
-                              :aria-label="t('project.timeline.openTask', { title: task.title })"
-                              @click.stop="emit('openTask', task.id)"
-                              @dblclick.stop="editTask(task)"
-                            >
-                              {{ task.title }}
-                            </button>
-                            <RichTextView
-                              v-if="!isEmptyDocument(task.description)"
-                              :content="task.description"
-                              class="wa-body-s task-description"
-                            />
-                          </div>
-                          <div class="task-meta">
-                            <TaskLabels :labels="task.labels" />
-                            <StatusBadge :status="task.status" />
-                            <DueDate
-                              :date="task.dueDate"
-                              :done="task.status === 'DONE'"
-                            />
-                            <span
-                              v-if="task.commentCount"
-                              class="task-comments"
-                            >
-                              <wa-icon name="comments"></wa-icon>
-                              {{ task.commentCount }}
-                              <span class="wa-visually-hidden">{{ t('kanban.comments') }}</span>
-                            </span>
-                            <UserLine
-                              v-if="task.assignee"
-                              :name="task.assignee.name"
-                              :src="task.assignee.avatarUrl"
-                              size="xs"
-                            />
-                            <span
-                              v-else
-                              class="task-unassigned"
-                            >{{ t('project.timeline.unassigned') }}</span>
-                            <span
-                              v-if="taskMenu(task, todo.id).length"
-                              @click.stop
-                              @dblclick.stop
-                            >
-                              <ActionMenu
-                                :items="taskMenu(task, todo.id)"
-                                :label="t('project.timeline.taskActions', { title: task.title })"
-                              />
-                            </span>
-                          </div>
-                        </li>
+                          :task="task"
+                          :menu="taskMenu(task, todo.id)"
+                          @open="emit('openTask', task.id)"
+                          @edit="editTask(task)"
+                        />
                       </VueDraggable>
                       <p
                         v-if="!taskLists[todo.id]?.length && !dragging"
@@ -432,7 +430,10 @@ function toggleAll() {
                       </p>
                     </div>
 
-                    <div v-if="canCreateTask">
+                    <div
+                      v-if="canCreateTask"
+                      data-zen="hide"
+                    >
                       <wa-button
                         appearance="plain"
                         variant="neutral"
@@ -457,7 +458,10 @@ function toggleAll() {
                 {{ t('project.noTodos') }}
               </p>
 
-              <div v-if="canCreateTodo">
+              <div
+                v-if="canCreateTodo"
+                data-zen="hide"
+              >
                 <wa-button
                   appearance="plain"
                   variant="neutral"
@@ -472,7 +476,7 @@ function toggleAll() {
                   {{ t('item.todo.create') }}
                 </wa-button>
               </div>
-            </template>
+            </div>
           </div>
         </template>
       </StepTimeline>
@@ -613,87 +617,6 @@ function toggleAll() {
 .task-list-droppable {
   min-block-size: 2.5rem;
   border: var(--wa-border-width-s) dashed var(--wa-color-surface-border);
-}
-
-.task {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--wa-space-xs);
-  padding: var(--wa-space-xs) var(--wa-space-s);
-  cursor: pointer;
-}
-
-.task + .task {
-  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
-}
-
-.task:hover {
-  background-color: var(--wa-color-neutral-fill-quiet);
-}
-
-.task-ghost {
-  opacity: 0.4;
-}
-
-.task-icon {
-  margin-block-start: var(--wa-space-3xs);
-  color: var(--wa-color-text-quiet);
-}
-
-.task-text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--wa-space-3xs);
-  min-inline-size: 12rem;
-}
-
-.task-title {
-  align-self: flex-start;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-size: var(--wa-font-size-s);
-  font-weight: var(--wa-font-weight-semibold);
-  text-align: start;
-  cursor: pointer;
-}
-
-.task-title:focus-visible {
-  text-decoration: underline;
-  outline: none;
-}
-
-.task-title[data-done] {
-  color: var(--wa-color-text-quiet);
-  text-decoration: line-through;
-}
-
-.task-description {
-  color: var(--wa-color-text-quiet);
-}
-
-.task-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--wa-space-s);
-}
-
-.task-comments {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--wa-space-3xs);
-  color: var(--wa-color-text-quiet);
-  font-size: var(--wa-font-size-xs);
-}
-
-.task-unassigned {
-  color: var(--wa-color-text-quiet);
-  font-size: var(--wa-font-size-xs);
 }
 
 .task-none {

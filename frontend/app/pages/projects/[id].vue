@@ -33,6 +33,45 @@ const withSettings = computed(() => can('PROJECT_UPDATE') || can('PROJECT_ARCHIV
 /** "Trash" for people who may restore or delete for good (docs/auftrag-m2.md §4.4). */
 const withTrash = computed(() => can('TRASH_RESTORE') || can('TRASH_PURGE'))
 
+// The tabs are hidden in the calm view: the palette reaches the pages of the project.
+useCommands(() => {
+  const id = project.value?.id
+
+  if (!id) {
+    return []
+  }
+
+  const go = async (path: string): Promise<void> => {
+    await navigateTo(path)
+  }
+  const tab = (key: string, path: string, icon: string, visible = true) => ({
+    id: `project-tab-${key}`,
+    label: `${project.value!.name}: ${t(`project.tabs.${key}`)}`,
+    icon,
+    group: 'action' as const,
+    visible: () => visible,
+    run: () => go(`/projects/${id}${path}`)
+  })
+
+  return [
+    tab('milestones', '', 'timeline'),
+    tab('todos', '/todos', 'list-check'),
+    tab('tasks', '/kanban', 'table-columns'),
+    tab('members', '/members', 'users'),
+    tab('settings', '/settings', 'gear', withSettings.value),
+    tab('trash', '/trash', 'trash-can', withTrash.value),
+    {
+      id: 'project-assistant',
+      label: t('assistant.addWith'),
+      icon: 'wand-magic-sparkles',
+      right: 'ASSISTANT_USE',
+      group: 'action' as const,
+      visible: () => !project.value?.archivedAt,
+      run: () => go('/assistant?project=' + id)
+    }
+  ]
+})
+
 useHead({ title: () => (project.value ? `${project.value.name} · ${pageName.value}` : t('projects.title')) })
 </script>
 

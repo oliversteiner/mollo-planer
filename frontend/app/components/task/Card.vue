@@ -58,6 +58,7 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
     class="task-card"
     :data-id="task.id"
     :data-status="task.status"
+    data-zen-row
     :title="editable ? t('kanban.doubleClickToEdit') : undefined"
     @dblclick="onDoubleClick"
   >
@@ -87,15 +88,18 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
     <TaskLabels
       v-if="task.labels?.length"
       :labels="task.labels"
+      data-zen="hide"
     />
     <div class="task-card-foot">
       <DueDate
         :date="task.dueDate"
         :done="task.status === 'DONE'"
+        data-zen="hover"
       />
       <span
         v-if="task.commentCount"
         class="task-card-comments"
+        data-zen="hide"
       >
         <wa-icon name="comments"></wa-icon>
         {{ task.commentCount }}

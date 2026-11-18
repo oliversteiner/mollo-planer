@@ -393,7 +393,8 @@
     },
     "onlyMembers": "Nur Projektmitglieder lassen sich zuweisen.",
     "onlySelf": "Du kannst Tasks nur dir selbst zuweisen.",
-    "joined": "{name} ist jetzt Mitglied (Rolle {role})."
+    "joined": "{name} ist jetzt Mitglied (Rolle {role}).",
+    "commentsSummary": "Keine Kommentare | 1 Kommentar | {count} Kommentare"
   },
   "comments": {
     "title": "Kommentare ({count})",
@@ -2017,7 +2018,12 @@
     "leave": "Zen verlassen",
     "leaveFocus": "Zurück",
     "announceOn": "Ruhige Ansicht ein.",
-    "announceOff": "Normale Ansicht."
+    "announceOff": "Normale Ansicht.",
+    "showIdeas": "Ideen anzeigen",
+    "hideIdeas": "Ideen ausblenden",
+    "milestonesOnly": "Nur Milestones anzeigen umschalten",
+    "expandMilestone": "Aufklappen",
+    "collapseMilestone": "Zuklappen"
   },
   "command": {
     "title": "Befehle",

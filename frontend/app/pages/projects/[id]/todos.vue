@@ -65,6 +65,18 @@ function actions(todo: Item): ActionMenuItem[] {
 
   return items
 }
+
+// The button is in the page actions, which the calm view hides.
+useCommands(() => [{
+  id: 'todos-create',
+  label: t('item.todo.create'),
+  icon: 'plus',
+  group: 'action',
+  visible: () => can('TODO_CREATE') && milestones.value.length > 0,
+  run: () => {
+    editing.value = { kind: 'todo' }
+  }
+}])
 </script>
 
 <template>
@@ -120,6 +132,7 @@ function actions(todo: Item): ActionMenuItem[] {
         v-for="todo in todos"
         :key="todo.id"
         class="todos-row"
+        data-zen-row
       >
         <ItemIcon
           :name="todo.icon"
@@ -130,14 +143,19 @@ function actions(todo: Item): ActionMenuItem[] {
           <span class="todos-title">{{ todo.title }}</span>
           <span class="todos-sub">{{ todo.milestone.title }}</span>
         </span>
-        <span class="todos-sub">{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
+        <span
+          class="todos-sub"
+          data-zen="hide"
+        >{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
         <StatusBadge :status="todo.status" />
         <DueDate
           :date="todo.dueDate"
           :done="todo.status === 'DONE'"
+          data-zen="hover"
         />
         <ActionMenu
           v-if="actions(todo).length"
+          data-zen="hover"
           :items="actions(todo)"
           :label="t('common.actions')"
         />

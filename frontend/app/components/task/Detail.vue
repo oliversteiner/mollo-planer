@@ -67,6 +67,14 @@ const { mutate: setTaskLabels } = useProjectMutation(setTaskLabelsMutation)
 const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
 const { errors: commitErrors, run: runCommit } = useGraphqlForm()
 
+const { calm } = useViewMode()
+/** Open in the normal view, closed in the calm view; the person can still change it. */
+const commentsOpen = ref(!calm.value)
+
+watch(calm, (value) => {
+  commentsOpen.value = !value
+})
+
 /** Labels of the project; one the task has that is not among them (any more) can only be removed. */
 const setLabels = computed(() => task.value?.todo.milestone.project.labels ?? [])
 const setLabelIds = computed(() => setLabels.value.map(label => label.id))
@@ -201,6 +209,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), {
         v-if="shareTask"
         :tasks="[shareTask]"
         :name="shareTask.title"
+        data-zen="hide"
       />
 
       <div class="task-fields">
@@ -225,6 +234,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), {
           :label="t('task.commit.label')"
           :hint="t('task.commit.hint')"
           :error="commitErrors.commit"
+          data-zen="hide"
           @change="(event: Event) => changeCommit((event.target as HTMLInputElement).value)"
         />
 
@@ -247,6 +257,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), {
 
       <LabelPicker
         v-if="may.update && (setLabels.length || extraLabels.length)"
+        data-zen="hide"
         :model-value="task.labels.map(label => label.id)"
         :labels="setLabels"
         :extra="extraLabels"
@@ -256,6 +267,7 @@ const deletion = useDelete<string>(id => deleteTask({ id }), {
       <FormField
         v-else-if="task.labels.length"
         :label="t('labels.field')"
+        data-zen="hide"
       >
         <TaskLabels
           :labels="task.labels"
@@ -285,13 +297,22 @@ const deletion = useDelete<string>(id => deleteTask({ id }), {
         </p>
       </section>
 
-      <wa-divider></wa-divider>
+      <wa-divider data-zen="hide"></wa-divider>
 
-      <TaskComments
-        :task-id="task.id"
-        :comments="task.comments"
-        :can-comment="can.comment"
-      />
+      <!-- Calm view: the comments are closed under the content (docs/zen-modus.md §4.5), open in the normal view. -->
+      <wa-details
+        :open="commentsOpen"
+        appearance="plain"
+        @wa-show="commentsOpen = true"
+        @wa-hide="commentsOpen = false"
+      >
+        <span slot="summary">{{ t('task.commentsSummary', { count: task.comments.length }, task.comments.length) }}</span>
+        <TaskComments
+          :task-id="task.id"
+          :comments="task.comments"
+          :can-comment="can.comment"
+        />
+      </wa-details>
     </div>
   </AppDrawer>
 </template>

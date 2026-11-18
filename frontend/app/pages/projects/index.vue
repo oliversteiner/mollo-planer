@@ -18,6 +18,18 @@ const projects = computed(() => result.value?.projects ?? [])
 const { result: archivedResult } = useQuery(projectsQuery, { archived: true }, { fetchPolicy: 'cache-and-network' })
 const archived = computed(() => archivedResult.value?.projects ?? [])
 const creating = ref(false)
+
+// The button is in the page actions, which the calm view hides.
+useCommands(() => [{
+  id: 'projects-create',
+  label: t('projects.create.open'),
+  icon: 'folder-plus',
+  right: 'PROJECTS_CREATE',
+  group: 'action',
+  run: () => {
+    creating.value = true
+  }
+}])
 </script>
 
 <template>

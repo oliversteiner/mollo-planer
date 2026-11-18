@@ -149,6 +149,27 @@ function closeTask(): void {
   void router.replace({ query })
 }
 
+// The buttons and filters are hidden in the calm view: the palette keeps them reachable.
+useCommands(() => [
+  {
+    id: 'kanban-task-create',
+    label: t('task.create'),
+    icon: 'plus',
+    group: 'action',
+    visible: () => can('TASK_CREATE') && todos.value.length > 0 && !project.value?.archivedAt,
+    run: () => startCreating()
+  },
+  {
+    id: 'kanban-ideas',
+    label: t(showIdeas.value ? 'zen.hideIdeas' : 'zen.showIdeas'),
+    icon: 'lightbulb',
+    group: 'action',
+    run: () => {
+      showIdeas.value = !showIdeas.value
+    }
+  }
+])
+
 function startCreating(): void {
   closeTask()
   editing.value = {}
@@ -228,6 +249,7 @@ const abilities = computed(() => ({
       :label="t('kanban.showIdeas')"
       :hint="t('kanban.showIdeasHint')"
       class="kanban-filter"
+      data-zen="hide"
     />
 
     <FormSelect
@@ -237,6 +259,7 @@ const abilities = computed(() => ({
       :label="t('labels.filter')"
       hide-label
       class="kanban-filter"
+      data-zen="hide"
     />
 
     <wa-skeleton
