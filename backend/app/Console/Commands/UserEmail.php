@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use App\Console\Concerns\ManagesUserAccounts;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -90,7 +90,7 @@ class UserEmail extends Command implements PromptsForMissingInput
     }
 
     /** The new confirmation date: --unverified clears it, --verified or a changed address sets it (an earlier date stays). */
-    private function targetVerification(?Carbon $current, bool $addressChanged): ?Carbon
+    private function targetVerification(?CarbonInterface $current, bool $addressChanged): ?CarbonInterface
     {
         if ($this->option('unverified')) {
             return null;
@@ -132,7 +132,7 @@ class UserEmail extends Command implements PromptsForMissingInput
         }
     }
 
-    private function describe(?Carbon $verifiedAt): string
+    private function describe(?CarbonInterface $verifiedAt): string
     {
         return $verifiedAt === null ? __('console.user_email.no') : __('console.user_email.yes', ['date' => $verifiedAt->format('Y-m-d H:i')]);
     }

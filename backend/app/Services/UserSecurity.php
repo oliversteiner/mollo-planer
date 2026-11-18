@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Notifications\SecurityChange;
 use App\Support\McpTokens;
 use App\Support\StrongAuthentication;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -27,9 +27,9 @@ class UserSecurity
      * @return array{
      *     authenticator: bool,
      *     authenticator_started: bool,
-     *     confirmed_at: ?Carbon,
+     *     confirmed_at: ?CarbonInterface,
      *     recovery_codes: int,
-     *     passkeys: list<array{id: int, name: string, created_at: ?Carbon, last_used_at: ?Carbon}>,
+     *     passkeys: list<array{id: int, name: string, created_at: ?CarbonInterface, last_used_at: ?CarbonInterface}>,
      *     needs_setup: bool,
      * }
      */

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Console\Concerns\ManagesUserAccounts;
+use App\Enums\TwoFactorAction;
 use App\Models\User;
 use App\Services\UserSecurity;
 use Illuminate\Console\Attributes\Description;
@@ -29,8 +30,6 @@ class UserTwoFactor extends Command implements PromptsForMissingInput
 {
     use ManagesUserAccounts;
 
-    private const ACTIONS = ['status', 'reset', 'authenticator', 'passkeys', 'recovery-codes'];
-
     public function handle(UserSecurity $security): int
     {
         $user = $this->userOrFail();
@@ -46,35 +45,35 @@ class UserTwoFactor extends Command implements PromptsForMissingInput
         }
 
         return match ($action) {
-            'status' => $this->status($user, $security),
-            'reset' => $this->reset($user, $security),
-            'authenticator' => $this->removeAuthenticator($user, $security),
-            'passkeys' => $this->removePasskeys($user, $security),
-            'recovery-codes' => $this->recoveryCodes($user, $security),
+            TwoFactorAction::STATUS => $this->status($user, $security),
+            TwoFactorAction::RESET => $this->reset($user, $security),
+            TwoFactorAction::AUTHENTICATOR => $this->removeAuthenticator($user, $security),
+            TwoFactorAction::PASSKEYS => $this->removePasskeys($user, $security),
+            TwoFactorAction::RECOVERY_CODES => $this->recoveryCodes($user, $security),
         };
     }
 
-    private function chooseAction(): ?string
+    private function chooseAction(): ?TwoFactorAction
     {
-        $action = $this->argument('action');
+        $typed = $this->argument('action');
 
-        if ($action === null) {
+        if ($typed === null) {
             if (! $this->input->isInteractive()) {
                 $this->components->error(__('console.user_2fa.action_needs_interaction'));
 
                 return null;
             }
 
-            return select(
+            return TwoFactorAction::from((string) select(
                 label: __('console.user_2fa.choose'),
-                options: collect(self::ACTIONS)->mapWithKeys(fn (string $name): array => [$name => __("console.user_2fa.actions.$name")])->all(),
-            );
+                options: collect(TwoFactorAction::values())->mapWithKeys(fn (string $name): array => [$name => __("console.user_2fa.actions.$name")])->all(),
+            ));
         }
 
-        if (! in_array($action, self::ACTIONS, true)) {
-            $this->components->error(__('console.user_2fa.unknown_action', ['action' => $action, 'actions' => implode(', ', self::ACTIONS)]));
+        $action = TwoFactorAction::tryFrom((string) $typed);
 
-            return null;
+        if ($action === null) {
+            $this->components->error(__('console.user_2fa.unknown_action', ['action' => $typed, 'actions' => implode(', ', TwoFactorAction::values())]));
         }
 
         return $action;

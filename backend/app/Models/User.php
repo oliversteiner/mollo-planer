@@ -31,10 +31,10 @@ use Laravel\Sanctum\HasApiTokens;
 #[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {
-    use HasApiTokens, HasFactory, MustVerifyEmail, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasRole, MustVerifyEmail, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /** @use HasFactory<UserFactory> */
-    use HasRole;
+    use HasFactory;
 
     /**
      * Same defaults as the database, so new instances never hold null.
@@ -61,7 +61,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array{email_verified_at: 'datetime', approved_at: 'datetime', password: 'hashed', two_factor_confirmed_at: 'datetime', activity: class-string<UserActivity>, notify_by_email: 'boolean'}
      */
     protected function casts(): array
     {
@@ -109,7 +109,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
      */
     public function mailLocale(): string
     {
-        return Locale::tryFrom((string) $this->getAttribute('locale'))?->value ?? app()->getLocale();
+        return Locale::tryFrom((string) $this->getAttribute('locale'))->value ?? app()->getLocale();
     }
 
     /**
@@ -119,7 +119,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
      */
     public function accountLocale(): string
     {
-        return Locale::tryFrom((string) $this->getAttribute('locale'))?->value ?? (string) config('app.default_locale');
+        return Locale::tryFrom((string) $this->getAttribute('locale'))->value ?? (string) config('app.default_locale');
     }
 
     /**
