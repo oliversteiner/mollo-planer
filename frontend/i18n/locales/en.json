@@ -127,7 +127,8 @@
       "submit": "Confirm",
       "useRecovery": "Use a recovery code",
       "useCode": "Use the code from the app",
-      "back": "Back"
+      "back": "Back",
+      "noAccess": "No access to the app and the codes any more? Contact an admin."
     },
     "forgot": {
       "title": "Forgot password",
@@ -162,7 +163,11 @@
       "passkeyExplain": "A passkey is a key on your device or in your password manager. You confirm it with fingerprint, face or PIN, without a password and without a code.",
       "passkeyDone": "Your passkey is set up.",
       "secondFactorHint": "Set up a second way, for example the authenticator app or a passkey on a second device. That way you can get into your account without this device.",
-      "continue": "Continue"
+      "continue": "Continue",
+      "progress": "Step {current} of {total}: {title}",
+      "stepFactor": "Set up a factor",
+      "stepCodes": "Save the codes",
+      "stepFinish": "Finish"
     },
     "register": {
       "title": "Create account",
@@ -500,7 +505,8 @@
       "copied": "Codes copied.",
       "download": "Download",
       "show": "Show recovery codes",
-      "regenerate": "Create new codes"
+      "regenerate": "Create new codes",
+      "saved": "I have saved the codes."
     },
     "passkeys": {
       "title": "Passkeys",

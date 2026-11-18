@@ -19,6 +19,19 @@ useHead({ title: () => t('auth.setup.title') })
 const method = ref<'app' | 'passkey' | null>(null)
 // After the first passkey: a fixed step with the hint about a second way, not a toast that disappears.
 const passkeyAdded = ref(false)
+const appStep = ref<'start' | 'scan' | 'codes'>('start')
+
+// "Step 1 of 2": set up a factor. "Step 2 of 2": keep the codes (app) or the closing step (passkey). As text, so a screen reader reads it.
+const progress = computed(() => {
+  if (method.value === null) {
+    return null
+  }
+
+  const second = (method.value === 'passkey' && passkeyAdded.value) || (method.value === 'app' && appStep.value === 'codes')
+  const title = !second ? 'stepFactor' : (method.value === 'passkey' ? 'stepFinish' : 'stepCodes')
+
+  return t('auth.setup.progress', { current: second ? 2 : 1, total: 2, title: t(`auth.setup.${title}`) })
+})
 
 /**
  * After the first factor was set up: ask the API again and go on (see utils/account-outcome.ts: no
@@ -46,6 +59,14 @@ async function done(): Promise<void> {
     <div class="wa-stack wa-gap-m">
       <p class="wa-body-s wa-color-text-quiet">
         {{ t('auth.setup.description') }}
+      </p>
+
+      <p
+        v-if="progress"
+        class="wa-body-s wa-color-text-quiet"
+        aria-live="polite"
+      >
+        {{ progress }}
       </p>
 
       <div
@@ -121,6 +142,7 @@ async function done(): Promise<void> {
       </div>
       <SecurityTwoFactorSetup
         v-else
+        @step="appStep = $event"
         @done="done"
       />
 

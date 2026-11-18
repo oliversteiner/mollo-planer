@@ -127,7 +127,8 @@
       "submit": "Bestätigen",
       "useRecovery": "Wiederherstellungscode verwenden",
       "useCode": "Code aus der App verwenden",
-      "back": "Zurück"
+      "back": "Zurück",
+      "noAccess": "Kein Zugriff mehr auf App und Codes? Melde dich bei einem Admin."
     },
     "forgot": {
       "title": "Passwort vergessen",
@@ -162,7 +163,11 @@
       "passkeyExplain": "Ein Passkey ist ein Schlüssel auf deinem Gerät oder in deinem Passwortmanager. Du bestätigst ihn mit Fingerabdruck, Gesichtserkennung oder PIN, ohne Passwort und ohne Code.",
       "passkeyDone": "Dein Passkey ist eingerichtet.",
       "secondFactorHint": "Richte einen zweiten Weg ein, zum Beispiel die Authenticator-App oder einen Passkey auf einem zweiten Gerät. So kommst du auch ohne dieses Gerät in dein Konto.",
-      "continue": "Weiter"
+      "continue": "Weiter",
+      "progress": "Schritt {current} von {total}: {title}",
+      "stepFactor": "Faktor einrichten",
+      "stepCodes": "Codes sichern",
+      "stepFinish": "Abschluss"
     },
     "register": {
       "title": "Konto anlegen",
@@ -500,7 +505,8 @@
       "copied": "Codes kopiert.",
       "download": "Herunterladen",
       "show": "Wiederherstellungscodes anzeigen",
-      "regenerate": "Neue Codes erzeugen"
+      "regenerate": "Neue Codes erzeugen",
+      "saved": "Ich habe die Codes gespeichert."
     },
     "passkeys": {
       "title": "Passkeys",

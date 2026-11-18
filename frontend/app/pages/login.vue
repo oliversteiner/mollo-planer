@@ -195,6 +195,9 @@ function backToCredentials(): void {
       <p class="wa-body-s wa-color-text-quiet">
         {{ useRecoveryCode ? t('auth.challenge.recoveryHint') : t('auth.challenge.codeHint') }}
       </p>
+      <p class="wa-body-s wa-color-text-quiet">
+        {{ t('auth.challenge.noAccess') }}
+      </p>
 
       <FormOtp
         v-if="!useRecoveryCode"
