@@ -1,6 +1,6 @@
 # 19 · „Konto absichern“: nach dem Einrichten weiterleiten
 
-Status: offen
+Status: erledigt (0806fdb auf `fix/setup-security-redirect`), Prüfung durch unabhängigen Agenten bestanden (eingebaute Abweichung gefunden), wartet auf Oliver
 Priorität: HOCH (Oliver, 2026-11-18) – sofort, vor Auftrag 16. Auftrag 18 ist erledigt.
 Reihenfolge: zuerst dieser Auftrag. Eigener Branch `fix/setup-security-redirect` von `dev`, ein Commit. Nichts auf `dev` pushen, bis Oliver den Tag `v1.0.0` bestätigt hat.
 Prozess (ui-consistency): kleine Änderung an einer Seite → `adjusting` (ist unten als Checkliste geschrieben) → `implementing` → `verifying` durch einen Agenten, der die Änderung nicht geschrieben hat. Die Prüfung entfällt nicht.
