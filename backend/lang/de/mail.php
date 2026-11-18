@@ -49,6 +49,33 @@ return [
         'intro' => 'Für diese Adresse gibt es bei :app schon eine Registrierung, die noch nicht bestätigt ist. Ist sie von dir: Lass dir die Bestätigungsmail erneut senden. Kennst du das Passwort nicht: Setze es mit «Passwort vergessen» neu.',
         'action' => 'Bestätigungsmail erneut senden',
     ],
+    'security_change' => [
+        'not_you' => 'Warst du das nicht, melde dich bei einem Admin.',
+        'password' => [
+            'subject' => 'Dein Passwort wurde geändert',
+            'line' => 'Das Passwort deines Kontos bei :app wurde geändert.',
+        ],
+        'authenticator_added' => [
+            'subject' => 'Eine Authenticator-App wurde eingerichtet',
+            'line' => 'Für dein Konto bei :app wurde eine Authenticator-App als zweiter Faktor eingerichtet.',
+        ],
+        'authenticator_removed' => [
+            'subject' => 'Die Authenticator-App wurde entfernt',
+            'line' => 'Die Authenticator-App wurde von deinem Konto bei :app entfernt.',
+        ],
+        'passkey_added' => [
+            'subject' => 'Ein Passkey wurde hinzugefügt',
+            'line' => 'Zu deinem Konto bei :app wurde ein Passkey hinzugefügt.',
+        ],
+        'passkey_removed' => [
+            'subject' => 'Ein Passkey wurde entfernt',
+            'line' => 'Von deinem Konto bei :app wurde ein Passkey entfernt.',
+        ],
+        'recovery_codes' => [
+            'subject' => 'Neue Wiederherstellungscodes',
+            'line' => 'Für dein Konto bei :app wurden neue Wiederherstellungscodes erzeugt. Die alten gelten nicht mehr.',
+        ],
+    ],
     'verify_email' => [
         'subject' => 'Bitte bestätige deine E-Mail-Adresse',
         'intro' => 'Du hast dich bei :app registriert. Bitte bestätige deine E-Mail-Adresse mit dem Button unten.',

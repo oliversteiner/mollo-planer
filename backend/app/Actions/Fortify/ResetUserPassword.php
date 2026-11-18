@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Services\UserSecurity;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -28,5 +29,9 @@ class ResetUserPassword implements ResetsUserPasswords
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
+
+        // Whoever knew the old password may be signed in somewhere: end sessions, "remember me" logins and
+        // the access tokens for Claude. The reset by mail logs nobody in, and the second factor stays.
+        app(UserSecurity::class)->revokeAccess($user);
     }
 }

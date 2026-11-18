@@ -49,6 +49,33 @@ return [
         'intro' => 'There is already a registration for this address at :app that is not confirmed yet. If it is yours: have the confirmation mail sent again. If you do not know the password: set a new one with “Forgot password”.',
         'action' => 'Send the confirmation mail again',
     ],
+    'security_change' => [
+        'not_you' => 'If this was not you, contact an admin.',
+        'password' => [
+            'subject' => 'Your password was changed',
+            'line' => 'The password of your account at :app was changed.',
+        ],
+        'authenticator_added' => [
+            'subject' => 'An authenticator app was set up',
+            'line' => 'An authenticator app was set up as the second factor of your account at :app.',
+        ],
+        'authenticator_removed' => [
+            'subject' => 'The authenticator app was removed',
+            'line' => 'The authenticator app was removed from your account at :app.',
+        ],
+        'passkey_added' => [
+            'subject' => 'A passkey was added',
+            'line' => 'A passkey was added to your account at :app.',
+        ],
+        'passkey_removed' => [
+            'subject' => 'A passkey was removed',
+            'line' => 'A passkey was removed from your account at :app.',
+        ],
+        'recovery_codes' => [
+            'subject' => 'New recovery codes',
+            'line' => 'New recovery codes were created for your account at :app. The old ones no longer work.',
+        ],
+    ],
     'verify_email' => [
         'subject' => 'Please confirm your email address',
         'intro' => 'You registered at :app. Please confirm your email address with the button below.',

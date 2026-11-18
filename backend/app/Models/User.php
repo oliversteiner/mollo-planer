@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Locale;
 use App\Enums\UserActivity;
 use App\Models\Concerns\HasRole;
 use App\Notifications\ResetPasswordNotification;
@@ -99,6 +100,16 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
         return Attribute::get(fn (): ?string => $this->avatar_path === null
             ? null
             : Storage::disk(UserAvatar::DISK)->url($this->avatar_path));
+    }
+
+    /**
+     * The language of mails that do not arise in a request of this person (a security notice, the
+     * approval): the stored language of the account (users.locale), otherwise the one of the
+     * current request, otherwise the application's.
+     */
+    public function mailLocale(): string
+    {
+        return Locale::tryFrom((string) $this->getAttribute('locale'))?->value ?? app()->getLocale();
     }
 
     /**
