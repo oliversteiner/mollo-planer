@@ -1,6 +1,6 @@
 # 24 · Onboarding: Nacharbeit aus der Durchsicht
 
-Status: offen
+Status: erledigt (N1 b1d4ca1, N2 b20fc7f auf `fix/onboarding-nacharbeit`); Prüfung durch unabhängigen Agenten bestanden (eingebaute Abweichung gefunden); wartet auf Oliver
 Priorität: HOCH (Oliver, 2026-11-18): vor dem Tag `v1.0.0`. Klein, zwei Commits.
 Branch: `fix/onboarding-nacharbeit` **von `test/auth-flow-e2e`** (oberster Branch des Stapels, enthält 18 bis 23 und 20). Nichts mergen und nichts auf `dev` oder `main` pushen, bis Oliver es sagt.
 Anlass: Durchsicht der Aufträge 20 bis 23 durch Fable (2026-11-18, Code gelesen, nichts ausgeführt). Sonst keine Beanstandung.
