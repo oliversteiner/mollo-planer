@@ -137,7 +137,7 @@ final class Import
     {
         $this->reset($document, $mode, $notifyAssignees, $actor);
         $this->dryRun = $dryRun;
-        $this->appendOnly = $appendOnly;
+        $this->appendOnly = $appendOnly && $project !== null; // a new project has nothing existing to protect
         $this->templateId = $project === null ? $templateId : null;
 
         if ($idea !== null && ! $actor->can('update', $idea)) {

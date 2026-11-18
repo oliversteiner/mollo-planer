@@ -38,7 +38,13 @@ class ImportPlan
             ? Project::query()->visibleTo($viewer)->find($args['projectId']) ?? throw new AuthorizationException
             : null;
 
-        Gate::forUser($viewer)->authorize($project === null ? 'create' : 'import', $project ?? Project::class);
+        // Adding only (the assistant) needs no file right: the importer checks every change with the right
+        // of its own (milestone.create, todo.create, task.create, ...), as for the draft's preview.
+        if ($project === null) {
+            Gate::forUser($viewer)->authorize('create', Project::class);
+        } elseif (! ($args['appendOnly'] ?? false)) {
+            Gate::forUser($viewer)->authorize('import', $project);
+        }
 
         $templateId = $args['templateId'] ?? null;
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Planer;
 
+use App\Enums\ProjectRole;
 use App\Mcp\Servers\MolloPlanerServer;
 use App\Mcp\Tools\ImportPlanTool;
 use App\Models\Idea;
@@ -10,6 +11,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\Template;
 use App\Models\Todo;
+use App\Models\User;
 use App\Planer\Export;
 use Tests\Feature\GraphQL\GraphQLTestCase;
 
@@ -86,6 +88,63 @@ class ImportExtensionsTest extends GraphQLTestCase
             ->assertHasErrors()
             ->assertSee('append_only');
         $this->assertNotSame('Umbenannt', $this->milestone->fresh()->title);
+    }
+
+    // ─── Rights of appendOnly (F9.1) ─────────────────────────────────
+
+    private function withNewTask(): array
+    {
+        $document = $this->exported();
+        $document['milestones'][0]['todos'][0]['tasks'][] = ['id' => 'k-new-1', 'title' => 'Von David', 'status' => 'planned'];
+
+        return $document;
+    }
+
+    public function test_a_member_adds_a_task_without_the_file_right(): void
+    {
+        $this->send($this->withNewTask(), [], 'member')->assertJsonPath('data.importPlan.ok', true);
+
+        $this->assertSame(1, Task::query()->where('title', 'Von David')->count());
+    }
+
+    public function test_a_guest_gets_an_error_per_change_in_the_dry_run_and_nothing_is_written(): void
+    {
+        $guest = User::factory()->create();
+        $this->project->members()->attach($guest->id, ['role_id' => $this->projectRole(ProjectRole::GUEST)->id]);
+        $this->users['guest'] = $guest;
+
+        $result = $this->send($this->withNewTodo(), ['dry' => true], 'guest')->json('data.importPlan');
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame('denied', $result['errors'][0]['kind']);
+        $this->assertStringContainsString('todos', $result['errors'][0]['path']);
+
+        $this->send($this->withNewTodo(), [], 'guest')->assertJsonPath('data.importPlan.ok', false);
+        $this->assertSame(0, Todo::query()->where('title', 'Aus der Idee')->count());
+    }
+
+    public function test_without_append_only_the_file_right_is_still_needed(): void
+    {
+        $this->send($this->withNewTask(), ['append' => false], 'member')->assertJsonPath('data', null);
+    }
+
+    public function test_somebody_who_does_not_see_the_project_is_refused_even_when_appending(): void
+    {
+        $this->send($this->withNewTask(), [], 'stranger')->assertJsonMissingPath('data.importPlan.ok');
+        $this->assertSame(0, Task::query()->where('title', 'Von David')->count());
+    }
+
+    public function test_append_only_means_nothing_for_a_new_project_with_labels_from_a_template(): void
+    {
+        $template = Template::factory()->create();
+        $document = $this->exported();
+        $document['project']['name'] = 'Aus Vorlage mit Labels';
+        $document['project']['members'] = [];
+        $document['project']['labels'] = [['key' => 'presse', 'names' => ['de' => 'Presse'], 'color' => 'blue']];
+
+        $this->as('admin')->gql(self::MUTATION, ['d' => json_encode($document), 'template' => $template->id, 'append' => true])->assertJsonPath('data.importPlan.ok', true);
+
+        $this->assertSame($template->id, Project::query()->where('name', 'Aus Vorlage mit Labels')->sole()->template_id);
     }
 
     // ─── templateId ──────────────────────────────────────────────────
@@ -177,7 +236,10 @@ class ImportExtensionsTest extends GraphQLTestCase
         $idea = $this->idea();
         $this->project->forceFill(['archived_at' => now()])->save();
 
-        $this->send($this->withNewTodo(), ['idea' => $idea->id], 'manager')->assertGraphQLErrorMessage(__('projects.archived'));
+        $result = $this->send($this->withNewTodo(), ['idea' => $idea->id], 'manager')->json('data.importPlan');
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame('archived', $result['errors'][0]['kind']);
         $this->assertSame('open', $idea->fresh()->status->value);
     }
 

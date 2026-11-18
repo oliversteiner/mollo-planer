@@ -6,7 +6,9 @@ use App\Assistant\AssistantError;
 use App\Assistant\AssistantSchema;
 use App\Assistant\ClaudeClient;
 use App\Models\Idea;
+use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Template;
 use App\Models\Todo;
 use Illuminate\Support\Facades\RateLimiter;
 use Mockery\MockInterface;
@@ -17,8 +19,8 @@ use Tests\Feature\GraphQL\GraphQLTestCase;
  */
 class DraftPlanTest extends GraphQLTestCase
 {
-    private const DRAFT = 'mutation ($p: ID, $t: ID, $plan: String, $idea: ID) {
-        draftPlan(messages: [{role: USER, content: "Ergänze etwas"}], projectId: $p, templateId: $t, currentPlan: $plan, ideaId: $idea) {
+    private const DRAFT = 'mutation ($p: ID, $t: ID, $plan: String, $idea: ID, $text: String = "Ergänze etwas in m-1 und t-1") {
+        draftPlan(messages: [{role: USER, content: $text}], projectId: $p, templateId: $t, currentPlan: $plan, ideaId: $idea) {
             reply plan projectId hints
             choices { kind label value recommended }
             preview { ok changes { kind path } errors { kind path } }
@@ -76,6 +78,45 @@ class DraftPlanTest extends GraphQLTestCase
         $this->assertSame('t-new-1', $plan['milestones'][0]['todos'][1]['id'] ?? $plan['milestones'][0]['todos'][count($plan['milestones'][0]['todos']) - 1]['id']);
         $this->assertSame($before, Todo::query()->count());
         $this->assertStringContainsString("m-{$this->milestone->id}", $this->sent['system']);
+    }
+
+    public function test_a_milestone_chosen_silently_gives_a_choice_instead_of_a_plan(): void
+    {
+        $other = Milestone::factory()->for($this->project)->create(['title' => 'Go-live']);
+        $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
+
+        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => 'Kontaktformular absichern bis Ende Dezember'])->json('data.draftPlan');
+
+        $this->assertNull($result['plan']);
+        $this->assertNull($result['preview']);
+        $this->assertSame("m-{$this->milestone->id}", $result['choices'][0]['value']);
+        $this->assertTrue($result['choices'][0]['recommended']);
+        $this->assertContains("m-{$other->id}", array_column($result['choices'], 'value'));
+        $this->assertContains('IDEA', array_column($result['choices'], 'kind'));
+    }
+
+    public function test_a_milestone_named_by_title_or_by_button_gives_the_plan(): void
+    {
+        $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
+
+        $byTitle = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => 'Plakate im Milestone '.strtoupper($this->milestone->title)])->json('data.draftPlan');
+        $byButton = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => "Ich wähle: Irgendwas (m-{$this->milestone->id})"])->json('data.draftPlan');
+
+        $this->assertNotNull($byTitle['plan']);
+        $this->assertNotNull($byButton['plan']);
+    }
+
+    public function test_a_new_task_in_a_todo_nobody_named_gives_a_choice_of_todos(): void
+    {
+        $document = $this->todoPlan("m-{$this->milestone->id}");
+        $document['milestones'][0]['todos'] = [['id' => "t-{$this->todo->id}", 'title' => 'egal', 'description' => null, 'dueDate' => null, 'tasks' => [['id' => 'k', 'title' => 'Neuer Task', 'description' => null, 'dueDate' => null, 'status' => null, 'assigneeEmail' => null, 'labels' => [], 'userStory' => null]]]];
+        $this->claude($this->answer($document));
+
+        $result = $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id, 'text' => "Neuer Task im Milestone m-{$this->milestone->id}"])->json('data.draftPlan');
+
+        $this->assertNull($result['plan']);
+        $this->assertSame(['APPEND_TO_TODO'], array_unique(array_column($result['choices'], 'kind')));
+        $this->assertSame("t-{$this->todo->id}", $result['choices'][0]['value']);
     }
 
     public function test_dates_are_checked_and_descriptions_read_leniently_with_hints(): void
@@ -150,6 +191,25 @@ class DraftPlanTest extends GraphQLTestCase
         $this->project->forceFill(['archived_at' => now()])->save();
 
         $this->as('manager')->gql(self::DRAFT, ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.archived'));
+    }
+
+    public function test_a_new_project_from_a_template_goes_from_the_draft_to_the_import(): void
+    {
+        $template = Template::factory()->create();
+        $this->claude($this->answer([
+            'project' => ['name' => 'Tag der offenen Tür', 'description' => null, 'locale' => 'de', 'labels' => [['key' => 'presse', 'names' => ['de' => 'Presse', 'en' => null], 'category' => null, 'color' => 'blue']]],
+            'milestones' => [['id' => 'x', 'title' => 'Start', 'description' => null, 'dueDate' => null, 'todos' => [['id' => 'y', 'title' => 'Plakate', 'description' => null, 'dueDate' => null, 'tasks' => [['id' => 'z', 'title' => 'Plakat entwerfen', 'description' => null, 'dueDate' => null, 'status' => null, 'assigneeEmail' => null, 'labels' => ['presse'], 'userStory' => null]]]]]],
+        ]));
+
+        $draft = $this->as('admin')->gql(self::DRAFT, ['t' => $template->id])->json('data.draftPlan');
+
+        $this->assertTrue($draft['preview']['ok']);
+
+        $this->as('admin')->gql('mutation ($d: String!, $t: ID) { importPlan(document: $d, mode: PARTIAL, appendOnly: true, templateId: $t) { ok errors { message } } }', ['d' => $draft['plan'], 't' => $template->id])
+            ->assertJsonPath('data.importPlan.ok', true);
+
+        $project = Project::query()->where('name', 'Tag der offenen Tür')->sole();
+        $this->assertSame($template->id, $project->template_id);
     }
 
     public function test_the_hour_limit_refuses_with_the_time_and_counts_per_person(): void

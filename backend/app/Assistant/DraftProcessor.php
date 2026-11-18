@@ -45,6 +45,9 @@ class DraftProcessor
     /** @var array<string, array<string, mixed>> Real id => element of the exported tree */
     private array $anchors = [];
 
+    /** @var list<array{kind: string, anchor: array<string, mixed>}> Existing places something new goes into */
+    private array $targets = [];
+
     public function __construct(private readonly Export $export, private readonly Import $import) {}
 
     /**
@@ -57,6 +60,7 @@ class DraftProcessor
         $this->hints = [];
         $this->extraChoices = [];
         $this->anchors = [];
+        $this->targets = [];
 
         $reply = Str::limit(trim((string) ($answer['reply'] ?? '')), 4000);
         $choices = PlanChoices::clean((array) ($answer['choices'] ?? []), $request->viewer, $request->project);
@@ -70,6 +74,10 @@ class DraftProcessor
 
         if ($document === null || Validator::errors($document) !== []) {
             return [...$result, 'reply' => trim($reply.' '.__('assistant.invalid_draft')), 'hints' => $this->hints];
+        }
+
+        if (($ask = $this->unconfirmed($request, $reply)) !== null) {
+            return [...$result, ...$ask, 'hints' => $this->hints];
         }
 
         $preview = $this->import->run($request->project, $document, ImportMode::Partial, true, false, $request->viewer, true, $request->template?->getKey());
@@ -207,6 +215,10 @@ class DraftProcessor
             ];
 
             $this->duplicateTodo($out['title'], $milestoneAnchor);
+
+            if ($milestoneAnchor !== null) {
+                $this->targets[] = ['kind' => 'milestone', 'anchor' => $milestoneAnchor];
+            }
         }
 
         $tasks = [];
@@ -241,6 +253,8 @@ class DraftProcessor
         $title = $this->title($entry['title'] ?? '');
 
         if ($todoAnchor !== null) {
+            $this->targets[] = ['kind' => 'todo', 'anchor' => $todoAnchor];
+
             foreach ($todoAnchor['tasks'] ?? [] as $known) {
                 if (mb_strtolower($known['title']) === mb_strtolower($title)) {
                     $this->hints[] = __('assistant.duplicate_task', ['title' => $title, 'todo' => $todoAnchor['title']]);
@@ -345,6 +359,60 @@ class DraftProcessor
     private function withoutChildren(array $element): array
     {
         return array_diff_key($element, ['todos' => 1, 'tasks' => 1]);
+    }
+
+    // ─── Never choose silently ───────────────────────────────────────
+
+    /**
+     * Something new in an existing milestone (or todo) that the person has not named: no plan, a choice instead
+     * (docs/assistent-ideen-konzept.md §5). Named is by a button (its message carries the title and the id) or
+     * by the title or the id in a message of the person.
+     *
+     * @return array{reply: string, choices: list<array<string, mixed>>, plan: null, preview: null}|null
+     */
+    private function unconfirmed(AssistantRequest $request, string $claudeReply): ?array
+    {
+        $said = mb_strtolower(implode("\n", array_column(array_filter($request->messages, fn (array $message): bool => $message['role'] === 'user'), 'content')));
+
+        foreach ($this->targets as $target) {
+            $anchor = $target['anchor'];
+            $named = preg_match('/(?<![\w-])'.preg_quote(mb_strtolower((string) $anchor['id']), '/').'(?![\w-])/', $said) === 1
+                || ($anchor['title'] !== '' && str_contains($said, mb_strtolower((string) $anchor['title'])));
+
+            if ($named) {
+                continue;
+            }
+
+            $milestone = $target['kind'] === 'milestone';
+            $options = array_values(array_filter($this->anchors, fn (array $element, string $id): bool => str_starts_with($id, $milestone ? 'm-' : 't-'), ARRAY_FILTER_USE_BOTH));
+            $choices = array_map(fn (array $element): array => [
+                'kind' => $milestone ? 'MILESTONE' : 'APPEND_TO_TODO',
+                'label' => (string) $element['title'],
+                'detail' => isset($element['dueDate']) ? (string) $element['dueDate'] : null,
+                'value' => (string) $element['id'],
+                'recommended' => $element['id'] === $anchor['id'],
+            ], $options);
+
+            if ($milestone) {
+                array_push($choices, ...[
+                    ['kind' => 'NEW_MILESTONE', 'label' => __('assistant.new_milestone'), 'detail' => null, 'value' => null, 'recommended' => false],
+                    ['kind' => 'CUSTOM_MILESTONE', 'label' => __('assistant.custom_milestone'), 'detail' => null, 'value' => null, 'recommended' => false],
+                    ['kind' => 'IDEA', 'label' => __('assistant.keep_as_idea'), 'detail' => null, 'value' => null, 'recommended' => false],
+                ]);
+            }
+
+            // The recommended one first, so "at most five" keeps it.
+            usort($choices, fn (array $a, array $b): int => (int) $b['recommended'] <=> (int) $a['recommended']);
+
+            return [
+                'reply' => __($milestone ? 'assistant.which_milestone' : 'assistant.which_todo'),
+                'choices' => PlanChoices::clean($choices, $request->viewer, $request->project),
+                'plan' => null,
+                'preview' => null,
+            ];
+        }
+
+        return null;
     }
 
     // ─── Duplicates ──────────────────────────────────────────────────
