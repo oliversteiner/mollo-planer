@@ -1,6 +1,6 @@
 # 18 · Artisan-Befehle zur Nutzerverwaltung per SSH (Passwort, E-Mail, 2FA)
 
-Status: erledigt (siehe Commit dieser Änderung auf `feature/user-commands`), wartet auf Oliver
+Status: erledigt (73b8aa2 auf `feature/user-commands`), wartet auf Oliver
 Anlass: Nach dem Deploy von 1.0 fehlt ein Weg, Nutzer auf dem Server zu verwalten, wenn niemand sich anmelden kann (Passwort vergessen, E-Mail-Adresse falsch oder nicht mehr erreichbar, Gerät für 2FA verloren). Bisher geht es nur über `tinker`.
 Reihenfolge: **vor Auftrag 16 abarbeiten** (Oliver). Eigener Branch `feature/user-commands` von `dev`, kleiner Commit, danach Oliver. Nichts auf `dev` pushen, solange der Tag `v1.0.0` fehlt (Oliver sagt Bescheid).
 
