@@ -1,6 +1,6 @@
 # Auftrag: M5 Synchronisation (T2, T3, W1)
 
-Status: offen
+Status: erledigt (5b859c3, 45933ee, f98ddfb, edddcf1, 1f245df). Offen für Oliver (Abnahme): Cron-Eintrag `schedule:run` im Hostpoint-Panel, Webhook „GitHub“ und die Action in einem Test-Repository.
 Stand: 2026-11-18, `dev` bis `a93fb95`. M3 und M4 sind abgenommen.
 Dokument: `docs/auftrag-m5.md` (maßgeblich).
 
