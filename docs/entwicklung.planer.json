@@ -1493,6 +1493,488 @@
           ]
         }
       ]
+    },
+    {
+      "id": "m-new-10",
+      "title": "Planer-Datei, KI-Assistent und Zen-Modus",
+      "description": "Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit Abgleich (Export, Import, Kommandozeile, GitHub-Action, Webhook), KI-Assistent und Ideen, Zen-Modus mit Stimmung.",
+      "release": {
+        "version": "1.0",
+        "status": "released"
+      },
+      "todos": [
+        {
+          "id": "t-new-31",
+          "title": "Fundament: Rechte, Status und Release-Angaben",
+          "tasks": [
+            {
+              "id": "k-new-130",
+              "title": "Rechte, Funktionen und Rollen sind einstellbar (role_id statt fester Rollen)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "8def24b"
+            },
+            {
+              "id": "k-new-131",
+              "title": "Task-Status „Idee“ und „Geplant“, Werte in Englisch, Labels je Sprache",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "33351c7"
+            },
+            {
+              "id": "k-new-132",
+              "title": "Release-Version, Release-Status und Commit an Milestones und Tasks",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "db53ef2"
+            },
+            {
+              "id": "k-new-133",
+              "title": "Benutzergeschichte an Tasks",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "2d04b51"
+            },
+            {
+              "id": "k-new-134",
+              "title": "Revision des Plans zählt nur die App; ein geändertes Projekt wird neu geladen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "8e2bf87"
+            },
+            {
+              "id": "k-new-135",
+              "title": "Reihenfolge der ToDos im Milestone und der Tasks im ToDo (verschieben)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "aa4b336"
+            },
+            {
+              "id": "k-new-136",
+              "title": "Mitglieder: Ersteller, Zuweisung und Löschrecht bleiben stimmig",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "522ea86"
+            },
+            {
+              "id": "k-new-137",
+              "title": "Meine Tasks blendet Ideen standardmäßig aus",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "271e6ac"
+            }
+          ]
+        },
+        {
+          "id": "t-new-32",
+          "title": "Archiv und Papierkorb",
+          "tasks": [
+            {
+              "id": "k-new-138",
+              "title": "Archivierte Projekte sind nur lesbar, archivieren und zurückholen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "6feb667"
+            },
+            {
+              "id": "k-new-139",
+              "title": "Löschen kommt in den Papierkorb, als ein Vorgang wiederherstellbar",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "0e8a7db"
+            },
+            {
+              "id": "k-new-140",
+              "title": "Papierkorb-Seiten und „Rückgängig“ nach dem Löschen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "37f0933"
+            },
+            {
+              "id": "k-new-141",
+              "title": "Projektbeschreibung als Rich-Text",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "2e27bdc"
+            },
+            {
+              "id": "k-new-142",
+              "title": "Rückgängig funktioniert über offenen Panels, Meldung behält ihre Zeit",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "480ff50"
+            }
+          ]
+        },
+        {
+          "id": "t-new-33",
+          "title": "Vorlagen und Labels",
+          "tasks": [
+            {
+              "id": "k-new-143",
+              "title": "Vorlagen mit Gerüst und Labels, Labels je Projekt",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "59310b1"
+            },
+            {
+              "id": "k-new-144",
+              "title": "Vorlagenseite, Label-Editor und Projekt-Labels",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "26a6334"
+            },
+            {
+              "id": "k-new-145",
+              "title": "Fehlermeldungen der Labels am Feld der Sprache, Einzahl und Mehrzahl",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "d344d7b"
+            }
+          ]
+        },
+        {
+          "id": "t-new-34",
+          "title": "Planer-Datei und Abgleich",
+          "tasks": [
+            {
+              "id": "k-new-146",
+              "title": "Format planer-v2: Datei mit Milestones, ToDos, Tasks, Mitgliedern und Labels",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "f2e9a10"
+            },
+            {
+              "id": "k-new-147",
+              "title": "Export der Planer-Datei (kanonischer Text) und Prüfung mit Meldungen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "5867d4a"
+            },
+            {
+              "id": "k-new-148",
+              "title": "Import mit Probelauf, Rechte je Änderung, ein Papierkorb-Vorgang für Gelöschtes",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "7e60484"
+            },
+            {
+              "id": "k-new-149",
+              "title": "Claude-Connector mit zwei Werkzeugen: Plan lesen und schreiben",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "e0cfa8f"
+            },
+            {
+              "id": "k-new-150",
+              "title": "Demo-Daten als Planer-Dateien",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ab1ac37"
+            },
+            {
+              "id": "k-new-151",
+              "title": "Vorlagen aus einem Projekt oder einer hochgeladenen Datei",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "42f881f"
+            },
+            {
+              "id": "k-new-152",
+              "title": "Planer-Baum mit Markierungen, Datei-Import mit Vorschau und Downloads",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "ef802e8"
+            },
+            {
+              "id": "k-new-153",
+              "title": "Import vergleicht die Reihenfolge nach IDs, Vorschau markiert Geändertes und Gelöschtes",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "33330f7"
+            }
+          ]
+        },
+        {
+          "id": "t-new-35",
+          "title": "Synchronisation",
+          "tasks": [
+            {
+              "id": "k-new-154",
+              "title": "Kommandozeile: pull, push, sync und pull --watch gegen die App",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "5b859c3"
+            },
+            {
+              "id": "k-new-155",
+              "title": "GitHub-Action-Vorlage hält eine Planer-Datei im Gleichschritt mit der App",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "f98ddfb"
+            },
+            {
+              "id": "k-new-156",
+              "title": "Webhook je Projekt, gebündelt und signiert, Queue über den Scheduler",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "edddcf1"
+            },
+            {
+              "id": "k-new-157",
+              "title": "Webhook-Karte in den Projekteinstellungen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "1f245df"
+            },
+            {
+              "id": "k-new-158",
+              "title": "Zeitangaben ohne Zeitzone zeigten eine Stunde zu früh (DateTime mit Zone)",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "d520f73"
+            },
+            {
+              "id": "k-new-159",
+              "title": "pull --watch lief nur eine Runde",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "9f7b4c1"
+            }
+          ]
+        },
+        {
+          "id": "t-new-36",
+          "title": "KI-Assistent und Ideen",
+          "tasks": [
+            {
+              "id": "k-new-160",
+              "title": "Private Ideen mit Entwurf, Papierkorb, MCP-Werkzeuge",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "503874b"
+            },
+            {
+              "id": "k-new-161",
+              "title": "KI-Kontext eines Projekts: Text und Datei, Freigabe für externe Werkzeuge",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "5f5ab87"
+            },
+            {
+              "id": "k-new-162",
+              "title": "Assistent ergänzt bestehende Projekte, Rückfragen mit Knöpfen, Vorschau mit Streichen",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "fda0b9c"
+            },
+            {
+              "id": "k-new-163",
+              "title": "Import mit Vorlage, Idee und „nur ergänzen“",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "61230f7"
+            },
+            {
+              "id": "k-new-164",
+              "title": "Assistent für alle mit dem Recht, Grenzen je Person (Stunde und Tag)",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "1530c30"
+            },
+            {
+              "id": "k-new-165",
+              "title": "Einstieg „Mit dem Assistenten ergänzen“ im Projekt, „In Ideen ablegen“ mit Titelvorschlag",
+              "status": "done",
+              "labels": [
+                "design"
+              ],
+              "commit": "591f44f"
+            },
+            {
+              "id": "k-new-166",
+              "title": "Mitglieder tragen Entwürfe mit den Rechten je Änderung ein",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "c9adff5"
+            },
+            {
+              "id": "k-new-167",
+              "title": "Assistent wählt keinen Milestone mehr still",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "c9adff5"
+            },
+            {
+              "id": "k-new-168",
+              "title": "Schema der Antwort passte nicht zur Grenze der Claude-API; Test und Befehl assistant:ping",
+              "status": "done",
+              "labels": [
+                "bug"
+              ],
+              "commit": "142f359"
+            }
+          ]
+        },
+        {
+          "id": "t-new-37",
+          "title": "Zen-Modus",
+          "tasks": [
+            {
+              "id": "k-new-169",
+              "title": "Ruhige Ansicht und Fokus für Task und ToDo, Cookie je Gerät",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "03404f6"
+            },
+            {
+              "id": "k-new-170",
+              "title": "Suche mit Cmd/Ctrl+K: Seiten, Projekte, Aktionen, „Zen“",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "feeae53"
+            },
+            {
+              "id": "k-new-171",
+              "title": "Zeitachse zeigt in Zen den aktuellen Milestone",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "aa00978"
+            },
+            {
+              "id": "k-new-172",
+              "title": "Farbschema Steingarten mit dem Slide-In „Stimmung“",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "a276eec"
+            },
+            {
+              "id": "k-new-173",
+              "title": "Zen über die Suche und den Knopf in der Kopfleiste, zuletzt besuchter Bereich",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "56f3084"
+            },
+            {
+              "id": "k-new-174",
+              "title": "Status, Fokusringe und Gefahr folgen der Stimmung",
+              "status": "done",
+              "labels": [
+                "design"
+              ],
+              "commit": "0618c23"
+            }
+          ]
+        },
+        {
+          "id": "t-new-38",
+          "title": "Betrieb und Entwicklung",
+          "tasks": [
+            {
+              "id": "k-new-175",
+              "title": "Entwicklungsserver im lokalen Netz erreichbar, API-Adresse aus dem Host abgeleitet",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "7ece663"
+            },
+            {
+              "id": "k-new-176",
+              "title": "Rechte nur über Rights, eine Liste für Seiten- und Menürechte",
+              "status": "done",
+              "labels": [
+                "feature"
+              ],
+              "commit": "9673541"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

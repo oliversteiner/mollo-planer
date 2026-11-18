@@ -488,3 +488,173 @@ Automatischer Deploy von main auf den Hostpoint-Server: Tests, Freigabe, Datenba
 
 - [x] [planning] Erster automatischer Deploy erfolgreich, Datenbank-Backup vor den Migrationen
   Commit 0968159
+
+
+## v1.0 Planer-Datei, KI-Assistent und Zen-Modus
+Status: veröffentlicht
+
+Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit Abgleich (Export, Import, Kommandozeile, GitHub-Action, Webhook), KI-Assistent und Ideen, Zen-Modus mit Stimmung.
+
+### Fundament: Rechte, Status und Release-Angaben
+
+- [x] [feature] Rechte, Funktionen und Rollen sind einstellbar (role_id statt fester Rollen)
+  Commit 8def24b
+
+- [x] [feature] Task-Status „Idee“ und „Geplant“, Werte in Englisch, Labels je Sprache
+  Commit 33351c7
+
+- [x] [feature] Release-Version, Release-Status und Commit an Milestones und Tasks
+  Commit db53ef2
+
+- [x] [feature] Benutzergeschichte an Tasks
+  Commit 2d04b51
+
+- [x] [feature] Revision des Plans zählt nur die App; ein geändertes Projekt wird neu geladen
+  Commit 8e2bf87
+
+- [x] [feature] Reihenfolge der ToDos im Milestone und der Tasks im ToDo (verschieben)
+  Commit aa4b336
+
+- [x] [bug] Mitglieder: Ersteller, Zuweisung und Löschrecht bleiben stimmig
+  Commit 522ea86
+
+- [x] [bug] Meine Tasks blendet Ideen standardmäßig aus
+  Commit 271e6ac
+
+
+### Archiv und Papierkorb
+
+- [x] [feature] Archivierte Projekte sind nur lesbar, archivieren und zurückholen
+  Commit 6feb667
+
+- [x] [feature] Löschen kommt in den Papierkorb, als ein Vorgang wiederherstellbar
+  Commit 0e8a7db
+
+- [x] [feature] Papierkorb-Seiten und „Rückgängig“ nach dem Löschen
+  Commit 37f0933
+
+- [x] [feature] Projektbeschreibung als Rich-Text
+  Commit 2e27bdc
+
+- [x] [bug] Rückgängig funktioniert über offenen Panels, Meldung behält ihre Zeit
+  Commit 480ff50
+
+
+### Vorlagen und Labels
+
+- [x] [feature] Vorlagen mit Gerüst und Labels, Labels je Projekt
+  Commit 59310b1
+
+- [x] [feature] Vorlagenseite, Label-Editor und Projekt-Labels
+  Commit 26a6334
+
+- [x] [bug] Fehlermeldungen der Labels am Feld der Sprache, Einzahl und Mehrzahl
+  Commit d344d7b
+
+
+### Planer-Datei und Abgleich
+
+- [x] [feature] Format planer-v2: Datei mit Milestones, ToDos, Tasks, Mitgliedern und Labels
+  Commit f2e9a10
+
+- [x] [feature] Export der Planer-Datei (kanonischer Text) und Prüfung mit Meldungen
+  Commit 5867d4a
+
+- [x] [feature] Import mit Probelauf, Rechte je Änderung, ein Papierkorb-Vorgang für Gelöschtes
+  Commit 7e60484
+
+- [x] [feature] Claude-Connector mit zwei Werkzeugen: Plan lesen und schreiben
+  Commit e0cfa8f
+
+- [x] [feature] Demo-Daten als Planer-Dateien
+  Commit ab1ac37
+
+- [x] [feature] Vorlagen aus einem Projekt oder einer hochgeladenen Datei
+  Commit 42f881f
+
+- [x] [feature] Planer-Baum mit Markierungen, Datei-Import mit Vorschau und Downloads
+  Commit ef802e8
+
+- [x] [bug] Import vergleicht die Reihenfolge nach IDs, Vorschau markiert Geändertes und Gelöschtes
+  Commit 33330f7
+
+
+### Synchronisation
+
+- [x] [feature] Kommandozeile: pull, push, sync und pull --watch gegen die App
+  Commit 5b859c3
+
+- [x] [feature] GitHub-Action-Vorlage hält eine Planer-Datei im Gleichschritt mit der App
+  Commit f98ddfb
+
+- [x] [feature] Webhook je Projekt, gebündelt und signiert, Queue über den Scheduler
+  Commit edddcf1
+
+- [x] [feature] Webhook-Karte in den Projekteinstellungen
+  Commit 1f245df
+
+- [x] [bug] Zeitangaben ohne Zeitzone zeigten eine Stunde zu früh (DateTime mit Zone)
+  Commit d520f73
+
+- [x] [bug] pull --watch lief nur eine Runde
+  Commit 9f7b4c1
+
+
+### KI-Assistent und Ideen
+
+- [x] [feature] Private Ideen mit Entwurf, Papierkorb, MCP-Werkzeuge
+  Commit 503874b
+
+- [x] [feature] KI-Kontext eines Projekts: Text und Datei, Freigabe für externe Werkzeuge
+  Commit 5f5ab87
+
+- [x] [feature] Assistent ergänzt bestehende Projekte, Rückfragen mit Knöpfen, Vorschau mit Streichen
+  Commit fda0b9c
+
+- [x] [feature] Import mit Vorlage, Idee und „nur ergänzen“
+  Commit 61230f7
+
+- [x] [feature] Assistent für alle mit dem Recht, Grenzen je Person (Stunde und Tag)
+  Commit 1530c30
+
+- [x] [design] Einstieg „Mit dem Assistenten ergänzen“ im Projekt, „In Ideen ablegen“ mit Titelvorschlag
+  Commit 591f44f
+
+- [x] [bug] Mitglieder tragen Entwürfe mit den Rechten je Änderung ein
+  Commit c9adff5
+
+- [x] [bug] Assistent wählt keinen Milestone mehr still
+  Commit c9adff5
+
+- [x] [bug] Schema der Antwort passte nicht zur Grenze der Claude-API; Test und Befehl assistant:ping
+  Commit 142f359
+
+
+### Zen-Modus
+
+- [x] [feature] Ruhige Ansicht und Fokus für Task und ToDo, Cookie je Gerät
+  Commit 03404f6
+
+- [x] [feature] Suche mit Cmd/Ctrl+K: Seiten, Projekte, Aktionen, „Zen“
+  Commit feeae53
+
+- [x] [feature] Zeitachse zeigt in Zen den aktuellen Milestone
+  Commit aa00978
+
+- [x] [feature] Farbschema Steingarten mit dem Slide-In „Stimmung“
+  Commit a276eec
+
+- [x] [feature] Zen über die Suche und den Knopf in der Kopfleiste, zuletzt besuchter Bereich
+  Commit 56f3084
+
+- [x] [design] Status, Fokusringe und Gefahr folgen der Stimmung
+  Commit 0618c23
+
+
+### Betrieb und Entwicklung
+
+- [x] [feature] Entwicklungsserver im lokalen Netz erreichbar, API-Adresse aus dem Host abgeleitet
+  Commit 7ece663
+
+- [x] [feature] Rechte nur über Rights, eine Liste für Seiten- und Menürechte
+  Commit 9673541
