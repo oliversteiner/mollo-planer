@@ -68,4 +68,4 @@ Personen aus den Demo-Daten: Anna (Admin), Ben (Owner Website-Relaunch), Chiara 
 
 ---
 
-Ergebnis: _bereit zur Abnahme_ (Planung: alle Befunde behoben; Abnahme durch Oliver)
+Ergebnis: **Abgenommen am 2026-11-18 durch Oliver**

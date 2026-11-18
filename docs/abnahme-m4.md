@@ -74,4 +74,4 @@ Personen: Anna (Admin), Ben (Owner Website-Relaunch), Chiara (Owner Sommerfest 2
 
 ---
 
-Ergebnis: _bereit zur Abnahme_ (Planung: alle Befunde behoben; offen nur die ⏸-Punkte für Oliver)
+Ergebnis: **Abgenommen am 2026-11-18 durch Oliver**
