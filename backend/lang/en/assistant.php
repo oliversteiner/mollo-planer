@@ -3,6 +3,7 @@
 return [
     'not_configured' => 'The AI assistant is not set up yet. ANTHROPIC_API_KEY is missing in the backend .env.',
     'invalid_key' => 'Claude refuses the API key. Check ANTHROPIC_API_KEY in the .env of the backend (it starts with sk-ant-).',
+    'technical' => 'The assistant has a technical problem right now. Please try again later.',
     'unavailable' => 'Claude is not reachable right now. Please try again in a moment.',
     'refused' => 'Claude refused this request. Please word it differently.',
     'too_large' => 'The plan became too big. Please narrow it down, for example to fewer milestones.',

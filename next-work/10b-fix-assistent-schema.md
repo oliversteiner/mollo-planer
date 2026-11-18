@@ -1,6 +1,6 @@
 # Auftrag: Assistent wieder lauffähig (F10.3) — DRINGEND, vor dem Zen-Auftrag weiterarbeiten
 
-Status: offen
+Status: erledigt (siehe Commit dieser Änderung)
 Stand: 2026-11-18, `dev` bis `6dc35ee`.
 Dokument: `docs/fix-m6.md` Abschnitt „F10.3“ (maßgeblich).
 

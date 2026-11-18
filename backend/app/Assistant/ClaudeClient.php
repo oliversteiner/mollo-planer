@@ -7,7 +7,10 @@ use Anthropic\Client;
 use Anthropic\Core\Exceptions\APIConnectionException;
 use Anthropic\Core\Exceptions\APIStatusException;
 use Anthropic\Core\Exceptions\AuthenticationException;
+use Anthropic\Core\Exceptions\BadRequestException;
+use Anthropic\Core\Exceptions\NotFoundException;
 use Anthropic\Core\Exceptions\PermissionDeniedException;
+use Anthropic\Core\Exceptions\UnprocessableEntityException;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -17,6 +20,9 @@ use Illuminate\Support\Facades\Log;
  */
 class ClaudeClient
 {
+    /** The message of the last failed call as the API gave it (for `assistant:ping`; the person never sees it). */
+    public ?string $lastError = null;
+
     /**
      * @param  list<array{role: string, content: string}>  $messages
      * @param  array<string, mixed>  $schema
@@ -52,10 +58,18 @@ class ClaudeClient
                 requestOptions: ['timeout' => 280.0, 'maxRetries' => 1],
             );
         } catch (AuthenticationException|PermissionDeniedException $exception) {
+            $this->lastError = $exception->getMessage();
             Log::warning('Assistant: Claude API refused the key', ['error' => $exception->getMessage()]);
 
             throw new AssistantError(__('assistant.invalid_key'));
+        } catch (BadRequestException|NotFoundException|UnprocessableEntityException $exception) {
+            // Our request was refused (for example a schema that is too large): that is our problem, not the network's.
+            $this->lastError = $exception->getMessage();
+            Log::warning('Assistant: Claude API refused the request', ['error' => $exception->getMessage()]);
+
+            throw new AssistantError(__('assistant.technical'));
         } catch (APIStatusException|APIConnectionException $exception) {
+            $this->lastError = $exception->getMessage();
             Log::warning('Assistant: Claude API failed', ['error' => $exception->getMessage()]);
 
             throw new AssistantError(__('assistant.unavailable'));

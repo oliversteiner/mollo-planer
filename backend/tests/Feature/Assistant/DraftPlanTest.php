@@ -49,9 +49,9 @@ class DraftPlanTest extends GraphQLTestCase
     }
 
     /** @return array<string, mixed> */
-    private function answer(?array $plan = null, array $choices = [], ?string $template = null): array
+    private function answer(?array $plan = null, array $choices = []): array
     {
-        return ['reply' => 'Erledigt.', 'choices' => $choices, 'template' => $template, 'plan' => $plan];
+        return ['reply' => 'Erledigt.', 'choices' => $choices, 'plan' => $plan];
     }
 
     /** @return array<string, mixed> */
@@ -218,16 +218,16 @@ class DraftPlanTest extends GraphQLTestCase
         $this->assertSame($template->id, $project->template_id);
     }
 
-    public function test_a_template_named_in_the_text_is_returned_and_links_the_new_project(): void
+    public function test_a_template_named_in_the_text_is_found_by_the_server_and_links_the_new_project(): void
     {
-        $template = Template::factory()->create();
+        $template = Template::factory()->create(['name' => 'Veranstaltung Übersicht']);
         $plan = [
             'project' => ['name' => 'Sommerfest', 'description' => null, 'locale' => 'de', 'labels' => []],
             'milestones' => [['id' => 'x', 'title' => 'Start', 'description' => null, 'dueDate' => null, 'todos' => []]],
         ];
-        $this->claude($this->answer($plan, [], (string) $template->id));
+        $this->claude($this->answer($plan));
 
-        $draft = $this->as('admin')->gql('mutation { draftPlan(messages: [{role: USER, content: "Nimm die Vorlage Event"}]) { plan templateId preview { ok } } }')->json('data.draftPlan');
+        $draft = $this->as('admin')->gql('mutation { draftPlan(messages: [{role: USER, content: "Nimm die vorlage veranstaltung UBERSICHT für das Fest"}]) { plan templateId preview { ok } } }')->json('data.draftPlan');
 
         $this->assertSame((string) $template->id, $draft['templateId']);
         $this->assertTrue($draft['preview']['ok']);
@@ -237,14 +237,19 @@ class DraftPlanTest extends GraphQLTestCase
         $this->assertSame($template->id, Project::query()->where('name', 'Sommerfest')->sole()->template_id);
     }
 
-    public function test_an_unknown_template_of_claude_is_dropped_and_an_existing_project_has_none(): void
+    public function test_no_template_when_none_or_several_are_named_and_never_for_an_existing_project(): void
     {
-        $this->claude($this->answer(null, [], '999999'));
-        $this->assertNull($this->as('admin')->gql('mutation { draftPlan(messages: [{role: USER, content: "Hallo"}]) { templateId } }')->json('data.draftPlan.templateId'));
+        Template::factory()->create(['name' => 'Event']);
+        Template::factory()->create(['name' => 'Konzert']);
+        $this->claude($this->answer(null));
+        $draft = fn (string $text) => $this->as('admin')->gql('mutation ($t: String!) { draftPlan(messages: [{role: USER, content: $t}]) { templateId } }', ['t' => $text])->json('data.draftPlan.templateId');
 
-        $template = Template::factory()->create();
-        $this->claude($this->answer(null, [], (string) $template->id));
-        $this->assertNull($this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan.templateId'));
+        $this->assertNull($draft('Ein neues Projekt'));
+        $this->assertNull($draft('Event oder Konzert, ich weiss nicht'));
+        $this->assertNotNull($draft('Nimm die Vorlage Event'));
+        $this->assertNull($draft('Eventuell etwas anderes'));
+
+        $this->assertNull($this->draft('manager', ['p' => $this->project->id, 'text' => "Event in m-{$this->milestone->id}"])->json('data.draftPlan.templateId'));
     }
 
     public function test_the_detail_of_buttons_is_built_by_the_server_without_ids_or_iso_dates(): void

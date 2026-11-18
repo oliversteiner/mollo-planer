@@ -15,6 +15,7 @@ use App\Planer\RichText\Mode;
 use App\Planer\RichText\TiptapToMarkdown;
 use App\Planer\Validator;
 use App\Support\Rights;
+use App\Support\TextSearch;
 use Illuminate\Support\Str;
 
 /**
@@ -65,7 +66,7 @@ class DraftProcessor
 
         $reply = Str::limit(trim((string) ($answer['reply'] ?? '')), 4000);
         $choices = PlanChoices::clean((array) ($answer['choices'] ?? []), $request->viewer, $request->project);
-        $template = $this->template($answer['template'] ?? null, $request);
+        $template = $this->template($request);
         $result = ['reply' => $reply, 'choices' => $choices, 'plan' => null, 'projectId' => $request->project?->getKey(), 'templateId' => $template?->getKey(), 'preview' => null, 'hints' => []];
 
         if (! is_array($answer['plan'] ?? null)) {
@@ -90,10 +91,12 @@ class DraftProcessor
     }
 
     /**
-     * The template of a new project: the one chosen by a button, else the one Claude says it used (it must exist).
-     * A plan for an existing project has none.
+     * The template of a new project, decided by the server and not by Claude (a field for it made the schema too
+     * large for the API, docs/fix-m6.md F10.3): the one chosen by a button, else the one the person named (name or
+     * key, without case and accents) in a message of their own, when exactly one template fits. A plan for an
+     * existing project has none.
      */
-    private function template(mixed $claudeValue, AssistantRequest $request): ?Template
+    private function template(AssistantRequest $request): ?Template
     {
         if ($request->project !== null) {
             return null;
@@ -103,7 +106,20 @@ class DraftProcessor
             return $request->template;
         }
 
-        return is_string($claudeValue) && preg_match('/^\d+$/', $claudeValue) === 1 ? Template::query()->find((int) $claudeValue) : null;
+        $said = TextSearch::normalize(implode("\n", array_column(array_filter($request->messages, fn (array $message): bool => $message['role'] === 'user'), 'content')));
+        $named = Template::query()->get()->filter(function (Template $template) use ($said): bool {
+            foreach (array_filter([$template->key, $template->name, $template->displayName()]) as $name) {
+                $name = TextSearch::normalize((string) $name);
+
+                if ($name !== '' && preg_match('/(?<![\\p{L}\\p{N}])'.preg_quote($name, '/').'(?![\\p{L}\\p{N}])/u', $said) === 1) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return $named->count() === 1 ? $named->first() : null;
     }
 
     /**

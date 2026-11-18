@@ -42,7 +42,7 @@ final class AssistantSchema
         return [
             'type' => 'object',
             'additionalProperties' => false,
-            'required' => ['reply', 'choices', 'template', 'plan'],
+            'required' => ['reply', 'choices', 'plan'],
             'properties' => [
                 'reply' => ['type' => 'string', 'description' => 'Two to four short sentences for the chat, in the language of the person.'],
                 'choices' => [
@@ -61,7 +61,6 @@ final class AssistantSchema
                         ],
                     ],
                 ],
-                'template' => ['type' => ['string', 'null'], 'description' => 'Id of the template the new project is planned on (chosen by a button or named by the person), otherwise null.'],
                 'plan' => [...self::plan(), 'type' => ['object', 'null'], 'description' => 'The excerpt of the plan to add, or null while information is missing.'],
             ],
         ];
