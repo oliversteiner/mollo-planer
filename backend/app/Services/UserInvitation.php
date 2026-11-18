@@ -7,9 +7,11 @@ use App\Enums\UserActivity;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\UserInvited;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use LogicException;
 
 /**
  * Creates users without a known password and invites them by mail to set
@@ -27,7 +29,7 @@ class UserInvitation
         return DB::transaction(function () use ($name, $email, $role, $locale, $activity): User {
             $user = $this->create($name, $email, $role, Str::password(64), $activity, $locale);
 
-            $token = Password::broker('invitations')->createToken($user);
+            $token = $this->broker()->createToken($user);
             $user->notify((new UserInvited($token))->locale($locale->value));
 
             return $user;
@@ -52,5 +54,20 @@ class UserInvitation
         $user->forceFill(['email_verified_at' => now(), 'approved_at' => now(), 'locale' => $locale?->value])->save();
 
         return $user;
+    }
+
+    /**
+     * The broker "invitations". createToken() is not part of the PasswordBroker contract, only of the
+     * concrete broker, so anything else is a configuration error.
+     */
+    private function broker(): PasswordBroker
+    {
+        $broker = Password::broker('invitations');
+
+        if (! $broker instanceof PasswordBroker) {
+            throw new LogicException('The password broker "invitations" must be '.PasswordBroker::class.', got '.$broker::class.'.');
+        }
+
+        return $broker;
     }
 }
