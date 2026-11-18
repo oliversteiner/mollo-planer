@@ -86,6 +86,13 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    /*
+    | The language of the application as it is set (APP_LOCALE). `locale` above changes with every request
+    | (SetLocaleFromRequest); this one does not: mails to a person that arise in somebody else's request
+    | use it when the person has no stored language (User::accountLocale).
+    */
+    'default_locale' => env('APP_LOCALE', 'en'),
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

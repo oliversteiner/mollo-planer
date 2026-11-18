@@ -94,6 +94,35 @@ class AccountApprovalTest extends GraphQLTestCase
             ->assertJsonPath('errors.0.extensions.reason', AccountReadiness::REASON_EMAIL);
     }
 
+    public function test_the_locked_answer_for_the_mail_names_the_address_of_the_account_of_the_session(): void
+    {
+        $unconfirmed = User::factory()->unapproved()->unverified()->create(['email' => 'eva@example.com']);
+
+        $this->lockedRequest($unconfirmed, 'query Viewer { me { id } }', 'Viewer', strong: false)
+            ->assertForbidden()
+            ->assertJsonPath('errors.0.extensions.reason', AccountReadiness::REASON_EMAIL)
+            ->assertJsonPath('errors.0.extensions.email', 'eva@example.com');
+    }
+
+    public function test_the_address_is_not_part_of_the_answer_for_the_approval(): void
+    {
+        $waiting = User::factory()->unapproved()->create();
+
+        $approval = $this->lockedRequest($waiting, '{ projects { id } }')->assertForbidden();
+
+        $this->assertArrayNotHasKey('email', $approval->json('errors.0.extensions'));
+    }
+
+    public function test_a_guest_gets_no_answer_with_an_address(): void
+    {
+        $waiting = User::factory()->unapproved()->unverified()->create(['email' => 'eva@example.com']);
+
+        $guest = $this->postJson('/api', ['query' => '{ projects { id } }']);
+
+        $this->assertStringNotContainsString('ACCOUNT_NOT_READY', $guest->getContent());
+        $this->assertStringNotContainsString($waiting->email, $guest->getContent());
+    }
+
     public function test_unconfirmed_mail_is_asked_before_the_second_factor(): void
     {
         $unconfirmed = User::factory()->unapproved()->unverified()->create();

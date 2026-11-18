@@ -47,18 +47,6 @@ class SelfRegistrationTest extends TestCase
         Notification::assertSentTo($user, VerifyRegistrationEmail::class);
     }
 
-    public function test_registration_rejects_a_taken_mail_address(): void
-    {
-        User::factory()->create(['email' => 'taken@example.com']);
-
-        $this->postJson('/register', [
-            'name' => 'Eva Neu',
-            'email' => 'taken@example.com',
-            'password' => self::PASSWORD,
-            'password_confirmation' => self::PASSWORD,
-        ])->assertUnprocessable()->assertJsonValidationErrors('email');
-    }
-
     public function test_confirming_the_mail_informs_the_admins_but_not_the_applicant(): void
     {
         Notification::fake();
@@ -66,12 +54,11 @@ class SelfRegistrationTest extends TestCase
         $admin = User::factory()->admin()->create();
         $applicant = User::factory()->unapproved()->unverified()->create();
 
-        $this->actingAs($applicant)
-            ->get(URL::temporarySignedRoute('verification.verify', now()->addHour(), [
-                'id' => $applicant->id,
-                'hash' => sha1($applicant->getEmailForVerification()),
-            ]))
-            ->assertRedirect();
+        // The link works without a session (another browser), and the click on the page confirms.
+        $this->postJson(URL::temporarySignedRoute('verification.verify', now()->addHour(), [
+            'id' => $applicant->id,
+            'hash' => sha1($applicant->getEmailForVerification()),
+        ]))->assertOk()->assertJsonPath('status', 'ok');
 
         $this->assertNotNull($applicant->fresh()->email_verified_at);
         $this->assertFalse($applicant->fresh()->isApproved());

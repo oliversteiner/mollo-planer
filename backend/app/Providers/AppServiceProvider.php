@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Planer\PlanerRevision;
 use App\Services\TaskNotifier;
+use App\Support\PasswordPolicy;
 use App\Support\Rights;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
@@ -13,6 +15,7 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Remembers the projects of one transaction; per request and per queued job.
         $this->app->scoped(PlanerRevision::class);
+
+        // The check against known leaked passwords waits 3 seconds at most (Laravel's own: 30).
+        $this->app->extend(UncompromisedVerifier::class, PasswordPolicy::verifier());
     }
 
     /**
@@ -34,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Password::defaults(fn (): Password => PasswordPolicy::defaults());
+
         // Outside production, loading a relation per row (N+1) is an error.
         // GraphQL lists batch-load instead (@with, ProgressBatchLoader).
         Model::preventLazyLoading(! $this->app->isProduction());

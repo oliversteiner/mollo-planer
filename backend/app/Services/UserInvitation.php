@@ -7,9 +7,11 @@ use App\Enums\UserActivity;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\UserInvited;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use LogicException;
 
 /**
  * Creates users without a known password and invites them by mail to set
@@ -25,9 +27,9 @@ class UserInvitation
     public function invite(string $name, string $email, ?Role $role, Locale $locale, ?UserActivity $activity = null): User
     {
         return DB::transaction(function () use ($name, $email, $role, $locale, $activity): User {
-            $user = $this->create($name, $email, $role, Str::password(64), $activity);
+            $user = $this->create($name, $email, $role, Str::password(64), $activity, $locale);
 
-            $token = Password::broker('invitations')->createToken($user);
+            $token = $this->broker()->createToken($user);
             $user->notify((new UserInvited($token))->locale($locale->value));
 
             return $user;
@@ -38,7 +40,7 @@ class UserInvitation
      * Create the user with a password chosen right away (no mail). Created by
      * an admin, so the account is verified and approved at once.
      */
-    public function create(string $name, string $email, ?Role $role, string $password, ?UserActivity $activity = null): User
+    public function create(string $name, string $email, ?Role $role, string $password, ?UserActivity $activity = null, ?Locale $locale = null): User
     {
         $user = User::create([
             'name' => $name,
@@ -49,8 +51,23 @@ class UserInvitation
         ]);
 
         // An admin created the account: no registration checks apply.
-        $user->forceFill(['email_verified_at' => now(), 'approved_at' => now()])->save();
+        $user->forceFill(['email_verified_at' => now(), 'approved_at' => now(), 'locale' => $locale?->value])->save();
 
         return $user;
+    }
+
+    /**
+     * The broker "invitations". createToken() is not part of the PasswordBroker contract, only of the
+     * concrete broker, so anything else is a configuration error.
+     */
+    private function broker(): PasswordBroker
+    {
+        $broker = Password::broker('invitations');
+
+        if (! $broker instanceof PasswordBroker) {
+            throw new LogicException('The password broker "invitations" must be '.PasswordBroker::class.', got '.$broker::class.'.');
+        }
+
+        return $broker;
     }
 }

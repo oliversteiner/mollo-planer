@@ -6,7 +6,7 @@ import { classifyRestError } from '~/utils/api'
  * Set up an authenticator app: scan the QR code (or type the key),
  * confirm with a code, then keep the recovery codes.
  */
-const emit = defineEmits<{ done: [] }>()
+const emit = defineEmits<{ done: [], step: [step: 'start' | 'scan' | 'codes'] }>()
 
 const { t } = useI18n()
 const { startTwoFactor, confirmTwoFactor, recoveryCodes } = useSecurity()
@@ -18,6 +18,10 @@ const secretKey = ref('')
 const code = ref('')
 const error = ref('')
 const codes = ref<string[]>([])
+// The recovery codes are shown once: "done" is open only when the person says they have saved them.
+const saved = ref(false)
+
+watch(step, value => emit('step', value))
 
 async function start(): Promise<void> {
   pending.value = true
@@ -115,9 +119,14 @@ async function confirm(): Promise<void> {
         :title="t('security.twoFactor.enabled')"
       />
       <SecurityRecoveryCodes :codes="codes" />
+      <FormCheckbox
+        v-model="saved"
+        :label="t('security.recovery.saved')"
+      />
       <div>
         <wa-button
           variant="brand"
+          :disabled="!saved"
           @click="emit('done')"
         >
           {{ t('security.done') }}

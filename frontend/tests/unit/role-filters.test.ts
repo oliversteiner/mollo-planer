@@ -1,3 +1,4 @@
+import { matchesSearch } from '../../app/utils/text-search'
 import { describe, expect, it } from 'vitest'
 import {
   EMPTY_ROLE_FILTER,
@@ -8,7 +9,6 @@ import {
   groupRights,
   highlightParts,
   isRoleFilterActive,
-  matchesSearch,
   parseRolePageState,
   rightGroup,
   rightsOfRole,

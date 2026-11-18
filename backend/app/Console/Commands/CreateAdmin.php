@@ -5,12 +5,12 @@ namespace App\Console\Commands;
 use App\Enums\Locale;
 use App\Models\Role;
 use App\Services\UserInvitation;
+use App\Support\PasswordPolicy;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Password;
 
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
@@ -87,7 +87,7 @@ class CreateAdmin extends Command implements PromptsForMissingInput
         $password = password(
             label: __('console.create_admin.password'),
             required: true,
-            validate: ['password' => Password::default()],
+            validate: ['password' => PasswordPolicy::rules()],
         );
 
         password(

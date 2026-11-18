@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Locale;
 use App\Enums\UserActivity;
 use App\Models\Concerns\HasRole;
 use App\Notifications\ResetPasswordNotification;
@@ -30,10 +31,10 @@ use Laravel\Sanctum\HasApiTokens;
 #[ObservedBy(UserObserver::class)]
 class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {
-    use HasApiTokens, HasFactory, MustVerifyEmail, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasRole, MustVerifyEmail, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /** @use HasFactory<UserFactory> */
-    use HasRole;
+    use HasFactory;
 
     /**
      * Same defaults as the database, so new instances never hold null.
@@ -60,7 +61,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array{email_verified_at: 'datetime', approved_at: 'datetime', password: 'hashed', two_factor_confirmed_at: 'datetime', activity: class-string<UserActivity>, notify_by_email: 'boolean'}
      */
     protected function casts(): array
     {
@@ -99,6 +100,26 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
         return Attribute::get(fn (): ?string => $this->avatar_path === null
             ? null
             : Storage::disk(UserAvatar::DISK)->url($this->avatar_path));
+    }
+
+    /**
+     * The language of a mail about a change the person made in their own request (a security notice):
+     * the stored language of the account (users.locale), otherwise the one of the current request,
+     * otherwise the application's.
+     */
+    public function mailLocale(): string
+    {
+        return Locale::tryFrom((string) $this->getAttribute('locale'))->value ?? app()->getLocale();
+    }
+
+    /**
+     * The language of a mail that arises in somebody else's request (an admin resets the factor, releases or
+     * rejects the account): the stored language of the account (users.locale), otherwise the application's
+     * (APP_LOCALE, kept in app.default_locale: app.locale changes with every request). Never the language of the admin's request.
+     */
+    public function accountLocale(): string
+    {
+        return Locale::tryFrom((string) $this->getAttribute('locale'))->value ?? (string) config('app.default_locale');
     }
 
     /**

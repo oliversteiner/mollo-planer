@@ -23,6 +23,6 @@ class EnsureEmailVerified
             return $next($request);
         }
 
-        return AccountReadiness::locked(AccountReadiness::REASON_EMAIL);
+        return AccountReadiness::locked(AccountReadiness::REASON_EMAIL, $user->email);
     }
 }

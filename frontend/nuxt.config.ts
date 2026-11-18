@@ -15,6 +15,9 @@ const planerCore = fileURLToPath(new URL('../tools/planer/core', import.meta.url
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  // The browser tests (frontend/e2e) run their own dev server next to the one of the developer: another build
+  // folder, so the two do not overwrite each other. Not set otherwise.
+  ...(process.env.NUXT_BUILD_DIR ? { buildDir: process.env.NUXT_BUILD_DIR } : {}),
 
   modules: [
     '@nuxt/eslint',

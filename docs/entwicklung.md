@@ -658,3 +658,80 @@ Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit A
 
 - [x] [feature] Rechte nur über Rights, eine Liste für Seiten- und Menürechte
   Commit 9673541
+
+## v1.1 Sicheres Onboarding
+Status: geplant
+
+Der Weg vom Konto bis zur Arbeitsfläche ist gehärtet: Nutzerbefehle für den Betrieb, ein Bestätigungslink ohne Sitzung, neutrale Antworten bei Registrierung und «Passwort vergessen», eine Passwortregel mit Leak-Prüfung, Mails zu Freigabe, Ablehnung und Sicherheitsänderungen, die Sprache pro Konto, Browser-Tests der Anmeldung und Larastan in der CI (Aufträge 18 bis 25).
+
+### Nutzerbefehle und Konto absichern
+
+- [x] [feature] Artisan-Befehle für Passwort, E-Mail-Adresse und zweiten Faktor eines Kontos (Auftrag 18)
+  Commit 73b8aa2
+
+- [x] [bug] Nach dem ersten Faktor verlässt die Seite «Konto absichern» (Auftrag 19)
+  Commit 0806fdb
+
+### Bestätigungslink und Registrierung
+
+- [x] [bug] Der Bestätigungslink funktioniert ohne Sitzung und bestätigt per Klick, die Bestätigungsmail lässt sich erneut senden (Auftrag 21)
+  Commit ed8fde8
+
+- [x] [bug] «Passwort vergessen» und die Registrierung antworten für jede Adresse gleich (Auftrag 22 O1, O3)
+  Commit 55a2f6b
+
+- [x] [bug] «Passwort vergessen» und «Passwort zurücksetzen» sind pro IP gedrosselt (Auftrag 22 O2)
+  Commit 92fbc48
+
+- [x] [bug] Die Mail «Registrierung noch nicht bestätigt» führt auf «erneut senden» statt auf eine Fehlermeldung (Auftrag 24 N1)
+  Commit b1d4ca1
+
+### Passwort und Mails
+
+- [x] [feature] Passwortregel: mindestens 12 Zeichen, höchstens 72 Bytes, Prüfung gegen bekannte Leaks (Auftrag 22 O4)
+  Commit 6b4c15d
+
+- [x] [feature] Nach dem Zurücksetzen enden Sitzungen und Zugänge, jede Änderung der Anmeldung löst eine Hinweismail aus (Auftrag 22 O5, O7)
+  Commit c492233
+
+- [x] [bug] Die Anmeldung mit Passwort gilt als Passwortbestätigung (Auftrag 22 O6)
+  Commit 8e40121
+
+- [x] [feature] users.locale: Mails bei Freigabe und Ablehnung einer Registrierung in der Sprache der Person (Auftrag 22 O8)
+  Commit e37c730
+
+- [x] [feature] Zustandsseiten für Bestätigung und Freigabe, neutrale Texte, Passkey erklärt, Fortschritt als Text (Auftrag 23)
+  Commit 11724b4
+
+### Tests und Qualität
+
+- [x] [bug] Der Erfolg wird in den Browser-Tests am bleibenden Ergebnis geprüft, nicht an einem Toast (Auftrag 25 A)
+  Commit 6228b77
+
+- [x] [feature] Larastan-Baseline und `composer analyse` in der CI (Auftrag 25 B, C)
+  Commit c96aa7e
+
+### Browser-Tests der Anmeldung (Auftrag 20, 2026-11-18)
+
+- [x] [feature] Browser-Tests der Anmeldung mit Playwright (Auftrag 20)
+  Commit d7a71ca
+
+Der ganze Weg vom Konto bis zur Arbeitsfläche läuft als Browser-Test (Playwright, Chromium) in `frontend/e2e/`: Registrierung, Bestätigungslink (auch im zweiten Browserprofil), «Konto absichern» mit Passkey und Authenticator-App, Anmelden mit Code, Wiederherstellungscode und Passkey, «Passwort vergessen», Freigabe, Ablehnung, Reset des zweiten Faktors durch den Admin, Drossel, ein Durchlauf auf Englisch. Szenarien: `e2e/auth-flow.spec.ts` (Nummern wie in `next-work/20-anmelde-ui-tests.md`). Je Szenario werden die Zielseite, die sichtbare Meldung, Fehler in der Browser-Konsole und unerwartete 4xx/5xx geprüft; erwartete Antworten (zum Beispiel 422, 429, 403 bei gesperrtem Konto) stehen je Szenario im Test.
+
+**Starten** (im Ordner `frontend/`, Voraussetzung: PHP 8.5, `npm install`, einmal `npx playwright install chromium`, und **Mailpit läuft** auf `localhost:8025` / `1025`):
+
+```bash
+npm run test:e2e
+```
+
+Der Lauf startet **sein eigenes** Backend (`php artisan serve` auf Port 8100) und seinen eigenen Dev-Server des Frontends (Port 3100, Build-Ordner `.nuxt-e2e`), neben dem normalen Entwicklungsstand. Nichts davon berührt die Entwicklungsdatenbank, einen Testserver oder die Produktion.
+
+- **Datenbank:** eine eigene SQLite-Datei (`/tmp/mollo-planer-e2e.sqlite`), vor jedem Lauf per `migrate:fresh --seed --seeder=E2eSeeder` neu aufgebaut. Der Seeder legt einen Admin (`admin@e2e.test`) und ein Mitglied an, beide mit Authenticator-App. Passwort und Schlüssel stehen in `frontend/e2e/support/environment.ts` (nur für diese Wegwerf-Datenbank), nicht im Seeder. Der Seeder läuft nicht in Produktion.
+- **Umgebung des Backends** (`e2e/support/environment.ts`): `QUEUE_CONNECTION=sync` (die Mail ist da, wenn der Test sie liest), `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PASSWORD_UNCOMPROMISED_CHECK=false` (kein Aufruf des Prüfdienstes), `FRONTEND_URL=http://localhost:3100`, `PASSKEYS_RELYING_PARTY_ID=localhost`, `SANCTUM_STATEFUL_DOMAINS=localhost:3100`, `SESSION_DOMAIN=localhost`, Mail an Mailpit. Kein echter SMTP-Zugang.
+- **Mails** liest der Test über die API von Mailpit, je Empfänger; jedes Szenario nutzt eigene, eindeutige Adressen.
+- **Drosseln:** Alle Tests laufen von `127.0.0.1`; vor jedem Szenario wird der Cache geleert (`php artisan cache:clear`). Die Grenzwerte der App werden **nicht** angehoben; ein eigenes Szenario prüft die Drossel der Registrierung.
+- **Passkeys** über den virtuellen Authenticator von Chromium (WebAuthn über CDP, mit Benutzerprüfung).
+- **Abgelaufene Links:** der Bestätigungslink wird mit einer Gültigkeit in der Vergangenheit erzeugt (`tinker`), der Reset-Token in `password_reset_tokens` zurückdatiert. Es gibt keine Hilfsroute in der App.
+- **Befunde:** Ein Szenario, das eine Abweichung der App zeigt, ist mit `test.fail()` und der Begründung markiert und geht in den Bericht an die Planung. Die Warnungen der Browser-Konsole (Web Awesome und Lit im Entwicklungsmodus) landen nach dem Lauf in `frontend/test-results/console-warnings.txt`, ungefiltert.
+- **Nicht im Umfang:** `app:create-admin` und `app:user-2fa` brauchen ein Terminal (Auftrag 18) und sind durch die Backend-Tests abgedeckt; «Passwort anzeigen»; Barrierefreiheit.
+

@@ -22,8 +22,9 @@ final class McpTokens
         return $user->createToken($name, [self::ABILITY], now()->addDays(self::VALID_DAYS));
     }
 
-    public static function revokeAll(User $user): void
+    /** Returns how many tokens were removed. */
+    public static function revokeAll(User $user): int
     {
-        $user->tokens()->delete();
+        return $user->tokens()->delete();
     }
 }

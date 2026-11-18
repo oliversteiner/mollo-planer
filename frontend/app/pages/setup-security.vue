@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { pendingAccountPath, safeRedirect } from '~/utils/api'
+import { safeRedirect } from '~/utils/api'
 
 /**
  * First setup after the invitation: an account needs an authenticator app
@@ -10,20 +10,40 @@ definePageMeta({ layout: 'auth' })
 
 const { t } = useI18n()
 const route = useRoute()
-const { load, logout } = useViewer()
+const toast = useToast()
+const { logout } = useViewer()
+const { proceed } = useAccountFlow()
 
 useHead({ title: () => t('auth.setup.title') })
 
 const method = ref<'app' | 'passkey' | null>(null)
+// After the first passkey: a fixed step with the hint about a second way, not a toast that disappears.
+const passkeyAdded = ref(false)
+const appStep = ref<'start' | 'scan' | 'codes'>('start')
 
-async function done(): Promise<void> {
-  const problem = await load()
-
-  if (problem === null) {
-    await navigateTo(safeRedirect(route.query.redirect))
-  } else if (pendingAccountPath(problem)) {
-    await navigateTo(pendingAccountPath(problem))
+// "Step 1 of 2": set up a factor. "Step 2 of 2": keep the codes (app) or the closing step (passkey). As text, so a screen reader reads it.
+const progress = computed(() => {
+  if (method.value === null) {
+    return null
   }
+
+  const codes = method.value === 'app' && appStep.value === 'codes'
+  const title = codes ? 'stepCodes' : (passkeyAdded.value ? 'stepFinish' : 'stepFactor')
+
+  return t('auth.setup.progress', { current: codes || passkeyAdded.value ? 2 : 1, total: 2, title: t(`auth.setup.${title}`) })
+})
+
+/**
+ * After the first factor was set up: ask the API again and go on (see utils/account-outcome.ts: no
+ * answer is ignored). A session that does not count as strong yet leads to the login with the new factor.
+ */
+async function done(): Promise<void> {
+  await proceed('continued', {
+    onSignedOut: async () => {
+      toast.add({ title: t('auth.setup.signInAgain'), color: 'info' })
+      await navigateTo({ path: '/login', query: { redirect: safeRedirect(route.query.redirect) } })
+    }
+  })
 }
 </script>
 
@@ -39,6 +59,14 @@ async function done(): Promise<void> {
     <div class="wa-stack wa-gap-m">
       <p class="wa-body-s wa-color-text-quiet">
         {{ t('auth.setup.description') }}
+      </p>
+
+      <p
+        v-if="progress"
+        class="wa-body-s wa-color-text-quiet"
+        aria-live="polite"
+      >
+        {{ progress }}
       </p>
 
       <div
@@ -74,18 +102,56 @@ async function done(): Promise<void> {
         </wa-button>
       </div>
 
-      <SecurityPasskeyAdd
+      <template v-else-if="method === 'passkey' && !passkeyAdded">
+        <p class="wa-body-s wa-color-text-quiet">
+          {{ t('auth.setup.passkeyExplain') }}
+        </p>
+        <SecurityPasskeyAdd
+          :toast-on-success="false"
+          @added="passkeyAdded = true"
+        />
+      </template>
+      <div
         v-else-if="method === 'passkey'"
-        @added="done"
-      />
+        class="wa-stack wa-gap-m"
+      >
+        <AppCallout
+          variant="success"
+          :title="t('auth.setup.passkeyDone')"
+        />
+        <AppCallout
+          variant="brand"
+          :title="t('auth.setup.secondFactorHint')"
+        />
+        <wa-button
+          variant="brand"
+          style="width: 100%"
+          @click="done"
+        >
+          {{ t('auth.setup.continue') }}
+        </wa-button>
+        <wa-button
+          appearance="outlined"
+          variant="neutral"
+          style="width: 100%"
+          @click="method = 'app'"
+        >
+          <wa-icon
+            slot="start"
+            name="mobile-screen"
+          ></wa-icon>
+          {{ t('auth.setup.app') }}
+        </wa-button>
+      </div>
       <SecurityTwoFactorSetup
         v-else
+        @step="appStep = $event"
         @done="done"
       />
 
       <div class="wa-split wa-gap-s">
         <wa-button
-          v-if="method !== null"
+          v-if="method !== null && !passkeyAdded"
           appearance="plain"
           variant="neutral"
           @click="method = null"

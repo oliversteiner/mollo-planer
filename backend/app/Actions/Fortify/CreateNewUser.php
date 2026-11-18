@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Enums\Locale;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -20,16 +21,33 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
-            'name' => ['required', 'string', 'min:2', 'max:120'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-            'password' => $this->passwordRules(),
-        ])->validate();
+        $input = $this->validate($input);
 
-        return User::create([
+        $user = new User([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+        // The language of the request: mails that arise later (release, rejection) are written in it.
+        $user->forceFill(['locale' => Locale::tryFrom(app()->getLocale())?->value])->save();
+
+        return $user;
+    }
+
+    /**
+     * The rules of the registration. Whether the address is taken is not a rule: that would tell
+     * the form which addresses have an account (RegisterController answers both cases alike, the
+     * unique index of the database is the last safeguard).
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    public function validate(array $input): array
+    {
+        return Validator::make($input, [
+            'name' => ['required', 'string', 'min:2', 'max:120'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
+            'password' => $this->passwordRules(),
+        ])->validate();
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Models\Role;
 use App\Support\Rights;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Http;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -20,6 +21,15 @@ abstract class TestCase extends BaseTestCase
     protected function systemRole(?UserRole $role): ?Role
     {
         return Role::resolve(Role::SCOPE_SYSTEM, $role);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // No test reaches the real leak check (or anything else on the network): a test that needs
+        // it fakes the answer with Http::fake().
+        Http::preventStrayRequests();
     }
 
     protected function tearDown(): void

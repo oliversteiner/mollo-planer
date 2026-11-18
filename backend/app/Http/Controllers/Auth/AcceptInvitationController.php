@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Fortify\PasswordValidationRules;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -37,8 +36,7 @@ class AcceptInvitationController extends Controller
                     'remember_token' => Str::random(60),
                     'email_verified_at' => $user->email_verified_at ?? now(),
                 ])->save();
-
-                event(new PasswordReset($user));
+                // No PasswordReset event: this is the first password, not a change that needs a notice.
             },
         );
 

@@ -180,9 +180,9 @@ return [
     'features' => [
         // Self-registration waits for an admin (approved_at, see EnsureApproved).
         // Admins can still create users (GraphQL createUser) with an invitation link.
-        Features::registration(),
+        // Registration: own route in routes/web.php (neutral answer for a taken address).
         Features::resetPasswords(),
-        Features::emailVerification(),
+        // Email verification: own routes in routes/web.php (link without a session, confirmation by click).
         Features::updateProfileInformation(),
         Features::updatePasswords(),
         Features::twoFactorAuthentication([

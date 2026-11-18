@@ -2,8 +2,8 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Actions\ReviewRegistration;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Releases a self-registered account (admins only, checked by @can). The
@@ -16,11 +16,6 @@ class ApproveUser
      */
     public function __invoke(mixed $root, array $args): User
     {
-        return DB::transaction(function () use ($args): User {
-            $user = User::findOrFail($args['id']);
-            $user->forceFill(['approved_at' => now()])->save();
-
-            return $user;
-        });
+        return app(ReviewRegistration::class)->approve(User::findOrFail($args['id']));
     }
 }

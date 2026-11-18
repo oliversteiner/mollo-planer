@@ -513,7 +513,7 @@
       "title": "Planer-Datei, KI-Assistent und Zen-Modus",
       "description": "Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit Abgleich (Export, Import, Kommandozeile, GitHub-Action, Webhook), KI-Assistent und Ideen, Zen-Modus mit Stimmung.",
       "status": "veröffentlicht",
-      "releasedOn": null,
+      "releasedOn": "2026-11-18",
       "changes": [
         {
           "kind": "neu",
@@ -702,6 +702,73 @@
         {
           "kind": "neu",
           "text": "Rechte nur über Rights, eine Liste für Seiten- und Menürechte"
+        }
+      ]
+    },
+    {
+      "major": 1,
+      "minor": 1,
+      "number": "1.1",
+      "title": "Sicheres Onboarding",
+      "description": "Der Weg vom Konto bis zur Arbeitsfläche ist gehärtet: Nutzerbefehle für den Betrieb, ein Bestätigungslink ohne Sitzung, neutrale Antworten bei Registrierung und «Passwort vergessen», eine Passwortregel mit Leak-Prüfung, Mails zu Freigabe, Ablehnung und Sicherheitsänderungen, die Sprache pro Konto, Browser-Tests der Anmeldung und Larastan in der CI (Aufträge 18 bis 25).",
+      "status": "geplant",
+      "releasedOn": null,
+      "changes": [
+        {
+          "kind": "neu",
+          "text": "Artisan-Befehle für Passwort, E-Mail-Adresse und zweiten Faktor eines Kontos (Auftrag 18)"
+        },
+        {
+          "kind": "behoben",
+          "text": "Nach dem ersten Faktor verlässt die Seite «Konto absichern» (Auftrag 19)"
+        },
+        {
+          "kind": "behoben",
+          "text": "Der Bestätigungslink funktioniert ohne Sitzung und bestätigt per Klick, die Bestätigungsmail lässt sich erneut senden (Auftrag 21)"
+        },
+        {
+          "kind": "behoben",
+          "text": "«Passwort vergessen» und die Registrierung antworten für jede Adresse gleich (Auftrag 22 O1, O3)"
+        },
+        {
+          "kind": "behoben",
+          "text": "«Passwort vergessen» und «Passwort zurücksetzen» sind pro IP gedrosselt (Auftrag 22 O2)"
+        },
+        {
+          "kind": "behoben",
+          "text": "Die Mail «Registrierung noch nicht bestätigt» führt auf «erneut senden» statt auf eine Fehlermeldung (Auftrag 24 N1)"
+        },
+        {
+          "kind": "neu",
+          "text": "Passwortregel: mindestens 12 Zeichen, höchstens 72 Bytes, Prüfung gegen bekannte Leaks (Auftrag 22 O4)"
+        },
+        {
+          "kind": "neu",
+          "text": "Nach dem Zurücksetzen enden Sitzungen und Zugänge, jede Änderung der Anmeldung löst eine Hinweismail aus (Auftrag 22 O5, O7)"
+        },
+        {
+          "kind": "behoben",
+          "text": "Die Anmeldung mit Passwort gilt als Passwortbestätigung (Auftrag 22 O6)"
+        },
+        {
+          "kind": "neu",
+          "text": "users.locale: Mails bei Freigabe und Ablehnung einer Registrierung in der Sprache der Person (Auftrag 22 O8)"
+        },
+        {
+          "kind": "neu",
+          "text": "Zustandsseiten für Bestätigung und Freigabe, neutrale Texte, Passkey erklärt, Fortschritt als Text (Auftrag 23)"
+        },
+        {
+          "kind": "behoben",
+          "text": "Der Erfolg wird in den Browser-Tests am bleibenden Ergebnis geprüft, nicht an einem Toast (Auftrag 25 A)"
+        },
+        {
+          "kind": "neu",
+          "text": "Larastan-Baseline und `composer analyse` in der CI (Auftrag 25 B, C)"
+        },
+        {
+          "kind": "neu",
+          "text": "Browser-Tests der Anmeldung mit Playwright (Auftrag 20)"
         }
       ]
     }

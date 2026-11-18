@@ -99,7 +99,8 @@
     "unauthorized": "Dafür fehlt dir die Berechtigung.",
     "csrf": "Die Sitzung war abgelaufen. Bitte versuche es nochmals.",
     "network": "Der Server ist nicht erreichbar.",
-    "unknown": "Die Anfrage ist fehlgeschlagen."
+    "unknown": "Die Anfrage ist fehlgeschlagen.",
+    "throttled": "Zu viele Versuche. Versuch es in einer Minute nochmals."
   },
   "auth": {
     "email": "E-Mail",
@@ -113,7 +114,9 @@
       "forgot": "Passwort vergessen?",
       "or": "oder",
       "passkey": "Mit Passkey anmelden",
-      "register": "Konto anlegen"
+      "register": "Konto anlegen",
+      "passkeyRequired": "Dein Konto ist mit einem Passkey geschützt. Melde dich mit dem Passkey an.",
+      "passkeyUnsupported": "Dein Konto ist mit einem Passkey geschützt. Öffne die Seite auf einem Gerät mit deinem Passkey oder melde dich bei einem Admin."
     },
     "challenge": {
       "title": "Zweiter Faktor",
@@ -124,7 +127,8 @@
       "submit": "Bestätigen",
       "useRecovery": "Wiederherstellungscode verwenden",
       "useCode": "Code aus der App verwenden",
-      "back": "Zurück"
+      "back": "Zurück",
+      "noAccess": "Kein Zugriff mehr auf App und Codes? Melde dich bei einem Admin."
     },
     "forgot": {
       "title": "Passwort vergessen",
@@ -135,7 +139,7 @@
     "setPassword": {
       "password": "Neues Passwort",
       "confirmation": "Passwort wiederholen",
-      "rules": "Mindestens 8 Zeichen",
+      "rules": "Mindestens 12 Zeichen",
       "invalidLink": "Der Link ist unvollständig. Bitte öffne ihn nochmals aus der E-Mail."
     },
     "reset": {
@@ -154,7 +158,16 @@
       "title": "Konto absichern",
       "description": "Bevor du loslegen kannst, sicherst du dein Konto mit einem zweiten Faktor ab.",
       "passkey": "Passkey einrichten (empfohlen)",
-      "app": "Authenticator-App einrichten"
+      "app": "Authenticator-App einrichten",
+      "signInAgain": "Dein Faktor ist eingerichtet. Melde dich jetzt damit an.",
+      "passkeyExplain": "Ein Passkey ist ein Schlüssel auf deinem Gerät oder in deinem Passwortmanager. Du bestätigst ihn mit Fingerabdruck, Gesichtserkennung oder PIN, ohne Passwort und ohne Code.",
+      "passkeyDone": "Dein Passkey ist eingerichtet.",
+      "secondFactorHint": "Richte einen zweiten Weg ein, zum Beispiel die Authenticator-App oder einen Passkey auf einem zweiten Gerät. So kommst du auch ohne dieses Gerät in dein Konto.",
+      "continue": "Weiter",
+      "progress": "Schritt {current} von {total}: {title}",
+      "stepFactor": "Faktor einrichten",
+      "stepCodes": "Codes sichern",
+      "stepFinish": "Abschluss"
     },
     "register": {
       "title": "Konto anlegen",
@@ -164,13 +177,33 @@
     },
     "verify": {
       "title": "E-Mail-Adresse bestätigen",
+      "intro": "Bestätige, dass diese Adresse dir gehört.",
+      "confirm": "E-Mail-Adresse bestätigen",
       "done": "Deine E-Mail-Adresse ist bestätigt.",
-      "loginHint": "Melde dich an, sobald ein Admin dein Konto freigegeben hat."
+      "already": "Diese Adresse ist schon bestätigt.",
+      "failed": "Die Bestätigung hat nicht geklappt. Versuche es nochmals.",
+      "nextSteps": "Melde dich jetzt an und richte deinen zweiten Faktor ein. Ein Admin gibt dein Konto frei; du bekommst eine Mail.",
+      "login": "Anmelden",
+      "invalid": "Der Link ist ungültig oder abgelaufen.",
+      "invalidText": "Lass dir eine neue Bestätigungsmail schicken oder melde dich an.",
+      "toLogin": "Zur Anmeldung",
+      "resend": "Bestätigungsmail erneut senden",
+      "resendIn": "Erneut senden in {seconds} s",
+      "resent": "Wir haben dir eine neue Mail geschickt. Sie kann eine Minute brauchen.",
+      "resentNeutral": "Wenn ein Konto mit dieser Adresse auf Bestätigung wartet, haben wir eine Mail geschickt. Sie kann eine Minute brauchen.",
+      "resendIntro": "Gib deine Adresse ein. Wir schicken dir die Bestätigungsmail nochmals."
     },
     "pending": {
-      "title": "Konto wartet",
-      "emailText": "Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt.",
-      "approvalText": "Deine E-Mail-Adresse ist bestätigt. Ein Admin muss dein Konto noch freigeben. Du bekommst Bescheid, sobald es so weit ist.",
+      "emailTitle": "E-Mail-Adresse bestätigen",
+      "emailText": "Wir haben dir eine Mail an {email} geschickt. Öffne sie und folge dem Hinweis darin.",
+      "emailTextNoAddress": "Wir haben dir eine Mail geschickt. Öffne sie und folge dem Hinweis darin.",
+      "deadline": "Ein Link in der Mail gilt 60 Minuten.",
+      "spam": "Sieh auch im Spam-Ordner nach.",
+      "wait": "Die Mail kann eine Minute brauchen.",
+      "wrongAddress": "Adresse falsch?",
+      "registerAgain": "Nochmals registrieren",
+      "approvalTitle": "Freigabe ausstehend",
+      "approvalText": "Deine E-Mail-Adresse ist bestätigt. Ein Admin schaltet dein Konto frei. Du bekommst eine Mail, sobald es so weit ist. Du musst nichts tun.",
       "recheck": "Erneut prüfen"
     }
   },
@@ -473,13 +506,14 @@
       "copied": "Codes kopiert.",
       "download": "Herunterladen",
       "show": "Wiederherstellungscodes anzeigen",
-      "regenerate": "Neue Codes erzeugen"
+      "regenerate": "Neue Codes erzeugen",
+      "saved": "Ich habe die Codes gespeichert."
     },
     "passkeys": {
       "title": "Passkeys",
-      "intro": "Mit einem Passkey meldest du dich ohne Code an, mit Fingerabdruck, Gesichtserkennung oder PIN deines Geräts. Richte am besten zwei ein, zum Beispiel auf Laptop und Telefon.",
+      "intro": "Mit einem Passkey meldest du dich ohne Code an, mit Fingerabdruck, Gesichtserkennung oder PIN deines Geräts.",
       "name": "Name",
-      "nameHint": "Zum Wiedererkennen, zum Beispiel «Laptop»",
+      "nameHint": "Zum Wiedererkennen. Du kannst den Namen ändern.",
       "defaultName": "Passkey",
       "add": "Passkey hinzufügen",
       "added": "Passkey hinzugefügt.",
@@ -490,7 +524,8 @@
       "neverUsed": "Noch nie benutzt",
       "remove": "Passkey «{name}» entfernen",
       "removeTitle": "Passkey «{name}» entfernen?",
-      "secondHint": "Tipp: Richte einen zweiten Passkey oder die Authenticator-App ein, falls dieses Gerät verloren geht."
+      "secondHint": "Tipp: Richte einen zweiten Passkey oder die Authenticator-App ein, falls dieses Gerät verloren geht.",
+      "notCreated": "Kein Passkey angelegt. Versuch es nochmals oder nimm die Authenticator-App."
     }
   },
   "admin": {
@@ -510,7 +545,7 @@
       "factorNone": "Kein zweiter Faktor",
       "resetTwoFactor": "2FA zurücksetzen",
       "resetTitle": "2FA von {name} zurücksetzen?",
-      "resetDescription": "Entfernt die Authenticator-App und alle Passkeys und meldet die Person überall ab, zum Beispiel bei verlorenem Gerät. Beim nächsten Login richtet sie einen neuen zweiten Faktor ein.",
+      "resetDescription": "Authenticator-App und Passkeys von {name} werden entfernt, alle Sitzungen beendet. {name} bekommt eine Mail und richtet bei der nächsten Anmeldung einen neuen Faktor ein. Hast du auf anderem Weg geprüft, dass die Anfrage wirklich von {name} kommt (Anruf, persönlich)?",
       "resetDone": "2FA von {name} zurückgesetzt.",
       "removeAvatar": "Avatarbild entfernen",
       "avatarTitle": "Avatarbild von {name} entfernen?",
@@ -534,7 +569,8 @@
         "rejectTitle": "{name} ablehnen?",
         "rejectDescription": "Das wartende Konto wird gelöscht. Die Person kann sich danach nicht mehr anmelden.",
         "failed": "Das hat nicht geklappt. Die Liste wurde aktualisiert."
-      }
+      },
+      "resetConfirm": "Ja, zurücksetzen"
     },
     "settings": {
       "title": "App-Einstellungen",
@@ -919,6 +955,10 @@
         "avatar_path": {
           "label": "Profilbild",
           "description": "Ablage des Bildes (500 × 500, WebP). Nur die App setzt den Wert."
+        },
+        "locale": {
+          "label": "Sprache",
+          "description": "Sprache des Kontos für Mails, die nicht in einer Anfrage der Person entstehen (Freigabe, Ablehnung, Hinweis nach dem Zurücksetzen). Leer heisst Sprache der Anwendung."
         },
         "email_verified_at": {
           "label": "E-Mail bestätigt am",
