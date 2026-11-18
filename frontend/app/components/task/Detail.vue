@@ -67,12 +67,21 @@ const { mutate: setTaskLabels } = useProjectMutation(setTaskLabelsMutation)
 const { mutate: updateTask } = useProjectMutation(updateTaskMutation)
 const { errors: commitErrors, run: runCommit } = useGraphqlForm()
 
-const { calm } = useViewMode()
-/** Open in the normal view, closed in the calm view; the person can still change it. */
-const commentsOpen = ref(!calm.value)
+const { mode, focusing, enterFocus } = useViewMode()
+/** Open in the normal view, closed in the calm and focus views; the person can still change it. */
+const commentsOpen = ref(mode.value === 'full')
 
-watch(calm, (value) => {
-  commentsOpen.value = !value
+useCommands(() => [{
+  id: 'task-focus',
+  label: t('zen.focusTask'),
+  icon: 'bullseye',
+  group: 'action',
+  visible: () => task.value !== null && !focusing.value,
+  run: () => enterFocus({ kind: 'task', id: task.value!.id })
+}])
+
+watch(mode, (value) => {
+  commentsOpen.value = value === 'full'
 })
 
 /** Labels of the project; one the task has that is not among them (any more) can only be removed. */
@@ -179,6 +188,19 @@ const deletion = useDelete<string>(id => deleteTask({ id }), {
           :done="task.status === 'DONE'"
         />
         <div class="wa-cluster wa-gap-3xs task-tools">
+          <wa-button
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            data-zen="hide"
+            @click="enterFocus({ kind: 'task', id: task.id })"
+          >
+            <wa-icon
+              slot="start"
+              name="bullseye"
+            ></wa-icon>
+            {{ t('zen.focus') }}
+          </wa-button>
           <wa-button
             v-if="may.update"
             appearance="outlined"

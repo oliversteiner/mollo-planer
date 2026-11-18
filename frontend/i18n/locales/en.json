@@ -2023,7 +2023,10 @@
     "hideIdeas": "Hide ideas",
     "milestonesOnly": "Toggle milestones only",
     "expandMilestone": "Expand",
-    "collapseMilestone": "Collapse"
+    "collapseMilestone": "Collapse",
+    "focus": "Focus",
+    "focusTask": "Open task in focus",
+    "focusTodo": "Open to-do in focus"
   },
   "command": {
     "title": "Commands",

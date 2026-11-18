@@ -57,7 +57,8 @@ function openTask(taskId: string): void {
 }
 
 function closeTask(): void {
-  const { task: _task, ...query } = route.query
+  // The task is the element of the focus view too: closing it ends the focus.
+  const { task: _task, focus: _focus, ...query } = route.query
   void router.replace({ query })
 }
 
@@ -120,6 +121,13 @@ useCommands(() => [
   }
 ])
 
+/**
+ * Focus on a todo (?todo=…&focus=1, docs/zen-modus.md §4.5): the todo alone instead of the timeline. The timeline is
+ * only marked (data-zen) while a todo is focused; the zen frame hides it. The marking is data, the hiding is CSS.
+ */
+const { focusing, enterFocus } = useViewMode()
+const focusTodoId = computed(() => (focusing.value && typeof route.query.todo === 'string' ? route.query.todo : null))
+
 function startEditing(target: ItemFormTarget): void {
   editing.value = target
 }
@@ -143,6 +151,9 @@ function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace)
     if (place.index < place.count - 1) {
       items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveMilestone({ id: item.id, position: place.index + 1 }) })
     }
+  }
+  if (kind === 'todo') {
+    items.push({ label: t('zen.focus'), icon: 'bullseye', onSelect: () => void enterFocus({ kind: 'todo', id: item.id }) })
   }
   if (can(`${prefix}_DELETE`)) {
     items.push({ label: t('common.delete'), icon: 'trash', color: 'error', onSelect: () => startDeleting({ kind, item }) })
@@ -189,8 +200,16 @@ function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace)
       </wa-button>
     </Teleport>
 
+    <TodoFocus
+      v-if="focusTodoId"
+      :project-id="projectId"
+      :todo-id="focusTodoId"
+      @open-task="openTask"
+    />
+
     <ProjectTimeline
       v-model:milestones-only="milestonesOnly"
+      :data-zen="focusTodoId ? 'hide' : undefined"
       :project-id="projectId"
       :actions="actions"
       :empty-hint="can('MILESTONE_CREATE') ? t('project.noMilestonesHint') : undefined"

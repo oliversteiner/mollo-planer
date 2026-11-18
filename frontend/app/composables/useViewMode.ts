@@ -42,6 +42,8 @@ export function useViewMode() {
 
     if (target?.kind === 'task') {
       query.task = target.id
+    } else if (target?.kind === 'todo') {
+      query.todo = target.id
     }
 
     await router.push({ path: route.path, query })
@@ -49,7 +51,7 @@ export function useViewMode() {
 
   /** Back to the stored mode: removes `?focus=1` (the history entry of the focus is replaced, not piled up). */
   async function leaveFocus(): Promise<void> {
-    const { focus: _focus, ...query } = route.query
+    const { focus: _focus, todo: _todo, ...query } = route.query
 
     await router.replace({ path: route.path, query })
   }

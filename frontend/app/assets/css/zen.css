@@ -52,3 +52,16 @@
 [data-view='focus'] main {
   max-inline-size: 44rem;
 }
+
+/*
+ * Focus (docs/zen-modus.md §4.5): the task is the same detail panel, now across the whole screen with its content in
+ * a reading width in the middle. The close button of the panel is the way back (Esc does the same).
+ */
+/* !important: the panel sets its own width with a more specific rule. */
+[data-view='focus'] wa-drawer.task-drawer {
+  --size: 100vw !important;
+}
+
+[data-view='focus'] .task-drawer::part(body) {
+  padding-inline: max(var(--wa-space-l), calc((100vw - 44rem) / 2));
+}

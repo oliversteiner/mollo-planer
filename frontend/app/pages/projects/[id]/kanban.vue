@@ -145,7 +145,8 @@ function openTask(taskId: string): void {
 }
 
 function closeTask(): void {
-  const { task: _task, ...query } = route.query
+  // The task is the element of the focus view too: closing it ends the focus.
+  const { task: _task, focus: _focus, ...query } = route.query
   void router.replace({ query })
 }
 

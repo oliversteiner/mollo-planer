@@ -43,6 +43,17 @@ describe('view mode', () => {
     expect(view.mode.value).toBe('calm')
   })
 
+  it('a todo focus carries the todo in the URL and leaving removes both', async () => {
+    const view = useViewMode()
+
+    await view.enterFocus({ kind: 'todo', id: '5' })
+    expect(useRoute().query).toMatchObject({ focus: '1', todo: '5' })
+
+    await view.leaveFocus()
+    expect(useRoute().query.todo).toBeUndefined()
+    expect(useRoute().query.focus).toBeUndefined()
+  })
+
   it('focus ends without touching the cookie, also from full', async () => {
     const view = useViewMode()
 

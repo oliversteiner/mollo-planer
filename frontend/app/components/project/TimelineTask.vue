@@ -14,6 +14,8 @@ type Task = NonNullable<ProjectTimelineQuery['project']>['milestones'][number]['
 defineProps<{
   task: Task
   menu: ActionMenuItem[]
+  /** Keep a done task in the calm view (the focus on a todo shows all of its tasks) */
+  keepDone?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -27,7 +29,7 @@ const { t } = useI18n()
 <template>
   <li
     :data-id="task.id"
-    :data-zen="task.status === 'DONE' ? 'hide' : undefined"
+    :data-zen="task.status === 'DONE' && !keepDone ? 'hide' : undefined"
     class="task"
     data-zen-row
     @click="emit('open')"
