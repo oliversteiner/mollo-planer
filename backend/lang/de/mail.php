@@ -71,6 +71,11 @@ return [
             'subject' => 'Ein Passkey wurde entfernt',
             'line' => 'Von deinem Konto bei :app wurde ein Passkey entfernt.',
         ],
+        'admin_reset' => [
+            'subject' => 'Dein zweiter Faktor wurde zurückgesetzt',
+            'line' => 'Dein zweiter Faktor wurde von einem Admin zurückgesetzt. Du richtest bei der nächsten Anmeldung einen neuen ein.',
+            'not_you' => 'Warst du das nicht, melde dich sofort.',
+        ],
         'recovery_codes' => [
             'subject' => 'Neue Wiederherstellungscodes',
             'line' => 'Für dein Konto bei :app wurden neue Wiederherstellungscodes erzeugt. Die alten gelten nicht mehr.',

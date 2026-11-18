@@ -110,9 +110,9 @@ class UserTwoFactor extends Command implements PromptsForMissingInput
             return self::FAILURE;
         }
 
-        $ended = $security->resetTwoFactor($user);
+        // The service writes the log line and sends the mail (the mutation does the same).
+        $ended = $security->resetTwoFactor($user, 'console');
 
-        $this->logIntervention($user, 'reset');
         $this->components->info(__('console.user_2fa.done_reset', ['name' => $user->name]));
         $this->reportEndedAccess($ended);
 

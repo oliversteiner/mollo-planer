@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Notifications\SecurityChange;
 use App\Support\McpTokens;
 use App\Support\StrongAuthentication;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 
@@ -73,16 +75,29 @@ class UserSecurity
      * The user lost their device: authenticator, recovery codes, passkeys, and
      * everything that stays signed in, so the next login sets up a new factor.
      *
+     * @param  string  $by  Who did it: the id of the admin (mutation) or "console" (artisan), for the log
      * @return array{tokens: int, sessions: ?int}
      */
-    public function resetTwoFactor(User $user): array
+    public function resetTwoFactor(User $user, string $by = 'console'): array
     {
-        return DB::transaction(function () use ($user): array {
+        $ended = DB::transaction(function () use ($user): array {
             $this->removeAuthenticator($user);
             $this->removePasskeys($user);
 
             return $this->revokeAccess($user);
         });
+
+        // The only way around the second factor must not go unnoticed: the person hears of it (in their own
+        // language, not the admin's) and the log names who did it, never an address or a secret.
+        $user->notify((new SecurityChange(SecurityChange::ADMIN_RESET))->locale($user->mailLocale()));
+        Log::warning('Second factor of a user reset.', [
+            'action' => 'reset',
+            'by' => $by,
+            'user_id' => $user->getKey(),
+            'environment' => app()->environment(),
+        ]);
+
+        return $ended;
     }
 
     /** Removes the authenticator app and its recovery codes. Passkeys stay. */

@@ -20,7 +20,7 @@ class ResetUserTwoFactor
     {
         $user = User::findOrFail($args['id']);
 
-        app(UserSecurity::class)->resetTwoFactor($user);
+        app(UserSecurity::class)->resetTwoFactor($user, (string) (auth()->id() ?? 'unknown'));
 
         return $user;
     }

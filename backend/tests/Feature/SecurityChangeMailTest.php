@@ -137,7 +137,7 @@ class SecurityChangeMailTest extends TestCase
         Notification::assertSentToTimes($user, SecurityChange::class, 1);
     }
 
-    public function test_the_admin_reset_changes_the_factors_directly_and_sends_no_event_mail_here(): void
+    public function test_the_admin_reset_changes_the_factors_directly_and_gives_its_own_mail_only(): void
     {
         Notification::fake();
         $user = $this->user();
@@ -145,7 +145,8 @@ class SecurityChangeMailTest extends TestCase
 
         app(UserSecurity::class)->resetTwoFactor($user);
 
-        Notification::assertNotSentTo($user, SecurityChange::class);
+        Notification::assertSentToTimes($user, SecurityChange::class, 1);
+        Notification::assertSentTo($user, SecurityChange::class, fn (SecurityChange $notification): bool => $notification->kind === SecurityChange::ADMIN_RESET);
     }
 
     public function test_the_first_password_of_an_invitation_is_not_a_change(): void
@@ -164,7 +165,7 @@ class SecurityChangeMailTest extends TestCase
         $user = $this->user();
 
         foreach (['de', 'en'] as $locale) {
-            foreach ([SecurityChange::PASSWORD, SecurityChange::AUTHENTICATOR_ADDED, SecurityChange::AUTHENTICATOR_REMOVED, SecurityChange::PASSKEY_ADDED, SecurityChange::PASSKEY_REMOVED, SecurityChange::RECOVERY_CODES] as $kind) {
+            foreach ([SecurityChange::ADMIN_RESET, SecurityChange::PASSWORD, SecurityChange::AUTHENTICATOR_ADDED, SecurityChange::AUTHENTICATOR_REMOVED, SecurityChange::PASSKEY_ADDED, SecurityChange::PASSKEY_REMOVED, SecurityChange::RECOVERY_CODES] as $kind) {
                 app()->setLocale($locale);
                 $mail = (new SecurityChange($kind))->locale($locale)->toMail($user);
 

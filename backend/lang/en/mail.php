@@ -71,6 +71,11 @@ return [
             'subject' => 'A passkey was removed',
             'line' => 'A passkey was removed from your account at :app.',
         ],
+        'admin_reset' => [
+            'subject' => 'Your second factor was reset',
+            'line' => 'Your second factor was reset by an admin. You set up a new one the next time you sign in.',
+            'not_you' => 'If this was not you, get in touch right away.',
+        ],
         'recovery_codes' => [
             'subject' => 'New recovery codes',
             'line' => 'New recovery codes were created for your account at :app. The old ones no longer work.',
