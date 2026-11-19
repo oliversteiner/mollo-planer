@@ -322,6 +322,10 @@ U0 → T1 → T0 → T5 → T4 (Rest) → T6 → S2 → S3 → R1 → S3b → S3
 - Keine offenen Punkte.
 
 
+## Dokumentenverwaltung, Backend (Auftrag 16, Branch `feature/dokumente`)
+
+Stand 2026-11-19 (Branch `feature/dokumente`, `dev` eingemergt, **nichts auf `dev` gepusht**): D1 erledigt (`3997403`: `documents`, `document_shares`, `document_versions`, Models, Factory, Demo-Dokumente, Papierkorb mit dem Projekt), D2 erledigt (`81889b3`: Rechte `document.create`, `document.update`, `document.manageAny`, Migration für bestehende Installationen, `DocumentAccessService`, `DocumentPolicy`, Grundregeln), D3 erledigt (`f002a5f`: Profil «Dokument» in den Umwandlern und im Prüfer, `spec/format-v2.md` §6.2, Fälle in `spec/fixtures/document/`), D4 erledigt (`8a2ef66`: GraphQL ohne Verlauf und PDF, `DOCUMENT_CONFLICT`, Suche, `TrashItemType.DOCUMENT`), D9 erledigt (`90d9fd4`: Verlauf im Backend). **D5 (PDF) wartet:** mPDF verlangt `~8.5.0` und würde ein späteres PHP 8.6 blockieren (siehe `next-work/16-dokumente-backend.md`).
+
 ## Nachkontrolle 1.1 (Auftrag 27)
 
 Auftrag 27 erledigt (2026-11-19, direkt auf `dev`, PR `dev` → `main` offen): A `deploy.sh` erzeugt den GraphQL-Schema-Cache nach `config:cache` neu (`lighthouse:clear-cache`, `lighthouse:cache`; der Query-Cache hält nur geparste Abfragetexte und bleibt) und macht nach `up` einen Rauchtest (`{ viewerRights }` ohne Sitzung, erwartet `Unauthenticated.`, sonst rot, kein Zurückrollen). B Browser-Tests laufen mit `APP_ENV=production` und Schema-Cache, dazu ein Backend-Test (`GraphQLSchemaCacheTest`: Cache baut, jede Resolver-Klasse des Schemas existiert; `lighthouse:cache` allein merkt eine fehlende Klasse nicht). C Das Logo im Layout `auth` führt zur Startseite («Mollo Planer, zur Startseite», ui-consistency, von einem unabhängigen Agenten geprüft). D `PASSKEYS_RELYING_PARTY_ID` ausdrücklich dokumentiert, `deploy.sh` warnt bei Abweichung vom Host von `FRONTEND_URL`. E `app:user-role` und `app:user-approve`. F Apollo-Entwicklerwerkzeuge nur in der Entwicklung (im gebauten Frontend geprüft). v1.1 steht auf `veröffentlicht`.

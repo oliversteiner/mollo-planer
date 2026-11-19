@@ -84,7 +84,7 @@ Beispieldokument: Überschriften, Umlaute und `€ ½ « » – — …`, ein se
 
 | | dompdf 3.1.6 | mPDF 8.3.1 |
 |---|---|---|
-| PHP-Anforderung | `^7.1 \|\| ^8.0`; `ext-dom`, `ext-mbstring` | `~8.5.0` ausdrücklich; `ext-mbstring`, **`ext-gd`** |
+| PHP-Anforderung | `^7.1 \|\| ^8.0`; `ext-dom`, `ext-mbstring` | `~8.5.0` ausdrücklich (**geprüft 2026-11-19 an Packagist: 8.3.1 verlangt wirklich nur 8.5.x, auch `>=8.6` ist ausgeschlossen**); `ext-mbstring`, **`ext-gd`** |
 | Größe in `vendor/` | etwa 10 MB | **etwa 93 MB** (Schriften) |
 | Beispieldokument (4 bzw. 3 Seiten) | 0,21 s, Spitze 38 MB | 0,23 s, Spitze 50 MB (ein Prozess, beide hintereinander, daher grob) |
 | **Dokument mit 200 000 Zeichen** (Maximum), `memory_limit` 128 MB | 3,3 s, **Spitze 100 MB**, 137 KB | 2,1 s, **Spitze 26 MB**, 170 KB |
