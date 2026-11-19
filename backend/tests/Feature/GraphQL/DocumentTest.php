@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Deletion;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use Nuwave\Lighthouse\Schema\SchemaBuilder;
 
 /** D4 of docs/dokumentenverwaltung.md: types, queries and mutations of the documents. */
 class DocumentTest extends GraphQLTestCase
@@ -323,5 +324,100 @@ class DocumentTest extends GraphQLTestCase
         $this->assertFalse($document->fresh()->trashed());
         $this->assertSame(1, DocumentVersion::query()->count());
         $this->assertInstanceOf(User::class, $this->users['member']);
+    }
+
+    // ─── Versions (D9) ───────────────────────────────────────────────
+
+    private const VERSIONS = 'query ($id: ID!) { document(id: $id) { versions { revision title kind createdBy { id } contributors { id } restoredFrom createdAt } } }';
+
+    public function test_the_versions_come_newest_first_without_the_content_and_every_reader_sees_them(): void
+    {
+        $document = $this->make('owner', DocumentAccess::EDIT);
+        $this->as('member')->gql(self::UPDATE, ['id' => $document->id, 'rev' => 1, 'in' => ['title' => 'Zwei']])->assertJsonMissingPath('errors');
+
+        $response = $this->as('member')->gql(self::VERSIONS, ['id' => $document->id])->assertJsonMissingPath('errors');
+
+        $this->assertSame([2, 1], $response->json('data.document.versions.*.revision'));
+        $this->assertSame((string) $this->users['member']->id, $response->json('data.document.versions.0.createdBy.id'));
+        $this->assertSame([(string) $this->users['member']->id], $response->json('data.document.versions.0.contributors.*.id'), 'in M7 the contributor is the person who saved');
+        $this->assertNull($response->json('data.document.versions.0.restoredFrom'));
+
+        $selects = [];
+        DB::listen(function (QueryExecuted $executed) use (&$selects): void {
+            $selects[] = $executed->sql;
+        });
+        $this->as('member')->gql(self::VERSIONS, ['id' => $document->id])->assertJsonMissingPath('errors');
+        foreach (array_filter($selects, fn (string $sql): bool => str_contains($sql, 'document_versions')) as $sql) {
+            $this->assertStringNotContainsString('content', $sql);
+        }
+        $this->assertSame([], $this->as('stranger')->gql(self::VERSIONS, ['id' => $document->id])->json('data.document.versions') ?? []);
+    }
+
+    public function test_one_version_comes_with_its_content_for_readers_only(): void
+    {
+        $document = $this->make(attributes: ['content' => 'Erste Fassung
+']);
+        $this->as('owner')->gql(self::UPDATE, ['id' => $document->id, 'rev' => 1, 'in' => ['contentJson' => $this->doc('Zweite Fassung')]])->assertJsonMissingPath('errors');
+        $query = 'query ($id: ID!, $r: Int!) { documentVersion(documentId: $id, revision: $r) { revision title content } }';
+
+        $this->as('member')->gql($query, ['id' => $document->id, 'r' => 1])
+            ->assertJsonPath('data.documentVersion.content', 'Erste Fassung
+')
+            ->assertJsonPath('data.documentVersion.revision', 1);
+        $this->as('member')->gql($query, ['id' => $document->id, 'r' => 9])->assertJsonPath('data.documentVersion', null);
+        $this->as('stranger')->gql($query, ['id' => $document->id, 'r' => 1])->assertJsonPath('data.documentVersion', null);
+
+        $private = $this->make('manager', DocumentAccess::NONE);
+        $this->as('member')->gql($query, ['id' => $private->id, 'r' => 1])->assertJsonPath('data.documentVersion', null);
+    }
+
+    public function test_restoring_writes_a_new_version_with_the_old_content_and_overwrites_nothing(): void
+    {
+        $document = $this->make('owner', DocumentAccess::EDIT, ['title' => 'Alt', 'content' => 'Alter Text
+']);
+        $this->as('owner')->gql(self::UPDATE, ['id' => $document->id, 'rev' => 1, 'in' => ['title' => 'Neu', 'contentJson' => $this->doc('Neuer Text')]])->assertJsonMissingPath('errors');
+        $restore = 'mutation ($id: ID!, $r: Int!) { restoreDocumentVersion(id: $id, revision: $r) { title revision content updatedBy { id } versions { revision restoredFrom } } }';
+
+        $this->as('member')->gql($restore, ['id' => $document->id, 'r' => 1])
+            ->assertJsonMissingPath('errors')
+            ->assertJsonPath('data.restoreDocumentVersion.title', 'Alt')
+            ->assertJsonPath('data.restoreDocumentVersion.revision', 3)
+            ->assertJsonPath('data.restoreDocumentVersion.content', 'Alter Text
+')
+            ->assertJsonPath('data.restoreDocumentVersion.updatedBy.id', (string) $this->users['member']->id)
+            ->assertJsonPath('data.restoreDocumentVersion.versions.0.restoredFrom', 1);
+
+        $this->assertSame([3, 2, 1], $document->versions()->pluck('revision')->all());
+        $this->assertSame('Neuer Text', $document->versions()->where('revision', 2)->sole()->content, 'the version in between stays as it was');
+        $this->assertSame('Alter Text
+', $document->versions()->where('revision', 1)->sole()->content);
+    }
+
+    public function test_restoring_the_current_state_changes_nothing_and_an_unknown_version_is_an_error(): void
+    {
+        $document = $this->make('owner', DocumentAccess::EDIT);
+        $restore = 'mutation ($id: ID!, $r: Int!) { restoreDocumentVersion(id: $id, revision: $r) { revision } }';
+
+        $this->as('owner')->gql($restore, ['id' => $document->id, 'r' => 1])->assertJsonPath('data.restoreDocumentVersion.revision', 1);
+        $this->as('owner')->gql($restore, ['id' => $document->id, 'r' => 7])->assertGraphQLValidationKeys(['revision']);
+
+        $this->assertSame(1, $document->versions()->count());
+    }
+
+    public function test_restoring_needs_the_edit_level_and_the_right_like_saving(): void
+    {
+        $document = $this->make('owner', DocumentAccess::READ);
+        $restore = 'mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }';
+
+        $this->assertUnauthorized($this->as('member')->gql($restore, ['id' => $document->id]));
+        $this->assertUnauthorized($this->as('stranger')->gql($restore, ['id' => $document->id]));
+    }
+
+    public function test_there_is_no_way_to_change_or_delete_a_version(): void
+    {
+        $mutations = $this->app->make(SchemaBuilder::class)->schema()->getMutationType()->getFieldNames();
+
+        $this->assertSame(['restoreDocumentVersion'], array_values(array_filter($mutations, fn (string $name): bool => str_contains(strtolower($name), 'version'))));
+        $this->assertArrayNotHasKey('DocumentVersionInput', $this->app->make(SchemaBuilder::class)->schema()->getTypeMap());
     }
 }

@@ -76,4 +76,7 @@ type Query @guard {
   "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
   document(id: ID!): Document
     @field(resolver: "App\\GraphQL\\Queries\\DocumentQueries@one")
+  "Eine Fassung mit ihrem Inhalt, oder null, wenn es sie nicht gibt oder du das Dokument nicht lesen darfst"
+  documentVersion(documentId: ID!, revision: Int!): DocumentVersion
+    @field(resolver: "App\\GraphQL\\Queries\\DocumentQueries@version")
 }

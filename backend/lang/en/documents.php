@@ -13,4 +13,5 @@ return [
     'owner_not_member' => 'New owners must be members of the project.',
     'project_unknown' => 'This project does not exist, or you cannot see it.',
     'access_not_allowed' => 'The level for all members can only be "none", "read" or "edit".',
+    'version_unknown' => 'This version does not exist.',
 ];

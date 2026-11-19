@@ -6,6 +6,7 @@ use App\Enums\DocumentAccess;
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Document;
 use App\Models\DocumentShare;
+use App\Models\DocumentVersion;
 use App\Services\DocumentAccessService;
 use App\Support\DocumentContent;
 use Illuminate\Database\Eloquent\Collection;
@@ -49,6 +50,21 @@ class DocumentFields
         }
 
         return $document->shares()->with('user')->get();
+    }
+
+    /**
+     * The versions, newest first, without the content (documentVersion has it). Whoever may read the document
+     * sees them.
+     *
+     * @return Collection<int, DocumentVersion>
+     */
+    public function versions(Document $document, mixed $args, GraphQLContext $context): Collection
+    {
+        if (! $this->access->levelOf($this->viewer($context), $document)->atLeast(DocumentAccess::READ)) {
+            return new Collection;
+        }
+
+        return $document->versions()->select(['id', 'document_id', 'revision', 'title', 'kind', 'created_by', 'contributors', 'restored_from', 'created_at'])->with('createdBy')->get();
     }
 
     private function markdown(Document $document): string

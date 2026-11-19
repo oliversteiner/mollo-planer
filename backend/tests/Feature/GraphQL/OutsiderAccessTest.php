@@ -142,6 +142,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'updateDocument (member, document for reading)' => ['member', 'mutation ($id: ID!) { updateDocument(id: $id, revision: 1, input: {title: "Hack"}) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'setDocumentSharing' => ['stranger', 'mutation ($id: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT}) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'setDocumentSharing (member)' => ['member', 'mutation ($id: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'restoreDocumentVersion' => ['stranger', 'mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'restoreDocumentVersion (member, document for reading)' => ['member', 'mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'transferDocument' => ['stranger', 'mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['stranger']->id]],
             'transferDocument (member)' => ['member', 'mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['member']->id]],
             'deleteDocument' => ['stranger', 'mutation ($id: ID!) { deleteDocument(id: $id) { id } }', fn (self $test) => ['id' => $test->document->id]],
@@ -182,6 +184,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'todos' => ['query ($project: ID!) { todos(projectId: $project) { id } }', 'data.todos', []],
             'kanban' => ['query ($project: ID!) { kanban(projectId: $project) { status } }', 'data.kanban', []],
             'document' => ['query ($document: ID!) { document(id: $document) { id } }', 'data.document', null],
+            'documentVersion' => ['query ($document: ID!) { documentVersion(documentId: $document, revision: 1) { revision } }', 'data.documentVersion', null],
             'documents' => ['query ($project: ID!) { documents(projectId: $project) { id } }', 'data.documents', []],
             'dashboard' => ['{ dashboard { projects { id } upcomingTodos { id } myOpenTasks { id } } }', 'data.dashboard', ['projects' => [], 'upcomingTodos' => [], 'myOpenTasks' => []]],
         ];

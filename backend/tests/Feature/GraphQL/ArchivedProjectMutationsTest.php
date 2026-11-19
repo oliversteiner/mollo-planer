@@ -129,6 +129,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
             'createDocument' => ['mutation ($p: ID!, $c: RichText!) { createDocument(input: {projectId: $p, title: "Neu", contentJson: $c}) { id } }', fn (self $test) => ['p' => $test->project->id, 'c' => $test->doc('Neu')]],
             'updateDocument' => ['mutation ($id: ID!) { updateDocument(id: $id, revision: 1, input: {title: "Neu"}) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'setDocumentSharing' => ['mutation ($id: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'restoreDocumentVersion' => ['mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'transferDocument' => ['mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['member']->id]],
             'deleteDocument' => ['mutation ($id: ID!) { deleteDocument(id: $id) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'deleteMilestone' => ['mutation ($id: ID!) { deleteMilestone(id: $id) { id } }', $milestone],

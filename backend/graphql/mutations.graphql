@@ -334,6 +334,10 @@ type Mutation @guard {
   updateDocument(id: ID!, revision: Int!, input: UpdateDocumentInput!): Document!
     @can(ability: "update", find: "id", model: "App\\Models\\Document")
     @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@update")
+  "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."
+  restoreDocumentVersion(id: ID!, revision: Int!): Document!
+    @can(ability: "update", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@restoreVersion")
   "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
   setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
     @can(ability: "manage", find: "id", model: "App\\Models\\Document")

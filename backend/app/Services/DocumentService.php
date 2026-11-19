@@ -76,6 +76,34 @@ final class DocumentService
     }
 
     /**
+     * Brings an old version back: a NEW version with the old title, kind and content is written, nothing is
+     * overwritten (§3). It remembers the revision it was made from. Restoring what is the current state changes
+     * nothing.
+     *
+     * @throws ValidationException No such version
+     */
+    public function restoreVersion(User $actor, Document $document, int $revision): Document
+    {
+        return DB::transaction(function () use ($actor, $document, $revision): Document {
+            $locked = Document::query()->lockForUpdate()->findOrFail($document->getKey());
+            $version = $locked->versions()->where('revision', $revision)->first();
+
+            if ($version === null) {
+                throw ValidationException::withMessages(['revision' => __('documents.version_unknown')]);
+            }
+
+            if ($version->title === $locked->title && $version->kind === $locked->kind && $version->content === $locked->content) {
+                return $locked;
+            }
+
+            $locked->forceFill(['title' => $version->title, 'kind' => $version->kind, 'content' => $version->content, 'updated_by' => $actor->getKey(), 'revision' => $locked->revision + 1])->save();
+            $this->writeVersion($locked, $actor, $revision);
+
+            return $locked;
+        });
+    }
+
+    /**
      * The level for all members and the shares per person; the list replaces the old one. Only members of the
      * project can be in it (§4.3 rule 1). The revision does not change.
      *
@@ -153,7 +181,7 @@ final class DocumentService
         }
     }
 
-    private function writeVersion(Document $document, User $actor): void
+    private function writeVersion(Document $document, User $actor, ?int $restoredFrom = null): void
     {
         $document->versions()->create([
             'revision' => $document->revision,
@@ -161,6 +189,7 @@ final class DocumentService
             'kind' => $document->kind,
             'content' => $document->content,
             'created_by' => $actor->getKey(),
+            'restored_from' => $restoredFrom,
         ]);
     }
 }

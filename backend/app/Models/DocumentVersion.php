@@ -11,6 +11,14 @@ use LogicException;
  * One saved version of a document (docs/dokumentenverwaltung.md §3). Versions are never changed and never deleted
  * one by one: only the deletion of the document for good (database cascade) removes them. Written by the service
  * that saves documents, in the same transaction as the change.
+ *
+ * @property int $revision
+ * @property string $title
+ * @property DocumentKind $kind
+ * @property string $content
+ * @property int|null $created_by
+ * @property list<int>|null $contributors
+ * @property int|null $restored_from
  */
 class DocumentVersion extends Model
 {

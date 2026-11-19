@@ -4,6 +4,7 @@ namespace App\GraphQL\Queries;
 
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Document;
+use App\Models\DocumentVersion;
 use App\Services\DocumentAccessService;
 use App\Support\DocumentSearch;
 use Illuminate\Database\Eloquent\Collection;
@@ -48,6 +49,18 @@ class DocumentQueries
         $this->access->preload($viewer, $documents);
 
         return $documents;
+    }
+
+    /**
+     * One version with its content, or null when the document does not exist or may not be read.
+     *
+     * @param  array{documentId: int|string, revision: int}  $args
+     */
+    public function version(mixed $root, array $args, GraphQLContext $context): ?DocumentVersion
+    {
+        $document = $this->one($root, ['id' => $args['documentId']], $context);
+
+        return $document?->versions()->where('revision', $args['revision'])->first();
     }
 
     /**

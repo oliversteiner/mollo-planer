@@ -43,6 +43,16 @@ class DocumentMutations
     }
 
     /**
+     * @param  array{id: int|string, revision: int}  $args
+     *
+     * @throws ValidationException
+     */
+    public function restoreVersion(mixed $root, array $args, GraphQLContext $context): Document
+    {
+        return $this->documents->restoreVersion($this->viewer($context), Document::query()->findOrFail($args['id']), $args['revision']);
+    }
+
+    /**
      * @param  array{id: int|string, input: array<string, mixed>}  $args
      */
     public function setSharing(mixed $root, array $args): Document

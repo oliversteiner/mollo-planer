@@ -545,6 +545,24 @@ type Document {
   viewerAccess: DocumentAccess! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@viewerAccess")
   "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
   deletionId: ID @rename(attribute: "deletion_id")
+  "Die gesicherten Fassungen, neueste zuerst, ohne Inhalt (den liefert documentVersion). Wer das Dokument lesen darf, sieht sie."
+  versions: [DocumentVersion!]! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@versions")
+}
+
+"Eine gesicherte Fassung eines Dokuments. Fassungen werden nie geändert und nie einzeln gelöscht."
+type DocumentVersion {
+  revision: Int!
+  title: String!
+  kind: DocumentKind!
+  "Markdown dieser Fassung. Nur in documentVersion verlangen: die Liste der Fassungen lädt es nicht."
+  content: String! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentVersionFields@content")
+  "Wer gesichert hat (null, wenn die Person gelöscht wurde)"
+  createdBy: User @belongsTo(relation: "createdBy")
+  "Alle Personen, die an dieser Fassung mitgewirkt haben. In dieser Stufe nur die Person, die gesichert hat."
+  contributors: [User!]! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentVersionFields@contributors")
+  "Die Revision, aus der diese Fassung durch Zurückholen entstand, sonst null"
+  restoredFrom: Int @rename(attribute: "restored_from")
+  createdAt: DateTime! @rename(attribute: "created_at")
 }
 
 "Freigabe eines Dokuments an eine Person"

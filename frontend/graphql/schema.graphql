@@ -157,6 +157,8 @@ type Document {
  title: String!
  updatedAt: DateTime!
  updatedBy: User
+ "Die gesicherten Fassungen, neueste zuerst, ohne Inhalt (den liefert documentVersion). Wer das Dokument lesen darf, sieht sie."
+ versions: [DocumentVersion!]!
  "Die wirksame Stufe der angemeldeten Person, mit dem Recht document.update schon verrechnet. Das Frontend rechnet sie nie selbst."
  viewerAccess: DocumentAccess!
 }
@@ -194,6 +196,21 @@ input DocumentShareInput {
 input DocumentSharingInput {
  projectAccess: DocumentAccess
  shares: [DocumentShareInput!]
+}
+"Eine gesicherte Fassung eines Dokuments. Fassungen werden nie geändert und nie einzeln gelöscht."
+type DocumentVersion {
+ "Markdown dieser Fassung. Nur in documentVersion verlangen: die Liste der Fassungen lädt es nicht."
+ content: String!
+ "Alle Personen, die an dieser Fassung mitgewirkt haben. In dieser Stufe nur die Person, die gesichert hat."
+ contributors: [User!]!
+ createdAt: DateTime!
+ "Wer gesichert hat (null, wenn die Person gelöscht wurde)"
+ createdBy: User
+ kind: DocumentKind!
+ "Die Revision, aus der diese Fassung durch Zurückholen entstand, sonst null"
+ restoredFrom: Int
+ revision: Int!
+ title: String!
 }
 "Eine private Idee. Nur die Autorin oder der Autor ändert sie; wer ideas.viewAny hat, liest alle."
 type Idea {
@@ -496,6 +513,8 @@ type Mutation {
  resetRoleFunction(id: ID!): RoleFunction!
  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
  resetUserTwoFactor(id: ID!): User!
+ "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."
+ restoreDocumentVersion(id: ID!, revision: Int!): Document!
  "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
  restoreFromTrash(deletionId: ID!): TrashItem!
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
@@ -761,6 +780,8 @@ type Query {
  dashboard: Dashboard!
  "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
  document(id: ID!): Document
+ "Eine Fassung mit ihrem Inhalt, oder null, wenn es sie nicht gibt oder du das Dokument nicht lesen darfst"
+ documentVersion(documentId: ID!, revision: Int!): DocumentVersion
  "Die Dokumente eines Projekts, die du lesen darfst, zuletzt geändert zuerst. Die Liste lädt den Inhalt nicht. search sucht in Titel und Inhalt."
  documents(kind: DocumentKind, projectId: ID!, search: String): [Document!]!
  "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
