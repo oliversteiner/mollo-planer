@@ -3,6 +3,7 @@
 namespace App\Webhooks;
 
 use App\Models\ProjectWebhook;
+use App\Support\DeploymentEnvironment;
 
 /**
  * The target of a webhook (docs/auftrag-m5.md §4.1). GitHub: owner/name. Generic: an
@@ -41,12 +42,12 @@ final class WebhookTarget
     }
 
     /**
-     * Whether the host may be called: outside production always; in production only a host that
+     * Whether the host may be called: outside the servers (production and staging) always; on a server only a host that
      * resolves, and only to public addresses.
      */
     public static function reachable(string $host): bool
     {
-        if (! app()->isProduction()) {
+        if (! DeploymentEnvironment::isLive()) {
             return true;
         }
 

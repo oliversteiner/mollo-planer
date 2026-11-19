@@ -20,6 +20,20 @@ class AppSettingsTest extends GraphQLTestCase
             ->assertJsonPath('data.appSettings', ['twoFactorEnabled' => true, 'twoFactorSwitchable' => true]);
     }
 
+    public function test_the_app_knows_whether_it_is_a_test_environment(): void
+    {
+        $query = '{ appSettings { isTestEnvironment } }';
+
+        $this->as('member')->gql($query)->assertJsonPath('data.appSettings.isTestEnvironment', true);
+
+        // The HTTP stack in production mode wants a CSRF token, so the resolver is called itself.
+        foreach (['staging' => true, 'production' => false] as $environment => $expected) {
+            $this->app->detectEnvironment(fn () => $environment);
+
+            $this->assertSame($expected, (new \App\GraphQL\Queries\AppSettings)()['isTestEnvironment'], $environment);
+        }
+    }
+
     public function test_admin_switches_two_factor_off_and_on(): void
     {
         $this->as('admin')->gql(self::SWITCH, ['on' => false])

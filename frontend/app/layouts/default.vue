@@ -11,7 +11,7 @@ import { currentVersion, type VersionFile } from '~/utils/versions'
  * drawer (with its own hamburger button) on narrow ones.
  */
 const { t, localeProperties } = useI18n()
-const { viewer, can, logout } = useViewer()
+const { viewer, can, logout, testEnvironment } = useViewer()
 const { calm } = useViewMode()
 const zen = useZen()
 const route = useRoute()
@@ -112,6 +112,15 @@ function skipToContent(): void {
       class="app-topbar"
       data-zen="hide"
     >
+      <wa-badge
+        v-if="testEnvironment"
+        variant="warning"
+        appearance="filled"
+        class="app-test-badge"
+        :title="t('app.testEnvironmentHint')"
+      >
+        {{ t('app.testEnvironment') }}
+      </wa-badge>
       <wa-button
         appearance="plain"
         variant="neutral"
@@ -257,6 +266,11 @@ function skipToContent(): void {
   justify-content: flex-end;
   gap: var(--wa-space-xs);
   padding: var(--wa-space-2xs) var(--wa-space-m);
+}
+
+/* The band of the test environment stands at the left edge of the bar, the buttons stay at the right. */
+.app-test-badge {
+  margin-inline-end: auto;
 }
 
 /* On the phone only the icon of Zen stays (the aria-label names it). */

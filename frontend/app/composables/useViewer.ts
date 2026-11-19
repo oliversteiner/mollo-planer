@@ -14,6 +14,7 @@ export function useViewer() {
   const { $apollo, $backend } = useNuxtApp()
   const viewer = useState<Viewer | null>('viewer', () => null)
   const twoFactorEnabled = useState<boolean>('twoFactorEnabled', () => true)
+  const testEnvironment = useState<boolean>('testEnvironment', () => false)
   const systemRights = useState<string[]>('systemRights', () => [])
   // The address a confirmation mail went to: from the answer of the API for an unconfirmed account (it knows
   // it after a reload), or from the registration form. Only in memory, never in the address bar.
@@ -31,6 +32,7 @@ export function useViewer() {
         context: { silentErrors: true }
       })
       twoFactorEnabled.value = data.appSettings.twoFactorEnabled
+      testEnvironment.value = data.appSettings.isTestEnvironment
 
       // A waiting account gets the viewer query too, but may not use the app.
       const waiting = readinessKind(data.me)
@@ -73,5 +75,5 @@ export function useViewer() {
     return systemRights.value.includes(right)
   }
 
-  return { viewer, twoFactorEnabled, systemRights, pendingEmail, can, load, logout }
+  return { viewer, twoFactorEnabled, testEnvironment, systemRights, pendingEmail, can, load, logout }
 }

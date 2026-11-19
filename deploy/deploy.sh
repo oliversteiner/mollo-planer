@@ -187,4 +187,9 @@ if [ "$RP_ID" != "$FRONTEND_HOST" ]; then
     echo "WARNUNG: PASSKEYS_RELYING_PARTY_ID ist '$RP_ID', der Host von FRONTEND_URL ist '$FRONTEND_HOST'. Passkeys würden nicht passen (siehe docs/deploy-template.md)." >&2
 fi
 
+# The test environment says so in its mails: APP_NAME carries "(Test)". Only a warning.
+if [ "$(env_value APP_ENV || true)" = "staging" ] && [[ "$(env_value APP_NAME || true)" != *Test* ]]; then
+    echo "WARNUNG: APP_ENV ist staging, aber APP_NAME enthält nicht «Test» (z. B. \"Mollo Planer (Test)\"): Mails der Testumgebung wären nicht als Test erkennbar." >&2
+fi
+
 log "Deployment abgeschlossen"
