@@ -660,7 +660,7 @@ Rechte als Daten, Archiv und Papierkorb, Vorlagen und Labels, Planer-Datei mit A
   Commit 9673541
 
 ## v1.1 Sicheres Onboarding
-Status: geplant
+Status: veröffentlicht
 
 Der Weg vom Konto bis zur Arbeitsfläche ist gehärtet: Nutzerbefehle für den Betrieb, ein Bestätigungslink ohne Sitzung, neutrale Antworten bei Registrierung und «Passwort vergessen», eine Passwortregel mit Leak-Prüfung, Mails zu Freigabe, Ablehnung und Sicherheitsänderungen, die Sprache pro Konto, Browser-Tests der Anmeldung und Larastan in der CI (Aufträge 18 bis 25).
 
@@ -727,7 +727,7 @@ npm run test:e2e
 Der Lauf startet **sein eigenes** Backend (`php artisan serve` auf Port 8100) und seinen eigenen Dev-Server des Frontends (Port 3100, Build-Ordner `.nuxt-e2e`), neben dem normalen Entwicklungsstand. Nichts davon berührt die Entwicklungsdatenbank, einen Testserver oder die Produktion.
 
 - **Datenbank:** eine eigene SQLite-Datei (`/tmp/mollo-planer-e2e.sqlite`), vor jedem Lauf per `migrate:fresh --seed --seeder=E2eSeeder` neu aufgebaut. Der Seeder legt einen Admin (`admin@e2e.test`) und ein Mitglied an, beide mit Authenticator-App. Passwort und Schlüssel stehen in `frontend/e2e/support/environment.ts` (nur für diese Wegwerf-Datenbank), nicht im Seeder. Der Seeder läuft nicht in Produktion.
-- **Umgebung des Backends** (`e2e/support/environment.ts`): `QUEUE_CONNECTION=sync` (die Mail ist da, wenn der Test sie liest), `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PASSWORD_UNCOMPROMISED_CHECK=false` (kein Aufruf des Prüfdienstes), `FRONTEND_URL=http://localhost:3100`, `PASSKEYS_RELYING_PARTY_ID=localhost`, `SANCTUM_STATEFUL_DOMAINS=localhost:3100`, `SESSION_DOMAIN=localhost`, Mail an Mailpit. Kein echter SMTP-Zugang.
+- **Umgebung des Backends** (`e2e/support/environment.ts`): `QUEUE_CONNECTION=sync` (die Mail ist da, wenn der Test sie liest), `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PASSWORD_UNCOMPROMISED_CHECK=false` (kein Aufruf des Prüfdienstes), `FRONTEND_URL=http://localhost:3100`, `PASSKEYS_RELYING_PARTY_ID=localhost`, `SANCTUM_STATEFUL_DOMAINS=localhost:3100`, `SESSION_DOMAIN=localhost`, Mail an Mailpit. Kein echter SMTP-Zugang. **Wie in Produktion:** `APP_ENV=production` mit eingeschaltetem Schema-Cache von Lighthouse (eigene Datei im Temp-Ordner, vor dem Lauf mit `lighthouse:cache` aus dem aktuellen Code gebaut, wie `deploy.sh`); nur das Seeden läuft als `local`, der Seeder verweigert `production` absichtlich (Auftrag 27 B).
 - **Mails** liest der Test über die API von Mailpit, je Empfänger; jedes Szenario nutzt eigene, eindeutige Adressen.
 - **Drosseln:** Alle Tests laufen von `127.0.0.1`; vor jedem Szenario wird der Cache geleert (`php artisan cache:clear`). Die Grenzwerte der App werden **nicht** angehoben; ein eigenes Szenario prüft die Drossel der Registrierung.
 - **Passkeys** über den virtuellen Authenticator von Chromium (WebAuthn über CDP, mit Benutzerprüfung).
