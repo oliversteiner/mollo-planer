@@ -6,6 +6,8 @@ Passwörter und Tokens gehören **nicht** in den Chat. Sie werden direkt in die 
 
 Platzhalter `<…>` ersetzen. Felder, die nicht zutreffen, streichen.
 
+**Wo ein Befehl läuft:** Jeder Befehlsblock beginnt mit `# LOKAL` (auf deinem Mac) oder `# AUF DEM SERVER` (per SSH auf Hostpoint angemeldet). Im Fliesstext steht es vor dem Befehl: «(lokal)» oder «(auf dem Server)». Die Zeilen in `authorized_keys` und im Cron stehen im Hostpoint-Panel bzw. in dieser Datei, nicht im Terminal.
+
 ---
 
 ## 1. Voraussetzungen
@@ -105,6 +107,7 @@ Bei einem Frontend ohne Backend entfällt dieser Abschnitt.
 Nur für CI, ohne Passphrase, **je Umgebung ein eigener Schlüssel** (bei zwei Umgebungen siehe Abschnitt 15). **Nie den persönlichen SSH-Schlüssel verwenden:** Er öffnet eine normale Shell. Der Deploy-Schlüssel darf durch `command=` nur das Deploy-Skript seiner Umgebung starten. Erzeugt wird er **lokal**, nicht auf dem Server:
 
 ```bash
+# LOKAL (auf deinem Mac, im Terminal)
 ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy <projekt>-<test|prod>' -f ~/.ssh/<projekt>-<test|prod>-deploy
 ```
 
@@ -112,11 +115,12 @@ ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy <projekt>-<test|prod>' -f 
   ```
   command="/home/<benutzer>/<dev|ch>/apps/<projekt>/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy <projekt>-<test|prod>
   ```
-  Vorher `authorized_keys` sichern (`cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak-$(date +%Y%m%d-%H%M)`). Die Datei hat oft keinen Zeilenumbruch am Ende, deshalb vor dem Anhängen eine Leerzeile setzen (`echo "" >> ~/.ssh/authorized_keys`). Rechte: `chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys`.
+  Alles Folgende **auf dem Server**: Vorher `authorized_keys` sichern (`cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak-$(date +%Y%m%d-%H%M)`). Die Datei hat oft keinen Zeilenumbruch am Ende, deshalb vor dem Anhängen eine Leerzeile setzen (`echo "" >> ~/.ssh/authorized_keys`). Rechte: `chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys`. Die Zeile erzeugst du **lokal** (`echo "command=\"…\",restrict $(cat ~/.ssh/<projekt>-<test|prod>-deploy.pub)"`), kopierst sie und fügst sie auf dem Server mit `nano ~/.ssh/authorized_keys` unten ein.
 - **In GitHub gehört der private Teil** (die Datei ohne `.pub`), nicht der öffentliche (Abschnitt 7). Nach dem Eintragen die private Datei vom Server löschen, falls sie dort entstand.
-- **Host-Schlüssel:** `ssh-keygen -F <ssh-host> | grep -v '^#'`. Die Zeile wird als Secret `DEPLOY_KNOWN_HOSTS` eingetragen.
+- **Host-Schlüssel** (lokal): `ssh-keygen -F <ssh-host> | grep -v '^#'`. Die Zeile wird als Secret `DEPLOY_KNOWN_HOSTS` eingetragen.
 - **Schlüssel lokal prüfen**, bevor GitHub ins Spiel kommt:
   ```bash
+  # LOKAL (auf deinem Mac, im Terminal)
   ssh -i ~/.ssh/<projekt>-<test|prod>-deploy -o IdentitiesOnly=yes <benutzer>@<ssh-host> </dev/null; echo "Exit: $?"
   ```
   Erwartet: «==> Umgebung: …» und danach «index.html fehlt im Archiv» (der Abbruch ohne Archiv ist gewollt und ändert nichts), `Exit: 1`. Die Meldung «Pseudo-terminal will not be allocated because stdin is not a terminal» ist harmlos.
@@ -139,7 +143,7 @@ Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
 
 ### Secrets
 
-- `DEPLOY_SSH_KEY` (**je Umgebung**): der **private** Schlüssel, vollständig von `-----BEGIN OPENSSH PRIVATE KEY-----` bis `-----END OPENSSH PRIVATE KEY-----` (`pbcopy < ~/.ssh/<projekt>-<test|prod>-deploy`)
+- `DEPLOY_SSH_KEY` (**je Umgebung**): der **private** Schlüssel, vollständig von `-----BEGIN OPENSSH PRIVATE KEY-----` bis `-----END OPENSSH PRIVATE KEY-----` (lokal: `pbcopy < ~/.ssh/<projekt>-<test|prod>-deploy`)
 - `DEPLOY_KNOWN_HOSTS`: Ausgabe des Host-Schlüssel-Befehls aus Abschnitt 6
 - `FONTAWESOME_NPM_AUTH_TOKEN`: nur bei Font Awesome Pro
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
@@ -160,6 +164,7 @@ Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
 
 1. Projekt holen:
    ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    mkdir -p ~/apps/<projekt> && cd ~/apps/<projekt>
    git init -q && git remote add origin https://github.com/<owner>/<repo>.git
    git fetch -q origin main && git checkout -q -f -B main origin/main
@@ -167,6 +172,7 @@ Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
 2. `backend/.env` aus Abschnitt 5 anlegen, `chmod 600`.
 3. Backend-Abhängigkeiten mit PHP 8.5 (auf Hostpoint ist `php` seit Neuem immer 8.5, prüfen mit `php -v`; `DEPLOY_PHP` in `backend/.env` ist nur nötig, wenn das `php` des Servers einmal nicht 8.5 wäre):
    ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    cd ~/apps/<projekt>/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
    php artisan storage:link
@@ -245,18 +251,19 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 ### Eigenheiten und Fallstricke bei Hostpoint (aus dem Aufbau von TEST und PROD)
 
 - **Alle Docroots liegen unter `~/www/<domain>`.** Hostpoint legt sie beim Anlegen der Domain dort an (`~/www/planer.mollo.dev`, `~/www/api.planer.mollo.dev`, …). Eigene Ordnerbäume wie `~/dev/www` gibt es nicht, sie würden vom Webserver nicht ausgeliefert. Der App-Ordner und die Sicherungen dürfen frei liegen (`~/dev/apps/…`, `~/ch/apps/…`), nur der Docroot nicht. `DEPLOY_WEB_ROOT` zeigt deshalb auf `~/www/<frontend-domain>`; `deploy.sh` verlangt, dass der letzte Pfadteil dem Host von `FRONTEND_URL` entspricht, und einen vorhandenen Ordner.
-- **`php` ist auf Hostpoint immer 8.5**, ein voller Pfad ist nicht mehr nötig (`DEPLOY_PHP` leer lassen). Cron hat manchmal einen anderen `PATH` als SSH: einmal mit dem Eintrag `* * * * * php -v > ~/cron-php.txt` prüfen und die Datei nach einer Minute lesen.
+- **`php` ist auf Hostpoint immer 8.5**, ein voller Pfad ist nicht mehr nötig (`DEPLOY_PHP` leer lassen). Cron hat manchmal einen anderen `PATH` als SSH: einmal im Hostpoint-Panel den Cron-Eintrag `* * * * * php -v > ~/cron-php.txt` anlegen und die Datei nach einer Minute **auf dem Server** lesen (`cat ~/cron-php.txt`), dann den echten Eintrag setzen.
 - **Die `index.php` im API-Docroot hat absolute Pfade** auf `<App-Ordner>/backend` (`/home/<benutzer>/<dev|ch>/apps/<projekt>/backend/…`, drei Stellen). Zieht der App-Ordner um, muss sie angepasst werden, sonst liefert die API-Domain einen Fehler:
   ```bash
+  # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
   sed -i 's#/home/<benutzer>/apps/<projekt>#/home/<benutzer>/dev/apps/<projekt>#g' ~/www/<api-domain>/index.php
   grep -n "<projekt>" ~/www/<api-domain>/index.php
   ```
-  Prüfen mit `curl -si https://<api-domain>/up | head -3` (erwartet `HTTP/2 200`); bei 500 hilft `tail -n 30 <App-Ordner>/backend/storage/logs/laravel.log`.
+  Prüfen (lokal oder auf dem Server) mit `curl -si https://<api-domain>/up | head -3` (erwartet `HTTP/2 200`); bei 500 hilft **auf dem Server** `tail -n 30 <App-Ordner>/backend/storage/logs/laravel.log`.
 - **`.htaccess` im API-Docroot nie von einer anderen Domain kopieren.** Der Hostpoint-Block (`Use php-fpm latest` … `#@__HCP_END__@#`) gehört zur Domain. Den eigenen Block behalten und die Laravel-Regeln aus `backend/public/.htaccess` darunter anhängen.
-- **`rsync --delete` leert den Frontend-Docroot bei jedem Deploy.** Alles, was dort liegt und nicht aus dem Build stammt, ist danach weg (auch eine `.htaccess`). Was bleiben muss, gehört in den Build (`frontend/public/`). Vor dem ersten Deploy ansehen: `ls -la ~/www/<frontend-domain>`.
-- **Der Deploy bricht sicher ab.** `deploy.sh` liest und prüft `backend/.env` vor jeder Änderung; jede Meldung auf «… Nichts wurde geändert.» heisst, dass der Server unberührt ist. Lässt sich der Fehler nicht aus dem GitHub-Log lesen, das Skript auf dem Server von Hand ohne Archiv laufen lassen: `bash <App-Ordner>/deploy/deploy.sh </dev/null; echo "Exit: $?"`.
-- **Fehlerbilder des SSH-Schlüssels:** «Permission denied (publickey)» heisst, dass der Schlüssel im GitHub-Secret nicht zu `authorized_keys` passt (leer, falsche Umgebung, nur der öffentliche Teil, Zeile umgebrochen). Kein Fehler, aber auch keine Ausgabe, kann eine Zeile **ohne** `command=` sein: Dann öffnet sich eine normale Shell. Test: `ssh -i <Schlüssel> -o IdentitiesOnly=yes <benutzer>@<ssh-host> 'echo hallo' </dev/null` darf **kein** `hallo` ausgeben.
-- **Leere Datenbank beim ersten Mal:** `migrate --force` baut die Tabellen auf, danach `app:create-admin`. Enthält die Datenbank noch alte Daten, die weg sollen, vorher den Namen prüfen (`php artisan config:show database.connections.mariadb.database`) und nur dann `php artisan migrate:fresh --force` (löscht alles) ausführen. Auf `staging` fragt Laravel nicht nach (Abschnitt 15).
+- **`rsync --delete` leert den Frontend-Docroot bei jedem Deploy.** Alles, was dort liegt und nicht aus dem Build stammt, ist danach weg (auch eine `.htaccess`). Was bleiben muss, gehört in den Build (`frontend/public/`). Vor dem ersten Deploy **auf dem Server** ansehen: `ls -la ~/www/<frontend-domain>`.
+- **Der Deploy bricht sicher ab.** `deploy.sh` liest und prüft `backend/.env` vor jeder Änderung; jede Meldung auf «… Nichts wurde geändert.» heisst, dass der Server unberührt ist. Lässt sich der Fehler nicht aus dem GitHub-Log lesen, das Skript **auf dem Server** von Hand ohne Archiv laufen lassen: `bash <App-Ordner>/deploy/deploy.sh </dev/null; echo "Exit: $?"`.
+- **Fehlerbilder des SSH-Schlüssels:** «Permission denied (publickey)» heisst, dass der Schlüssel im GitHub-Secret nicht zu `authorized_keys` passt (leer, falsche Umgebung, nur der öffentliche Teil, Zeile umgebrochen). Kein Fehler, aber auch keine Ausgabe, kann eine Zeile **ohne** `command=` sein: Dann öffnet sich eine normale Shell. Test (**lokal**): `ssh -i <Schlüssel> -o IdentitiesOnly=yes <benutzer>@<ssh-host> 'echo hallo' </dev/null` darf **kein** `hallo` ausgeben.
+- **Leere Datenbank beim ersten Mal:** `migrate --force` baut die Tabellen auf, danach `app:create-admin`. Enthält die Datenbank noch alte Daten, die weg sollen, vorher den Namen prüfen und nur dann `migrate:fresh` ausführen (beides **auf dem Server** im Ordner `<App-Ordner>/backend`: `php artisan config:show database.connections.mariadb.database`, dann `php artisan migrate:fresh --force`, das löscht alles). Auf `staging` fragt Laravel nicht nach (Abschnitt 15).
 
 ## 13. Betrieb: Nutzer verwalten
 
@@ -369,6 +376,7 @@ Die Docroots liegen unter `~/www/<domain>` (Hostpoint legt sie an, Abschnitt 12)
 Beide Umgebungen starten mit leerer Datenbank, es gibt keine Datenmigration; Konten, Passkeys und Projekte der alten Installation entfallen, der Admin wird neu angelegt. Der bisherige App-Ordner `~/apps/<projekt>` zieht nach `~/dev/apps/<projekt>` um.
 
 ```bash
+# AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
 # 1. Wartungsmodus an (alter Pfad), dann Ordner verschieben
 cd ~/apps/mollo-planer/backend && php artisan down --retry=60
 mkdir -p ~/dev/apps ~/dev/backups/planer && chmod 700 ~/dev/backups/planer
@@ -401,13 +409,14 @@ php artisan app:create-admin "<Name>" "<E-Mail>"
 php artisan up
 ```
 
-Danach: Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend`, in `authorized_keys` die Zeile des TEST-Schlüssels mit `command=` auf `/home/<benutzer>/dev/apps/mollo-planer/deploy/deploy.sh` (vorher sichern, Abschnitt 6), `curl -si https://api.planer.mollo.dev/up | head -3` (erwartet 200), im Browser `https://planer.mollo.dev` (Band «Testumgebung», Anmeldung). Die neue `deploy.sh` kommt mit dem Checkout in Schritt 4; die alte kennt `DEPLOY_*` nicht.
+Danach (im Panel, auf dem Server, lokal wie angegeben): Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend`, in `authorized_keys` die Zeile des TEST-Schlüssels mit `command=` auf `/home/<benutzer>/dev/apps/mollo-planer/deploy/deploy.sh` (auf dem Server, vorher sichern, Abschnitt 6), `curl -si https://api.planer.mollo.dev/up | head -3` (lokal, erwartet 200), im Browser `https://planer.mollo.dev` (Band «Testumgebung», Anmeldung). Die neue `deploy.sh` kommt mit dem Checkout in Schritt 4; die alte kennt `DEPLOY_*` nicht.
 
 ### Ersteinrichtung PROD
 
 1. **Hostpoint-Panel:** Domains `planer.mollo.ch` und `api.planer.mollo.ch` mit SSL anlegen (die Docroots entstehen unter `~/www/`), PHP 8.5, eine **eigene Datenbank mit eigenem Benutzer**, `memory_limit` 256M und `max_execution_time` 60 (Abschnitt 12).
 2. **Code holen:**
    ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    mkdir -p ~/ch/apps/mollo-planer ~/ch/backups/planer && cd ~/ch/apps/mollo-planer
    git init -q && git remote add origin https://github.com/<owner>/<repo>.git
    git fetch -q origin main && git checkout -q -f -B main origin/main
@@ -416,6 +425,7 @@ Danach: Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend`, in `authori
 3. **`backend/.env`** neu anlegen (`chmod 600`, Vorlage die von TEST): eigener `APP_KEY` (`php artisan key:generate --show`), eigene Datenbank, `APP_ENV=production`, `APP_NAME="Mollo Planer"`, `APP_URL=https://api.planer.mollo.ch`, `FRONTEND_URL=https://planer.mollo.ch`, `SANCTUM_STATEFUL_DOMAINS=planer.mollo.ch`, `SESSION_DOMAIN=.planer.mollo.ch`, `PASSKEYS_RELYING_PARTY_ID=planer.mollo.ch`, Mail, `DEPLOY_BRANCH=main`, `DEPLOY_WEB_ROOT=~/www/planer.mollo.ch`, `DEPLOY_BACKUP_DIR=~/ch/backups/planer` (Rest wie Abschnitt 5).
 4. **Installieren** (enthält die Datenbank noch alte Daten, vorher den Namen prüfen und dann `migrate:fresh --force` statt `migrate --force`, Abschnitt 12):
    ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    cd ~/ch/apps/mollo-planer/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
    php artisan config:show database.connections.mariadb.database      # muss die Datenbank von PROD sein
@@ -427,6 +437,7 @@ Danach: Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend`, in `authori
    ```
 5. **Docroot der API** (`~/www/api.planer.mollo.ch`): `index.php`, `robots.txt`, `favicon.ico` von TEST kopieren und die Pfade umstellen, `.htaccess` **nicht** kopieren (Hostpoint-Block der Domain behalten, Laravel-Regeln darunter anhängen):
    ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    D=~/www/api.planer.mollo.ch
    cp ~/www/api.planer.mollo.dev/index.php ~/www/api.planer.mollo.dev/robots.txt ~/www/api.planer.mollo.dev/favicon.ico $D/
    sed -i 's#/dev/apps/mollo-planer#/ch/apps/mollo-planer#g' $D/index.php
