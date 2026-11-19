@@ -14,4 +14,10 @@ return [
     'project_unknown' => 'Dieses Projekt gibt es nicht, oder du siehst es nicht.',
     'access_not_allowed' => 'Die Stufe für alle Mitglieder kann nur „keine“, „lesen“ oder „bearbeiten“ sein.',
     'version_unknown' => 'Diese Fassung gibt es nicht.',
+    'pdf' => [
+        'kind' => 'Art',
+        'owner' => 'Owner',
+        'footer' => 'Fassung :revision · Stand :date',
+        'page' => 'Seite :current von :total',
+    ],
 ];

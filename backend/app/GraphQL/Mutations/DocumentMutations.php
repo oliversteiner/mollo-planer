@@ -6,12 +6,13 @@ use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Document;
 use App\Models\Project;
 use App\Services\Deletion;
+use App\Services\DocumentPdf;
 use App\Services\DocumentService;
 use Illuminate\Validation\ValidationException;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
- * createDocument, updateDocument, setDocumentSharing, transferDocument, deleteDocument
+ * createDocument, updateDocument, restoreDocumentVersion, setDocumentSharing, transferDocument, deleteDocument, exportDocumentPdf
  * (docs/dokumentenverwaltung.md §8.1). The rights are checked by @can (DocumentPolicy, ProjectPolicy::createDocument);
  * owner and updated_by come from the login.
  */
@@ -22,6 +23,7 @@ class DocumentMutations
     public function __construct(
         private readonly DocumentService $documents,
         private readonly Deletion $deletion,
+        private readonly DocumentPdf $pdf,
     ) {}
 
     /**
@@ -40,6 +42,23 @@ class DocumentMutations
     public function update(mixed $root, array $args, GraphQLContext $context): Document
     {
         return $this->documents->update($this->viewer($context), Document::query()->findOrFail($args['id']), $args['revision'], $args['input']);
+    }
+
+    /**
+     * The PDF of a document (reading is enough; an archived project allows it).
+     *
+     * @param  array{id: int|string}  $args
+     * @return array{fileName: string, mimeType: string, contentBase64: string}
+     */
+    public function exportPdf(mixed $root, array $args): array
+    {
+        $document = Document::query()->with(['project', 'owner'])->findOrFail($args['id']);
+
+        return [
+            'fileName' => $this->pdf->fileName($document),
+            'mimeType' => 'application/pdf',
+            'contentBase64' => base64_encode($this->pdf->render($document)),
+        ];
     }
 
     /**

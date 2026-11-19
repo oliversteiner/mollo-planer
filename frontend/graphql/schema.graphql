@@ -169,6 +169,13 @@ enum DocumentAccess {
  NONE
  READ
 }
+"Eine erzeugte Datei zum Herunterladen"
+type DocumentFile {
+ "Der Inhalt der Datei, Base64"
+ contentBase64: String!
+ fileName: String!
+ mimeType: String!
+}
 "Feste Arten eines Dokuments"
 enum DocumentKind {
  ANALYSIS
@@ -475,6 +482,8 @@ type Mutation {
  duplicateTemplate(id: ID!): Template!
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
+ "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+ exportDocumentPdf(id: ID!): DocumentFile!
  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
  importPlan(
  "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"

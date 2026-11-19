@@ -14,4 +14,10 @@ return [
     'project_unknown' => 'This project does not exist, or you cannot see it.',
     'access_not_allowed' => 'The level for all members can only be "none", "read" or "edit".',
     'version_unknown' => 'This version does not exist.',
+    'pdf' => [
+        'kind' => 'Kind',
+        'owner' => 'Owner',
+        'footer' => 'Revision :revision · as of :date',
+        'page' => 'Page :current of :total',
+    ],
 ];

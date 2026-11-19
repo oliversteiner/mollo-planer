@@ -144,6 +144,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'setDocumentSharing (member)' => ['member', 'mutation ($id: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT}) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'restoreDocumentVersion' => ['stranger', 'mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'restoreDocumentVersion (member, document for reading)' => ['member', 'mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'exportDocumentPdf' => ['stranger', 'mutation ($id: ID!) { exportDocumentPdf(id: $id) { fileName } }', fn (self $test) => ['id' => $test->document->id]],
             'transferDocument' => ['stranger', 'mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['stranger']->id]],
             'transferDocument (member)' => ['member', 'mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['member']->id]],
             'deleteDocument' => ['stranger', 'mutation ($id: ID!) { deleteDocument(id: $id) { id } }', fn (self $test) => ['id' => $test->document->id]],

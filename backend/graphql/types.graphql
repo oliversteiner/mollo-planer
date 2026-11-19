@@ -570,3 +570,11 @@ type DocumentShare {
   user: User! @belongsTo
   access: DocumentShareAccess!
 }
+
+"Eine erzeugte Datei zum Herunterladen"
+type DocumentFile {
+  fileName: String!
+  mimeType: String!
+  "Der Inhalt der Datei, Base64"
+  contentBase64: String!
+}

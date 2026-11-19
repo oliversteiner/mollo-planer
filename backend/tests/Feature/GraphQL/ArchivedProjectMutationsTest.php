@@ -31,6 +31,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
         'createApiToken' => 'personal token',
         'createTemplate' => 'templates belong to no project',
         'uploadProjectAiContextFile' => 'multipart request; refused by the same policy, tested in AiContextTest',
+        'exportDocumentPdf' => 'reads the document (export is reading, allowed in the archive)',
         'createIdea' => 'ideas belong to a person, not to a project',
         'updateIdea' => 'ideas belong to a person, not to a project',
         'setIdeaStatus' => 'ideas belong to a person, not to a project',
