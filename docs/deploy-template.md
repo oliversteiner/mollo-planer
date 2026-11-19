@@ -159,7 +159,7 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
    git fetch -q origin main && git checkout -q -f -B main origin/main
    ```
 2. `backend/.env` aus Abschnitt 5 anlegen, `chmod 600`.
-3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`; für `deploy.sh` zusätzlich `DEPLOY_PHP` in `backend/.env` setzen):
+3. Backend-Abhängigkeiten mit PHP 8.5 (auf Hostpoint ist `php` seit Neuem immer 8.5, prüfen mit `php -v`; `DEPLOY_PHP` in `backend/.env` ist nur nötig, wenn das `php` des Servers einmal nicht 8.5 wäre):
    ```bash
    cd ~/apps/<projekt>/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
@@ -184,7 +184,7 @@ Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in
 * * * * * cd <api-pfad> && <php-pfad> artisan schedule:run >> /dev/null 2>&1
 ```
 
-`<api-pfad>` ist der Ordner des Backends (`~/apps/<projekt>/backend`), `<php-pfad>` das PHP 8.5 des Servers (`php -v` prüfen, im Panel den vollen Pfad eintragen).
+`<api-pfad>` ist der Ordner des Backends (`~/apps/<projekt>/backend`), `<php-pfad>` das PHP 8.5 des Servers: auf Hostpoint genügt `php`. Cron hat manchmal einen anderen `PATH` als SSH; einmal prüfen mit dem Eintrag `* * * * * php -v > ~/cron-php.txt` und die Datei nach einer Minute lesen, dann den Eintrag wieder ersetzen.
 
 **Ohne diesen Eintrag gehen weder Mails noch Webhooks raus**, und es erscheint kein Fehler. Prüfen: In der App einen Task zuweisen oder in den Projekteinstellungen „Testen“ drücken; innerhalb von zwei Minuten kommt die Mail bzw. der Test an. Der Eintrag ist ein einmaliger Schritt (macht Oliver im Panel).
 
@@ -198,7 +198,7 @@ Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in
 
 Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `mollo-planer`.
 
-- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`. Das PHP nimmt das Skript aus der Zeile `DEPLOY_PHP=` in `backend/.env` auf dem Server (voller Pfad, z. B. `/usr/local/php85/bin/php`); fehlt sie oder ist sie leer, gilt `php`. Welches `php` eine SSH-Sitzung ohne Terminal findet, hängt von der Umgebung des Servers ab, darum den Pfad ausdrücklich setzen.
+- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`. Das PHP nimmt das Skript aus der Zeile `DEPLOY_PHP=` in `backend/.env` auf dem Server (voller Pfad); fehlt sie oder ist sie leer, gilt `php`, auf Hostpoint immer 8.5. Welches `php` eine SSH-Sitzung ohne Terminal findet, hängt von der Umgebung des Servers ab, darum den Pfad ausdrücklich setzen.
 - **Wichtig:** `deploy.sh` führt die Fassung aus, die **auf dem Server liegt**, bevor es den neuen Code holt. Eine Änderung an `deploy.sh` wirkt deshalb erst beim übernächsten Deploy, ausser man holt die Datei vorher von Hand: `git fetch origin main && git checkout origin/main -- deploy/deploy.sh`.
 - Bei einem Frontend ohne Backend die Schritte Datenbank-Backup, Migrationen und Caches streichen.
 - In `deploy.yml` die Umgebungsvariable `API_BASE` anpassen. `DEPLOY_HOST` und `DEPLOY_USER` kommen aus den GitHub-Variablen (Abschnitt 7).
@@ -227,7 +227,7 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 ## 12. Stolpersteine
 
 - **DB-Host:** Nicht `localhost` verwenden. Der Socket existiert auf Hostpoint nicht.
-- **PHP-Version:** `deploy.sh` nimmt `DEPLOY_PHP` aus `backend/.env` (voller Pfad, z. B. `/usr/local/php85/bin/php`), sonst `php`. Ist die Version älter als 8.5, bricht es ab, bevor etwas geändert wird, und nennt den benutzten Pfad. Zeigt der Pfad auf eine nicht ausführbare Datei, bricht es ebenfalls ab. Die Shell-Sitzung mit Terminal und die ohne Terminal können verschiedene `php` finden; massgeblich ist `DEPLOY_PHP`.
+- **PHP-Version:** `deploy.sh` nimmt `DEPLOY_PHP` aus `backend/.env` (voller Pfad), sonst `php` (auf Hostpoint immer 8.5). Ist die Version älter als 8.5, bricht es ab, bevor etwas geändert wird, und nennt den benutzten Pfad. Zeigt der Pfad auf eine nicht ausführbare Datei, bricht es ebenfalls ab. Die Shell-Sitzung mit Terminal und die ohne Terminal können verschiedene `php` finden; massgeblich ist `DEPLOY_PHP`.
 - **Schema-Cache von Lighthouse liegt ausserhalb von Git:** Ausserhalb von `APP_ENV=local` liest Lighthouse das GraphQL-Schema aus `bootstrap/cache/lighthouse-schema.php`. Die Datei ist nicht in Git, `git reset` lässt sie stehen. Ein alter Stand zeigt auf Resolver-Klassen, die es nicht mehr gibt («Failed to find class … for directive @field», «Internal server error»). `deploy.sh` führt darum nach `config:cache` `lighthouse:clear-cache` und `lighthouse:cache` aus. Der Query-Cache (`query_cache`, Modus `store`) braucht das nicht: Er hält geparste Abfragetexte, die vom Schema unabhängig sind. Von Hand: `php artisan lighthouse:clear-cache && php artisan lighthouse:cache`.
 - **Rauchtest nach dem Deploy:** Nach `artisan up` schickt `deploy.sh` `{ viewerRights }` ohne Sitzung an `APP_URL/api` (ohne `Origin`, damit Sanctum die Anfrage nicht als SPA-Anfrage mit CSRF behandelt). Erwartet: die Antwort enthält `Unauthenticated.`. Sonst meldet der Lauf «Rauchtest GraphQL fehlgeschlagen: …» und endet mit Fehler. Der neue Code ist dann schon live, es wird nichts zurückgerollt.
 - **Passkey-RP-ID:** Jede App hat ihre eigene RP-ID (kein Single Sign-on). `PASSKEYS_RELYING_PARTY_ID` in Produktion **immer** setzen, gleich dem Host von `FRONTEND_URL` (z. B. `planer.mollo.dev`), nie die Hauptdomain. Ein Wechsel macht alle Passkeys ungültig. Ein Passkey einer anderen App unter der Hauptdomain erscheint sonst in der Auswahl und die Anmeldung endet mit 422. `deploy.sh` warnt im Log, wenn der Wert vom Host von `FRONTEND_URL` abweicht.
@@ -304,7 +304,7 @@ FRONTEND_URL=https://planer.mollo.dev   # PROD: https://planer.mollo.ch
 SANCTUM_STATEFUL_DOMAINS=planer.mollo.dev
 SESSION_DOMAIN=.planer.mollo.dev
 PASSKEYS_RELYING_PARTY_ID=planer.mollo.dev
-DEPLOY_PHP=/usr/local/php85/bin/php
+# DEPLOY_PHP bleibt leer: auf Hostpoint ist `php` immer 8.5
 DEPLOY_BRANCH=dev                       # PROD: main
 DEPLOY_WEB_ROOT=~/dev/www/planer.mollo.dev     # PROD: ~/ch/www/planer.mollo.ch
 DEPLOY_BACKUP_DIR=~/dev/backups/planer         # PROD: ~/ch/backups/planer
@@ -321,8 +321,8 @@ DEPLOY_BACKUP_DIR=~/dev/backups/planer         # PROD: ~/ch/backups/planer
   ```
 - Cron (Hostpoint-Panel), **zwei** Einträge:
   ```
-  * * * * * cd ~/dev/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan schedule:run >> /dev/null 2>&1
-  * * * * * cd ~/ch/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan schedule:run >> /dev/null 2>&1
+  * * * * * cd ~/dev/apps/mollo-planer/backend && php artisan schedule:run >> /dev/null 2>&1
+  * * * * * cd ~/ch/apps/mollo-planer/backend && php artisan schedule:run >> /dev/null 2>&1
   ```
 
 ### GitHub: Umgebungen
@@ -347,7 +347,7 @@ Voraussetzung: PR «Zwei Umgebungen» ist gemergt (noch **ohne** Deploy-Freigabe
 
 ```bash
 # 1. Wartungsmodus an (alter Pfad)
-cd ~/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan down --retry=60
+cd ~/apps/mollo-planer/backend && php artisan down --retry=60
 
 # 2. Ordner verschieben (der Git-Checkout samt backend/.env zieht mit um)
 mkdir -p ~/dev/apps ~/dev/backups ~/dev/www
@@ -370,9 +370,9 @@ cd ~/dev/apps/mollo-planer && git fetch origin dev && git checkout -f -B dev ori
 
 # 6. Caches neu, Wartungsmodus aus
 cd backend
-/usr/local/php85/bin/php artisan config:cache
-/usr/local/php85/bin/php artisan lighthouse:clear-cache && /usr/local/php85/bin/php artisan lighthouse:cache
-/usr/local/php85/bin/php artisan up
+php artisan config:cache
+php artisan lighthouse:clear-cache && php artisan lighthouse:cache
+php artisan up
 ```
 
 Danach: Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend` ändern, in `authorized_keys` den Pfad im `command=` auf `/home/<benutzer>/dev/apps/mollo-planer/deploy/deploy.sh` ändern (vorher sichern), im Browser `https://planer.mollo.dev` öffnen (Band «Testumgebung», Anmeldung, ein Projekt). **Wichtig:** Die alte `deploy.sh` kennt `DEPLOY_*` nicht; der Checkout in Schritt 5 bringt die neue mit, der erste Lauf aus GitHub nimmt also schon die neue.
@@ -387,16 +387,16 @@ Danach: Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend` ändern, in 
    git fetch -q origin main && git checkout -q -f -B main origin/main
    chmod 700 ~/ch/backups/planer
    ```
-3. **`backend/.env`** neu anlegen (`chmod 600`): eigener `APP_KEY` (`php artisan key:generate --show`), eigene Datenbank, `APP_ENV=production`, `APP_NAME="Mollo Planer"`, `APP_URL=https://api.planer.mollo.ch`, `FRONTEND_URL=https://planer.mollo.ch`, `SANCTUM_STATEFUL_DOMAINS=planer.mollo.ch`, `SESSION_DOMAIN=.planer.mollo.ch`, `PASSKEYS_RELYING_PARTY_ID=planer.mollo.ch`, Mail, `DEPLOY_PHP`, `DEPLOY_BRANCH=main`, `DEPLOY_WEB_ROOT=~/ch/www/planer.mollo.ch`, `DEPLOY_BACKUP_DIR=~/ch/backups/planer` (Rest wie Abschnitt 5).
+3. **`backend/.env`** neu anlegen (`chmod 600`): eigener `APP_KEY` (`php artisan key:generate --show`), eigene Datenbank, `APP_ENV=production`, `APP_NAME="Mollo Planer"`, `APP_URL=https://api.planer.mollo.ch`, `FRONTEND_URL=https://planer.mollo.ch`, `SANCTUM_STATEFUL_DOMAINS=planer.mollo.ch`, `SESSION_DOMAIN=.planer.mollo.ch`, `PASSKEYS_RELYING_PARTY_ID=planer.mollo.ch`, Mail, `DEPLOY_BRANCH=main`, `DEPLOY_WEB_ROOT=~/ch/www/planer.mollo.ch`, `DEPLOY_BACKUP_DIR=~/ch/backups/planer` (Rest wie Abschnitt 5).
 4. **Installieren:**
    ```bash
    cd ~/ch/apps/mollo-planer/backend
-   /usr/local/php85/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
-   /usr/local/php85/bin/php artisan migrate --force
-   /usr/local/php85/bin/php artisan planer:sync-templates
-   /usr/local/php85/bin/php artisan config:cache && /usr/local/php85/bin/php artisan route:cache && /usr/local/php85/bin/php artisan event:cache
-   /usr/local/php85/bin/php artisan lighthouse:cache
-   /usr/local/php85/bin/php artisan app:create-admin "<Name>" "<E-Mail>"
+   php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
+   php artisan migrate --force
+   php artisan planer:sync-templates
+   php artisan config:cache && php artisan route:cache && php artisan event:cache
+   php artisan lighthouse:cache
+   php artisan app:create-admin "<Name>" "<E-Mail>"
    ```
 5. **Docroot der API:** `index.php`, `.htaccess` (Hostpoint-Block behalten), `robots.txt`, `favicon.ico` wie in Abschnitt 8, Punkt 5, mit den Pfaden auf `~/ch/apps/mollo-planer/backend`.
 6. **Cron** (Eintrag oben), **zweiter Deploy-Schlüssel** (`ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy planer-prod' -f ~/.ssh/planer-prod-deploy`, öffentlicher Teil mit `command=` auf das PROD-Skript in `authorized_keys`).
