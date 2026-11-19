@@ -158,7 +158,7 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
    git fetch -q origin main && git checkout -q -f -B main origin/main
    ```
 2. `backend/.env` aus Abschnitt 5 anlegen, `chmod 600`.
-3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`):
+3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`; für `deploy.sh` zusätzlich `DEPLOY_PHP` in `backend/.env` setzen):
    ```bash
    cd ~/apps/<projekt>/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
@@ -197,7 +197,8 @@ Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in
 
 Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `mollo-planer`.
 
-- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`.
+- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`. Das PHP nimmt das Skript aus der Zeile `DEPLOY_PHP=` in `backend/.env` auf dem Server (voller Pfad, z. B. `/usr/local/php85/bin/php`); fehlt sie oder ist sie leer, gilt `php`. Welches `php` eine SSH-Sitzung ohne Terminal findet, hängt von der Umgebung des Servers ab, darum den Pfad ausdrücklich setzen.
+- **Wichtig:** `deploy.sh` führt die Fassung aus, die **auf dem Server liegt**, bevor es den neuen Code holt. Eine Änderung an `deploy.sh` wirkt deshalb erst beim übernächsten Deploy, ausser man holt die Datei vorher von Hand: `git fetch origin main && git checkout origin/main -- deploy/deploy.sh`.
 - Bei einem Frontend ohne Backend die Schritte Datenbank-Backup, Migrationen und Caches streichen.
 - In `deploy.yml` die Umgebungsvariable `API_BASE` anpassen. `DEPLOY_HOST` und `DEPLOY_USER` kommen aus den GitHub-Variablen (Abschnitt 7).
 - Die Tests-Jobs an das Projekt anpassen oder streichen.
@@ -225,7 +226,7 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 ## 12. Stolpersteine
 
 - **DB-Host:** Nicht `localhost` verwenden. Der Socket existiert auf Hostpoint nicht.
-- **PHP-Version:** `php` in der Shell ist 8.5. Zeigt `php -v` eine ältere Version, den vollen Pfad (z. B. `/usr/local/php85/bin/php`) nutzen oder `PATH` setzen (`~/.bash_profile`); `deploy.sh` bricht dann ab.
+- **PHP-Version:** `deploy.sh` nimmt `DEPLOY_PHP` aus `backend/.env` (voller Pfad, z. B. `/usr/local/php85/bin/php`), sonst `php`. Ist die Version älter als 8.5, bricht es ab, bevor etwas geändert wird, und nennt den benutzten Pfad. Zeigt der Pfad auf eine nicht ausführbare Datei, bricht es ebenfalls ab. Die Shell-Sitzung mit Terminal und die ohne Terminal können verschiedene `php` finden; massgeblich ist `DEPLOY_PHP`.
 - **Erster Lauf:** Liegt `deploy/deploy.sh` schon unverwaltet auf dem Server, vorher `git fetch origin main && git reset --hard origin/main` ausführen.
 - **Hostpoint-Block in `.htaccess`:** Nicht löschen, sonst wechselt die PHP-Version des Docroots.
 - **Frontend-Build:** Die API-Adresse wird beim Build eingebaut (`NUXT_PUBLIC_API_BASE`). Ändert sich die Domain, neu bauen.
