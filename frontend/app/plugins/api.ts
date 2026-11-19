@@ -120,7 +120,9 @@ export default defineNuxtPlugin({
 
     const apollo = new ApolloClient({
       link: from([errorLink, contextLink, uploadLink]),
-      cache: new InMemoryCache({ typePolicies: trashTypePolicies })
+      cache: new InMemoryCache({ typePolicies: trashTypePolicies }),
+      // The developer tools only in development: in the built app they would print a download hint into the console.
+      devtools: { enabled: import.meta.dev }
     })
 
     nuxtApp.vueApp.provide(DefaultApolloClient, apollo)
