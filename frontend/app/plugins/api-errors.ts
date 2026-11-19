@@ -27,6 +27,9 @@ export default defineNuxtPlugin({
         case 'csrf':
           toast.add({ title: t('apiError.csrf'), color: 'warning' })
           break
+        case 'throttled':
+          toast.add({ title: t('apiError.throttled'), color: 'warning' })
+          break
         case 'network':
           toast.add({ title: t('apiError.network'), color: 'error' })
           break

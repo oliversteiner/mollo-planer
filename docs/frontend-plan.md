@@ -39,7 +39,16 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf 
 - `useViewer()` hält die angemeldete Person für die ganze App, `logout()` beendet die Sitzung und leert den Apollo-Cache.
 - Login: E-Mail und Passwort (`POST /login`); antwortet das Backend mit `two_factor: true`, folgt der 6-stellige Code (`wa-otp-input`, sendet bei vollständiger Eingabe) oder ein Wiederherstellungscode (`POST /two-factor-challenge`). Danach zurück zur gewünschten Seite; `safeRedirect()` lässt nur Pfade dieser App zu.
 - Fehlermeldungen des Servers erscheinen am Feld (`useServerForm()`); andere Fehler meldet das Plugin.
-- `/setup-security` ist bis Schritt 10 ein Platzhalter mit Abmelden.
+- `/setup-security` richtet den ersten zweiten Faktor ein (Passkey oder Authenticator-App).
+- **Onboarding (Auftrag 23, 2026-11-18):**
+  - Eine gemeinsame Funktion entscheidet, was eine Seite mit dem Ergebnis von `load()` tut: `utils/account-outcome.ts` (rein) und `useAccountFlow()`. Login, `/setup-security`, `/account-pending` und `/verify-email` nutzen sie; keine Seite ignoriert ein Ergebnis mehr. Anlass: Seite geöffnet (still), Formular abgeschickt, Schritt abgeschlossen.
+  - Nach dem Passwort zeigt ein Konto nur mit Passkey den Hinweis am Formular («Melde dich mit dem Passkey an»), der Passkey-Knopf wird Hauptaktion; beim blossen Öffnen der Seite bleibt es still.
+  - `/account-pending` hat zwei Zustände: «E-Mail-Adresse bestätigen» (Adresse, Frist, Spam-Hinweis, erneut senden mit Sperre, «Adresse falsch? Nochmals registrieren»; funktioniert auch ohne Sitzung und sieht direkt nach der Registrierung für eine neue und eine vergebene Adresse gleich aus) und «Freigabe ausstehend». Die Adresse kommt aus `extensions.email` der Antwort `ACCOUNT_NOT_READY` oder aus dem Registrierformular (im Speicher, nie in der URL).
+  - `/verify-email` bestätigt erst nach dem Klick auf den Knopf (Auftrag 21).
+  - «Konto absichern»: Schritt X von 2 als Text, Erklärung vor dem Passkey, vorausgefüllter Name («Mac · Safari»), fester Abschlussschritt nach dem ersten Passkey mit «Weiter» und der Authenticator-App als zweitem Weg, Kästchen «Ich habe die Codes gespeichert» vor «Fertig».
+  - HTTP 429 ist eine eigene Art (`throttled`) mit Meldung für die ganze App; Mindestlänge der Passwörter 12 Zeichen.
+  - Admin-Reset des zweiten Faktors: die Rückfrage nennt die Folgen und fragt nach der Prüfung der Identität.
+  - «Passwort anzeigen» (F7) ist nicht umgesetzt (offen, Absprache mit Oliver).
 
 ## Navigation (Anpassung 2026-11-10, nach Figma „13 Dashboard · Dark“)
 - **Seitenleiste:** App-Name; Dashboard, Meine Tasks, KI-Assistent (nur Admins); „Projekte“ mit allen Projekten der Person als Links, alphabetisch, jedes mit seinem Icon (Feld `Project.icon`, sonst Ordner); „Verwaltung“ für Admins; unten Avatar, Name und „Admin“ bzw. die E-Mail mit dem Menü Profil/Abmelden. Das Projekt der aktuellen Seite ist markiert. Die Seitenleiste hat die Fläche `--wa-color-surface-default`, der Inhalt `--wa-color-surface-lowered`.

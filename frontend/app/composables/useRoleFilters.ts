@@ -6,8 +6,6 @@
 
 import { matchesSearch, normalizeText } from '../utils/text-search'
 
-export { matchesSearch, normalizeText }
-
 export type RoleScopeKey = 'SYSTEM' | 'PROJECT'
 export type RoleView = 'roles' | 'functions' | 'matrix'
 export type OriginFilter = 'all' | 'standard' | 'own'

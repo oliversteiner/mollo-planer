@@ -134,7 +134,7 @@ type ConfirmKind = 'reset' | 'delete' | 'avatar' | 'reject'
 
 /** Title, text and button of each confirmation; the name of the person fills the title. */
 const confirmCopy: Record<ConfirmKind, (name: string) => { title: string, description: string, label: string }> = {
-  reset: name => ({ title: t('admin.users.resetTitle', { name }), description: t('admin.users.resetDescription'), label: t('admin.users.resetTwoFactor') }),
+  reset: name => ({ title: t('admin.users.resetTitle', { name }), description: t('admin.users.resetDescription', { name }), label: t('admin.users.resetConfirm') }),
   avatar: name => ({ title: t('admin.users.avatarTitle', { name }), description: t('admin.users.avatarDescription'), label: t('admin.users.removeAvatar') }),
   reject: name => ({ title: t('admin.users.pending.rejectTitle', { name }), description: t('admin.users.pending.rejectDescription'), label: t('admin.users.pending.reject') }),
   delete: name => ({ title: t('admin.users.deleteTitle', { name }), description: t('admin.users.deleteDescription'), label: t('common.delete') })

@@ -242,6 +242,38 @@ class AuthenticationFlowTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_the_first_passkey_after_a_reset_makes_the_session_strong(): void
+    {
+        // A person whose old passkey belonged to another domain: reset by an admin, then the first setup again.
+        $user = $this->user();
+        $this->passkeyFor($user);
+        $user->passkeys()->delete(); // what the admin's reset (resetUserTwoFactor) does to the factors
+
+        $this->login($user)->assertOk();
+        $this->me()->assertForbidden()->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_SETUP_REQUIRED);
+
+        $passkey = $user->passkeys()->forceCreate(['user_id' => $user->id, 'name' => 'New laptop', 'credential_id' => 'new-cred', 'credential' => []]);
+        event(new PasskeyRegistered($user, $passkey));
+
+        $this->me()->assertOk()->assertJsonPath('data.me.id', (string) $user->id);
+    }
+
+    public function test_a_passkey_next_to_an_old_one_does_not_make_the_session_strong(): void
+    {
+        // Without the reset the account still counts as having a factor: the session is not strong,
+        // the API answers STRONG_AUTHENTICATION_REQUIRED, which the frontend sees as "reauth-required".
+        $user = $this->user();
+        $this->passkeyFor($user);
+
+        $this->login($user)->assertOk();
+        $this->me()->assertForbidden()->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_STRONG_AUTH_REQUIRED);
+
+        $second = $user->passkeys()->forceCreate(['user_id' => $user->id, 'name' => 'New laptop', 'credential_id' => 'new-cred', 'credential' => []]);
+        event(new PasskeyRegistered($user, $second));
+
+        $this->me()->assertForbidden()->assertJsonPath('errors.0.extensions.code', EnsureStrongAuthentication::CODE_STRONG_AUTH_REQUIRED);
+    }
+
     public function test_adding_a_further_factor_does_not_mark_the_session(): void
     {
         $user = $this->user(['two_factor_confirmed_at' => now()]);

@@ -38,6 +38,8 @@ export type ApiErrorKind
     | 'validation'
   /** CSRF token expired (419): fetch a new cookie and retry. */
     | 'csrf'
+  /** Too many requests (429): the throttle of the API. */
+    | 'throttled'
   /** Self-registered account whose mail address is not confirmed yet. */
     | 'unverified'
   /** Self-registered account waiting for an admin's approval. */
@@ -52,6 +54,8 @@ export interface ApiError {
   message: string | null
   /** Validation messages per field, for example "input.title". */
   fields: Record<string, string[]>
+  /** The address of the account whose mail is not confirmed (ACCOUNT_NOT_READY, reason email), otherwise null. */
+  email: string | null
 }
 
 interface GraphQLErrorLike {
@@ -59,6 +63,7 @@ interface GraphQLErrorLike {
   extensions?: {
     code?: string
     reason?: string
+    email?: string
     category?: string
     validation?: Record<string, string[]>
   }
@@ -99,6 +104,7 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
   const fields = Object.assign({}, ...errors.map(error => error.extensions?.validation ?? {})) as Record<string, string[]>
   const code = errors.map(error => error.extensions?.code).find(Boolean)
   const reason = errors.map(error => error.extensions?.reason).find(Boolean)
+  const email = errors.map(error => error.extensions?.email).find(Boolean) ?? null
   const categories = errors.map(error => error.extensions?.category)
 
   const kind: ApiErrorKind = (() => {
@@ -113,6 +119,9 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
     }
     if (status === 419) {
       return 'csrf'
+    }
+    if (status === 429) {
+      return 'throttled'
     }
     if (status === 401 || categories.includes('authentication') || message === 'Unauthenticated.') {
       return 'unauthenticated'
@@ -130,7 +139,7 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
     return 'unknown'
   })()
 
-  return { kind, message, fields }
+  return { kind, message, fields, email }
 }
 
 interface RestErrorBody {

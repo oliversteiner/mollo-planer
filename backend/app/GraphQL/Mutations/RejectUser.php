@@ -2,8 +2,8 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Actions\ReviewRegistration;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Deletes a waiting, self-registered account (admins only, checked by @can)
@@ -16,11 +16,6 @@ class RejectUser
      */
     public function __invoke(mixed $root, array $args): User
     {
-        return DB::transaction(function () use ($args): User {
-            $user = User::findOrFail($args['id']);
-            $user->delete();
-
-            return $user;
-        });
+        return app(ReviewRegistration::class)->reject(User::findOrFail($args['id']));
     }
 }

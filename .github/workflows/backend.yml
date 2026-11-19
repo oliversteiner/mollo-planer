@@ -43,6 +43,9 @@ jobs:
       - name: Code style (Pint)
         run: vendor/bin/pint --test
 
+      - name: Static analysis (Larastan, with baseline)
+        run: composer analyse
+
   tests-sqlite:
     name: Tests (SQLite)
     runs-on: ubuntu-latest

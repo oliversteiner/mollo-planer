@@ -90,6 +90,7 @@ MAIL_PASSWORD=
 MAIL_FROM_ADDRESS="<absender@domain>"
 MAIL_FROM_NAME="${APP_NAME}"
 
+PASSKEYS_RELYING_PARTY_ID=<frontend-domain>   # Pflicht in Produktion: gleich dem Host von FRONTEND_URL
 ANTHROPIC_API_KEY=             # nur, falls der KI-Assistent genutzt wird (ohne Schlüssel bleibt er aus)
 # ASSISTANT_LIMIT_HOUR=30      # Entwürfe je Person und Stunde (Standard)
 # ASSISTANT_LIMIT_DAY=200      # und je Tag (Standard)
@@ -158,7 +159,7 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
    git fetch -q origin main && git checkout -q -f -B main origin/main
    ```
 2. `backend/.env` aus Abschnitt 5 anlegen, `chmod 600`.
-3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`):
+3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`; für `deploy.sh` zusätzlich `DEPLOY_PHP` in `backend/.env` setzen):
    ```bash
    cd ~/apps/<projekt>/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
@@ -197,7 +198,8 @@ Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in
 
 Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `mollo-planer`.
 
-- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`.
+- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`. Das PHP nimmt das Skript aus der Zeile `DEPLOY_PHP=` in `backend/.env` auf dem Server (voller Pfad, z. B. `/usr/local/php85/bin/php`); fehlt sie oder ist sie leer, gilt `php`. Welches `php` eine SSH-Sitzung ohne Terminal findet, hängt von der Umgebung des Servers ab, darum den Pfad ausdrücklich setzen.
+- **Wichtig:** `deploy.sh` führt die Fassung aus, die **auf dem Server liegt**, bevor es den neuen Code holt. Eine Änderung an `deploy.sh` wirkt deshalb erst beim übernächsten Deploy, ausser man holt die Datei vorher von Hand: `git fetch origin main && git checkout origin/main -- deploy/deploy.sh`.
 - Bei einem Frontend ohne Backend die Schritte Datenbank-Backup, Migrationen und Caches streichen.
 - In `deploy.yml` die Umgebungsvariable `API_BASE` anpassen. `DEPLOY_HOST` und `DEPLOY_USER` kommen aus den GitHub-Variablen (Abschnitt 7).
 - Die Tests-Jobs an das Projekt anpassen oder streichen.
@@ -218,14 +220,54 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 - `https://<api-domain>/up` liefert HTTP 200.
 - `https://<api-domain>/sanctum/csrf-cookie` liefert HTTP 204 (nur mit Sanctum).
 - Auf dem Server: `php artisan about` zeigt `Environment: production` und `Debug Mode: OFF`.
+- **Bestätigungslink in einem zweiten Browser ohne Sitzung öffnen:** Ein Konto registrieren (Browser 1), den Link aus der Mail in einem Browser ohne Sitzung öffnen (privates Fenster oder anderer Browser). Erwartet: Die Seite «E-Mail-Adresse bestätigen» zeigt den Knopf, die Adresse ist noch **nicht** bestätigt; nach dem Klick ist sie es, ohne dass jemand angemeldet wird. Der Link kommt aus `APP_URL` (die API-Adresse, mit `https`); hinter dem Proxy müssen Schema und Host stimmen, sonst gilt die Signatur nicht und die Seite meldet «Link ungültig». Die Mail geht über die Queue (der Zeitplan arbeitet sie jede Minute ab, sie kann also eine Minute brauchen). Ein veränderter Link zeigt «Der Link ist ungültig oder abgelaufen» mit «Bestätigungsmail erneut senden».
 
 ---
 
 ## 12. Stolpersteine
 
 - **DB-Host:** Nicht `localhost` verwenden. Der Socket existiert auf Hostpoint nicht.
-- **PHP-Version:** `php` in der Shell ist 8.5. Zeigt `php -v` eine ältere Version, den vollen Pfad (z. B. `/usr/local/php85/bin/php`) nutzen oder `PATH` setzen (`~/.bash_profile`); `deploy.sh` bricht dann ab.
+- **PHP-Version:** `deploy.sh` nimmt `DEPLOY_PHP` aus `backend/.env` (voller Pfad, z. B. `/usr/local/php85/bin/php`), sonst `php`. Ist die Version älter als 8.5, bricht es ab, bevor etwas geändert wird, und nennt den benutzten Pfad. Zeigt der Pfad auf eine nicht ausführbare Datei, bricht es ebenfalls ab. Die Shell-Sitzung mit Terminal und die ohne Terminal können verschiedene `php` finden; massgeblich ist `DEPLOY_PHP`.
+- **Schema-Cache von Lighthouse liegt ausserhalb von Git:** Ausserhalb von `APP_ENV=local` liest Lighthouse das GraphQL-Schema aus `bootstrap/cache/lighthouse-schema.php`. Die Datei ist nicht in Git, `git reset` lässt sie stehen. Ein alter Stand zeigt auf Resolver-Klassen, die es nicht mehr gibt («Failed to find class … for directive @field», «Internal server error»). `deploy.sh` führt darum nach `config:cache` `lighthouse:clear-cache` und `lighthouse:cache` aus. Der Query-Cache (`query_cache`, Modus `store`) braucht das nicht: Er hält geparste Abfragetexte, die vom Schema unabhängig sind. Von Hand: `php artisan lighthouse:clear-cache && php artisan lighthouse:cache`.
+- **Rauchtest nach dem Deploy:** Nach `artisan up` schickt `deploy.sh` `{ viewerRights }` ohne Sitzung an `APP_URL/api` (ohne `Origin`, damit Sanctum die Anfrage nicht als SPA-Anfrage mit CSRF behandelt). Erwartet: die Antwort enthält `Unauthenticated.`. Sonst meldet der Lauf «Rauchtest GraphQL fehlgeschlagen: …» und endet mit Fehler. Der neue Code ist dann schon live, es wird nichts zurückgerollt.
+- **Passkey-RP-ID:** Jede App hat ihre eigene RP-ID (kein Single Sign-on). `PASSKEYS_RELYING_PARTY_ID` in Produktion **immer** setzen, gleich dem Host von `FRONTEND_URL` (z. B. `planer.mollo.dev`), nie die Hauptdomain. Ein Wechsel macht alle Passkeys ungültig. Ein Passkey einer anderen App unter der Hauptdomain erscheint sonst in der Auswahl und die Anmeldung endet mit 422. `deploy.sh` warnt im Log, wenn der Wert vom Host von `FRONTEND_URL` abweicht.
 - **Erster Lauf:** Liegt `deploy/deploy.sh` schon unverwaltet auf dem Server, vorher `git fetch origin main && git reset --hard origin/main` ausführen.
 - **Hostpoint-Block in `.htaccess`:** Nicht löschen, sonst wechselt die PHP-Version des Docroots.
 - **Frontend-Build:** Die API-Adresse wird beim Build eingebaut (`NUXT_PUBLIC_API_BASE`). Ändert sich die Domain, neu bauen.
 - **Passwörter:** Nie im Chat oder im Repo. Nach versehentlicher Weitergabe ändern.
+
+## 13. Betrieb: Nutzer verwalten
+
+Wenn niemand sich anmelden kann, helfen drei Artisan-Befehle auf dem Server (per SSH im Ordner `backend/`, das `php` der Shell ist 8.5). `<Nutzer>` ist die E-Mail-Adresse oder die ID.
+
+| Aufruf | Zweck |
+|---|---|
+| `php artisan app:user-password <Nutzer>` | Neues Passwort setzen. Wird zweimal und versteckt abgefragt, nie als Parameter. Beendet danach Zugänge für Claude, „angemeldet bleiben“ und Sitzungen. Der zweite Faktor bleibt. |
+| `php artisan app:user-email <Nutzer>` | Zeigt Adresse und Stand der Bestätigung (schreibt nichts). |
+| `php artisan app:user-email <Nutzer> <neue-E-Mail>` | Adresse ändern. Gilt danach als bestätigt (`--unverified`: Bestätigung wird neu verlangt). |
+| `php artisan app:user-email <Nutzer> --verified` oder `--unverified` | Nur die Bestätigung ändern. |
+| `php artisan app:user-role <Nutzer> [<Rolle>]` | Systemrolle setzen (ohne Rolle: Auswahl). Zeigt alte und neue Rolle. Es gelten die Regeln der App: Die letzte Person mit `users.manage` bzw. `roles.manage` behält das Recht (der letzte Admin bleibt Admin), und kein Projekt verliert seine letzte Person mit «Projekt löschen». Beispiel nach `migrate:fresh`: das eigene Konto zum Admin machen. |
+| `php artisan app:user-approve <Nutzer>` | Wartendes Konto freigeben, über dieselbe Logik wie in der App (`ReviewRegistration`): die Person bekommt die Freigabe-Mail in der Sprache ihres Kontos, ein zweiter Aufruf ändert nichts und verschickt nichts. Ist die Adresse noch nicht bestätigt, warnt der Befehl: Die API bleibt dann gesperrt (`app:user-email <Nutzer> --verified`). |
+| `php artisan app:user-2fa <Nutzer> status` | Authenticator, Wiederherstellungscodes, Passkeys (ID, Name, Datum), ob die Person beim nächsten Login einrichten muss. Schreibt nichts. |
+| `php artisan app:user-2fa <Nutzer> reset` | Gerät verloren: Authenticator, Wiederherstellungscodes, alle Passkeys, Zugänge für Claude, Sitzungen und „angemeldet bleiben“ weg. |
+| `php artisan app:user-2fa <Nutzer> authenticator` | Nur die Authenticator-App samt Wiederherstellungscodes entfernen, Passkeys bleiben. |
+| `php artisan app:user-2fa <Nutzer> passkeys [--id=<ID>]` | Alle Passkeys oder einen entfernen, die Authenticator-App bleibt. |
+| `php artisan app:user-2fa <Nutzer> recovery-codes` | Neue Wiederherstellungscodes (die alten verfallen), nur mit bestätigter Authenticator-App. Die Codes erscheinen einmal im Terminal und werden nirgends gespeichert. |
+
+Gemeinsam:
+
+- Jeder schreibende Aufruf fragt vorher nach (`--no-interaction` ist ein Fehler, es wird nichts geschrieben). Ohne Aktion fragt `app:user-2fa` per Auswahl.
+- Entfernt ein Aufruf den **letzten** zweiten Faktor, sagt die Frage das ausdrücklich: Die Person richtet beim nächsten Login einen neuen ein (Pflicht, keine Ausnahme), ihre Zugänge und Sitzungen enden.
+- **Sitzungen** lassen sich nur beenden, wenn `SESSION_DRIVER=database` gilt (Produktion). Sonst nennt die Ausgabe es, und die Sitzungen laufen aus.
+- **E-Mail:** Solange eine Adresse nicht bestätigt ist, bleibt die API für das Konto gesperrt (Anmelden geht, mehr nicht). Unbestätigte und nicht freigegebene Konten löscht `app:prune-unverified-users` täglich nach 7 Tagen. Der Befehl verschickt keine Bestätigungsmail.
+- Im Log (`storage/logs`) steht je Eingriff eine Zeile mit Nutzer-ID, Befehl und Aktion, ohne Passwort, Hash oder Adresse.
+
+## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
+
+- **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.
+- **Drosseln je IP:** «Passwort vergessen» und «Passwort setzen» 5 pro Minute, Registrierung 5 pro Minute, Bestätigungslink 20 pro Minute, «Bestätigungsmail erneut senden» angemeldet 1 pro Minute, ohne Sitzung 3 pro Stunde je Adresse und je IP.
+- **Neutrale Antworten:** «Passwort vergessen» antwortet immer 200 mit demselben Text, die Registrierung immer 201 (gleicher Körper), auch bei einer vergebenen Adresse. Nichts verrät, welche Adressen ein Konto haben. Bei einer vergebenen Adresse geht eine Mail an die Adresse (höchstens eine je Stunde).
+- **Mails** laufen alle über die Queue (der Zeitplan arbeitet sie jede Minute ab, sie können eine Minute brauchen): Bestätigung, «Du hast schon ein Konto», Hinweis bei jeder Änderung der Anmeldung (Passwort, Authenticator, Passkey, Wiederherstellungscodes, Reset durch einen Admin), Freigabe und Ablehnung. Die Sprache steht in `users.locale` (Sprache bei der Registrierung bzw. Einladung); ist sie leer (ältere Konten, Konten per Befehlszeile), gilt `APP_LOCALE`.
+- **Nach dem Zurücksetzen des Passworts** per Mail werden Sitzungen, «angemeldet bleiben» und die Zugänge für Claude beendet. **Sitzungen lassen sich nur beenden, wenn `SESSION_DRIVER=database` gilt** (Produktion); bei einem anderen Treiber läuft die Sitzung bis zu ihrem Ablauf weiter.
+- **Anmeldung als Passwortbestätigung:** Wer sich mit dem Passwort angemeldet hat, muss es beim Einrichten des zweiten Faktors in den folgenden 3 Stunden (`AUTH_PASSWORD_TIMEOUT`) nicht nochmals eingeben. Gilt nicht für die Anmeldung allein mit Passkey.
+

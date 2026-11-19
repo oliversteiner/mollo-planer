@@ -4,16 +4,24 @@ definePageMeta({ layout: 'auth', public: true })
 const { t } = useI18n()
 const { $backend } = useNuxtApp()
 const { errors, pending, run } = useServerForm()
+const { pendingEmail } = useViewer()
+const registered = useState('registrationDone', () => false)
 
 useHead({ title: () => t('auth.register.title') })
 
 const state = reactive({ name: '', email: '', password: '', password_confirmation: '' })
 
-/** Fortify logs the new account in; the account pages explain what comes next. */
+/**
+ * The API answers 201 for a new and for a taken address alike (and logs in only the new one), so the next
+ * page cannot rely on a session. It gets the address from here, from memory (not from the address bar);
+ * a taken address gets a field error nowhere, so this page and the next say the same in both cases.
+ */
 async function submit(): Promise<void> {
   const ok = await run(() => $backend('/register', { method: 'POST', body: state }))
 
   if (ok) {
+    pendingEmail.value = state.email.trim()
+    registered.value = true
     await navigateTo('/account-pending?reason=email')
   }
 }

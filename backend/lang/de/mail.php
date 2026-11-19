@@ -37,11 +37,66 @@ return [
         'intro' => ':name hat sich registriert und die E-Mail-Adresse bestätigt. Das Konto wartet auf Freigabe.',
         'action' => 'Benutzer öffnen',
     ],
+    'already_registered' => [
+        'subject' => 'Du hast schon ein Konto bei :app',
+        'intro' => 'Jemand hat sich mit deiner E-Mail-Adresse bei :app registriert, aber du hast schon ein Konto. Wenn du das warst, melde dich an.',
+        'action' => 'Anmelden',
+        'forgot' => 'Passwort vergessen? Setze es hier neu: :url',
+        'ignore' => 'Wenn du dich nicht registriert hast, musst du nichts tun. Dein Konto bleibt, wie es ist.',
+    ],
+    'registration_pending' => [
+        'subject' => 'Deine Registrierung bei :app ist noch nicht bestätigt',
+        'intro' => 'Für diese Adresse gibt es bei :app schon eine Registrierung, die noch nicht bestätigt ist. Ist sie von dir: Lass dir die Bestätigungsmail erneut senden. Kennst du das Passwort nicht: Setze es mit «Passwort vergessen» neu.',
+        'action' => 'Bestätigungsmail erneut senden',
+    ],
+    'security_change' => [
+        'not_you' => 'Warst du das nicht, melde dich bei einem Admin.',
+        'password' => [
+            'subject' => 'Dein Passwort wurde geändert',
+            'line' => 'Das Passwort deines Kontos bei :app wurde geändert.',
+        ],
+        'authenticator_added' => [
+            'subject' => 'Eine Authenticator-App wurde eingerichtet',
+            'line' => 'Für dein Konto bei :app wurde eine Authenticator-App als zweiter Faktor eingerichtet.',
+        ],
+        'authenticator_removed' => [
+            'subject' => 'Die Authenticator-App wurde entfernt',
+            'line' => 'Die Authenticator-App wurde von deinem Konto bei :app entfernt.',
+        ],
+        'passkey_added' => [
+            'subject' => 'Ein Passkey wurde hinzugefügt',
+            'line' => 'Zu deinem Konto bei :app wurde ein Passkey hinzugefügt.',
+        ],
+        'passkey_removed' => [
+            'subject' => 'Ein Passkey wurde entfernt',
+            'line' => 'Von deinem Konto bei :app wurde ein Passkey entfernt.',
+        ],
+        'admin_reset' => [
+            'subject' => 'Dein zweiter Faktor wurde zurückgesetzt',
+            'line' => 'Dein zweiter Faktor wurde von einem Admin zurückgesetzt. Du richtest bei der nächsten Anmeldung einen neuen ein.',
+            'not_you' => 'Warst du das nicht, melde dich sofort.',
+        ],
+        'recovery_codes' => [
+            'subject' => 'Neue Wiederherstellungscodes',
+            'line' => 'Für dein Konto bei :app wurden neue Wiederherstellungscodes erzeugt. Die alten gelten nicht mehr.',
+        ],
+    ],
+    'account_approved' => [
+        'subject' => 'Dein Konto bei :app ist freigegeben',
+        'line' => 'Dein Konto ist freigegeben. Du kannst dich jetzt anmelden.',
+        'action' => 'Anmelden',
+    ],
+    'account_rejected' => [
+        'subject' => 'Deine Registrierung bei :app',
+        'line' => 'Dein Konto bei :app wurde nicht freigegeben und gelöscht.',
+        'contact' => 'Bei Fragen melde dich bei deiner Kontaktperson.',
+    ],
     'verify_email' => [
         'subject' => 'Bitte bestätige deine E-Mail-Adresse',
         'intro' => 'Du hast dich bei :app registriert. Bitte bestätige deine E-Mail-Adresse mit dem Button unten.',
         'action' => 'E-Mail-Adresse bestätigen',
-        'ignore' => 'Falls du dich nicht registriert hast, musst du nichts tun.',
-        'approval' => 'Danach gibt ein Admin dein Konto frei.',
+        'expiry' => 'Der Link ist :minutes Minuten gültig.',
+        'ignore' => 'Wenn du dich nicht registriert hast, klick nicht auf den Link und tu nichts.',
+        'approval' => 'Danach richtest du deinen zweiten Faktor ein, und ein Admin gibt dein Konto frei.',
     ],
 ];

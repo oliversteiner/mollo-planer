@@ -17,6 +17,9 @@ use Illuminate\Console\Command;
 #[Description('Delete self-registered accounts whose mail address was not confirmed in time')]
 class PruneUnverifiedUsers extends Command
 {
+    /** The default of --days (also used by the schedule). */
+    public const DEFAULT_DAYS = 7;
+
     public function handle(): int
     {
         $days = (int) $this->option('days');

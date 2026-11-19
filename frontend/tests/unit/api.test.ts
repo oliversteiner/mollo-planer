@@ -49,7 +49,7 @@ describe('classifyApiError', () => {
 describe('classifyRestError', () => {
   it('reads Fortify validation errors and the lock code of account routes', () => {
     expect(classifyRestError(422, { message: 'Ungültig.', errors: { email: ['Diese Zugangsdaten sind ungültig.'] } }))
-      .toEqual({ kind: 'validation', message: 'Ungültig.', fields: { email: ['Diese Zugangsdaten sind ungültig.'] } })
+      .toEqual({ kind: 'validation', message: 'Ungültig.', fields: { email: ['Diese Zugangsdaten sind ungültig.'] }, email: null })
     expect(classifyRestError(403, { message: 'Bitte melde dich erneut an.', code: STRONG_AUTH_REQUIRED }).kind).toBe('reauth-required')
   })
 
@@ -117,5 +117,12 @@ describe('readinessKind', () => {
     expect(readinessKind({ approved: true, emailVerified: true })).toBeNull()
     expect(readinessKind({ approved: false, emailVerified: true })).toBe('awaiting-approval')
     expect(readinessKind({ approved: false, emailVerified: false })).toBe('unverified')
+  })
+})
+
+describe('too many requests', () => {
+  it('is its own kind, for REST and GraphQL, so the app can say "try again in a minute"', () => {
+    expect(classifyRestError(429, { message: 'Too Many Attempts.' }).kind).toBe('throttled')
+    expect(classifyApiError(429, []).kind).toBe('throttled')
   })
 })

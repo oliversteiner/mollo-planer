@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser'
-import { pendingAccountPath, safeRedirect } from '~/utils/api'
+import type { Occasion } from '~/utils/account-outcome'
 
 definePageMeta({ layout: 'auth', public: true })
 
 const { t } = useI18n()
-const route = useRoute()
 const { $backend } = useNuxtApp()
-const { load } = useViewer()
+const { proceed } = useAccountFlow()
 const { errors, pending, run } = useServerForm()
 
 useHead({ title: () => t('auth.login.title') })
@@ -22,11 +21,13 @@ const { loginWithPasskey } = useSecurity()
 const toast = useToast()
 const passkeysSupported = browserSupportsWebAuthn()
 const passkeyPending = ref(false)
+// After the password: an account protected by a passkey needs the passkey (the session is not strong yet).
+const passkeyHint = ref<'use' | 'unsupported' | null>(null)
 
 // The login page is public, so it is also reached with a session that is
 // still logged in (bookmark, reload after the backend was down). Laravel
 // then refuses a new login and redirects; go on with the session instead.
-onMounted(() => finish())
+onMounted(() => finish('opened'))
 
 /** One step: the browser asks for PIN or biometrics, no code needed. */
 async function submitPasskey(): Promise<void> {
@@ -43,19 +44,17 @@ async function submitPasskey(): Promise<void> {
   }
 }
 
-/** After a successful login: check the session and go where the user wanted. */
-async function finish(): Promise<void> {
-  const problem = await load()
-
-  const pendingPath = pendingAccountPath(problem)
-
-  if (problem === 'setup-required') {
-    await navigateTo('/setup-security')
-  } else if (pendingPath) {
-    await navigateTo(pendingPath)
-  } else if (problem === null) {
-    await navigateTo(safeRedirect(route.query.redirect))
-  }
+/**
+ * After a successful login, or when the page is opened: check the session and go where the person wanted
+ * (see utils/account-outcome.ts). A page that is only opened stays quiet about a half-finished session,
+ * after a password an account with a passkey is told to use it.
+ */
+async function finish(occasion: Occasion = 'submitted'): Promise<void> {
+  await proceed(occasion, {
+    onPasskeyNeeded: () => {
+      passkeyHint.value = passkeysSupported ? 'use' : 'unsupported'
+    }
+  })
 }
 
 async function submitCredentials(): Promise<void> {
@@ -101,6 +100,12 @@ function backToCredentials(): void {
       class="wa-stack wa-gap-m"
       @submit.prevent="submitCredentials"
     >
+      <AppCallout
+        v-if="passkeyHint"
+        role="status"
+        variant="warning"
+        :title="passkeyHint === 'use' ? t('auth.login.passkeyRequired') : t('auth.login.passkeyUnsupported')"
+      />
       <FormInput
         v-model="credentials.email"
         type="email"
@@ -124,7 +129,8 @@ function backToCredentials(): void {
 
       <wa-button
         type="submit"
-        variant="brand"
+        :variant="passkeyHint === 'use' ? 'neutral' : 'brand'"
+        :appearance="passkeyHint === 'use' ? 'outlined' : 'accent'"
         :loading="pending"
         style="width: 100%"
       >
@@ -141,8 +147,8 @@ function backToCredentials(): void {
           <wa-divider style="flex: 1"></wa-divider>
         </div>
         <wa-button
-          appearance="outlined"
-          variant="neutral"
+          :appearance="passkeyHint === 'use' ? 'accent' : 'outlined'"
+          :variant="passkeyHint === 'use' ? 'brand' : 'neutral'"
           :loading="passkeyPending"
           style="width: 100%"
           @click="submitPasskey"
@@ -189,6 +195,9 @@ function backToCredentials(): void {
     >
       <p class="wa-body-s wa-color-text-quiet">
         {{ useRecoveryCode ? t('auth.challenge.recoveryHint') : t('auth.challenge.codeHint') }}
+      </p>
+      <p class="wa-body-s wa-color-text-quiet">
+        {{ t('auth.challenge.noAccess') }}
       </p>
 
       <FormOtp

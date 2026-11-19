@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "Mollo Planer"
+    "name": "Mollo Planer",
+    "home": "Mollo Planer, go to the home page"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -99,7 +100,8 @@
     "unauthorized": "You are not allowed to do this.",
     "csrf": "Your session had expired. Please try again.",
     "network": "The server cannot be reached.",
-    "unknown": "The request failed."
+    "unknown": "The request failed.",
+    "throttled": "Too many attempts. Try again in a minute."
   },
   "auth": {
     "email": "Email",
@@ -113,7 +115,9 @@
       "forgot": "Forgot your password?",
       "or": "or",
       "passkey": "Sign in with a passkey",
-      "register": "Create account"
+      "register": "Create account",
+      "passkeyRequired": "Your account is protected by a passkey. Sign in with the passkey.",
+      "passkeyUnsupported": "Your account is protected by a passkey. Open this page on a device with your passkey or contact an admin."
     },
     "challenge": {
       "title": "Second factor",
@@ -124,7 +128,8 @@
       "submit": "Confirm",
       "useRecovery": "Use a recovery code",
       "useCode": "Use the code from the app",
-      "back": "Back"
+      "back": "Back",
+      "noAccess": "No access to the app and the codes any more? Contact an admin."
     },
     "forgot": {
       "title": "Forgot password",
@@ -135,7 +140,7 @@
     "setPassword": {
       "password": "New password",
       "confirmation": "Repeat password",
-      "rules": "At least 8 characters",
+      "rules": "At least 12 characters",
       "invalidLink": "The link is incomplete. Please open it again from the email."
     },
     "reset": {
@@ -154,7 +159,16 @@
       "title": "Secure your account",
       "description": "Before you start, secure your account with a second factor.",
       "passkey": "Set up a passkey (recommended)",
-      "app": "Set up an authenticator app"
+      "app": "Set up an authenticator app",
+      "signInAgain": "Your second factor is set up. Sign in with it now.",
+      "passkeyExplain": "A passkey is a key on your device or in your password manager. You confirm it with fingerprint, face or PIN, without a password and without a code.",
+      "passkeyDone": "Your passkey is set up.",
+      "secondFactorHint": "Set up a second way, for example the authenticator app or a passkey on a second device. That way you can get into your account without this device.",
+      "continue": "Continue",
+      "progress": "Step {current} of {total}: {title}",
+      "stepFactor": "Set up a factor",
+      "stepCodes": "Save the codes",
+      "stepFinish": "Finish"
     },
     "register": {
       "title": "Create account",
@@ -164,13 +178,33 @@
     },
     "verify": {
       "title": "Confirm email address",
+      "intro": "Confirm that this address is yours.",
+      "confirm": "Confirm email address",
       "done": "Your email address is confirmed.",
-      "loginHint": "Sign in once an admin has approved your account."
+      "already": "This address is already confirmed.",
+      "failed": "The confirmation did not work. Please try again.",
+      "nextSteps": "Sign in now and set up your second factor. An admin releases your account; you get a mail.",
+      "login": "Sign in",
+      "invalid": "The link is invalid or has expired.",
+      "invalidText": "Have a new confirmation mail sent, or sign in.",
+      "toLogin": "To sign in",
+      "resend": "Send the confirmation mail again",
+      "resendIn": "Send again in {seconds} s",
+      "resent": "We sent you a new mail. It can take a minute.",
+      "resentNeutral": "If an account with this address is waiting for confirmation, we sent a mail. It can take a minute.",
+      "resendIntro": "Enter your address. We will send you the confirmation mail again."
     },
     "pending": {
-      "title": "Account waiting",
-      "emailText": "Please confirm your email address. We have sent you a link.",
-      "approvalText": "Your email address is confirmed. An admin still has to approve your account. You will be told when it is ready.",
+      "emailTitle": "Confirm email address",
+      "emailText": "We sent a mail to {email}. Open it and follow the hint in it.",
+      "emailTextNoAddress": "We sent you a mail. Open it and follow the hint in it.",
+      "deadline": "A link in the mail is valid for 60 minutes.",
+      "spam": "Check your spam folder too.",
+      "wait": "The mail can take a minute.",
+      "wrongAddress": "Wrong address?",
+      "registerAgain": "Register again",
+      "approvalTitle": "Release pending",
+      "approvalText": "Your email address is confirmed. An admin will release your account. You get a mail as soon as it is done. You need not do anything.",
       "recheck": "Check again"
     }
   },
@@ -473,13 +507,14 @@
       "copied": "Codes copied.",
       "download": "Download",
       "show": "Show recovery codes",
-      "regenerate": "Create new codes"
+      "regenerate": "Create new codes",
+      "saved": "I have saved the codes."
     },
     "passkeys": {
       "title": "Passkeys",
-      "intro": "With a passkey you sign in without a code, using your device's fingerprint, face recognition or PIN. Best set up two, for example on laptop and phone.",
+      "intro": "With a passkey you sign in without a code, using the fingerprint, face or PIN of your device.",
       "name": "Name",
-      "nameHint": "To recognise it, for example “Laptop”",
+      "nameHint": "To recognise it later. You can change the name.",
       "defaultName": "Passkey",
       "add": "Add passkey",
       "added": "Passkey added.",
@@ -490,7 +525,8 @@
       "neverUsed": "Never used yet",
       "remove": "Remove passkey “{name}”",
       "removeTitle": "Remove passkey “{name}”?",
-      "secondHint": "Tip: set up a second passkey or the authenticator app in case this device gets lost."
+      "secondHint": "Tip: set up a second passkey or the authenticator app in case this device gets lost.",
+      "notCreated": "No passkey was created. Try again or use the authenticator app."
     }
   },
   "admin": {
@@ -510,7 +546,7 @@
       "factorNone": "No second factor",
       "resetTwoFactor": "Reset 2FA",
       "resetTitle": "Reset 2FA of {name}?",
-      "resetDescription": "Removes the authenticator app and all passkeys and signs them out everywhere, for example after a lost device. At the next sign-in they set up a new second factor.",
+      "resetDescription": "The authenticator app and passkeys of {name} are removed and all sessions are ended. {name} gets a mail and sets up a new factor the next time they sign in. Have you checked by other means that the request really comes from {name} (a call, in person)?",
       "resetDone": "2FA of {name} reset.",
       "removeAvatar": "Remove avatar",
       "avatarTitle": "Remove the avatar of {name}?",
@@ -534,7 +570,8 @@
         "rejectTitle": "Reject {name}?",
         "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards.",
         "failed": "That did not work. The list has been updated."
-      }
+      },
+      "resetConfirm": "Yes, reset"
     },
     "settings": {
       "title": "App settings",
@@ -919,6 +956,10 @@
         "avatar_path": {
           "label": "Profilbild",
           "description": "Ablage des Bildes (500 × 500, WebP). Nur die App setzt den Wert."
+        },
+        "locale": {
+          "label": "Language",
+          "description": "Language of the account for mails that do not arise in a request of the person (release, rejection, notice after a reset). Empty means the language of the application."
         },
         "email_verified_at": {
           "label": "E-Mail bestätigt am",
