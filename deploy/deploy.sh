@@ -15,16 +15,10 @@ WEB_ROOT="$HOME/www/planer.mollo.dev"
 STAGE="$HOME/apps/.planer-stage"
 BACKUP_DIR="$HOME/backups/planer"
 KEEP_BACKUPS=10
-PHP="php"
+PHP="php" # overridden by DEPLOY_PHP in backend/.env (full path), see below
 COMPOSER="/usr/local/bin/composer"
 
 maintenance=0
-
-# backend/composer.json requires PHP 8.5; stop before anything changes.
-if ! "$PHP" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
-    echo "PHP 8.5 oder neuer nötig, gefunden: $("$PHP" -r 'echo PHP_VERSION;'). Nichts wurde geändert." >&2
-    exit 1
-fi
 
 log() {
     printf '\n==> %s\n' "$*"
@@ -34,6 +28,25 @@ log() {
 env_value() {
     grep -E "^$1=" "$BACKEND/.env" | tail -n 1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/'
 }
+
+# Which PHP runs: DEPLOY_PHP in backend/.env (full path), otherwise "php". A missing .env or line is no error here.
+deploy_php=""
+if [ -f "$BACKEND/.env" ]; then
+    deploy_php=$(env_value DEPLOY_PHP || true)
+fi
+if [ -n "$deploy_php" ]; then
+    if [ ! -x "$deploy_php" ]; then
+        echo "DEPLOY_PHP zeigt auf $deploy_php, die Datei ist nicht ausführbar. Nichts wurde geändert." >&2
+        exit 1
+    fi
+    PHP="$deploy_php"
+fi
+
+# backend/composer.json requires PHP 8.5; stop before anything changes.
+if ! "$PHP" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
+    echo "PHP 8.5 oder neuer nötig, gefunden: $("$PHP" -r 'echo PHP_VERSION;') ($PHP). DEPLOY_PHP in backend/.env auf PHP 8.5 setzen, z. B. /usr/local/php85/bin/php. Nichts wurde geändert." >&2
+    exit 1
+fi
 
 on_exit() {
     local status=$?
