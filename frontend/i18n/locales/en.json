@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "Mollo Planer"
+    "name": "Mollo Planer",
+    "home": "Mollo Planer, go to the home page"
   },
   "nav": {
     "dashboard": "Dashboard",

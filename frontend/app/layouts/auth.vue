@@ -1,5 +1,6 @@
 <script setup lang="ts">
 /** Frame of the pages without login (login, password, invitation): small header, one centred column. */
+const { t } = useI18n()
 </script>
 
 <template>
@@ -8,7 +9,13 @@
       slot="header"
       class="auth-header"
     >
-      <AppLogo class="auth-logo" />
+      <NuxtLink
+        to="/"
+        class="auth-logo"
+        :aria-label="t('app.home')"
+      >
+        <AppLogo />
+      </NuxtLink>
       <div class="auth-tools">
         <LocaleSwitch />
         <ColorModeSwitch />
@@ -35,7 +42,14 @@
 }
 
 .auth-logo {
+  display: inline-block;
   color: #612692;
+  text-decoration: none;
+}
+
+.auth-logo:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
 }
 
 :root.wa-dark .auth-logo {
