@@ -271,3 +271,136 @@ Gemeinsam:
 - **Nach dem Zurücksetzen des Passworts** per Mail werden Sitzungen, «angemeldet bleiben» und die Zugänge für Claude beendet. **Sitzungen lassen sich nur beenden, wenn `SESSION_DRIVER=database` gilt** (Produktion); bei einem anderen Treiber läuft die Sitzung bis zu ihrem Ablauf weiter.
 - **Anmeldung als Passwortbestätigung:** Wer sich mit dem Passwort angemeldet hat, muss es beim Einrichten des zweiten Faktors in den folgenden 3 Stunden (`AUTH_PASSWORD_TIMEOUT`) nicht nochmals eingeben. Gilt nicht für die Anmeldung allein mit Passkey.
 
+---
+
+## 15. Zwei Umgebungen: TEST und PROD (Auftrag 28)
+
+Beide Umgebungen liegen auf demselben Hostpoint-Konto (nginx vor Apache, die `.htaccess` mit dem Hostpoint-Block gilt weiter). Getrennt sind: Datenbank, `backend/.env`, Ordner, Cron-Eintrag, SSH-Schlüssel und GitHub-Umgebung.
+
+| | TEST | PROD |
+|---|---|---|
+| Domains | `planer.mollo.dev`, `api.planer.mollo.dev` | `planer.mollo.ch`, `api.planer.mollo.ch` |
+| Ordner der App | `~/dev/apps/mollo-planer` | `~/ch/apps/mollo-planer` |
+| Docroot Frontend | `~/dev/www/planer.mollo.dev` | `~/ch/www/planer.mollo.ch` |
+| Docroot API | `~/dev/www/api.planer.mollo.dev` | `~/ch/www/api.planer.mollo.ch` |
+| Sicherungen | `~/dev/backups/planer` | `~/ch/backups/planer` |
+| Branch auf dem Server (`DEPLOY_BRANCH`) | `dev` | `main` |
+| Auslöser | Push auf `dev`, **ohne** Freigabe (GitHub-Umgebung `test`) | Push auf `main`, **mit** Freigabe (GitHub-Umgebung `production`) |
+| `APP_ENV` | `staging` | `production` |
+| `APP_NAME` | `"Mollo Planer (Test)"` | `"Mollo Planer"` |
+| Daten | die heutigen Daten (ziehen um) | startet leer, Admin per `app:create-admin` |
+| `PASSKEYS_RELYING_PARTY_ID` | `planer.mollo.dev` | `planer.mollo.ch` |
+
+**`APP_ENV=staging`:** Alles, was die Produktion sperrt, bleibt auf TEST gesperrt (`App\Support\DeploymentEnvironment::isLive()` gilt für `production` und `staging`): die 2FA ist nicht abschaltbar, Webhooks gehen nur an öffentliche Adressen über https, keine Demo-Seeder (`DemoSeeder`, `DevelopmentHistorySeeder`, `E2eSeeder`), GraphQL ohne Introspektion, kein Fehler bei Lazy Loading, Schema-Cache von Lighthouse an. Offen ist nur ein Entwicklungsrechner (`local`, `testing`). Die App zeigt ausser in der Produktion das Band «Testumgebung» (`appSettings.isTestEnvironment`).
+Hinweis für beide: Laravel fragt bei `migrate` und ähnlichen Befehlen nur in `production` nach einer Bestätigung. Auf TEST gibt es diese Rückfrage nicht, `deploy.sh` nutzt ohnehin `--force`; auf dem Server von Hand `migrate:fresh` oder `db:wipe` also nur mit Vorsicht, nie ohne Blick auf den Ordner.
+
+### Pflichtwerte in `backend/.env` je Umgebung
+
+```env
+APP_ENV=staging                         # PROD: production
+APP_NAME="Mollo Planer (Test)"          # PROD: "Mollo Planer"
+APP_URL=https://api.planer.mollo.dev    # PROD: https://api.planer.mollo.ch
+FRONTEND_URL=https://planer.mollo.dev   # PROD: https://planer.mollo.ch
+SANCTUM_STATEFUL_DOMAINS=planer.mollo.dev
+SESSION_DOMAIN=.planer.mollo.dev
+PASSKEYS_RELYING_PARTY_ID=planer.mollo.dev
+DEPLOY_PHP=/usr/local/php85/bin/php
+DEPLOY_BRANCH=dev                       # PROD: main
+DEPLOY_WEB_ROOT=~/dev/www/planer.mollo.dev     # PROD: ~/ch/www/planer.mollo.ch
+DEPLOY_BACKUP_DIR=~/dev/backups/planer         # PROD: ~/ch/backups/planer
+```
+
+`deploy.sh` ermittelt den App-Ordner aus seinem eigenen Pfad und liest `DEPLOY_BRANCH`, `DEPLOY_WEB_ROOT`, `DEPLOY_BACKUP_DIR` und `FRONTEND_URL` **vor jeder Änderung**. Fehlt etwas, zeigt `DEPLOY_WEB_ROOT` auf keinen Ordner oder ist sein letzter Pfadteil nicht der Host von `FRONTEND_URL`, bricht es mit «… Nichts wurde geändert.» ab. Das Log beginnt mit Umgebung, Branch, App-Ordner, Docroot und Sicherungsordner.
+
+### Je ein Schlüssel, je ein Cron-Eintrag
+
+- `~/.ssh/authorized_keys`: **zwei** Zeilen, je ein eigener Schlüssel, der nur das Skript seiner Umgebung startet. Dadurch kann der Client die Umgebung nicht wählen:
+  ```
+  command="/home/<benutzer>/dev/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer-test
+  command="/home/<benutzer>/ch/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer-prod
+  ```
+- Cron (Hostpoint-Panel), **zwei** Einträge:
+  ```
+  * * * * * cd ~/dev/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan schedule:run >> /dev/null 2>&1
+  * * * * * cd ~/ch/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan schedule:run >> /dev/null 2>&1
+  ```
+
+### GitHub: Umgebungen
+
+*Settings → Environments:* **`test`** (keine Reviewer) und **`production`** (Reviewer: Oliver). In **jeder** Umgebung (nicht auf Repository-Ebene): Secret `DEPLOY_SSH_KEY` (der Schlüssel der Umgebung) und die Variablen `API_BASE` (`https://api.planer.mollo.dev` bzw. `.ch`) und `FRONTEND_URL` (`https://planer.mollo.dev` bzw. `.ch`). Auf Repository-Ebene bleiben `DEPLOY_HOST`, `DEPLOY_USER` und `DEPLOY_KNOWN_HOSTS` (gleicher Server). Fehlen `API_BASE` oder `FRONTEND_URL` in der Umgebung, bricht der Lauf vor dem Build ab. Die Umgebung `production` aus Abschnitt 7 («keine Variablen oder Secrets in dieser Umgebung») gilt nicht mehr.
+
+| Push auf | GitHub-Umgebung | Server | Freigabe |
+|---|---|---|---|
+| `dev` | `test` | `~/dev/apps/mollo-planer`, Branch `dev` | nein |
+| `main` | `production` | `~/ch/apps/mollo-planer`, Branch `main` | ja, Oliver |
+| anderer Branch | kein Deploy | | |
+
+Beim manuellen Start (*Run workflow*) wählt man die Umgebung; sie muss zum Branch passen (`test` nur von `dev`, `production` nur von `main`), sonst bricht der Lauf ab: Der Server setzt sich auf **seinen** Branch, ein anderes Frontend würde zu fremdem Code passen.
+
+### Docroot der API (`index.php`)
+
+Der Docroot der API (`~/<dev|ch>/www/api.…`) ist ein von Hostpoint angelegter Ordner mit einer eigenen `index.php`, deren Pfade fest auf `<App-Ordner>/backend` zeigen (siehe Abschnitt 8, Punkt 5). **Vorschlag:** Der Deploy pflegt ihn **nicht** (er liegt ausserhalb des App-Ordners und gehört Hostpoint; ein Skript, das dort schreibt, könnte bei einem Pfadfehler die andere Umgebung treffen). Er wird beim Umzug und bei der Ersteinrichtung **einmal von Hand** angepasst und nur dann wieder, wenn sich `backend/public/index.php` ändert (selten). Entscheidet Oliver anders, ergänzt Bob das Skript um das Kopieren aus `backend/public/` mit Ersetzen der Pfade.
+
+### Umzug TEST (Schrittliste für Oliver)
+
+Voraussetzung: PR «Zwei Umgebungen» ist gemergt (noch **ohne** Deploy-Freigabe) und PROD ist vorbereitet (nächster Abschnitt, Punkt 1). Rückweg bei Problemen: Wartungsmodus, Ordner zurückverschieben, Docroots im Panel zurückstellen.
+
+```bash
+# 1. Wartungsmodus an (alter Pfad)
+cd ~/apps/mollo-planer/backend && /usr/local/php85/bin/php artisan down --retry=60
+
+# 2. Ordner verschieben (der Git-Checkout samt backend/.env zieht mit um)
+mkdir -p ~/dev/apps ~/dev/backups ~/dev/www
+mv ~/apps/mollo-planer ~/dev/apps/mollo-planer
+mv ~/backups/planer ~/dev/backups/planer
+# Docroots: im Hostpoint-Panel auf ~/dev/www/planer.mollo.dev und ~/dev/www/api.planer.mollo.dev umstellen
+# (oder die Ordner mit mv verschieben und das Panel darauf zeigen lassen), dann Inhalt prüfen:
+ls ~/dev/www/planer.mollo.dev ~/dev/www/api.planer.mollo.dev
+
+# 3. index.php der API: die festen Pfade auf ~/dev/apps/mollo-planer/backend umstellen
+nano ~/dev/www/api.planer.mollo.dev/index.php
+
+# 4. backend/.env ergänzen (Werte aus der Tabelle oben)
+nano ~/dev/apps/mollo-planer/backend/.env
+#   APP_ENV=staging, APP_NAME="Mollo Planer (Test)", DEPLOY_BRANCH=dev,
+#   DEPLOY_WEB_ROOT=~/dev/www/planer.mollo.dev, DEPLOY_BACKUP_DIR=~/dev/backups/planer
+
+# 5. Branch des Checkouts auf dev stellen
+cd ~/dev/apps/mollo-planer && git fetch origin dev && git checkout -f -B dev origin/dev
+
+# 6. Caches neu, Wartungsmodus aus
+cd backend
+/usr/local/php85/bin/php artisan config:cache
+/usr/local/php85/bin/php artisan lighthouse:clear-cache && /usr/local/php85/bin/php artisan lighthouse:cache
+/usr/local/php85/bin/php artisan up
+```
+
+Danach: Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend` ändern, in `authorized_keys` den Pfad im `command=` auf `/home/<benutzer>/dev/apps/mollo-planer/deploy/deploy.sh` ändern (vorher sichern), im Browser `https://planer.mollo.dev` öffnen (Band «Testumgebung», Anmeldung, ein Projekt). **Wichtig:** Die alte `deploy.sh` kennt `DEPLOY_*` nicht; der Checkout in Schritt 5 bringt die neue mit, der erste Lauf aus GitHub nimmt also schon die neue.
+
+### Ersteinrichtung PROD (Schrittliste für Oliver)
+
+1. **Hostpoint-Panel:** Domains `planer.mollo.ch` (Docroot `~/ch/www/planer.mollo.ch`) und `api.planer.mollo.ch` (Docroot `~/ch/www/api.planer.mollo.ch`) mit SSL anlegen; eine **neue Datenbank mit eigenem Benutzer**; PHP 8.5 für beide Domains; `memory_limit` 256M und `max_execution_time` 60 (Abschnitt 12).
+2. **Code holen:**
+   ```bash
+   mkdir -p ~/ch/apps/mollo-planer ~/ch/backups/planer && cd ~/ch/apps/mollo-planer
+   git init -q && git remote add origin https://github.com/<owner>/<repo>.git
+   git fetch -q origin main && git checkout -q -f -B main origin/main
+   chmod 700 ~/ch/backups/planer
+   ```
+3. **`backend/.env`** neu anlegen (`chmod 600`): eigener `APP_KEY` (`php artisan key:generate --show`), eigene Datenbank, `APP_ENV=production`, `APP_NAME="Mollo Planer"`, `APP_URL=https://api.planer.mollo.ch`, `FRONTEND_URL=https://planer.mollo.ch`, `SANCTUM_STATEFUL_DOMAINS=planer.mollo.ch`, `SESSION_DOMAIN=.planer.mollo.ch`, `PASSKEYS_RELYING_PARTY_ID=planer.mollo.ch`, Mail, `DEPLOY_PHP`, `DEPLOY_BRANCH=main`, `DEPLOY_WEB_ROOT=~/ch/www/planer.mollo.ch`, `DEPLOY_BACKUP_DIR=~/ch/backups/planer` (Rest wie Abschnitt 5).
+4. **Installieren:**
+   ```bash
+   cd ~/ch/apps/mollo-planer/backend
+   /usr/local/php85/bin/php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
+   /usr/local/php85/bin/php artisan migrate --force
+   /usr/local/php85/bin/php artisan planer:sync-templates
+   /usr/local/php85/bin/php artisan config:cache && /usr/local/php85/bin/php artisan route:cache && /usr/local/php85/bin/php artisan event:cache
+   /usr/local/php85/bin/php artisan lighthouse:cache
+   /usr/local/php85/bin/php artisan app:create-admin "<Name>" "<E-Mail>"
+   ```
+5. **Docroot der API:** `index.php`, `.htaccess` (Hostpoint-Block behalten), `robots.txt`, `favicon.ico` wie in Abschnitt 8, Punkt 5, mit den Pfaden auf `~/ch/apps/mollo-planer/backend`.
+6. **Cron** (Eintrag oben), **zweiter Deploy-Schlüssel** (`ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy planer-prod' -f ~/.ssh/planer-prod-deploy`, öffentlicher Teil mit `command=` auf das PROD-Skript in `authorized_keys`).
+7. **GitHub:** Umgebungen `test` und `production` wie oben anlegen.
+8. **Erste Deploys:** Push auf `dev` (TEST, läuft sofort), danach Merge `dev` → `main` (PROD, Freigabe). Anschliessend die Nachkontrolle mit Stuart (`docs/onboarding-leitfaden.md` §6.4) für **beide** Umgebungen.
+
+Die Rauchtests am Ende von `deploy.sh` (GraphQL, Passkey-RP-ID, `APP_NAME` auf TEST) laufen in beiden Umgebungen mit ihren eigenen Werten.
