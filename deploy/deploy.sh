@@ -6,7 +6,8 @@
 # The built frontend (.output/public) arrives as a tar.gz archive on stdin.
 #
 # Order: stage frontend -> update code -> back up DB -> maintenance on ->
-# composer, migrations, caches -> publish frontend -> maintenance off.
+# composer, migrations, caches (incl. the Lighthouse schema) -> publish frontend ->
+# maintenance off -> smoke test of the API.
 set -euo pipefail
 
 APP="$HOME/apps/mollo-planer"
@@ -112,6 +113,15 @@ log "Caches erzeugen"
 "$PHP" "$BACKEND/artisan" route:cache
 "$PHP" "$BACKEND/artisan" event:cache
 
+# The compiled GraphQL schema lives in bootstrap/cache (not in Git, git reset leaves it alone). Outside APP_ENV=local
+# Lighthouse reads only that file, so an old one keeps serving an old schema (and resolver classes that no longer
+# exist). Rebuild it on every deploy. The query cache (query_cache, mode "store") holds parsed query documents keyed
+# by the hash of the query text; a parsed query does not depend on the schema (it is validated on every request), so
+# it needs no clearing here.
+log "GraphQL-Schema neu erzeugen"
+"$PHP" "$BACKEND/artisan" lighthouse:clear-cache
+"$PHP" "$BACKEND/artisan" lighthouse:cache
+
 log "Frontend veröffentlichen"
 rsync -a --delete "$STAGE/" "$WEB_ROOT/"
 
@@ -119,5 +129,19 @@ log "Wartungsmodus aus"
 "$PHP" "$BACKEND/artisan" up >/dev/null
 maintenance=0
 rm -rf "$STAGE"
+
+# The code is live now, so a failing smoke test turns the run red but does not roll anything back.
+# A request without Origin/Referer is not treated as a stateful SPA request by Sanctum, so no CSRF cookie is needed.
+# Expected without a session: the answer says "Unauthenticated." (the schema loads, the resolver class exists).
+log "Rauchtest GraphQL"
+API_URL=$(env_value APP_URL)
+SMOKE=$(curl -sS -m 30 -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' \
+    -d '{"query":"{ viewerRights }"}' "${API_URL%/}/api" 2>&1 || true)
+if [[ "$SMOKE" != *"Unauthenticated."* ]]; then
+    echo "Rauchtest GraphQL fehlgeschlagen: ${SMOKE:0:300}" >&2
+    echo "Der neue Code ist bereits live (kein automatisches Zurückrollen). Log prüfen: backend/storage/logs." >&2
+    exit 1
+fi
+echo "Rauchtest GraphQL: ok"
 
 log "Deployment abgeschlossen"
