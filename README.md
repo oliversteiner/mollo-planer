@@ -27,6 +27,8 @@ php artisan app:user-password <Nutzer>          # neues Passwort (fragt es zweim
 php artisan app:user-email <Nutzer>             # zeigt Adresse und Stand der Bestätigung
 php artisan app:user-email <Nutzer> <neue-E-Mail> [--unverified]
 php artisan app:user-email <Nutzer> --verified  # oder --unverified, ohne neue Adresse
+php artisan app:user-role <Nutzer> [<Rolle>]     # Systemrolle setzen (ohne Rolle: Auswahl; der letzte Admin bleibt Admin)
+php artisan app:user-approve <Nutzer>            # wartendes Konto freigeben (mit Mail an die Person)
 php artisan app:user-2fa <Nutzer>               # wählt die Aktion per Auswahl
 php artisan app:user-2fa <Nutzer> status        # zeigt alles, schreibt nichts
 php artisan app:user-2fa <Nutzer> reset         # Gerät verloren: alles zurücksetzen
@@ -136,19 +138,19 @@ ANTHROPIC_MODEL=claude-opus-5-5
 
 Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Je Person gelten Grenzen (Standard 30 Entwürfe je Stunde und 200 je Tag, einstellbar mit `ASSISTANT_LIMIT_HOUR` und `ASSISTANT_LIMIT_DAY`). `php artisan assistant:ping` schickt eine kleine echte Anfrage mit dem echten Schema und meldet OK oder den Fehler der API; vor jeder Änderung am Assistenten oder an seinem Schema laufen lassen. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).
 
-## Deployment (Produktion)
+## Deployment (zwei Umgebungen)
 
-Produktiv laufen Frontend unter `https://planer.mollo.dev` und API unter `https://api.planer.mollo.dev` auf dem Hostpoint-Server `servername.hostpoint.ch` (Benutzer `username`). Der Ablauf ist automatisiert: Ein Push auf `main` testet, baut und spielt die App aus, nach einer Freigabe.
+Es gibt zwei Umgebungen auf demselben Hostpoint-Konto: **TEST** (`https://planer.mollo.dev`, API `https://api.planer.mollo.dev`, Branch `dev`, ohne Freigabe) und **PROD** (`https://planer.mollo.ch`, API `https://api.planer.mollo.ch`, Branch `main`, mit Freigabe). Tabelle, Pflichtwerte in `backend/.env`, Schlüssel, Cron, GitHub-Umgebungen sowie die Schrittlisten «Umzug TEST» und «Ersteinrichtung PROD» stehen in `docs/deploy-template.md`, Abschnitt 15. Die Beschreibung unten gilt für beide; wo ein Pfad oder eine Adresse steht, ist die von PROD gemeint, TEST hat `~/dev/…` und `.dev` statt `~/ch/…` und `.ch`.
 
 ### Ablauf
 
-Die Datei `.github/workflows/deploy.yml` läuft bei jedem Push auf `main` (oder manuell, siehe unten):
+Die Datei `.github/workflows/deploy.yml` läuft bei jedem Push auf `dev` (TEST) und `main` (PROD) oder manuell, siehe unten (andere Branches deployen nicht):
 
 1. **Tests:** Backend (`composer test`, SQLite) und Frontend (Lint, Typecheck, Unit-Tests). Schlägt ein Test fehl, wird nichts veröffentlicht.
-2. **Freigabe:** Der Job `deploy` wartet auf eine Freigabe im Environment `production`.
-3. **Build:** Das Frontend wird mit `NUXT_PUBLIC_API_BASE=https://api.planer.mollo.dev` gebaut.
+2. **Freigabe:** Für `main` wartet der Job `deploy` auf eine Freigabe im Environment `production`, für `dev` läuft er sofort (Environment `test`).
+3. **Build:** Das Frontend wird mit der Variablen `API_BASE` der GitHub-Umgebung als `NUXT_PUBLIC_API_BASE` gebaut.
 4. **Übertragung:** Das Archiv `frontend/.output/public` geht per SSH an den Server. Der Schlüssel darf nur das Skript `deploy/deploy.sh` starten, keine Shell.
-5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/main`, sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force`, `planer:sync-templates` (die mitgelieferten Vorlagen aus `spec/templates/`) und die Caches aus, kopiert das Frontend nach `~/www/planer.mollo.dev` und schaltet den Wartungsmodus wieder aus.
+5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/<DEPLOY_BRANCH>` (aus `backend/.env`), sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force`, `planer:sync-templates` (die mitgelieferten Vorlagen aus `spec/templates/`) und die Caches aus, kopiert das Frontend nach `DEPLOY_WEB_ROOT` und schaltet den Wartungsmodus wieder aus.
 
 Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen. `CORS_ALLOWED_ORIGINS` bleibt dort leer (nur für die Entwicklung im lokalen Netz). Mails und Webhooks brauchen den Cron-Eintrag `schedule:run` jede Minute (siehe `docs/deploy-template.md`, Abschnitt „Cron“). **Kein `php artisan migrate:rollback` in Produktion:** einige Rückwärts-Migrationen verlieren Daten, der Rückweg ist die Sicherung vor dem Deploy plus der vorherige Release.
 

@@ -49,8 +49,9 @@ class StrongAuthenticationTest extends TestCase
      * LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION says otherwise.
      */
     #[TestWith(['production', true])]
+    #[TestWith(['staging', true])]
     #[TestWith(['local', false])]
-    public function test_introspection_is_disabled_only_in_production(string $environment, bool $disabled): void
+    public function test_introspection_is_disabled_on_the_servers_only(string $environment, bool $disabled): void
     {
         $original = $_SERVER['APP_ENV'] ?? null;
         $_SERVER['APP_ENV'] = $environment;

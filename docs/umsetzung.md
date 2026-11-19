@@ -322,6 +322,12 @@ U0 → T1 → T0 → T5 → T4 (Rest) → T6 → S2 → S3 → R1 → S3b → S3
 - Keine offenen Punkte.
 
 
+Zwei Umgebungen (Auftrag 28, Branch `chore/zwei-umgebungen`, PR nach `dev`): `deploy.sh` ohne feste Pfade (`DEPLOY_BRANCH`, `DEPLOY_WEB_ROOT`, `DEPLOY_BACKUP_DIR` aus `backend/.env`, Schutz gegen Verwechslung), Workflow `dev` → `test`, `main` → `production`, TEST mit `APP_ENV=staging` (alle Sicherheitsregeln der Produktion gelten dort, `DeploymentEnvironment::isLive()`), Band «Testumgebung», Doku und Schrittlisten für Oliver in `docs/deploy-template.md` Abschnitt 15.
+
+## Nachkontrolle 1.1 (Auftrag 27)
+
+Auftrag 27 erledigt (2026-11-19, direkt auf `dev`, PR `dev` → `main` offen): A `deploy.sh` erzeugt den GraphQL-Schema-Cache nach `config:cache` neu (`lighthouse:clear-cache`, `lighthouse:cache`; der Query-Cache hält nur geparste Abfragetexte und bleibt) und macht nach `up` einen Rauchtest (`{ viewerRights }` ohne Sitzung, erwartet `Unauthenticated.`, sonst rot, kein Zurückrollen). B Browser-Tests laufen mit `APP_ENV=production` und Schema-Cache, dazu ein Backend-Test (`GraphQLSchemaCacheTest`: Cache baut, jede Resolver-Klasse des Schemas existiert; `lighthouse:cache` allein merkt eine fehlende Klasse nicht). C Das Logo im Layout `auth` führt zur Startseite («Mollo Planer, zur Startseite», ui-consistency, von einem unabhängigen Agenten geprüft). D `PASSKEYS_RELYING_PARTY_ID` ausdrücklich dokumentiert, `deploy.sh` warnt bei Abweichung vom Host von `FRONTEND_URL`. E `app:user-role` und `app:user-approve`. F Apollo-Entwicklerwerkzeuge nur in der Entwicklung (im gebauten Frontend geprüft). v1.1 steht auf `veröffentlicht`.
+
 ## Larastan-Baseline (Auftrag 25 C)
 
 `backend/phpstan-baseline.neon` hält 187 ältere Meldungen (Level 5), `composer analyse` ist grün und läuft in der CI (`backend.yml`, Job «Code style»). Neue Meldungen fallen auf; die Baseline wird gezielt abgebaut (eigener Auftrag von Stuart). Grösste Posten: `Planer/Import.php` 37, `Planer/Export.php` 19, `Assistant/AssistantPrompt.php` 10, `Services/Deletion.php` 10, `Services/TrashListing.php` 10, `Services/KanbanOrdering.php` 9, `Services/ReleaseRules.php` 7, `GraphQL/Mutations/CreateProject.php` 5. Keine davon sieht nach einem Laufzeitfehler aus (meist fehlende Typangaben bei Casts, Relationen und Builder-Generics); `ClaudeClient.php:78` prüft `instanceof BetaStopReason` defensiv, das SDK typisiert es als `string|null`.

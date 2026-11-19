@@ -711,8 +711,8 @@
       "number": "1.1",
       "title": "Sicheres Onboarding",
       "description": "Der Weg vom Konto bis zur Arbeitsfläche ist gehärtet: Nutzerbefehle für den Betrieb, ein Bestätigungslink ohne Sitzung, neutrale Antworten bei Registrierung und «Passwort vergessen», eine Passwortregel mit Leak-Prüfung, Mails zu Freigabe, Ablehnung und Sicherheitsänderungen, die Sprache pro Konto, Browser-Tests der Anmeldung und Larastan in der CI (Aufträge 18 bis 25).",
-      "status": "geplant",
-      "releasedOn": null,
+      "status": "veröffentlicht",
+      "releasedOn": "2026-11-19",
       "changes": [
         {
           "kind": "neu",

@@ -1,28 +1,60 @@
 name: deploy
 
-# Deploys main to production. Runs the tests first; the deploy job waits
-# for them and then needs a manual approval via the environment "production".
+# Two environments on the same Hostpoint account (docs/deploy-template.md):
+#   push to dev  -> GitHub environment "test"        (planer.mollo.dev, no approval)
+#   push to main -> GitHub environment "production"  (planer.mollo.ch, needs the approval of the reviewer)
+# Anything else does not deploy. The tests run first in both cases.
+#
+# What differs per environment comes from the GitHub ENVIRONMENT, not from the repo: the secret DEPLOY_SSH_KEY
+# and the variables API_BASE and FRONTEND_URL. DEPLOY_HOST, DEPLOY_USER and DEPLOY_KNOWN_HOSTS are shared
+# (same server). The server decides what the key may do: its authorized_keys line points to the deploy.sh of
+# ITS environment (command=), so the environment is not chosen here.
 
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (test only from dev, production only from main)'
+        type: choice
+        options: [test, production]
+        required: true
 
 permissions:
   contents: read
-
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
 
 env:
   # Host and user come from the repository variables (Settings → Secrets and
   # variables → Actions → Variables), so they are not stored in git.
   DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
   DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-  API_BASE: https://api.planer.mollo.dev
 
 jobs:
+  target:
+    name: Target environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.pick.outputs.environment }}
+    steps:
+      - name: Pick the environment from the branch
+        id: pick
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REQUESTED: ${{ inputs.environment }}
+        run: |
+          case "$REF_NAME" in
+            dev) environment=test ;;
+            main) environment=production ;;
+            *) echo "Branch '$REF_NAME' is not deployed (only dev and main)." >&2; exit 1 ;;
+          esac
+          if [ -n "$REQUESTED" ] && [ "$REQUESTED" != "$environment" ]; then
+            echo "Environment '$REQUESTED' cannot be deployed from branch '$REF_NAME' (dev -> test, main -> production)." >&2
+            exit 1
+          fi
+          echo "environment=$environment" >> "$GITHUB_OUTPUT"
+          echo "Deploying $REF_NAME to $environment"
+
   test-backend:
     name: Tests (Backend)
     runs-on: ubuntu-latest
@@ -96,14 +128,30 @@ jobs:
         run: npm test
 
   deploy:
-    name: Deploy
-    needs: [test-backend, test-frontend]
+    name: Deploy (${{ needs.target.outputs.environment }})
+    needs: [target, test-backend, test-frontend]
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ needs.target.outputs.environment }}
+      cancel-in-progress: false
     environment:
-      name: production
-      url: https://planer.mollo.dev
+      name: ${{ needs.target.outputs.environment }}
+      url: ${{ steps.address.outputs.url }}
 
     steps:
+      # The link of the environment, and a stop when its variables are missing.
+      - name: Address of the environment
+        id: address
+        env:
+          API_BASE: ${{ vars.API_BASE }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+        run: |
+          if [ -z "$API_BASE" ] || [ -z "$FRONTEND_URL" ]; then
+            echo "The variables API_BASE and FRONTEND_URL are missing in the GitHub environment." >&2
+            exit 1
+          fi
+          echo "url=$FRONTEND_URL" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@v7
 
@@ -138,7 +186,7 @@ jobs:
         working-directory: frontend
         run: npm run build
         env:
-          NUXT_PUBLIC_API_BASE: ${{ env.API_BASE }}
+          NUXT_PUBLIC_API_BASE: ${{ vars.API_BASE }}
 
       - name: Deploy key and host key
         env:

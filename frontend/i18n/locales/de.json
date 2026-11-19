@@ -1,6 +1,9 @@
 {
   "app": {
-    "name": "Mollo Planer"
+    "name": "Mollo Planer",
+    "testEnvironment": "Testumgebung",
+    "testEnvironmentHint": "Das ist die Testumgebung: Daten und Mails gelten nicht für den Betrieb.",
+    "home": "Mollo Planer, zur Startseite"
   },
   "nav": {
     "dashboard": "Dashboard",

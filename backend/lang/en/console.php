@@ -37,6 +37,20 @@ return [
         'done' => 'Password of :name changed.',
         'two_factor_unchanged' => 'The second factor is unchanged (use app:user-2fa for that).',
     ],
+    'user_role' => [
+        'nothing' => 'The role of :name is already “:role”, nothing to change.',
+        'needs_interaction' => 'Without a terminal the role must be given. Possible: :roles.',
+        'choose' => 'New role for :name (now: :role)',
+        'unknown' => 'Unknown role “:role”. Possible: :roles.',
+        'confirm' => 'Change the role of :name to “:role”?',
+        'done' => 'Role of :name: :old → :new.',
+    ],
+    'user_approve' => [
+        'already' => 'The account of :name is released already, nothing to change.',
+        'confirm' => 'Release the account of :name (:email)? The person gets a mail.',
+        'done' => 'Account of :name released, the mail goes through the queue.',
+        'unverified' => 'Attention: the e-mail address is not confirmed yet, the API stays locked until the person confirms it (or app:user-email --verified).',
+    ],
     'user_email' => [
         'both_options' => '--verified and --unverified exclude each other.',
         'state' => 'E-mail address: :email, confirmed: :verified.',

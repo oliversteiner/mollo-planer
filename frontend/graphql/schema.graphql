@@ -13,6 +13,8 @@ type ApiToken {
 }
 "Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
 type AppSettings {
+ "Läuft das Backend nicht als Produktion (Testumgebung oder Entwicklungsrechner)? Dann zeigt die App ein Band «Testumgebung»."
+ isTestEnvironment: Boolean!
  "Projektrolle, die man im Projekt bekommt, das man selbst anlegt (Standard: Owner). Muss project.delete haben."
  projectCreatorRole: Role!
  "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."

@@ -37,6 +37,20 @@ return [
         'done' => 'Passwort von :name geändert.',
         'two_factor_unchanged' => 'Der zweite Faktor ist unverändert (dafür app:user-2fa).',
     ],
+    'user_role' => [
+        'nothing' => 'Rolle von :name ist schon „:role“, nichts zu ändern.',
+        'needs_interaction' => 'Ohne Terminal muss die Rolle angegeben werden. Möglich: :roles.',
+        'choose' => 'Neue Rolle für :name (jetzt: :role)',
+        'unknown' => 'Unbekannte Rolle „:role“. Möglich: :roles.',
+        'confirm' => 'Rolle von :name auf „:role“ ändern?',
+        'done' => 'Rolle von :name: :old → :new.',
+    ],
+    'user_approve' => [
+        'already' => 'Konto von :name ist schon freigegeben, nichts zu ändern.',
+        'confirm' => 'Konto von :name (:email) freigeben? Die Person bekommt eine Mail.',
+        'done' => 'Konto von :name freigegeben, die Mail geht über die Queue.',
+        'unverified' => 'Achtung: Die E-Mail-Adresse ist noch nicht bestätigt, die API bleibt gesperrt, bis die Person sie bestätigt (oder app:user-email --verified).',
+    ],
     'user_email' => [
         'both_options' => '--verified und --unverified schließen sich aus.',
         'state' => 'E-Mail-Adresse: :email, bestätigt: :verified.',

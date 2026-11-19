@@ -35,11 +35,11 @@ final class AppSettings
     }
 
     /**
-     * May the setting be changed here? Never in production.
+     * May the setting be changed here? Never on a server (production and the test environment).
      */
     public static function twoFactorSwitchable(): bool
     {
-        return ! app()->isProduction();
+        return ! DeploymentEnvironment::isLive();
     }
 
     public static function setTwoFactorEnabled(bool $enabled, User $admin): void
