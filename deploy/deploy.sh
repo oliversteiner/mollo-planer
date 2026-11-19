@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Deployment for the production server (Hostpoint).
+# Deployment for one environment on the Hostpoint server (TEST: branch dev, PROD: branch main).
 #
 # Runs only through the restricted SSH key of GitHub Actions (see
-# .github/workflows/deploy.yml and ~/.ssh/authorized_keys on the server).
+# .github/workflows/deploy.yml and ~/.ssh/authorized_keys on the server). Every environment has its own
+# key whose command= points to ITS copy of this script, so the client cannot choose the environment: the app
+# folder is the folder above deploy/, everything else comes from backend/.env of that folder.
 # The built frontend (.output/public) arrives as a tar.gz archive on stdin.
 #
-# Order: stage frontend -> update code -> back up DB -> maintenance on ->
-# composer, migrations, caches (incl. the Lighthouse schema) -> publish frontend ->
-# maintenance off -> smoke test of the API.
+# Order: read and check backend/.env -> stage frontend -> update code -> back up DB -> maintenance on ->
+# composer, migrations, caches (incl. the Lighthouse schema) -> publish frontend -> maintenance off ->
+# smoke test of the API.
 set -euo pipefail
 
-APP="$HOME/apps/mollo-planer"
+APP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND="$APP/backend"
-WEB_ROOT="$HOME/www/planer.mollo.dev"
-STAGE="$HOME/apps/.planer-stage"
-BACKUP_DIR="$HOME/backups/planer"
+STAGE="$(dirname "$APP")/.planer-stage"
 KEEP_BACKUPS=10
 PHP="php" # overridden by DEPLOY_PHP in backend/.env (full path), see below
 COMPOSER="/usr/local/bin/composer"
@@ -30,24 +30,60 @@ env_value() {
     grep -E "^$1=" "$BACKEND/.env" | tail -n 1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/'
 }
 
-# Which PHP runs: DEPLOY_PHP in backend/.env (full path), otherwise "php". A missing .env or line is no error here.
-deploy_php=""
-if [ -f "$BACKEND/.env" ]; then
-    deploy_php=$(env_value DEPLOY_PHP || true)
+# A path from backend/.env: "~/" stands for the home folder.
+home_path() {
+    case "$1" in
+        "~/"*) printf '%s\n' "$HOME/${1#"~/"}" ;;
+        *) printf '%s\n' "$1" ;;
+    esac
+}
+
+fail() {
+    echo "$1 Nichts wurde geändert." >&2
+    exit 1
+}
+
+# Everything that differs per environment is read and checked BEFORE anything changes.
+[ -f "$BACKEND/.env" ] || fail "backend/.env fehlt in $APP."
+
+DEPLOY_BRANCH=$(env_value DEPLOY_BRANCH || true)
+DEPLOY_WEB_ROOT=$(home_path "$(env_value DEPLOY_WEB_ROOT || true)")
+DEPLOY_BACKUP_DIR=$(home_path "$(env_value DEPLOY_BACKUP_DIR || true)")
+FRONTEND_URL=$(env_value FRONTEND_URL || true)
+
+[ -n "$DEPLOY_BRANCH" ] || fail "DEPLOY_BRANCH fehlt in backend/.env (dev oder main)."
+[ -n "$DEPLOY_WEB_ROOT" ] && [ "$DEPLOY_WEB_ROOT" != "$HOME/" ] || fail "DEPLOY_WEB_ROOT fehlt in backend/.env."
+[ -n "$DEPLOY_BACKUP_DIR" ] && [ "$DEPLOY_BACKUP_DIR" != "$HOME/" ] || fail "DEPLOY_BACKUP_DIR fehlt in backend/.env."
+[ -n "$FRONTEND_URL" ] || fail "FRONTEND_URL fehlt in backend/.env."
+[[ "$DEPLOY_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]] || fail "DEPLOY_BRANCH '$DEPLOY_BRANCH' ist kein gültiger Branch-Name."
+[ -d "$DEPLOY_WEB_ROOT" ] || fail "DEPLOY_WEB_ROOT zeigt auf $DEPLOY_WEB_ROOT, den Ordner gibt es nicht."
+
+# Protection against mixing the environments up: the docroot must be named like the host of FRONTEND_URL.
+FRONTEND_HOST=$(printf '%s' "$FRONTEND_URL" | sed -E 's#^[a-z]+://##; s#[/:].*$##')
+if [ "$(basename "${DEPLOY_WEB_ROOT%/}")" != "$FRONTEND_HOST" ]; then
+    fail "DEPLOY_WEB_ROOT ($DEPLOY_WEB_ROOT) passt nicht zu FRONTEND_URL ($FRONTEND_URL): der letzte Pfadteil muss '$FRONTEND_HOST' sein."
 fi
+WEB_ROOT="${DEPLOY_WEB_ROOT%/}"
+BACKUP_DIR="${DEPLOY_BACKUP_DIR%/}"
+
+# Which PHP runs: DEPLOY_PHP in backend/.env (full path), otherwise "php".
+deploy_php=$(env_value DEPLOY_PHP || true)
 if [ -n "$deploy_php" ]; then
     if [ ! -x "$deploy_php" ]; then
-        echo "DEPLOY_PHP zeigt auf $deploy_php, die Datei ist nicht ausführbar. Nichts wurde geändert." >&2
-        exit 1
+        fail "DEPLOY_PHP zeigt auf $deploy_php, die Datei ist nicht ausführbar."
     fi
     PHP="$deploy_php"
 fi
 
 # backend/composer.json requires PHP 8.5; stop before anything changes.
 if ! "$PHP" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
-    echo "PHP 8.5 oder neuer nötig, gefunden: $("$PHP" -r 'echo PHP_VERSION;') ($PHP). DEPLOY_PHP in backend/.env auf PHP 8.5 setzen, z. B. /usr/local/php85/bin/php. Nichts wurde geändert." >&2
-    exit 1
+    fail "PHP 8.5 oder neuer nötig, gefunden: $("$PHP" -r 'echo PHP_VERSION;') ($PHP). DEPLOY_PHP in backend/.env auf PHP 8.5 setzen, z. B. /usr/local/php85/bin/php."
 fi
+
+log "Umgebung: APP_ENV=$(env_value APP_ENV || true), Branch $DEPLOY_BRANCH"
+echo "App-Ordner: $APP"
+echo "Docroot Frontend: $WEB_ROOT"
+echo "Sicherungen: $BACKUP_DIR"
 
 on_exit() {
     local status=$?
@@ -71,8 +107,8 @@ fi
 
 log "Code aktualisieren"
 cd "$APP"
-git fetch --quiet origin main
-git reset --hard --quiet origin/main
+git fetch --quiet origin "$DEPLOY_BRANCH"
+git reset --hard --quiet "origin/$DEPLOY_BRANCH"
 echo "Commit: $(git rev-parse --short HEAD)"
 # Werkzeuge und Testdaten für planer-v2 gehören nicht auf den Server (dort gibt es kein Node).
 # spec/planer-v2.schema.json bleibt: die App liest es.
@@ -147,9 +183,13 @@ echo "Rauchtest GraphQL: ok"
 # Passkeys belong to the relying party ID: it must be the host of FRONTEND_URL (no single sign-on between apps).
 # Only a warning, no abort.
 RP_ID=$("$PHP" "$BACKEND/artisan" config:show fortify.passkeys.relying_party_id 2>/dev/null | awk 'NF {print $NF}' | tail -n 1 || true)
-FRONTEND_HOST=$(env_value FRONTEND_URL | sed -E 's#^[a-z]+://##; s#[/:].*$##')
 if [ "$RP_ID" != "$FRONTEND_HOST" ]; then
     echo "WARNUNG: PASSKEYS_RELYING_PARTY_ID ist '$RP_ID', der Host von FRONTEND_URL ist '$FRONTEND_HOST'. Passkeys würden nicht passen (siehe docs/deploy-template.md)." >&2
+fi
+
+# The test environment says so in its mails: APP_NAME carries "(Test)". Only a warning.
+if [ "$(env_value APP_ENV || true)" = "staging" ] && [[ "$(env_value APP_NAME || true)" != *Test* ]]; then
+    echo "WARNUNG: APP_ENV ist staging, aber APP_NAME enthält nicht «Test» (z. B. \"Mollo Planer (Test)\"): Mails der Testumgebung wären nicht als Test erkennbar." >&2
 fi
 
 log "Deployment abgeschlossen"

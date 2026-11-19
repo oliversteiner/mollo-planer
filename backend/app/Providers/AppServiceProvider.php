@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Planer\PlanerRevision;
 use App\Services\TaskNotifier;
+use App\Support\DeploymentEnvironment;
 use App\Support\PasswordPolicy;
 use App\Support\Rights;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -42,9 +43,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Password::defaults(fn (): Password => PasswordPolicy::defaults());
 
-        // Outside production, loading a relation per row (N+1) is an error.
+        // Outside the live environments (production and staging), loading a relation per row (N+1) is an error.
         // GraphQL lists batch-load instead (@with, ProgressBatchLoader).
-        Model::preventLazyLoading(! $this->app->isProduction());
+        Model::preventLazyLoading(! DeploymentEnvironment::isLive());
 
         // Escape Markdown links and HTML in values echoed into mails, so a
         // task title like "[Click](https://evil.example)" stays plain text.

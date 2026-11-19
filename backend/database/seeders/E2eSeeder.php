@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Planer\TemplateSync;
+use App\Support\DeploymentEnvironment;
 use Illuminate\Database\Seeder;
 use Laravel\Fortify\Fortify;
 use RuntimeException;
@@ -13,7 +14,7 @@ use RuntimeException;
  * The accounts of the browser tests (frontend/e2e): an admin and a member, both confirmed, approved and with an
  * authenticator app. Password and authenticator secret come from the environment of the tests
  * (E2E_PASSWORD, E2E_TOTP_SECRET, E2E_RECOVERY_CODES in frontend/e2e/support/environment.ts), not from this code:
- * like the DemoSeeder, the seeder itself holds no known password. It refuses to run in production and
+ * like the DemoSeeder, the seeder itself holds no known password. It refuses to run on a server (production or staging) and
  * without these values.
  *
  *   php artisan migrate:fresh --seed --seeder=E2eSeeder     (with DB_DATABASE pointing at the test database)
@@ -22,8 +23,8 @@ class E2eSeeder extends Seeder
 {
     public function run(): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('E2eSeeder must not run in production.');
+        if (DeploymentEnvironment::isLive()) {
+            throw new RuntimeException('E2eSeeder must not run on a server (production or staging).');
         }
 
         $password = (string) env('E2E_PASSWORD');

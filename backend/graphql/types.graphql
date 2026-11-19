@@ -313,6 +313,8 @@ type AppSettings {
   twoFactorEnabled: Boolean!
   "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
   twoFactorSwitchable: Boolean!
+  "Läuft das Backend nicht als Produktion (Testumgebung oder Entwicklungsrechner)? Dann zeigt die App ein Band «Testumgebung»."
+  isTestEnvironment: Boolean!
   "Projektrolle, die man im Projekt bekommt, das man selbst anlegt (Standard: Owner). Muss project.delete haben."
   projectCreatorRole: Role!
 }

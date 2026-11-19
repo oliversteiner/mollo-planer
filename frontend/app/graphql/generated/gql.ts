@@ -116,7 +116,7 @@ type Documents = {
     "\n  mutation RestoreFromTrash($deletionId: ID!) {\n    restoreFromTrash(deletionId: $deletionId) { deletionId type id title }\n  }\n": typeof types.RestoreFromTrashDocument,
     "\n  mutation PurgeFromTrash($deletionId: ID!) {\n    purgeFromTrash(deletionId: $deletionId)\n  }\n": typeof types.PurgeFromTrashDocument,
     "\n  mutation EmptyProjectTrash($projectId: ID!) {\n    emptyProjectTrash(projectId: $projectId)\n  }\n": typeof types.EmptyProjectTrashDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": typeof types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n      isTestEnvironment\n    }\n    viewerRights\n  }\n": typeof types.ViewerDocument,
     "\n  query ZenProject($id: ID!) {\n    project(id: $id) { id name }\n  }\n": typeof types.ZenProjectDocument,
 };
 const documents: Documents = {
@@ -222,7 +222,7 @@ const documents: Documents = {
     "\n  mutation RestoreFromTrash($deletionId: ID!) {\n    restoreFromTrash(deletionId: $deletionId) { deletionId type id title }\n  }\n": types.RestoreFromTrashDocument,
     "\n  mutation PurgeFromTrash($deletionId: ID!) {\n    purgeFromTrash(deletionId: $deletionId)\n  }\n": types.PurgeFromTrashDocument,
     "\n  mutation EmptyProjectTrash($projectId: ID!) {\n    emptyProjectTrash(projectId: $projectId)\n  }\n": types.EmptyProjectTrashDocument,
-    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n": types.ViewerDocument,
+    "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n      isTestEnvironment\n    }\n    viewerRights\n  }\n": types.ViewerDocument,
     "\n  query ZenProject($id: ID!) {\n    project(id: $id) { id name }\n  }\n": types.ZenProjectDocument,
 };
 
@@ -651,7 +651,7 @@ export function graphql(source: "\n  mutation EmptyProjectTrash($projectId: ID!)
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n    }\n    viewerRights\n  }\n"];
+export function graphql(source: "\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n      isTestEnvironment\n    }\n    viewerRights\n  }\n"): (typeof documents)["\n  query Viewer {\n    me {\n      id\n      name\n      email\n      role { key names { de en } }\n      activity\n      avatarUrl\n      notifyByEmail\n      approved\n      emailVerified\n    }\n    appSettings {\n      twoFactorEnabled\n      isTestEnvironment\n    }\n    viewerRights\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

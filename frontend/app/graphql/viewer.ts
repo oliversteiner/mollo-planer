@@ -16,6 +16,7 @@ export const viewerQuery = graphql(`
     }
     appSettings {
       twoFactorEnabled
+      isTestEnvironment
     }
     viewerRights
   }

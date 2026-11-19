@@ -19,7 +19,7 @@ class SetProjectCreatorRole
 {
     /**
      * @param  array{roleKey: string}  $args
-     * @return array{twoFactorEnabled: bool, twoFactorSwitchable: bool, projectCreatorRole: Role}
+     * @return array{twoFactorEnabled: bool, twoFactorSwitchable: bool, isTestEnvironment: bool, projectCreatorRole: Role}
      *
      * @throws ValidationException
      */
