@@ -1,0 +1,56 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Das "
+                },
+                {
+                    "type": "text",
+                    "text": "weg",
+                    "marks": [
+                        {
+                            "type": "strike"
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "text": " und "
+                },
+                {
+                    "type": "text",
+                    "text": "fett weg",
+                    "marks": [
+                        {
+                            "type": "bold"
+                        },
+                        {
+                            "type": "strike"
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "text": " und "
+                },
+                {
+                    "type": "text",
+                    "text": "a",
+                    "marks": [
+                        {
+                            "type": "strike"
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "text": "b"
+                }
+            ]
+        }
+    ]
+}

@@ -12,4 +12,6 @@ return [
     'too_large' => 'The :attribute field is too large.',
     'markdown_too_long' => 'The :attribute field may have at most :max characters as Markdown (now :length).',
     'empty' => 'The :attribute field must not be empty.',
+    'table_cell' => 'A table cell may only hold one paragraph of text, without a line break, merged cells or alignment.',
+    'heading_level_document' => 'Only headings of levels 1 to 4 are allowed in the :attribute field.',
 ];

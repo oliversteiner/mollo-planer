@@ -1,0 +1,46 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "orderedList",
+            "content": [
+                {
+                    "type": "listItem",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "a"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "taskList",
+            "content": [
+                {
+                    "type": "taskItem",
+                    "attrs": {
+                        "checked": true
+                    },
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "c"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

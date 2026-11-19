@@ -256,6 +256,28 @@ Der Konverter in `tools/planer/core/richtext.mjs` liest eine Beschreibung in ein
 
 Testfälle: `spec/fixtures/richtext/`. Paare `*.in.md` und `*.out.md` prüfen die kanonische Form, `*.error.md` prüft die Fehler, `*.hint.in.md` und die Hinweise. Dazu je Paar `*.tiptap.json` (das erwartete Dokument) und je Fehlerfall `*.lenient.json` (Ergebnis von `App\Planer\RichText\MarkdownToTiptap` im Modus `lenient`); sie lesen nur die PHP-Tests, `tools/planer` liest `.md`.
 
+### 6.2 Das Profil «Dokument»
+
+Dokumente der Dokumentenverwaltung (`docs/dokumentenverwaltung.md` §5) speichern Markdown in einer eigenen kanonischen Form, die auf §6.1 aufbaut. **Die Planer-Datei und `tools/planer` kennen dieses Profil nicht**: Die Datei enthält keine Dokumente, und die Beschreibungen bleiben nach §6.1. Das Backend (`App\Planer\RichText\MarkdownToTiptap` und `TiptapToMarkdown` mit `Profile::Document`, `App\Support\DocumentContent`) wandelt streng um: Was das Profil nicht erlaubt, ist ein Fehler, nie stilles Verwerfen.
+
+Zusätzlich zu §6.1:
+
+- **Überschriften** `#` bis `####` (Ebene 1 bis 4). Ab Ebene 5 ist es ein Fehler.
+- **Codeblock** mit Zaun aus Backticks, der um eins länger ist als der längste Backtick-Lauf im Code (mindestens drei). Hinter dem Zaun steht die Sprache (Zeichen `A–Z a–z 0–9 _ + # . -`, höchstens 32; alles andere gilt als keine Sprache). Der Inhalt ist Text ohne Formatierung, leer ist erlaubt. Eingerückter Code und `~~~` werden beim Lesen zum Zaun aus Backticks.
+- **Trennlinie** `---` (auch `***`, `___`, `- - -` beim Lesen).
+- **Durchgestrichen** `~~…~~` (in Fett und Kursiv eingeschlossen: `**~~a~~**`). Ein einzelnes `~` bleibt Text, `~~` im Text steht mit Backslash.
+- **Tabelle** mit senkrechten Strichen und der Zeile `| --- |` unter der Kopfzeile. Die erste Zeile ist **immer** die Kopfzeile (Markdown kennt keine Tabelle ohne). Jede Zelle ist **ein Absatz mit Text** (Fett, Kursiv, Durchgestrichen, Code und Link sind erlaubt, Zeilenumbruch, Liste, Zellen verbinden und Ausrichtung nicht). Ein `|` im Text steht als `\|`. Zu kurze Zeilen werden mit leeren Zellen aufgefüllt, überzählige Zellen entfallen; eine Ausrichtung (`:---:`) geht beim Lesen verloren.
+- **Aufgabenliste** `- [ ] ` und `- [x] ` (beim Lesen auch `[X]`, `*` und `1.`). Aufgabenlisten und Aufzählungen werden nie gemischt: Eine Liste, die beides enthält, wird beim Lesen an der Stelle des Wechsels geteilt. Folgt eine Aufzählung auf eine Aufgabenliste (oder umgekehrt), beginnt die zweite mit `*`, sonst läse CommonMark beide als eine Liste. Aufgaben dürfen Unterlisten und Unteraufgaben haben.
+- **Listenpunkte und Aufgaben beginnen mit einem Absatz** (eine Überschrift oder ein Codeblock als Erstes ist ein Fehler im Dokument, auch wenn der Leser es im Profil «Beschreibung» annimmt).
+- **Grenze von CommonMark** (nicht umgangen): Durchgestrichen und kursiv zugleich **direkt am Wort** (`y*~~z~~*`) wird nicht gelesen wie geschrieben (es ist ein Fehler «nicht geschlossen»). Mit einem Leerzeichen davor ist es stabil. Dasselbe Verhalten wie bei Fett oder Kursiv um Satzzeichen in §6.1.
+- **Stolperstein von GFM**: Eine Tabelle, auf die ohne Leerzeile ein Absatz folgt, nimmt ihn als weitere Zeile auf. Der Editor schreibt immer eine Leerzeile; nur Dateien und MCP können es anders.
+- Weiterhin ein **Fehler**: HTML (Block, Inline, Kommentar, auch `<br>` in einer Zelle), Bilder, Links mit anderem Schema als `http`, `https`, `mailto`, nicht geschlossenes Fett oder Kursiv. **Kein Fehler, bleiben Text** (bewusst): Fußnoten, `$formeln$`, Definitionslisten, nackte Adressen (`<https://…>` wird ein Link).
+- **Grenzen:** höchstens 200 000 Zeichen Text und 50 000 Knoten im Dokument; höchstens 200 000 Zeichen Markdown nach der Umwandlung (`markdown_too_long`).
+
+**Maßstab:** Jeder Testfall kommt nach JSON → Markdown → JSON **unverändert** zurück, sonst entstünden bei jedem Sichern Scheinänderungen und der Versionsvergleich wäre wertlos. Einzige Normalisierung: die erste Tabellenzeile wird zur Kopfzeile.
+
+Testfälle: `spec/fixtures/document/` (nicht in `richtext/`, weil `tools/planer` jene Dateien liest). Paare `*.in.md` und `*.out.md` mit `*.tiptap.json` (das erwartete Dokument); `md-*` beginnen mit Markdown, das normalisiert wird; `err-*.error.md` mit `*.error.json` (die erwarteten Fehlerarten im strengen Modus). Es lesen nur die PHP-Tests (`tests/Unit/DocumentProfileTest.php`).
+
 ---
 
 ## 7. Markdown-Ansicht und Grammatik

@@ -25,6 +25,8 @@ use League\CommonMark\Extension\Table\TableCell;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\Table\TableRow;
 use League\CommonMark\Extension\Table\TableSection;
+use League\CommonMark\Extension\TaskList\TaskListExtension;
+use League\CommonMark\Extension\TaskList\TaskListItemMarker;
 use League\CommonMark\Node\Block\Paragraph;
 use League\CommonMark\Node\Inline\Newline;
 use League\CommonMark\Node\Inline\Text;
@@ -39,6 +41,10 @@ use League\CommonMark\Parser\MarkdownParser;
  * extension for tables and the processor for `~~` are on only to recognise
  * those constructs; footnotes, task lists, bare URLs and single tildes stay
  * plain text.
+ *
+ * The profile "Document" (spec/format-v2.md §6.2) reads more: headings 1 to 4, fenced code with a language, a
+ * thematic break, tables (every cell one paragraph), task lists and strikethrough. Task lists are recognised
+ * for this profile only; with "Description" the markers `[ ]` and `[x]` stay plain text.
  *
  * Strict: a construct outside the whitelist is an error (InvalidMarkdown).
  * Lenient: it becomes plain text as in docs/planer-abgleich.md 9.6, with a
@@ -55,7 +61,8 @@ final class MarkdownToTiptap
 
     private const SCHEME = '~^(https?:|mailto:)~i';
 
-    private static ?Environment $environment = null;
+    /** @var array<string, Environment> one per profile */
+    private static array $environments = [];
 
     /** @var array<string, Warning> */
     private array $found = [];
@@ -65,7 +72,7 @@ final class MarkdownToTiptap
 
     private string $escapedStar;
 
-    private function __construct(private readonly string $markdown, private readonly Mode $mode)
+    private function __construct(private readonly string $markdown, private readonly Mode $mode, private readonly Profile $profile)
     {
         $this->lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $markdown));
         $this->escapedStar = collect(self::PLACEHOLDERS)->first(static fn (string $mark): bool => ! str_contains($markdown, $mark)) ?? self::PLACEHOLDERS[0];
@@ -74,17 +81,17 @@ final class MarkdownToTiptap
     /**
      * @throws InvalidMarkdown In strict mode, for the first construct outside the whitelist (all are listed)
      */
-    public static function convert(string $markdown, Mode $mode): Result
+    public static function convert(string $markdown, Mode $mode, Profile $profile = Profile::Description): Result
     {
-        return (new self($markdown, $mode))->run();
+        return (new self($markdown, $mode, $profile))->run();
     }
 
     private function run(): Result
     {
-        $parsed = (new MarkdownParser(self::environment()))->parse($this->protectEscapedStars($this->markdown));
+        $parsed = (new MarkdownParser(self::environment($this->profile)))->parse($this->protectEscapedStars($this->markdown));
         $doc = ['type' => 'doc', 'content' => $this->blocks($parsed)];
 
-        if (($error = RichTextDocument::validate($doc)) !== null) {
+        if (($error = RichTextDocument::validate($doc, $this->profile)) !== null) {
             $this->found['document_limit'] = new Warning('document_limit', 0, $error[0]);
             throw new InvalidMarkdown(array_values($this->found));
         }
@@ -104,16 +111,28 @@ final class MarkdownToTiptap
         return array_values(array_filter($this->found, fn (Warning $warning): bool => ! in_array($warning->kind, ['ordered_start', 'link_title'], true)));
     }
 
-    private static function environment(): Environment
+    private static function environment(Profile $profile): Environment
     {
-        if (self::$environment === null) {
-            self::$environment = new Environment;
-            self::$environment->addExtension(new CommonMarkCoreExtension);
-            self::$environment->addDelimiterProcessor(new DoubleTildeDelimiterProcessor);
-            self::$environment->addExtension(new TableExtension);
+        return self::$environments[$profile->name] ??= self::createEnvironment($profile);
+    }
+
+    private static function createEnvironment(Profile $profile): Environment
+    {
+        $environment = new Environment;
+        $environment->addExtension(new CommonMarkCoreExtension);
+        $environment->addDelimiterProcessor(new DoubleTildeDelimiterProcessor);
+        $environment->addExtension(new TableExtension);
+
+        if ($profile === Profile::Document) {
+            $environment->addExtension(new TaskListExtension);
         }
 
-        return self::$environment;
+        return $environment;
+    }
+
+    private function isDocument(): bool
+    {
+        return $this->profile === Profile::Document;
     }
 
     /**
@@ -209,7 +228,12 @@ final class MarkdownToTiptap
     {
         $level = $heading->getLevel();
 
-        if ($level !== 2 && $level !== 3) {
+        if ($this->isDocument()) {
+            if ($level > 4) {
+                $this->warn('heading_level', $line);
+                $level = 4;
+            }
+        } elseif ($level !== 2 && $level !== 3) {
             $this->warn('heading_level', $line);
             $level = $level === 1 ? 2 : 3;
         }
@@ -244,14 +268,80 @@ final class MarkdownToTiptap
             if (! $item instanceof ListItem) {
                 continue;
             }
+
+            $checked = $this->isDocument() ? $this->taskMarker($item) : null;
             $content = $this->blocks($item);
 
+            if ($checked !== null) {
+                $content = $this->withoutMarkerSpace($content);
+            }
+
             if ($content !== []) {
-                $items[] = ['type' => 'listItem', 'content' => $content];
+                $items[] = $checked === null
+                    ? ['type' => 'listItem', 'content' => $content]
+                    : ['type' => 'taskItem', 'attrs' => ['checked' => $checked], 'content' => $content];
             }
         }
 
-        return $items === [] ? [] : [['type' => $ordered ? 'orderedList' : 'bulletList', 'content' => $items]];
+        return $this->lists($items, $ordered);
+    }
+
+    /**
+     * One list, or one list per run of items of the same kind: the editor cannot mix tasks and plain items, so a
+     * list that holds both is split where the kind changes.
+     *
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function lists(array $items, bool $ordered): array
+    {
+        $runs = [];
+
+        foreach ($items as $item) {
+            $isTask = $item['type'] === 'taskItem';
+
+            if ($runs !== [] && $runs[array_key_last($runs)]['task'] === $isTask) {
+                $runs[array_key_last($runs)]['items'][] = $item;
+            } else {
+                $runs[] = ['task' => $isTask, 'items' => [$item]];
+            }
+        }
+
+        return array_map(
+            static fn (array $run): array => ['type' => $run['task'] ? 'taskList' : ($ordered ? 'orderedList' : 'bulletList'), 'content' => $run['items']],
+            $runs,
+        );
+    }
+
+    /** Whether the item is a task, and if so, whether it is checked. */
+    private function taskMarker(ListItem $item): ?bool
+    {
+        $marker = $item->firstChild()?->firstChild();
+
+        return $marker instanceof TaskListItemMarker ? $marker->isChecked() : null;
+    }
+
+    /**
+     * The text of a task starts after the marker and its space.
+     *
+     * @param  list<array<string, mixed>>  $content
+     * @return list<array<string, mixed>>
+     */
+    private function withoutMarkerSpace(array $content): array
+    {
+        if (isset($content[0]['content'][0]['text']) && ($content[0]['type'] ?? '') === 'paragraph') {
+            $content[0]['content'][0]['text'] = ltrim($content[0]['content'][0]['text']);
+
+            if ($content[0]['content'][0]['text'] === '') {
+                array_shift($content[0]['content']);
+            }
+
+            if ($content[0]['content'] === []) {
+                array_shift($content);
+            }
+        }
+
+        return $content;
     }
 
     /**
@@ -261,6 +351,10 @@ final class MarkdownToTiptap
      */
     private function code(FencedCode|IndentedCode $node, int $line): array
     {
+        if ($this->isDocument()) {
+            return $this->codeBlock($node);
+        }
+
         $this->warn('code_block', $line);
 
         $inline = [];
@@ -275,6 +369,31 @@ final class MarkdownToTiptap
         }
 
         return $this->paragraph($inline);
+    }
+
+    /**
+     * Document profile: a code block of its own, the language is the first word after the fence (only the
+     * characters A-Z a-z 0-9 _ + # . - count, anything else is no language).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function codeBlock(FencedCode|IndentedCode $node): array
+    {
+        $language = null;
+
+        if ($node instanceof FencedCode) {
+            $word = explode(' ', trim($node->getInfo() ?? ''))[0];
+            $language = preg_match('/^[A-Za-z0-9_+#.-]{1,32}$/', $word) === 1 ? $word : null;
+        }
+
+        $text = rtrim($this->restoreStars($node->getLiteral(), true), "\n");
+        $block = ['type' => 'codeBlock', 'attrs' => ['language' => $language]];
+
+        if ($text !== '') {
+            $block['content'] = [['type' => 'text', 'text' => $text]];
+        }
+
+        return [$block];
     }
 
     /**
@@ -303,6 +422,10 @@ final class MarkdownToTiptap
      */
     private function thematicBreak(int $line): array
     {
+        if ($this->isDocument()) {
+            return [['type' => 'horizontalRule']];
+        }
+
         $this->warn('thematic_break', $line);
 
         return [];
@@ -315,6 +438,10 @@ final class MarkdownToTiptap
      */
     private function table(Table $table, int $line): array
     {
+        if ($this->isDocument()) {
+            return $this->tableBlock($table, $line);
+        }
+
         $this->warn('table', $line);
 
         $paragraphs = [];
@@ -343,10 +470,48 @@ final class MarkdownToTiptap
         return $paragraphs;
     }
 
+    /**
+     * Document profile: a table of rows of cells, every cell one paragraph. The first row is the header row
+     * (Markdown has no table without one).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function tableBlock(Table $table, int $line): array
+    {
+        $rows = [];
+
+        foreach ($table->children() as $section) {
+            if (! $section instanceof TableSection) {
+                continue;
+            }
+
+            foreach ($section->children() as $row) {
+                if (! $row instanceof TableRow) {
+                    continue;
+                }
+
+                $cells = [];
+                foreach ($row->children() as $cell) {
+                    if (! $cell instanceof TableCell) {
+                        continue;
+                    }
+
+                    $inline = $this->inlines($cell, [], $line);
+                    $paragraph = $inline === [] ? ['type' => 'paragraph'] : ['type' => 'paragraph', 'content' => $inline];
+                    $cells[] = ['type' => $section->isHead() ? 'tableHeader' : 'tableCell', 'content' => [$paragraph]];
+                }
+
+                $rows[] = ['type' => 'tableRow', 'content' => $cells];
+            }
+        }
+
+        return $rows === [] ? [] : [['type' => 'table', 'content' => $rows]];
+    }
+
     // ─── Inline ──────────────────────────────────────────────────
 
     /**
-     * @param  array<string, mixed>  $marks  bold, italic, code (bool), link (string)
+     * @param  array<string, mixed>  $marks  bold, italic, strike, code (bool), link (string)
      * @return list<array<string, mixed>>
      */
     private function inlines(Node $parent, array $marks, int $line): array
@@ -382,6 +547,10 @@ final class MarkdownToTiptap
                 return $this->inlines($node, [...$marks, 'italic' => true], $line);
 
             case $node instanceof Strikethrough:
+                if ($this->isDocument()) {
+                    return $this->inlines($node, [...$marks, 'strike' => true], $line);
+                }
+
                 $this->warn('strikethrough', $line);
 
                 return $this->inlines($node, $marks, $line);
@@ -499,7 +668,7 @@ final class MarkdownToTiptap
     {
         $list = [];
 
-        foreach (['bold', 'italic', 'code'] as $mark) {
+        foreach (['bold', 'italic', 'strike', 'code'] as $mark) {
             if (($marks[$mark] ?? false) === true) {
                 $list[] = ['type' => $mark];
             }
