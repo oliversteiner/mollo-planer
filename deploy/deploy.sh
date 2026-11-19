@@ -144,4 +144,12 @@ if [[ "$SMOKE" != *"Unauthenticated."* ]]; then
 fi
 echo "Rauchtest GraphQL: ok"
 
+# Passkeys belong to the relying party ID: it must be the host of FRONTEND_URL (no single sign-on between apps).
+# Only a warning, no abort.
+RP_ID=$("$PHP" "$BACKEND/artisan" config:show fortify.passkeys.relying_party_id 2>/dev/null | awk 'NF {print $NF}' | tail -n 1 || true)
+FRONTEND_HOST=$(env_value FRONTEND_URL | sed -E 's#^[a-z]+://##; s#[/:].*$##')
+if [ "$RP_ID" != "$FRONTEND_HOST" ]; then
+    echo "WARNUNG: PASSKEYS_RELYING_PARTY_ID ist '$RP_ID', der Host von FRONTEND_URL ist '$FRONTEND_HOST'. Passkeys würden nicht passen (siehe docs/deploy-template.md)." >&2
+fi
+
 log "Deployment abgeschlossen"
