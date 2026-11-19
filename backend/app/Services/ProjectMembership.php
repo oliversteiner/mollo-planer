@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\Right;
+use App\Models\Document;
+use App\Models\DocumentShare;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Task;
@@ -81,6 +83,12 @@ class ProjectMembership
 
         $project->members()->detach($user);
         app(PlanerRevision::class)->touch($project->getKey());
+
+        // Ground rule for documents (§4.3 rule 2): shares of the person end, a document of theirs has no owner then
+        // (who has document.manageAny manages it). Versions keep the person.
+        $documentIds = Document::withTrashed()->where('project_id', $project->getKey())->select('id');
+        DocumentShare::query()->where('user_id', $user->getKey())->whereIn('document_id', $documentIds)->delete();
+        Document::withTrashed()->where('project_id', $project->getKey())->where('owner_id', $user->getKey())->update(['owner_id' => null]);
 
         Task::query()
             ->inProject($project->getKey())

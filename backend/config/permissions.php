@@ -58,7 +58,7 @@ return [
             ],
             'contribute' => [
                 'names' => ['de' => 'Mitarbeiten', 'en' => 'Contribute'],
-                'rights' => ['task.create', 'task.updateOwn', 'task.assignSelf', 'task.move', 'comment.create', 'planer.export'],
+                'rights' => ['task.create', 'task.updateOwn', 'task.assignSelf', 'task.move', 'comment.create', 'planer.export', 'document.create', 'document.update'],
             ],
             'manage-tasks' => [
                 'names' => ['de' => 'Aufgaben verwalten', 'en' => 'Manage tasks'],
@@ -66,7 +66,7 @@ return [
             ],
             'manage-project' => [
                 'names' => ['de' => 'Projekt verwalten', 'en' => 'Manage project'],
-                'rights' => ['project.update', 'project.archive', 'members.manage', 'aiContext.update', 'planer.import'],
+                'rights' => ['project.update', 'project.archive', 'members.manage', 'aiContext.update', 'planer.import', 'document.manageAny'],
             ],
             'own-project' => [
                 'names' => ['de' => 'Projekt besitzen', 'en' => 'Own project'],

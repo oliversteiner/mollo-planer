@@ -42,6 +42,9 @@ enum Right {
   PLANER_EXPORT @enum(value: "planer.export")
   PLANER_IMPORT @enum(value: "planer.import")
   AI_CONTEXT_UPDATE @enum(value: "aiContext.update")
+  DOCUMENT_CREATE @enum(value: "document.create")
+  DOCUMENT_UPDATE @enum(value: "document.update")
+  DOCUMENT_MANAGE_ANY @enum(value: "document.manageAny")
   # System
   PROJECTS_CREATE @enum(value: "projects.create")
   PROJECTS_VIEW_ALL @enum(value: "projects.viewAll")

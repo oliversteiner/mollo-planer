@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** The share of a document to one person, who has to be a member of the project. */
+/**
+ * The share of a document to one person, who has to be a member of the project.
+ *
+ * @property DocumentShareAccess $access
+ */
 #[Fillable(['user_id', 'access'])]
 class DocumentShare extends Model
 {
