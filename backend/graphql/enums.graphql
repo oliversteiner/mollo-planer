@@ -105,6 +105,7 @@ enum TrashItemType {
   TASK
   COMMENT
   IDEA
+  DOCUMENT
 }
 
 "Spalten im Kanban-Board"
@@ -154,4 +155,27 @@ enum IdeaStatus {
   OPEN @enum(value: "open")
   ADOPTED @enum(value: "adopted")
   DISCARDED @enum(value: "discarded")
+}
+
+"Wie weit eine Person in ein Dokument reicht. MANAGE gibt es nur als viewerAccess (Owner und wer alle Dokumente verwaltet); gespeichert werden NONE, READ und EDIT."
+enum DocumentAccess {
+  NONE @enum(value: "none")
+  READ @enum(value: "read")
+  EDIT @enum(value: "edit")
+  MANAGE @enum(value: "manage")
+}
+
+"Stufe einer Freigabe an eine Person"
+enum DocumentShareAccess {
+  READ @enum(value: "read")
+  EDIT @enum(value: "edit")
+}
+
+"Feste Arten eines Dokuments"
+enum DocumentKind {
+  PROCEDURE @enum(value: "procedure")
+  MINUTES @enum(value: "minutes")
+  ANALYSIS @enum(value: "analysis")
+  CONCEPT @enum(value: "concept")
+  OTHER @enum(value: "other")
 }

@@ -1885,7 +1885,8 @@
       "TODO": "Todo",
       "TASK": "Task",
       "COMMENT": "Comment",
-      "IDEA": "Idea"
+      "IDEA": "Idea",
+      "DOCUMENT": "Document"
     },
     "count": {
       "PROJECT": "{count} project | {count} projects",
@@ -1893,7 +1894,8 @@
       "TODO": "{count} todo | {count} todos",
       "TASK": "{count} task | {count} tasks",
       "COMMENT": "{count} comment | {count} comments",
-      "IDEA": "{count} idea | {count} ideas"
+      "IDEA": "{count} idea | {count} ideas",
+      "DOCUMENT": "{count} document | {count} documents"
     }
   },
   "planer": {

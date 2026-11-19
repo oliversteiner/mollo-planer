@@ -8,6 +8,7 @@ use App\Enums\TaskStatus;
 use App\Enums\UserRole;
 use App\GraphQL\Mutations\ResetUserTwoFactor;
 use App\Models\Comment;
+use App\Models\Document;
 use App\Models\Milestone;
 use App\Models\Role;
 use App\Models\Task;
@@ -459,6 +460,11 @@ class MutationTest extends GraphQLTestCase
             'duplicateRoleFunction' => ['admin', 'mutation ($id: ID!) { duplicateRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
             'deleteRoleFunction' => ['admin', 'mutation ($id: ID!) { deleteRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => DB::table('functions')->insertGetId(['scope' => 'project', 'key' => 'own', 'names' => '{"de":"Eigene","en":"Own"}'])]],
             'resetRoleFunction' => ['admin', 'mutation ($id: ID!) { resetRoleFunction(id: $id) { id } }', fn (self $test) => ['id' => self::functionId('plan')]],
+            'createDocument' => ['member', 'mutation ($p: ID!, $c: RichText!) { createDocument(input: {projectId: $p, title: "Protokoll", contentJson: $c}) { id revision } }', fn (self $test) => ['p' => $test->project->id, 'c' => $test->doc('Inhalt')]],
+            'updateDocument' => ['owner', 'mutation ($id: ID!, $c: RichText!) { updateDocument(id: $id, revision: 1, input: {contentJson: $c}) { id revision } }', fn (self $test) => ['id' => Document::factory()->for($test->project)->create(['owner_id' => $test->users['owner']->id])->id, 'c' => $test->doc('Neu')]],
+            'setDocumentSharing' => ['owner', 'mutation ($id: ID!, $u: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT, shares: [{userId: $u, access: READ}]}) { id } }', fn (self $test) => ['id' => Document::factory()->for($test->project)->create(['owner_id' => $test->users['owner']->id])->id, 'u' => $test->users['member']->id]],
+            'transferDocument' => ['owner', 'mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => Document::factory()->for($test->project)->create(['owner_id' => $test->users['owner']->id])->id, 'u' => $test->users['manager']->id]],
+            'deleteDocument' => ['owner', 'mutation ($id: ID!) { deleteDocument(id: $id) { id deletionId } }', fn (self $test) => ['id' => Document::factory()->for($test->project)->create(['owner_id' => $test->users['owner']->id])->id]],
             'deleteApiToken' => ['owner', 'mutation ($id: ID!) { deleteApiToken(id: $id) { name } }', fn (self $test) => ['id' => McpTokens::create($test->users['owner'], 'Meins')->accessToken->id]],
         ];
     }

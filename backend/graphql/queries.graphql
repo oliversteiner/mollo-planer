@@ -69,4 +69,11 @@ type Query @guard {
 
   "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst, und deine gelöschten Ideen."
   trash(projectId: ID): [TrashItem!]! @field(resolver: "App\\GraphQL\\Queries\\Trash")
+
+  "Die Dokumente eines Projekts, die du lesen darfst, zuletzt geändert zuerst. Die Liste lädt den Inhalt nicht. search sucht in Titel und Inhalt."
+  documents(projectId: ID!, kind: DocumentKind, search: String): [Document!]!
+    @field(resolver: "App\\GraphQL\\Queries\\DocumentQueries@list")
+  "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
+  document(id: ID!): Document
+    @field(resolver: "App\\GraphQL\\Queries\\DocumentQueries@one")
 }

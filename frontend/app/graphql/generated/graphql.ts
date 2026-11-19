@@ -289,6 +289,7 @@ export type TemplateLabelMode =
 /** Art eines Elements im Papierkorb */
 export type TrashItemType =
   | 'COMMENT'
+  | 'DOCUMENT'
   | 'IDEA'
   | 'MILESTONE'
   | 'PROJECT'

@@ -225,3 +225,32 @@ input ProjectAiContextInput {
   "Für externe Werkzeuge freigeben (Standard aus)"
   sharedWithTools: Boolean! = false
 }
+
+input CreateDocumentInput {
+  projectId: ID!
+  title: String! @rules(apply: ["min:1", "max:200"])
+  kind: DocumentKind = OTHER
+  "Der Inhalt aus dem Editor. Der Server prüft das Profil «Dokument» (höchstens 200 000 Zeichen Markdown) und schreibt Markdown."
+  contentJson: RichText! @rules(apply: ["App\\Rules\\DocumentContentRule"])
+  "NONE, READ oder EDIT; Standard READ"
+  projectAccess: DocumentAccess = READ @rules(apply: ["in:none,read,edit"])
+}
+
+"Nur die genannten Felder ändern sich."
+input UpdateDocumentInput {
+  title: String @rules(apply: ["min:1", "max:200"])
+  kind: DocumentKind
+  contentJson: RichText @rules(apply: ["App\\Rules\\DocumentContentRule"])
+}
+
+"Die Stufe für alle Mitglieder und die Freigaben je Person. Eine genannte Liste ersetzt die bisherige; ohne Angabe bleibt sie."
+input DocumentSharingInput {
+  projectAccess: DocumentAccess @rules(apply: ["in:none,read,edit"])
+  shares: [DocumentShareInput!]
+}
+
+input DocumentShareInput {
+  "Muss Mitglied des Projekts sein"
+  userId: ID!
+  access: DocumentShareAccess!
+}

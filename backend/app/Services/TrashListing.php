@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\DocumentAccess;
 use App\Models\Comment;
+use App\Models\Document;
 use App\Models\Idea;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -43,9 +45,14 @@ final class TrashListing
             Todo::onlyTrashed()->where('project_id', $project->getKey())->get(),
             Task::onlyTrashed()->where('project_id', $project->getKey())->get(),
             Comment::onlyTrashed()->whereIn('task_id', $taskIds)->get(),
+            Document::onlyTrashed()->where('project_id', $project->getKey())->get(),
         ])->flatten(1)->filter(fn (Model $row): bool => $row->deletion_id !== null);
 
         $this->linkToProject($rows, $project);
+
+        // A document in the trash is seen only by those who manage it (docs/dokumentenverwaltung.md §4.3).
+        $access = app(DocumentAccessService::class);
+        $rows = $rows->filter(fn (Model $row): bool => ! $row instanceof Document || $access->levelOf($viewer, $row) === DocumentAccess::MANAGE);
 
         return $this->items($rows, $viewer);
     }
@@ -61,7 +68,7 @@ final class TrashListing
             ->filter(fn (Project $project): bool => Gate::forUser($viewer)->allows('restore', $project));
 
         $ids = $projects->pluck('deletion_id')->all();
-        $children = collect([Milestone::class, Todo::class, Task::class, Comment::class])
+        $children = collect([Milestone::class, Todo::class, Task::class, Comment::class, Document::class])
             ->flatMap(fn (string $type) => $type::onlyTrashed()->whereIn('deletion_id', $ids)->get(['id', 'deletion_id'])->all());
 
         return $this->items($projects->concat($children), $viewer);

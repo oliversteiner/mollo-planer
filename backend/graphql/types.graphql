@@ -519,3 +519,36 @@ type ProjectAiContext {
   updatedAt: DateTime! @rename(attribute: "updated_at")
   updatedBy: User @belongsTo(relation: "updatedBy")
 }
+
+"Ein Dokument eines Projekts (Vorgehensweise, Protokoll, Analyse …). Gespeichert als Markdown, geschrieben und gelesen als TipTap-JSON."
+type Document {
+  id: ID!
+  project: Project! @belongsTo
+  title: String!
+  kind: DocumentKind!
+  "Markdown in der kanonischen Form. Nur in der Einzelabfrage verlangen: die Liste lädt es nicht aus der Datenbank (pro Zeile eine Abfrage mehr)."
+  content: String! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@content")
+  "Derselbe Inhalt als TipTap-JSON für den Editor und den Lesemodus. Nur in der Einzelabfrage verlangen."
+  contentJson: RichText! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@contentJson")
+  "null, wenn die Person das Projekt verlassen hat oder gelöscht wurde. Dann verwaltet, wer alle Dokumente verwalten darf."
+  owner: User @belongsTo(relation: "owner")
+  "Stufe für alle Projektmitglieder: NONE, READ oder EDIT"
+  projectAccess: DocumentAccess! @rename(attribute: "project_access")
+  "Freigaben je Person. Nur mit viewerAccess MANAGE sichtbar, sonst leer."
+  shares: [DocumentShare!]! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@shares")
+  "Zählt bei jedem Sichern hoch; updateDocument verlangt die geladene Revision (Konflikt: DOCUMENT_CONFLICT)"
+  revision: Int!
+  updatedBy: User @belongsTo(relation: "updatedBy")
+  createdAt: DateTime! @rename(attribute: "created_at")
+  updatedAt: DateTime! @rename(attribute: "updated_at")
+  "Die wirksame Stufe der angemeldeten Person, mit dem Recht document.update schon verrechnet. Das Frontend rechnet sie nie selbst."
+  viewerAccess: DocumentAccess! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@viewerAccess")
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
+}
+
+"Freigabe eines Dokuments an eine Person"
+type DocumentShare {
+  user: User! @belongsTo
+  access: DocumentShareAccess!
+}

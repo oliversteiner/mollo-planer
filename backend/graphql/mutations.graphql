@@ -324,4 +324,26 @@ type Mutation @guard {
   emptyProjectTrash(projectId: ID!): Int!
     @can(ability: "emptyTrash", find: "projectId", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@emptyProjectTrash")
+
+  # Dokumente (docs/dokumentenverwaltung.md §8.1). Owner und updatedBy kommen aus der Anmeldung.
+  "Legt ein Dokument an (document.create im Projekt). Der Owner bist du."
+  createDocument(input: CreateDocumentInput!): Document!
+    @can(ability: "createDocument", find: "input.projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@create")
+  "Ändert Titel, Art und Inhalt (Stufe EDIT und document.update). revision ist die geladene; weicht sie ab, kommt DOCUMENT_CONFLICT und nichts wird gesichert. Ohne Änderung entsteht keine neue Fassung."
+  updateDocument(id: ID!, revision: Int!, input: UpdateDocumentInput!): Document!
+    @can(ability: "update", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@update")
+  "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
+  setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
+    @can(ability: "manage", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@setSharing")
+  "Übergibt das Dokument an ein anderes Projektmitglied (Stufe MANAGE)"
+  transferDocument(id: ID!, ownerId: ID!): Document!
+    @can(ability: "manage", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@transfer")
+  "Legt das Dokument in den Papierkorb (Stufe MANAGE). deletionId für „Rückgängig“ (restoreFromTrash)."
+  deleteDocument(id: ID!): Document!
+    @can(ability: "delete", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@delete")
 }
