@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
-import { closeSync, openSync } from 'node:fs'
-import { backendEnv, DATABASE } from './environment'
+import { closeSync, openSync, rmSync } from 'node:fs'
+import { backendEnv, DATABASE, SCHEMA_CACHE } from './environment'
 
 /** A fresh database for every run: migrate:fresh with the accounts of the tests. Never the development database. */
 export default function globalSetup(): void {
@@ -20,7 +20,17 @@ export default function globalSetup(): void {
   }
 
   closeSync(openSync(DATABASE, 'w'))
+  // The seeder refuses to run in production (on purpose), so only this step runs as "local". The server and the schema
+  // cache below use the environment of the tests unchanged (production).
   execFileSync('php', ['artisan', 'migrate:fresh', '--seed', '--seeder=E2eSeeder', '--force', '--no-interaction'], {
+    cwd: '../backend',
+    env: { ...process.env, ...backendEnv, APP_ENV: 'local' },
+    stdio: 'pipe'
+  })
+
+  // Like deploy.sh: rebuild the compiled schema from the current code before the first request.
+  rmSync(SCHEMA_CACHE, { force: true })
+  execFileSync('php', ['artisan', 'lighthouse:cache', '--no-interaction'], {
     cwd: '../backend',
     env: { ...process.env, ...backendEnv },
     stdio: 'pipe'
