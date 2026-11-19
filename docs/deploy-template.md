@@ -246,6 +246,8 @@ Wenn niemand sich anmelden kann, helfen drei Artisan-Befehle auf dem Server (per
 | `php artisan app:user-email <Nutzer>` | Zeigt Adresse und Stand der Bestätigung (schreibt nichts). |
 | `php artisan app:user-email <Nutzer> <neue-E-Mail>` | Adresse ändern. Gilt danach als bestätigt (`--unverified`: Bestätigung wird neu verlangt). |
 | `php artisan app:user-email <Nutzer> --verified` oder `--unverified` | Nur die Bestätigung ändern. |
+| `php artisan app:user-role <Nutzer> [<Rolle>]` | Systemrolle setzen (ohne Rolle: Auswahl). Zeigt alte und neue Rolle. Es gelten die Regeln der App: Die letzte Person mit `users.manage` bzw. `roles.manage` behält das Recht (der letzte Admin bleibt Admin), und kein Projekt verliert seine letzte Person mit «Projekt löschen». Beispiel nach `migrate:fresh`: das eigene Konto zum Admin machen. |
+| `php artisan app:user-approve <Nutzer>` | Wartendes Konto freigeben, über dieselbe Logik wie in der App (`ReviewRegistration`): die Person bekommt die Freigabe-Mail in der Sprache ihres Kontos, ein zweiter Aufruf ändert nichts und verschickt nichts. Ist die Adresse noch nicht bestätigt, warnt der Befehl: Die API bleibt dann gesperrt (`app:user-email <Nutzer> --verified`). |
 | `php artisan app:user-2fa <Nutzer> status` | Authenticator, Wiederherstellungscodes, Passkeys (ID, Name, Datum), ob die Person beim nächsten Login einrichten muss. Schreibt nichts. |
 | `php artisan app:user-2fa <Nutzer> reset` | Gerät verloren: Authenticator, Wiederherstellungscodes, alle Passkeys, Zugänge für Claude, Sitzungen und „angemeldet bleiben“ weg. |
 | `php artisan app:user-2fa <Nutzer> authenticator` | Nur die Authenticator-App samt Wiederherstellungscodes entfernen, Passkeys bleiben. |

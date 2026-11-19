@@ -27,6 +27,8 @@ php artisan app:user-password <Nutzer>          # neues Passwort (fragt es zweim
 php artisan app:user-email <Nutzer>             # zeigt Adresse und Stand der Bestätigung
 php artisan app:user-email <Nutzer> <neue-E-Mail> [--unverified]
 php artisan app:user-email <Nutzer> --verified  # oder --unverified, ohne neue Adresse
+php artisan app:user-role <Nutzer> [<Rolle>]     # Systemrolle setzen (ohne Rolle: Auswahl; der letzte Admin bleibt Admin)
+php artisan app:user-approve <Nutzer>            # wartendes Konto freigeben (mit Mail an die Person)
 php artisan app:user-2fa <Nutzer>               # wählt die Aktion per Auswahl
 php artisan app:user-2fa <Nutzer> status        # zeigt alles, schreibt nichts
 php artisan app:user-2fa <Nutzer> reset         # Gerät verloren: alles zurücksetzen
