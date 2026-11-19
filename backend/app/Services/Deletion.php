@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Comment;
+use App\Models\Document;
 use App\Models\Idea;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -42,7 +43,7 @@ final class Deletion
      *
      * @var list<class-string<Model>>
      */
-    public const TYPES = [Project::class, Milestone::class, Todo::class, Task::class, Comment::class, Idea::class];
+    public const TYPES = [Project::class, Milestone::class, Todo::class, Task::class, Comment::class, Document::class, Idea::class];
 
     public function __construct(
         private readonly KanbanOrdering $kanban,
@@ -279,6 +280,7 @@ final class Deletion
         }
 
         if ($model instanceof Project) {
+            $children[] = fn () => Document::query()->where('project_id', $model->getKey());
             $children[] = fn () => Todo::query()->where('project_id', $model->getKey());
             $children[] = fn () => Milestone::query()->where('project_id', $model->getKey());
         }
@@ -324,6 +326,7 @@ final class Deletion
             $top instanceof Todo => $top->milestone,
             $top instanceof Task => $top->todo,
             $top instanceof Comment => $top->task,
+            $top instanceof Document => $top->project,
             default => null,
         };
 
