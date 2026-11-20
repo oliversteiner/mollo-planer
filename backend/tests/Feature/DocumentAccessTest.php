@@ -80,6 +80,17 @@ class DocumentAccessTest extends TestCase
         ], $this->levels(DocumentAccess::NONE));
     }
 
+    public function test_an_owner_who_is_no_member_has_no_access_and_does_not_see_the_document(): void
+    {
+        $document = $this->document(DocumentAccess::EDIT, 'stranger');
+        $service = app(DocumentAccessService::class);
+
+        $this->assertSame(DocumentAccess::NONE, $service->levelOf($this->users['stranger'], $document));
+        $this->assertFalse(Gate::forUser($this->users['stranger'])->allows('view', $document));
+        $this->assertNotContains($document->id, Document::query()->visibleTo($this->users['stranger'])->pluck('id')->all());
+        $this->assertContains($document->id, Document::query()->visibleTo($this->users['member'])->pluck('id')->all());
+    }
+
     public function test_a_document_for_reading_is_read_by_all_members_and_by_nobody_else(): void
     {
         $this->assertSame([

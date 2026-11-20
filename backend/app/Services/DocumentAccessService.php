@@ -106,8 +106,8 @@ final class DocumentAccessService
                         ->select(DB::raw(1))));
             }
 
-            // 2. The owner.
-            $visible->orWhere('documents.owner_id', $user->getKey());
+            // 2. The owner, as a member.
+            $visible->orWhere(fn (Builder $owned) => $member($owned)->where('documents.owner_id', $user->getKey()));
 
             // 3. and 4. Members: the level for all members, or a share to them.
             $visible->orWhere(fn (Builder $members) => $member($members)->where(fn (Builder $any) => $any
@@ -130,18 +130,15 @@ final class DocumentAccessService
             return DocumentAccess::READ;
         }
 
-        $isMember = $project->roleIdOf($user) !== null;
-        $isOwner = $document->owner_id !== null && (int) $document->owner_id === (int) $user->getKey();
-
-        if (! $isMember && ! $isOwner) {
+        // Steps 2 to 4 hold for members only: an owner who is no member any more has nothing (as the class comment says).
+        if ($project->roleIdOf($user) === null) {
             return DocumentAccess::NONE;
         }
 
-        $level = $isOwner ? DocumentAccess::MANAGE : DocumentAccess::NONE;
-
-        if ($isMember) {
-            $level = $level->max($document->project_access)->max($this->shareOf($user, $document) ?? DocumentAccess::NONE);
-        }
+        $isOwner = $document->owner_id !== null && (int) $document->owner_id === (int) $user->getKey();
+        $level = ($isOwner ? DocumentAccess::MANAGE : DocumentAccess::NONE)
+            ->max($document->project_access)
+            ->max($this->shareOf($user, $document) ?? DocumentAccess::NONE);
 
         // Writing needs the right as well; without it the person reads at most.
         if ($level->atLeast(DocumentAccess::EDIT) && ! Rights::allows($user, Right::DOCUMENT_UPDATE, $project)) {
