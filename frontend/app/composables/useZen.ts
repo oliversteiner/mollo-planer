@@ -1,6 +1,6 @@
 import { useQuery } from '@vue/apollo-composable'
 import { sidebarProjectsQuery } from '~/graphql/projects'
-import { chooseZenArea, cleanPath, isContentArea, projectIdOf, projectPageOf } from '~/utils/zen-area'
+import { chooseZenArea, cleanPath, isContentArea, projectIdOf, projectPageOf, rememberedArea } from '~/utils/zen-area'
 import { routeRight } from '~/utils/route-rights'
 
 /**
@@ -34,7 +34,7 @@ export function useZen() {
     if (id !== null) {
       const page = projectPageOf(path)
 
-      return `${projects.value.get(id) ?? t('nav.projects')}, ${t(`project.tabs.${page === 'kanban' ? 'tasks' : page === 'todos' ? 'todos' : 'milestones'}`)}`
+      return `${projects.value.get(id) ?? t('nav.projects')}, ${t(`project.tabs.${page === 'kanban' ? 'tasks' : page || 'milestones'}`)}`
     }
 
     const keys: Record<string, string> = { '/': 'nav.dashboard', '/my-tasks': 'nav.myTasks', '/ideas': 'nav.ideas', '/assistant': 'nav.assistant' }
@@ -44,8 +44,8 @@ export function useZen() {
 
   /** Remembers the content area the person is in (called when the route changes). */
   function remember(): void {
-    if (isContentArea(route.path) && remembered.value !== cleanPath(route.path)) {
-      remembered.value = cleanPath(route.path)
+    if (isContentArea(route.path) && remembered.value !== rememberedArea(route.path)) {
+      remembered.value = rememberedArea(route.path)
     }
   }
 

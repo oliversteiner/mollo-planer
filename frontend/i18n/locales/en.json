@@ -2245,6 +2245,8 @@
       "loading": "Loading versions …"
     },
     "exportPdfMaking": "Making the PDF …",
-    "saveFailed": "Saving did not work."
+    "saveFailed": "Saving did not work.",
+    "allSaved": "Saved",
+    "focusBack": "Back"
   }
 }

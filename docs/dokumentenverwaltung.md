@@ -1,6 +1,6 @@
 # Dokumentenverwaltung je Projekt
 
-Stand: 2026-11-18 (dritte Fassung, baut auf der zweiten vom 2026-11-16 auf). Rolle: Plan der Planung (Stuart), Umsetzung Bob. Status: **entschieden, noch nicht gebaut**. Umsetzung nach dem Release 1.0: **M7** (Dokumente mit Versionsverlauf), **M8** (Echtzeit). Aufträge: `next-work/16-dokumente-backend.md` (D0 bis D5, D9), danach 17 (Oberfläche).
+Stand: 2026-11-18 (dritte Fassung, baut auf der zweiten vom 2026-11-16 auf). Rolle: Plan der Planung (Stuart), Umsetzung Bob. Status: Backend (Auftrag 16) und Oberfläche (Auftrag 17, D6 bis D8, D10, D11) gebaut, siehe `umsetzung.md`; M8 (Echtzeit) offen. Umsetzung nach dem Release 1.0: **M7** (Dokumente mit Versionsverlauf), **M8** (Echtzeit). Aufträge: `next-work/16-dokumente-backend.md` (D0 bis D5, D9), danach 17 (Oberfläche).
 Grundlage: `docs/rollen-funktionen-rechte.md`, `docs/schema-review.md` (A5 Papierkorb), `docs/planer-abgleich.md` §9 (Rich-Text-Konverter), `docs/zen-modus.md`, Kontext-Dokument vom 2026-11-13. Stellen, die Bob am Code prüfen muss, sind markiert (**prüfen**).
 
 **Auftrag (Oliver, 2026-11-16):** Jedes Projekt bekommt eine Dokumentenverwaltung für Vorgehensweisen, Sitzungsprotokolle, Analysen usw. Jedes Dokument gehört zu genau einem Projekt, hat einen Owner, kann für andere zum Bearbeiten oder nur zum Lesen freigegeben werden. Gespeichert als Markdown, exportierbar als PDF. Editor: TipTap. Erwünscht: Bearbeiten in Echtzeit und ein Nachweis, wer welche Änderungen gemacht hat.

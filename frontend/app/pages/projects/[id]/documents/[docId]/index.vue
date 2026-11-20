@@ -21,6 +21,7 @@ const { t, localeProperties } = useI18n()
 const toast = useToast()
 const route = useRoute()
 const { projectId, loaded } = useProject()
+const { focusing, enterFocus, leaveFocus } = useViewMode()
 const language = computed(() => localeProperties.value.language ?? 'de-CH')
 
 const documentId = computed(() => String(route.params.docId))
@@ -245,15 +246,51 @@ const moreItems = computed<ActionMenuItem[][]>(() => {
   return items
 })
 
-// The buttons are in the page actions, which the calm view hides.
-useCommands(() => [{
-  id: 'document-edit',
-  label: t('documents.edit'),
-  icon: 'pen',
-  group: 'action',
-  visible: () => canEdit.value && !editing.value && doc.value !== null,
-  run: startEditing
-}])
+const exporter = useDocumentExport(() => doc.value)
+
+/** Leaving the focus view asks about unsaved changes like leaving the page (it is the same route, so the router does not). */
+async function leaveFocusGuarded(): Promise<void> {
+  if (await unsaved.guard()) {
+    await leaveFocus()
+  }
+}
+
+function onEscape(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && focusing.value && !document.querySelector('wa-dialog[open]')) {
+    void leaveFocusGuarded()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onEscape))
+onBeforeUnmount(() => window.removeEventListener('keydown', onEscape))
+
+/** The saving state for the zen frame (Teleport to #zen-status). */
+const statusText = computed(() => {
+  if (!editing.value) {
+    return ''
+  }
+
+  return saving.value ? t('documents.saving') : dirty.value ? t('documents.unsavedHint') : t('documents.allSaved')
+})
+
+// The buttons are in the page actions, which the calm view hides: everything stays reachable through the palette.
+useCommands(() => {
+  const current = doc.value
+  const go = (path: string) => async (): Promise<void> => {
+    await navigateTo(path)
+  }
+
+  return [
+    { id: 'document-edit', label: t('documents.edit'), icon: 'pen', group: 'action' as const, visible: () => canEdit.value && !editing.value && doc.value !== null, run: startEditing },
+    { id: 'document-save', label: t('documents.save'), icon: 'floppy-disk', group: 'action' as const, visible: () => editing.value && dirty.value, run: () => { void save() } },
+    { id: 'document-focus', label: `${t('documents.focus')}: ${current?.title ?? ''}`, icon: 'bullseye', group: 'action' as const, visible: () => doc.value !== null && !focusing.value, run: () => { void enterFocus({ kind: 'document', id: documentId.value }) } },
+    { id: 'document-history', label: t('documents.history'), icon: 'clock-rotate-left', group: 'action' as const, visible: () => doc.value !== null, run: go(`/projects/${projectId.value}/documents/${documentId.value}/history`) },
+    { id: 'document-export-markdown', label: `${t('documents.export')}: ${t('documents.exportMarkdown')}`, icon: 'file-lines', group: 'action' as const, visible: () => doc.value !== null, run: exporter.markdown },
+    { id: 'document-export-pdf', label: `${t('documents.export')}: ${t('documents.exportPdf')}`, icon: 'file-pdf', group: 'action' as const, visible: () => doc.value !== null && !exporter.making.value, run: () => { void exporter.pdf() } },
+    { id: 'document-share', label: t('documents.share'), icon: 'share-nodes', group: 'action' as const, visible: () => canManage.value, run: () => { sharing.value = true } },
+    { id: 'document-transfer', label: t('documents.transfer'), icon: 'user-gear', group: 'action' as const, visible: () => canManage.value, run: () => { transferring.value = true } }
+  ]
+})
 
 function changed(): string {
   const current = doc.value
@@ -334,6 +371,17 @@ const kindItems = computed(() => KINDS.map(item => ({ label: t(`documents.kinds.
             ></wa-icon>
             {{ t('documents.edit') }}
           </wa-button>
+          <wa-button
+            appearance="outlined"
+            variant="neutral"
+            @click="enterFocus({ kind: 'document', id: doc.id })"
+          >
+            <wa-icon
+              slot="start"
+              name="bullseye"
+            ></wa-icon>
+            {{ t('documents.focus') }}
+          </wa-button>
           <DocumentExportMenu :document="doc" />
         </template>
         <ActionMenu
@@ -342,6 +390,31 @@ const kindItems = computed(() => KINDS.map(item => ({ label: t(`documents.kinds.
           size="m"
         />
       </Teleport>
+
+      <Teleport
+        v-if="statusText"
+        to="#zen-status"
+        defer
+      >
+        {{ statusText }}
+      </Teleport>
+      <div
+        v-if="focusing"
+        data-zen="only"
+      >
+        <wa-button
+          appearance="plain"
+          variant="neutral"
+          size="s"
+          @click="leaveFocusGuarded"
+        >
+          <wa-icon
+            slot="start"
+            name="arrow-left"
+          ></wa-icon>
+          {{ t('documents.focusBack') }}
+        </wa-button>
+      </div>
 
       <header class="wa-stack wa-gap-2xs">
         <template v-if="editing">

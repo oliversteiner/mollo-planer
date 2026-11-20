@@ -2245,6 +2245,8 @@
       "loading": "Fassungen werden geladen …"
     },
     "exportPdfMaking": "PDF wird erstellt …",
-    "saveFailed": "Das Sichern hat nicht geklappt."
+    "saveFailed": "Das Sichern hat nicht geklappt.",
+    "allSaved": "Gesichert",
+    "focusBack": "Zurück"
   }
 }
