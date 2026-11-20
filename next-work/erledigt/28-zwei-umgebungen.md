@@ -1,6 +1,6 @@
 # 28 · Zwei Umgebungen: TEST (planer.mollo.dev) und PROD (planer.mollo.ch)
 
-Status: erledigt (Commits `fa97e60` A, `1f525b1` B, C und D siehe Branch `chore/zwei-umgebungen`; PR nach `dev` offen, nicht gemergt). Teil S ist Olivers Schrittliste (`docs/deploy-template.md` Abschnitt 15), von Bob nicht ausgeführt.
+Status: erledigt (Commits `fa97e60` A, `1f525b1` B, `c4aced7` C, `6943071` D, PR #20 gemergt am 2026-11-19). Teil S hat Oliver mit den Schrittlisten aus `docs/deploy-template.md` Abschnitt 15 ausgeführt: TEST (`planer.mollo.dev`) und PROD (`planer.mollo.ch`) laufen, beide Deploys grün (2026-11-20). Erkenntnisse aus dem Aufbau: `docs/deploy-template.md` Abschnitt 12. Nachkontrolle: `docs/nachkontrolle-zwei-umgebungen.md`.
 Reihenfolge: nach dem Deploy von PR #19 (Auftrag 27). Vor Auftrag 17. Auftrag 16 (`feature/dokumente`) bleibt davon unberührt.
 Branch: `chore/zwei-umgebungen` von `dev`. Push des Branches erlaubt, PR nach `dev` öffnen, **nicht mergen**: Der Merge hängt an Olivers Umbau auf dem Server (Teil S unten).
 
@@ -10,7 +10,7 @@ Branch: `chore/zwei-umgebungen` von `dev`. Push des Branches erlaubt, PR nach `d
 |---|---|---|
 | Domains | `planer.mollo.dev`, `api.planer.mollo.dev` | `planer.mollo.ch`, `api.planer.mollo.ch` |
 | Ordner der App | `~/dev/apps/mollo-planer` | `~/ch/apps/mollo-planer` |
-| Docroots (Vorschlag, Oliver bestätigt im Panel) | `~/dev/www/planer.mollo.dev`, `~/dev/www/api.planer.mollo.dev` | `~/ch/www/planer.mollo.ch`, `~/ch/www/api.planer.mollo.ch` |
+| Docroots (**Abweichung, gewollt:** Hostpoint legt alle Docroots unter `~/www/<domain>` an, richtig ist `~/www/planer.mollo.dev` bzw. `~/www/planer.mollo.ch`; ursprünglicher Vorschlag) | `~/dev/www/planer.mollo.dev`, `~/dev/www/api.planer.mollo.dev` | `~/ch/www/planer.mollo.ch`, `~/ch/www/api.planer.mollo.ch` |
 | Sicherungen | `~/dev/backups/planer` | `~/ch/backups/planer` |
 | Branch auf dem Server | `dev` | `main` |
 | Auslöser | Push auf `dev` → Deploy **ohne** Freigabe | Push auf `main` → Deploy **mit** Freigabe (Umgebung `production`) |
