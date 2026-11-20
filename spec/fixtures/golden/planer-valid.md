@@ -17,6 +17,7 @@ Projektverwaltung mit Milestones, ToDos und Kanban.
 <!-- id: m-001 -->
 
 - Status: veröffentlicht
+- Veröffentlicht: 2026-10-15
 - Fällig: 2026-12-15
 
 ### Ordering-Service ausbauen

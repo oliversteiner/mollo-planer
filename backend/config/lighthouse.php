@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\GraphQL\Errors\TranslatedRefusalHandler;
 use App\Http\Middleware\EnsureApproved;
 use App\Http\Middleware\EnsureEmailVerified;
+use App\Http\Middleware\EnsureNotAgent;
 use App\Http\Middleware\EnsureStrongAuthentication;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\DisableIntrospection;
@@ -72,6 +73,9 @@ return [
 
             // Order of the account gates: mail address first, then the second factor,
             // then the admin's approval (self-registered accounts).
+            // An agent account never gets in here (only the MCP connector).
+            EnsureNotAgent::class,
+
             EnsureEmailVerified::class,
 
             // Blocks the whole API until the session is strongly authenticated:
@@ -273,8 +277,8 @@ return [
     'security' => [
         'max_query_complexity' => (int) env('LIGHTHOUSE_MAX_QUERY_COMPLEXITY', 500),
         'max_query_depth' => (int) env('LIGHTHOUSE_MAX_QUERY_DEPTH', 10),
-        // Off in production unless explicitly enabled.
-        'disable_introspection' => (bool) env('LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION', env('APP_ENV') === 'production')
+        // Off on the servers (production and staging) unless explicitly enabled.
+        'disable_introspection' => (bool) env('LIGHTHOUSE_SECURITY_DISABLE_INTROSPECTION', in_array(env('APP_ENV'), ['production', 'staging'], true))
             ? DisableIntrospection::ENABLED
             : DisableIntrospection::DISABLED,
     ],

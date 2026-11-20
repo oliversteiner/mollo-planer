@@ -76,6 +76,7 @@ Die Standardbelegung bildet **genau das heutige Verhalten plus die bereits entsc
 | Manager | Planen, Mitarbeiten, Aufgaben verwalten, Projekt verwalten |
 | Mitglied | Planen, Mitarbeiten |
 | Gast | – (nur lesen) |
+| Agent | Planen, Mitarbeiten, Plan und Aufgaben pflegen (`planer.import`, `task.update`, `task.assign`). Für Agent-Konten (Claude), ohne Verwaltung von Mitgliedern und Projekt. Nicht `Aufgaben verwalten`: löschen und moderieren darf ein Agent nicht. |
 
 **Systemfunktionen:**
 
@@ -145,7 +146,7 @@ Diese Regeln schützen vor Aussperren und vor Missbrauch. Sie sind keine Rechte,
 2. **„Funktion“ freimachen:** Das heutige Feld `job_function` heißt neu **„Tätigkeit“** (`users.activity`, GraphQL `User.activity`, Enum `UserActivity`) und bleibt eine reine Anzeige ohne Rechte.
 3. **Obergrenze** über die Systemrolle, „Lesend“ ohne Sonderregel im Code.
 4. **Grundregeln §7** bleiben im Code.
-5. **Projektrolle „Gast“** (nur lesen) wird mitgeliefert.
+5. **Projektrolle „Gast“** (nur lesen) wird mitgeliefert, ebenso die Projektrolle „Agent“ (Auftrag 31) mit der Funktion `agent-work`. Ein Bestand holt sie mit `php artisan permissions:sync-defaults`.
 6. **Je eine Rolle:** eine Systemrolle je Person, eine Projektrolle je Mitgliedschaft.
 
 ## 10. Folgen für die laufende Umsetzung

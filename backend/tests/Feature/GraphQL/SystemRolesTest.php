@@ -68,13 +68,13 @@ class SystemRolesTest extends GraphQLTestCase
             ->assertJsonMissingPath('errors')
             ->json('data.roles');
 
-        $this->assertSame(['owner', 'manager', 'member', 'guest'], array_column($roles, 'key'));
-        $this->assertSame([false, false, true, false], array_column($roles, 'isDefault'));
+        $this->assertSame(['owner', 'manager', 'member', 'guest', 'agent'], array_column($roles, 'key'));
+        $this->assertSame([false, false, true, false, false], array_column($roles, 'isDefault'));
         $this->assertSame(['de' => 'Gast', 'en' => 'Guest'], $roles[3]['names']);
         $this->assertSame([], $roles[3]['rights']);
         $this->assertContains('PROJECT_DELETE', $roles[0]['rights']);
 
-        $this->assertCount(9, $this->as('member')->gql('{ roles { key } }')->json('data.roles'));
+        $this->assertCount(10, $this->as('member')->gql('{ roles { key } }')->json('data.roles'));
     }
 
     public function test_an_unknown_role_key_is_a_validation_error(): void

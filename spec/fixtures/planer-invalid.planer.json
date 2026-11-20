@@ -21,7 +21,8 @@
       "title": "Schema-Refactoring",
       "release": {
         "version": "1.4",
-        "status": "released"
+        "status": "released",
+        "date": "2026-10-15"
       },
       "todos": [
         {

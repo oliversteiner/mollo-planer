@@ -18,7 +18,7 @@ In der App im **Profil** unter **Zugang für Claude** einen Zugang erzeugen (zum
 
 | Art | Name | Wert |
 |---|---|---|
-| Secret | `MOLLO_PLANER_URL` | Adresse der App, zum Beispiel `https://api.planer.mollo.dev` |
+| Secret | `MOLLO_PLANER_URL` | Adresse der **API** der App: `https://api.planer.mollo.ch` (produktiv) oder `https://api.planer.mollo.dev` (Testumgebung), ohne `/api` am Ende |
 | Secret | `MOLLO_PLANER_TOKEN` | der Zugang aus Schritt 1 |
 | Variable | `PLANER_PROJECT` | die Nummer des Projekts in der App (`list_projects`, oder die Adresse im Browser: `/projects/<Nummer>`) |
 | Variable | `PLANER_FILE` | Pfad der Datei im Repository, zum Beispiel `docs/podcast.planer.json` |
@@ -43,6 +43,17 @@ In der App: **Projekteinstellungen › Benachrichtigung bei Änderungen**:
 
 Mit **Testen** schickt die App sofort ein Ereignis; in *Actions* im Repository erscheint ein Lauf „planer-export“. Danach schickt die App nach Änderungen höchstens alle fünf Minuten ein Ereignis. Ohne Webhook holt der stündliche Lauf den Plan trotzdem.
 
+## Beispiel: ein fremdes Repository (Club DB)
+
+Für das Repository `club-db`, Datei `docs/club-db.planer.json`:
+
+1. Zugang: in der App im Profil einen Zugang „GitHub Action Club DB“ erzeugen (das Konto braucht im Projekt das Recht «Planer-Datei exportieren»).
+2. Im Repository `club-db` unter *Settings › Secrets and variables › Actions*: Secrets `MOLLO_PLANER_URL` = `https://api.planer.mollo.ch` und `MOLLO_PLANER_TOKEN`; Variablen `PLANER_PROJECT` = Nummer des Projekts, `PLANER_FILE` = `docs/club-db.planer.json`, `MOLLO_PLANER_REF` = ein Tag von mollo-planer (nicht `main`, damit ein Lauf nicht von einer Änderung am Werkzeug überrascht wird).
+3. `planer-export.yml` nach `.github/workflows/` kopieren, committen. Der erste Lauf (*Actions › planer-export › Run workflow*) legt die Datei an und committet sie.
+4. Webhook in der App (Schritt 4 oben): Repository `<besitzer>/club-db`, Token nur für dieses Repository mit *Contents: Read and write*.
+
+In diesem Repository selbst ändert sich dafür nichts. Die Umstellung der Skripte, die heute `docs/version-club-db.md` lesen, ist Sache des Repositories `club-db`.
+
 ## Wenn die Action fehlschlägt
 
 | Meldung | Bedeutung und Lösung |
@@ -56,7 +67,7 @@ Mit **Testen** schickt die App sofort ein Ereignis; in *Actions* im Repository e
 ## Lokal weiterarbeiten
 
 ```bash
-export MOLLO_PLANER_URL=https://api.planer.mollo.dev
+export MOLLO_PLANER_URL=https://api.planer.mollo.ch      # Testumgebung: https://api.planer.mollo.dev
 export MOLLO_PLANER_TOKEN=…            # nie ins Repository (oder in .mollo-planer, dann mit chmod 600)
 git pull
 node tools/planer/cli/bin/mollo-planer.mjs pull docs/podcast.planer.json --project 7

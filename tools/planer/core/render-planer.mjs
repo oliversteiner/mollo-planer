@@ -69,6 +69,9 @@ function milestoneChunks(milestone, { words, names, lang }) {
   const meta = [];
   if (milestone.release) {
     meta.push(`- Status: ${words.status[milestone.release.status]}`);
+    if (milestone.release.date) {
+      meta.push(`- ${words.releasedOn}: ${milestone.release.date}`);
+    }
   }
   if (milestone.dueDate) {
     meta.push(`- ${words.due}: ${milestone.dueDate}`);

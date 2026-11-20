@@ -6,6 +6,8 @@ Passwörter und Tokens gehören **nicht** in den Chat. Sie werden direkt in die 
 
 Platzhalter `<…>` ersetzen. Felder, die nicht zutreffen, streichen.
 
+**Wo ein Befehl läuft:** Jeder Befehlsblock beginnt mit `# LOKAL` (auf deinem Mac) oder `# AUF DEM SERVER` (per SSH auf Hostpoint angemeldet). Im Fliesstext steht es vor dem Befehl: «(lokal)» oder «(auf dem Server)». Die Zeilen in `authorized_keys` und im Cron stehen im Hostpoint-Panel bzw. in dieser Datei, nicht im Terminal.
+
 ---
 
 ## 1. Voraussetzungen
@@ -102,18 +104,26 @@ Bei einem Frontend ohne Backend entfällt dieser Abschnitt.
 
 ## 6. Deploy-Schlüssel
 
-Nur für CI, ohne Passphrase, nur für dieses Projekt:
+Nur für CI, ohne Passphrase, **je Umgebung ein eigener Schlüssel** (bei zwei Umgebungen siehe Abschnitt 15). **Nie den persönlichen SSH-Schlüssel verwenden:** Er öffnet eine normale Shell. Der Deploy-Schlüssel darf durch `command=` nur das Deploy-Skript seiner Umgebung starten. Erzeugt wird er **lokal**, nicht auf dem Server:
 
 ```bash
-ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy <projekt>' -f ~/.ssh/<projekt>-deploy
+# LOKAL (auf deinem Mac, im Terminal)
+ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy <projekt>-<test|prod>' -f ~/.ssh/<projekt>-<test|prod>-deploy
 ```
 
-- **Server:** In `~/.ssh/authorized_keys` eine Zeile anhängen, eingeschränkt auf das Deploy-Skript:
+- **Server:** In `~/.ssh/authorized_keys` pro Schlüssel **eine einzige Zeile** anhängen, eingeschränkt auf das Deploy-Skript (der öffentliche Teil ist die Datei mit `.pub`):
   ```
-  command="/home/<benutzer>/apps/<projekt>/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy <projekt>
+  command="/home/<benutzer>/<dev|ch>/apps/<projekt>/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy <projekt>-<test|prod>
   ```
-  Vorher `authorized_keys` sichern. Die Datei hat oft keinen Zeilenumbruch am Ende, deshalb vor dem Anhängen eine Leerzeile setzen.
-- **Host-Schlüssel:** `ssh-keygen -F <ssh-host> | grep -v '^#'`. Die Zeile wird als Secret `DEPLOY_KNOWN_HOSTS` eingetragen.
+  Alles Folgende **auf dem Server**: Vorher `authorized_keys` sichern (`cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak-$(date +%Y%m%d-%H%M)`). Die Datei hat oft keinen Zeilenumbruch am Ende, deshalb vor dem Anhängen eine Leerzeile setzen (`echo "" >> ~/.ssh/authorized_keys`). Rechte: `chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys`. Die Zeile erzeugst du **lokal** (`echo "command=\"…\",restrict $(cat ~/.ssh/<projekt>-<test|prod>-deploy.pub)"`), kopierst sie und fügst sie auf dem Server mit `nano ~/.ssh/authorized_keys` unten ein.
+- **In GitHub gehört der private Teil** (die Datei ohne `.pub`), nicht der öffentliche (Abschnitt 7). Nach dem Eintragen die private Datei vom Server löschen, falls sie dort entstand.
+- **Host-Schlüssel** (lokal): `ssh-keygen -F <ssh-host> | grep -v '^#'`. Die Zeile wird als Secret `DEPLOY_KNOWN_HOSTS` eingetragen.
+- **Schlüssel lokal prüfen**, bevor GitHub ins Spiel kommt:
+  ```bash
+  # LOKAL (auf deinem Mac, im Terminal)
+  ssh -i ~/.ssh/<projekt>-<test|prod>-deploy -o IdentitiesOnly=yes <benutzer>@<ssh-host> </dev/null; echo "Exit: $?"
+  ```
+  Erwartet: «==> Umgebung: …» und danach «index.html fehlt im Archiv» (der Abbruch ohne Archiv ist gewollt und ändert nichts), `Exit: 1`. Die Meldung «Pseudo-terminal will not be allocated because stdin is not a terminal» ist harmlos.
 
 ---
 
@@ -122,31 +132,31 @@ ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy <projekt>' -f ~/.ssh/<proj
 GitHub hat für Secrets und Variablen dieselbe Oberfläche, nur mit verschiedenen Reitern. Die Unterscheidung ist leicht zu übersehen, deshalb hier genau:
 
 - **Secrets** (Reiter *Secrets*): verschlüsselt, nach dem Speichern nicht mehr einsehbar.
-- **Variablen** (Reiter *Variables*): Klartext, im Repo-Einstellungen sichtbar. Für Hostnamen und Benutzer.
+- **Variablen** (Reiter *Variables*): Klartext, einsehbar. Für Hostnamen, Benutzer und Adressen.
 
-Beides auf **Repository-Ebene** anlegen, nicht in der Umgebung `production`. Der Deploy-Job liest die Variablen aus dem Repository. Liegen sie nur in einer Umgebung, bleiben sie für den Job leer.
+Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
+
+- **Repository-Ebene** (*Settings → Secrets and variables → Actions*): was für alle Umgebungen gleich ist, das heisst `DEPLOY_HOST`, `DEPLOY_USER` (Variablen) und `DEPLOY_KNOWN_HOSTS` sowie die npm-Tokens (Secrets), weil beide Umgebungen auf demselben Server liegen.
+- **Umgebung** (*Settings → Environments → `<Name>`*, ab Abschnitt 15): was je Umgebung anders ist, das heisst das Secret `DEPLOY_SSH_KEY` und die Variablen `API_BASE` und `FRONTEND_URL`.
+
+**Ein Secret oder eine Variable in der Umgebung überschreibt die gleichnamige auf Repository-Ebene.** Ein leerer oder falscher `DEPLOY_SSH_KEY` in der Umgebung führt zu «Permission denied (publickey)», auch wenn auf Repository-Ebene ein richtiger liegt. Fehlen `API_BASE` und `FRONTEND_URL` in der Umgebung, bricht der Lauf mit «The variables API_BASE and FRONTEND_URL are missing in the GitHub environment.» noch vor dem Build ab (es ist dann nichts auf dem Server geschehen). Den `DEPLOY_SSH_KEY` auf Repository-Ebene danach löschen, damit er nirgends als Rückfall liegt.
 
 ### Secrets
 
-**Settings → Secrets and variables → Actions → Reiter „Secrets“ → New repository secret**
-
-- `DEPLOY_SSH_KEY`: Inhalt von `~/.ssh/<projekt>-deploy` (`pbcopy < ~/.ssh/<projekt>-deploy`)
+- `DEPLOY_SSH_KEY` (**je Umgebung**): der **private** Schlüssel, vollständig von `-----BEGIN OPENSSH PRIVATE KEY-----` bis `-----END OPENSSH PRIVATE KEY-----` (lokal: `pbcopy < ~/.ssh/<projekt>-<test|prod>-deploy`)
 - `DEPLOY_KNOWN_HOSTS`: Ausgabe des Host-Schlüssel-Befehls aus Abschnitt 6
 - `FONTAWESOME_NPM_AUTH_TOKEN`: nur bei Font Awesome Pro
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
 
 ### Variablen
 
-**Settings → Secrets and variables → Actions → Reiter „Variables“ → New repository variable**
-
-- `DEPLOY_HOST`: Hostname des Hostpoint-Servers, z. B. `<servername.hostpoint.ch>`. Muss zum Eintrag in `DEPLOY_KNOWN_HOSTS` passen.
-- `DEPLOY_USER`: SSH-Benutzer, z. B. `<username>`
-
-Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repository-Ebene anlegen. Dann findet der Deploy-Job den Wert nicht.
+- `DEPLOY_HOST` (Repository): Hostname des Hostpoint-Servers, z. B. `<servername.hostpoint.ch>`. Muss zum Eintrag in `DEPLOY_KNOWN_HOSTS` passen.
+- `DEPLOY_USER` (Repository): SSH-Benutzer, z. B. `<username>`
+- `API_BASE` und `FRONTEND_URL` (**je Umgebung**): die Adressen der Umgebung
 
 ### Umgebung
 
-**Settings → Environments → New environment:** Name `production`, unter *Required reviewers* den eigenen Account eintragen. Keine Variablen oder Secrets in dieser Umgebung anlegen.
+**Settings → Environments → New environment:** je Umgebung eine. Die mit Freigabe (`production`) bekommt unter *Required reviewers* den eigenen Account, die Testumgebung keinen.
 
 ---
 
@@ -154,19 +164,21 @@ Häufiger Fehler: Eine Variable in der Umgebung `production` statt auf Repositor
 
 1. Projekt holen:
    ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    mkdir -p ~/apps/<projekt> && cd ~/apps/<projekt>
    git init -q && git remote add origin https://github.com/<owner>/<repo>.git
    git fetch -q origin main && git checkout -q -f -B main origin/main
    ```
 2. `backend/.env` aus Abschnitt 5 anlegen, `chmod 600`.
-3. Backend-Abhängigkeiten mit PHP 8.5 (Standard-`php` des Servers, prüfen mit `php -v`; für `deploy.sh` zusätzlich `DEPLOY_PHP` in `backend/.env` setzen):
+3. Backend-Abhängigkeiten mit PHP 8.5 (auf Hostpoint ist `php` seit Neuem immer 8.5, prüfen mit `php -v`; `DEPLOY_PHP` in `backend/.env` ist nur nötig, wenn das `php` des Servers einmal nicht 8.5 wäre):
    ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    cd ~/apps/<projekt>/backend
    php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
    php artisan storage:link
    ```
 4. **Migration nur nach Freigabe und mit Backup:** `php artisan migrate --force`, danach `php artisan planer:sync-templates` (schreibt die mitgelieferten Vorlagen aus `spec/templates/` in die Datenbank, wiederholbar).
-   **Vor dem Deployment von M4:** `php artisan planer:check-limits` (listet je Projekt, wo Daten eine Grenze der Planer-Datei verletzen: 30 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibung höchstens 5000 Zeichen als Markdown; ändert nichts, Exit-Code 1 bei Funden). Funde zuerst von Hand bereinigen: Ein Projekt mit Überschreitungen lässt sich nicht exportieren.
+   **Vor dem Deployment von M4:** `php artisan planer:check-limits` (listet je Projekt, wo Daten eine Grenze der Planer-Datei verletzen: 200 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibung höchstens 5000 Zeichen als Markdown; ändert nichts, Exit-Code 1 bei Funden). Funde zuerst von Hand bereinigen: Ein Projekt mit Überschreitungen lässt sich nicht exportieren.
    **Breaking Change am Connector (M4 I3):** Der MCP-Server hat nur noch `list_projects`, `list_users`, `list_templates`, `export_plan` und `import_plan`. `get_project`, `create_project`, `set_project_member`, `create_project_plan`, `add_to_plan`, `update_plan_item`, `move_milestone` und `set_task_status` entfallen. Zugänge und Konfiguration bleiben gültig. Wer sie nutzt, vor dem Deployment informieren (`docs/claude-connector.md`).
 5. Docroot der API (`~/www/<api-domain>`): Da Hostpoint diesen Ordner selbst anlegt, wird er gefüllt statt verlinkt:
    - `index.php` kopieren und die Pfade auf `~/apps/<projekt>/backend` umstellen (`__DIR__.'/../` durch den absoluten Pfad ersetzen).
@@ -184,7 +196,7 @@ Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in
 * * * * * cd <api-pfad> && <php-pfad> artisan schedule:run >> /dev/null 2>&1
 ```
 
-`<api-pfad>` ist der Ordner des Backends (`~/apps/<projekt>/backend`), `<php-pfad>` das PHP 8.5 des Servers (`php -v` prüfen, im Panel den vollen Pfad eintragen).
+`<api-pfad>` ist der Ordner des Backends (`~/apps/<projekt>/backend`), `<php-pfad>` das PHP 8.5 des Servers: auf Hostpoint genügt `php`. Cron hat manchmal einen anderen `PATH` als SSH; einmal prüfen mit dem Eintrag `* * * * * php -v > ~/cron-php.txt` und die Datei nach einer Minute lesen, dann den Eintrag wieder ersetzen.
 
 **Ohne diesen Eintrag gehen weder Mails noch Webhooks raus**, und es erscheint kein Fehler. Prüfen: In der App einen Task zuweisen oder in den Projekteinstellungen „Testen“ drücken; innerhalb von zwei Minuten kommt die Mail bzw. der Test an. Der Eintrag ist ein einmaliger Schritt (macht Oliver im Panel).
 
@@ -198,18 +210,18 @@ Mails und Webhooks (Benachrichtigung bei Änderungen der Planer-Datei) warten in
 
 Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `mollo-planer`.
 
-- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`. Das PHP nimmt das Skript aus der Zeile `DEPLOY_PHP=` in `backend/.env` auf dem Server (voller Pfad, z. B. `/usr/local/php85/bin/php`); fehlt sie oder ist sie leer, gilt `php`. Welches `php` eine SSH-Sitzung ohne Terminal findet, hängt von der Umgebung des Servers ab, darum den Pfad ausdrücklich setzen.
+- In `deploy.sh` die Variablen oben anpassen: `APP`, `BACKEND`, `WEB_ROOT`, `PHP`, `COMPOSER`. Das PHP nimmt das Skript aus der Zeile `DEPLOY_PHP=` in `backend/.env` auf dem Server (voller Pfad); fehlt sie oder ist sie leer, gilt `php`, auf Hostpoint immer 8.5. Welches `php` eine SSH-Sitzung ohne Terminal findet, hängt von der Umgebung des Servers ab, darum den Pfad ausdrücklich setzen.
 - **Wichtig:** `deploy.sh` führt die Fassung aus, die **auf dem Server liegt**, bevor es den neuen Code holt. Eine Änderung an `deploy.sh` wirkt deshalb erst beim übernächsten Deploy, ausser man holt die Datei vorher von Hand: `git fetch origin main && git checkout origin/main -- deploy/deploy.sh`.
 - Bei einem Frontend ohne Backend die Schritte Datenbank-Backup, Migrationen und Caches streichen.
-- In `deploy.yml` die Umgebungsvariable `API_BASE` anpassen. `DEPLOY_HOST` und `DEPLOY_USER` kommen aus den GitHub-Variablen (Abschnitt 7).
+- In `deploy.yml` bestimmt der Branch die GitHub-Umgebung; `API_BASE` und `FRONTEND_URL` kommen aus der Umgebung, `DEPLOY_HOST` und `DEPLOY_USER` aus den Variablen des Repositorys (Abschnitt 7).
 - Die Tests-Jobs an das Projekt anpassen oder streichen.
 
 ---
 
 ## 10. Deploy starten
 
-1. Änderungen per PR nach `main` mergen.
-2. Der Lauf `deploy` wartet im Environment `production`. Dort **Review deployments** öffnen und freigeben.
+1. Änderungen per PR nach `dev` mergen: Der Lauf deployt nach TEST (ohne Freigabe). Nach `main` mergen deployt nach PROD.
+2. Der Lauf für `main` wartet im Environment `production`. Dort **Review deployments** öffnen und freigeben.
 3. Schlägt ein Job fehl: **Actions → deploy → Re-run failed jobs**.
 
 ---
@@ -227,7 +239,7 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 ## 12. Stolpersteine
 
 - **DB-Host:** Nicht `localhost` verwenden. Der Socket existiert auf Hostpoint nicht.
-- **PHP-Version:** `deploy.sh` nimmt `DEPLOY_PHP` aus `backend/.env` (voller Pfad, z. B. `/usr/local/php85/bin/php`), sonst `php`. Ist die Version älter als 8.5, bricht es ab, bevor etwas geändert wird, und nennt den benutzten Pfad. Zeigt der Pfad auf eine nicht ausführbare Datei, bricht es ebenfalls ab. Die Shell-Sitzung mit Terminal und die ohne Terminal können verschiedene `php` finden; massgeblich ist `DEPLOY_PHP`.
+- **PHP-Version:** `deploy.sh` nimmt `DEPLOY_PHP` aus `backend/.env` (voller Pfad), sonst `php` (auf Hostpoint immer 8.5). Ist die Version älter als 8.5, bricht es ab, bevor etwas geändert wird, und nennt den benutzten Pfad. Zeigt der Pfad auf eine nicht ausführbare Datei, bricht es ebenfalls ab. Die Shell-Sitzung mit Terminal und die ohne Terminal können verschiedene `php` finden; massgeblich ist `DEPLOY_PHP`.
 - **Schema-Cache von Lighthouse liegt ausserhalb von Git:** Ausserhalb von `APP_ENV=local` liest Lighthouse das GraphQL-Schema aus `bootstrap/cache/lighthouse-schema.php`. Die Datei ist nicht in Git, `git reset` lässt sie stehen. Ein alter Stand zeigt auf Resolver-Klassen, die es nicht mehr gibt («Failed to find class … for directive @field», «Internal server error»). `deploy.sh` führt darum nach `config:cache` `lighthouse:clear-cache` und `lighthouse:cache` aus. Der Query-Cache (`query_cache`, Modus `store`) braucht das nicht: Er hält geparste Abfragetexte, die vom Schema unabhängig sind. Von Hand: `php artisan lighthouse:clear-cache && php artisan lighthouse:cache`.
 - **Rauchtest nach dem Deploy:** Nach `artisan up` schickt `deploy.sh` `{ viewerRights }` ohne Sitzung an `APP_URL/api` (ohne `Origin`, damit Sanctum die Anfrage nicht als SPA-Anfrage mit CSRF behandelt). Erwartet: die Antwort enthält `Unauthenticated.`. Sonst meldet der Lauf «Rauchtest GraphQL fehlgeschlagen: …» und endet mit Fehler. Der neue Code ist dann schon live, es wird nichts zurückgerollt.
 - **Passkey-RP-ID:** Jede App hat ihre eigene RP-ID (kein Single Sign-on). `PASSKEYS_RELYING_PARTY_ID` in Produktion **immer** setzen, gleich dem Host von `FRONTEND_URL` (z. B. `planer.mollo.dev`), nie die Hauptdomain. Ein Wechsel macht alle Passkeys ungültig. Ein Passkey einer anderen App unter der Hauptdomain erscheint sonst in der Auswahl und die Anmeldung endet mit 422. `deploy.sh` warnt im Log, wenn der Wert vom Host von `FRONTEND_URL` abweicht.
@@ -236,6 +248,24 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 - **Hostpoint-Block in `.htaccess`:** Nicht löschen, sonst wechselt die PHP-Version des Docroots.
 - **Frontend-Build:** Die API-Adresse wird beim Build eingebaut (`NUXT_PUBLIC_API_BASE`). Ändert sich die Domain, neu bauen.
 - **Passwörter:** Nie im Chat oder im Repo. Nach versehentlicher Weitergabe ändern.
+
+### Eigenheiten und Fallstricke bei Hostpoint (aus dem Aufbau von TEST und PROD)
+
+- **Alle Docroots liegen unter `~/www/<domain>`.** Hostpoint legt sie beim Anlegen der Domain dort an (`~/www/planer.mollo.dev`, `~/www/api.planer.mollo.dev`, …). Eigene Ordnerbäume wie `~/dev/www` gibt es nicht, sie würden vom Webserver nicht ausgeliefert. Der App-Ordner und die Sicherungen dürfen frei liegen (`~/dev/apps/…`, `~/ch/apps/…`), nur der Docroot nicht. `DEPLOY_WEB_ROOT` zeigt deshalb auf `~/www/<frontend-domain>`; `deploy.sh` verlangt, dass der letzte Pfadteil dem Host von `FRONTEND_URL` entspricht, und einen vorhandenen Ordner.
+- **Das Standardhosting von Hostpoint läuft auf BSD, nicht auf Linux (GNU).** Die Kommandozeilenwerkzeuge verhalten sich deshalb wie auf dem Mac. Beispiel `sed -i`: `sed -i 's/a/b/' datei` bricht dort mit «sed: 1: … invalid command code .» ab, weil BSD-`sed` nach `-i` eine Endung für die Sicherungskopie verlangt. Portabel (läuft auf Hostpoint, auf dem Mac und unter Linux) ist `sed -i.bak 's/a/b/' datei && rm datei.bak`. Alle `sed`-Befehle in dieser Anleitung sind so geschrieben. Auch sonst gilt: Es sind die BSD-Varianten. Linux-Beispiele aus dem Netz (`sed -i`, `grep -P`, `readlink -f`, `date -d`) vorher mit der Hilfe (`man sed`) abgleichen. `deploy.sh` nutzt nur Optionen, die auf beiden laufen (`sed -E`, `grep -E`, `xargs -r`).
+- **`php` ist auf Hostpoint immer 8.5**, ein voller Pfad ist nicht mehr nötig (`DEPLOY_PHP` leer lassen). Cron hat manchmal einen anderen `PATH` als SSH: einmal im Hostpoint-Panel den Cron-Eintrag `* * * * * php -v > ~/cron-php.txt` anlegen und die Datei nach einer Minute **auf dem Server** lesen (`cat ~/cron-php.txt`), dann den echten Eintrag setzen.
+- **Die `index.php` im API-Docroot hat absolute Pfade** auf `<App-Ordner>/backend` (`/home/<benutzer>/<dev|ch>/apps/<projekt>/backend/…`, drei Stellen). Zieht der App-Ordner um, muss sie angepasst werden, sonst liefert die API-Domain einen Fehler:
+  ```bash
+  # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
+  sed -i.bak 's#/home/<benutzer>/apps/<projekt>#/home/<benutzer>/dev/apps/<projekt>#g' ~/www/<api-domain>/index.php && rm ~/www/<api-domain>/index.php.bak
+  grep -n "<projekt>" ~/www/<api-domain>/index.php
+  ```
+  Prüfen (lokal oder auf dem Server) mit `curl -si https://<api-domain>/up | head -3` (erwartet `HTTP/2 200`); bei 500 hilft **auf dem Server** `tail -n 30 <App-Ordner>/backend/storage/logs/laravel.log`.
+- **`.htaccess` im API-Docroot nie von einer anderen Domain kopieren.** Der Hostpoint-Block (`Use php-fpm latest` … `#@__HCP_END__@#`) gehört zur Domain. Den eigenen Block behalten und die Laravel-Regeln aus `backend/public/.htaccess` darunter anhängen.
+- **`rsync --delete` leert den Frontend-Docroot bei jedem Deploy.** Alles, was dort liegt und nicht aus dem Build stammt, ist danach weg (auch eine `.htaccess`). Was bleiben muss, gehört in den Build (`frontend/public/`). Vor dem ersten Deploy **auf dem Server** ansehen: `ls -la ~/www/<frontend-domain>`.
+- **Der Deploy bricht sicher ab.** `deploy.sh` liest und prüft `backend/.env` vor jeder Änderung; jede Meldung auf «… Nichts wurde geändert.» heisst, dass der Server unberührt ist. Lässt sich der Fehler nicht aus dem GitHub-Log lesen, das Skript **auf dem Server** von Hand ohne Archiv laufen lassen: `bash <App-Ordner>/deploy/deploy.sh </dev/null; echo "Exit: $?"`.
+- **Fehlerbilder des SSH-Schlüssels:** «Permission denied (publickey)» heisst, dass der Schlüssel im GitHub-Secret nicht zu `authorized_keys` passt (leer, falsche Umgebung, nur der öffentliche Teil, Zeile umgebrochen). Kein Fehler, aber auch keine Ausgabe, kann eine Zeile **ohne** `command=` sein: Dann öffnet sich eine normale Shell. Test (**lokal**): `ssh -i <Schlüssel> -o IdentitiesOnly=yes <benutzer>@<ssh-host> 'echo hallo' </dev/null` darf **kein** `hallo` ausgeben.
+- **Leere Datenbank beim ersten Mal:** `migrate --force` baut die Tabellen auf, danach `app:create-admin`. Enthält die Datenbank noch alte Daten, die weg sollen, vorher den Namen prüfen und nur dann `migrate:fresh` ausführen (beides **auf dem Server** im Ordner `<App-Ordner>/backend`: `php artisan config:show database.connections.mariadb.database`, dann `php artisan migrate:fresh --force`, das löscht alles). Auf `staging` fragt Laravel nicht nach (Abschnitt 15).
 
 ## 13. Betrieb: Nutzer verwalten
 
@@ -263,6 +293,25 @@ Gemeinsam:
 - **E-Mail:** Solange eine Adresse nicht bestätigt ist, bleibt die API für das Konto gesperrt (Anmelden geht, mehr nicht). Unbestätigte und nicht freigegebene Konten löscht `app:prune-unverified-users` täglich nach 7 Tagen. Der Befehl verschickt keine Bestätigungsmail.
 - Im Log (`storage/logs`) steht je Eingriff eine Zeile mit Nutzer-ID, Befehl und Aktion, ohne Passwort, Hash oder Adresse.
 
+### Agent-Konten (Claude, Kevin, Bob; Auftrag 31)
+
+Ein **Agent-Konto** hat keinen Zugang zur Oberfläche: keine Anmeldung mit Passwort oder Passkey, kein Zurücksetzen, keine Einladung. Der einzige Weg ist ein Token für den Connector (`/mcp`). Es braucht keinen zweiten Faktor, weil es keine Web-Sitzung gibt. In der Oberfläche trägt es das Kennzeichen «Agent». **Das Token erscheint einmal im Terminal und nie in einer Datei, einem Log oder einem Chat.**
+
+Alle Befehle laufen **AUF DEM SERVER** (per SSH, im Ordner `backend/`; Hostpoint: `php` ist 8.5). Auf TEST und PROD je einzeln.
+
+```bash
+# AUF DEM SERVER
+php artisan app:create-agent "Claude Club DB" claude-clubdb@example.ch   # legt das Konto an (Rückfrage), Systemrolle Mitglied
+php artisan app:user-token claude-clubdb@example.ch "Claude Code"         # macht das Token, zeigt es EINMAL (Rückfrage)
+php artisan app:user-token claude-clubdb@example.ch --revoke              # widerruft alle Tokens des Kontos
+```
+
+- Die Adresse muss keine echte Mailbox sein (es geht nie eine Mail dorthin).
+- Danach **in der App** (als Owner oder Manager des Projekts): das Konto als Mitglied aufnehmen, mit der **Projektrolle Agent**. Sie darf den Plan exportieren und importieren, Aufgaben ändern, zuweisen, verschieben und kommentieren, aber keine Mitglieder und keine Projekteinstellungen ändern und nichts löschen.
+- Das Token gehört in die Einstellung des Connectors (siehe `docs/claude-connector.md`), nicht in `.env`, nicht ins Repository. Es gilt 90 Tage; danach ein neues machen.
+- `app:user-token` verweigert Konten von Menschen: die machen ihr Token selbst im Profil.
+- Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent).
+
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
 - **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.
@@ -272,3 +321,153 @@ Gemeinsam:
 - **Nach dem Zurücksetzen des Passworts** per Mail werden Sitzungen, «angemeldet bleiben» und die Zugänge für Claude beendet. **Sitzungen lassen sich nur beenden, wenn `SESSION_DRIVER=database` gilt** (Produktion); bei einem anderen Treiber läuft die Sitzung bis zu ihrem Ablauf weiter.
 - **Anmeldung als Passwortbestätigung:** Wer sich mit dem Passwort angemeldet hat, muss es beim Einrichten des zweiten Faktors in den folgenden 3 Stunden (`AUTH_PASSWORD_TIMEOUT`) nicht nochmals eingeben. Gilt nicht für die Anmeldung allein mit Passkey.
 
+---
+
+## 15. Zwei Umgebungen: TEST und PROD (Auftrag 28)
+
+Beide Umgebungen liegen auf demselben Hostpoint-Konto (nginx vor Apache, die `.htaccess` mit dem Hostpoint-Block gilt weiter). Getrennt sind: Datenbank, `backend/.env`, Ordner, Cron-Eintrag, SSH-Schlüssel und GitHub-Umgebung.
+
+| | TEST | PROD |
+|---|---|---|
+| Domains | `planer.mollo.dev`, `api.planer.mollo.dev` | `planer.mollo.ch`, `api.planer.mollo.ch` |
+| Ordner der App | `~/dev/apps/mollo-planer` | `~/ch/apps/mollo-planer` |
+| Docroot Frontend | `~/www/planer.mollo.dev` | `~/www/planer.mollo.ch` |
+| Docroot API | `~/www/api.planer.mollo.dev` | `~/www/api.planer.mollo.ch` |
+| Sicherungen | `~/dev/backups/planer` | `~/ch/backups/planer` |
+| Branch auf dem Server (`DEPLOY_BRANCH`) | `dev` | `main` |
+| Auslöser | Push auf `dev`, **ohne** Freigabe (GitHub-Umgebung `test`) | Push auf `main`, **mit** Freigabe (GitHub-Umgebung `production`) |
+| `APP_ENV` | `staging` | `production` |
+| `APP_NAME` | `"Mollo Planer (Test)"` | `"Mollo Planer"` |
+| Datenbank | eigene, startet leer | eigene, startet leer |
+| Admin | per `app:create-admin` | per `app:create-admin` |
+| `PASSKEYS_RELYING_PARTY_ID` | `planer.mollo.dev` | `planer.mollo.ch` |
+
+**`APP_ENV=staging`:** Alles, was die Produktion sperrt, bleibt auf TEST gesperrt (`App\Support\DeploymentEnvironment::isLive()` gilt für `production` und `staging`): die 2FA ist nicht abschaltbar, Webhooks gehen nur an öffentliche Adressen über https, keine Demo-Seeder (`DemoSeeder`, `DevelopmentHistorySeeder`, `E2eSeeder`), GraphQL ohne Introspektion, kein Fehler bei Lazy Loading, Schema-Cache von Lighthouse an. Offen ist nur ein Entwicklungsrechner (`local`, `testing`). Die App zeigt ausser in der Produktion das Band «Testumgebung» (`appSettings.isTestEnvironment`).
+Hinweis für beide: Laravel fragt bei `migrate` und ähnlichen Befehlen nur in `production` nach einer Bestätigung. Auf TEST gibt es diese Rückfrage nicht, `deploy.sh` nutzt ohnehin `--force`; auf dem Server von Hand `migrate:fresh` oder `db:wipe` also nur mit Vorsicht, nie ohne Blick auf den Ordner.
+
+### Pflichtwerte in `backend/.env` je Umgebung
+
+```env
+APP_ENV=staging                         # PROD: production
+APP_NAME="Mollo Planer (Test)"          # PROD: "Mollo Planer"
+APP_URL=https://api.planer.mollo.dev    # PROD: https://api.planer.mollo.ch
+FRONTEND_URL=https://planer.mollo.dev   # PROD: https://planer.mollo.ch
+SANCTUM_STATEFUL_DOMAINS=planer.mollo.dev
+SESSION_DOMAIN=.planer.mollo.dev
+PASSKEYS_RELYING_PARTY_ID=planer.mollo.dev
+# DEPLOY_PHP bleibt leer: auf Hostpoint ist `php` immer 8.5
+DEPLOY_BRANCH=dev                       # PROD: main
+DEPLOY_WEB_ROOT=~/www/planer.mollo.dev         # PROD: ~/www/planer.mollo.ch
+DEPLOY_BACKUP_DIR=~/dev/backups/planer         # PROD: ~/ch/backups/planer
+```
+
+`deploy.sh` ermittelt den App-Ordner aus seinem eigenen Pfad und liest `DEPLOY_BRANCH`, `DEPLOY_WEB_ROOT`, `DEPLOY_BACKUP_DIR` und `FRONTEND_URL` **vor jeder Änderung**. Fehlt etwas, zeigt `DEPLOY_WEB_ROOT` auf keinen Ordner oder ist sein letzter Pfadteil nicht der Host von `FRONTEND_URL`, bricht es mit «… Nichts wurde geändert.» ab. Das Log beginnt mit Umgebung, Branch, App-Ordner, Docroot und Sicherungsordner.
+
+### Je ein Schlüssel, je ein Cron-Eintrag
+
+- `~/.ssh/authorized_keys`: **zwei** Zeilen, je ein eigener Schlüssel, der nur das Skript seiner Umgebung startet. Dadurch kann der Client die Umgebung nicht wählen:
+  ```
+  command="/home/<benutzer>/dev/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer-test
+  command="/home/<benutzer>/ch/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer-prod
+  ```
+- Cron (Hostpoint-Panel, Pfad prüfen, Abschnitt 12), **zwei** Einträge:
+  ```
+  * * * * * cd ~/dev/apps/mollo-planer/backend && php artisan schedule:run >> /dev/null 2>&1
+  * * * * * cd ~/ch/apps/mollo-planer/backend && php artisan schedule:run >> /dev/null 2>&1
+  ```
+
+### GitHub: Umgebungen
+
+*Settings → Environments:* **`test`** (keine Reviewer) und **`production`** (Reviewer: Oliver). In **jeder** Umgebung (nicht auf Repository-Ebene): Secret `DEPLOY_SSH_KEY` (der Schlüssel der Umgebung) und die Variablen `API_BASE` (`https://api.planer.mollo.dev` bzw. `.ch`) und `FRONTEND_URL` (`https://planer.mollo.dev` bzw. `.ch`). Auf Repository-Ebene bleiben `DEPLOY_HOST`, `DEPLOY_USER` und `DEPLOY_KNOWN_HOSTS` (gleicher Server). Fehlen `API_BASE` oder `FRONTEND_URL` in der Umgebung, bricht der Lauf vor dem Build ab. Die Umgebung `production` aus Abschnitt 7 («keine Variablen oder Secrets in dieser Umgebung») gilt nicht mehr.
+
+| Push auf | GitHub-Umgebung | Server | Freigabe |
+|---|---|---|---|
+| `dev` | `test` | `~/dev/apps/mollo-planer`, Branch `dev` | nein |
+| `main` | `production` | `~/ch/apps/mollo-planer`, Branch `main` | ja, Oliver |
+| anderer Branch | kein Deploy | | |
+
+Beim manuellen Start (*Run workflow*) wählt man die Umgebung; sie muss zum Branch passen (`test` nur von `dev`, `production` nur von `main`), sonst bricht der Lauf ab: Der Server setzt sich auf **seinen** Branch, ein anderes Frontend würde zu fremdem Code passen.
+
+### Docroot der API (`index.php`)
+
+Die Docroots liegen unter `~/www/<domain>` (Hostpoint legt sie an, Abschnitt 12). Der API-Docroot enthält eine eigene `index.php` mit absoluten Pfaden auf `<App-Ordner>/backend`. Der Deploy pflegt sie **nicht** (sie liegt ausserhalb des App-Ordners und gehört Hostpoint; ein Skript, das dort schreibt, könnte bei einem Pfadfehler die andere Umgebung treffen). Sie wird bei Umzug und Ersteinrichtung **einmal von Hand** angepasst, danach nur, wenn sich `backend/public/index.php` ändert (selten).
+
+### TEST einrichten (Umzug des bisherigen App-Ordners, leere Datenbank)
+
+Beide Umgebungen starten mit leerer Datenbank, es gibt keine Datenmigration; Konten, Passkeys und Projekte der alten Installation entfallen, der Admin wird neu angelegt. Der bisherige App-Ordner `~/apps/<projekt>` zieht nach `~/dev/apps/<projekt>` um.
+
+```bash
+# AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
+# 1. Wartungsmodus an (alter Pfad), dann Ordner verschieben
+cd ~/apps/mollo-planer/backend && php artisan down --retry=60
+mkdir -p ~/dev/apps ~/dev/backups/planer && chmod 700 ~/dev/backups/planer
+mv ~/apps/mollo-planer ~/dev/apps/mollo-planer
+
+# 2. index.php der API auf den neuen Ort stellen (drei Stellen) und prüfen
+cp ~/www/api.planer.mollo.dev/index.php ~/www/api.planer.mollo.dev/index.php.bak
+sed -i.bak 's#/home/<benutzer>/apps/mollo-planer#/home/<benutzer>/dev/apps/mollo-planer#g' ~/www/api.planer.mollo.dev/index.php
+grep -n "mollo-planer" ~/www/api.planer.mollo.dev/index.php
+rm ~/www/api.planer.mollo.dev/index.php.bak
+
+# 3. backend/.env: andere Datenbank (die leere von TEST) und die neuen Werte
+nano ~/dev/apps/mollo-planer/backend/.env
+#   APP_ENV=staging, APP_NAME="Mollo Planer (Test)",
+#   DB_DATABASE=<Datenbank TEST>, DB_USERNAME=<Benutzer TEST>, DB_PASSWORD=<…>,
+#   DEPLOY_BRANCH=dev, DEPLOY_WEB_ROOT=~/www/planer.mollo.dev, DEPLOY_BACKUP_DIR=~/dev/backups/planer
+cd ~/dev/apps/mollo-planer/backend
+php artisan config:clear
+php artisan config:show database.connections.mariadb.database      # muss die Datenbank von TEST sein, sonst STOPP
+
+# 4. Branch auf dev, Datenbank aufbauen, Admin anlegen, Caches
+cd ~/dev/apps/mollo-planer && git fetch origin dev && git checkout -f -B dev origin/dev
+cd backend
+php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
+php artisan migrate --force
+php artisan planer:sync-templates
+php artisan config:cache && php artisan route:cache && php artisan event:cache
+php artisan lighthouse:clear-cache && php artisan lighthouse:cache
+php artisan app:create-admin "<Name>" "<E-Mail>"
+php artisan up
+```
+
+Danach (im Panel, auf dem Server, lokal wie angegeben): Cron-Eintrag im Panel auf `~/dev/apps/mollo-planer/backend`, in `authorized_keys` die Zeile des TEST-Schlüssels mit `command=` auf `/home/<benutzer>/dev/apps/mollo-planer/deploy/deploy.sh` (auf dem Server, vorher sichern, Abschnitt 6), `curl -si https://api.planer.mollo.dev/up | head -3` (lokal, erwartet 200), im Browser `https://planer.mollo.dev` (Band «Testumgebung», Anmeldung). Die neue `deploy.sh` kommt mit dem Checkout in Schritt 4; die alte kennt `DEPLOY_*` nicht.
+
+### Ersteinrichtung PROD
+
+1. **Hostpoint-Panel:** Domains `planer.mollo.ch` und `api.planer.mollo.ch` mit SSL anlegen (die Docroots entstehen unter `~/www/`), PHP 8.5, eine **eigene Datenbank mit eigenem Benutzer**, `memory_limit` 256M und `max_execution_time` 60 (Abschnitt 12).
+2. **Code holen:**
+   ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
+   mkdir -p ~/ch/apps/mollo-planer ~/ch/backups/planer && cd ~/ch/apps/mollo-planer
+   git init -q && git remote add origin https://github.com/<owner>/<repo>.git
+   git fetch -q origin main && git checkout -q -f -B main origin/main
+   chmod 700 ~/ch/backups/planer
+   ```
+3. **`backend/.env`** neu anlegen (`chmod 600`, Vorlage die von TEST): eigener `APP_KEY` (`php artisan key:generate --show`), eigene Datenbank, `APP_ENV=production`, `APP_NAME="Mollo Planer"`, `APP_URL=https://api.planer.mollo.ch`, `FRONTEND_URL=https://planer.mollo.ch`, `SANCTUM_STATEFUL_DOMAINS=planer.mollo.ch`, `SESSION_DOMAIN=.planer.mollo.ch`, `PASSKEYS_RELYING_PARTY_ID=planer.mollo.ch`, Mail, `DEPLOY_BRANCH=main`, `DEPLOY_WEB_ROOT=~/www/planer.mollo.ch`, `DEPLOY_BACKUP_DIR=~/ch/backups/planer` (Rest wie Abschnitt 5).
+4. **Installieren** (enthält die Datenbank noch alte Daten, vorher den Namen prüfen und dann `migrate:fresh --force` statt `migrate --force`, Abschnitt 12):
+   ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
+   cd ~/ch/apps/mollo-planer/backend
+   php /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
+   php artisan config:show database.connections.mariadb.database      # muss die Datenbank von PROD sein
+   php artisan migrate --force
+   php artisan planer:sync-templates
+   php artisan config:cache && php artisan route:cache && php artisan event:cache
+   php artisan lighthouse:cache
+   php artisan app:create-admin "<Name>" "<E-Mail>"
+   ```
+5. **Docroot der API** (`~/www/api.planer.mollo.ch`): `index.php`, `robots.txt`, `favicon.ico` von TEST kopieren und die Pfade umstellen, `.htaccess` **nicht** kopieren (Hostpoint-Block der Domain behalten, Laravel-Regeln darunter anhängen):
+   ```bash
+   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
+   D=~/www/api.planer.mollo.ch
+   cp ~/www/api.planer.mollo.dev/index.php ~/www/api.planer.mollo.dev/robots.txt ~/www/api.planer.mollo.dev/favicon.ico $D/
+   sed -i.bak 's#/dev/apps/mollo-planer#/ch/apps/mollo-planer#g' $D/index.php && rm $D/index.php.bak
+   grep -n "mollo-planer" $D/index.php
+   cat ~/ch/apps/mollo-planer/backend/public/.htaccess >> $D/.htaccess
+   curl -si https://api.planer.mollo.ch/up | head -3
+   ```
+6. **Cron** (Eintrag oben) und **eigener Deploy-Schlüssel** (Abschnitt 6, `command=` auf das PROD-Skript).
+7. **GitHub:** Umgebungen `test` und `production` wie oben, mit Secret `DEPLOY_SSH_KEY` und den Variablen `API_BASE` und `FRONTEND_URL` **in der jeweiligen Umgebung**.
+8. **Erste Deploys:** Push auf `dev` (TEST, läuft sofort), danach Merge `dev` → `main` (PROD, Freigabe). Anschliessend die Nachkontrolle mit Stuart (`docs/onboarding-leitfaden.md` §6.4) für **beide** Umgebungen.
+
+Die Rauchtests am Ende von `deploy.sh` (GraphQL, Passkey-RP-ID, `APP_NAME` auf TEST) laufen in beiden Umgebungen mit ihren eigenen Werten.

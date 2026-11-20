@@ -72,6 +72,10 @@ return [
                 'names' => ['de' => 'Projekt besitzen', 'en' => 'Own project'],
                 'rights' => ['project.delete', 'owner.manage', 'trash.purge'],
             ],
+            'agent-work' => [
+                'names' => ['de' => 'Plan und Aufgaben pflegen (Agent)', 'en' => 'Keep plan and tasks (agent)'],
+                'rights' => ['planer.import', 'task.update', 'task.assign'],
+            ],
         ],
     ],
 
@@ -120,6 +124,10 @@ return [
             'guest' => [
                 'names' => ['de' => 'Gast', 'en' => 'Guest'],
                 'functions' => [],
+            ],
+            'agent' => [
+                'names' => ['de' => 'Agent', 'en' => 'Agent'],
+                'functions' => ['plan', 'contribute', 'agent-work'],
             ],
         ],
     ],

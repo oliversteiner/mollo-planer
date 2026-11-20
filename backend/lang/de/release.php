@@ -14,4 +14,5 @@ return [
     'task_not_done' => 'Der Task gehört zu einer veröffentlichten Version und muss erledigt sein.',
     'commit_format' => 'Der Commit ist ein Hash aus 7 bis 40 Kleinbuchstaben und Ziffern, oder „none“.',
     'none_only_done' => '„none“ gilt nur für erledigte Tasks.',
+    'date_only_released' => 'Ein Veröffentlichungsdatum gibt es nur bei einer veröffentlichten Version.',
 ];

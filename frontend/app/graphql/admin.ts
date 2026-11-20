@@ -9,6 +9,7 @@ export const adminUsersQuery = graphql(`
       role { key isDefault names { de en } }
       activity
       avatarUrl
+      isAgent
       twoFactorConfirmed
       hasPasskey
       createdAt

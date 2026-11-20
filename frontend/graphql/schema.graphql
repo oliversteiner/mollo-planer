@@ -13,6 +13,8 @@ type ApiToken {
 }
 "Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
 type AppSettings {
+ "Läuft das Backend nicht als Produktion (Testumgebung oder Entwicklungsrechner)? Dann zeigt die App ein Band «Testumgebung»."
+ isTestEnvironment: Boolean!
  "Projektrolle, die man im Projekt bekommt, das man selbst anlegt (Standard: Owner). Muss project.delete haben."
  projectCreatorRole: Role!
  "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."
@@ -63,6 +65,8 @@ input CreateMilestoneInput {
  "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
  position: Int
  projectId: ID!
+ "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+ releaseDate: Date
  releaseStatus: ReleaseStatus
  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
  releaseVersion: String
@@ -382,6 +386,8 @@ input LocalizedNameInput {
 type MemberCandidate {
  avatarUrl: String
  id: ID!
+ "Konto eines Agenten (Claude): in der Auswahl mit dem Kennzeichen «Agent»"
+ isAgent: Boolean!
  "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
  isMember: Boolean!
  name: String!
@@ -793,8 +799,18 @@ type Query {
  documentVersion(documentId: ID!, revision: Int!): DocumentVersion
  "Die Dokumente eines Projekts, die du lesen darfst, zuletzt geändert zuerst. Die Liste lädt den Inhalt nicht. search sucht in Titel und Inhalt."
  documents(kind: DocumentKind, projectId: ID!, search: String): [Document!]!
- "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
- exportPlan(projectId: ID!): String!
+ "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Mit einem Filter ist sie ein Ausschnitt (excerpt: true), den der Import im Modus FULL ablehnt. Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
+ exportPlan(
+ "false: veröffentlichte Milestones weglassen"
+ includeReleased: Boolean = true
+ "Nur diese Milestones (Ids ohne Präfix)"
+ milestoneIds: [ID!]
+ projectId: ID!
+ "Nur Tasks mit diesen Status; ToDos und Milestones ohne passende Task entfallen"
+ taskStatus: [TaskStatus!]
+ "Nur der Milestone dieser Version (z. B. \"1.21\")"
+ version: String
+ ): String!
  "Eine Idee, oder null, wenn es sie nicht gibt oder du sie nicht lesen darfst"
  idea(id: ID!): Idea
  "Deine Ideen, neueste zuerst. Mit ideas.viewAny alle, oder die einer Autorin mit authorId (nur mit diesem Recht)."
@@ -847,6 +863,8 @@ type Query {
 }
 "Version eines Milestones und ihre Freigabe"
 type Release {
+ "Datum der Veröffentlichung. Immer optional; setzt die App beim Wechsel auf «veröffentlicht» auf heute, wenn es fehlt, und leert es beim Zurück auf «geplant»."
+ date: Date
  status: ReleaseStatus!
  "Version im Format M.m, zum Beispiel 1.4"
  version: String!
@@ -1155,6 +1173,8 @@ input UpdateMilestoneInput {
  description: RichText
  dueDate: Date
  icon: String
+ "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+ releaseDate: Date
  releaseStatus: ReleaseStatus
  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
  releaseVersion: String
@@ -1228,6 +1248,8 @@ type User {
  "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
  hasPasskey: Boolean
  id: ID!
+ "Konto eines Agenten (Claude, Assistenz): keine Anmeldung im Browser, Zugang nur über ein Token des Connectors (Befehl app:user-token)."
+ isAgent: Boolean!
  name: String!
  "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
  notifyByEmail: Boolean!

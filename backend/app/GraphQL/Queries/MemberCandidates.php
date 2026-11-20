@@ -25,7 +25,7 @@ class MemberCandidates
 
     /**
      * @param  array{projectId?: int|string|null}  $args
-     * @return list<array{id: int, name: string, avatarUrl: string|null, isMember: bool}>
+     * @return list<array{id: int, name: string, avatarUrl: string|null, isMember: bool, isAgent: bool}>
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): array
     {
@@ -48,12 +48,13 @@ class MemberCandidates
         return User::query()
             ->whereNotNull('approved_at')
             ->orderBy('name')
-            ->get(['id', 'name', 'avatar_path'])
+            ->get(['id', 'name', 'avatar_path', 'is_agent'])
             ->map(fn (User $user): array => [
                 'id' => (int) $user->id,
                 'name' => $user->name,
                 'avatarUrl' => $user->avatar_url,
                 'isMember' => in_array((int) $user->id, $memberIds, true),
+                'isAgent' => $user->isAgent(),
             ])
             ->all();
     }

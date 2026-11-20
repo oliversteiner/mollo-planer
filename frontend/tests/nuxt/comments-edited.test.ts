@@ -9,7 +9,7 @@ vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({ resolveClient: () => ({ readQuery: () => null, query: async () => ({ data: null }), refetchQueries: async () => [] }) })
 }))
 
-function comment(id: string, editedAt: string | null) {
+function comment(id: string, editedAt: string | null, isAgent = false) {
   return {
     id,
     body: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: `Kommentar ${id}` }] }] },
@@ -17,7 +17,7 @@ function comment(id: string, editedAt: string | null) {
     editedAt,
     viewerCanEdit: false,
     viewerCanDelete: false,
-    author: { id: '1', name: 'Ben Müller', avatarUrl: null }
+    author: { id: '1', name: 'Ben Müller', avatarUrl: null, isAgent }
   }
 }
 
@@ -29,5 +29,14 @@ describe('TaskComments', () => {
 
     // The tests run in English: „bearbeitet“ in German.
     expect(view.findAll('.comment-quiet').filter(element => element.text() === 'edited')).toHaveLength(1)
+  })
+
+  it('marks the comment of an agent account', async () => {
+    const view = await mountSuspended(TaskComments, {
+      props: { taskId: '2', canComment: false, comments: [comment('1', null), comment('2', null, true)] }
+    })
+
+    expect(view.findAll('wa-badge')).toHaveLength(1)
+    expect(view.find('wa-badge').text()).toBe('Agent')
   })
 })

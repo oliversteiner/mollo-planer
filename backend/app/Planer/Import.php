@@ -62,6 +62,12 @@ final class Import
     private bool $appendOnly = false;
 
     /** @var array<string, string> Titles by id (m-12, t-4, k-9) before the run, for the messages of appendOnly */
+    /** @var Collection<string, int>|null */
+    private ?Collection $labelOrder = null;
+
+    /** @var array<string, array<int, array<int, int>>> table => parent id => id => place, read by applyOrder() */
+    private array $orderState = [];
+
     private array $titles = [];
 
     private ?int $templateId = null;
@@ -140,6 +146,7 @@ final class Import
     {
         $this->reset($document, $mode, $notifyAssignees, $actor);
         $this->dryRun = $dryRun;
+        $this->labelOrder = null;
         $this->appendOnly = $appendOnly && $project !== null; // a new project has nothing existing to protect
         $this->templateId = $project === null ? $templateId : null;
         $this->titles = $this->appendOnly ? $this->titlesOf($project) : [];
@@ -150,6 +157,11 @@ final class Import
 
         foreach (Validator::errors($document) as $issue) {
             $this->error($issue['path'], 'invalid', __('planer.import.invalid', ['message' => $issue['message']]));
+        }
+
+        // An excerpt is not the whole plan: in mode full, what it lacks would go to the trash.
+        if ($mode === ImportMode::Full && ($document['excerpt'] ?? false) === true) {
+            $this->error('excerpt', 'excerpt', __('planer.import.excerpt'));
         }
 
         if ($project !== null) {
@@ -366,6 +378,8 @@ final class Import
             return;
         }
 
+        $this->labelOrder = null;
+
         try {
             $this->labels->replace($this->project, $wanted, $this->mode === ImportMode::Partial);
         } catch (ValidationException $error) {
@@ -571,10 +585,12 @@ final class Import
             $release = $entry['release'] ?? null;
             $version = $release['version'] ?? null;
             $status = $release['status'] ?? null;
+            $date = $release['date'] ?? null;
 
-            if ($isNew ? $release !== null : ($version !== $model->release_version || $status !== $model->release_status?->value)) {
+            if ($isNew ? $release !== null : ($version !== $model->release_version || $status !== $model->release_status?->value || $date !== $model->getAttribute('release_date')?->format('Y-m-d'))) {
                 $values['release_version'] = $version;
                 $values['release_status'] = $status === null ? null : ReleaseStatus::from($status);
+                $values['release_date'] = $date;
                 $fields[] = 'release';
             }
         }
@@ -925,6 +941,17 @@ final class Import
     }
 
     /**
+     * The order of the project's labels, read once (every task asks for it twice); applyLabels() forgets it when it
+     * writes the labels.
+     *
+     * @return Collection<string, int>
+     */
+    private function labelOrder(): Collection
+    {
+        return $this->labelOrder ??= $this->project->labels()->orderBy('position')->orderBy('id')->pluck('key')->flip();
+    }
+
+    /**
      * The keys in the order of the project's labels, as the file writes them.
      *
      * @param  list<string>  $keys
@@ -932,7 +959,7 @@ final class Import
      */
     private function orderedByProject(array $keys): array
     {
-        $order = $this->project->labels()->orderBy('position')->orderBy('id')->pluck('key')->flip();
+        $order = $this->labelOrder();
 
         $keys = array_values(array_unique($keys));
         usort($keys, fn (string $a, string $b): int => ($order[$a] ?? PHP_INT_MAX) <=> ($order[$b] ?? PHP_INT_MAX));
@@ -944,6 +971,17 @@ final class Import
 
     private function applyOrder(): void
     {
+        // The places of every group, read once for the whole project (not one query per group). Groups do not change
+        // their members while the places are written, so this is what each group would read.
+        $this->orderState = [];
+        foreach (['milestones' => 'project_id', 'todos' => 'milestone_id', 'tasks' => 'todo_id'] as $table => $column) {
+            $rows = DB::table($table)->where('project_id', $this->project->getKey())->whereNull('deleted_at')->orderBy('position')->orderBy('id')->get(['id', $column, 'position']);
+
+            foreach ($rows as $row) {
+                $this->orderState[$table][(int) $row->{$column}][(int) $row->id] = (int) $row->position;
+            }
+        }
+
         $this->orderGroup('milestones', 'project_id', $this->project->getKey(), $this->wanted['milestones'], $this->before['milestones'], 'm');
 
         foreach ($this->wanted['todos'] as $milestoneId => $ids) {
@@ -975,7 +1013,8 @@ final class Import
      */
     private function orderGroup(string $table, string $column, int|string $parentId, array $wanted, array $before, string $prefix): void
     {
-        $now = DB::table($table)->where($column, $parentId)->whereNull('deleted_at')->orderBy('position')->orderBy('id')->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $positions = $this->orderState[$table][$parentId] ?? [];
+        $now = array_keys($positions);
         $order = $this->mode === ImportMode::Partial ? $this->refillSlots($now, $wanted) : [...$wanted, ...array_values(array_diff($now, $wanted))];
 
         // Items that were in the group before and are still: did their relative order change?
@@ -983,7 +1022,9 @@ final class Import
         $keptNow = array_values(array_filter($order, fn (int $id): bool => in_array($id, $kept, true)));
 
         foreach ($order as $index => $id) {
-            DB::table($table)->where('id', $id)->where('position', '!=', $index)->update(['position' => $index]);
+            if (($positions[$id] ?? null) !== $index) {
+                DB::table($table)->where('id', $id)->where('position', '!=', $index)->update(['position' => $index]);
+            }
         }
 
         if ($kept === $keptNow) {
@@ -1076,11 +1117,18 @@ final class Import
             }
         }
 
-        foreach (array_keys($this->touchedTasks) as $taskId) {
-            try {
-                ReleaseRules::checkTask(Task::query()->findOrFail($taskId), true);
-            } catch (ValidationException $error) {
-                $this->validation($this->paths["k-{$taskId}"] ?? "k-{$taskId}", $error);
+        // The touched tasks in chunks, with the release status of their milestones read together (not one query each).
+        foreach (array_chunk(array_keys($this->touchedTasks), 500) as $ids) {
+            $tasks = Task::query()->whereKey($ids)->get();
+            $statuses = DB::table('todos')->join('milestones', 'milestones.id', '=', 'todos.milestone_id')
+                ->whereIn('todos.id', $tasks->pluck('todo_id')->unique()->all())->pluck('milestones.release_status', 'todos.id');
+
+            foreach ($tasks as $task) {
+                try {
+                    ReleaseRules::checkTask($task, true, (string) ($statuses[$task->todo_id] ?? ''));
+                } catch (ValidationException $error) {
+                    $this->validation($this->paths["k-{$task->getKey()}"] ?? "k-{$task->getKey()}", $error);
+                }
             }
         }
     }
@@ -1215,6 +1263,12 @@ final class Import
 
     private function save(Model $model, string $path): void
     {
+        // Something that exists and did not change needs no save: its events (the project of the parent, the release
+        // rules) ask the database again for every element. The result is checked as a whole afterwards (checkResult).
+        if ($model->exists && ! $model->isDirty()) {
+            return;
+        }
+
         try {
             $model->save();
         } catch (ValidationException $error) {

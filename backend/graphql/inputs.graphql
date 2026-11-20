@@ -54,6 +54,8 @@ input CreateMilestoneInput {
   "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
   releaseVersion: String @rename(attribute: "release_version") @rules(apply: ["max:20"])
   releaseStatus: ReleaseStatus @rename(attribute: "release_status")
+  "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+  releaseDate: Date @rename(attribute: "release_date")
 }
 
 input UpdateMilestoneInput {
@@ -64,6 +66,8 @@ input UpdateMilestoneInput {
   "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
   releaseVersion: String @rename(attribute: "release_version") @rules(apply: ["max:20"])
   releaseStatus: ReleaseStatus @rename(attribute: "release_status")
+  "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+  releaseDate: Date @rename(attribute: "release_date")
 }
 
 input CreateTodoInput {

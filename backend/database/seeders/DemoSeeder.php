@@ -19,6 +19,7 @@ use App\Planer\Import;
 use App\Planer\ImportMode;
 use App\Planer\TemplateSync;
 use App\Support\AppSettings;
+use App\Support\DeploymentEnvironment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -70,8 +71,8 @@ class DemoSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('DemoSeeder must not run in production.');
+        if (DeploymentEnvironment::isLive()) {
+            throw new RuntimeException('DemoSeeder must not run on a server (production or staging).');
         }
 
         if (User::query()->exists()) {

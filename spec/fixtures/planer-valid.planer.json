@@ -35,7 +35,8 @@
       "dueDate": "2026-12-15",
       "release": {
         "version": "1.4",
-        "status": "released"
+        "status": "released",
+        "date": "2026-10-15"
       },
       "todos": [
         {

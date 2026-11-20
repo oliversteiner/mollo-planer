@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Planer\Import;
 use App\Planer\ImportMode;
+use App\Support\DeploymentEnvironment;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -26,8 +27,8 @@ class DevelopmentHistorySeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('DevelopmentHistorySeeder must not run in production.');
+        if (DeploymentEnvironment::isLive()) {
+            throw new RuntimeException('DevelopmentHistorySeeder must not run on a server (production or staging).');
         }
 
         if (Project::query()->where('name', self::PROJECT_NAME)->exists()) {

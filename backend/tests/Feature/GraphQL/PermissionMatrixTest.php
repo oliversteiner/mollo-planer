@@ -38,7 +38,7 @@ class PermissionMatrixTest extends GraphQLTestCase
 
         $this->assertEqualsCanonicalizing(['owner', 'manager'], $project['MEMBERS_MANAGE']);
         $this->assertSame(['owner'], $project['PROJECT_DELETE']);
-        $this->assertEqualsCanonicalizing(['owner', 'manager', 'member'], $project['TODO_CREATE']);
+        $this->assertEqualsCanonicalizing(['owner', 'manager', 'member', 'agent'], $project['TODO_CREATE']);
     }
 
     public function test_every_ability_appears_once(): void

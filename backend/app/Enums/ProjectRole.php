@@ -15,4 +15,6 @@ enum ProjectRole: string
     case MEMBER = 'member';
     /** Reads the project, changes nothing (the standard rights are empty). */
     case GUEST = 'guest';
+    /** An agent account (Claude): plan and tasks, export and import, no members and no project settings. */
+    case AGENT = 'agent';
 }

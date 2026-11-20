@@ -93,7 +93,8 @@
       "dueDate": "2027-01-15",
       "release": {
         "version": "1.0",
-        "status": "released"
+        "status": "released",
+        "date": "2026-10-15"
       },
       "todos": [
         {
