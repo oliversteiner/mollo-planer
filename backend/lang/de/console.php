@@ -45,6 +45,19 @@ return [
         'confirm' => 'Rolle von :name auf „:role“ ändern?',
         'done' => 'Rolle von :name: :old → :new.',
     ],
+    'create_agent' => [
+        'name' => 'Name des Agenten (wird in der App angezeigt)',
+        'email' => 'E-Mail-Adresse des Kontos (es geht keine Mail dorthin)',
+        'confirm' => 'Agent-Konto :name (:email) anlegen? Es hat keinen Zugang zur Oberfläche, nur über ein Token des Connectors.',
+        'created' => 'Agent :name angelegt. Als Nächstes in der App ins Projekt aufnehmen (Projektrolle Agent) und das Token machen: php artisan app:user-token <E-Mail>.',
+    ],
+    'user_token' => [
+        'not_an_agent' => 'Das Konto von :name ist kein Agent-Konto. Menschen machen ihr Token selbst im Profil.',
+        'confirm' => 'Token für das Agent-Konto :name machen? Es wird nur jetzt angezeigt.',
+        'confirm_revoke' => 'Alle Tokens des Agent-Kontos :name widerrufen?',
+        'created' => 'Token gemacht, gültig :days Tage. Es wird nur jetzt angezeigt und steht nirgends sonst. Nicht in Dateien oder Chats einfügen, nur in die Einstellung des Connectors:',
+        'revoked' => 'Widerrufen: :count Tokens.',
+    ],
     'user_approve' => [
         'already' => 'Konto von :name ist schon freigegeben, nichts zu ändern.',
         'confirm' => 'Konto von :name (:email) freigeben? Die Person bekommt eine Mail.',

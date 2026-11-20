@@ -5,7 +5,6 @@ namespace App\Console\Concerns;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
-use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\text;
 
 /**
@@ -14,6 +13,8 @@ use function Laravel\Prompts\text;
  */
 trait ManagesUserAccounts
 {
+    use AsksBeforeWriting;
+
     /** The user by e-mail address (any case) or by id. */
     protected function findUser(string $needle): ?User
     {
@@ -39,44 +40,6 @@ trait ManagesUserAccounts
         }
 
         return $user;
-    }
-
-    /** Commands that write need a terminal: with --no-interaction nothing is written. */
-    protected function requireTerminal(): bool
-    {
-        if (! $this->input->isInteractive()) {
-            $this->components->error(__('console.user.needs_interaction'));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function confirmWrite(string $question): bool
-    {
-        if (! confirm(label: $question, default: false)) {
-            $this->components->warn(__('console.user.aborted'));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * One line in the log: who was touched and by which command. Never a password, a hash or an address.
-     *
-     * @param  array<string, mixed>  $context
-     */
-    protected function logIntervention(User $user, string $action, array $context = []): void
-    {
-        Log::warning('Admin command on a user account.', [
-            'command' => $this->getName(),
-            'action' => $action,
-            'user_id' => $user->getKey(),
-            'environment' => app()->environment(),
-        ] + $context);
     }
 
     /** What was ended, in one line for the output. */

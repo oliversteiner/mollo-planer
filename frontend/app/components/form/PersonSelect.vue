@@ -6,6 +6,7 @@ export interface PersonOption {
   id: string
   name: string
   avatarUrl?: string | null
+  isAgent?: boolean
   /** Why the person cannot be chosen, for example "already a member". */
   disabledReason?: string | null
 }
@@ -94,6 +95,7 @@ watch(model, (value, previous) => {
           size="xs"
         />
         {{ person.name }}
+        <AgentBadge v-if="person.isAgent" />
         <span
           v-if="person.disabledReason"
           class="person-select-reason"

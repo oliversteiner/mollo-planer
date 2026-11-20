@@ -14,13 +14,13 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('list_comments')]
-#[Description('Lists the comments of one task (task_id) or of the tasks of a project (project_id), per task, the newest last. For a project the filters of export_plan apply (version, milestone_ids, task_status, include_released) and only tasks with comments are listed. Each comment has the author (name, e-mail), the time and the text as Markdown. Comments are not part of the plan file: export_plan and import_plan never carry them.')]
+#[Description('Lists the comments of one task (task_id) or of the tasks of a project (project_id), per task, the newest last. For a project the filters of export_plan apply (version, milestone_ids, task_status, include_released) and only tasks with comments are listed. Each comment has the author (name, e-mail, isAgent: true for an agent account such as Claude), the time and the text as Markdown. Comments are not part of the plan file: export_plan and import_plan never carry them.')]
 #[IsReadOnly]
 class ListCommentsTool extends Tool
 {
     use RunsGraphQL;
 
-    private const COMMENTS = 'comments { id body createdAt author { name email } }';
+    private const COMMENTS = 'comments { id body createdAt author { name email isAgent } }';
 
     public function handle(Request $request): Response
     {

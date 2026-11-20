@@ -5,6 +5,7 @@ import PageFrame from '~/components/PageFrame.vue'
 import UserAvatar from '~/components/UserAvatar.vue'
 import UserAvatarGroup from '~/components/UserAvatarGroup.vue'
 import UserLine from '~/components/UserLine.vue'
+import AgentBadge from '~/components/AgentBadge.vue'
 
 type Avatar = HTMLElement & { image: string, initials: string, label: string }
 
@@ -115,5 +116,15 @@ describe('AppLogo', () => {
     expect(logo.attributes('role')).toBe('img')
     expect(logo.attributes('aria-label')).toBe(useNuxtApp().$i18n.t('app.name'))
     expect(logo.find('path').attributes('fill')).toBe('currentColor')
+  })
+})
+
+describe('AgentBadge', () => {
+  it('marks an agent account with its name and a hint', async () => {
+    const badge = await mountSuspended(AgentBadge)
+
+    expect(badge.element.tagName).toBe('WA-BADGE')
+    expect(badge.text()).toBe('Agent')
+    expect(badge.attributes('title')).toContain('token')
   })
 })

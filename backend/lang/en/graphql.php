@@ -3,6 +3,7 @@
 return [
     'unauthorized' => 'You are not allowed to do this.',
     'second_factor_setup_required' => 'Please set up a second factor (authenticator app) or a passkey first.',
+    'agent_account' => 'An agent account has no access to the app, only through the connector.',
     'strong_authentication_required' => 'Please sign in again using your second factor or a passkey.',
     'account_not_ready_email' => 'Please confirm your email address first. The link is in the confirmation mail.',
     'account_not_ready_approval' => 'Please wait until an admin approves your account.',

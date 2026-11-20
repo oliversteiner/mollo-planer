@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\GraphQL\Errors\TranslatedRefusalHandler;
 use App\Http\Middleware\EnsureApproved;
 use App\Http\Middleware\EnsureEmailVerified;
+use App\Http\Middleware\EnsureNotAgent;
 use App\Http\Middleware\EnsureStrongAuthentication;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\DisableIntrospection;
@@ -72,6 +73,9 @@ return [
 
             // Order of the account gates: mail address first, then the second factor,
             // then the admin's approval (self-registered accounts).
+            // An agent account never gets in here (only the MCP connector).
+            EnsureNotAgent::class,
+
             EnsureEmailVerified::class,
 
             // Blocks the whole API until the session is strongly authenticated:

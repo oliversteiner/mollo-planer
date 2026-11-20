@@ -432,6 +432,11 @@
     "joined": "{name} is a member now (role {role}).",
     "commentsSummary": "No comments | 1 comment | {count} comments"
   },
+  "agent": {
+    "badge": "Agent",
+    "hint": "Agent account: no access to the interface, only through a token for the connector",
+    "access": "Access by token only (command app:user-token)"
+  },
   "comments": {
     "title": "Comments ({count})",
     "none": "No comments yet.",
@@ -998,6 +1003,10 @@
         "approved_at": {
           "label": "Approved at",
           "description": "When an admin approved the account. Empty for self-registered accounts that still wait."
+        },
+        "is_agent": {
+          "label": "Agent account",
+          "description": "1 for an agent account (Claude, an assistant): no login in the browser, access only by a token for the connector."
         },
         "role_id": {
           "label": "Role",

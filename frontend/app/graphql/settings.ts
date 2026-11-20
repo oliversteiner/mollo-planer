@@ -10,7 +10,7 @@ export const projectSettingsQuery = graphql(`
       locale
       members {
         role { key names { de en } }
-        user { id name email avatarUrl }
+        user { id name email avatarUrl isAgent }
       }
     }
   }
@@ -19,7 +19,7 @@ export const projectSettingsQuery = graphql(`
 /** People who can be taken into a project (names and avatars only, no e-mail). Without a project: for a new project. */
 export const memberCandidatesQuery = graphql(`
   query MemberCandidates($projectId: ID) {
-    memberCandidates(projectId: $projectId) { id name avatarUrl isMember }
+    memberCandidates(projectId: $projectId) { id name avatarUrl isMember isAgent }
   }
 `)
 
@@ -33,7 +33,7 @@ export const setProjectMemberMutation = graphql(`
   mutation SetProjectMember($projectId: ID!, $userId: ID!, $role: String!) {
     setProjectMember(projectId: $projectId, userId: $userId, role: $role) {
       id
-      members { role { key names { de en } } user { id name email avatarUrl } }
+      members { role { key names { de en } } user { id name email avatarUrl isAgent } }
     }
   }
 `)
@@ -42,7 +42,7 @@ export const removeProjectMemberMutation = graphql(`
   mutation RemoveProjectMember($projectId: ID!, $userId: ID!) {
     removeProjectMember(projectId: $projectId, userId: $userId) {
       id
-      members { role { key names { de en } } user { id name email avatarUrl } }
+      members { role { key names { de en } } user { id name email avatarUrl isAgent } }
     }
   }
 `)

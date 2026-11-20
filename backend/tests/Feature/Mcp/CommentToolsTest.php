@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\Milestone;
 use App\Models\Task;
 use App\Models\Todo;
+use App\Models\User;
 use Tests\Feature\GraphQL\GraphQLTestCase;
 
 /**
@@ -70,7 +71,18 @@ class CommentToolsTest extends GraphQLTestCase
         $comments = $json['tasks'][0]['comments'];
         $this->assertSame(['Erster', 'Zweiter'], array_column($comments, 'text'));
         $this->assertSame('Ben Owner', $comments[0]['author']['name']);
+        $this->assertFalse($comments[0]['author']['isAgent']);
         $this->assertNotEmpty($comments[0]['created_at']);
+    }
+
+    public function test_a_comment_of_an_agent_is_marked_as_such(): void
+    {
+        $agent = User::factory()->agent()->create(['name' => 'Claude']);
+        Comment::factory()->for($this->task)->create(['user_id' => $agent->id, 'body' => $this->bodyOf('Fertig')]);
+
+        $json = $this->decode(MolloPlanerServer::actingAs($this->users['owner'])->tool(ListCommentsTool::class, ['task_id' => (string) $this->task->id]));
+
+        $this->assertTrue($json['tasks'][0]['comments'][0]['author']['isAgent']);
     }
 
     public function test_list_comments_of_a_project_uses_the_filters_and_skips_tasks_without_comments(): void

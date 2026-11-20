@@ -55,6 +55,17 @@ class UserFactory extends Factory
     }
 
     /**
+     * An agent account: no web access, only a token for the connector.
+     */
+    public function agent(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_agent' => true,
+            'password' => Hash::make(Str::password(64)),
+        ]);
+    }
+
+    /**
      * Self-registered and not yet released by an admin.
      */
     public function unapproved(): static

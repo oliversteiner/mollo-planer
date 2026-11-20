@@ -20,7 +20,7 @@ class AddCommentTool extends Tool
 {
     use RunsGraphQL;
 
-    private const MUTATION = 'mutation ($input: AddCommentInput!) { addComment(input: $input) { id createdAt body author { name email } } }';
+    private const MUTATION = 'mutation ($input: AddCommentInput!) { addComment(input: $input) { id createdAt body author { name email isAgent } } }';
 
     public function handle(Request $request): Response
     {

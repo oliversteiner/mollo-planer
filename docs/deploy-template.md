@@ -292,6 +292,25 @@ Gemeinsam:
 - **E-Mail:** Solange eine Adresse nicht bestätigt ist, bleibt die API für das Konto gesperrt (Anmelden geht, mehr nicht). Unbestätigte und nicht freigegebene Konten löscht `app:prune-unverified-users` täglich nach 7 Tagen. Der Befehl verschickt keine Bestätigungsmail.
 - Im Log (`storage/logs`) steht je Eingriff eine Zeile mit Nutzer-ID, Befehl und Aktion, ohne Passwort, Hash oder Adresse.
 
+### Agent-Konten (Claude, Kevin, Bob; Auftrag 31)
+
+Ein **Agent-Konto** hat keinen Zugang zur Oberfläche: keine Anmeldung mit Passwort oder Passkey, kein Zurücksetzen, keine Einladung. Der einzige Weg ist ein Token für den Connector (`/mcp`). Es braucht keinen zweiten Faktor, weil es keine Web-Sitzung gibt. In der Oberfläche trägt es das Kennzeichen «Agent». **Das Token erscheint einmal im Terminal und nie in einer Datei, einem Log oder einem Chat.**
+
+Alle Befehle laufen **AUF DEM SERVER** (per SSH, im Ordner `backend/`; Hostpoint: `php` ist 8.5). Auf TEST und PROD je einzeln.
+
+```bash
+# AUF DEM SERVER
+php artisan app:create-agent "Claude Club DB" claude-clubdb@example.ch   # legt das Konto an (Rückfrage), Systemrolle Mitglied
+php artisan app:user-token claude-clubdb@example.ch "Claude Code"         # macht das Token, zeigt es EINMAL (Rückfrage)
+php artisan app:user-token claude-clubdb@example.ch --revoke              # widerruft alle Tokens des Kontos
+```
+
+- Die Adresse muss keine echte Mailbox sein (es geht nie eine Mail dorthin).
+- Danach **in der App** (als Owner oder Manager des Projekts): das Konto als Mitglied aufnehmen, mit der **Projektrolle Agent**. Sie darf den Plan exportieren und importieren, Aufgaben ändern, zuweisen, verschieben und kommentieren, aber keine Mitglieder und keine Projekteinstellungen ändern und nichts löschen.
+- Das Token gehört in die Einstellung des Connectors (siehe `docs/claude-connector.md`), nicht in `.env`, nicht ins Repository. Es gilt 90 Tage; danach ein neues machen.
+- `app:user-token` verweigert Konten von Menschen: die machen ihr Token selbst im Profil.
+- Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent).
+
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
 - **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.

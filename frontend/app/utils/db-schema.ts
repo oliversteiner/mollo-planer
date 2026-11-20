@@ -73,6 +73,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'locale', type: 'varchar', nullable: true },
       { name: 'email_verified_at', type: 'timestamp', nullable: true, private: true },
       { name: 'approved_at', type: 'timestamp', nullable: true },
+      { name: 'is_agent', type: 'tinyint', default: '0' },
       { name: 'password', type: 'varchar', private: true },
       { name: 'two_factor_secret', type: 'text', nullable: true, private: true },
       { name: 'two_factor_recovery_codes', type: 'text', nullable: true, private: true },

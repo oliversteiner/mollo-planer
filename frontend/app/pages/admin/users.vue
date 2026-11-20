@@ -78,9 +78,13 @@ function ask(kind: ConfirmKind, user: User): void {
 function actions(user: User): ActionMenuItem[][] {
   const isSelf = user.id === viewer.value?.id
   const items: ActionMenuItem[] = [
-    { label: t('common.edit'), icon: 'pen', onSelect: () => startEditing(user) },
-    { label: t('admin.users.resetTwoFactor'), icon: 'shield-halved', onSelect: () => ask('reset', user) }
+    { label: t('common.edit'), icon: 'pen', onSelect: () => startEditing(user) }
   ]
+
+  // An agent has no second factor and no password to reset: its access is a token (app:user-token).
+  if (!user.isAgent) {
+    items.push({ label: t('admin.users.resetTwoFactor'), icon: 'shield-halved', onSelect: () => ask('reset', user) })
+  }
 
   if (user.avatarUrl) {
     items.push({ label: t('admin.users.removeAvatar'), icon: 'image-slash', onSelect: () => ask('avatar', user) })
@@ -218,6 +222,7 @@ function factorLabel(user: User): string {
           <span class="users-text">
             <span class="users-name">
               <span class="users-name-text">{{ user.name }}</span>
+              <AgentBadge v-if="user.isAgent" />
               <wa-badge
                 v-if="!user.role.isDefault"
                 :title="t('admin.users.role')"
@@ -233,7 +238,12 @@ function factorLabel(user: User): string {
             </span>
             <span class="users-email">{{ user.email }}</span>
           </span>
+          <span
+            v-if="user.isAgent"
+            class="users-agent-access"
+          >{{ t('agent.access') }}</span>
           <wa-badge
+            v-else
             :variant="user.twoFactorConfirmed || user.hasPasskey ? 'success' : 'warning'"
             appearance="filled"
           >
@@ -315,6 +325,11 @@ function factorLabel(user: User): string {
   color: var(--wa-color-text-quiet);
   font-size: var(--wa-font-size-s);
   font-weight: var(--wa-font-weight-normal);
+}
+
+.users-agent-access {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
 }
 
 .users-email {
