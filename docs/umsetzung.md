@@ -322,6 +322,8 @@ U0 → T1 → T0 → T5 → T4 (Rest) → T6 → S2 → S3 → R1 → S3b → S3
 - Keine offenen Punkte.
 
 
+Club DB: Format und Umwandler (Auftrag 29, Branch `feature/club-db-format`, PR nach `dev`): A Grenze der Milestones 200 (eine Zahl je Sprache: Schema und `PlanerLimits`; Export 0,3 s mit 7 Abfragen bei 200 × 5 × 5, der vergleichende Import 2,1 s und 23 600 Abfragen auf SQLite, 4,7 je Task, Obergrenze 6 im Test), B `release.date` (immer optional, Hinweis bei fehlendem Datum, App setzt beim Wechsel auf «veröffentlicht» heute und leert beim Zurück auf «geplant»), C `convert v1-zu-v2` (jede Art ein Label, lange Titel gekürzt, mehrere Commits, `--release-dates`, `--labels`, Hinweise am Ende), D README der GitHub-Action für ein fremdes Repository.
+
 Zwei Umgebungen (Auftrag 28, Branch `chore/zwei-umgebungen`, PR nach `dev`): `deploy.sh` ohne feste Pfade (`DEPLOY_BRANCH`, `DEPLOY_WEB_ROOT`, `DEPLOY_BACKUP_DIR` aus `backend/.env`, Schutz gegen Verwechslung), Workflow `dev` → `test`, `main` → `production`, TEST mit `APP_ENV=staging` (alle Sicherheitsregeln der Produktion gelten dort, `DeploymentEnvironment::isLive()`), Band «Testumgebung», Doku und Schrittlisten für Oliver in `docs/deploy-template.md` Abschnitt 15.
 
 ## Nachkontrolle 1.1 (Auftrag 27)

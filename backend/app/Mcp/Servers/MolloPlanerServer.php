@@ -38,7 +38,7 @@ How to work:
 5. mode "full" (default): the document is the whole plan. What it lacks goes to the trash as one deletion the user can undo in the app, and its revision must be the one of the project (export again if somebody changed it). mode "partial": use it to add to a plan or change a part: it only adds and changes, fields you leave out stay, nothing is deleted, the revision is not checked.
 6. To create a new project, call import_plan without project_id and with a complete document (revision 0, ids like m-new-1).
 7. Write titles and descriptions in the language of the user. Descriptions are Markdown with a small whitelist: paragraphs, headings level 2 and 3, lists, quotes, bold, italic, inline code, links (http, https, mailto). No HTML, images, tables or code blocks.
-8. Limits: 30 milestones per project, 50 todos per milestone, 50 tasks per todo, 50 members, 30 labels, descriptions up to 5000 characters.
+8. Limits: 200 milestones per project, 50 todos per milestone, 50 tasks per todo, 50 members, 30 labels, descriptions up to 5000 characters.
 Assignment mails are not sent unless you ask with notify_assignees.
 TEXT)]
 class MolloPlanerServer extends Server

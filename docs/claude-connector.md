@@ -125,8 +125,9 @@ Was ein Import beachtet:
 - **Reihenfolge:** Die Reihenfolge in den Listen ist die Reihenfolge in der App, auch über Elternteile hinweg (ein Task in einem anderen ToDo, ein ToDo in einem anderen Milestone).
 - **Nicht im Format, bleibt unverändert:** Icons, Kommentare, wer angelegt hat, Zeitstempel.
 - **Personen** werden über die E-Mail-Adresse erkannt. Wer kein freigegebenes Konto hat, lässt sich nicht aufnehmen, ein Import legt keine Konten an. Die Rolle eines Mitglieds ist der Schlüssel einer Projektrolle der App (`owner`, `manager`, `member`, `guest` oder eine eigene). Im Modus `full` werden Mitglieder, die im Dokument fehlen, entfernt. Wer importiert, entfernt sich damit nicht selbst, und es bleibt immer jemand, die oder der das Projekt löschen darf.
-- **Grenzen** der Datei gelten für das Ergebnis: 30 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibungen bis 5000 Zeichen.
+- **Grenzen** der Datei gelten für das Ergebnis: 200 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibungen bis 5000 Zeichen.
 - **Freigabe-Regeln:** Eine veröffentlichte Version braucht erledigte Tasks mit Commit. Sie werden für das Ergebnis geprüft, nicht Schritt für Schritt.
+- **Veröffentlichungsdatum:** `release.date` (`JJJJ-MM-TT`) ist immer optional. Fehlt es bei einer veröffentlichten Version, meldet die Prüfung einen Hinweis, keinen Fehler; ein Datum bei einer geplanten Version ist ein Fehler. Ein Import setzt nie von sich aus ein Datum. In der App setzt der Wechsel auf «veröffentlicht» das heutige Datum, wenn keines da ist, das Zurück auf «geplant» leert es.
 - **Beschreibungen** sind Markdown mit einer kleinen Auswahl (Absätze, Überschriften 2 und 3, Listen, Zitate, fett, kursiv, Code, Links). Alles andere ist ein Fehler.
 - **Archivierte Projekte** lassen sich lesen (`export_plan`), nicht schreiben.
 

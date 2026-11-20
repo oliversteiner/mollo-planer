@@ -284,7 +284,7 @@ function toggleAll() {
               class="timeline-release wa-caption-s"
               data-zen="hide"
             >
-              {{ item.milestone.release.version }} · {{ t(`release.${item.milestone.release.status.toLowerCase()}`) }}
+              {{ item.milestone.release.version }} · {{ t(`release.${item.milestone.release.status.toLowerCase()}`) }}{{ item.milestone.release.date ? ` · ${formatDate(item.milestone.release.date, language, true)}` : '' }}
             </span>
             <StatusBadge :status="item.milestone.status" />
             <ActionMenu

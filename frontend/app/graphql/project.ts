@@ -10,7 +10,7 @@ export const projectOverviewQuery = graphql(`
         description
         icon
         dueDate
-        release { version status }
+        release { version status date }
         status
         progress { done total percent }
         todos {
@@ -38,7 +38,7 @@ export const projectTimelineQuery = graphql(`
         description
         icon
         dueDate
-        release { version status }
+        release { version status date }
         status
         progress { done total percent }
         todos {
@@ -92,7 +92,7 @@ export const createMilestoneMutation = graphql(`
 
 export const updateMilestoneMutation = graphql(`
   mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {
-    updateMilestone(id: $id, input: $input) { id title description icon dueDate release { version status } }
+    updateMilestone(id: $id, input: $input) { id title description icon dueDate release { version status date } }
   }
 `)
 

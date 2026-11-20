@@ -1144,6 +1144,10 @@
         "release_status": {
           "label": "Release",
           "description": "planned or released. Released means: only done tasks, each with a commit."
+        },
+        "release_date": {
+          "label": "Release date",
+          "description": "When the version was released. Always optional; only for a released version, going back to planned clears it."
         }
       },
       "todos": {

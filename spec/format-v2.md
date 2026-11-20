@@ -60,7 +60,7 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 | `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. |
 | `changed` | nein | Nur `true`, sonst fehlt das Feld. Die Datei wurde lokal geändert und ist noch nicht eingetragen. |
 | `project` | ja | Objekt, Abschnitt 2.2. |
-| `milestones` | ja | Liste mit höchstens 30 Milestones. Leer ist erlaubt (leeres Projekt). |
+| `milestones` | ja | Liste mit höchstens 200 Milestones. Leer ist erlaubt (leeres Projekt). |
 
 ### 2.2 Projekt
 
@@ -96,6 +96,7 @@ Ein Mitglied (`members[]`):
 |---|---|---|
 | `version` | ja | `M.m`, ganze Zahlen, z. B. `1.4`. Keine Patch-Stufe. |
 | `status` | ja | `"planned"` oder `"released"`. |
+| `date` | nein | `JJJJ-MM-TT`, das Veröffentlichungsdatum. **Immer optional**, auch bei `released`. Bei `planned` gibt es kein Datum. |
 
 ### 2.4 ToDo
 
@@ -184,6 +185,7 @@ Optionales Feld `userStory` am Task. Es ist ein Objekt aus drei Teilen. Zusammen
 ### 5.3 Releases und Commits
 
 - **`release`** gibt es nur auf Milestones. Fehlt es, hat der Milestone keine Version.
+- **Veröffentlichungsdatum (`release.date`):** Fehlt es bei `released`, gibt der Validator einen **Hinweis**, keinen Fehler; bestehende Dateien bleiben gültig, nichts erfindet ein Datum. Ein Datum bei `planned` ist ein Fehler. In der App setzt der Wechsel auf «veröffentlicht» das heutige Datum, wenn keines da ist (änderbar), der Wechsel zurück auf «geplant» leert es (eine geplante Version hat kein Veröffentlichungsdatum). Ein Import setzt nie von sich aus eines: Was die Datei sagt, gilt.
 - **Freigabe:** Eine Version mit `release.status: "released"` darf keinen Task mit `status` ungleich `done` haben.
 - **Commit-Pflicht:** Ein Task mit `status: "done"` in einer Version mit `release.status: "released"` braucht einen Hash oder `"none"`. `null` ist dort ein Fehler. Die Regel prüft der Validator, nicht das Schema, weil das Schema den Milestone nicht kennt, zu dem der Task gehört.
 - **Altbestand:** `"none"` kennzeichnet einen erledigten Task ohne Hash, wie `  Ohne Commit` in Spezifikation v1, Regel 6. Der Wert ist nur bei `status: "done"` erlaubt. Bei anderen Status ist er ein Fehler. Der Validator prüft das.
@@ -289,7 +291,7 @@ Unter der Task-Zeile folgen die Blöcke in dieser Reihenfolge, jeweils durch ein
 
 ### 7.4 Milestone und ToDo
 
-- Die Metadaten stehen nicht eingerückt, direkt nach der ID-Zeile. Milestone: `- Status: <Status>` (nur mit `release`), `- Fällig: <Datum>`. ToDo: `- Fällig: <Datum>`.
+- Die Metadaten stehen nicht eingerückt, direkt nach der ID-Zeile. Milestone: `- Status: <Status>` (nur mit `release`), `- Veröffentlicht: <Datum>` (nur mit `release.date`; englisch `- Released:`), `- Fällig: <Datum>`. ToDo: `- Fällig: <Datum>`.
 - Die Beschreibung steht nicht eingerückt, nach den Metadaten. Sie darf keine Zeile haben, die mit `#` oder mit `- [` beginnt. Sonst würde sie als Struktur gelesen. Der Renderer bricht in diesem Fall mit einer Meldung ab. Der Autor muss die Stelle umformulieren oder einrücken.
 
 ### 7.5 Projektkopf
@@ -318,7 +320,7 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 | Projektname | 2 bis 120 Zeichen |
 | Projektbeschreibung | höchstens 5000 Zeichen |
 | Mitglieder | höchstens 50 |
-| Milestones | höchstens 30 (leer erlaubt) |
+| Milestones | höchstens 200 (leer erlaubt) |
 | ToDos je Milestone | höchstens 50 |
 | Tasks je ToDo | höchstens 50 |
 | Titel (Milestone, ToDo, Task) | 2 bis 160 Zeichen |
@@ -328,6 +330,7 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 | `userStory.goal`, `userStory.benefit` | je 1 bis 160 Zeichen |
 | Commit-Hash | 7 bis 40 Zeichen, `0-9` und `a-f` |
 | `release.version` | `M.m`, ganze Zahlen |
+| `release.date` | `JJJJ-MM-TT`, optional |
 
 ---
 
@@ -372,7 +375,9 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 
 ### 11.1 v1 nach planer-v2
 
-`mollo-planer convert v1-zu-v2 <version-<name>.md> [--name <Projektname>] [--locale DE|EN] [--out <datei>]`
+`mollo-planer convert v1-zu-v2 <version-<name>.md> [--name <Projektname>] [--locale DE|EN] [--release-dates <datei.csv>] [--out <datei>]`
+
+Die v1-Datei kennt das Veröffentlichungsdatum nicht. Mit `--release-dates` (Zeilen `Version,JJJJ-MM-TT`, eine Kopfzeile `version,date` ist erlaubt) wird `release.date` der veröffentlichten Versionen gesetzt; ohne die Option bleibt es leer, und die Umwandlung meldet am Ende, wie viele veröffentlichte Milestones kein Datum haben.
 
 | v1 | planer-v2 |
 |---|---|
@@ -382,11 +387,16 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 | `- [x] [art] Titel` | Task mit `status: "done"`, `labels: ["art"]` |
 | `- [ ] [art] Titel` | Task mit `status: "open"`, `labels: ["art"]` |
 | `  Commit <Hash>` | `commit: "<Hash>"` |
+| `  Commit <Hash>, <Hash>, …` (mehrere in einer Zeile) | `commit` ist der **letzte** Hash, die übrigen stehen als Absatz «Weitere Commits: …» in der Beschreibung (Hinweis) |
 | `  Ohne Commit` | `commit: "none"` |
 | eingerückte Zeilen unter dem Task | `description` des Tasks |
 
 - **IDs:** Der Konverter vergibt `m-new-1`, `t-new-1`, `k-new-1`, … je Art in Dokumentreihenfolge.
 - **Projekt:** `name` aus dem Dateinamen (`version-<name>.md` ergibt `<name>`) oder aus `--name`. Ist der Name zu kurz oder fehlt er, verlangt der Befehl `--name`. `locale` ist `de`, außer `--locale` sagt etwas anderes (`DE` oder `EN`). `members` ist leer, weil v1 keine Mitglieder kennt. `revision` ist `1`.
+- **Arten:** Jede Art der v1-Datei wird angenommen. Für jede, die die mitgelieferte Vorlage nicht kennt (`feature`, `bug`, `planning`, `research`, `design`, `blocked`), legt der Konverter ein Label an: Schlüssel = Art (`a-z`, `0-9`, `_`, `-`, sonst Fehler mit Zeile), Name = Art in beiden Sprachen, Kategorie `type` (wie `feature`, `bug` und `planning`, also keine neue Ordnung), die Farben der Reihe nach. `--labels <datei.json>` (`{ "fix": { "names": { "de": "…", "en": "…" }, "color": "red", "category": "type" } }`) ändert Namen, Farbe und Kategorie, auch der eingebauten Labels. Mehr als 30 Labels ist ein Fehler.
+- **Lange Titel** (Milestone, ToDo, Task über 160 Zeichen): gekürzt am letzten Satzende, das hineinpasst, sonst vor dem ersten Doppelpunkt, sonst am letzten Wortende mit «…», nie mitten im Wort. Der **ganze** Originaltitel steht als erster Absatz der Beschreibung. Wird die Beschreibung damit länger als 5000 Zeichen, ist es ein Fehler (nichts wird abgeschnitten). Jede Kürzung steht als Hinweis mit Zeile, altem und neuem Titel.
+- **Roadmap-Nummern** im Titel («B-77 Clubfarben») bleiben unverändert.
+- **Hinweise** am Ende (auf stderr, die Datei bleibt auf stdout): jede Kürzung und jeder Task mit mehreren Commits, dann eine Zusammenfassung mit Zahlen (gekürzte Titel, neue Labels, veröffentlichte Milestones ohne Datum, Tasks mit mehreren Commits).
 - **Gültigkeit:** Die v1-Datei muss gültig sein, sonst bricht der Befehl ab. Das Ergebnis wird wie jede planer-v2-Datei geprüft.
 
 ### 11.2 Markdown-Ansicht nach planer-v2

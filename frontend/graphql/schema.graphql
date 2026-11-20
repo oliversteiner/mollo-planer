@@ -56,6 +56,8 @@ input CreateMilestoneInput {
  "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
  position: Int
  projectId: ID!
+ "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+ releaseDate: Date
  releaseStatus: ReleaseStatus
  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
  releaseVersion: String
@@ -735,6 +737,8 @@ type Query {
 }
 "Version eines Milestones und ihre Freigabe"
 type Release {
+ "Datum der Veröffentlichung. Immer optional; setzt die App beim Wechsel auf «veröffentlicht» auf heute, wenn es fehlt, und leert es beim Zurück auf «geplant»."
+ date: Date
  status: ReleaseStatus!
  "Version im Format M.m, zum Beispiel 1.4"
  version: String!
@@ -1033,6 +1037,8 @@ input UpdateMilestoneInput {
  description: RichText
  dueDate: Date
  icon: String
+ "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+ releaseDate: Date
  releaseStatus: ReleaseStatus
  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
  releaseVersion: String

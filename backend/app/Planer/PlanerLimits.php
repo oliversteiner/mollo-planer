@@ -18,7 +18,8 @@ use Illuminate\Validation\ValidationException;
  */
 final class PlanerLimits
 {
-    public const MILESTONES_PER_PROJECT = 30;
+    /** 200 since Club DB (task 29): every version is a milestone, one project holds its whole history. */
+    public const MILESTONES_PER_PROJECT = 200;
 
     public const TODOS_PER_MILESTONE = 50;
 

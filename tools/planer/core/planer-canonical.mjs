@@ -13,7 +13,7 @@ const ORDER = {
   member: ['email', 'role'],
   label: ['key', 'names', 'category', 'color'],
   milestone: ['id', 'title', 'description', 'dueDate', 'release', 'todos'],
-  release: ['version', 'status'],
+  release: ['version', 'status', 'date'],
   todo: ['id', 'title', 'description', 'dueDate', 'tasks'],
   task: ['id', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labels', 'commit', 'userStory'],
   story: ['role', 'goal', 'benefit'],

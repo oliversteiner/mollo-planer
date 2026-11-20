@@ -106,7 +106,7 @@ final class Export
             'dueDate' => $milestone->due_date?->format('Y-m-d'),
             'release' => $milestone->release_version === null || $milestone->release_status === null
                 ? null
-                : ['version' => $milestone->release_version, 'status' => $milestone->release_status->value],
+                : array_filter(['version' => $milestone->release_version, 'status' => $milestone->release_status->value, 'date' => $milestone->getAttribute('release_date')?->format('Y-m-d')], fn ($value) => $value !== null),
             'todos' => $milestone->todos->map(fn (Todo $todo): array => [
                 'id' => "t-{$todo->getKey()}",
                 'title' => $todo->title,

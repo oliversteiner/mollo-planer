@@ -134,6 +134,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'due_date', type: 'date', nullable: true },
       { name: 'release_version', type: 'varchar', nullable: true },
       { name: 'release_status', type: 'varchar', nullable: true, values: ['planned', 'released'] },
+      { name: 'release_date', type: 'date', nullable: true },
       { name: 'status', type: 'varchar', default: 'open', values: ['open', 'done'] },
       { name: 'created_at', type: 'timestamp', nullable: true },
       { name: 'updated_at', type: 'timestamp', nullable: true },
