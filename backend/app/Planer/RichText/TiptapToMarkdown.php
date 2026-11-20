@@ -26,19 +26,50 @@ namespace App\Planer\RichText;
  * - an escaped backtick directly before inline code is written as `&#96;`;
  * - inline code uses a longer fence when it holds a backtick, a link
  *   address with spaces or unbalanced brackets is written in <…>.
+ *
+ * The profile "Document" (spec/format-v2.md §6.2) adds headings 1 to 4, a code block (the fence is one backtick
+ * longer than the longest run in the code, the language follows it), a rule (`---`), a table (the first row is
+ * the header row, a `|` in a cell is written `\|`), a task list (`- [ ]`, `- [x]`; a list of the other kind right
+ * after it starts with `*`, or both would read as one list) and strikethrough (`~~`).
  */
 final class TiptapToMarkdown
 {
     private const MARK_ORDER = ['bold', 'italic', 'code', 'link'];
 
-    private const LIST_TYPES = ['bulletList', 'orderedList'];
+    /** The marks of the profile "Document", in the order they are written. */
+    private const DOCUMENT_MARK_ORDER = ['bold', 'italic', 'strike', 'code', 'link'];
+
+    private const LIST_TYPES = ['bulletList', 'orderedList', 'taskList'];
+
+    /** The profile of the conversion running now (the methods are static; convert() sets and restores it). */
+    private static Profile $profile = Profile::Description;
 
     /**
      * @param  array<string, mixed>  $doc
      */
-    public static function convert(array $doc): string
+    public static function convert(array $doc, Profile $profile = Profile::Description): string
     {
-        return rtrim(self::blocks(self::content($doc)), "\n");
+        $before = self::$profile;
+        self::$profile = $profile;
+
+        try {
+            return rtrim(self::blocks(self::content($doc)), "\n");
+        } finally {
+            self::$profile = $before;
+        }
+    }
+
+    private static function isDocument(): bool
+    {
+        return self::$profile === Profile::Document;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function markOrder(): array
+    {
+        return self::isDocument() ? self::DOCUMENT_MARK_ORDER : self::MARK_ORDER;
     }
 
     /**
@@ -61,7 +92,7 @@ final class TiptapToMarkdown
         $previous = null;
 
         foreach ($blocks as $block) {
-            $text = self::block($block);
+            $text = self::block($block, $previous);
 
             if ($text === '') {
                 continue;
@@ -92,14 +123,21 @@ final class TiptapToMarkdown
     /**
      * @param  array<string, mixed>  $block
      */
-    private static function block(array $block): string
+    private static function block(array $block, ?array $previous = null): string
     {
-        switch ($block['type'] ?? '') {
+        $type = $block['type'] ?? '';
+
+        if (self::isDocument() && in_array($type, ['horizontalRule', 'codeBlock', 'table', 'taskList'], true)) {
+            return self::documentBlock($block, $previous);
+        }
+
+        switch ($type) {
             case 'heading':
                 $level = (int) ($block['attrs']['level'] ?? 2);
                 $text = self::inline(self::content($block), true);
+                [$lowest, $highest] = self::isDocument() ? [1, 4] : [2, 3];
 
-                return $text === '' ? '' : str_repeat('#', max(2, min(3, $level))).' '.$text;
+                return $text === '' ? '' : str_repeat('#', max($lowest, min($highest, $level))).' '.$text;
 
             case 'paragraph':
                 return self::inline(self::content($block));
@@ -113,7 +151,10 @@ final class TiptapToMarkdown
                 ));
 
             case 'bulletList':
-                return self::items($block, static fn (int $index): string => '- ');
+                // Right after a task list another marker starts a new list (else both read as one).
+                $mark = self::isDocument() && ($previous['type'] ?? '') === 'taskList' ? '* ' : '- ';
+
+                return self::items($block, static fn (int $index): string => $mark);
 
             case 'orderedList':
                 return self::items($block, static fn (int $index): string => ($index + 1).'. ');
@@ -121,6 +162,100 @@ final class TiptapToMarkdown
             default:
                 return '';
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $block
+     * @param  array<string, mixed>|null  $previous
+     */
+    private static function documentBlock(array $block, ?array $previous): string
+    {
+        return match ($block['type']) {
+            'horizontalRule' => '---',
+            'codeBlock' => self::codeBlock($block),
+            'table' => self::table($block),
+            default => self::taskItems($block, ($previous['type'] ?? '') === 'bulletList' ? '*' : '-'),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $block
+     */
+    private static function codeBlock(array $block): string
+    {
+        $text = '';
+
+        foreach (self::content($block) as $node) {
+            $text .= (string) ($node['text'] ?? '');
+        }
+
+        $longest = 2;
+
+        if (preg_match_all('/`+/', $text, $runs) > 0) {
+            $longest = max($longest, ...array_map('strlen', $runs[0]));
+        }
+
+        $fence = str_repeat('`', $longest + 1);
+        $language = (string) preg_replace('/[^A-Za-z0-9_+#.-]/', '', (string) ($block['attrs']['language'] ?? ''));
+
+        return $fence.$language."\n".$text.($text === '' ? '' : "\n").$fence;
+    }
+
+    /**
+     * @param  array<string, mixed>  $table
+     */
+    private static function table(array $table): string
+    {
+        $rows = [];
+
+        foreach (self::content($table) as $row) {
+            $cells = [];
+
+            foreach (self::content($row) as $cell) {
+                $paragraphs = array_map(static fn (array $paragraph): string => self::inline(self::content($paragraph), true), self::content($cell));
+                $cells[] = str_replace('|', '\\|', implode(' ', $paragraphs));
+            }
+
+            $rows[] = $cells;
+        }
+
+        if ($rows === []) {
+            return '';
+        }
+
+        $width = max(array_map('count', $rows));
+        $line = static fn (array $cells): string => '| '.implode(' | ', array_pad($cells, $width, '')).' |';
+        $out = [$line($rows[0]), '| '.implode(' | ', array_fill(0, $width, '---')).' |'];
+
+        foreach (array_slice($rows, 1) as $row) {
+            $out[] = $line($row);
+        }
+
+        return implode("\n", $out);
+    }
+
+    /**
+     * @param  array<string, mixed>  $list
+     */
+    private static function taskItems(array $list, string $bullet): string
+    {
+        $lines = [];
+
+        foreach (self::content($list) as $item) {
+            $text = self::blocks(self::content($item), true);
+
+            if ($text === '') {
+                continue;
+            }
+
+            $first = $bullet.(($item['attrs']['checked'] ?? false) === true ? ' [x] ' : ' [ ] ');
+
+            foreach (explode("\n", $text) as $number => $row) {
+                $lines[] = $number === 0 ? $first.$row : ($row === '' ? '' : '  '.$row);
+            }
+        }
+
+        return implode("\n", $lines);
     }
 
     /**
@@ -185,7 +320,7 @@ final class TiptapToMarkdown
                 $href = $wantedHref;
             }
 
-            $out .= self::change($open, array_values(array_filter(['bold', 'italic'], static fn (string $mark): bool => isset($marks[$mark]))));
+            $out .= self::change($open, array_values(array_filter(['bold', 'italic', 'strike'], static fn (string $mark): bool => isset($marks[$mark]) && ($mark !== 'strike' || self::isDocument()))));
 
             $nextTypes = array_column($nodes[$index + 1]['marks'] ?? [], 'type');
             $out .= self::text(
@@ -270,7 +405,11 @@ final class TiptapToMarkdown
 
     private static function delimiter(string $mark): string
     {
-        return $mark === 'bold' ? '**' : '*';
+        return match ($mark) {
+            'bold' => '**',
+            'strike' => '~~',
+            default => '*',
+        };
     }
 
     /**
@@ -389,12 +528,12 @@ final class TiptapToMarkdown
         $byType = [];
 
         foreach (is_array($marks) ? $marks : [] as $mark) {
-            if (is_array($mark) && in_array($mark['type'] ?? '', self::MARK_ORDER, true)) {
+            if (is_array($mark) && in_array($mark['type'] ?? '', self::markOrder(), true)) {
                 $byType[$mark['type']] = $mark['type'] === 'link' ? ['type' => 'link', 'attrs' => ['href' => (string) ($mark['attrs']['href'] ?? '')]] : ['type' => $mark['type']];
             }
         }
 
-        return array_values(array_filter(array_map(static fn (string $type): ?array => $byType[$type] ?? null, self::MARK_ORDER)));
+        return array_values(array_filter(array_map(static fn (string $type): ?array => $byType[$type] ?? null, self::markOrder())));
     }
 
     private static function text(string $text, bool $isCode, bool $atLineStart, bool $endsHeading, bool $beforeCode, bool $beforeLink): string

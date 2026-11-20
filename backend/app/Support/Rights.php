@@ -388,7 +388,7 @@ final class Rights
     }
 
     /** The project cap of the user's system role allows this right (null cap = all). */
-    private static function withinCap(User $user, Right $right): bool
+    public static function withinCap(User $user, Right $right): bool
     {
         $cap = self::grantOf($user->role_id)['cap'];
 

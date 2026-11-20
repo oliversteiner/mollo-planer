@@ -3,6 +3,7 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
+use App\Models\Document;
 use App\Models\Task;
 use App\Models\Template;
 use App\Services\Deletion;
@@ -32,6 +33,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
         'revokeAgentToken' => 'user administration',
         'createTemplate' => 'templates belong to no project',
         'uploadProjectAiContextFile' => 'multipart request; refused by the same policy, tested in AiContextTest',
+        'exportDocumentPdf' => 'reads the document (export is reading, allowed in the archive)',
         'createIdea' => 'ideas belong to a person, not to a project',
         'updateIdea' => 'ideas belong to a person, not to a project',
         'setIdeaStatus' => 'ideas belong to a person, not to a project',
@@ -67,9 +69,11 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
     ];
 
     /** Tables a refused mutation must leave unchanged. */
-    private const TABLES = ['projects', 'project_user', 'milestones', 'todos', 'tasks', 'comments', 'label_task'];
+    private const TABLES = ['projects', 'project_user', 'milestones', 'todos', 'tasks', 'comments', 'label_task', 'documents', 'document_shares', 'document_versions'];
 
     private Comment $comment;
+
+    private Document $document;
 
     /** A task in the trash, deleted before the project was archived. */
     private string $deletionId;
@@ -78,6 +82,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
     {
         parent::setUp();
 
+        $this->document = Document::factory()->for($this->project)->create(['owner_id' => $this->users['owner']->id, 'project_access' => 'edit']);
         $this->comment = Comment::factory()->for($this->task)->for($this->users['owner'], 'author')->create();
         $this->deletionId = (string) app(Deletion::class)->delete(Task::factory()->for($this->todo)->create())->deletion_id;
         $this->project->forceFill(['archived_at' => now()])->save();
@@ -124,6 +129,12 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
             'createTask' => ['mutation ($t: ID!) { createTask(input: {todoId: $t, title: "Neu"}) { id } }', fn (self $test) => ['t' => $test->todo->id]],
             'createTodo' => ['mutation ($m: ID!) { createTodo(input: {milestoneId: $m, title: "Neu"}) { id } }', fn (self $test) => ['m' => $test->milestone->id]],
             'deleteComment' => ['mutation ($id: ID!) { deleteComment(id: $id) { id } }', fn (self $test) => ['id' => $test->comment->id]],
+            'createDocument' => ['mutation ($p: ID!, $c: RichText!) { createDocument(input: {projectId: $p, title: "Neu", contentJson: $c}) { id } }', fn (self $test) => ['p' => $test->project->id, 'c' => $test->doc('Neu')]],
+            'updateDocument' => ['mutation ($id: ID!) { updateDocument(id: $id, revision: 1, input: {title: "Neu"}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'setDocumentSharing' => ['mutation ($id: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'restoreDocumentVersion' => ['mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'transferDocument' => ['mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['member']->id]],
+            'deleteDocument' => ['mutation ($id: ID!) { deleteDocument(id: $id) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'deleteMilestone' => ['mutation ($id: ID!) { deleteMilestone(id: $id) { id } }', $milestone],
             'deleteProject' => ['mutation ($id: ID!) { deleteProject(id: $id) { id } }', $project],
             'deleteTask' => ['mutation ($id: ID!) { deleteTask(id: $id) { id } }', $task],

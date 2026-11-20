@@ -18,15 +18,25 @@
   margin-block: 0 var(--wa-space-xs);
 }
 
+.rich-text .ProseMirror h1,
 .rich-text .ProseMirror h2,
-.rich-text .ProseMirror h3 {
+.rich-text .ProseMirror h3,
+.rich-text .ProseMirror h4 {
   margin-block: var(--wa-space-s) var(--wa-space-3xs);
   font-weight: var(--wa-font-weight-semibold);
   line-height: 1.25;
 }
 
+.rich-text .ProseMirror h1 {
+  font-size: var(--wa-font-size-2xl);
+}
+
 .rich-text .ProseMirror h2 {
   font-size: var(--wa-font-size-l);
+}
+
+.rich-text .ProseMirror h4 {
+  font-size: var(--wa-font-size-s);
 }
 
 .rich-text .ProseMirror h3 {
@@ -69,4 +79,84 @@
   color: var(--wa-form-control-placeholder-color);
   content: attr(data-placeholder);
   pointer-events: none;
+}
+
+/* The profile "document": strike-through, code block, rule, task list, table. */
+.rich-text .ProseMirror s {
+  text-decoration: line-through;
+}
+
+.rich-text .ProseMirror pre {
+  margin-block: 0 var(--wa-space-xs);
+  padding: var(--wa-space-xs) var(--wa-space-s);
+  overflow-x: auto;
+  border-radius: var(--wa-border-radius-m);
+  background-color: var(--wa-color-surface-lowered);
+  font-family: var(--wa-font-family-code);
+  font-size: var(--wa-font-size-s);
+}
+
+.rich-text .ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+
+.rich-text .ProseMirror hr {
+  margin-block: var(--wa-space-m);
+  border: none;
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+}
+
+.rich-text .ProseMirror ul[data-type='taskList'] {
+  padding-inline-start: 0;
+  list-style: none;
+}
+
+.rich-text .ProseMirror ul[data-type='taskList'] ul[data-type='taskList'] {
+  padding-inline-start: var(--wa-space-l);
+}
+
+.rich-text .ProseMirror li[data-type='taskItem'] {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--wa-space-xs);
+}
+
+.rich-text .ProseMirror li[data-type='taskItem'] > label {
+  flex: none;
+  margin-block-start: var(--wa-space-3xs);
+}
+
+.rich-text .ProseMirror li[data-type='taskItem'] > div {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.rich-text .ProseMirror table {
+  inline-size: 100%;
+  margin-block: 0 var(--wa-space-xs);
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.rich-text .ProseMirror th,
+.rich-text .ProseMirror td {
+  padding: var(--wa-space-2xs) var(--wa-space-xs);
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.rich-text .ProseMirror th {
+  background-color: var(--wa-color-surface-lowered);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+.rich-text .ProseMirror td > p,
+.rich-text .ProseMirror th > p {
+  margin-block: 0;
+}
+
+.rich-text .ProseMirror .selectedCell {
+  background-color: var(--wa-color-brand-fill-quiet);
 }

@@ -41,6 +41,15 @@ type Comment {
  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
  viewerCanEdit: Boolean!
 }
+input CreateDocumentInput {
+ "Der Inhalt aus dem Editor. Der Server prüft das Profil «Dokument» (höchstens 200 000 Zeichen Markdown) und schreibt Markdown."
+ contentJson: RichText!
+ kind: DocumentKind = OTHER
+ "NONE, READ oder EDIT; Standard READ"
+ projectAccess: DocumentAccess = READ
+ projectId: ID!
+ title: String!
+}
 input CreateIdeaInput {
  description: RichText
  "Entwurf: ein planer-v2-Ausschnitt als Text. Wird gegen das Schema geprüft und kanonisch gespeichert."
@@ -129,6 +138,91 @@ type Dashboard {
 scalar Date
 "Zeitpunkt, Format ISO 8601"
 scalar DateTime
+"Ein Dokument eines Projekts (Vorgehensweise, Protokoll, Analyse …). Gespeichert als Markdown, geschrieben und gelesen als TipTap-JSON."
+type Document {
+ "Markdown in der kanonischen Form. Nur in der Einzelabfrage verlangen: die Liste lädt es nicht aus der Datenbank (pro Zeile eine Abfrage mehr)."
+ content: String!
+ "Derselbe Inhalt als TipTap-JSON für den Editor und den Lesemodus. Nur in der Einzelabfrage verlangen."
+ contentJson: RichText!
+ createdAt: DateTime!
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ id: ID!
+ kind: DocumentKind!
+ "null, wenn die Person das Projekt verlassen hat oder gelöscht wurde. Dann verwaltet, wer alle Dokumente verwalten darf."
+ owner: User
+ project: Project!
+ "Stufe für alle Projektmitglieder: NONE, READ oder EDIT"
+ projectAccess: DocumentAccess!
+ "Zählt bei jedem Sichern hoch; updateDocument verlangt die geladene Revision (Konflikt: DOCUMENT_CONFLICT)"
+ revision: Int!
+ "Freigaben je Person. Nur mit viewerAccess MANAGE sichtbar, sonst leer."
+ shares: [DocumentShare!]!
+ title: String!
+ updatedAt: DateTime!
+ updatedBy: User
+ "Die gesicherten Fassungen, neueste zuerst, ohne Inhalt (den liefert documentVersion). Wer das Dokument lesen darf, sieht sie."
+ versions: [DocumentVersion!]!
+ "Die wirksame Stufe der angemeldeten Person, mit dem Recht document.update schon verrechnet. Das Frontend rechnet sie nie selbst."
+ viewerAccess: DocumentAccess!
+}
+"Wie weit eine Person in ein Dokument reicht. MANAGE gibt es nur als viewerAccess (Owner und wer alle Dokumente verwaltet); gespeichert werden NONE, READ und EDIT."
+enum DocumentAccess {
+ EDIT
+ MANAGE
+ NONE
+ READ
+}
+"Eine erzeugte Datei zum Herunterladen"
+type DocumentFile {
+ "Der Inhalt der Datei, Base64"
+ contentBase64: String!
+ fileName: String!
+ mimeType: String!
+}
+"Feste Arten eines Dokuments"
+enum DocumentKind {
+ ANALYSIS
+ CONCEPT
+ MINUTES
+ OTHER
+ PROCEDURE
+}
+"Freigabe eines Dokuments an eine Person"
+type DocumentShare {
+ access: DocumentShareAccess!
+ user: User!
+}
+"Stufe einer Freigabe an eine Person"
+enum DocumentShareAccess {
+ EDIT
+ READ
+}
+input DocumentShareInput {
+ access: DocumentShareAccess!
+ "Muss Mitglied des Projekts sein"
+ userId: ID!
+}
+"Die Stufe für alle Mitglieder und die Freigaben je Person. Eine genannte Liste ersetzt die bisherige; ohne Angabe bleibt sie."
+input DocumentSharingInput {
+ projectAccess: DocumentAccess
+ shares: [DocumentShareInput!]
+}
+"Eine gesicherte Fassung eines Dokuments. Fassungen werden nie geändert und nie einzeln gelöscht."
+type DocumentVersion {
+ "Markdown dieser Fassung. Nur in documentVersion verlangen: die Liste der Fassungen lädt es nicht."
+ content: String!
+ "Alle Personen, die an dieser Fassung mitgewirkt haben. In dieser Stufe nur die Person, die gesichert hat."
+ contributors: [User!]!
+ createdAt: DateTime!
+ "Wer gesichert hat (null, wenn die Person gelöscht wurde)"
+ createdBy: User
+ kind: DocumentKind!
+ "Die Revision, aus der diese Fassung durch Zurückholen entstand, sonst null"
+ restoredFrom: Int
+ revision: Int!
+ title: String!
+}
 "Eine private Idee. Nur die Autorin oder der Autor ändert sie; wer ideas.viewAny hat, liest alle."
 type Idea {
  adoptedAt: DateTime
@@ -336,6 +430,8 @@ type Mutation {
  createAgentToken(name: String!, userId: ID!): NewApiToken!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
+ "Legt ein Dokument an (document.create im Projekt). Der Owner bist du."
+ createDocument(input: CreateDocumentInput!): Document!
  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
  createIdea(input: CreateIdeaInput!): Idea!
  createMilestone(input: CreateMilestoneInput!): Milestone!
@@ -357,6 +453,8 @@ type Mutation {
  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
  deleteApiToken(id: ID!): ApiToken
  deleteComment(id: ID!): Comment!
+ "Legt das Dokument in den Papierkorb (Stufe MANAGE). deletionId für „Rückgängig“ (restoreFromTrash)."
+ deleteDocument(id: ID!): Document!
  "Löscht eine eigene Idee in den Papierkorb"
  deleteIdea(id: ID!): Idea!
  deleteMilestone(id: ID!): Milestone!
@@ -392,6 +490,8 @@ type Mutation {
  duplicateTemplate(id: ID!): Template!
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
+ "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+ exportDocumentPdf(id: ID!): DocumentFile!
  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
  importPlan(
  "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
@@ -430,12 +530,16 @@ type Mutation {
  resetRoleFunction(id: ID!): RoleFunction!
  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
  resetUserTwoFactor(id: ID!): User!
+ "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."
+ restoreDocumentVersion(id: ID!, revision: Int!): Document!
  "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
  restoreFromTrash(deletionId: ID!): TrashItem!
  "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
  revokeAgentToken(tokenId: ID!, userId: ID!): ApiToken
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
+ "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
+ setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
  "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
  setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
  "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
@@ -450,11 +554,15 @@ type Mutation {
  setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
  "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
  testProjectWebhook(projectId: ID!): WebhookTestResult!
+ "Übergibt das Dokument an ein anderes Projektmitglied (Stufe MANAGE)"
+ transferDocument(id: ID!, ownerId: ID!): Document!
  "Holt ein archiviertes Projekt zurück."
  unarchiveProject(id: ID!): Project!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ "Ändert Titel, Art und Inhalt (Stufe EDIT und document.update). revision ist die geladene; weicht sie ab, kommt DOCUMENT_CONFLICT und nichts wird gesichert. Ohne Änderung entsteht keine neue Fassung."
+ updateDocument(id: ID!, input: UpdateDocumentInput!, revision: Int!): Document!
  "Ändert eine eigene Idee"
  updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
@@ -689,6 +797,12 @@ type Query {
  appSettings: AppSettings!
  "Startseite"
  dashboard: Dashboard!
+ "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
+ document(id: ID!): Document
+ "Eine Fassung mit ihrem Inhalt, oder null, wenn es sie nicht gibt oder du das Dokument nicht lesen darfst"
+ documentVersion(documentId: ID!, revision: Int!): DocumentVersion
+ "Die Dokumente eines Projekts, die du lesen darfst, zuletzt geändert zuerst. Die Liste lädt den Inhalt nicht. search sucht in Titel und Inhalt."
+ documents(kind: DocumentKind, projectId: ID!, search: String): [Document!]!
  "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Mit einem Filter ist sie ein Ausschnitt (excerpt: true), den der Import im Modus FULL ablehnt. Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
  exportPlan(
  "false: veröffentlichte Milestones weglassen"
@@ -779,6 +893,9 @@ enum Right {
  COMMENT_CREATE
  COMMENT_MODERATE
  DATABASE_VIEW
+ DOCUMENT_CREATE
+ DOCUMENT_MANAGE_ANY
+ DOCUMENT_UPDATE
  IDEAS_CREATE
  IDEAS_VIEW_ANY
  MEMBERS_MANAGE
@@ -1024,6 +1141,7 @@ type TrashItem {
 "Art eines Elements im Papierkorb"
 enum TrashItemType {
  COMMENT
+ DOCUMENT
  IDEA
  MILESTONE
  PROJECT
@@ -1041,6 +1159,12 @@ enum Trashed {
 }
 input UpdateCommentInput {
  body: RichText!
+}
+"Nur die genannten Felder ändern sich."
+input UpdateDocumentInput {
+ contentJson: RichText
+ kind: DocumentKind
+ title: String
 }
 "Nur die genannten Felder ändern sich; null leert Beschreibung, Projekt und Entwurf."
 input UpdateIdeaInput {
