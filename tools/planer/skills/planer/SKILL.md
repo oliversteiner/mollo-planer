@@ -47,6 +47,9 @@ Ist nur eine `docs/*.planer.json` im Ordner, genügt der Befehl. Mehrere Dateien
 - **Veröffentlichungsdatum:** `release.date` (`JJJJ-MM-TT`) ist immer optional. Bei `released` ohne Datum gibt `validate` einen Hinweis, bei `planned` mit Datum einen Fehler. In der Markdown-Ansicht steht es als `- Veröffentlicht: <Datum>` unter dem Status.
 - **Aus einer v1-Datei umwandeln:** `convert v1-zu-v2 <version-*.md> [--name N] [--release-dates <csv>] [--labels <json>]` nimmt jede Art als Label an, kürzt Titel über 160 Zeichen (der ganze Titel bleibt in der Beschreibung) und meldet am Ende jede Kürzung, jeden Task mit mehreren Commits und die Zahlen. Die Datei bleibt unverändert, das Ergebnis geht nach stdout, die Hinweise nach stderr. Regeln: `spec/format-v2.md` §11.1.
 
+- **Ausschnitt:** Ein Dokument mit `excerpt: true` ist nur ein Teil des Plans (Export mit Filter über den Connector, `export_plan` mit `version`, `milestone_ids`, `task_status`, `include_released`). Die App lehnt es im Modus `full` ab, im Modus `partial` ist es erlaubt (`push --partial`). `validate` akzeptiert das Feld.
+- **Über den Connector** (nicht über die Datei): `update_tasks` setzt Status, Commit und Zuweisung mehrerer Tasks in einem Schritt, `add_comment` und `list_comments` schreiben und lesen Kommentare. Kommentare gehören nie in die Planer-Datei.
+
 ## Typischer Ablauf
 
 1. `list`, um die Aufgabe zu finden.
