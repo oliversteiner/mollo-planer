@@ -41,6 +41,7 @@ class MilestoneObserver
 
     public function saving(Milestone $milestone): void
     {
+        ReleaseRules::applyReleaseDate($milestone);
         ReleaseRules::checkMilestone($milestone);
     }
 

@@ -577,10 +577,12 @@ final class Import
             $release = $entry['release'] ?? null;
             $version = $release['version'] ?? null;
             $status = $release['status'] ?? null;
+            $date = $release['date'] ?? null;
 
-            if ($isNew ? $release !== null : ($version !== $model->release_version || $status !== $model->release_status?->value)) {
+            if ($isNew ? $release !== null : ($version !== $model->release_version || $status !== $model->release_status?->value || $date !== $model->getAttribute('release_date')?->format('Y-m-d'))) {
                 $values['release_version'] = $version;
                 $values['release_status'] = $status === null ? null : ReleaseStatus::from($status);
+                $values['release_date'] = $date;
                 $fields[] = 'release';
             }
         }

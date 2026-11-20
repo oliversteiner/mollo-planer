@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Status is computed by the status observer, never set from input.
  */
-#[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position', 'release_version', 'release_status'])]
+#[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position', 'release_version', 'release_status', 'release_date'])]
 #[ObservedBy(MilestoneObserver::class)]
 class Milestone extends Model implements BelongsToProject
 {
@@ -38,10 +38,11 @@ class Milestone extends Model implements BelongsToProject
     ];
 
     /**
-     * The release as the API shows it: version and status, or null when the
+     * The release as the API shows it: version, status and the date of the
+     * release (JJJJ-MM-TT, null while there is none), or null when the
      * milestone has no version.
      *
-     * @return array{version: string, status: string}|null
+     * @return array{version: string, status: string, date: string|null}|null
      */
     public function getReleaseAttribute(): ?array
     {
@@ -49,7 +50,7 @@ class Milestone extends Model implements BelongsToProject
             return null;
         }
 
-        return ['version' => $this->release_version, 'status' => $this->release_status?->value];
+        return ['version' => $this->release_version, 'status' => $this->release_status?->value, 'date' => $this->getAttribute('release_date')?->format('Y-m-d')];
     }
 
     /**
@@ -62,6 +63,7 @@ class Milestone extends Model implements BelongsToProject
             'status' => ItemStatus::class,
             'due_date' => 'date',
             'release_status' => ReleaseStatus::class,
+            'release_date' => 'date',
         ];
     }
 

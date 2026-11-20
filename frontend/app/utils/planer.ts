@@ -37,7 +37,7 @@ export interface PlanerMilestone {
   title: string
   description?: string | null
   dueDate?: string | null
-  release?: { version: string, status: 'planned' | 'released' } | null
+  release?: { version: string, status: 'planned' | 'released', date?: string | null } | null
   todos: PlanerTodo[]
 }
 

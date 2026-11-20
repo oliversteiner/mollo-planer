@@ -1144,6 +1144,10 @@
         "release_status": {
           "label": "Freigabe",
           "description": "geplant oder veröffentlicht. Veröffentlicht heißt: nur erledigte Tasks, jeder mit Commit."
+        },
+        "release_date": {
+          "label": "Datum der Veröffentlichung",
+          "description": "Wann die Version veröffentlicht wurde. Immer optional; nur bei einer veröffentlichten Version, beim Zurück auf «geplant» wird es geleert."
         }
       },
       "todos": {

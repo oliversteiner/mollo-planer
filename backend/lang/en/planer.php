@@ -41,6 +41,8 @@ return [
         'commit_none' => '“none” is only allowed for tasks that are done.',
         'commit_missing' => 'A done task in the released version :version needs a hash or “none”.',
         'release_open' => 'The version :version is released but has :count tasks that are not done.',
+        'release_date_missing' => 'The version :version is released but has no date (release.date).',
+        'release_date_planned' => 'The version :version is only planned and has no release date.',
         'markdown' => 'Description (line :line): :kind – :excerpt',
     ],
     'import' => [

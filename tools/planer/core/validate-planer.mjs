@@ -125,6 +125,12 @@ function semantics(plan) {
     claimId(milestone.id, `${mp}.id`);
 
     const released = milestone.release?.status === 'released';
+    if (released && milestone.release.date === undefined) {
+      issues.push({ path: `${mp}.release.date`, severity: 'warning', message: `Veröffentlichte Version ${milestone.release.version} hat kein Datum (release.date)` });
+    }
+    if (milestone.release?.status === 'planned' && milestone.release.date !== undefined) {
+      add(`${mp}.release.date`, `Version ${milestone.release.version} ist nur geplant und hat kein Veröffentlichungsdatum`);
+    }
     let open = 0;
 
     milestone.todos.forEach((todo, ti) => {

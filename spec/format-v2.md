@@ -96,6 +96,7 @@ Ein Mitglied (`members[]`):
 |---|---|---|
 | `version` | ja | `M.m`, ganze Zahlen, z. B. `1.4`. Keine Patch-Stufe. |
 | `status` | ja | `"planned"` oder `"released"`. |
+| `date` | nein | `JJJJ-MM-TT`, das Veröffentlichungsdatum. **Immer optional**, auch bei `released`. Bei `planned` gibt es kein Datum. |
 
 ### 2.4 ToDo
 
@@ -184,6 +185,7 @@ Optionales Feld `userStory` am Task. Es ist ein Objekt aus drei Teilen. Zusammen
 ### 5.3 Releases und Commits
 
 - **`release`** gibt es nur auf Milestones. Fehlt es, hat der Milestone keine Version.
+- **Veröffentlichungsdatum (`release.date`):** Fehlt es bei `released`, gibt der Validator einen **Hinweis**, keinen Fehler; bestehende Dateien bleiben gültig, nichts erfindet ein Datum. Ein Datum bei `planned` ist ein Fehler. In der App setzt der Wechsel auf «veröffentlicht» das heutige Datum, wenn keines da ist (änderbar), der Wechsel zurück auf «geplant» leert es (eine geplante Version hat kein Veröffentlichungsdatum). Ein Import setzt nie von sich aus eines: Was die Datei sagt, gilt.
 - **Freigabe:** Eine Version mit `release.status: "released"` darf keinen Task mit `status` ungleich `done` haben.
 - **Commit-Pflicht:** Ein Task mit `status: "done"` in einer Version mit `release.status: "released"` braucht einen Hash oder `"none"`. `null` ist dort ein Fehler. Die Regel prüft der Validator, nicht das Schema, weil das Schema den Milestone nicht kennt, zu dem der Task gehört.
 - **Altbestand:** `"none"` kennzeichnet einen erledigten Task ohne Hash, wie `  Ohne Commit` in Spezifikation v1, Regel 6. Der Wert ist nur bei `status: "done"` erlaubt. Bei anderen Status ist er ein Fehler. Der Validator prüft das.
@@ -289,7 +291,7 @@ Unter der Task-Zeile folgen die Blöcke in dieser Reihenfolge, jeweils durch ein
 
 ### 7.4 Milestone und ToDo
 
-- Die Metadaten stehen nicht eingerückt, direkt nach der ID-Zeile. Milestone: `- Status: <Status>` (nur mit `release`), `- Fällig: <Datum>`. ToDo: `- Fällig: <Datum>`.
+- Die Metadaten stehen nicht eingerückt, direkt nach der ID-Zeile. Milestone: `- Status: <Status>` (nur mit `release`), `- Veröffentlicht: <Datum>` (nur mit `release.date`; englisch `- Released:`), `- Fällig: <Datum>`. ToDo: `- Fällig: <Datum>`.
 - Die Beschreibung steht nicht eingerückt, nach den Metadaten. Sie darf keine Zeile haben, die mit `#` oder mit `- [` beginnt. Sonst würde sie als Struktur gelesen. Der Renderer bricht in diesem Fall mit einer Meldung ab. Der Autor muss die Stelle umformulieren oder einrücken.
 
 ### 7.5 Projektkopf
@@ -328,6 +330,7 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 | `userStory.goal`, `userStory.benefit` | je 1 bis 160 Zeichen |
 | Commit-Hash | 7 bis 40 Zeichen, `0-9` und `a-f` |
 | `release.version` | `M.m`, ganze Zahlen |
+| `release.date` | `JJJJ-MM-TT`, optional |
 
 ---
 
@@ -372,7 +375,9 @@ Zwei Befehle verbinden die Formate. Beide lesen nur, und die Ausgabe geht nach s
 
 ### 11.1 v1 nach planer-v2
 
-`mollo-planer convert v1-zu-v2 <version-<name>.md> [--name <Projektname>] [--locale DE|EN] [--out <datei>]`
+`mollo-planer convert v1-zu-v2 <version-<name>.md> [--name <Projektname>] [--locale DE|EN] [--release-dates <datei.csv>] [--out <datei>]`
+
+Die v1-Datei kennt das Veröffentlichungsdatum nicht. Mit `--release-dates` (Zeilen `Version,JJJJ-MM-TT`, eine Kopfzeile `version,date` ist erlaubt) wird `release.date` der veröffentlichten Versionen gesetzt; ohne die Option bleibt es leer, und die Umwandlung meldet am Ende, wie viele veröffentlichte Milestones kein Datum haben.
 
 | v1 | planer-v2 |
 |---|---|

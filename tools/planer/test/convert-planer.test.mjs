@@ -168,3 +168,35 @@ test('CLI convert md2json: ungültige Ansicht endet mit Code 1 und nennt die Zei
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('convert v1-zu-v2 --release-dates: Datum je veröffentlichter Version, Hinweis für die ohne, Fehler mit Zeile', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'mollo-convert-'));
+  try {
+    const file = join(dir, 'version-demo.md');
+    writeFileSync(file, '# Demo\n\n## v1.0 Fertig\n\nStatus: veröffentlicht\n\n### Aufbau\n\n- [x] [feature] Eins\n  Commit abc1234\n\n## v1.1 Offen\n\n### Ausbau\n\n- [ ] [feature] Zwei\n');
+    const plain = JSON.parse(spawnSync(process.execPath, [cli, 'convert', 'v1-zu-v2', file], { encoding: 'utf8' }).stdout);
+    const released = plain.milestones.filter((milestone) => milestone.release.status === 'released');
+    assert.ok(released.length > 0, 'die Fixture hat eine veröffentlichte Version');
+    assert.ok(released.every((milestone) => milestone.release.date === undefined), 'ohne Option bleibt das Feld leer');
+
+    const hint = spawnSync(process.execPath, [cli, 'convert', 'v1-zu-v2', file], { encoding: 'utf8' }).stderr;
+    assert.match(hint, new RegExp(`Hinweis: ${released.length} veröffentlichte Milestones ohne Datum`));
+
+    const csv = join(dir, 'dates.csv');
+    writeFileSync(csv, `version,date\n${released.map((milestone) => `${milestone.release.version},2026-10-15`).join('\n')}\n9.9,2026-01-01\n`);
+    const withDates = spawnSync(process.execPath, [cli, 'convert', 'v1-zu-v2', file, '--release-dates', csv], { encoding: 'utf8' });
+    assert.equal(withDates.status, 0, withDates.stderr);
+    const result = JSON.parse(withDates.stdout);
+    assert.ok(result.milestones.filter((milestone) => milestone.release.status === 'released').every((milestone) => milestone.release.date === '2026-10-15'));
+    assert.deepEqual(errorsOf(withDates.stdout), []);
+    assert.match(withDates.stderr, /1 Daten für Versionen, die die Datei nicht hat: v9\.9/);
+    assert.doesNotMatch(withDates.stderr, /ohne Datum/);
+
+    writeFileSync(csv, 'version,date\n1.0,15.10.2026\n');
+    const bad = spawnSync(process.execPath, [cli, 'convert', 'v1-zu-v2', file, '--release-dates', csv], { encoding: 'utf8' });
+    assert.equal(bad.status, 1);
+    assert.match(bad.stderr, /Zeile 2: Datum „15\.10\.2026“ ist nicht von der Form JJJJ-MM-TT/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

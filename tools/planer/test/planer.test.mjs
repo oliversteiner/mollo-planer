@@ -99,7 +99,7 @@ test('Semantik: Commit „none“ nur bei erledigten Tasks', () => {
 });
 
 test('Semantik: erledigter Task ohne Commit ist in geplanter Version erlaubt, in veröffentlichter nicht', () => {
-  assert.deepEqual(errorPaths((d) => { d.milestones[0].release.status = 'planned'; d.milestones[0].todos[0].tasks[0].commit = null; }), []);
+  assert.deepEqual(errorPaths((d) => { d.milestones[0].release.status = 'planned'; delete d.milestones[0].release.date; d.milestones[0].todos[0].tasks[0].commit = null; }), []);
   assert.deepEqual(errorPaths((d) => { d.milestones[0].todos[0].tasks[0].commit = null; }), ['milestones[0].todos[0].tasks[0].commit']);
 });
 
@@ -228,4 +228,15 @@ test('200 Milestones sind erlaubt, der 201. nicht (Club DB, Auftrag 29)', () => 
 
   assert.deepEqual(errors(make(200)).map((issue) => issue.path), [], 'genau 200 sind gültig');
   assert.ok(errors(make(201)).some((issue) => issue.path === 'milestones'), 'der 201. ist ein Fehler an milestones');
+});
+
+test('release.date: bei veröffentlicht nur ein Hinweis, wenn es fehlt; bei geplant ein Fehler, wenn es da ist', () => {
+  const without = baseDocument();
+  delete without.milestones[0].release.date;
+  const hints = warnings(JSON.stringify(without, null, 2) + '\n').map((issue) => issue.path);
+  assert.deepEqual(hints, ['milestones[0].release.date'], 'fehlendes Datum bei released: Hinweis');
+  assert.deepEqual(errors(JSON.stringify(without, null, 2) + '\n').map((issue) => issue.path), [], 'und kein Fehler');
+
+  assert.deepEqual(errorPaths((d) => { d.milestones[0].release.status = 'planned'; d.milestones[0].todos[0].tasks[0].commit = null; }), ['milestones[0].release.date'], 'Datum bei planned ist ein Fehler');
+  assert.deepEqual(errorPaths((d) => { d.milestones[0].release.date = '15.10.2026'; }), ['milestones[0].release.date'], 'Format JJJJ-MM-TT');
 });
