@@ -14,4 +14,5 @@ return [
     'task_not_done' => 'The task belongs to a released version and must be done.',
     'commit_format' => 'The commit is a hash of 7 to 40 lower-case letters and digits, or “none”.',
     'none_only_done' => '“none” is only for done tasks.',
+    'date_only_released' => 'Only a released version has a release date.',
 ];

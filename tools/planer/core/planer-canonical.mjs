@@ -8,12 +8,12 @@
 import { canonicalDescription } from './richtext.mjs';
 
 const ORDER = {
-  root: ['$schema', 'format', 'revision', 'changed', 'project', 'milestones'],
+  root: ['$schema', 'format', 'revision', 'excerpt', 'changed', 'project', 'milestones'],
   project: ['name', 'description', 'locale', 'members', 'labels'],
   member: ['email', 'role'],
   label: ['key', 'names', 'category', 'color'],
   milestone: ['id', 'title', 'description', 'dueDate', 'release', 'todos'],
-  release: ['version', 'status'],
+  release: ['version', 'status', 'date'],
   todo: ['id', 'title', 'description', 'dueDate', 'tasks'],
   task: ['id', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labels', 'commit', 'userStory'],
   story: ['role', 'goal', 'benefit'],
@@ -26,6 +26,7 @@ export function canonicalText(plan) {
 
 function canonicalize(plan) {
   return order(plan, ORDER.root, {
+    excerpt: (excerpt) => (excerpt === true ? true : undefined),
     changed: (changed) => (changed === true ? true : undefined),
     project: (project) => order(project, ORDER.project, {
       description: canonicalDescription,

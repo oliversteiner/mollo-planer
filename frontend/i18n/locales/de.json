@@ -432,6 +432,11 @@
     "joined": "{name} ist jetzt Mitglied (Rolle {role}).",
     "commentsSummary": "Keine Kommentare | 1 Kommentar | {count} Kommentare"
   },
+  "agent": {
+    "badge": "Agent",
+    "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors",
+    "access": "Zugang nur über Token (Befehl app:user-token)"
+  },
   "comments": {
     "title": "Kommentare ({count})",
     "none": "Noch keine Kommentare.",
@@ -999,6 +1004,10 @@
           "label": "Freigegeben am",
           "description": "Zeitpunkt, an dem ein Admin das Konto freigegeben hat. Leer bei Konten, die sich selbst registriert haben und noch warten."
         },
+        "is_agent": {
+          "label": "Agent-Konto",
+          "description": "1 bei einem Agent-Konto (Claude, Assistenz): keine Anmeldung im Browser, Zugang nur über ein Token des Connectors."
+        },
         "role_id": {
           "label": "Rolle",
           "description": "Globale Rolle der Person. Bestimmt, was sie in der ganzen App darf."
@@ -1144,6 +1153,10 @@
         "release_status": {
           "label": "Freigabe",
           "description": "geplant oder veröffentlicht. Veröffentlicht heißt: nur erledigte Tasks, jeder mit Commit."
+        },
+        "release_date": {
+          "label": "Datum der Veröffentlichung",
+          "description": "Wann die Version veröffentlicht wurde. Immer optional; nur bei einer veröffentlichten Version, beim Zurück auf «geplant» wird es geleert."
         }
       },
       "todos": {

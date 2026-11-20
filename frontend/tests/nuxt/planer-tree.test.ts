@@ -39,6 +39,19 @@ describe('PlanerTree', () => {
     expect(tree.find('.planer-removed').exists()).toBe(true)
   })
 
+  it('shows the release date next to the version, and nothing when there is none', async () => {
+    const dated = JSON.parse(JSON.stringify(document)) as typeof document
+    dated.milestones[0]!.release = { version: '1.4', status: 'released', date: '2026-10-15' }
+    const without = JSON.parse(JSON.stringify(document)) as typeof document
+    without.milestones[0]!.release = { version: '1.4', status: 'released' }
+
+    const withDate = await mountSuspended(PlanerTree, { props: { document: dated } })
+    const noDate = await mountSuspended(PlanerTree, { props: { document: without } })
+
+    expect(withDate.find('wa-badge').text()).toBe('1.4 · Released · 15 October 2026')
+    expect(noDate.find('wa-badge').text()).toBe('1.4 · Released')
+  })
+
   it('says so when the plan has no milestones', async () => {
     const tree = await mountSuspended(PlanerTree, { props: { document: { ...document, milestones: [] } } })
 

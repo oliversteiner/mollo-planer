@@ -432,6 +432,11 @@
     "joined": "{name} is a member now (role {role}).",
     "commentsSummary": "No comments | 1 comment | {count} comments"
   },
+  "agent": {
+    "badge": "Agent",
+    "hint": "Agent account: no access to the interface, only through a token for the connector",
+    "access": "Access by token only (command app:user-token)"
+  },
   "comments": {
     "title": "Comments ({count})",
     "none": "No comments yet.",
@@ -999,6 +1004,10 @@
           "label": "Approved at",
           "description": "When an admin approved the account. Empty for self-registered accounts that still wait."
         },
+        "is_agent": {
+          "label": "Agent account",
+          "description": "1 for an agent account (Claude, an assistant): no login in the browser, access only by a token for the connector."
+        },
         "role_id": {
           "label": "Role",
           "description": "Global role of the person. Decides what they may do in the whole app."
@@ -1144,6 +1153,10 @@
         "release_status": {
           "label": "Release",
           "description": "planned or released. Released means: only done tasks, each with a commit."
+        },
+        "release_date": {
+          "label": "Release date",
+          "description": "When the version was released. Always optional; only for a released version, going back to planned clears it."
         }
       },
       "todos": {

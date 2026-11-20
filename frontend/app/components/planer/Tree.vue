@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PlanerChange, PlanerDocument, PlanerLabel } from '~/utils/planer'
+import { formatDate } from '~/utils/dates'
 
 /**
  * A planer-v2 document as a tree: milestones, their todos and the tasks in
@@ -20,7 +21,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{ toggle: [id: string] }>()
 
-const { t, locale } = useI18n()
+const { t, locale, localeProperties } = useI18n()
+const language = computed(() => localeProperties.value.language ?? 'de-CH')
 
 const labels = computed(() => new Map((props.document.project.labels ?? []).map(label => [label.key, label])))
 
@@ -118,7 +120,7 @@ function statusKey(status: string) {
               variant="neutral"
               appearance="outlined"
             >
-              {{ milestone.release.version }} · {{ t(`release.${milestone.release.status}`) }}
+              {{ milestone.release.version }} · {{ t(`release.${milestone.release.status}`) }}{{ milestone.release.date ? ` · ${formatDate(milestone.release.date, language, true)}` : '' }}
             </wa-badge>
             <DueDate :date="milestone.dueDate" />
           </span>

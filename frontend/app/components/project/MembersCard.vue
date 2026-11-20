@@ -11,7 +11,7 @@ import { assignableRoles, isOwnershipRole } from '~/utils/role-rights'
  */
 const props = defineProps<{
   projectId: string
-  members: { role: NamedRole, user: { id: string, name: string, email: string, avatarUrl?: string | null } }[]
+  members: { role: NamedRole, user: { id: string, name: string, email: string, avatarUrl?: string | null, isAgent?: boolean } }[]
   canManage: boolean
 }>()
 
@@ -147,6 +147,7 @@ async function confirmRemove(): Promise<void> {
         <span class="members-text">
           <span class="members-name">
             {{ member.user.name }}
+            <AgentBadge v-if="member.user.isAgent" />
             <span
               v-if="member.user.id === viewer?.id"
               class="members-you"

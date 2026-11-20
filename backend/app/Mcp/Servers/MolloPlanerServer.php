@@ -2,14 +2,17 @@
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\Tools\AddCommentTool;
 use App\Mcp\Tools\CreateIdeaTool;
 use App\Mcp\Tools\ExportPlanTool;
 use App\Mcp\Tools\GetProjectAiContextTool;
 use App\Mcp\Tools\ImportPlanTool;
+use App\Mcp\Tools\ListCommentsTool;
 use App\Mcp\Tools\ListIdeasTool;
 use App\Mcp\Tools\ListProjectsTool;
 use App\Mcp\Tools\ListTemplatesTool;
 use App\Mcp\Tools\ListUsersTool;
+use App\Mcp\Tools\UpdateTasksTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -36,9 +39,11 @@ How to work:
 3. Change the document: edit what you need, keep the ids of what exists, give new items ids like m-new-1, t-new-1, k-new-1 (the result maps them to real ids). Order in a list is the order in the app. People are named by e-mail and must be members (project.members) and have an account; someone without an account cannot be added, tell the user an admin must invite them in the app first.
 4. Always try import_plan with dry_run: true first. Nothing is written; the result lists every change and every error with its path in the document. Fix the errors, then import for real.
 5. mode "full" (default): the document is the whole plan. What it lacks goes to the trash as one deletion the user can undo in the app, and its revision must be the one of the project (export again if somebody changed it). mode "partial": use it to add to a plan or change a part: it only adds and changes, fields you leave out stay, nothing is deleted, the revision is not checked.
+5a. A big plan: export_plan accepts filters (version, milestone_ids, task_status, include_released) and returns an excerpt (excerpt: true). Write it back only with mode "partial"; mode "full" refuses it.
+5b. To set status, commit or assignee of tasks, use update_tasks (all or nothing, dry_run first, base_revision from export_plan). Short notes on a task: add_comment and list_comments; comments are never part of the plan file.
 6. To create a new project, call import_plan without project_id and with a complete document (revision 0, ids like m-new-1).
 7. Write titles and descriptions in the language of the user. Descriptions are Markdown with a small whitelist: paragraphs, headings level 2 and 3, lists, quotes, bold, italic, inline code, links (http, https, mailto). No HTML, images, tables or code blocks.
-8. Limits: 30 milestones per project, 50 todos per milestone, 50 tasks per todo, 50 members, 30 labels, descriptions up to 5000 characters.
+8. Limits: 200 milestones per project, 50 todos per milestone, 50 tasks per todo, 50 members, 30 labels, descriptions up to 5000 characters.
 Assignment mails are not sent unless you ask with notify_assignees.
 TEXT)]
 class MolloPlanerServer extends Server
@@ -49,6 +54,9 @@ class MolloPlanerServer extends Server
         ListUsersTool::class,
         ExportPlanTool::class,
         ImportPlanTool::class,
+        UpdateTasksTool::class,
+        AddCommentTool::class,
+        ListCommentsTool::class,
         CreateIdeaTool::class,
         ListIdeasTool::class,
         GetProjectAiContextTool::class,

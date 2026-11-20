@@ -22,6 +22,11 @@ class ResetUserPassword implements ResetsUserPasswords
      */
     public function reset(User $user, array $input): void
     {
+        // An agent account has no password to reset (no reply other than the one of an invalid link).
+        if ($user->isAgent()) {
+            throw ValidationException::withMessages(['email' => __('passwords.token')]);
+        }
+
         Validator::make($input, [
             'password' => $this->passwordRules(),
         ])->validate();

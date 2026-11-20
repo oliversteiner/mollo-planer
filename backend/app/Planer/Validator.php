@@ -182,6 +182,10 @@ final class Validator
             $issues[] = ['path' => $path, 'severity' => 'error', 'message' => $message];
         };
 
+        $hint = function (string $path, string $message) use (&$issues): void {
+            $issues[] = ['path' => $path, 'severity' => 'warning', 'message' => $message];
+        };
+
         $firstSeen = [];
         $claimId = function (string $id, string $path) use (&$firstSeen, $add): void {
             if (isset($firstSeen[$id])) {
@@ -225,6 +229,15 @@ final class Validator
 
             $released = ($milestone['release']['status'] ?? null) === 'released';
             $open = 0;
+
+            // The date of the release is always optional: a hint when a released version has none, an error for a planned one.
+            if ($released && ! isset($milestone['release']['date'])) {
+                $hint("{$mp}.release.date", __('planer.validation.release_date_missing', ['version' => $milestone['release']['version']]));
+            }
+
+            if (($milestone['release']['status'] ?? null) === 'planned' && isset($milestone['release']['date'])) {
+                $add("{$mp}.release.date", __('planer.validation.release_date_planned', ['version' => $milestone['release']['version']]));
+            }
 
             foreach ($milestone['todos'] as $ti => $todo) {
                 $tp = "{$mp}.todos[{$ti}]";

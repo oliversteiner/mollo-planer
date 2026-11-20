@@ -16,6 +16,7 @@ Projekt für Planung und Umsetzung. Alle Milestones, ToDos und Tasks stehen in d
 <!-- id: m-001 -->
 
 - Status: veröffentlicht
+- Veröffentlicht: 2026-10-15
 - Fällig: 2026-10-31
 
 Erste Version des Ordering-Service. Alle Tasks sind erledigt, deshalb ist die Version veröffentlicht. Dann ist ein Commit je erledigtem Task Pflicht.

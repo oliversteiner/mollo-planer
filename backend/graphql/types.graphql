@@ -32,6 +32,8 @@ type User {
   approved: Boolean!
   "Ist die E-Mail-Adresse bestätigt? Selbst registrierte Konten bestätigen sie zuerst."
   emailVerified: Boolean!
+  "Konto eines Agenten (Claude, Assistenz): keine Anmeldung im Browser, Zugang nur über ein Token des Connectors (Befehl app:user-token)."
+  isAgent: Boolean! @rename(attribute: "is_agent")
 }
 
 "Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"
@@ -107,6 +109,8 @@ type MemberCandidate {
   avatarUrl: String
   "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
   isMember: Boolean!
+  "Konto eines Agenten (Claude): in der Auswahl mit dem Kennzeichen «Agent»"
+  isAgent: Boolean!
 }
 
 "Version eines Milestones und ihre Freigabe"
@@ -114,6 +118,8 @@ type Release {
   "Version im Format M.m, zum Beispiel 1.4"
   version: String!
   status: ReleaseStatus!
+  "Datum der Veröffentlichung. Immer optional; setzt die App beim Wechsel auf «veröffentlicht» auf heute, wenn es fehlt, und leert es beim Zurück auf «geplant»."
+  date: Date
 }
 
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."

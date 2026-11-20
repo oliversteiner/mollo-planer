@@ -66,10 +66,10 @@ class RoleAdministrationTest extends GraphQLTestCase
     {
         $functions = collect($this->as('admin')->gql('{ roleFunctions(scope: PROJECT) { '.self::FUNCTION.' } }')->json('data.roleFunctions'))->keyBy('key');
 
-        $this->assertSame(['plan', 'contribute', 'manage-tasks', 'manage-project', 'own-project'], $functions->keys()->all());
+        $this->assertSame(['plan', 'contribute', 'manage-tasks', 'manage-project', 'own-project', 'agent-work'], $functions->keys()->all());
         $this->assertSame(['PROJECT_DELETE', 'OWNER_MANAGE', 'TRASH_PURGE'], $functions['own-project']['rights']);
         $this->assertSame(1, $functions['own-project']['usageCount']);
-        $this->assertSame(3, $functions['plan']['usageCount']);
+        $this->assertSame(4, $functions['plan']['usageCount']);
         $this->assertTrue($functions['plan']['isStandard']);
     }
 
@@ -163,8 +163,8 @@ class RoleAdministrationTest extends GraphQLTestCase
             'scope' => 'PROJECT', 'names' => ['de' => str_repeat('x', 61), 'en' => 'Long'], 'rights' => [],
         ]]));
 
-        $this->assertSame(9, Role::query()->count());
-        $this->assertSame(14, RoleFunction::query()->count());
+        $this->assertSame(10, Role::query()->count());
+        $this->assertSame(15, RoleFunction::query()->count());
     }
 
     public function test_duplicate_copies_functions_and_cap_as_a_role_of_ones_own(): void

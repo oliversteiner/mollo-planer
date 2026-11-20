@@ -17,12 +17,12 @@ use App\Planer\RichText\TiptapToMarkdown;
 final class Canonical
 {
     private const ORDER = [
-        'root' => ['$schema', 'format', 'revision', 'changed', 'project', 'milestones'],
+        'root' => ['$schema', 'format', 'revision', 'excerpt', 'changed', 'project', 'milestones'],
         'project' => ['name', 'description', 'locale', 'members', 'labels'],
         'member' => ['email', 'role'],
         'label' => ['key', 'names', 'category', 'color'],
         'milestone' => ['id', 'title', 'description', 'dueDate', 'release', 'todos'],
-        'release' => ['version', 'status'],
+        'release' => ['version', 'status', 'date'],
         'todo' => ['id', 'title', 'description', 'dueDate', 'tasks'],
         'task' => ['id', 'title', 'description', 'dueDate', 'status', 'assigneeEmail', 'labels', 'commit', 'userStory'],
         'story' => ['role', 'goal', 'benefit'],
@@ -68,6 +68,7 @@ final class Canonical
     private static function canonicalize(array $plan): array
     {
         return self::order($plan, self::ORDER['root'], [
+            'excerpt' => fn (mixed $excerpt): ?bool => $excerpt === true ? true : null,
             'changed' => fn (mixed $changed): ?bool => $changed === true ? true : null,
             'project' => fn (array $project): array => self::order($project, self::ORDER['project'], [
                 'description' => self::description(...),

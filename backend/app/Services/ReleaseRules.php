@@ -48,6 +48,31 @@ final class ReleaseRules
     }
 
     /**
+     * The date of the release follows the status (task 29): a milestone that becomes released without a date gets
+     * today's, a milestone that is not released has none (going back to planned clears it). An import keeps what the
+     * file says (the date is optional there, the validator hints at a missing one).
+     */
+    public static function applyReleaseDate(Milestone $milestone): void
+    {
+        if (self::$suspended) {
+            return;
+        }
+
+        if ($milestone->getAttribute('release_status') === ReleaseStatus::RELEASED) {
+            if ($milestone->release_date === null && (! $milestone->exists || $milestone->isDirty('release_status'))) {
+                $milestone->release_date = now()->startOfDay();
+            }
+
+            return;
+        }
+
+        // A date given together with another status is an error (checkMilestone); one that is left over is cleared.
+        if ($milestone->release_date !== null && ! $milestone->isDirty('release_date')) {
+            $milestone->release_date = null;
+        }
+    }
+
+    /**
      * @throws ValidationException
      */
     public static function checkMilestone(Milestone $milestone, bool $always = false): void
@@ -62,6 +87,10 @@ final class ReleaseRules
 
         if (($version === null) !== ($status === null)) {
             $errors['input.releaseStatus'] = __('release.pair');
+        }
+
+        if ($milestone->getAttribute('release_date') !== null && $milestone->getAttribute('release_status') !== ReleaseStatus::RELEASED) {
+            $errors['input.releaseDate'] = __('release.date_only_released');
         }
 
         if ($version !== null && preg_match(self::VERSION, $version) !== 1) {
@@ -131,7 +160,7 @@ final class ReleaseRules
     /**
      * @throws ValidationException
      */
-    public static function checkTask(Task $task, bool $always = false): void
+    public static function checkTask(Task $task, bool $always = false, ?string $milestoneStatus = null): void
     {
         if (self::$suspended && ! $always) {
             return;
@@ -148,7 +177,8 @@ final class ReleaseRules
             $errors['input.commit'] = __('release.none_only_done');
         }
 
-        $milestoneStatus = DB::table('todos')
+        // The caller of a long list reads the status of the milestones together and passes it in.
+        $milestoneStatus ??= DB::table('todos')
             ->join('milestones', 'milestones.id', '=', 'todos.milestone_id')
             ->where('todos.id', $task->todo_id)
             ->value('milestones.release_status');

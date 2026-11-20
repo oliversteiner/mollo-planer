@@ -26,13 +26,14 @@ final class Export
      *
      * @throws RuntimeException With the paths, when the project breaks the format
      */
-    public function document(Project $project): array
+    public function document(Project $project, ?ExportFilter $filter = null): array
     {
         $raw = [
             'format' => 'planer-v2',
             'revision' => (int) $project->planer_revision,
+            'excerpt' => $filter?->active() === true ? true : null,
             'project' => $this->project($project),
-            'milestones' => $this->milestones($project),
+            'milestones' => $this->milestones($project, $filter),
         ];
 
         // The file has no null and no empty label list: what is checked is what is written.
@@ -49,9 +50,9 @@ final class Export
         return $document;
     }
 
-    public function text(Project $project): string
+    public function text(Project $project, ?ExportFilter $filter = null): string
     {
-        return Canonical::text($this->document($project));
+        return Canonical::text($this->document($project, $filter));
     }
 
     /**
@@ -89,7 +90,7 @@ final class Export
     /**
      * @return list<array<string, mixed>>
      */
-    private function milestones(Project $project): array
+    private function milestones(Project $project, ?ExportFilter $filter = null): array
     {
         $labelOrder = $project->labels()->orderBy('position')->orderBy('id')->pluck('key')->flip()->all();
 
@@ -99,6 +100,10 @@ final class Export
             ->with(['todos.tasks' => fn ($tasks) => $tasks->with(['labels', 'assignee'])])
             ->get();
 
+        if ($filter?->active() === true) {
+            $milestones = $filter->apply($milestones);
+        }
+
         return $milestones->map(fn (Milestone $milestone): array => [
             'id' => "m-{$milestone->getKey()}",
             'title' => $milestone->title,
@@ -106,7 +111,7 @@ final class Export
             'dueDate' => $milestone->due_date?->format('Y-m-d'),
             'release' => $milestone->release_version === null || $milestone->release_status === null
                 ? null
-                : ['version' => $milestone->release_version, 'status' => $milestone->release_status->value],
+                : array_filter(['version' => $milestone->release_version, 'status' => $milestone->release_status->value, 'date' => $milestone->getAttribute('release_date')?->format('Y-m-d')], fn ($value) => $value !== null),
             'todos' => $milestone->todos->map(fn (Todo $todo): array => [
                 'id' => "t-{$todo->getKey()}",
                 'title' => $todo->title,

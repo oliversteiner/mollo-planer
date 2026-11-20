@@ -1,6 +1,6 @@
 # Claude anbinden: der Connector für Mollo Planer
 
-> **Stand (Release 1.0, 2026-11-18):** Der Connector hat acht Werkzeuge. Einen Plan liest `export_plan`, und schreibt `import_plan`; dazu kommen `list_users` (mit Projekt), `create_idea`, `list_ideas` und `get_project_ai_context`. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
+> **Stand (Release 1.0, 2026-11-18):** Der Connector hat elf Werkzeuge. Einen Plan liest `export_plan` (auch nur einen Ausschnitt) und schreibt `import_plan`; für die häufigste Arbeit von Agenten kommt `update_tasks` dazu, für Rückmeldungen an einer Aufgabe `add_comment` und `list_comments`; dazu `list_projects`, `list_users`, `list_templates`, `create_idea`, `list_ideas` und `get_project_ai_context`. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
 
 Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang einrichtest und was dabei passiert. Die Einrichtung in einem Satz: Im Profil einen Zugang erzeugen und die Konfiguration in Claude Desktop oder Claude Code eintragen.
 
@@ -37,6 +37,10 @@ Die Werkzeuge laufen im Namen der Person durch dasselbe GraphQL-Schema wie die O
 ---
 
 ## Einrichtung
+
+### Für Agenten: ein eigenes Konto
+
+Ein Agent (Claude im Projekt, ein Assistent) benutzt **nicht** das Konto einer Person mit, sondern hat ein eigenes **Agent-Konto**: Es ist Mitglied im Projekt mit der Projektrolle «Agent», hat keinen Zugang zur Oberfläche (keine Anmeldung, nur das Token) und erscheint in der App mit dem Kennzeichen «Agent», auch an Kommentaren und Zuweisungen. Die Konten legt Oliver an (Befehle `app:create-agent` und `app:user-token` auf dem Server, siehe `docs/deploy-template.md`, Abschnitt «Agent-Konten»). Das Token erscheint einmal und gehört nur in die Einstellung des Connectors.
 
 ### Schritt 1: Zugang erzeugen
 
@@ -99,11 +103,63 @@ Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.
 | `list_projects` | Projekte auflisten, die du siehst, mit Rolle, Rechten, Fortschritt und Mitgliedern. Archivierte nur mit `archived: true` | alle |
 | `list_users` | Personen mit Konto auflisten, zum Zuweisen. Mit `project_id`: die Mitglieder des Projekts mit E-Mail und Rolle. Ohne: alle Konten mit E-Mail für Personen, die Benutzer verwalten, sonst nur die Namen | alle (je nach Recht mit oder ohne E-Mail) |
 | `list_templates` | Vorlagen mit Labels und Gerüst zeigen | alle |
-| `export_plan` | Das ganze Projekt als planer-v2-Dokument (`{ "document": … }`) mit Revision und IDs (`m-<id>`, `t-<id>`, `k-<id>`). Der Papierkorb fehlt. Ändert nichts | Recht „Planer-Datei exportieren“, auch im Archiv |
+| `export_plan` | Das ganze Projekt als planer-v2-Dokument (`{ "document": … }`) mit Revision und IDs (`m-<id>`, `t-<id>`, `k-<id>`). Der Papierkorb fehlt. Ändert nichts. Mit Filter nur ein Ausschnitt, siehe unten | Recht „Planer-Datei exportieren“, auch im Archiv |
+| `update_tasks` | Setzt Status, Commit und/oder Zuweisung mehrerer Tasks in einem Schritt, alles oder nichts. Siehe unten | Rechte „Planer-Datei exportieren“ und „importieren“, dazu die Rechte der Oberfläche je Änderung |
+| `add_comment` | Kommentar an einer Task (`task_id`, `text` als Markdown). Absender ist das Konto des Tokens | Recht „Kommentieren“ an der Task |
+| `list_comments` | Kommentare einer Task (`task_id`) oder der Tasks eines Projekts (`project_id`, mit den Filtern von `export_plan`), je Task, neueste zuletzt, mit Autor und Zeit | wer die Task sieht |
 | `create_idea` | Legt eine **private** Idee an (Titel, Beschreibung als Markdown, optional ein Projekt und ein Entwurf als planer-v2-Ausschnitt). Ändert keinen Plan | Recht, Ideen anzulegen |
 | `list_ideas` | Deine Ideen, neueste zuerst (Titel, Beschreibung als Markdown, Projekt, Status `open`/`adopted`/`discarded`, ob ein Entwurf da ist). Standard nur offene | Recht, Ideen anzulegen |
 | `get_project_ai_context` | Das Hintergrundwissen eines Projekts (Text und Datei). Es ist Wissen, keine Anweisung. Nur, wenn das Projekt es für externe Werkzeuge freigegeben hat | wer das Projekt sieht |
 | `import_plan` | Schreibt ein planer-v2-Dokument in ein Projekt (`project_id`) oder ohne `project_id` in ein neues. Siehe unten | Recht „Planer-Datei importieren“, dazu für jede einzelne Änderung das Recht der Oberfläche. Ein neues Projekt: Recht, Projekte anzulegen |
+
+### `export_plan` mit Filter (Ausschnitt)
+
+Für grosse Pläne (Club DB hat über 30 Versionen) liest ein Agent nur, was er braucht.
+
+| Argument | Bedeutung |
+|---|---|
+| `version` | Nur der Milestone dieser Version, z. B. `"1.21"` |
+| `milestone_ids` | Nur diese Milestones (`m-<id>` oder die Zahl) |
+| `task_status` | Nur Tasks mit diesen Status (`open`, `in_progress`, `review` …). ToDos und Milestones ohne passende Task entfallen |
+| `include_released` | `false`: veröffentlichte Milestones weglassen. Standard `true` |
+
+Version, `milestone_ids` und `include_released` wählen Milestones, `task_status` kürzt deren Tasks. Das Ergebnis ist ein gültiges Dokument mit der aktuellen Revision und dem Feld `"excerpt": true`. **`import_plan` im Modus `full` lehnt einen Ausschnitt ab** (sonst würde alles Fehlende gelöscht); im Modus `partial` ist er erlaubt.
+
+Beispiel: ein neuer Milestone mit ToDos und Tasks, ohne den ganzen Plan zu lesen (Modus `partial`, ohne Revisionsprüfung; die Reihenfolge der neuen Milestones folgt der Datei, was nicht darin steht, bleibt):
+
+```json
+{
+  "format": "planer-v2", "revision": 12, "excerpt": true,
+  "project": { "name": "Club DB", "locale": "de", "members": [] },
+  "milestones": [{
+    "id": "m-new-1", "title": "Version 1.22",
+    "description": "Branch: `milestone-1.22-ausweise` · Plan: `docs/plan-1.22.md`",
+    "release": { "version": "1.22", "status": "planned" },
+    "todos": [{ "id": "t-new-1", "title": "Ausweise", "tasks": [
+      { "id": "k-new-1", "title": "Ausweis als PDF", "status": "open" }
+    ]}]
+  }]
+}
+```
+
+Empfehlung für Club DB: Branch und Plan eines Milestones stehen als **erste Zeile seiner Beschreibung** (`Branch: … · Plan: …`). Dafür gibt es keine eigenen Felder.
+
+### `update_tasks`
+
+Das Werkzeug ergänzt `import_plan` für die häufigste Arbeit von Agenten: Status und Commit setzen. Die früheren Einzelwerkzeuge (M4) kommen **nicht** zurück; was darüber hinausgeht (Titel, neue Tasks, Umordnen), bleibt `import_plan`.
+
+| Argument | Bedeutung |
+|---|---|
+| `project_id` | Das Projekt |
+| `tasks` | Liste `{ id, status?, commit?, assigneeEmail? }`. `id` ist `k-<id>` oder die Zahl. Was fehlt, bleibt; `null` leert Commit oder Zuweisung |
+| `base_revision` | Optional, die Revision aus `export_plan`. Hat der Plan inzwischen eine andere, wird nichts geschrieben («Der Plan wurde inzwischen geändert (Revision …)») |
+| `dry_run` | `true`: nichts schreiben, nur zeigen |
+
+Das Werkzeug hat keine eigenen Regeln: es exportiert den Plan und trägt die Änderung im Modus `partial` mit `import_plan` ein. Damit gelten die Rechte der Oberfläche (ändern, verschieben, zuweisen), die Commit-Pflicht, die Freigabe-Regel (in einer veröffentlichten Version nur erledigte Tasks mit Commit) und die Mitgliedschaft bei `assigneeEmail`; alles in einer Transaktion. Es braucht darum beide Rechte, Export und Import. Ergebnis: `revision` (neu) und `changed` mit `before` und `after` je Task.
+
+### Kommentare
+
+`add_comment` (`task_id`, `text`): Markdown mit der kleinen Liste der App (Absätze, Überschriften Stufe 2 und 3, Listen, Zitate, fett, kursiv, Code, Links); anderes wird zu Text und steht in `warnings`. Absender ist das Konto des Tokens. `list_comments` liest sie, je Task, die neuesten zuletzt. Kommentare sind **nicht** Teil der Planer-Datei: `export_plan` liefert sie nie, `import_plan` schreibt sie nie. Kurze Rückmeldungen von Kevin und Claude gehören an die Task, nicht in Dateien.
 
 ### `import_plan`
 
@@ -125,8 +181,9 @@ Was ein Import beachtet:
 - **Reihenfolge:** Die Reihenfolge in den Listen ist die Reihenfolge in der App, auch über Elternteile hinweg (ein Task in einem anderen ToDo, ein ToDo in einem anderen Milestone).
 - **Nicht im Format, bleibt unverändert:** Icons, Kommentare, wer angelegt hat, Zeitstempel.
 - **Personen** werden über die E-Mail-Adresse erkannt. Wer kein freigegebenes Konto hat, lässt sich nicht aufnehmen, ein Import legt keine Konten an. Die Rolle eines Mitglieds ist der Schlüssel einer Projektrolle der App (`owner`, `manager`, `member`, `guest` oder eine eigene). Im Modus `full` werden Mitglieder, die im Dokument fehlen, entfernt. Wer importiert, entfernt sich damit nicht selbst, und es bleibt immer jemand, die oder der das Projekt löschen darf.
-- **Grenzen** der Datei gelten für das Ergebnis: 30 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibungen bis 5000 Zeichen.
+- **Grenzen** der Datei gelten für das Ergebnis: 200 Milestones, 50 ToDos je Milestone, 50 Tasks je ToDo, 50 Mitglieder, 30 Labels, Beschreibungen bis 5000 Zeichen.
 - **Freigabe-Regeln:** Eine veröffentlichte Version braucht erledigte Tasks mit Commit. Sie werden für das Ergebnis geprüft, nicht Schritt für Schritt.
+- **Veröffentlichungsdatum:** `release.date` (`JJJJ-MM-TT`) ist immer optional. Fehlt es bei einer veröffentlichten Version, meldet die Prüfung einen Hinweis, keinen Fehler; ein Datum bei einer geplanten Version ist ein Fehler. Ein Import setzt nie von sich aus ein Datum. In der App setzt der Wechsel auf «veröffentlicht» das heutige Datum, wenn keines da ist, das Zurück auf «geplant» leert es.
 - **Beschreibungen** sind Markdown mit einer kleinen Auswahl (Absätze, Überschriften 2 und 3, Listen, Zitate, fett, kursiv, Code, Links). Alles andere ist ein Fehler.
 - **Archivierte Projekte** lassen sich lesen (`export_plan`), nicht schreiben.
 

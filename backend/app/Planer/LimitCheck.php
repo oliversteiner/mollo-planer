@@ -42,9 +42,13 @@ final class LimitCheck
             $add('project.labels', 'labels.too_many', ['max' => PlanerLimits::LABELS_PER_PROJECT]);
         }
 
+        // All todos and tasks of the project in one query each, grouped here (not one query per milestone and per todo).
+        $todosByMilestone = Todo::query()->where('project_id', $project->getKey())->orderBy('position')->get()->groupBy('milestone_id');
+        $tasksByTodo = Task::query()->where('project_id', $project->getKey())->get()->groupBy('todo_id');
+
         foreach ($milestones as $mi => $milestone) {
             $this->description($milestone, "milestones[$mi]", $add);
-            $todos = Todo::query()->where('milestone_id', $milestone->getKey())->orderBy('position')->get();
+            $todos = $todosByMilestone->get($milestone->getKey(), collect());
 
             if ($todos->count() > PlanerLimits::TODOS_PER_MILESTONE) {
                 $add("milestones[$mi]", 'projects.limit_todos', ['max' => PlanerLimits::TODOS_PER_MILESTONE]);
@@ -52,7 +56,7 @@ final class LimitCheck
 
             foreach ($todos as $ti => $todo) {
                 $this->description($todo, "milestones[$mi].todos[$ti]", $add);
-                $tasks = Task::query()->where('todo_id', $todo->getKey())->get();
+                $tasks = $tasksByTodo->get($todo->getKey(), collect());
 
                 if ($tasks->count() > PlanerLimits::TASKS_PER_TODO) {
                     $add("milestones[$mi].todos[$ti]", 'projects.limit_tasks', ['max' => PlanerLimits::TASKS_PER_TODO]);

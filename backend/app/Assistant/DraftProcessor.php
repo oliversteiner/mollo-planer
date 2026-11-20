@@ -9,6 +9,7 @@ use App\Planer\Canonical;
 use App\Planer\Export;
 use App\Planer\Import;
 use App\Planer\ImportMode;
+use App\Planer\PlanerLimits;
 use App\Planer\RichText\InvalidMarkdown;
 use App\Planer\RichText\MarkdownToTiptap;
 use App\Planer\RichText\Mode;
@@ -159,7 +160,7 @@ class DraftProcessor
 
         $milestones = [];
 
-        foreach (array_slice((array) ($plan['milestones'] ?? []), 0, 30) as $milestone) {
+        foreach (array_slice((array) ($plan['milestones'] ?? []), 0, PlanerLimits::MILESTONES_PER_PROJECT) as $milestone) {
             $milestones[] = $this->milestone((array) $milestone, $project !== null, $labelKeys, $assign, $assignees);
         }
 

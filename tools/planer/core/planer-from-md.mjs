@@ -254,7 +254,7 @@ function readMilestone(reader) {
 
   const milestone = { id, title: version ? version[2] : plain[1] };
 
-  const meta = readMeta(reader, ['Status', 'Fällig', 'Due']);
+  const meta = readMeta(reader, ['Status', 'Veröffentlicht', 'Released', 'Fällig', 'Due']);
   if (meta.Status !== undefined) {
     if (!version) {
       throw new MarkdownError(number, 'Status gibt es nur bei einem Milestone mit Version.');
@@ -264,7 +264,14 @@ function readMilestone(reader) {
     }
     milestone.release = { version: version[1], status: STATUS_KEYS[meta.Status] };
   } else if (version) {
-    milestone.release = { version: version[1], status: 'geplant' };
+    milestone.release = { version: version[1], status: 'planned' };
+  }
+  const releasedOn = meta['Veröffentlicht'] ?? meta.Released;
+  if (releasedOn !== undefined) {
+    if (!milestone.release) {
+      throw new MarkdownError(number, 'Das Veröffentlichungsdatum gibt es nur bei einem Milestone mit Version.');
+    }
+    milestone.release.date = releasedOn;
   }
   if (meta['Fällig'] !== undefined) milestone.dueDate = meta['Fällig'];
 
@@ -388,7 +395,7 @@ function readMeta(reader, keys) {
   const meta = {};
   while (!reader.done() && /^- /.test(reader.peek())) {
     const line = reader.peek();
-    const match = line.match(/^- (Status|Fällig|Due): (.*)$/);
+    const match = line.match(/^- (Status|Veröffentlicht|Released|Fällig|Due): (.*)$/);
     if (!match || !keys.includes(match[1])) break;
     reader.next();
     meta[KEY_ALIASES[match[1]] ?? match[1]] = match[2];
