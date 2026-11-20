@@ -326,6 +326,8 @@ Club DB: Format und Umwandler (Auftrag 29, Branch `feature/club-db-format`, PR n
 
 Connector für Club DB (Auftrag 30, Branch `feature/connector-club-db` von `feature/club-db-format`, PR nach `dev`): A `export_plan` mit Filter (`version`, `milestone_ids`, `task_status`, `include_released`) liefert einen Ausschnitt (`excerpt: true` im Kopf der Datei), `import_plan` lehnt ihn im Modus `full` ab; B `update_tasks` (Status, Commit, Zuweisung, `base_revision`, `dry_run`, alles oder nichts, über Export und `import_plan` partial, keine zweite Kopie der Regeln); C `add_comment` und `list_comments` (Kommentare nie im Export); D Doku in `docs/claude-connector.md`, `SKILL.md`, `spec/format-v2.md`.
 
+Agent-Konten (Auftrag 31, Branch `feature/agent-konten` von `feature/connector-club-db`, PR nach `dev`): `users.is_agent`, keine Anmeldung im Browser (Passwort, Passkey, Reset, Einladung; `RefuseAgentLogin`, `EnsureNotAgent` sperrt `/api`), Zugang nur über ein Token des Connectors (`app:create-agent`, `app:user-token`, einmal im Terminal, `--revoke`), Standard-Projektrolle Agent, `User.isAgent`, Kennzeichen «Agent» (Mitglieder, Benutzerverwaltung, Kommentare, Zuweisung); die Konten legt Oliver auf dem Server an.
+
 Zwei Umgebungen (Auftrag 28, Branch `chore/zwei-umgebungen`, PR nach `dev`): `deploy.sh` ohne feste Pfade (`DEPLOY_BRANCH`, `DEPLOY_WEB_ROOT`, `DEPLOY_BACKUP_DIR` aus `backend/.env`, Schutz gegen Verwechslung), Workflow `dev` → `test`, `main` → `production`, TEST mit `APP_ENV=staging` (alle Sicherheitsregeln der Produktion gelten dort, `DeploymentEnvironment::isLive()`), Band «Testumgebung», Doku und Schrittlisten für Oliver in `docs/deploy-template.md` Abschnitt 15.
 
 ## Nachkontrolle 1.1 (Auftrag 27)

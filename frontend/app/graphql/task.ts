@@ -42,7 +42,7 @@ export const projectMembersQuery = graphql(`
       id
       members {
         role { key }
-        user { id name avatarUrl }
+        user { id name avatarUrl isAgent }
       }
     }
   }
@@ -82,7 +82,7 @@ export const taskQuery = graphql(`
         editedAt
         viewerCanEdit
         viewerCanDelete
-        author { id name avatarUrl }
+        author { id name avatarUrl isAgent }
       }
     }
   }

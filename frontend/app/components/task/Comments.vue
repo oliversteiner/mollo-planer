@@ -18,7 +18,7 @@ const props = defineProps<{
     editedAt?: string | null
     viewerCanEdit: boolean
     viewerCanDelete: boolean
-    author?: { id: string, name: string, avatarUrl?: string | null } | null
+    author?: { id: string, name: string, avatarUrl?: string | null, isAgent?: boolean } | null
   }[]
 }>()
 
@@ -92,6 +92,7 @@ async function saveEdit(): Promise<void> {
         <div class="comment-main">
           <div class="comment-head">
             <span class="comment-author">{{ comment.author?.name ?? t('comments.deletedAuthor') }}</span>
+            <AgentBadge v-if="comment.author?.isAgent" />
             <time
               :datetime="comment.createdAt"
               class="comment-quiet"

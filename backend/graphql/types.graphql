@@ -109,6 +109,8 @@ type MemberCandidate {
   avatarUrl: String
   "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
   isMember: Boolean!
+  "Konto eines Agenten (Claude): in der Auswahl mit dem Kennzeichen «Agent»"
+  isAgent: Boolean!
 }
 
 "Version eines Milestones und ihre Freigabe"

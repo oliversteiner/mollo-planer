@@ -292,6 +292,8 @@ input LocalizedNameInput {
 type MemberCandidate {
  avatarUrl: String
  id: ID!
+ "Konto eines Agenten (Claude): in der Auswahl mit dem Kennzeichen «Agent»"
+ isAgent: Boolean!
  "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
  isMember: Boolean!
  name: String!

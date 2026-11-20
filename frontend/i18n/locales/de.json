@@ -432,6 +432,11 @@
     "joined": "{name} ist jetzt Mitglied (Rolle {role}).",
     "commentsSummary": "Keine Kommentare | 1 Kommentar | {count} Kommentare"
   },
+  "agent": {
+    "badge": "Agent",
+    "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors",
+    "access": "Zugang nur über Token (Befehl app:user-token)"
+  },
   "comments": {
     "title": "Kommentare ({count})",
     "none": "Noch keine Kommentare.",
@@ -998,6 +1003,10 @@
         "approved_at": {
           "label": "Freigegeben am",
           "description": "Zeitpunkt, an dem ein Admin das Konto freigegeben hat. Leer bei Konten, die sich selbst registriert haben und noch warten."
+        },
+        "is_agent": {
+          "label": "Agent-Konto",
+          "description": "1 bei einem Agent-Konto (Claude, Assistenz): keine Anmeldung im Browser, Zugang nur über ein Token des Connectors."
         },
         "role_id": {
           "label": "Rolle",

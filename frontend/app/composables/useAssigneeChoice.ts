@@ -6,6 +6,7 @@ interface Member {
   id: string
   name: string
   avatarUrl?: string | null
+  isAgent?: boolean
 }
 
 /**
@@ -46,7 +47,7 @@ export function useAssigneeChoice(members: () => readonly Member[], mayAssignOth
     const memberIds = new Set(members().map(member => member.id))
     const others = (result.value?.memberCandidates ?? [])
       .filter(person => !person.isMember && !memberIds.has(person.id))
-      .map(person => ({ id: person.id, name: person.name, avatarUrl: person.avatarUrl }))
+      .map(person => ({ id: person.id, name: person.name, avatarUrl: person.avatarUrl, isAgent: person.isAgent }))
 
     return [own, { label: t('task.assigneeGroups.others'), people: others }]
   })
