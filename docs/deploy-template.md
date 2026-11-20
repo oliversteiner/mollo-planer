@@ -251,11 +251,12 @@ Vorlage: `deploy/deploy.sh` und `.github/workflows/deploy.yml` aus dem Projekt `
 ### Eigenheiten und Fallstricke bei Hostpoint (aus dem Aufbau von TEST und PROD)
 
 - **Alle Docroots liegen unter `~/www/<domain>`.** Hostpoint legt sie beim Anlegen der Domain dort an (`~/www/planer.mollo.dev`, `~/www/api.planer.mollo.dev`, …). Eigene Ordnerbäume wie `~/dev/www` gibt es nicht, sie würden vom Webserver nicht ausgeliefert. Der App-Ordner und die Sicherungen dürfen frei liegen (`~/dev/apps/…`, `~/ch/apps/…`), nur der Docroot nicht. `DEPLOY_WEB_ROOT` zeigt deshalb auf `~/www/<frontend-domain>`; `deploy.sh` verlangt, dass der letzte Pfadteil dem Host von `FRONTEND_URL` entspricht, und einen vorhandenen Ordner.
+- **`sed -i` verhält sich auf Hostpoint wie auf dem Mac (BSD), nicht wie unter Linux (GNU).** `sed -i 's/a/b/' datei` bricht dort mit «sed: 1: … invalid command code .» ab, weil BSD-`sed` nach `-i` eine Endung für die Sicherungskopie verlangt. Portabel (läuft auf Hostpoint, auf dem Mac und unter Linux) ist `sed -i.bak 's/a/b/' datei && rm datei.bak`. Alle `sed`-Befehle in dieser Anleitung sind so geschrieben. Auch sonst gilt: Hostpoint hat die BSD-Variante vieler Werkzeuge. Linux-Beispiele aus dem Netz (`sed -i`, `grep -P`, `readlink -f`, `date -d`) vorher mit der Hilfe (`man sed`) abgleichen. `deploy.sh` nutzt nur Optionen, die auf beiden laufen (`sed -E`, `grep -E`, `xargs -r`).
 - **`php` ist auf Hostpoint immer 8.5**, ein voller Pfad ist nicht mehr nötig (`DEPLOY_PHP` leer lassen). Cron hat manchmal einen anderen `PATH` als SSH: einmal im Hostpoint-Panel den Cron-Eintrag `* * * * * php -v > ~/cron-php.txt` anlegen und die Datei nach einer Minute **auf dem Server** lesen (`cat ~/cron-php.txt`), dann den echten Eintrag setzen.
 - **Die `index.php` im API-Docroot hat absolute Pfade** auf `<App-Ordner>/backend` (`/home/<benutzer>/<dev|ch>/apps/<projekt>/backend/…`, drei Stellen). Zieht der App-Ordner um, muss sie angepasst werden, sonst liefert die API-Domain einen Fehler:
   ```bash
   # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
-  sed -i 's#/home/<benutzer>/apps/<projekt>#/home/<benutzer>/dev/apps/<projekt>#g' ~/www/<api-domain>/index.php
+  sed -i.bak 's#/home/<benutzer>/apps/<projekt>#/home/<benutzer>/dev/apps/<projekt>#g' ~/www/<api-domain>/index.php && rm ~/www/<api-domain>/index.php.bak
   grep -n "<projekt>" ~/www/<api-domain>/index.php
   ```
   Prüfen (lokal oder auf dem Server) mit `curl -si https://<api-domain>/up | head -3` (erwartet `HTTP/2 200`); bei 500 hilft **auf dem Server** `tail -n 30 <App-Ordner>/backend/storage/logs/laravel.log`.
@@ -384,7 +385,7 @@ mv ~/apps/mollo-planer ~/dev/apps/mollo-planer
 
 # 2. index.php der API auf den neuen Ort stellen (drei Stellen) und prüfen
 cp ~/www/api.planer.mollo.dev/index.php ~/www/api.planer.mollo.dev/index.php.bak
-sed -i 's#/home/<benutzer>/apps/mollo-planer#/home/<benutzer>/dev/apps/mollo-planer#g' ~/www/api.planer.mollo.dev/index.php
+sed -i.bak 's#/home/<benutzer>/apps/mollo-planer#/home/<benutzer>/dev/apps/mollo-planer#g' ~/www/api.planer.mollo.dev/index.php
 grep -n "mollo-planer" ~/www/api.planer.mollo.dev/index.php
 rm ~/www/api.planer.mollo.dev/index.php.bak
 
@@ -440,7 +441,7 @@ Danach (im Panel, auf dem Server, lokal wie angegeben): Cron-Eintrag im Panel au
    # AUF DEM SERVER (per SSH angemeldet, z. B. mit deinem persönlichen Schlüssel)
    D=~/www/api.planer.mollo.ch
    cp ~/www/api.planer.mollo.dev/index.php ~/www/api.planer.mollo.dev/robots.txt ~/www/api.planer.mollo.dev/favicon.ico $D/
-   sed -i 's#/dev/apps/mollo-planer#/ch/apps/mollo-planer#g' $D/index.php
+   sed -i.bak 's#/dev/apps/mollo-planer#/ch/apps/mollo-planer#g' $D/index.php && rm $D/index.php.bak
    grep -n "mollo-planer" $D/index.php
    cat ~/ch/apps/mollo-planer/backend/public/.htaccess >> $D/.htaccess
    curl -si https://api.planer.mollo.ch/up | head -3
