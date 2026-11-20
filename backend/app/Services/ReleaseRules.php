@@ -160,7 +160,7 @@ final class ReleaseRules
     /**
      * @throws ValidationException
      */
-    public static function checkTask(Task $task, bool $always = false): void
+    public static function checkTask(Task $task, bool $always = false, ?string $milestoneStatus = null): void
     {
         if (self::$suspended && ! $always) {
             return;
@@ -177,7 +177,8 @@ final class ReleaseRules
             $errors['input.commit'] = __('release.none_only_done');
         }
 
-        $milestoneStatus = DB::table('todos')
+        // The caller of a long list reads the status of the milestones together and passes it in.
+        $milestoneStatus ??= DB::table('todos')
             ->join('milestones', 'milestones.id', '=', 'todos.milestone_id')
             ->where('todos.id', $task->todo_id)
             ->value('milestones.release_status');

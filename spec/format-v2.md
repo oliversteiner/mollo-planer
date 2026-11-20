@@ -58,6 +58,7 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 | `$schema` | nein | String. Hinweis für Editoren. Der Validator ignoriert das Feld und prüft immer gegen `spec/planer-v2.schema.json`. |
 | `format` | ja | Genau `"planer-v2"`. |
 | `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. |
+| `excerpt` | nein | Nur `true`, sonst fehlt das Feld. Die Datei ist ein **Ausschnitt** des Plans (Export mit Filter, siehe `docs/claude-connector.md`). Die App lehnt sie im Import-Modus `full` ab (was fehlt, würde sonst gelöscht), im Modus `partial` ist sie erlaubt. Die Revision ist die des Plans zur Zeit des Exports. |
 | `changed` | nein | Nur `true`, sonst fehlt das Feld. Die Datei wurde lokal geändert und ist noch nicht eingetragen. |
 | `project` | ja | Objekt, Abschnitt 2.2. |
 | `milestones` | ja | Liste mit höchstens 200 Milestones. Leer ist erlaubt (leeres Projekt). |

@@ -45,9 +45,14 @@ return [
         'release_date_planned' => 'The version :version is only planned and has no release date.',
         'markdown' => 'Description (line :line): :kind – :excerpt',
     ],
+    'update_tasks' => [
+        'revision' => 'The plan has changed meanwhile (revision :project, your base was :file). Export it again and retry.',
+    ],
+
     'import' => [
         'draft_invalid' => 'The draft is not valid: :message',
         'invalid' => 'The file is not valid: :message',
+        'excerpt' => 'The file is an excerpt of the plan (excerpt). In mode full, everything it lacks would be deleted. Import it in mode partial, or export the whole plan.',
         'revision' => 'The file has revision :file, the project is at :project. Export it again first.',
         'unknown_id' => ':id does not belong to this project or is in the trash.',
         'denied' => 'You lack the right: :what.',

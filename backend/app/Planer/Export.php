@@ -26,13 +26,14 @@ final class Export
      *
      * @throws RuntimeException With the paths, when the project breaks the format
      */
-    public function document(Project $project): array
+    public function document(Project $project, ?ExportFilter $filter = null): array
     {
         $raw = [
             'format' => 'planer-v2',
             'revision' => (int) $project->planer_revision,
+            'excerpt' => $filter?->active() === true ? true : null,
             'project' => $this->project($project),
-            'milestones' => $this->milestones($project),
+            'milestones' => $this->milestones($project, $filter),
         ];
 
         // The file has no null and no empty label list: what is checked is what is written.
@@ -49,9 +50,9 @@ final class Export
         return $document;
     }
 
-    public function text(Project $project): string
+    public function text(Project $project, ?ExportFilter $filter = null): string
     {
-        return Canonical::text($this->document($project));
+        return Canonical::text($this->document($project, $filter));
     }
 
     /**
@@ -89,7 +90,7 @@ final class Export
     /**
      * @return list<array<string, mixed>>
      */
-    private function milestones(Project $project): array
+    private function milestones(Project $project, ?ExportFilter $filter = null): array
     {
         $labelOrder = $project->labels()->orderBy('position')->orderBy('id')->pluck('key')->flip()->all();
 
@@ -98,6 +99,10 @@ final class Export
             ->orderBy('position')->orderBy('id')
             ->with(['todos.tasks' => fn ($tasks) => $tasks->with(['labels', 'assignee'])])
             ->get();
+
+        if ($filter?->active() === true) {
+            $milestones = $filter->apply($milestones);
+        }
 
         return $milestones->map(fn (Milestone $milestone): array => [
             'id' => "m-{$milestone->getKey()}",
