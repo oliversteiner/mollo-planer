@@ -65,6 +65,9 @@ final class Import
     /** @var Collection<string, int>|null */
     private ?Collection $labelOrder = null;
 
+    /** @var array<string, array<int, array<int, int>>> table => parent id => id => place, read by applyOrder() */
+    private array $orderState = [];
+
     private array $titles = [];
 
     private ?int $templateId = null;
@@ -963,6 +966,17 @@ final class Import
 
     private function applyOrder(): void
     {
+        // The places of every group, read once for the whole project (not one query per group). Groups do not change
+        // their members while the places are written, so this is what each group would read.
+        $this->orderState = [];
+        foreach (['milestones' => 'project_id', 'todos' => 'milestone_id', 'tasks' => 'todo_id'] as $table => $column) {
+            $rows = DB::table($table)->where('project_id', $this->project->getKey())->whereNull('deleted_at')->orderBy('position')->orderBy('id')->get(['id', $column, 'position']);
+
+            foreach ($rows as $row) {
+                $this->orderState[$table][(int) $row->{$column}][(int) $row->id] = (int) $row->position;
+            }
+        }
+
         $this->orderGroup('milestones', 'project_id', $this->project->getKey(), $this->wanted['milestones'], $this->before['milestones'], 'm');
 
         foreach ($this->wanted['todos'] as $milestoneId => $ids) {
@@ -994,7 +1008,8 @@ final class Import
      */
     private function orderGroup(string $table, string $column, int|string $parentId, array $wanted, array $before, string $prefix): void
     {
-        $now = DB::table($table)->where($column, $parentId)->whereNull('deleted_at')->orderBy('position')->orderBy('id')->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $positions = $this->orderState[$table][$parentId] ?? [];
+        $now = array_keys($positions);
         $order = $this->mode === ImportMode::Partial ? $this->refillSlots($now, $wanted) : [...$wanted, ...array_values(array_diff($now, $wanted))];
 
         // Items that were in the group before and are still: did their relative order change?
@@ -1002,7 +1017,9 @@ final class Import
         $keptNow = array_values(array_filter($order, fn (int $id): bool => in_array($id, $kept, true)));
 
         foreach ($order as $index => $id) {
-            DB::table($table)->where('id', $id)->where('position', '!=', $index)->update(['position' => $index]);
+            if (($positions[$id] ?? null) !== $index) {
+                DB::table($table)->where('id', $id)->where('position', '!=', $index)->update(['position' => $index]);
+            }
         }
 
         if ($kept === $keptNow) {
@@ -1095,11 +1112,18 @@ final class Import
             }
         }
 
-        foreach (array_keys($this->touchedTasks) as $taskId) {
-            try {
-                ReleaseRules::checkTask(Task::query()->findOrFail($taskId), true);
-            } catch (ValidationException $error) {
-                $this->validation($this->paths["k-{$taskId}"] ?? "k-{$taskId}", $error);
+        // The touched tasks in chunks, with the release status of their milestones read together (not one query each).
+        foreach (array_chunk(array_keys($this->touchedTasks), 500) as $ids) {
+            $tasks = Task::query()->whereKey($ids)->get();
+            $statuses = DB::table('todos')->join('milestones', 'milestones.id', '=', 'todos.milestone_id')
+                ->whereIn('todos.id', $tasks->pluck('todo_id')->unique()->all())->pluck('milestones.release_status', 'todos.id');
+
+            foreach ($tasks as $task) {
+                try {
+                    ReleaseRules::checkTask($task, true, (string) ($statuses[$task->todo_id] ?? ''));
+                } catch (ValidationException $error) {
+                    $this->validation($this->paths["k-{$task->getKey()}"] ?? "k-{$task->getKey()}", $error);
+                }
             }
         }
     }
@@ -1234,6 +1258,12 @@ final class Import
 
     private function save(Model $model, string $path): void
     {
+        // Something that exists and did not change needs no save: its events (the project of the parent, the release
+        // rules) ask the database again for every element. The result is checked as a whole afterwards (checkResult).
+        if ($model->exists && ! $model->isDirty()) {
+            return;
+        }
+
         try {
             $model->save();
         } catch (ValidationException $error) {
