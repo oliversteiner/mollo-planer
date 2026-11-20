@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import { Placeholder } from '@tiptap/extensions'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import { richTextExtensions } from '~/utils/rich-text'
+import type { ActionMenuItem } from '~/components/ActionMenu.vue'
+import { richTextExtensions, type RichTextProfile } from '~/utils/rich-text'
 
 /**
- * Editor for descriptions and comments: TipTap JSON in and out, only the
+ * Editor for descriptions, comments and documents: TipTap JSON in and out, only the
  * elements the server allows (see utils/rich-text.ts). "compact" gives a
- * smaller toolbar for comments.
+ * smaller toolbar for comments. The profile "document" adds headings 1 to 4,
+ * strike-through, code block, rule, task list and table. The content comes from
+ * outside (v-model), so a later live editing does not need a new component.
  */
 const props = withDefaults(defineProps<{
   placeholder?: string
   compact?: boolean
+  profile?: RichTextProfile
 }>(), {
   placeholder: undefined,
-  compact: false
+  compact: false,
+  profile: 'description'
 })
 
 const model = defineModel<Record<string, unknown> | null>({ default: null })
@@ -25,7 +30,7 @@ const EMPTY = { type: 'doc', content: [{ type: 'paragraph' }] }
 
 const editor = useEditor({
   content: model.value ?? EMPTY,
-  extensions: [...richTextExtensions(), Placeholder.configure({ placeholder: props.placeholder ?? '' })],
+  extensions: [...richTextExtensions(props.profile), Placeholder.configure({ placeholder: props.placeholder ?? '' })],
   editorProps: { attributes: { class: 'rich-text-content' } },
   onUpdate: ({ editor }) => {
     model.value = editor.getJSON() as Record<string, unknown>
@@ -49,6 +54,41 @@ interface Tool {
   run: () => void
 }
 
+const isDocument = computed(() => props.profile === 'document')
+
+/** The language of the code block the cursor is in; only the characters a language name has. */
+const codeLanguage = computed({
+  get: () => (editor.value?.getAttributes('codeBlock').language as string | null | undefined) ?? '',
+  set: (value: string) => {
+    editor.value?.chain().updateAttributes('codeBlock', { language: value.replace(/[^A-Za-z0-9_+#.-]/g, '').slice(0, 30) || null }).run()
+  }
+})
+
+/** The table menu: insert one, or change the one the cursor is in. No merging of cells, the head row stays. */
+const tableItems = computed<ActionMenuItem[][]>(() => {
+  const current = editor.value
+
+  if (!current) {
+    return []
+  }
+  const inTable = current.isActive('table')
+
+  return [
+    [{ label: t('richText.tableInsert'), icon: 'table', disabled: inTable, onSelect: () => current.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() }],
+    [
+      { label: t('richText.tableRowBefore'), icon: 'arrow-up-to-line', disabled: !inTable || !current.can().addRowBefore(), onSelect: () => current.chain().focus().addRowBefore().run() },
+      { label: t('richText.tableRowAfter'), icon: 'arrow-down-to-line', disabled: !inTable, onSelect: () => current.chain().focus().addRowAfter().run() },
+      { label: t('richText.tableColumnBefore'), icon: 'arrow-left-to-line', disabled: !inTable, onSelect: () => current.chain().focus().addColumnBefore().run() },
+      { label: t('richText.tableColumnAfter'), icon: 'arrow-right-to-line', disabled: !inTable, onSelect: () => current.chain().focus().addColumnAfter().run() }
+    ],
+    [
+      { label: t('richText.tableDeleteRow'), icon: 'trash', color: 'error', disabled: !inTable || !current.can().deleteRow(), onSelect: () => current.chain().focus().deleteRow().run() },
+      { label: t('richText.tableDeleteColumn'), icon: 'trash', color: 'error', disabled: !inTable || !current.can().deleteColumn(), onSelect: () => current.chain().focus().deleteColumn().run() },
+      { label: t('richText.tableDelete'), icon: 'trash', color: 'error', disabled: !inTable, onSelect: () => current.chain().focus().deleteTable().run() }
+    ]
+  ]
+})
+
 /** Toolbar by groups; "compact" (comments) has fewer. */
 const groups = computed<Tool[][]>(() => {
   const current = editor.value
@@ -69,6 +109,30 @@ const groups = computed<Tool[][]>(() => {
 
   if (props.compact) {
     return [marks, lists]
+  }
+
+  if (isDocument.value) {
+    return [
+      [
+        { key: 'undo', icon: 'arrow-rotate-left', label: t('richText.undo'), disabled: !current.can().undo(), run: () => current.chain().focus().undo().run() },
+        { key: 'redo', icon: 'arrow-rotate-right', label: t('richText.redo'), disabled: !current.can().redo(), run: () => current.chain().focus().redo().run() }
+      ],
+      ([1, 2, 3, 4] as const).map(level => ({ key: `h${level}`, icon: `h${level}`, label: t('richText.headingLevel', { level }), active: current.isActive('heading', { level }), run: () => current.chain().focus().toggleHeading({ level }).run() })),
+      [
+        ...marks.slice(0, 2),
+        { key: 'strike', icon: 'strikethrough', label: t('richText.strike'), active: current.isActive('strike'), run: () => current.chain().focus().toggleStrike().run() },
+        marks[2]!
+      ],
+      [
+        ...lists,
+        { key: 'taskList', icon: 'list-check', label: t('richText.taskList'), active: current.isActive('taskList'), run: () => current.chain().focus().toggleTaskList().run() },
+        { key: 'blockquote', icon: 'block-quote', label: t('richText.blockquote'), active: current.isActive('blockquote'), run: () => current.chain().focus().toggleBlockquote().run() }
+      ],
+      [
+        { key: 'codeBlock', icon: 'square-code', label: t('richText.codeBlock'), active: current.isActive('codeBlock'), run: () => current.chain().focus().toggleCodeBlock().run() },
+        { key: 'horizontalRule', icon: 'horizontal-rule', label: t('richText.horizontalRule'), run: () => current.chain().focus().setHorizontalRule().run() }
+      ]
+    ]
   }
 
   return [
@@ -117,11 +181,34 @@ const groups = computed<Tool[][]>(() => {
       <div class="rich-text-group">
         <RichTextLinkPopover :editor="editor" />
       </div>
+      <div
+        v-if="isDocument"
+        class="rich-text-group"
+      >
+        <ActionMenu
+          :items="tableItems"
+          :label="t('richText.table')"
+          :text="t('richText.table')"
+          icon="table"
+          placement="bottom-start"
+        />
+        <FormInput
+          v-if="editor.isActive('codeBlock')"
+          v-model="codeLanguage"
+          class="rich-text-language"
+          :label="t('richText.codeLanguage')"
+          :placeholder="t('richText.codeLanguage')"
+          hide-label
+          maxlength="30"
+          size="s"
+        />
+      </div>
     </div>
     <EditorContent
       :editor="editor"
       class="rich-text-area"
       :data-compact="compact ? '' : undefined"
+      :data-profile="profile"
     />
   </div>
 </template>
@@ -152,6 +239,10 @@ const groups = computed<Tool[][]>(() => {
   gap: var(--wa-space-3xs);
 }
 
+.rich-text-language {
+  inline-size: 8rem;
+}
+
 .rich-text-area {
   padding: var(--wa-space-xs) var(--wa-space-s);
   min-block-size: 8rem;
@@ -159,6 +250,10 @@ const groups = computed<Tool[][]>(() => {
 
 .rich-text-area[data-compact] {
   min-block-size: 5rem;
+}
+
+.rich-text-area[data-profile='document'] {
+  min-block-size: 20rem;
 }
 
 .rich-text-area :deep(.ProseMirror) {
