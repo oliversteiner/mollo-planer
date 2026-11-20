@@ -135,5 +135,9 @@ describe('ProjectTabs', () => {
 
     expect(tabs.findAll('a').at(-1)!.text()).toBe('Einstellungen')
     expect(tabs.findAll('a').at(-2)!.text()).toBe('Statistik')
+
+    await tabs.setProps({ withTrash: true })
+
+    expect(tabs.findAll('a').map(link => link.text()).slice(-3)).toEqual(['Statistik', 'Einstellungen', 'Papierkorb'])
   })
 })

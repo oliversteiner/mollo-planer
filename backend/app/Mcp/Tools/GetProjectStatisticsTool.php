@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('get_project_statistics')]
-#[Description('The numbers of one project (project_id), the same as the page "Statistik" in the app: milestones (released, planned, without version), todos, tasks, the share of done tasks, tasks per status, per label (also 0; label null = without label), per person (open and done; user null = not assigned; isAgent marks agent accounts), open tasks by due date (overdue, due within 7 days, without date), one row per milestone in plan order (m-<id>, release, todos, tasks, progress), tasks with a commit and the number of comments. "Open" means neither done nor an idea. Percentages are whole numbers. Items in the trash do not count. Read only; use it instead of reading the whole plan when only the numbers matter.')]
+#[Description('The numbers of one project (project_id), the same as the page "Statistik" in the app: milestones (released, planned, without version), todos, tasks, the share of done tasks, tasks per status, per label (also 0; label null = without label), per person (open and done; user null = not assigned; isAgent marks agent accounts), open tasks by due date (overdue, due within 7 days, without date), one row per milestone in plan order (m-<id>, release, todos, tasks, progress), done tasks per week of the last 12 weeks (done_by_week: doneByWeek, weekStart is the Monday; tasks done before the time was recorded are not in it), tasks with a commit and the number of comments. "Open" means neither done nor an idea. Percentages are whole numbers. Items in the trash do not count. Read only; use it instead of reading the whole plan when only the numbers matter.')]
 #[IsReadOnly]
 class GetProjectStatisticsTool extends Tool
 {

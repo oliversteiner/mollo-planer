@@ -685,6 +685,8 @@ type ProjectRightRow {
 type ProjectStatistics {
  "Kommentare an Tasks des Projekts"
  comments: Int!
+ "Erledigte Tasks je Woche (ab Montag) der letzten 12 Wochen, die älteste zuerst, auch Wochen mit 0. Tasks, die vor der Erfassung des Zeitpunkts erledigt wurden, haben keinen Zeitpunkt und fehlen."
+ doneByWeek: [WeekCount!]!
  "Offene Tasks nach Fälligkeit"
  due: TaskDueCounts!
  milestones: MilestoneCounts!
@@ -1237,5 +1239,10 @@ enum WebhookKind {
 type WebhookTestResult {
  message: String!
  ok: Boolean!
+}
+type WeekCount {
+ count: Int!
+ "Montag der Woche"
+ weekStart: Date!
 }
 

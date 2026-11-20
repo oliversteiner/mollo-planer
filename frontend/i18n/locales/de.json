@@ -344,7 +344,10 @@
       "noVersion": "–",
       "more": "Weiteres",
       "withCommit": "Tasks mit Commit",
-      "comments": "Kommentare"
+      "comments": "Kommentare",
+      "course": "Erledigte Tasks je Woche",
+      "courseWeek": "Woche ab {date}",
+      "courseHint": "Die letzten 12 Wochen. Tasks, die vor der Erfassung des Zeitpunkts erledigt wurden, erscheinen hier nicht."
     }
   },
   "todos": {
@@ -1330,6 +1333,10 @@
         "commit": {
           "label": "Commit",
           "description": "Hash der Umsetzung (7 bis 40 Zeichen), none für erledigte Tasks ohne Commit, leer wenn noch keiner eingetragen ist."
+        },
+        "done_at": {
+          "label": "Erledigt am",
+          "description": "Zeitpunkt, an dem der Task erledigt wurde. Setzt die App beim Wechsel auf «erledigt» und leert ihn beim Verlassen. Leer bei Tasks, die vor der Erfassung erledigt wurden."
         }
       },
       "comments": {

@@ -18,6 +18,7 @@ export const projectStatisticsQuery = graphql(`
         tasks
         progress { total done percent }
       }
+      doneByWeek { weekStart count }
       withCommit
       comments
     }

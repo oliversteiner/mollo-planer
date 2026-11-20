@@ -7,7 +7,7 @@ import { formatDate } from '~/utils/dates'
  * The statistics of the project: key numbers, tasks by status, label and person, due dates, one row per
  * milestone and a few more counts. Everyone who may see the project may see them (also an archived one).
  * The numbers come counted from the backend (the trash left out); every bar also has its number next to it.
- * The course over time is not here: the app does not store when a task was done.
+ * The course shows the tasks done per week; tasks done before the time was recorded have none and are not in it.
  */
 const { t, localeProperties } = useI18n()
 const { projectId } = useProject()
@@ -18,6 +18,9 @@ const stats = computed(() => result.value?.projectStatistics)
 
 /** A project without milestones, todos and tasks has nothing to count. */
 const isEmpty = computed(() => stats.value !== undefined && stats.value.milestones.total === 0 && stats.value.todos === 0 && stats.value.tasks === 0)
+
+/** The most done tasks of one week: the longest bar of the course. */
+const busiestWeek = computed(() => Math.max(0, ...(stats.value?.doneByWeek ?? []).map(week => week.count)))
 
 /** The length of a bar: the share of a part in the whole, 0 of nothing. The number beside it is the real value. */
 function share(part: number, whole: number): number {
@@ -288,6 +291,32 @@ function share(part: number, whole: number): number {
           slot="header"
           class="wa-heading-m"
         >
+          {{ t('project.statistics.course') }}
+        </h2>
+        <ul class="statistics-rows wa-list-plain">
+          <li
+            v-for="week in stats.doneByWeek"
+            :key="week.weekStart"
+            class="statistics-row"
+          >
+            <span>{{ t('project.statistics.courseWeek', { date: formatDate(week.weekStart, language, true) }) }}</span>
+            <wa-progress-bar
+              :value="share(week.count, busiestWeek)"
+              :label="String(week.count)"
+            ></wa-progress-bar>
+            <span class="statistics-number">{{ week.count }}</span>
+          </li>
+        </ul>
+        <p class="statistics-sub statistics-hint">
+          {{ t('project.statistics.courseHint') }}
+        </p>
+      </wa-card>
+
+      <wa-card>
+        <h2
+          slot="header"
+          class="wa-heading-m"
+        >
           {{ t('project.statistics.more') }}
         </h2>
         <ul class="statistics-rows wa-list-plain">
@@ -363,6 +392,10 @@ function share(part: number, whole: number): number {
 .statistics-row wa-progress-bar,
 .statistics-done wa-progress-bar {
   --track-height: 0.5rem;
+}
+
+.statistics-hint {
+  margin-block: var(--wa-space-m) 0;
 }
 
 .statistics-line {

@@ -34,6 +34,7 @@ class ProjectStatisticsTest extends GraphQLTestCase
             tasksByPerson { user { name isAgent } open done }
             due { overdue soon undated }
             perMilestone { milestone { id title release { version status date } } todos tasks progress { total done percent } }
+            doneByWeek { weekStart count }
             withCommit comments
         } }
         GQL;
@@ -94,6 +95,50 @@ class ProjectStatisticsTest extends GraphQLTestCase
 
         // "none" is a done task without a commit: it does not count as one with a commit.
         $this->assertSame(['withCommit' => 1, 'comments' => 2], ['withCommit' => $stats['withCommit'], 'comments' => $stats['comments']]);
+    }
+
+    public function test_done_tasks_per_week_of_the_last_twelve_weeks(): void
+    {
+        $project = Project::factory()->create();
+        $todo = Todo::factory()->for(Milestone::factory()->for($project))->create();
+        $monday = Carbon::today()->startOfWeek();
+        $done = fn (Carbon $at) => Task::factory()->for($todo)->create(['status' => 'done', 'commit' => 'none', 'done_at' => $at]);
+        $done($monday->copy()->addDays(2));
+        $done($monday->copy()->addDays(3));
+        $done($monday->copy()->subWeeks(2)->addDay());
+        $done($monday->copy()->subWeeks(11)->addHours(5));
+        $done($monday->copy()->subWeeks(12)->addDay()); // older than the course
+        // Done before the time was recorded: the model would set it now, so it is emptied behind the model's back.
+        $old = Task::factory()->for($todo)->create(['status' => 'done', 'commit' => 'none']);
+        Task::query()->whereKey($old->id)->toBase()->update(['done_at' => null]);
+
+        $weeks = $this->statistics($project)['doneByWeek'];
+
+        $this->assertCount(12, $weeks);
+        $this->assertSame($monday->copy()->subWeeks(11)->toDateString(), $weeks[0]['weekStart']);
+        $this->assertSame($monday->toDateString(), $weeks[11]['weekStart']);
+        $this->assertSame([1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2], array_column($weeks, 'count'));
+    }
+
+    public function test_a_task_gets_its_time_on_the_way_into_done_and_loses_it_on_the_way_out(): void
+    {
+        $task = Task::factory()->for(Todo::factory()->for(Milestone::factory()->for(Project::factory())))->create(['status' => 'open']);
+        $this->assertNull($task->done_at);
+
+        $this->travelTo(now()->subDay());
+        $task->forceFill(['status' => 'done', 'commit' => 'none'])->save();
+        $first = $task->fresh()->done_at;
+        $this->assertNotNull($first);
+
+        $this->travelBack();
+        $task->update(['title' => 'Nur ein Titel']);
+        $this->assertEquals($first, $task->fresh()->done_at, 'an edit that leaves the status keeps the time');
+
+        $task->forceFill(['status' => 'review', 'commit' => null])->save();
+        $this->assertNull($task->fresh()->done_at);
+
+        $task->forceFill(['status' => 'done', 'commit' => 'none'])->save();
+        $this->assertTrue($task->fresh()->done_at->greaterThan($first));
     }
 
     public function test_labels_with_zero_and_the_tasks_without_a_label(): void

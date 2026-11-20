@@ -352,10 +352,18 @@ type ProjectStatistics {
   due: TaskDueCounts!
   "Je Milestone eine Zeile in der Reihenfolge des Plans"
   perMilestone: [MilestoneStatistics!]!
+  "Erledigte Tasks je Woche (ab Montag) der letzten 12 Wochen, die älteste zuerst, auch Wochen mit 0. Tasks, die vor der Erfassung des Zeitpunkts erledigt wurden, haben keinen Zeitpunkt und fehlen."
+  doneByWeek: [WeekCount!]!
   "Tasks mit Commit"
   withCommit: Int!
   "Kommentare an Tasks des Projekts"
   comments: Int!
+}
+
+type WeekCount {
+  "Montag der Woche"
+  weekStart: Date!
+  count: Int!
 }
 
 type MilestoneCounts {

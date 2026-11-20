@@ -43,6 +43,7 @@ const filled = {
       { milestone: { id: '11', title: 'Erster', status: 'DONE', release: { version: '1.0', status: 'RELEASED', date: '2026-11-01' } }, todos: 4, tasks: 10, progress: progress(10, 10, 100) },
       { milestone: { id: '12', title: 'Ohne Version', status: 'OPEN', release: null }, todos: 0, tasks: 0, progress: progress(0, 0, 0) }
     ],
+    doneByWeek: [{ weekStart: '2026-11-09', count: 2 }, { weekStart: '2026-11-16', count: 5 }],
     withCommit: 9,
     comments: 21
   }
@@ -89,8 +90,17 @@ describe('project statistics page', () => {
     expect(rows[1]!.text()).toContain('–')
   })
 
+  it('shows the done tasks per week with the number beside each bar', async () => {
+    answer.value = filled
+    const text = (await mountSuspended(StatisticsPage)).text()
+
+    expect(text).toContain('Erledigte Tasks je Woche')
+    expect(text).toContain('Woche ab 9. November 2026')
+    expect(text).toMatch(/Woche ab 16\. November 2026\s*5/)
+  })
+
   it('shows an empty state instead of zeros for an empty project', async () => {
-    answer.value = { projectStatistics: { ...filled.projectStatistics, milestones: { total: 0, released: 0, planned: 0, unversioned: 0 }, todos: 0, tasks: 0, perMilestone: [] } }
+    answer.value = { projectStatistics: { ...filled.projectStatistics, milestones: { total: 0, released: 0, planned: 0, unversioned: 0 }, todos: 0, tasks: 0, perMilestone: [], doneByWeek: [] } }
     const page = await mountSuspended(StatisticsPage)
 
     expect(page.findComponent(EmptyState).text()).toContain('Noch nichts zu zählen')

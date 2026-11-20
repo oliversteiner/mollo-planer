@@ -344,7 +344,10 @@
       "noVersion": "–",
       "more": "More",
       "withCommit": "Tasks with a commit",
-      "comments": "Comments"
+      "comments": "Comments",
+      "course": "Done tasks per week",
+      "courseWeek": "Week of {date}",
+      "courseHint": "The last 12 weeks. Tasks done before the time was recorded do not appear here."
     }
   },
   "todos": {
@@ -1330,6 +1333,10 @@
         "commit": {
           "label": "Commit",
           "description": "Hash of the implementation (7 to 40 characters), none for done tasks without a commit, empty when none is recorded yet."
+        },
+        "done_at": {
+          "label": "Done at",
+          "description": "When the task was done. Set by the app when the status becomes done and cleared when it leaves done. Empty for tasks that were done before it was recorded."
         }
       },
       "comments": {

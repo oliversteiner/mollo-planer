@@ -27,6 +27,9 @@ class ProjectStatistics
     /** Tasks due within this many days count as "due soon". */
     public const SOON_DAYS = 7;
 
+    /** How many weeks the course shows, the current one included. */
+    public const COURSE_WEEKS = 12;
+
     /** The value of a done task that has no commit (docs: planer format v2). */
     public const NO_COMMIT = 'none';
 
@@ -53,6 +56,7 @@ class ProjectStatistics
             'tasksByPerson' => $this->tasksByPerson($id),
             'due' => $this->due($id),
             'perMilestone' => $this->perMilestone($id, $milestones, $todosByMilestone),
+            'doneByWeek' => $this->doneByWeek($id),
             'withCommit' => Task::query()->inProject($id)->whereNotNull('commit')->where('commit', '!=', self::NO_COMMIT)->count(),
             'comments' => Comment::query()->whereIn('task_id', Task::query()->inProject($id)->select('tasks.id'))->count(),
         ];
@@ -140,6 +144,31 @@ class ProjectStatistics
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Done tasks per week (Monday on) of the last COURSE_WEEKS weeks, the oldest first, weeks without any with 0. Counted
+     * by day in the database, the days put into weeks here (at most 84 rows). Tasks done before done_at existed have no
+     * time and do not appear.
+     *
+     * @return list<array{weekStart: string, count: int}>
+     */
+    private function doneByWeek(int|string $id): array
+    {
+        $firstWeek = Carbon::today()->startOfWeek()->subWeeks(self::COURSE_WEEKS - 1);
+        $days = Task::query()->inProject($id)->where('status', TaskStatus::DONE->value)->where('done_at', '>=', $firstWeek)
+            ->toBase()->selectRaw('date(done_at) as day, count(*) as total')->groupBy('day')->pluck('total', 'day');
+
+        $weeks = [];
+        for ($week = 0; $week < self::COURSE_WEEKS; $week++) {
+            $weeks[$firstWeek->copy()->addWeeks($week)->toDateString()] = 0;
+        }
+
+        foreach ($days as $day => $total) {
+            $weeks[Carbon::parse($day)->startOfWeek()->toDateString()] += (int) $total;
+        }
+
+        return array_map(fn (string $start, int $count): array => ['weekStart' => $start, 'count' => $count], array_keys($weeks), $weeks);
     }
 
     /**
