@@ -99,4 +99,15 @@ return [
         'ignore' => 'Wenn du dich nicht registriert hast, klick nicht auf den Link und tu nichts.',
         'approval' => 'Danach richtest du deinen zweiten Faktor ein, und ein Admin gibt dein Konto frei.',
     ],
+    'agent_access' => [
+        'created' => [
+            'subject' => '[:app] Zugang für :agent erzeugt',
+            'line' => ':admin hat für das Agent-Konto :agent den Zugang «:access» erzeugt.',
+        ],
+        'revoked' => [
+            'subject' => '[:app] Zugang von :agent widerrufen',
+            'line' => ':admin hat beim Agent-Konto :agent den Zugang «:access» widerrufen.',
+        ],
+        'not_you' => 'Warst du das nicht, prüfe die Benutzerverwaltung und das Protokoll.',
+    ],
 ];

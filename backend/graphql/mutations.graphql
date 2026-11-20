@@ -49,6 +49,15 @@ type Mutation @guard {
   deleteApiToken(id: ID!): ApiToken
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteApiToken")
 
+  "Erzeugt einen Zugang für ein Agent-Konto (nur Konten mit isAgent), 90 Tage gültig. Nur mit dem Recht users.manage und frischer Passwortbestätigung. Den Klartext gibt es nur in der Antwort; Protokolleintrag und Mail an die Admins."
+  createAgentToken(userId: ID!, name: String! @rules(apply: ["min:2", "max:60"])): NewApiToken!
+    @can(ability: "manageAgentAccess", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateAgentToken")
+  "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
+  revokeAgentToken(userId: ID!, tokenId: ID!): ApiToken
+    @can(ability: "manageAgentAccess", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\RevokeAgentToken")
+
   # Einstellungen der App: nur Admins.
   "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
   updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!

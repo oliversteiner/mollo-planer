@@ -21,7 +21,7 @@ type User {
   hasPasskey: Boolean @with(relation: "passkeys") @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@hasPasskey")
   "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
   passkeys: [Passkey!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@passkeys")
-  "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
+  "Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst; bei einem Agent-Konto auch für Admins (users.manage), sonst null. Nie der Wert."
   apiTokens: [ApiToken!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@apiTokens")
   "Projekte dieser Person, soweit du sie sehen darfst"
   projects: [Project!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserProjects")
