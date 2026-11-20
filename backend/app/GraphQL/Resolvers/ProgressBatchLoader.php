@@ -7,6 +7,7 @@ use App\Models\Task;
 use Closure;
 use GraphQL\Deferred;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * Collects the keys (todo, milestone or project ids) of one GraphQL field
@@ -56,8 +57,25 @@ final class ProgressBatchLoader
         return [
             'total' => $total,
             'done' => $done,
-            'percent' => $total === 0 ? 0 : (int) round($done * 100 / $total),
+            'percent' => self::percent($done, $total),
         ];
+    }
+
+    /** The one rounding of every percentage (progress, shares in the statistics): whole numbers, 0 of nothing. */
+    public static function percent(int $part, int $whole): int
+    {
+        return $whole === 0 ? 0 : (int) round($part * 100 / $whole);
+    }
+
+    /**
+     * The two counts of a progress on a base query of tasks: "total" (ideas are not planned work and do not
+     * count) and "done". Used here and by the project statistics, so both count alike.
+     */
+    public static function withCounts(QueryBuilder $tasks): QueryBuilder
+    {
+        return $tasks
+            ->selectRaw('sum(case when tasks.status = ? then 0 else 1 end) as total', [TaskStatus::IDEA->value])
+            ->selectRaw('sum(case when tasks.status = ? then 1 else 0 end) as done', [TaskStatus::DONE->value]);
     }
 
     private function countPending(): void
@@ -69,10 +87,7 @@ final class ProgressBatchLoader
         $keys = array_keys($this->pending);
         $this->pending = [];
 
-        ($this->tasksByKey)($keys)
-            ->toBase()
-            ->selectRaw('sum(case when tasks.status = ? then 0 else 1 end) as total', [TaskStatus::IDEA->value])
-            ->selectRaw('sum(case when tasks.status = ? then 1 else 0 end) as done', [TaskStatus::DONE->value])
+        self::withCounts(($this->tasksByKey)($keys)->toBase())
             ->groupBy($this->groupColumn)
             ->get()
             ->each(function (object $row): void {

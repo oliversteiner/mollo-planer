@@ -89,6 +89,8 @@ type Project {
   deletionId: ID @rename(attribute: "deletion_id")
   "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
   progress: Progress! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@project")
+  "Anzahl Milestones, ToDos und Tasks (alle Status, Ideen eingeschlossen; Papierkorb nicht), für die Karte in der Projektliste. Alle Projekte einer Liste werden zusammen gezählt."
+  counts: ProjectCounts! @field(resolver: "App\\GraphQL\\Resolvers\\Progress@projectCounts")
   "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
   viewerRole: Role @with(relation: "members") @field(resolver: "App\\GraphQL\\Resolvers\\ViewerRole")
   "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
@@ -323,6 +325,78 @@ type AppSettings {
   isTestEnvironment: Boolean!
   "Projektrolle, die man im Projekt bekommt, das man selbst anlegt (Standard: Owner). Muss project.delete haben."
   projectCreatorRole: Role!
+}
+
+"Anzahl Milestones, ToDos und Tasks eines Projekts"
+type ProjectCounts {
+  milestones: Int!
+  todos: Int!
+  tasks: Int!
+}
+
+"""Die Zahlen der Seite Statistik. Offen heisst: weder erledigt noch eine Idee (wie beim Fortschritt). Prozent sind ganze Zahlen, gerundet wie beim Fortschritt."""
+type ProjectStatistics {
+  milestones: MilestoneCounts!
+  todos: Int!
+  "Alle Tasks, Ideen eingeschlossen"
+  tasks: Int!
+  "Anteil erledigter Tasks, gleiche Zählung wie Project.progress"
+  progress: Progress!
+  "Je Status eine Zeile, in der Reihenfolge des Boards, auch mit 0"
+  tasksByStatus: [TaskStatusCount!]!
+  "Alle Labels des Projekts in ihrer Reihenfolge, auch mit 0; zuletzt die Tasks ohne Label (label null)"
+  tasksByLabel: [TaskLabelCount!]!
+  "Offene und erledigte Tasks je zugewiesener Person, die meisten offenen zuerst; zuletzt die nicht zugewiesenen (user null)"
+  tasksByPerson: [TaskPersonCount!]!
+  "Offene Tasks nach Fälligkeit"
+  due: TaskDueCounts!
+  "Je Milestone eine Zeile in der Reihenfolge des Plans"
+  perMilestone: [MilestoneStatistics!]!
+  "Tasks mit Commit"
+  withCommit: Int!
+  "Kommentare an Tasks des Projekts"
+  comments: Int!
+}
+
+type MilestoneCounts {
+  total: Int!
+  released: Int!
+  planned: Int!
+  "Milestones ohne Version"
+  unversioned: Int!
+}
+
+type TaskStatusCount {
+  status: TaskStatus!
+  count: Int!
+  "Anteil an allen Tasks in Prozent"
+  percent: Int!
+}
+
+type TaskLabelCount {
+  label: Label
+  count: Int!
+}
+
+type TaskPersonCount {
+  user: User
+  open: Int!
+  done: Int!
+}
+
+"Offene Tasks: überfällig, fällig in den nächsten 7 Tagen (heute eingeschlossen) und ohne Datum"
+type TaskDueCounts {
+  overdue: Int!
+  soon: Int!
+  undated: Int!
+}
+
+type MilestoneStatistics {
+  milestone: Milestone!
+  todos: Int!
+  "Alle Tasks, Ideen eingeschlossen"
+  tasks: Int!
+  progress: Progress!
 }
 
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
