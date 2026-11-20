@@ -40,6 +40,7 @@ class PolicyTest extends TestCase
             'manager' => User::factory()->create(),
             'member' => User::factory()->create(),
             'guest' => User::factory()->create(),
+            'agent' => User::factory()->agent()->create(),
             'stranger' => User::factory()->create(),
             'admin' => User::factory()->admin()->create(),
         ];
@@ -49,6 +50,7 @@ class PolicyTest extends TestCase
             ->withMember($this->users['manager'], ProjectRole::MANAGER)
             ->withMember($this->users['member'], ProjectRole::MEMBER)
             ->withMember($this->users['guest'], ProjectRole::GUEST)
+            ->withMember($this->users['agent'], ProjectRole::AGENT)
             ->create();
         $this->milestone = Milestone::factory()->for($this->project)->create();
         $this->todo = Todo::factory()->for($this->milestone)->create();

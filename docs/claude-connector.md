@@ -38,6 +38,10 @@ Die Werkzeuge laufen im Namen der Person durch dasselbe GraphQL-Schema wie die O
 
 ## Einrichtung
 
+### Für Agenten: ein eigenes Konto
+
+Ein Agent (Claude im Projekt, ein Assistent) benutzt **nicht** das Konto einer Person mit, sondern hat ein eigenes **Agent-Konto**: Es ist Mitglied im Projekt mit der Projektrolle «Agent», hat keinen Zugang zur Oberfläche (keine Anmeldung, nur das Token) und erscheint in der App mit dem Kennzeichen «Agent», auch an Kommentaren und Zuweisungen. Die Konten legt Oliver an (Befehle `app:create-agent` und `app:user-token` auf dem Server, siehe `docs/deploy-template.md`, Abschnitt «Agent-Konten»). Das Token erscheint einmal und gehört nur in die Einstellung des Connectors.
+
 ### Schritt 1: Zugang erzeugen
 
 1. In der App anmelden und **Profil** öffnen.

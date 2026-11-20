@@ -43,6 +43,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
      */
     protected $attributes = [
         'notify_by_email' => true,
+        'is_agent' => false,
     ];
 
     protected static function roleScope(): string
@@ -61,18 +62,28 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     /**
      * Get the attributes that should be cast.
      *
-     * @return array{email_verified_at: 'datetime', approved_at: 'datetime', password: 'hashed', two_factor_confirmed_at: 'datetime', activity: class-string<UserActivity>, notify_by_email: 'boolean'}
+     * @return array{email_verified_at: 'datetime', approved_at: 'datetime', is_agent: 'boolean', password: 'hashed', two_factor_confirmed_at: 'datetime', activity: class-string<UserActivity>, notify_by_email: 'boolean'}
      */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'approved_at' => 'datetime',
+            'is_agent' => 'boolean',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'activity' => UserActivity::class,
             'notify_by_email' => 'boolean',
         ];
+    }
+
+    /**
+     * An agent account (Claude, a person's assistant): no login in the browser, access only by a token for the
+     * MCP connector (app:user-token).
+     */
+    public function isAgent(): bool
+    {
+        return (bool) $this->getAttribute('is_agent');
     }
 
     /**
@@ -130,6 +141,11 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
      */
     public function sendPasswordResetNotification($token): void
     {
+        // An agent account has no web access: nothing to reset, and no mail to an address nobody reads for it.
+        if ($this->isAgent()) {
+            return;
+        }
+
         $this->notify((new ResetPasswordNotification($token))->locale(app()->getLocale()));
     }
 

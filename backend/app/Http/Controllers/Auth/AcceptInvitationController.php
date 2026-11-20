@@ -31,6 +31,10 @@ class AcceptInvitationController extends Controller
         $status = Password::broker('invitations')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password): void {
+                if ($user->isAgent()) {
+                    throw ValidationException::withMessages(['email' => __('passwords.token')]);
+                }
+
                 $user->forceFill([
                     'password' => $password,
                     'remember_token' => Str::random(60),

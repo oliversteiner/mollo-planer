@@ -45,6 +45,19 @@ return [
         'confirm' => 'Change the role of :name to “:role”?',
         'done' => 'Role of :name: :old → :new.',
     ],
+    'create_agent' => [
+        'name' => 'Name of the agent (shown in the app)',
+        'email' => 'E-mail address of the account (no mail is sent to it)',
+        'confirm' => 'Create the agent account :name (:email)? It has no access to the interface, only through a token for the connector.',
+        'created' => 'Agent :name created. Next: add it to a project in the app (project role Agent) and make the token: php artisan app:user-token <e-mail>.',
+    ],
+    'user_token' => [
+        'not_an_agent' => 'The account of :name is not an agent account. People make their token themselves in the profile.',
+        'confirm' => 'Make a token for the agent account :name? It is shown only now.',
+        'confirm_revoke' => 'Revoke all tokens of the agent account :name?',
+        'created' => 'Token made, valid :days days. It is shown only now and stands nowhere else. Do not paste it into files or chats, only into the setting of the connector:',
+        'revoked' => 'Revoked: :count tokens.',
+    ],
     'user_approve' => [
         'already' => 'The account of :name is released already, nothing to change.',
         'confirm' => 'Release the account of :name (:email)? The person gets a mail.',

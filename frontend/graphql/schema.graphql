@@ -1122,6 +1122,8 @@ type User {
  "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
  hasPasskey: Boolean
  id: ID!
+ "Konto eines Agenten (Claude, Assistenz): keine Anmeldung im Browser, Zugang nur über ein Token des Connectors (Befehl app:user-token)."
+ isAgent: Boolean!
  name: String!
  "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
  notifyByEmail: Boolean!
