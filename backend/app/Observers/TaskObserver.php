@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use App\Observers\Concerns\TouchesPlanerRevision;
 use App\Planer\PlanerLimits;
@@ -36,6 +37,11 @@ class TaskObserver
     public function saving(Task $task): void
     {
         ReleaseRules::checkTask($task);
+
+        // The time a task became done, for the course in the statistics: set once on the way into done, cleared on the way out.
+        if (! $task->exists || $task->isDirty('status')) {
+            $task->done_at = $task->getAttribute('status') === TaskStatus::DONE ? ($task->done_at ?? now()) : null;
+        }
     }
 
     public function created(Task $task): void

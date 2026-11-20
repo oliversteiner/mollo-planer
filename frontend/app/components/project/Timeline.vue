@@ -276,7 +276,10 @@ function toggleAll() {
         </template>
 
         <template #title="{ item }">
-          <span class="timeline-title-row">
+          <span
+            :id="`milestone-${item.milestone.id}`"
+            class="timeline-title-row"
+          >
             <MilestoneNumber :number="item.number" />
             {{ item.title }}
             <span

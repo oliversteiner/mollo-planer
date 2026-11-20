@@ -14,6 +14,8 @@ type Query @guard {
   "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
   projects(archived: Boolean = false @scope(name: "archived")): [Project!]! @all(scopes: ["visibleToViewer"])
   project(id: ID! @eq): Project @find(scopes: ["visibleToViewer"])
+  "Die Zahlen der Seite Statistik eines Projekts. Gezählt wird in der Datenbank; Elemente im Papierkorb zählen nicht. Wer das Projekt sehen darf, sieht sie (auch archiviert); sonst eine Ablehnung."
+  projectStatistics(projectId: ID!): ProjectStatistics! @field(resolver: "App\\GraphQL\\Queries\\ProjectStatistics")
 
   "Milestones eines Projekts (Seite Milestones)"
   milestones(projectId: ID! @eq(key: "project_id")): [Milestone!]! @all(scopes: ["visibleToViewer"])
