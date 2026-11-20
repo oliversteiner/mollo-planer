@@ -62,6 +62,9 @@ final class Import
     private bool $appendOnly = false;
 
     /** @var array<string, string> Titles by id (m-12, t-4, k-9) before the run, for the messages of appendOnly */
+    /** @var Collection<string, int>|null */
+    private ?Collection $labelOrder = null;
+
     private array $titles = [];
 
     private ?int $templateId = null;
@@ -140,6 +143,7 @@ final class Import
     {
         $this->reset($document, $mode, $notifyAssignees, $actor);
         $this->dryRun = $dryRun;
+        $this->labelOrder = null;
         $this->appendOnly = $appendOnly && $project !== null; // a new project has nothing existing to protect
         $this->templateId = $project === null ? $templateId : null;
         $this->titles = $this->appendOnly ? $this->titlesOf($project) : [];
@@ -365,6 +369,8 @@ final class Import
         if (! $this->allowed('update', $this->project, 'project.labels', 'update_project')) {
             return;
         }
+
+        $this->labelOrder = null;
 
         try {
             $this->labels->replace($this->project, $wanted, $this->mode === ImportMode::Partial);
@@ -925,6 +931,17 @@ final class Import
     }
 
     /**
+     * The order of the project's labels, read once (every task asks for it twice); applyLabels() forgets it when it
+     * writes the labels.
+     *
+     * @return Collection<string, int>
+     */
+    private function labelOrder(): Collection
+    {
+        return $this->labelOrder ??= $this->project->labels()->orderBy('position')->orderBy('id')->pluck('key')->flip();
+    }
+
+    /**
      * The keys in the order of the project's labels, as the file writes them.
      *
      * @param  list<string>  $keys
@@ -932,7 +949,7 @@ final class Import
      */
     private function orderedByProject(array $keys): array
     {
-        $order = $this->project->labels()->orderBy('position')->orderBy('id')->pluck('key')->flip();
+        $order = $this->labelOrder();
 
         $keys = array_values(array_unique($keys));
         usort($keys, fn (string $a, string $b): int => ($order[$a] ?? PHP_INT_MAX) <=> ($order[$b] ?? PHP_INT_MAX));

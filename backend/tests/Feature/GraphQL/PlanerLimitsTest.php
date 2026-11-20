@@ -18,15 +18,15 @@ use Illuminate\Validation\ValidationException;
  */
 class PlanerLimitsTest extends GraphQLTestCase
 {
-    public function test_the_thirty_first_milestone_is_refused(): void
+    public function test_the_milestone_over_the_limit_is_refused(): void
     {
         Milestone::factory()->count(PlanerLimits::MILESTONES_PER_PROJECT - 1)->for($this->project)->create();
 
         $this->as('owner')
             ->gql('mutation ($in: CreateMilestoneInput!) { createMilestone(input: $in) { id } }', ['in' => ['projectId' => $this->project->id, 'title' => 'Zu viel']])
-            ->assertGraphQLValidationError('limit', 'A project has at most 30 milestones.');
+            ->assertGraphQLValidationError('limit', 'A project has at most '.PlanerLimits::MILESTONES_PER_PROJECT.' milestones.');
 
-        $this->assertSame(30, $this->project->milestones()->count());
+        $this->assertSame(PlanerLimits::MILESTONES_PER_PROJECT, $this->project->milestones()->count());
     }
 
     public function test_the_fifty_first_todo_is_refused(): void
@@ -101,7 +101,7 @@ class PlanerLimitsTest extends GraphQLTestCase
             $deletion->restore($gone->deletion_id, $this->users['owner']);
             $this->fail('The restore should have been refused.');
         } catch (ValidationException $error) {
-            $this->assertSame(__('projects.limit_milestones', ['max' => 30]), $error->errors()['limit'][0]);
+            $this->assertSame(__('projects.limit_milestones', ['max' => PlanerLimits::MILESTONES_PER_PROJECT]), $error->errors()['limit'][0]);
         }
 
         $this->assertNotNull(Milestone::onlyTrashed()->find($gone->id));

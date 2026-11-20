@@ -60,7 +60,7 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 | `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. |
 | `changed` | nein | Nur `true`, sonst fehlt das Feld. Die Datei wurde lokal geändert und ist noch nicht eingetragen. |
 | `project` | ja | Objekt, Abschnitt 2.2. |
-| `milestones` | ja | Liste mit höchstens 30 Milestones. Leer ist erlaubt (leeres Projekt). |
+| `milestones` | ja | Liste mit höchstens 200 Milestones. Leer ist erlaubt (leeres Projekt). |
 
 ### 2.2 Projekt
 
@@ -318,7 +318,7 @@ Die Referenz `fixtures/golden/beispiel-planer.md` ist die Ansicht des Beispiels 
 | Projektname | 2 bis 120 Zeichen |
 | Projektbeschreibung | höchstens 5000 Zeichen |
 | Mitglieder | höchstens 50 |
-| Milestones | höchstens 30 (leer erlaubt) |
+| Milestones | höchstens 200 (leer erlaubt) |
 | ToDos je Milestone | höchstens 50 |
 | Tasks je ToDo | höchstens 50 |
 | Titel (Milestone, ToDo, Task) | 2 bis 160 Zeichen |

@@ -206,3 +206,26 @@ test('Erwartete Ergebnisse (spec/fixtures/expected): jede Planer-Datei hat eine,
     assert.deepEqual(actual, JSON.parse(readFileSync(expectedFile, 'utf8')), name);
   }
 });
+
+test('200 Milestones sind erlaubt, der 201. nicht (Club DB, Auftrag 29)', () => {
+  const make = (count) => {
+    const document = baseDocument();
+    const milestone = document.milestones[0];
+    let todoNumber = 0;
+    let taskNumber = 0;
+    document.milestones = Array.from({ length: count }, (_, index) => ({
+      ...structuredClone(milestone),
+      id: `m-${index + 1}`,
+      title: `Version ${index + 1}`,
+      todos: milestone.todos.map((todo) => ({
+        ...structuredClone(todo),
+        id: `t-${++todoNumber}`,
+        tasks: todo.tasks.map((task) => ({ ...structuredClone(task), id: `k-${++taskNumber}` })),
+      })),
+    }));
+    return JSON.stringify(document, null, 2) + '\n';
+  };
+
+  assert.deepEqual(errors(make(200)).map((issue) => issue.path), [], 'genau 200 sind gültig');
+  assert.ok(errors(make(201)).some((issue) => issue.path === 'milestones'), 'der 201. ist ein Fehler an milestones');
+});

@@ -117,7 +117,7 @@ Das `role` ist ein Platzhalter. Die gültigen Werte kommen aus dem Enum `Project
 | ToDo | `id`, `appId`, `title`, `description`, `dueDate` | | `ProjectPlanTodoInput`, `Todo` |
 | Task | `id`, `appId`, `title`, `description`, `dueDate`, `status`, `assigneeEmail`, `labelNames`, `commit` | | `ProjectPlanTaskInput`, `Task`, `TaskStatus`, Erweiterung `commit` |
 
-**Grenzwerte:** Titel von Milestone, ToDo und Task 2 bis 160 Zeichen. Beschreibungen höchstens 5000 Zeichen. Milestones höchstens 30, ToDos je Milestone höchstens 50, Tasks je ToDo höchstens 50. Mindestens ein Milestone beim Import (`milestones min:1`).
+**Grenzwerte:** Titel von Milestone, ToDo und Task 2 bis 160 Zeichen. Beschreibungen höchstens 5000 Zeichen. Milestones höchstens 200, ToDos je Milestone höchstens 50, Tasks je ToDo höchstens 50. Mindestens ein Milestone beim Import (`milestones min:1`).
 
 ### 4.3 Regeln
 
