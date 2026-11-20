@@ -2243,6 +2243,8 @@
       "removed": "entfernt",
       "diff": "Unterschiede der Fassungen",
       "loading": "Fassungen werden geladen …"
-    }
+    },
+    "exportPdfMaking": "PDF wird erstellt …",
+    "saveFailed": "Das Sichern hat nicht geklappt."
   }
 }

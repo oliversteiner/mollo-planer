@@ -2243,6 +2243,8 @@
       "removed": "removed",
       "diff": "Differences between the versions",
       "loading": "Loading versions …"
-    }
+    },
+    "exportPdfMaking": "Making the PDF …",
+    "saveFailed": "Saving did not work."
   }
 }
