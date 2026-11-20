@@ -44,6 +44,9 @@ Ist nur eine `docs/*.planer.json` im Ordner, genügt der Befehl. Mehrere Dateien
 - Labels (`labels`) sind Schlüssel aus `project.labels`. `add task --label` nimmt Namen oder Schlüssel und trägt den Schlüssel ein. Ein unbekanntes Label endet mit Code 2.
 - `status` gilt nur für Tasks. Für Milestones und ToDos gibt es keinen Status in der Datei. Er wird von der App berechnet.
 
+- **Veröffentlichungsdatum:** `release.date` (`JJJJ-MM-TT`) ist immer optional. Bei `released` ohne Datum gibt `validate` einen Hinweis, bei `planned` mit Datum einen Fehler. In der Markdown-Ansicht steht es als `- Veröffentlicht: <Datum>` unter dem Status.
+- **Aus einer v1-Datei umwandeln:** `convert v1-zu-v2 <version-*.md> [--name N] [--release-dates <csv>] [--labels <json>]` nimmt jede Art als Label an, kürzt Titel über 160 Zeichen (der ganze Titel bleibt in der Beschreibung) und meldet am Ende jede Kürzung, jeden Task mit mehreren Commits und die Zahlen. Die Datei bleibt unverändert, das Ergebnis geht nach stdout, die Hinweise nach stderr. Regeln: `spec/format-v2.md` §11.1.
+
 ## Typischer Ablauf
 
 1. `list`, um die Aufgabe zu finden.

@@ -19,10 +19,13 @@ const MILESTONE = /^## v(\d+)\.(\d+)\s+(.+)$/;
 const TODO = /^### (.+)$/;
 const TASK = /^- \[( |x)\] \[(\w+)\] (.+)$/;
 const COMMIT = /^ {2}Commit ([0-9a-f]{7,40})$/;
+const COMMITS = /^ {2}Commit ([0-9a-f]{7,40}(?:, [0-9a-f]{7,40})*)$/;
 
 /**
  * Options: legacyCommit: true setzt den Commit eines Altbestand-Tasks („  Ohne Commit“)
  * auf 'ohne' statt auf null. Der Standard bleibt unverändert, damit `json` gleich bleibt.
+ * Nur für die Umwandlung nach planer-v2: convert: true nimmt jede Art an, liest „  Commit h1, h2“ (letzter Hash als commit,
+ * die übrigen in extraCommits) und gibt jedem Element seine Zeile (`line`).
  */
 export function parse(markdown, options = {}) {
   const milestones = [];
@@ -41,6 +44,7 @@ export function parse(markdown, options = {}) {
     const milestone = line.match(MILESTONE);
     if (milestone) {
       milestones.push({
+        ...(options.convert ? { line: number } : {}),
         major: Number(milestone[1]),
         minor: Number(milestone[2]),
         number: `${Number(milestone[1])}.${Number(milestone[2])}`,
@@ -84,7 +88,7 @@ export function parse(markdown, options = {}) {
     const todo = line.match(TODO);
     if (todo) {
       contentSeen = true;
-      current.todos.push({ title: todo[1].trim(), description: null, tasks: [] });
+      current.todos.push({ ...(options.convert ? { line: number } : {}), title: todo[1].trim(), description: null, tasks: [] });
       inTodo = true;
       inTask = false;
       context = 'todo';
@@ -97,11 +101,12 @@ export function parse(markdown, options = {}) {
       if (!inTodo) {
         throw new Error(`Zeile ${number}: Task steht außerhalb eines ToDos.`);
       }
-      if (!KINDS.includes(task[2])) {
+      if (!options.convert && !KINDS.includes(task[2])) {
         throw new Error(`Zeile ${number}: unbekannte Art [${task[2]}].`);
       }
       const todoEntry = current.todos[current.todos.length - 1];
       todoEntry.tasks.push({
+        ...(options.convert ? { line: number } : {}),
         title: task[3].trim(),
         description: null,
         done: task[1] === 'x',
@@ -125,10 +130,13 @@ export function parse(markdown, options = {}) {
       return; // Legacy task without commit: commit stays null unless legacyCommit is set.
     }
 
-    const commit = line.match(COMMIT);
+    const commit = line.match(options.convert ? COMMITS : COMMIT);
     if (commit && inTask) {
       const todoEntry = current.todos[current.todos.length - 1];
-      todoEntry.tasks[todoEntry.tasks.length - 1].commit = commit[1];
+      const taskEntry = todoEntry.tasks[todoEntry.tasks.length - 1];
+      const hashes = commit[1].split(', ');
+      taskEntry.commit = hashes[hashes.length - 1];
+      if (hashes.length > 1) taskEntry.extraCommits = hashes.slice(0, -1);
       return;
     }
 

@@ -387,11 +387,16 @@ Die v1-Datei kennt das Veröffentlichungsdatum nicht. Mit `--release-dates` (Zei
 | `- [x] [art] Titel` | Task mit `status: "done"`, `labels: ["art"]` |
 | `- [ ] [art] Titel` | Task mit `status: "open"`, `labels: ["art"]` |
 | `  Commit <Hash>` | `commit: "<Hash>"` |
+| `  Commit <Hash>, <Hash>, …` (mehrere in einer Zeile) | `commit` ist der **letzte** Hash, die übrigen stehen als Absatz «Weitere Commits: …» in der Beschreibung (Hinweis) |
 | `  Ohne Commit` | `commit: "none"` |
 | eingerückte Zeilen unter dem Task | `description` des Tasks |
 
 - **IDs:** Der Konverter vergibt `m-new-1`, `t-new-1`, `k-new-1`, … je Art in Dokumentreihenfolge.
 - **Projekt:** `name` aus dem Dateinamen (`version-<name>.md` ergibt `<name>`) oder aus `--name`. Ist der Name zu kurz oder fehlt er, verlangt der Befehl `--name`. `locale` ist `de`, außer `--locale` sagt etwas anderes (`DE` oder `EN`). `members` ist leer, weil v1 keine Mitglieder kennt. `revision` ist `1`.
+- **Arten:** Jede Art der v1-Datei wird angenommen. Für jede, die die mitgelieferte Vorlage nicht kennt (`feature`, `bug`, `planning`, `research`, `design`, `blocked`), legt der Konverter ein Label an: Schlüssel = Art (`a-z`, `0-9`, `_`, `-`, sonst Fehler mit Zeile), Name = Art in beiden Sprachen, Kategorie `type` (wie `feature`, `bug` und `planning`, also keine neue Ordnung), die Farben der Reihe nach. `--labels <datei.json>` (`{ "fix": { "names": { "de": "…", "en": "…" }, "color": "red", "category": "type" } }`) ändert Namen, Farbe und Kategorie, auch der eingebauten Labels. Mehr als 30 Labels ist ein Fehler.
+- **Lange Titel** (Milestone, ToDo, Task über 160 Zeichen): gekürzt am letzten Satzende, das hineinpasst, sonst vor dem ersten Doppelpunkt, sonst am letzten Wortende mit «…», nie mitten im Wort. Der **ganze** Originaltitel steht als erster Absatz der Beschreibung. Wird die Beschreibung damit länger als 5000 Zeichen, ist es ein Fehler (nichts wird abgeschnitten). Jede Kürzung steht als Hinweis mit Zeile, altem und neuem Titel.
+- **Roadmap-Nummern** im Titel («B-77 Clubfarben») bleiben unverändert.
+- **Hinweise** am Ende (auf stderr, die Datei bleibt auf stdout): jede Kürzung und jeder Task mit mehreren Commits, dann eine Zusammenfassung mit Zahlen (gekürzte Titel, neue Labels, veröffentlichte Milestones ohne Datum, Tasks mit mehreren Commits).
 - **Gültigkeit:** Die v1-Datei muss gültig sein, sonst bricht der Befehl ab. Das Ergebnis wird wie jede planer-v2-Datei geprüft.
 
 ### 11.2 Markdown-Ansicht nach planer-v2

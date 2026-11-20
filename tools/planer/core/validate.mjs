@@ -15,7 +15,10 @@ import { DEFAULT_STATUS, KINDS, PLAIN_SECTIONS, STATUSES, TITLE_MAX } from './fo
  * - Release gate: a released milestone has no open task (error). A planned milestone
  *   with only done tasks gets a hint to set its status.
  */
-export function validate(markdown) {
+export function validate(markdown, options = {}) {
+  // convert: the validation before the conversion to planer-v2 (task 29). The converter handles what is too much for
+  // the planer file itself: any kind becomes a label, several commits and long titles are shortened and reported.
+  const convert = options.convert === true;
   const issues = [];
   const add = (line, severity, message) => issues.push({ line, severity, message });
 
@@ -72,7 +75,8 @@ export function validate(markdown) {
 
     // Commit line directly below a task.
     if (line.startsWith('  Commit ') && pendingTask !== null) {
-      if (/^  Commit [0-9a-f]{7,40}$/.test(line)) {
+      const hash = convert ? /^  Commit [0-9a-f]{7,40}(, [0-9a-f]{7,40})*$/ : /^  Commit [0-9a-f]{7,40}$/;
+      if (hash.test(line)) {
         pendingTask.commit = line.slice('  Commit '.length);
       } else {
         add(number, 'error', 'Commit-Zeile muss „  Commit <Hash>“ sein.');
@@ -100,7 +104,7 @@ export function validate(markdown) {
       if (previous !== null && compareVersions(version, previous) <= 0) {
         add(number, 'error', `Version ${version.join('.')} ist nicht größer als die vorherige (${previous.join('.')}).`);
       }
-      if (milestoneMatch[3].trim().length > TITLE_MAX) {
+      if (!convert && milestoneMatch[3].trim().length > TITLE_MAX) {
         add(number, 'error', `Titel des Milestones ist länger als ${TITLE_MAX} Zeichen.`);
       }
 
@@ -142,7 +146,7 @@ export function validate(markdown) {
       }
 
       const title = line.slice(4).trim();
-      if (title === '' || title.length > TITLE_MAX) {
+      if (title === '' || (!convert && title.length > TITLE_MAX)) {
         add(number, 'error', 'ToDo-Titel fehlt oder ist zu lang.');
       }
 
@@ -164,12 +168,12 @@ export function validate(markdown) {
         add(number, 'error', 'Task steht außerhalb eines ToDos.');
         return;
       }
-      if (!KINDS.includes(task[2])) {
+      if (!convert && !KINDS.includes(task[2])) {
         add(number, 'error', `Unbekannte Art [${task[2]}]. Erlaubt: ${KINDS.join(', ')}.`);
       }
 
       const title = task[3].trim();
-      if (title.length < 2 || title.length > TITLE_MAX) {
+      if (title.length < 2 || (!convert && title.length > TITLE_MAX)) {
         add(number, 'error', `Task-Titel muss 2 bis ${TITLE_MAX} Zeichen lang sein.`);
       }
       if (todo.titles.includes(title)) {

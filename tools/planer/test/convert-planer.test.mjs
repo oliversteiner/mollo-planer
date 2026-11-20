@@ -180,7 +180,7 @@ test('convert v1-zu-v2 --release-dates: Datum je veröffentlichter Version, Hinw
     assert.ok(released.every((milestone) => milestone.release.date === undefined), 'ohne Option bleibt das Feld leer');
 
     const hint = spawnSync(process.execPath, [cli, 'convert', 'v1-zu-v2', file], { encoding: 'utf8' }).stderr;
-    assert.match(hint, new RegExp(`Hinweis: ${released.length} veröffentlichte Milestones ohne Datum`));
+    assert.match(hint, new RegExp(`Zusammenfassung: .*${released.length} veröffentlichte Milestones ohne Datum`));
 
     const csv = join(dir, 'dates.csv');
     writeFileSync(csv, `version,date\n${released.map((milestone) => `${milestone.release.version},2026-10-15`).join('\n')}\n9.9,2026-01-01\n`);
@@ -190,12 +190,102 @@ test('convert v1-zu-v2 --release-dates: Datum je veröffentlichter Version, Hinw
     assert.ok(result.milestones.filter((milestone) => milestone.release.status === 'released').every((milestone) => milestone.release.date === '2026-10-15'));
     assert.deepEqual(errorsOf(withDates.stdout), []);
     assert.match(withDates.stderr, /1 Daten für Versionen, die die Datei nicht hat: v9\.9/);
-    assert.doesNotMatch(withDates.stderr, /ohne Datum/);
+    assert.doesNotMatch(withDates.stderr, /veröffentlichte Milestones ohne Datum/);
 
     writeFileSync(csv, 'version,date\n1.0,15.10.2026\n');
     const bad = spawnSync(process.execPath, [cli, 'convert', 'v1-zu-v2', file, '--release-dates', csv], { encoding: 'utf8' });
     assert.equal(bad.status, 1);
     assert.match(bad.stderr, /Zeile 2: Datum „15\.10\.2026“ ist nicht von der Form JJJJ-MM-TT/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ─── Club DB (task 29 C): Arten, lange Titel, mehrere Commits ───────────────────────────────
+
+const v1 = (tasks) => `# Demo\n\n## v1.0 Fertig\n\nStatus: veröffentlicht\n\n### Aufbau\n\n${tasks}\n`;
+const done = (kind, title, commit = 'abc1234') => `- [x] [${kind}] ${title}\n  Commit ${commit}`;
+
+test('convert: jede Art der v1-Datei wird ein Label (Kategorie type, Name = Art), eingebaute bleiben', () => {
+  const notes = {};
+  const plan = planerFromV1(v1([done('fix', 'Eins'), done('docs', 'Zwei'), done('feature', 'Drei'), done('fix', 'Vier')].join('\n')), { name: 'Demo', notes });
+  const keys = plan.project.labels.map((label) => label.key);
+
+  assert.deepEqual(keys.slice(-2), ['fix', 'docs'], 'neue Arten hinten, in der Reihenfolge des Auftretens');
+  assert.ok(keys.includes('feature') && keys.includes('bug'), 'die eingebauten bleiben');
+  const fix = plan.project.labels.find((label) => label.key === 'fix');
+  assert.deepEqual([fix.names, fix.category], [{ de: 'fix', en: 'fix' }, 'type']);
+  assert.deepEqual(notes.newLabels, ['fix', 'docs']);
+  assert.deepEqual(plan.milestones[0].todos[0].tasks.map((task) => task.labels[0]), ['fix', 'docs', 'feature', 'fix']);
+});
+
+test('convert --labels: Namen und Farbe ändern, falsche Farbe und zu viele Labels sind Fehler', () => {
+  const plan = planerFromV1(v1(done('fix', 'Eins')), { name: 'Demo', labels: { fix: { names: { de: 'Korrektur', en: 'Fix' }, color: 'red' }, ungenutzt: { color: 'blue' } } });
+  const fix = plan.project.labels.find((label) => label.key === 'fix');
+  assert.deepEqual([fix.names, fix.color], [{ de: 'Korrektur', en: 'Fix' }, 'red']);
+
+  assert.throws(() => planerFromV1(v1(done('fix', 'Eins')), { name: 'Demo', labels: { fix: { color: 'magenta' } } }), /Farbe „magenta“/);
+  const many = Array.from({ length: 30 }, (_, index) => done(`art${index}`, `Task ${index}`)).join('\n');
+  assert.throws(() => planerFromV1(v1(many), { name: 'Demo' }), /braucht 36 Labels, erlaubt sind 30/);
+  assert.throws(() => planerFromV1(v1(done('Fix', 'Eins')), { name: 'Demo' }), /kein gültiger Label-Schlüssel/);
+});
+
+test('convert: lange Titel werden am Satzende, sonst vor dem Doppelpunkt, sonst am Wortende gekürzt, der ganze Titel bleibt in der Beschreibung', () => {
+  const sentence = `${'Wort '.repeat(20).trim()}. ${'Weiter '.repeat(30).trim()}`;
+  const colon = `Matomo-Anbindung: ${'viel Text '.repeat(30).trim()}`;
+  const plain = 'langer '.repeat(40).trim();
+  const notes = {};
+  const plan = planerFromV1(v1([done('feature', sentence), done('feature', colon, 'bbb2222'), done('feature', plain, 'ccc3333')].join('\n')), { name: 'Demo', notes });
+  const [a, b, c] = plan.milestones[0].todos[0].tasks;
+
+  assert.equal(a.title, `${'Wort '.repeat(20).trim()}.`, 'am Satzende');
+  assert.equal(b.title, 'Matomo-Anbindung', 'vor dem Doppelpunkt');
+  assert.match(c.title, /langer…$/, 'am Wortende, mit Auslassung');
+  for (const task of [a, b, c]) assert.ok(task.title.length <= 160);
+  assert.ok(a.description.startsWith(sentence), 'der ganze Titel ist der erste Absatz');
+  assert.equal(b.description, colon);
+  assert.equal(notes.shortenedTitles.length, 3);
+  assert.deepEqual([notes.shortenedTitles[1].what, notes.shortenedTitles[1].line], ['Task', 11]);
+  assert.equal(notes.shortenedTitles[1].old, colon);
+});
+
+test('convert: ein gekürzter Titel mit Beschreibung behält sie hinter dem Originaltitel, über 5000 Zeichen ist ein Fehler ohne Abschneiden', () => {
+  const title = `Kurz: ${'x '.repeat(100)}`;
+  const withDescription = `- [x] [feature] ${title}\n  Commit abc1234\n  Beschreibung darunter.`;
+  const plan = planerFromV1(v1(withDescription), { name: 'Demo' });
+  assert.equal(plan.milestones[0].todos[0].tasks[0].description, `${title.trim()}\n\nBeschreibung darunter.`);
+
+  const huge = `- [x] [feature] ${title}\n  Commit abc1234\n  ${'y'.repeat(5000)}`;
+  assert.throws(() => planerFromV1(v1(huge), { name: 'Demo' }), /länger als 5000 Zeichen/);
+});
+
+test('convert: mehrere Commits in einer Zeile: der letzte ist der commit, die übrigen stehen in der Beschreibung, mit Hinweis', () => {
+  const notes = {};
+  const plan = planerFromV1(v1(`- [x] [feature] Viele\n  Commit 6ccf763, 83258dd, 9c45cb9\n  Eine Zeile Beschreibung.`), { name: 'Demo', notes });
+  const task = plan.milestones[0].todos[0].tasks[0];
+
+  assert.equal(task.commit, '9c45cb9');
+  assert.equal(task.description, 'Eine Zeile Beschreibung.\n\nWeitere Commits: 6ccf763, 83258dd');
+  assert.deepEqual(notes.multipleCommits.map((entry) => entry.title), ['Viele']);
+  assert.deepEqual(errorsOf(JSON.stringify(plan)), []);
+});
+
+test('convert: Roadmap-Nummern im Titel bleiben unverändert', () => {
+  const plan = planerFromV1(v1(done('feature', 'B-77 Clubfarben (B-78)')), { name: 'Demo' });
+  assert.equal(plan.milestones[0].todos[0].tasks[0].title, 'B-77 Clubfarben (B-78)');
+});
+
+test('CLI convert: die Hinweise stehen am Ende, mit Zahlen; stdout bleibt die Datei', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'mollo-convert-'));
+  try {
+    const file = join(dir, 'version-demo.md');
+    writeFileSync(file, v1([done('fix', `Kurz: ${'x '.repeat(100)}`), done('feature', 'Zwei', 'aaa1111, bbb2222')].join('\n')));
+    const result = spawnSync(process.execPath, [cli, 'convert', 'v1-zu-v2', file], { encoding: 'utf8' });
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(JSON.parse(result.stdout).format, 'planer-v2');
+    assert.match(result.stderr, /Hinweis, Zeile 9: Task-Titel gekürzt\n {2}alt: Kurz: x x/);
+    assert.match(result.stderr, /Zusammenfassung: 1 Titel gekürzt, 1 neue Labels \(fix\), 1 veröffentlichte Milestones ohne Datum \(mit --release-dates setzen\), 1 Tasks mit mehreren Commits\./);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
