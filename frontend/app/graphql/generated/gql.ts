@@ -14,12 +14,14 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": typeof types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": typeof types.AdminUsersDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": typeof types.ApproveUserDocument,
     "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n": typeof types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": typeof types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": typeof types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": typeof types.ResetUserTwoFactorDocument,
+    "\n  mutation CreateAgentToken($userId: ID!, $name: String!) {\n    createAgentToken(userId: $userId, name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": typeof types.CreateAgentTokenDocument,
+    "\n  mutation RevokeAgentToken($userId: ID!, $tokenId: ID!) {\n    revokeAgentToken(userId: $userId, tokenId: $tokenId) { id }\n  }\n": typeof types.RevokeAgentTokenDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": typeof types.DeleteUserDocument,
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n": typeof types.AppSettingsDocument,
     "\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n": typeof types.SetProjectCreatorRoleDocument,
@@ -120,12 +122,14 @@ type Documents = {
     "\n  query ZenProject($id: ID!) {\n    project(id: $id) { id name }\n  }\n": typeof types.ZenProjectDocument,
 };
 const documents: Documents = {
-    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
+    "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": types.ApproveUserDocument,
     "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n": types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": types.ResetUserTwoFactorDocument,
+    "\n  mutation CreateAgentToken($userId: ID!, $name: String!) {\n    createAgentToken(userId: $userId, name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": types.CreateAgentTokenDocument,
+    "\n  mutation RevokeAgentToken($userId: ID!, $tokenId: ID!) {\n    revokeAgentToken(userId: $userId, tokenId: $tokenId) { id }\n  }\n": types.RevokeAgentTokenDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": types.DeleteUserDocument,
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n": types.AppSettingsDocument,
     "\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n": types.SetProjectCreatorRoleDocument,
@@ -243,7 +247,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"];
+export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -264,6 +268,14 @@ export function graphql(source: "\n  mutation UpdateUser($id: ID!, $input: Updat
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n"): (typeof documents)["\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateAgentToken($userId: ID!, $name: String!) {\n    createAgentToken(userId: $userId, name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateAgentToken($userId: ID!, $name: String!) {\n    createAgentToken(userId: $userId, name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RevokeAgentToken($userId: ID!, $tokenId: ID!) {\n    revokeAgentToken(userId: $userId, tokenId: $tokenId) { id }\n  }\n"): (typeof documents)["\n  mutation RevokeAgentToken($userId: ID!, $tokenId: ID!) {\n    revokeAgentToken(userId: $userId, tokenId: $tokenId) { id }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

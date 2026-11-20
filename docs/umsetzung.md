@@ -328,6 +328,8 @@ Connector für Club DB (Auftrag 30, Branch `feature/connector-club-db` von `feat
 
 Agent-Konten (Auftrag 31, Branch `feature/agent-konten` von `feature/connector-club-db`, PR nach `dev`): `users.is_agent`, keine Anmeldung im Browser (Passwort, Passkey, Reset, Einladung; `RefuseAgentLogin`, `EnsureNotAgent` sperrt `/api`), Zugang nur über ein Token des Connectors (`app:create-agent`, `app:user-token`, einmal im Terminal, `--revoke`), Standard-Projektrolle Agent, `User.isAgent`, Kennzeichen «Agent» (Mitglieder, Benutzerverwaltung, Kommentare, Zuweisung); die Konten legt Oliver auf dem Server an.
 
+Zugänge für Agenten im Web (Auftrag 32, Branch `feature/agent-zugang-web` von `dev`, PR nach `dev`): A Mutationen `createAgentToken` und `revokeAgentToken` (nur Agent-Konten; Recht `users.manage`, starke Sitzung, frische Passwortbestätigung aus der Sitzung; Token an einer Stelle, `McpTokens::createForAgent`, auch für `app:user-token`; Klartext nur in der Antwort; Protokolleintrag und Mail `AgentAccessChange` an die Admins), `apiTokens` am `User` für Admins bei Agenten lesbar; B Bereich «Zugänge» in `/admin/users` (Liste, Erzeugen mit Einmal-Dialog, Widerrufen mit Rückfrage), `useSecurity` gibt `ensurePasswordConfirmed` zusätzlich heraus.
+
 Zwei Umgebungen (Auftrag 28, Branch `chore/zwei-umgebungen`, PR nach `dev`): `deploy.sh` ohne feste Pfade (`DEPLOY_BRANCH`, `DEPLOY_WEB_ROOT`, `DEPLOY_BACKUP_DIR` aus `backend/.env`, Schutz gegen Verwechslung), Workflow `dev` → `test`, `main` → `production`, TEST mit `APP_ENV=staging` (alle Sicherheitsregeln der Produktion gelten dort, `DeploymentEnvironment::isLive()`), Band «Testumgebung», Doku und Schrittlisten für Oliver in `docs/deploy-template.md` Abschnitt 15.
 
 ## Nachkontrolle 1.1 (Auftrag 27)

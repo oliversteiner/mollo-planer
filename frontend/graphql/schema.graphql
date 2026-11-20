@@ -332,6 +332,8 @@ type Mutation {
  assignTask(assigneeId: ID, id: ID!): Task!
  "Löscht den ganzen KI-Kontext"
  clearProjectAiContext(projectId: ID!): Project!
+ "Erzeugt einen Zugang für ein Agent-Konto (nur Konten mit isAgent), 90 Tage gültig. Nur mit dem Recht users.manage und frischer Passwortbestätigung. Den Klartext gibt es nur in der Antwort; Protokolleintrag und Mail an die Admins."
+ createAgentToken(name: String!, userId: ID!): NewApiToken!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
@@ -430,6 +432,8 @@ type Mutation {
  resetUserTwoFactor(id: ID!): User!
  "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
  restoreFromTrash(deletionId: ID!): TrashItem!
+ "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
+ revokeAgentToken(tokenId: ID!, userId: ID!): ApiToken
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
  "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
@@ -1109,7 +1113,7 @@ scalar Upload
 type User {
  "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
  activity: UserActivity
- "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
+ "Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst; bei einem Agent-Konto auch für Admins (users.manage), sonst null. Nie der Wert."
  apiTokens: [ApiToken!]
  "Hat ein Admin das Konto freigegeben? Selbst registrierte Konten warten, bis ein Admin es freigibt."
  approved: Boolean!

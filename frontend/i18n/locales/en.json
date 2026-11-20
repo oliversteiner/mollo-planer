@@ -434,8 +434,7 @@
   },
   "agent": {
     "badge": "Agent",
-    "hint": "Agent account: no access to the interface, only through a token for the connector",
-    "access": "Access by token only (command app:user-token)"
+    "hint": "Agent account: no access to the interface, only through a token for the connector"
   },
   "comments": {
     "title": "Comments ({count})",
@@ -578,7 +577,24 @@
         "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards.",
         "failed": "That did not work. The list has been updated."
       },
-      "resetConfirm": "Yes, reset"
+      "resetConfirm": "Yes, reset",
+      "agent": {
+        "title": "Accesses",
+        "name": "Name of the access",
+        "nameHint": "To recognise it, for example “{agent} server”",
+        "create": "Create access",
+        "none": "No access yet.",
+        "showOnceTitle": "Access made for {agent}",
+        "showOnce": "Shown only once. Keep it in your password manager.",
+        "token": "Access (token)",
+        "copyToken": "Copy access",
+        "revoke": "Revoke access “{name}”",
+        "revokeTitle": "Revoke access “{name}”?",
+        "revokeDescription": "{agent} can no longer use this access afterwards.",
+        "revokeConfirm": "Revoke",
+        "revoked": "Access revoked.",
+        "cli": "Or in a terminal on the server: app:user-token"
+      }
     },
     "settings": {
       "title": "App settings",

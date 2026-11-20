@@ -307,6 +307,7 @@ php artisan app:user-token claude-clubdb@example.ch --revoke              # wide
 
 - Die Adresse muss keine echte Mailbox sein (es geht nie eine Mail dorthin).
 - Danach **in der App** (als Owner oder Manager des Projekts): das Konto als Mitglied aufnehmen, mit der **Projektrolle Agent**. Sie darf den Plan exportieren und importieren, Aufgaben ändern, zuweisen, verschieben und kommentieren, aber keine Mitglieder und keine Projekteinstellungen ändern und nichts löschen.
+- **Zugang auch ohne SSH (Auftrag 32):** Ein Admin (Recht `users.manage`, starke Sitzung) macht und widerruft Zugänge eines Agent-Kontos in der App unter **Admin → Benutzer**, im Bereich «Zugänge» der Zeile des Agenten: Name eingeben, Passwort bestätigen, der Zugang erscheint **einmal** in einem Dialog (Kopierknopf). Nur für Agent-Konten, nie für Menschen. Jedes Erzeugen und Widerrufen steht im Log (wer, welcher Agent, welcher Zugang, nie das Token), und alle Admins bekommen eine Info-Mail.
 - Das Token gehört in die Einstellung des Connectors (siehe `docs/claude-connector.md`), nicht in `.env`, nicht ins Repository. Es gilt 90 Tage; danach ein neues machen.
 - `app:user-token` verweigert Konten von Menschen: die machen ihr Token selbst im Profil.
 - Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent).

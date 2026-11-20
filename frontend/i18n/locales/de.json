@@ -434,8 +434,7 @@
   },
   "agent": {
     "badge": "Agent",
-    "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors",
-    "access": "Zugang nur über Token (Befehl app:user-token)"
+    "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors"
   },
   "comments": {
     "title": "Kommentare ({count})",
@@ -578,7 +577,24 @@
         "rejectDescription": "Das wartende Konto wird gelöscht. Die Person kann sich danach nicht mehr anmelden.",
         "failed": "Das hat nicht geklappt. Die Liste wurde aktualisiert."
       },
-      "resetConfirm": "Ja, zurücksetzen"
+      "resetConfirm": "Ja, zurücksetzen",
+      "agent": {
+        "title": "Zugänge",
+        "name": "Name des Zugangs",
+        "nameHint": "Zum Wiedererkennen, zum Beispiel «{agent} Server»",
+        "create": "Zugang erzeugen",
+        "none": "Noch kein Zugang.",
+        "showOnceTitle": "Zugang für {agent} erzeugt",
+        "showOnce": "Wird nicht mehr angezeigt. Leg ihn in deinem Passwortmanager ab.",
+        "token": "Zugang (Token)",
+        "copyToken": "Zugang kopieren",
+        "revoke": "Zugang «{name}» widerrufen",
+        "revokeTitle": "Zugang «{name}» widerrufen?",
+        "revokeDescription": "{agent} kann diesen Zugang danach nicht mehr benutzen.",
+        "revokeConfirm": "Widerrufen",
+        "revoked": "Zugang widerrufen.",
+        "cli": "Oder per Terminal auf dem Server: app:user-token"
+      }
     },
     "settings": {
       "title": "App-Einstellungen",
