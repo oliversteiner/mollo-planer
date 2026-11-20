@@ -2185,19 +2185,16 @@
     "exportFailed": "The export did not work.",
     "share": "Share",
     "transfer": "Transfer ownership",
-    "deleted": "Document deleted.",
     "focus": "Focus",
     "draft": {
       "title": "Restore the unsaved draft?",
       "text": "You started changes on {date} and did not save them. The draft is in this browser.",
-      "restore": "Restore",
-      "discard": "Discard"
+      "restore": "Restore"
     },
     "leave": {
       "title": "Unsaved changes",
       "text": "If you leave the page, your changes are not saved. A draft stays in this browser.",
-      "confirm": "Leave",
-      "stay": "Stay"
+      "confirm": "Leave"
     },
     "conflict": {
       "title": "The document has changed in the meantime",
@@ -2232,8 +2229,6 @@
       "restoredFrom": "restored from version {revision}",
       "compare": "Compare",
       "pick": "Pick two versions to compare.",
-      "older": "Older version",
-      "newer": "Newer version",
       "restore": "Restore",
       "restoreTitle": "Restore version {revision}?",
       "restoreText": "A new version with this content is made. Nothing is overwritten.",
@@ -2241,12 +2236,12 @@
       "noChanges": "No difference between the versions.",
       "added": "added",
       "removed": "removed",
-      "diff": "Differences between the versions",
-      "loading": "Loading versions …"
+      "diff": "Differences between the versions"
     },
     "exportPdfMaking": "Making the PDF …",
     "saveFailed": "Saving did not work.",
     "allSaved": "Saved",
-    "focusBack": "Back"
+    "focusBack": "Back",
+    "fileFallback": "document"
   }
 }

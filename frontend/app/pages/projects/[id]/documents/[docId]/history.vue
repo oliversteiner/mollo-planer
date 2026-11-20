@@ -91,7 +91,7 @@ function entry(version: (typeof versions.value)[number]): string {
       :title="t('documents.notFound')"
     />
     <template v-else>
-      <h2 class="wa-heading-l history-title">
+      <h2 class="wa-heading-m history-title">
         {{ t('documents.versions.title') }}
       </h2>
       <p

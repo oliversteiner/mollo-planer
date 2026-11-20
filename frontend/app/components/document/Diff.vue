@@ -23,7 +23,7 @@ const SIGNS = { same: ' ', added: '+', removed: '−' } as const
   <div
     v-else
     class="document-diff"
-    role="group"
+    role="region"
     :aria-label="t('documents.versions.diff')"
     tabindex="0"
   >

@@ -17,7 +17,7 @@ export function useDocumentExport(document: () => { id: string, title: string, c
     const current = document()
 
     if (current) {
-      downloadText(downloadName(current.title, 'md', 'dokument'), current.content, 'text/markdown;charset=utf-8')
+      downloadText(downloadName(current.title, 'md', t('documents.fileFallback')), current.content, 'text/markdown;charset=utf-8')
     }
   }
 

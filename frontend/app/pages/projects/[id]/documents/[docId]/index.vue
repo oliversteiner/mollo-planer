@@ -434,7 +434,7 @@ const kindItems = computed(() => KINDS.map(item => ({ label: t(`documents.kinds.
           />
         </template>
         <template v-else>
-          <h2 class="wa-heading-l document-title">
+          <h2 class="wa-heading-m document-title">
             {{ doc.title }}
           </h2>
           <p

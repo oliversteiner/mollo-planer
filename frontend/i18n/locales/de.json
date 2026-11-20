@@ -2185,19 +2185,16 @@
     "exportFailed": "Der Export hat nicht geklappt.",
     "share": "Freigeben",
     "transfer": "Owner übergeben",
-    "deleted": "Dokument gelöscht.",
     "focus": "Fokus",
     "draft": {
       "title": "Ungesicherten Entwurf wiederherstellen?",
       "text": "Du hast am {date} Änderungen begonnen und nicht gesichert. Der Entwurf liegt in diesem Browser.",
-      "restore": "Wiederherstellen",
-      "discard": "Verwerfen"
+      "restore": "Wiederherstellen"
     },
     "leave": {
       "title": "Ungesicherte Änderungen",
       "text": "Wenn du die Seite verlässt, sind deine Änderungen nicht gesichert. Ein Entwurf bleibt in diesem Browser erhalten.",
-      "confirm": "Verlassen",
-      "stay": "Bleiben"
+      "confirm": "Verlassen"
     },
     "conflict": {
       "title": "Das Dokument wurde inzwischen geändert",
@@ -2232,8 +2229,6 @@
       "restoredFrom": "zurückgeholt aus Fassung {revision}",
       "compare": "Vergleichen",
       "pick": "Wähle zwei Fassungen zum Vergleichen.",
-      "older": "Ältere Fassung",
-      "newer": "Neuere Fassung",
       "restore": "Zurückholen",
       "restoreTitle": "Fassung {revision} zurückholen?",
       "restoreText": "Es entsteht eine neue Fassung mit diesem Inhalt. Nichts wird überschrieben.",
@@ -2241,12 +2236,12 @@
       "noChanges": "Kein Unterschied zwischen den Fassungen.",
       "added": "hinzugefügt",
       "removed": "entfernt",
-      "diff": "Unterschiede der Fassungen",
-      "loading": "Fassungen werden geladen …"
+      "diff": "Unterschiede der Fassungen"
     },
     "exportPdfMaking": "PDF wird erstellt …",
     "saveFailed": "Das Sichern hat nicht geklappt.",
     "allSaved": "Gesichert",
-    "focusBack": "Zurück"
+    "focusBack": "Zurück",
+    "fileFallback": "dokument"
   }
 }
