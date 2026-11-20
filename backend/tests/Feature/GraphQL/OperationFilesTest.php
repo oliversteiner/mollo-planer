@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\GraphQL;
 
-use App\Mcp\Support\GraphQLRunner;
+use App\Tools\Support\GraphQLRunner;
 use GraphQL\Language\AST\OperationDefinitionNode;
 use GraphQL\Language\Parser;
 use GraphQL\Validator\DocumentValidator;

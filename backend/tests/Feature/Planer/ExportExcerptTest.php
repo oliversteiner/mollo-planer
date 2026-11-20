@@ -5,8 +5,6 @@ namespace Tests\Feature\Planer;
 use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\ExportPlanTool;
-use App\Mcp\Tools\ImportPlanTool;
 use App\Models\Milestone;
 use App\Models\Task;
 use App\Models\Todo;
@@ -14,6 +12,7 @@ use App\Planer\Export;
 use App\Planer\ExportFilter;
 use App\Planer\Validator;
 use Tests\Feature\GraphQL\GraphQLTestCase;
+use Tests\McpTools;
 
 /**
  * export_plan with a filter gives an excerpt (task 30 A): a valid planer-v2 document marked excerpt: true.
@@ -86,14 +85,14 @@ class ExportExcerptTest extends GraphQLTestCase
     public function test_the_mcp_tool_filters(): void
     {
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id, 'version' => '0.9'])
+            ->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id, 'version' => '0.9'])
             ->assertOk()
             ->assertSee('"excerpt":true')
             ->assertSee("m-{$this->released->id}")
             ->assertDontSee("m-{$this->planned->id}\"");
 
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id, 'task_status' => ['review'], 'include_released' => false])
+            ->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id, 'task_status' => ['review'], 'include_released' => false])
             ->assertOk()
             ->assertSee('"excerpt":true');
     }
@@ -103,13 +102,13 @@ class ExportExcerptTest extends GraphQLTestCase
         $document = app(Export::class)->document($this->project->fresh(), new ExportFilter(version: '1.0'));
 
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document, 'dry_run' => true])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'dry_run' => true])
             ->assertHasErrors()
             ->assertSee('excerpt');
         $this->assertCount(3, Milestone::query()->where('project_id', $this->project->id)->get());
 
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document, 'mode' => 'partial', 'dry_run' => true])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'mode' => 'partial', 'dry_run' => true])
             ->assertOk();
     }
 
@@ -128,7 +127,7 @@ class ExportExcerptTest extends GraphQLTestCase
         ];
 
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document, 'mode' => 'partial'])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'mode' => 'partial'])
             ->assertOk()
             ->assertSee('"m-new-1"');
 
@@ -140,7 +139,7 @@ class ExportExcerptTest extends GraphQLTestCase
     public function test_the_filter_needs_the_export_right(): void
     {
         MolloPlanerServer::actingAs($this->users['stranger'])
-            ->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id, 'version' => '1.0'])
+            ->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id, 'version' => '1.0'])
             ->assertHasErrors();
     }
 }

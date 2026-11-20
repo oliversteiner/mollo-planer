@@ -3,13 +3,11 @@
 namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\ListProjectsTool;
-use App\Mcp\Tools\ListTemplatesTool;
-use App\Mcp\Tools\ListUsersTool;
 use App\Models\Project;
 use App\Models\User;
 use App\Planer\TemplateSync;
 use App\Support\McpTokens;
+use Tests\McpTools;
 
 /**
  * The MCP server acts through the GraphQL schema as the token's owner: same
@@ -22,7 +20,7 @@ class MolloPlanerServerTest extends McpTestCase
     {
         Project::factory()->create(['name' => 'Fremd']);
 
-        MolloPlanerServer::actingAs($this->member)->tool(ListProjectsTool::class)
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_projects'))
             ->assertOk()
             ->assertSee('Podcast')
             ->assertDontSee('Fremd');
@@ -32,7 +30,7 @@ class MolloPlanerServerTest extends McpTestCase
     {
         TemplateSync::sync();
 
-        MolloPlanerServer::actingAs($this->member)->tool(ListTemplatesTool::class)
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_templates'))
             ->assertOk()
             ->assertSee('Event')
             ->assertSee('Veranstaltungsort anfragen')
@@ -41,14 +39,14 @@ class MolloPlanerServerTest extends McpTestCase
 
     public function test_list_users_names_the_people_by_e_mail(): void
     {
-        MolloPlanerServer::actingAs(User::factory()->admin()->create())->tool(ListUsersTool::class)
+        MolloPlanerServer::actingAs(User::factory()->admin()->create())->tool(McpTools::of('list_users'))
             ->assertOk()
             ->assertSee('lindita@example.ch');
     }
 
     public function test_list_users_without_a_project_gives_names_only_to_somebody_who_does_not_manage_users(): void
     {
-        MolloPlanerServer::actingAs($this->member)->tool(ListUsersTool::class)
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_users'))
             ->assertOk()
             ->assertSee($this->owner->name)
             ->assertDontSee($this->owner->email);
@@ -56,11 +54,11 @@ class MolloPlanerServerTest extends McpTestCase
 
     public function test_list_users_with_a_project_gives_its_members_with_e_mail_and_hides_foreign_projects(): void
     {
-        MolloPlanerServer::actingAs($this->owner)->tool(ListUsersTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->owner)->tool(McpTools::of('list_users'), ['project_id' => (string) $this->project->id])
             ->assertOk()
             ->assertSee($this->owner->email);
 
-        MolloPlanerServer::actingAs($this->stranger)->tool(ListUsersTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->stranger)->tool(McpTools::of('list_users'), ['project_id' => (string) $this->project->id])
             ->assertHasErrors();
     }
 

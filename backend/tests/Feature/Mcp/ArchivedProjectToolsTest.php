@@ -4,15 +4,13 @@ namespace Tests\Feature\Mcp;
 
 use App\Enums\ProjectRole;
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Support\GraphQLFailed;
-use App\Mcp\Tools\ExportPlanTool;
-use App\Mcp\Tools\ImportPlanTool;
-use App\Mcp\Tools\ListProjectsTool;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Planer\Export;
+use App\Tools\Support\GraphQLFailed;
+use Tests\McpTools;
 
 /**
  * The MCP tools and an archived project (docs/auftrag-m2.md §1.7): reading
@@ -42,7 +40,7 @@ class ArchivedProjectToolsTest extends McpTestCase
         $document = app(Export::class)->document($this->project->fresh());
         $document['milestones'][0]['todos'][0]['title'] = 'Neu';
 
-        MolloPlanerServer::actingAs($this->owner)->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document])
+        MolloPlanerServer::actingAs($this->owner)->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document])
             ->assertHasErrors([GraphQLFailed::ARCHIVED]);
 
         $this->assertSame('Vorbereiten', $this->todo->fresh()->title);
@@ -50,7 +48,7 @@ class ArchivedProjectToolsTest extends McpTestCase
 
     public function test_reading_an_archived_project_works(): void
     {
-        MolloPlanerServer::actingAs($this->member)->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id])
             ->assertOk()
             ->assertSee('Hörerprofile schreiben');
     }
@@ -59,11 +57,11 @@ class ArchivedProjectToolsTest extends McpTestCase
     {
         Project::factory()->withMember($this->member, ProjectRole::MEMBER)->create(['name' => 'Aktiv']);
 
-        MolloPlanerServer::actingAs($this->member)->tool(ListProjectsTool::class)
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_projects'))
             ->assertOk()
             ->assertSee('Aktiv')
             ->assertDontSee('Podcast');
-        MolloPlanerServer::actingAs($this->member)->tool(ListProjectsTool::class, ['archived' => true])
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_projects'), ['archived' => true])
             ->assertOk()
             ->assertSee('Podcast')
             ->assertDontSee('Aktiv');

@@ -3,11 +3,11 @@
 namespace Tests\Feature\Planer;
 
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\ImportPlanTool;
 use App\Models\Project;
 use App\Models\Task;
 use App\Planer\Export;
 use Tests\Feature\GraphQL\GraphQLTestCase;
+use Tests\McpTools;
 
 /**
  * importPlan in GraphQL and import_plan in MCP (docs/auftrag-m4.md §4.3).
@@ -109,13 +109,13 @@ class ImportPlanApiTest extends GraphQLTestCase
         $document['milestones'][0]['todos'][0]['tasks'][] = ['id' => 'k-new-1', 'title' => 'Per MCP', 'status' => 'open'];
 
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document, 'dry_run' => true])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'dry_run' => true])
             ->assertOk()
             ->assertSee('"kind":"CREATE"');
         $this->assertNull(Task::query()->where('title', 'Per MCP')->first());
 
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document])
             ->assertOk()
             ->assertSee('"k-new-1"');
         $this->assertNotNull(Task::query()->where('title', 'Per MCP')->first());
@@ -127,7 +127,7 @@ class ImportPlanApiTest extends GraphQLTestCase
         $document['milestones'][0]['title'] = 'X';
 
         MolloPlanerServer::actingAs($this->users['owner'])
-            ->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document])
             ->assertHasErrors()
             ->assertSee('milestones[0].title');
     }
@@ -135,7 +135,7 @@ class ImportPlanApiTest extends GraphQLTestCase
     public function test_the_mcp_tool_refuses_a_stranger(): void
     {
         MolloPlanerServer::actingAs($this->users['stranger'])
-            ->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $this->exported()])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $this->exported()])
             ->assertHasErrors();
     }
 }

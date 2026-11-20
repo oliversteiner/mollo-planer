@@ -25,8 +25,12 @@ Claude sieht also nur, was du in der App auch sehen würdest, und kann nur ände
 | Teil | Datei | Aufgabe |
 |---|---|---|
 | Route | `backend/routes/ai.php` | Registriert den MCP-Server unter `/mcp`, mit Anmeldung, Token-Prüfung und Drosselung |
-| Server | `backend/app/Mcp/Servers/MolloPlanerServer.php` | Enthält die Werkzeuge und die Regeln für Claude |
-| Werkzeuge | `backend/app/Mcp/Tools/*.php` | Die fünf Werkzeuge (Projekte, Vorlagen und Personen lesen, einen Plan exportieren und importieren) |
+| Server | `backend/app/Mcp/Servers/MolloPlanerServer.php` | Bietet die Werkzeuge des Registers an und enthält die Regeln für Claude |
+| Werkzeuge | `backend/app/Tools/*.php` | Jedes Werkzeug einmal beschrieben: Name, Beschreibung, Eingabe-Schema, Handler mit Person und Argumenten (`Tool`, `Schema`, `ToolResult`) |
+| Register | `backend/app/Tools/ToolRegistry.php` | Die Liste aller Werkzeuge an einer Stelle; beide Adapter lesen sie |
+| Adapter MCP | `backend/app/Mcp/ToolAdapter.php` | Ein dünner Adapter für alle Werkzeuge (Laravel MCP) |
+| Adapter Assistent | `backend/app/Assistant/ToolBridge.php` | Werkzeuge im Format von Claude-Tool-Use und Ausführung eines Aufrufs als gegebene Person (noch nicht im Assistenten eingebaut) |
+| Dienste | `backend/app/Services/{PlanTaskUpdates,TaskCommentListing,UserDirectory}.php` | Die Logik, die ein Werkzeug nicht selbst trägt |
 | Token-Prüfung | `backend/app/Http/Middleware/EnsureMcpToken.php` | Lässt nur Zugänge mit der Fähigkeit `mcp` zu |
 | Token-Regeln | `backend/app/Support/McpTokens.php` | Name der Fähigkeit und Gültigkeit der Zugänge |
 | Oberfläche | `frontend/app/components/profile/ClaudeAccessCard.vue` | Zugang erzeugen, anzeigen, widerrufen, Konfiguration kopieren |
@@ -282,6 +286,6 @@ Der Zugang für die Action ist ein gewöhnlicher Zugang für Claude (90 Tage) un
 
 ## Pflege
 
-- Neue Werkzeuge: eine Klasse in `backend/app/Mcp/Tools/`, Eintrag in `MolloPlanerServer`, Tests nach `backend/tests/Feature/Mcp/`. Die Werkzeuge müssen dieselben Regeln einhalten wie die GraphQL-Mutationen.
+- **Neue Werkzeuge (für Entwickler):** eine Klasse in `backend/app/Tools/` (von `App\Tools\Tool`: `name()`, `description()`, `schema()` mit `Schema::input(...)`, `readOnly()`, `handle(User $actor, array $arguments): ToolResult`), Eintrag in `ToolRegistry::TOOLS`, Tests nach `backend/tests/Feature/Mcp/` (über `Tests\McpTools::of('<name>')`) und in `backend/tests/Feature/Tools/`. Mehr ist nicht nötig: der MCP-Server und die `ToolBridge` des Assistenten lesen das Register. Die Person wird dem Handler übergeben und läuft über `$this->graphql($actor, …)` oder `$this->operation($actor, …)` durch dasselbe Schema wie die Oberfläche; sie wird nie still aus dem Request gelesen. **Resolver und Werkzeuge bleiben dünn, Logik liegt in Diensten** (`App\Services`), damit der Assistent sie ebenso nutzt. Fehler: ein Handler wirft eine `ValidationException` für Argumente, die nicht passen, und gibt `ToolResult::error(...)` für Antworten, die der KI-Client lesen soll. Die Liste der Werkzeuge, wie ein MCP-Client sie sieht, steht in `backend/tests/Fixtures/mcp-tools-list.json` und wird verglichen; wer ein Werkzeug oder seinen Text ändert, ändert die Datei bewusst mit.
 - Gültigkeit und Fähigkeit eines Zugangs stehen in `backend/app/Support/McpTokens.php`. Änderungen dort wirken auf alle Zugänge.
 - Die Konfiguration für Claude Desktop wird in `frontend/app/utils/claude.ts` gebaut. Tests dazu liegen in `frontend/tests/unit/claude.test.ts`.

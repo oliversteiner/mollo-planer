@@ -2,21 +2,14 @@
 
 namespace App\Mcp\Servers;
 
-use App\Mcp\Tools\AddCommentTool;
-use App\Mcp\Tools\CreateIdeaTool;
-use App\Mcp\Tools\ExportPlanTool;
-use App\Mcp\Tools\GetProjectAiContextTool;
-use App\Mcp\Tools\ImportPlanTool;
-use App\Mcp\Tools\ListCommentsTool;
-use App\Mcp\Tools\ListIdeasTool;
-use App\Mcp\Tools\ListProjectsTool;
-use App\Mcp\Tools\ListTemplatesTool;
-use App\Mcp\Tools\ListUsersTool;
-use App\Mcp\Tools\UpdateTasksTool;
+use App\Mcp\ToolAdapter;
+use App\Tools\Tool;
+use App\Tools\ToolRegistry;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
+use Laravel\Mcp\Server\Contracts\Transport;
 
 /**
  * MCP server of the app (POST /mcp, routes/ai.php): lets an AI client such
@@ -48,19 +41,19 @@ Assignment mails are not sent unless you ask with notify_assignees.
 TEXT)]
 class MolloPlanerServer extends Server
 {
-    protected array $tools = [
-        ListProjectsTool::class,
-        ListTemplatesTool::class,
-        ListUsersTool::class,
-        ExportPlanTool::class,
-        ImportPlanTool::class,
-        UpdateTasksTool::class,
-        AddCommentTool::class,
-        ListCommentsTool::class,
-        CreateIdeaTool::class,
-        ListIdeasTool::class,
-        GetProjectAiContextTool::class,
-    ];
+    /**
+     * Filled from the registry: the tools are described once (App\Tools), this server only offers them.
+     *
+     * @var array<int, Server\Tool>
+     */
+    protected array $tools = [];
+
+    public function __construct(Transport $transport)
+    {
+        parent::__construct($transport);
+
+        $this->tools = array_map(fn (Tool $tool): ToolAdapter => new ToolAdapter($tool), ToolRegistry::all());
+    }
 
     protected array $resources = [];
 
