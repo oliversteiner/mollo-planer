@@ -241,7 +241,8 @@
     },
     "archive": {
       "title": "Archive ({count})"
-    }
+    },
+    "counts": "{milestones} milestones · {todos} todos · {tasks} tasks"
   },
   "status": {
     "IDEA": "Idea",
@@ -278,6 +279,7 @@
       "todos": "Todos",
       "tasks": "Tasks",
       "members": "Members",
+      "statistics": "Statistics",
       "settings": "Settings",
       "trash": "Trash"
     },
@@ -308,6 +310,41 @@
     "archived": {
       "title": "Archived, read only",
       "description": "This project is archived. Changing, creating, deleting and commenting are locked until someone with the right “Archive” brings it back in the settings."
+    },
+    "statistics": {
+      "emptyTitle": "Nothing to count yet",
+      "emptyDescription": "Once the project has milestones, todos and tasks, the numbers appear here.",
+      "kpiMilestones": "Milestones",
+      "kpiMilestonesDetail": "{released} released · {planned} planned · {unversioned} without version",
+      "kpiTodos": "Todos",
+      "kpiTasks": "Tasks",
+      "kpiDone": "Done",
+      "kpiDoneDetail": "{done} of {total} tasks (ideas do not count)",
+      "percent": "{value} %",
+      "countAndPercent": "{count} · {percent} %",
+      "byStatus": "Tasks by status",
+      "byLabel": "Tasks by label",
+      "noLabel": "No label",
+      "byPerson": "Tasks by person",
+      "unassigned": "Not assigned",
+      "openAndDone": "{open} open · {done} done",
+      "due": "Due dates of open tasks",
+      "overdue": "Overdue",
+      "soon": "Due in the next 7 days",
+      "undated": "No date",
+      "perMilestone": "Milestones in the plan",
+      "table": "Milestones with version, status, date and progress",
+      "colMilestone": "Milestone",
+      "colVersion": "Version",
+      "colStatus": "Status",
+      "colDate": "Released",
+      "colTodos": "Todos",
+      "colTasks": "Tasks",
+      "colDone": "Done",
+      "noVersion": "–",
+      "more": "More",
+      "withCommit": "Tasks with a commit",
+      "comments": "Comments"
     }
   },
   "todos": {

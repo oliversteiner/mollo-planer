@@ -241,7 +241,8 @@
     },
     "archive": {
       "title": "Archiv ({count})"
-    }
+    },
+    "counts": "{milestones} Milestones · {todos} ToDo · {tasks} Tasks"
   },
   "status": {
     "IDEA": "Idee",
@@ -278,6 +279,7 @@
       "todos": "ToDo",
       "tasks": "Tasks",
       "members": "Mitglieder",
+      "statistics": "Statistik",
       "settings": "Einstellungen",
       "trash": "Papierkorb"
     },
@@ -308,6 +310,41 @@
     "archived": {
       "title": "Archiviert, nur lesbar",
       "description": "Dieses Projekt ist archiviert. Ändern, Anlegen, Löschen und Kommentieren sind gesperrt, bis es jemand mit dem Recht „Archivieren“ in den Einstellungen zurückholt."
+    },
+    "statistics": {
+      "emptyTitle": "Noch nichts zu zählen",
+      "emptyDescription": "Sobald das Projekt Milestones, ToDo und Tasks hat, erscheinen hier die Zahlen.",
+      "kpiMilestones": "Milestones",
+      "kpiMilestonesDetail": "{released} veröffentlicht · {planned} geplant · {unversioned} ohne Version",
+      "kpiTodos": "ToDo",
+      "kpiTasks": "Tasks",
+      "kpiDone": "Erledigt",
+      "kpiDoneDetail": "{done} von {total} Tasks (Ideen zählen nicht)",
+      "percent": "{value} %",
+      "countAndPercent": "{count} · {percent} %",
+      "byStatus": "Tasks nach Status",
+      "byLabel": "Tasks nach Label",
+      "noLabel": "Ohne Label",
+      "byPerson": "Tasks nach Person",
+      "unassigned": "Nicht zugewiesen",
+      "openAndDone": "{open} offen · {done} erledigt",
+      "due": "Fälligkeit offener Tasks",
+      "overdue": "Überfällig",
+      "soon": "Fällig in den nächsten 7 Tagen",
+      "undated": "Ohne Datum",
+      "perMilestone": "Milestones im Plan",
+      "table": "Milestones mit Version, Status, Datum und Fortschritt",
+      "colMilestone": "Milestone",
+      "colVersion": "Version",
+      "colStatus": "Status",
+      "colDate": "Veröffentlicht",
+      "colTodos": "ToDo",
+      "colTasks": "Tasks",
+      "colDone": "Erledigt",
+      "noVersion": "–",
+      "more": "Weiteres",
+      "withCommit": "Tasks mit Commit",
+      "comments": "Kommentare"
     }
   },
   "todos": {

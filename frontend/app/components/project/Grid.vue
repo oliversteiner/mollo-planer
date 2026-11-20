@@ -52,6 +52,7 @@ const roleName = useRoleName()
               data-zen="hide"
             />
           </span>
+          <span class="projects-progress">{{ t('projects.counts', project.counts) }}</span>
         </span>
       </NuxtLink>
     </li>
