@@ -24,6 +24,10 @@
       "minimum": 0,
       "description": "Stand der App beim letzten Export oder Import. Nur die App erhöht ihn (spec/format-v2.md, Abschnitt 5.2)."
     },
+    "excerpt": {
+      "const": true,
+      "description": "Gesetzt, wenn die Datei nur einen Ausschnitt des Plans enthält (Export mit Filter). Die App lehnt eine solche Datei im Modus full ab, im Modus partial ist sie erlaubt. Fehlt das Feld, ist die Datei der ganze Plan."
+    },
     "changed": {
       "const": true,
       "description": "Gesetzt, wenn die Datei lokal geändert wurde und noch nicht eingetragen ist. Fehlt das Feld, ist die Datei unverändert."

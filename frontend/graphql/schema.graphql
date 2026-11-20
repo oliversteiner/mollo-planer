@@ -683,8 +683,18 @@ type Query {
  appSettings: AppSettings!
  "Startseite"
  dashboard: Dashboard!
- "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
- exportPlan(projectId: ID!): String!
+ "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Mit einem Filter ist sie ein Ausschnitt (excerpt: true), den der Import im Modus FULL ablehnt. Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
+ exportPlan(
+ "false: veröffentlichte Milestones weglassen"
+ includeReleased: Boolean = true
+ "Nur diese Milestones (Ids ohne Präfix)"
+ milestoneIds: [ID!]
+ projectId: ID!
+ "Nur Tasks mit diesen Status; ToDos und Milestones ohne passende Task entfallen"
+ taskStatus: [TaskStatus!]
+ "Nur der Milestone dieser Version (z. B. \"1.21\")"
+ version: String
+ ): String!
  "Eine Idee, oder null, wenn es sie nicht gibt oder du sie nicht lesen darfst"
  idea(id: ID!): Idea
  "Deine Ideen, neueste zuerst. Mit ideas.viewAny alle, oder die einer Autorin mit authorId (nur mit diesem Recht)."

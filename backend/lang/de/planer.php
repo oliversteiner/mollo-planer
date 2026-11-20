@@ -45,9 +45,14 @@ return [
         'release_date_planned' => 'Die Version :version ist nur geplant und hat kein Veröffentlichungsdatum.',
         'markdown' => 'Beschreibung (Zeile :line): :kind – :excerpt',
     ],
+    'update_tasks' => [
+        'revision' => 'Der Plan wurde inzwischen geändert (Revision :project, deine Basis war :file). Exportiere ihn neu und versuche es noch einmal.',
+    ],
+
     'import' => [
         'draft_invalid' => 'Der Entwurf ist ungültig: :message',
         'invalid' => 'Die Datei ist ungültig: :message',
+        'excerpt' => 'Die Datei ist ein Ausschnitt des Plans (excerpt). Im Modus full würde alles, was sie nicht enthält, gelöscht. Trage sie im Modus partial ein oder exportiere den ganzen Plan.',
         'revision' => 'Die Datei hat die Revision :file, das Projekt ist bei :project. Exportiere es zuerst neu.',
         'unknown_id' => ':id gehört nicht zu diesem Projekt oder liegt im Papierkorb.',
         'denied' => 'Dafür fehlt dir das Recht: :what.',

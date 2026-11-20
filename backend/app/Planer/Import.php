@@ -159,6 +159,11 @@ final class Import
             $this->error($issue['path'], 'invalid', __('planer.import.invalid', ['message' => $issue['message']]));
         }
 
+        // An excerpt is not the whole plan: in mode full, what it lacks would go to the trash.
+        if ($mode === ImportMode::Full && ($document['excerpt'] ?? false) === true) {
+            $this->error('excerpt', 'excerpt', __('planer.import.excerpt'));
+        }
+
         if ($project !== null) {
             $this->precheck($project, $document);
         }
