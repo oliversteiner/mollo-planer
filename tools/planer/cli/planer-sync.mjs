@@ -159,7 +159,7 @@ export async function pull(ctx, args, { quietUnchanged = false } = {}) {
 
 /** import_plan; Fehler der App kommen als ToolError mit `errors`. */
 async function importPlan(client, project, plan, mode, dryRun) {
-  return client.call('import_plan', { project_id: project, plan, mode, dry_run: dryRun, notify_assignees: false });
+  return client.call('import_plan', { project_id: project, plan, mode, dry_run: dryRun, notify_assignees: false, include_document: !dryRun });
 }
 
 function summary(changes) {

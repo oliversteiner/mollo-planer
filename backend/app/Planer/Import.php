@@ -471,7 +471,11 @@ final class Import
             $user = $this->person($entry['email']);
 
             if ($user === null) {
-                $this->error("{$path}.email", 'person', __('planer.import.person_unknown', ['email' => $entry['email']]));
+                $this->warnings[] = [
+                    'path' => "{$path}.email",
+                    'email' => $entry['email'],
+                    'message' => __('planer.import.member_unknown_warning', ['email' => $entry['email']]),
+                ];
 
                 continue;
             }
