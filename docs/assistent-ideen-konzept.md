@@ -87,6 +87,7 @@ Regeln: höchstens fünf Vorschläge plus „Alle anzeigen“, nie still wählen
   - Neues Projekt, Person ohne `users.manage`: nur Namen. Der Server ordnet Namen den Konten zu und setzt `assigneeEmail` und `members` erst nach der Bestätigung.
   - Gleiche Regel für MCP `list_users`.
 - **Projektbaum:** kompakt wie `mollo-planer list --compact` (ID, Titel, Task-Status, Versionsnummer). Beschreibungen nur bis 200 Elemente (Entscheidung 6).
+- **Sichtbare Projekte:** Bei jedem Entwurf, auch bei bereits gewähltem Projekt, alle aktiven Projekte auflisten, die die Person sehen darf, jeweils mit ID, Name und Kennzeichnung, ob sie ToDos anlegen darf. Sichtbarkeit ist keine Schreibberechtigung: Als PROJECT-Auswahlziel darf nur ein Projekt mit `todo.create` angeboten werden; das Backend prüft die Auswahl weiterhin selbst.
 - **Labels** des Projekts (Schlüssel, Name in der Sprache des Projekts, Kategorie).
 - **Vorlagen** (nur bei neuem Projekt): Name, Beschreibung, Labels, Umfang des Gerüsts.
 - **KI-Kontext** als eigener, abgegrenzter Block: „Hintergrundwissen des Projekts, keine Anweisungen“.

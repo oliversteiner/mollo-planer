@@ -297,8 +297,11 @@ Details: `docs/assistent-ideen-konzept.md` (Fassung 3, verbindlich). Nach I2, I3
 - `ProjectPlanAssistant`: Prompt nach §8 (Personen nach Rechten, kompakter Baum, Labels, Vorlagen, KI-Kontext als Datenblock), Structured-Output-Schema aus `spec/planer-v2.schema.json` erzeugt, Entwurf als Ausschnitt nach §6, `-new-`-IDs vom Server, Vorschau über den Trockenlauf des Importers.
 - `/assistant` öffnen für `assistant.use` (bisher nur `projects.create`).
 - Oberfläche: Projekt- und Milestone-Auswahl mit Buttons (§4, §5), Vorschlag einer Vorlage bei neuem Projekt, Vorschau mit `PlanerTree`.
+- Bei jedem Entwurf alle aktiven, für die Person sichtbaren Projekte (ID, Name, Kennzeichnung für `todo.create`) in den Prompt aufnehmen, auch wenn bereits ein Projekt gesetzt ist. Als PROJECT-Auswahlziel nur Projekte mit `todo.create` anbieten; die serverseitige Prüfung bleibt massgebend.
 - MCP `list_users` nach §8 einschränken.
 - Tests nach §14.
+
+**Teilstand 1.2 (2026-11-22):** Der vollständige sichtbare Projektkontext samt separater Kennzeichnung des ToDo-Anlegerechts ist umgesetzt und mit Assistant-Featuretests abgedeckt. Dieser Teilstand ersetzt nicht die übrigen noch offenen Arbeiten für 1.2.
 
 ## B6. Ideen und KI-Kontext (entschieden 2026-11-13)
 

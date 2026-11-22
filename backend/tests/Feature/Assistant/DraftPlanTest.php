@@ -5,6 +5,7 @@ namespace Tests\Feature\Assistant;
 use App\Assistant\AssistantError;
 use App\Assistant\AssistantSchema;
 use App\Assistant\ClaudeClient;
+use App\Enums\ProjectRole;
 use App\Models\Idea;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -161,6 +162,77 @@ class DraftPlanTest extends GraphQLTestCase
         $this->assertNull($result['preview']);
         $this->assertSame(['MILESTONE', 'NEW_MILESTONE', 'IDEA'], array_column($result['choices'], 'kind'));
         $this->assertSame([true, false, false], array_column($result['choices'], 'recommended'));
+    }
+
+    public function test_the_prompt_lists_visible_active_projects_and_marks_todo_creation_rights_even_when_one_is_selected(): void
+    {
+        $guestProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)->create(['name' => 'Nur lesbar']);
+        $archivedProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)->create(['name' => 'Archiviert']);
+        $archivedProject->forceFill(['archived_at' => now()])->save();
+        $foreignProject = Project::factory()->create(['name' => 'Fremd']);
+        $this->claude($this->answer());
+
+        foreach (['owner', 'member', 'manager'] as $viewer) {
+            $this->draft($viewer, ['p' => $this->project->id])->assertJsonMissingPath('errors');
+
+            $this->assertStringContainsString(
+                '"id":"'.$this->project->id.'","name":"Mollo Planer","mayCreateTodos":true',
+                $this->sent['system'],
+            );
+        }
+
+        $prompt = $this->sent['system'];
+
+        $this->assertStringContainsString(
+            '"id":"'.$guestProject->id.'","name":"Nur lesbar","mayCreateTodos":false',
+            $prompt,
+        );
+        $this->assertStringNotContainsString('Archiviert', $prompt);
+        $this->assertStringNotContainsString('Fremd', $prompt);
+    }
+
+    public function test_a_view_all_user_gets_visible_projects_that_are_not_their_memberships(): void
+    {
+        $foreignProject = Project::factory()->create(['name' => 'Auch sichtbar']);
+        $this->claude($this->answer());
+
+        $this->draft('admin')->assertJsonMissingPath('errors');
+
+        $this->assertStringContainsString(
+            '"id":"'.$foreignProject->id.'","name":"Auch sichtbar","mayCreateTodos":true',
+            $this->sent['system'],
+        );
+    }
+
+    public function test_the_prompt_lists_more_than_fifty_visible_projects(): void
+    {
+        $lastProject = null;
+
+        foreach (range(1, 55) as $number) {
+            $lastProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)
+                ->create(['name' => sprintf('zz sichtbares Projekt %02d', $number)]);
+        }
+
+        $this->claude($this->answer());
+
+        $this->draft('manager')->assertJsonMissingPath('errors');
+
+        $this->assertStringContainsString(
+            '"id":"'.$lastProject->id.'","name":"zz sichtbares Projekt 55","mayCreateTodos":false',
+            $this->sent['system'],
+        );
+    }
+
+    public function test_a_visible_project_without_todo_creation_right_is_not_kept_as_a_project_choice(): void
+    {
+        $guestProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)->create(['name' => 'Nur lesbar']);
+        $this->claude($this->answer(null, [
+            ['kind' => 'PROJECT', 'label' => 'Nur lesbar', 'detail' => null, 'value' => (string) $guestProject->id, 'recommended' => false],
+        ]));
+
+        $result = $this->draft('manager')->json('data.draftPlan');
+
+        $this->assertSame([], $result['choices']);
     }
 
     public function test_more_than_five_choices_end_with_show_all(): void
