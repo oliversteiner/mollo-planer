@@ -3,8 +3,8 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const pages = {
-  de: readFileSync(fileURLToPath(new URL('../../public/mcp/index.html', import.meta.url)), 'utf8'),
-  en: readFileSync(fileURLToPath(new URL('../../public/mcp/en/index.html', import.meta.url)), 'utf8')
+  de: readFileSync(fileURLToPath(new URL('../../public/mcp/de/index.html', import.meta.url)), 'utf8'),
+  en: readFileSync(fileURLToPath(new URL('../../public/mcp/index.html', import.meta.url)), 'utf8')
 }
 const defaultLayout = readFileSync(fileURLToPath(new URL('../../app/layouts/default.vue', import.meta.url)), 'utf8')
 const authLayout = readFileSync(fileURLToPath(new URL('../../app/layouts/auth.vue', import.meta.url)), 'utf8')
@@ -33,11 +33,26 @@ describe('static MCP guide', () => {
     expect(pages.en).not.toMatch(/<script\b/i)
   })
 
+  it('documents the JetBrains AI Assistant and Junie setup in chapter 02 with placeholders only', () => {
+    for (const page of Object.values(pages)) {
+      expect(page).toContain('<h3>JetBrains AI Assistant</h3>')
+      expect(page).toContain('<h3>JetBrains Junie</h3>')
+      expect(page).toContain('mcp-remote')
+      expect(page).toContain('headers')
+      expect(page).toContain('~/.junie/mcp/mcp.json')
+      expect(page).not.toMatch(/"Bearer (?!&lt;)/)
+    }
+    expect(pages.de).toContain('Bearer &lt;dein-agent-token&gt;')
+    expect(pages.en).toContain('Bearer &lt;your-agent-token&gt;')
+    expect(pages.de).toContain('nie in die projektweite <code>.junie/mcp/mcp.json</code>')
+    expect(pages.en).toContain('never in the project-wide <code>.junie/mcp/mcp.json</code>')
+  })
+
   it('links the language versions and uses a shared stylesheet without external assets', () => {
-    expect(pages.de).toContain('href="/mcp/en/"')
-    expect(pages.en).toContain('href="/mcp/"')
-    expect(pages.de).toContain('href="./mcp.css"')
-    expect(pages.en).toContain('href="../mcp.css"')
+    expect(pages.de).toContain('href="/mcp/"')
+    expect(pages.en).toContain('href="/mcp/de/"')
+    expect(pages.de).toContain('href="../mcp.css"')
+    expect(pages.en).toContain('href="./mcp.css"')
     for (const page of Object.values(pages)) {
       expect(page).not.toMatch(/(?:src|href)="https?:\/\//i)
     }

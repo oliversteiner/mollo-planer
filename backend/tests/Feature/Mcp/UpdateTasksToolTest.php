@@ -137,9 +137,9 @@ class UpdateTasksToolTest extends GraphQLTestCase
         $this->assertNull($this->task->fresh()->commit);
     }
 
-    public function test_an_assignee_must_be_a_member(): void
+    public function test_an_assignee_who_is_not_a_member_is_skipped_with_a_warning(): void
     {
-        $this->update('owner', ['tasks' => [['id' => "k-{$this->task->id}", 'assigneeEmail' => $this->users['stranger']->email]]])->assertHasErrors();
+        $this->update('owner', ['tasks' => [['id' => "k-{$this->task->id}", 'assigneeEmail' => $this->users['stranger']->email]]])->assertOk();
         $this->assertNull($this->task->fresh()->assigned_user_id);
 
         $this->update('owner', ['tasks' => [['id' => "k-{$this->task->id}", 'assigneeEmail' => $this->users['member']->email]]])->assertOk();

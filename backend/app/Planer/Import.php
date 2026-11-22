@@ -90,6 +90,12 @@ final class Import
     /** @var list<array{path: string, kind: string, message: string}> */
     private array $errors = [];
 
+    /** @var list<array{path: string, email: string, message: string}> Assignments left out, one per task; the import goes on */
+    private array $warnings = [];
+
+    /** @var array<string, true> Tasks whose assignee is not a member of the file (the validator's issue): they get none */
+    private array $unassigned = [];
+
     /** @var array<string, string> */
     private array $idMap = [];
 
@@ -156,8 +162,14 @@ final class Import
             $this->error('', 'denied', __('planer.import.denied', ['what' => __('planer.import.what.idea')]));
         }
 
-        foreach (Validator::errors($document) as $issue) {
-            $this->error($issue['path'], 'invalid', __('planer.import.invalid', ['message' => $issue['message']]));
+        foreach (Validator::validate($document) as $issue) {
+            if (($issue['code'] ?? null) === 'assignee_not_member') {
+                $path = substr($issue['path'], 0, -strlen('.assigneeEmail'));
+                $this->unassigned[$path] = true;
+                $this->warn($path, $issue['email']);
+            } elseif ($issue['severity'] === 'error') {
+                $this->error($issue['path'], 'invalid', __('planer.import.invalid', ['message' => $issue['message']]));
+            }
         }
 
         // An excerpt is not the whole plan: in mode full, what it lacks would go to the trash.
@@ -166,7 +178,7 @@ final class Import
         }
 
         if ($this->errors !== []) {
-            return new ImportResult(errors: $this->errors, dryRun: $dryRun, projectId: $project?->getKey());
+            return new ImportResult(errors: $this->errors, warnings: $this->warnings, dryRun: $dryRun, projectId: $project?->getKey());
         }
 
         $previous = Auth::user();
@@ -188,7 +200,7 @@ final class Import
             if ($this->errors !== []) {
                 DB::rollBack();
 
-                return new ImportResult(errors: $this->errors, dryRun: $dryRun, projectId: $project?->getKey());
+                return new ImportResult(errors: $this->errors, warnings: $this->warnings, dryRun: $dryRun, projectId: $project?->getKey());
             }
 
             ReleaseRules::withoutChecks(fn () => PlanerLimits::withoutChecks(fn () => $this->apply($project)));
@@ -217,7 +229,7 @@ final class Import
         }
 
         if ($this->errors !== []) {
-            return new ImportResult(errors: $this->errors, dryRun: $dryRun);
+            return new ImportResult(errors: $this->errors, warnings: $this->warnings, dryRun: $dryRun);
         }
 
         return new ImportResult(
@@ -226,6 +238,7 @@ final class Import
             document: $dryRun ? null : $this->export->document($this->project->fresh()),
             dryRun: $dryRun,
             projectId: $projectId,
+            warnings: $this->warnings,
         );
     }
 
@@ -240,6 +253,8 @@ final class Import
         $this->actor = $actor;
         $this->changes = [];
         $this->errors = [];
+        $this->warnings = [];
+        $this->unassigned = [];
         $this->idMap = [];
         $this->seen = ['milestone' => [], 'todo' => [], 'task' => []];
         $this->paths = [];
@@ -768,11 +783,10 @@ final class Import
 
         $status = TaskStatus::from($entry['status']);
         $assigneeGiven = $this->present($entry, 'assigneeEmail');
-        $assignee = $assigneeGiven ? $this->assigneeOf($entry, $path) : null;
+        $assignee = $assigneeGiven && ! isset($this->unassigned[$path]) ? $this->assigneeOf($entry, $path) : null;
 
-        // An assignee that could not be found is an error already; do not read it as "nobody".
-        if ($assignee === false) {
-            $assignee = null;
+        // An assignee that is unknown or not a member is a warning, not "nobody": the task keeps what it has.
+        if (isset($this->unassigned[$path]) || ($assigneeGiven && $assignee === null && ($entry['assigneeEmail'] ?? '') !== '')) {
             $assigneeGiven = false;
         }
 
@@ -889,7 +903,7 @@ final class Import
     /**
      * @param  array<string, mixed>  $entry
      */
-    private function assigneeOf(array $entry, string $path): User|false|null
+    private function assigneeOf(array $entry, string $path): ?User
     {
         $email = $entry['assigneeEmail'] ?? null;
 
@@ -900,12 +914,28 @@ final class Import
         $user = $this->person($email);
 
         if ($user === null || $this->project->roleIdOf($user) === null) {
-            $this->error("{$path}.assigneeEmail", 'assignee', __('planer.import.assignee_not_member', ['email' => $email]));
+            $this->warn($path, $email);
 
-            return false;
+            return null;
         }
 
         return $user;
+    }
+
+    /**
+     * The assignment is left out and the import goes on. Once per task, however often it is asked.
+     */
+    private function warn(string $path, string $email): void
+    {
+        if (in_array($path, array_column($this->warnings, 'path'), true)) {
+            return;
+        }
+
+        $this->warnings[] = [
+            'path' => $path,
+            'email' => $email,
+            'message' => __('planer.import.assignee_unknown_warning', ['email' => $email]),
+        ];
     }
 
     private function assign(Task $task, User $assignee, string $path, ?int $current): void

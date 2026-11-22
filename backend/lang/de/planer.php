@@ -52,6 +52,7 @@ return [
     'import' => [
         'draft_invalid' => 'Der Entwurf ist ungültig: :message',
         'invalid' => 'Die Datei ist ungültig: :message',
+        'assignee_unknown_warning' => ':email ist nicht Mitglied des Projekts oder existiert nicht. Die Zuweisung wird nicht übernommen.',
         'excerpt' => 'Die Datei ist ein Ausschnitt des Plans (excerpt). Im Modus full würde alles, was sie nicht enthält, gelöscht. Trage sie im Modus partial ein oder exportiere den ganzen Plan.',
         'revision' => 'Die Datei hat die Revision :file, das Projekt ist bei :project. Exportiere es zuerst neu.',
         'unknown_id' => ':id gehört nicht zu diesem Projekt oder liegt im Papierkorb.',

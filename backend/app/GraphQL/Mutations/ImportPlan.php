@@ -91,6 +91,7 @@ class ImportPlan
             'projectId' => $result->projectId,
             'changes' => $result->changes,
             'errors' => $result->errors,
+            'warnings' => $result->warnings,
             'idMap' => array_map(fn (string $from, string $to): array => ['from' => $from, 'to' => $to], array_keys($result->idMap), array_values($result->idMap)),
             'document' => $result->document === null ? null : Canonical::text($result->document),
         ];
@@ -101,6 +102,6 @@ class ImportPlan
      */
     private function failed(string $message, bool $dryRun): array
     {
-        return ['ok' => false, 'dryRun' => $dryRun, 'projectId' => null, 'changes' => [], 'errors' => [['path' => '', 'kind' => 'invalid', 'message' => $message]], 'idMap' => [], 'document' => null];
+        return ['ok' => false, 'dryRun' => $dryRun, 'projectId' => null, 'changes' => [], 'errors' => [['path' => '', 'kind' => 'invalid', 'message' => $message]], 'warnings' => [], 'idMap' => [], 'document' => null];
     }
 }
