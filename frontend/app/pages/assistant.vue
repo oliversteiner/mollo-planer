@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { ChatChoice, ChatMessage } from '~/components/assistant/Chat.vue'
-import type { DraftPlanMutation } from '~/graphql/generated/graphql'
+import type { DraftPlanMutation, PlanTargetKind } from '~/graphql/generated/graphql'
 import { assistantProjectQuery, draftPlanMutation } from '~/graphql/assistant'
 import { createIdeaMutation } from '~/graphql/ideas'
 import { importPlanMutation } from '~/graphql/planer'
@@ -30,6 +30,7 @@ const { viewer } = useViewer()
 const storageKey = assistantStorageKey(viewer.value?.id)
 
 const messages = ref<ChatMessage[]>([])
+const targetKind = ref<PlanTargetKind | null>(null)
 const choices = ref<ChatChoice[]>([])
 const plan = ref<string | null>(null)
 const preview = ref<Preview | null>(null)
@@ -53,6 +54,7 @@ onMounted(() => {
       hints.value = (saved.hints as string[]) ?? []
       preview.value = (saved.preview as Preview | null) ?? null
       choices.value = (saved.choices as ChatChoice[]) ?? []
+      targetKind.value = saved.targetKind === 'MILESTONE' || saved.targetKind === 'TODO' || saved.targetKind === 'TASK' ? saved.targetKind : null
     }
   } catch {
     // No storage (private mode) or an old format: start empty.
@@ -63,10 +65,11 @@ onMounted(() => {
   }
 })
 
-watch([messages, plan, projectId, templateId, hints, preview, choices], () => {
+watch([messages, targetKind, plan, projectId, templateId, hints, preview, choices], () => {
   try {
     sessionStorage.setItem(storageKey, JSON.stringify({
       messages: messages.value,
+      targetKind: targetKind.value,
       plan: plan.value,
       projectId: projectId.value,
       templateId: templateId.value,
@@ -133,6 +136,7 @@ async function send(text: string, note?: string) {
       messages: messages.value.filter(message => !message.failed).map(({ role, content, note }) => ({ role, content: note ? `${content} (${note})` : content })),
       projectId: projectId.value,
       templateId: templateId.value,
+      targetKind: targetKind.value,
       currentPlan: currentPlanText(),
       ideaId
     })
@@ -395,9 +399,12 @@ watch(plan, (current, previous) => {
           :messages="messages"
           :choices="choices"
           :pending="drafting"
+          :target-kind="targetKind"
+          :target-kind-locked="messages.length > 0"
           :can-reset="projectId !== null"
           @send="send"
           @choose="choose"
+          @update:target-kind="targetKind = $event"
           @reset="startAnew"
         />
       </section>

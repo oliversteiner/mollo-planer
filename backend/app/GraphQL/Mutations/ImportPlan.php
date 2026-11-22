@@ -28,7 +28,7 @@ class ImportPlan
     public function __construct(private readonly Import $import) {}
 
     /**
-     * @param  array{projectId?: int|string|null, document: string, mode?: string, dryRun?: bool, notifyAssignees?: bool, templateId?: int|string|null, ideaId?: int|string|null, appendOnly?: bool}  $args
+     * @param  array{projectId?: int|string|null, document: string, mode?: string, dryRun?: bool, notifyAssignees?: bool, templateId?: int|string|null, ideaId?: int|string|null, appendOnly?: bool, expectedRevision?: int|null}  $args
      * @return array<string, mixed>
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): array
@@ -82,6 +82,7 @@ class ImportPlan
             (bool) ($args['appendOnly'] ?? false),
             $templateId === null ? null : (int) $templateId,
             $idea,
+            isset($args['expectedRevision']) ? (int) $args['expectedRevision'] : null,
         );
 
         return [
@@ -90,6 +91,7 @@ class ImportPlan
             'projectId' => $result->projectId,
             'changes' => $result->changes,
             'errors' => $result->errors,
+            'warnings' => $result->warnings,
             'idMap' => array_map(fn (string $from, string $to): array => ['from' => $from, 'to' => $to], array_keys($result->idMap), array_values($result->idMap)),
             'document' => $result->document === null ? null : Canonical::text($result->document),
         ];
@@ -100,6 +102,6 @@ class ImportPlan
      */
     private function failed(string $message, bool $dryRun): array
     {
-        return ['ok' => false, 'dryRun' => $dryRun, 'projectId' => null, 'changes' => [], 'errors' => [['path' => '', 'kind' => 'invalid', 'message' => $message]], 'idMap' => [], 'document' => null];
+        return ['ok' => false, 'dryRun' => $dryRun, 'projectId' => null, 'changes' => [], 'errors' => [['path' => '', 'kind' => 'invalid', 'message' => $message]], 'warnings' => [], 'idMap' => [], 'document' => null];
     }
 }

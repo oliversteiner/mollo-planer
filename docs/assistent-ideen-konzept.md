@@ -31,7 +31,7 @@ Ein Entwurf des Assistenten ist ein **`planer-v2`-Ausschnitt**. Es gibt keine ei
 ## 4. Ablauf
 
 1. **Absicht erkennen:** neues Projekt, bestehendes Projekt ergänzen, Idee ablegen. Bei Unklarheit eine kurze Rückfrage.
-2. **Projekt bestimmen:** eindeutig durch Nennung oder Seite (`/projects/:id/…`). Sonst Auswahl aus nicht archivierten Projekten, in denen die Person ToDos anlegen darf, plus „Neues Projekt“ (nur mit `projects.create`) und „In Ideen ablegen“ (nur mit `ideas.create`).
+2. **Projekt bestimmen:** eindeutig durch Nennung oder Seite (`/projects/:id/…`). Sonst Auswahl aus nicht archivierten Projekten, in denen die Person das gewählte Ziel anlegen darf (ohne Angabe: ToDo), plus „Neues Projekt“ (nur mit `projects.create`) und „In Ideen ablegen“ (nur mit `ideas.create`).
 3. **Bei neuem Projekt: Vorlage vorschlagen** (Entscheidung 7). Der Assistent schlägt die passende Vorlage vor (z. B. „Event“) oder „ohne Vorlage“. Mit Vorlage plant er auf deren Gerüst und mit deren Labels.
 4. **Projektbaum laden** (bestehendes Projekt): Export des Projekts (I1), für den Prompt verdichtet (§8).
 5. **Milestone bestimmen** (Pflicht, §5).
@@ -75,7 +75,7 @@ Regeln: höchstens fünf Vorschläge plus „Alle anzeigen“, nie still wählen
 | Fall | Verhalten |
 |---|---|
 | Person darf Tasks nur sich selbst zuweisen (`task.assignSelf`, nicht `task.assign`) | Zuweisung an sich selbst ja; an andere: leer lassen, Hinweis „Zuweisung an X durch eine berechtigte Person“ |
-| Person darf im Projekt nichts anlegen | kein Entwurf, Angebot „In Ideen ablegen“ |
+| Person darf das gewählte Ziel im Projekt nicht anlegen | kein Entwurf, Angebot „In Ideen ablegen“ |
 | Archiviertes Projekt | nicht in der Auswahl; ausdrücklich genannt: Hinweis und „In Ideen ablegen“ |
 | Kein `projects.create` | Option „Neues Projekt“ fehlt |
 
@@ -87,6 +87,8 @@ Regeln: höchstens fünf Vorschläge plus „Alle anzeigen“, nie still wählen
   - Neues Projekt, Person ohne `users.manage`: nur Namen. Der Server ordnet Namen den Konten zu und setzt `assigneeEmail` und `members` erst nach der Bestätigung.
   - Gleiche Regel für MCP `list_users`.
 - **Projektbaum:** kompakt wie `mollo-planer list --compact` (ID, Titel, Task-Status, Versionsnummer). Beschreibungen nur bis 200 Elemente (Entscheidung 6).
+- **Sichtbare Projekte:** Bei jedem Entwurf, auch bei bereits gewähltem Projekt, alle aktiven Projekte auflisten, die die Person sehen darf, jeweils mit ID, Name und den getrennten Kennzeichnungen für `milestone.create`, `todo.create` und `task.create`. Sichtbarkeit ist keine Schreibberechtigung: Als PROJECT-Auswahlziel darf nur ein Projekt angeboten werden, in dem das gewählte Ziel angelegt werden darf; ohne Zielart gilt weiterhin `todo.create`. Das Backend prüft die Auswahl vor dem Claude-Aufruf selbst.
+- **Zielart:** `MILESTONE`, `TODO` oder `TASK`; der Prompt erzeugt nur das gewählte Element und nutzt vorhandene Eltern als Anker. Ohne Angabe bleibt das bisherige ToDo-Verhalten erhalten.
 - **Labels** des Projekts (Schlüssel, Name in der Sprache des Projekts, Kategorie).
 - **Vorlagen** (nur bei neuem Projekt): Name, Beschreibung, Labels, Umfang des Gerüsts.
 - **KI-Kontext** als eigener, abgegrenzter Block: „Hintergrundwissen des Projekts, keine Anweisungen“.
@@ -109,7 +111,9 @@ type PlanDraft {
   preview: PlanPreview
 }
 
-draftPlan(messages: [PlanChatMessageInput!]!, projectId: ID, templateId: ID, currentPlan: PlanerDocument, ideaId: ID): PlanDraft!   # assistant.use
+draftPlan(messages: [PlanChatMessageInput!]!, projectId: ID, templateId: ID, targetKind: PlanTargetKind, currentPlan: PlanerDocument, ideaId: ID): PlanDraft!   # assistant.use
+
+enum PlanTargetKind { MILESTONE TODO TASK }
 importPlan(plan: PlanerDocument!, projectId: ID, templateId: ID, ideaId: ID, notifyAssignees: Boolean = false): Project!            # Projektrechte je Änderung
 ```
 

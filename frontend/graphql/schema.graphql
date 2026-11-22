@@ -305,6 +305,14 @@ type ImportResult {
  ok: Boolean!
  "Das Projekt (bei einem neuen erst nach dem Eintragen, nicht im Trockenlauf)"
  projectId: ID
+ "Zuweisungen, die wegfallen (unbekannte oder nicht zugehörige Person); der Import läuft trotzdem weiter"
+ warnings: [ImportWarning!]!
+}
+type ImportWarning {
+ email: String!
+ message: String!
+ "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]"
+ path: String!
 }
 "Status von Milestone und ToDo (wird automatisch berechnet)"
 enum ItemStatus {
@@ -479,6 +487,8 @@ type Mutation {
  messages: [PlanChatMessageInput!]!
  "Das Projekt, zu dem ergänzt wird; ohne: neues Projekt oder noch offen"
  projectId: ID
+ "Art des Elements, das angelegt werden soll; ohne Angabe plant der Assistent wie bisher automatisch"
+ targetKind: PlanTargetKind
  "Die gewählte Vorlage eines neuen Projekts"
  templateId: ID
  ): PlanDraft!
@@ -498,6 +508,8 @@ type Mutation {
  appendOnly: Boolean = false
  document: String!
  dryRun: Boolean = false
+ "Abbruch, wenn sich die Projekt-Revision seit dem Export geändert hat"
+ expectedRevision: Int
  "Die Idee, aus der die Datei entstand (nur die Autorin): danach angenommen, ihre neuen ToDos verweisen auf sie"
  ideaId: ID
  mode: ImportMode = FULL
@@ -695,6 +707,12 @@ type PlanDraft {
  "Text für den Chat"
  reply: String!
  templateId: ID
+}
+"Art des Elements, das die Person anlegen will"
+enum PlanTargetKind {
+ MILESTONE
+ TASK
+ TODO
 }
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
 type Progress {

@@ -444,6 +444,8 @@ type ImportResult {
   changes: [ImportChange!]!
   "Bei Fehlern wurde nichts geschrieben"
   errors: [ImportError!]!
+  "Zuweisungen, die wegfallen (unbekannte oder nicht zugehörige Person); der Import läuft trotzdem weiter"
+  warnings: [ImportWarning!]!
   "Die „-new-“-IDs der Datei und die IDs, die die App ihnen gab (leer im Trockenlauf)"
   idMap: [ImportId!]!
   "Der Export nach dem Import als kanonischer Text (nicht im Trockenlauf und nicht bei Fehlern)"
@@ -466,6 +468,13 @@ type ImportError {
   path: String!
   "invalid, revision, archived, denied, unknown_id, person, role, self, assignee, description, limit oder rule"
   kind: String!
+  message: String!
+}
+
+type ImportWarning {
+  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]"
+  path: String!
+  email: String!
   message: String!
 }
 

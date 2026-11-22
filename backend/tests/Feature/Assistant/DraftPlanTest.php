@@ -5,12 +5,17 @@ namespace Tests\Feature\Assistant;
 use App\Assistant\AssistantError;
 use App\Assistant\AssistantSchema;
 use App\Assistant\ClaudeClient;
+use App\Enums\ProjectRole;
+use App\Enums\Right;
 use App\Models\Idea;
 use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Template;
 use App\Models\Todo;
+use App\Support\Rights;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Mockery\MockInterface;
 use Tests\Feature\GraphQL\GraphQLTestCase;
@@ -20,8 +25,8 @@ use Tests\Feature\GraphQL\GraphQLTestCase;
  */
 class DraftPlanTest extends GraphQLTestCase
 {
-    private const DRAFT = 'mutation ($p: ID, $t: ID, $plan: String, $idea: ID, $text: String!) {
-        draftPlan(messages: [{role: USER, content: $text}], projectId: $p, templateId: $t, currentPlan: $plan, ideaId: $idea) {
+    private const DRAFT = 'mutation ($p: ID, $t: ID, $plan: String, $idea: ID, $kind: PlanTargetKind, $text: String!) {
+        draftPlan(messages: [{role: USER, content: $text}], projectId: $p, templateId: $t, currentPlan: $plan, ideaId: $idea, targetKind: $kind) {
             reply plan projectId hints
             choices { kind label detail value recommended }
             preview { ok changes { kind path } errors { kind path } }
@@ -69,6 +74,36 @@ class DraftPlanTest extends GraphQLTestCase
         ];
     }
 
+    private function taskPlan(): array
+    {
+        return [
+            'project' => ['name' => null, 'description' => null, 'locale' => null, 'members' => [], 'labels' => []],
+            'milestones' => [[
+                'id' => "m-{$this->milestone->id}", 'title' => $this->milestone->title, 'description' => null, 'dueDate' => null, 'release' => null,
+                'todos' => [[
+                    'id' => "t-{$this->todo->id}", 'title' => $this->todo->title, 'description' => null, 'dueDate' => null,
+                    'tasks' => [['id' => 'new', 'title' => 'Neuer Task', 'description' => null, 'dueDate' => null, 'status' => null, 'assigneeEmail' => null, 'labels' => [], 'userStory' => null]],
+                ]],
+            ]],
+        ];
+    }
+
+    private function giveManagerOnlyProjectRight(Right $right): void
+    {
+        $key = 'assistant-test-'.str_replace('.', '-', $right->value);
+        $functionId = DB::table('functions')->insertGetId([
+            'scope' => Role::SCOPE_PROJECT,
+            'key' => $key,
+            'names' => json_encode(['de' => 'Test', 'en' => 'Test'], JSON_THROW_ON_ERROR),
+        ]);
+        DB::table('function_rights')->insert(['function_id' => $functionId, 'right' => $right->value]);
+
+        $role = Role::create(['scope' => Role::SCOPE_PROJECT, 'key' => $key, 'names' => ['de' => 'Test', 'en' => 'Test']]);
+        DB::table('role_functions')->insert(['role_id' => $role->id, 'function_id' => $functionId]);
+        $this->project->members()->updateExistingPivot($this->users['manager']->id, ['role_id' => $role->id]);
+        Rights::clearCache();
+    }
+
     public function test_a_todo_in_an_existing_milestone_gives_a_preview_with_server_ids_and_saves_nothing(): void
     {
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
@@ -91,7 +126,9 @@ class DraftPlanTest extends GraphQLTestCase
         $other = Milestone::factory()->for($this->project)->create(['title' => 'Go-live']);
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
 
-        $result = $this->draft('manager', ['p' => $this->project->id, 'text' => 'Kontaktformular absichern bis Ende Dezember'])->json('data.draftPlan');
+        $response = $this->draft('manager', ['p' => $this->project->id, 'text' => 'Kontaktformular absichern bis Ende Dezember']);
+        $response->assertJsonMissingPath('errors');
+        $result = $response->json('data.draftPlan');
 
         $this->assertNull($result['plan']);
         $this->assertNull($result['preview']);
@@ -129,7 +166,9 @@ class DraftPlanTest extends GraphQLTestCase
     {
         $this->claude($this->answer($this->todoPlan("m-{$this->milestone->id}")));
 
-        $result = $this->draft('manager', ['p' => $this->project->id])->json('data.draftPlan');
+        $response = $this->draft('manager', ['p' => $this->project->id]);
+        $response->assertJsonMissingPath('errors');
+        $result = $response->json('data.draftPlan');
         $todo = collect(json_decode($result['plan'], true)['milestones'][0]['todos'])->firstWhere('title', 'Neues ToDo');
 
         $this->assertArrayNotHasKey('dueDate', $todo);
@@ -163,6 +202,77 @@ class DraftPlanTest extends GraphQLTestCase
         $this->assertSame([true, false, false], array_column($result['choices'], 'recommended'));
     }
 
+    public function test_the_prompt_lists_visible_active_projects_and_marks_todo_creation_rights_even_when_one_is_selected(): void
+    {
+        $guestProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)->create(['name' => 'Nur lesbar']);
+        $archivedProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)->create(['name' => 'Archiviert']);
+        $archivedProject->forceFill(['archived_at' => now()])->save();
+        $foreignProject = Project::factory()->create(['name' => 'Fremd']);
+        $this->claude($this->answer());
+
+        foreach (['owner', 'member', 'manager'] as $viewer) {
+            $this->draft($viewer, ['p' => $this->project->id])->assertJsonMissingPath('errors');
+
+            $this->assertStringContainsString(
+                '"id":"'.$this->project->id.'","name":"Mollo Planer","mayCreateMilestones":true,"mayCreateTodos":true,"mayCreateTasks":true',
+                $this->sent['system'],
+            );
+        }
+
+        $prompt = $this->sent['system'];
+
+        $this->assertStringContainsString(
+            '"id":"'.$guestProject->id.'","name":"Nur lesbar","mayCreateMilestones":false,"mayCreateTodos":false,"mayCreateTasks":false',
+            $prompt,
+        );
+        $this->assertStringNotContainsString('Archiviert', $prompt);
+        $this->assertStringNotContainsString('Fremd', $prompt);
+    }
+
+    public function test_a_view_all_user_gets_visible_projects_that_are_not_their_memberships(): void
+    {
+        $foreignProject = Project::factory()->create(['name' => 'Auch sichtbar']);
+        $this->claude($this->answer());
+
+        $this->draft('admin')->assertJsonMissingPath('errors');
+
+        $this->assertStringContainsString(
+            '"id":"'.$foreignProject->id.'","name":"Auch sichtbar","mayCreateMilestones":true,"mayCreateTodos":true,"mayCreateTasks":true',
+            $this->sent['system'],
+        );
+    }
+
+    public function test_the_prompt_lists_more_than_fifty_visible_projects(): void
+    {
+        $lastProject = null;
+
+        foreach (range(1, 55) as $number) {
+            $lastProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)
+                ->create(['name' => sprintf('zz sichtbares Projekt %02d', $number)]);
+        }
+
+        $this->claude($this->answer());
+
+        $this->draft('manager')->assertJsonMissingPath('errors');
+
+        $this->assertStringContainsString(
+            '"id":"'.$lastProject->id.'","name":"zz sichtbares Projekt 55","mayCreateMilestones":false,"mayCreateTodos":false,"mayCreateTasks":false',
+            $this->sent['system'],
+        );
+    }
+
+    public function test_a_visible_project_without_todo_creation_right_is_not_kept_as_a_project_choice(): void
+    {
+        $guestProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)->create(['name' => 'Nur lesbar']);
+        $this->claude($this->answer(null, [
+            ['kind' => 'PROJECT', 'label' => 'Nur lesbar', 'detail' => null, 'value' => (string) $guestProject->id, 'recommended' => false],
+        ]));
+
+        $result = $this->draft('manager')->json('data.draftPlan');
+
+        $this->assertSame([], $result['choices']);
+    }
+
     public function test_more_than_five_choices_end_with_show_all(): void
     {
         $choices = array_map(fn (int $i): array => ['kind' => 'CUSTOM_MILESTONE', 'label' => "Wahl {$i}", 'detail' => null, 'value' => null, 'recommended' => false], range(1, 7));
@@ -188,7 +298,96 @@ class DraftPlanTest extends GraphQLTestCase
     {
         $this->claude($this->answer());
 
-        $this->draft('stranger', ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.no_project'));
+        $this->draft('stranger', ['p' => $this->project->id, 'kind' => 'TASK'])->assertGraphQLErrorMessage(__('assistant.no_project'));
+    }
+
+    public function test_the_selected_target_kind_uses_its_matching_right_and_is_described_to_claude(): void
+    {
+        $this->claude($this->answer());
+
+        foreach ([
+            'MILESTONE' => Right::MILESTONE_CREATE,
+            'TODO' => Right::TODO_CREATE,
+            'TASK' => Right::TASK_CREATE,
+        ] as $kind => $right) {
+            $this->giveManagerOnlyProjectRight($right);
+
+            $this->draft('manager', ['p' => $this->project->id, 'kind' => $kind])->assertJsonMissingPath('errors');
+
+            $this->assertStringContainsString("The selected target kind is {$kind}.", $this->sent['system']);
+            $this->assertStringNotContainsString('NEW_MILESTONE', $this->sent['system']);
+            $this->assertStringNotContainsString('CUSTOM_MILESTONE', $this->sent['system']);
+            if ($kind === 'TODO') {
+                $this->assertStringContainsString('existing milestones (kind MILESTONE', $this->sent['system']);
+            } elseif ($kind === 'TASK') {
+                $this->assertStringContainsString('existing todos (kind APPEND_TO_TODO', $this->sent['system']);
+            }
+            foreach ([
+                'mayCreateMilestones' => $right === Right::MILESTONE_CREATE,
+                'mayCreateTodos' => $right === Right::TODO_CREATE,
+                'mayCreateTasks' => $right === Right::TASK_CREATE,
+            ] as $flag => $allowed) {
+                $this->assertStringContainsString('"'.$flag.'":'.($allowed ? 'true' : 'false'), $this->sent['system']);
+            }
+        }
+    }
+
+    public function test_an_explicit_target_kind_without_its_own_right_is_refused_before_calling_claude(): void
+    {
+        $this->giveManagerOnlyProjectRight(Right::TASK_CREATE);
+        $this->partialMock(ClaudeClient::class, fn (MockInterface $mock) => $mock->shouldNotReceive('ask'));
+
+        $this->draft('manager', ['p' => $this->project->id, 'kind' => 'TODO'])->assertGraphQLErrorMessage(__('assistant.no_project'));
+    }
+
+    public function test_omitting_the_target_kind_keeps_the_existing_todo_right_requirement(): void
+    {
+        $this->giveManagerOnlyProjectRight(Right::TASK_CREATE);
+        $this->claude($this->answer());
+
+        $response = $this->draft('manager', ['p' => $this->project->id]);
+
+        $response->assertGraphQLErrorMessage(__('assistant.no_project'));
+        $this->assertNull($this->sent);
+    }
+
+    public function test_omitting_the_target_kind_keeps_the_original_full_project_planning_prompt(): void
+    {
+        $this->claude($this->answer());
+
+        $this->draft('manager')->assertJsonMissingPath('errors');
+
+        $this->assertStringContainsString('The target kind is automatic.', $this->sent['system']);
+        $this->assertStringContainsString('Plan a whole project or the full hierarchy requested', $this->sent['system']);
+        $this->assertStringContainsString('Two to five todos per milestone, two to five concrete tasks per todo', $this->sent['system']);
+        $this->assertStringContainsString('a new milestone (NEW_MILESTONE)', $this->sent['system']);
+        $this->assertStringContainsString('CUSTOM_MILESTONE', $this->sent['system']);
+        $this->assertStringNotContainsString('The selected target kind is', $this->sent['system']);
+    }
+
+    public function test_project_choices_are_filtered_by_the_selected_target_right(): void
+    {
+        $this->giveManagerOnlyProjectRight(Right::TASK_CREATE);
+        $this->claude($this->answer(null, [
+            ['kind' => 'PROJECT', 'label' => 'Mollo Planer', 'detail' => null, 'value' => (string) $this->project->id, 'recommended' => false],
+        ]));
+
+        $taskChoice = $this->draft('manager', ['kind' => 'TASK'])->json('data.draftPlan.choices');
+        $todoChoice = $this->draft('manager', ['kind' => 'TODO'])->json('data.draftPlan.choices');
+
+        $this->assertSame((string) $this->project->id, $taskChoice[0]['value']);
+        $this->assertSame([], $todoChoice);
+    }
+
+    public function test_a_task_only_target_is_still_checked_by_the_importer_for_the_actual_changes(): void
+    {
+        $this->giveManagerOnlyProjectRight(Right::TASK_CREATE);
+        $this->claude($this->answer($this->taskPlan()));
+
+        $result = $this->draft('manager', ['p' => $this->project->id, 'kind' => 'TASK'])->json('data.draftPlan');
+
+        $this->assertTrue($result['preview']['ok']);
+        $this->assertSame(['CREATE'], array_column($result['preview']['changes'], 'kind'));
     }
 
     public function test_an_archived_project_gives_a_message_not_a_draft(): void
@@ -196,7 +395,7 @@ class DraftPlanTest extends GraphQLTestCase
         $this->claude($this->answer());
         $this->project->forceFill(['archived_at' => now()])->save();
 
-        $this->draft('manager', ['p' => $this->project->id])->assertGraphQLErrorMessage(__('assistant.archived'));
+        $this->draft('manager', ['p' => $this->project->id, 'kind' => 'TASK'])->assertGraphQLErrorMessage(__('assistant.archived'));
     }
 
     public function test_a_new_project_from_a_template_goes_from_the_draft_to_the_import(): void

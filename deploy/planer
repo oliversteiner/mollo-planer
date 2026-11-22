@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Kurzbefehl für die Nutzerverwaltung auf dem Server: "planer" statt "php artisan planer:user".
+#
+# Einmalig auf dem Server als Link anlegen (Pfad an den App-Ordner anpassen):
+#   mkdir -p ~/bin && ln -s ~/<app-ordner>/deploy/planer ~/bin/planer
+# Die Datei liegt im Repository und wird mit jedem Deployment aktualisiert, der Link bleibt gültig.
+# PHP: DEPLOY_PHP aus backend/.env (wie beim Deployment), sonst "php".
+set -euo pipefail
+
+APP="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+BACKEND="$APP/backend"
+PHP="php"
+
+if [ -f "$BACKEND/.env" ]; then
+    deploy_php=$(grep -E '^DEPLOY_PHP=' "$BACKEND/.env" | tail -n 1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/' || true)
+    if [ -n "$deploy_php" ]; then
+        PHP="$deploy_php"
+    fi
+fi
+
+cd "$BACKEND"
+exec "$PHP" artisan planer:user "$@"

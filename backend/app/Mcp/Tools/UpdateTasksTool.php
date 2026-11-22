@@ -17,7 +17,7 @@ use Laravel\Mcp\Server\Tool;
  * the release rule and the membership of an assignee are the ones of the app, and all of it is one transaction.
  */
 #[Name('update_tasks')]
-#[Description('Sets status, commit and/or assigneeEmail of several tasks in one step (the usual work of an agent). tasks: a list of { id (k-<id>), status?, commit?, assigneeEmail? }; what you leave out stays, null clears commit or assignee. All or nothing, with your rights and the rules of the app (commit when done in a released version, assignee must be a member). base_revision (from export_plan) protects against changes made meanwhile: if the plan moved on, nothing is written. dry_run: true shows the result without writing. Needs the rights to export and import the plan. For anything else (titles, new tasks, structure) use import_plan.')]
+#[Description('Sets status, commit and/or assigneeEmail of tasks in one atomic step. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. Use base_revision (from export_plan) against concurrent edits and dry_run: true first.')]
 class UpdateTasksTool extends Tool
 {
     use RunsGraphQL;
@@ -26,11 +26,12 @@ class UpdateTasksTool extends Tool
 
     private const EXPORT = 'query ($id: ID!) { exportPlan(projectId: $id) }';
 
+    private const REVISION = 'query ($id: ID!) { project(id: $id) { planerRevision } }';
+
     private const IMPORT = <<<'GRAPHQL'
-        mutation ($projectId: ID, $document: String!, $dryRun: Boolean!) {
-          importPlan(projectId: $projectId, document: $document, mode: PARTIAL, dryRun: $dryRun, notifyAssignees: false, appendOnly: false) {
-            ok dryRun document
-            changes { kind path id fields }
+        mutation ($projectId: ID, $document: String!, $dryRun: Boolean!, $expectedRevision: Int!) {
+          importPlan(projectId: $projectId, document: $document, mode: PARTIAL, dryRun: $dryRun, notifyAssignees: false, appendOnly: false, expectedRevision: $expectedRevision) {
+            ok dryRun
             errors { path kind message }
           }
         }
@@ -41,7 +42,7 @@ class UpdateTasksTool extends Tool
         $validated = $request->validate(
             [
                 'project_id' => ['required'],
-                'base_revision' => ['sometimes', 'nullable', 'integer'],
+                'base_revision' => ['required', 'integer'],
                 'tasks' => ['required', 'array', 'min:1', 'max:500'],
                 'tasks.*.id' => ['required'],
                 'tasks.*.status' => ['sometimes', 'in:idea,planned,open,in_progress,review,done'],
@@ -50,9 +51,10 @@ class UpdateTasksTool extends Tool
                 'dry_run' => ['sometimes', 'boolean'],
             ],
             [
-                'project_id.required' => 'Give the project_id, for example from list_projects.',
-                'tasks.required' => 'Give tasks: a list of { id, status?, commit?, assigneeEmail? }.',
-                'tasks.*.status.in' => 'status is one of idea, planned, open, in_progress, review, done.',
+                'project_id.required' => 'Give project_id (from list_projects).',
+                'base_revision.required' => 'Give base_revision from export_plan.',
+                'tasks.required' => 'Give tasks: [{ id, status?, commit?, assigneeEmail? }].',
+                'tasks.*.status.in' => 'status must be idea, planned, open, in_progress, review or done.',
             ],
         );
 
@@ -63,9 +65,9 @@ class UpdateTasksTool extends Tool
             $projectId = (string) $validated['project_id'];
             $document = json_decode((string) $runner->run(self::EXPORT, ['id' => $projectId])['exportPlan'], true, 512, JSON_THROW_ON_ERROR);
 
-            $base = $validated['base_revision'] ?? null;
+            $base = (int) $validated['base_revision'];
 
-            if ($base !== null && (int) $base !== (int) $document['revision']) {
+            if ($base !== (int) $document['revision']) {
                 return Response::error(__('planer.update_tasks.revision', ['file' => $base, 'project' => $document['revision']]));
             }
 
@@ -102,8 +104,6 @@ class UpdateTasksTool extends Tool
                     }
                 }
 
-                // The file has no null: a cleared commit or assignee is a missing field.
-                $current = array_filter($current, fn ($value): bool => $value !== null);
                 $changes[$mi][$ti][$ki] = $current;
                 $after[$id] = $this->fieldsOf($current);
             }
@@ -116,24 +116,31 @@ class UpdateTasksTool extends Tool
                 'projectId' => $projectId,
                 'document' => json_encode($this->excerpt($document, $changes), JSON_THROW_ON_ERROR),
                 'dryRun' => $dryRun,
+                'expectedRevision' => $base,
             ])['importPlan'];
 
             if (! $result['ok']) {
                 return $this->failure($result['errors']);
             }
 
-            $revision = $result['document'] === null
+            $revision = $dryRun
                 ? (int) $document['revision']
-                : (int) json_decode($result['document'], true, 512, JSON_THROW_ON_ERROR)['revision'];
+                : (int) ($runner->run(self::REVISION, ['id' => $projectId])['project']['planerRevision'] ?? $document['revision']);
 
             $tasks = [];
             foreach ($after as $id => $values) {
-                if ($values !== $before[$id]) {
-                    $tasks[] = ['id' => $id, 'before' => $before[$id], 'after' => $values];
+                $diffBefore = array_diff_assoc($before[$id], $values);
+                $diffAfter = array_diff_assoc($values, $before[$id]);
+
+                if ($diffAfter !== []) {
+                    $tasks[] = ['id' => $id, 'before' => $diffBefore, 'after' => $diffAfter];
                 }
             }
 
-            return Response::json(['ok' => true, 'dry_run' => $dryRun, 'revision' => $revision, 'changed' => $tasks]);
+            return Response::text(json_encode(
+                ['ok' => true, 'dry_run' => $dryRun, 'revision' => $revision, 'changed' => $tasks],
+                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            ));
         });
     }
 
@@ -192,15 +199,15 @@ class UpdateTasksTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'project_id' => $schema->string()->description('Id of the project (from list_projects).')->required(),
-            'base_revision' => $schema->integer()->description('The revision you worked on (from export_plan). If the plan has another revision now, nothing is written.'),
+            'project_id' => $schema->string()->description('Project ID (from list_projects).')->required(),
+            'base_revision' => $schema->integer()->description('Required revision from export_plan; aborts if project changed meanwhile.')->required(),
             'tasks' => $schema->array()->items($schema->object([
-                'id' => $schema->string()->description('Task id, k-<id> or the number.')->required(),
+                'id' => $schema->string()->description('Task ID (k-<id> or number).')->required(),
                 'status' => $schema->string()->enum(['idea', 'planned', 'open', 'in_progress', 'review', 'done']),
                 'commit' => $schema->string()->description('Commit hash, "none", or null to clear.'),
-                'assigneeEmail' => $schema->string()->description('E-mail of a member of the project, or null for nobody.'),
-            ]))->description('The tasks to change, up to 500.')->required(),
-            'dry_run' => $schema->boolean()->description('true: write nothing, show what would change.'),
+                'assigneeEmail' => $schema->string()->description('Member email, or null to unassign.'),
+            ]))->description('Tasks to update (max 500).')->required(),
+            'dry_run' => $schema->boolean()->description('true: preview changes without writing.'),
         ];
     }
 }

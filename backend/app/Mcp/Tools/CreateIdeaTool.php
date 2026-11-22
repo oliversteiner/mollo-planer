@@ -14,7 +14,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('create_idea')]
-#[Description('Saves a private idea for the person whose token you use: a title, a description in Markdown (paragraphs, lists, bold, italic, links), optionally a project (project_id) and a draft (a planer-v2 excerpt that the assistant can put into a project later). Use it to keep something that does not belong in a plan yet. Anything in the description that the editor cannot hold becomes plain text; the answer lists those warnings.')]
+#[Description('Saves a private idea (title, Markdown description, optional project_id or planer-v2 draft).')]
 class CreateIdeaTool extends Tool
 {
     use RunsGraphQL;
@@ -34,7 +34,7 @@ class CreateIdeaTool extends Tool
                 'project_id' => ['sometimes', 'nullable'],
                 'draft' => ['sometimes', 'nullable'],
             ],
-            ['title.required' => 'Give the title of the idea (2 to 200 characters).'],
+            ['title.required' => 'Give title (2 to 200 chars).'],
         );
 
         $warnings = [];
@@ -53,10 +53,18 @@ class CreateIdeaTool extends Tool
                 'title' => $validated['title'],
                 'description' => $description,
                 'projectId' => isset($validated['project_id']) ? (string) $validated['project_id'] : null,
-                'draft' => is_array($draft) ? json_encode($draft, JSON_THROW_ON_ERROR) : $draft,
+                'draft' => is_array($draft) ? json_encode($draft, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $draft,
             ], fn ($value): bool => $value !== null)])['createIdea'];
 
-            return Response::json(['idea' => $idea, 'warnings' => $warnings]);
+            $payload = ['idea' => $idea];
+            if ($warnings !== []) {
+                $payload['warnings'] = $warnings;
+            }
+
+            return Response::text(json_encode(
+                $payload,
+                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            ));
         });
     }
 
@@ -66,10 +74,10 @@ class CreateIdeaTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'title' => $schema->string()->description('Title of the idea, 2 to 200 characters.')->required(),
+            'title' => $schema->string()->description('Idea title (2-200 chars).')->required(),
             'description' => $schema->string()->description('Description in Markdown.'),
-            'project_id' => $schema->string()->description('A project of the person (from list_projects), or leave out.'),
-            'draft' => $schema->object()->description('A planer-v2 excerpt to put into a project later, or leave out.'),
+            'project_id' => $schema->string()->description('Project ID (from list_projects) or omit.'),
+            'draft' => $schema->object()->description('Optional planer-v2 excerpt.'),
         ];
     }
 }

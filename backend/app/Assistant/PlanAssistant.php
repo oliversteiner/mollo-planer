@@ -28,7 +28,7 @@ class PlanAssistant
             throw new AssistantError(__('assistant.archived'));
         }
 
-        if ($request->project instanceof Project && ! PlanChoices::mayPlanIn($request->viewer, $request->project)) {
+        if ($request->project instanceof Project && ! PlanChoices::mayPlanIn($request->viewer, $request->project, $request->targetKind)) {
             throw new AssistantError(__('assistant.no_project'));
         }
 

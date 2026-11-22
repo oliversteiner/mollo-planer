@@ -49,4 +49,49 @@ class IdeaToolsTest extends McpTestCase
         MolloPlanerServer::actingAs($this->member)->tool(ListIdeasTool::class)->assertOk()->assertSee('Meine offene')->assertDontSee('Meine verworfene')->assertDontSee('Fremde');
         MolloPlanerServer::actingAs($this->member)->tool(ListIdeasTool::class, ['status' => 'discarded'])->assertOk()->assertSee('Meine verworfene');
     }
+
+    public function test_idea_pages_and_unicode_descriptions_are_fully_retrievable(): void
+    {
+        $text = str_repeat('漢', 6000);
+
+        for ($index = 1; $index <= 51; $index++) {
+            Idea::factory()->create([
+                'user_id' => $this->member->id,
+                'title' => $index === 51 ? 'Long description' : "Idea {$index}",
+                'description' => $index === 51 ? ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => $text]]]]] : null,
+            ]);
+        }
+
+        $firstPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListIdeasTool::class, ['limit' => 50, 'max_chars' => 5000]));
+
+        $this->assertCount(50, $firstPage['ideas']);
+        $this->assertTrue($firstPage['has_more']);
+        $longIdea = $firstPage['ideas'][0];
+        $this->assertSame('Long description', $longIdea['title']);
+        $this->assertSame(5000, mb_strlen($longIdea['description']));
+        $this->assertTrue($longIdea['description_truncated']);
+
+        $lastPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListIdeasTool::class, [
+            'limit' => 50, 'cursor' => $firstPage['next_cursor'],
+        ]));
+        $this->assertCount(1, $lastPage['ideas']);
+        $this->assertFalse($lastPage['has_more']);
+
+        $rest = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListIdeasTool::class, [
+            'idea_id' => $longIdea['id'], 'description_offset' => $longIdea['next_description_offset'], 'max_chars' => 2000,
+        ]));
+        $this->assertSame(1000, mb_strlen($rest['ideas'][0]['description']));
+        $this->assertSame($text, $longIdea['description'].$rest['ideas'][0]['description']);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decode(mixed $response): array
+    {
+        $response->assertOk();
+        $content = (string) ((fn (): array => $this->content())->call($response)[0] ?? '');
+
+        return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+    }
 }

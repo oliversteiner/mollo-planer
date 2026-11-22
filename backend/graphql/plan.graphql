@@ -54,3 +54,10 @@ input PlanChatMessageInput {
   role: PlanChatRole!
   content: String! @rules(apply: ["min:1", "max:8000"])
 }
+
+"Art des Elements, das die Person anlegen will"
+enum PlanTargetKind {
+  MILESTONE
+  TODO
+  TASK
+}

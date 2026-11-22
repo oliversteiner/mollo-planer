@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Assistant\AssistantRequest;
 use App\Assistant\PlanAssistant;
+use App\Assistant\PlanTargetKind;
 use App\Enums\Right;
 use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Idea;
@@ -25,7 +26,7 @@ class DraftPlan
     public function __construct(private readonly PlanAssistant $assistant) {}
 
     /**
-     * @param  array{messages: list<array{role: string, content: string}>, projectId?: int|string|null, templateId?: int|string|null, currentPlan?: string|null, ideaId?: int|string|null}  $args
+     * @param  array{messages: list<array{role: string, content: string}>, projectId?: int|string|null, templateId?: int|string|null, targetKind?: string|null, currentPlan?: string|null, ideaId?: int|string|null}  $args
      * @return array<string, mixed>
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): array
@@ -59,6 +60,8 @@ class DraftPlan
             'content' => $message['content'],
         ], $args['messages']);
 
-        return $this->assistant->draft(new AssistantRequest($viewer, $messages, $project, $template, $args['currentPlan'] ?? null, $idea, app()->getLocale()));
+        $targetKind = isset($args['targetKind']) ? PlanTargetKind::from($args['targetKind']) : null;
+
+        return $this->assistant->draft(new AssistantRequest($viewer, $messages, $project, $targetKind, $template, $args['currentPlan'] ?? null, $idea, app()->getLocale()));
     }
 }

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Zugang und sichere Nutzung des Mollo Planer MCP-Servers für Agenten.">
+    <title>MCP für Agenten · Mollo Planer</title>
+    <link rel="stylesheet" href="../mcp.css">
+    <link rel="alternate" hreflang="en" href="/mcp/">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="masthead">
+        <a class="wordmark" href="/" aria-label="Mollo Planer Startseite"><span class="wordmark-mark">M</span><span>MOLLO <b>PLANER</b></span></a>
+        <nav class="language-nav" aria-label="Sprache"><span aria-current="page">DE</span><span class="language-divider">/</span><a href="/mcp/" lang="en">EN</a></nav>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="status-dot"></span> MODEL CONTEXT PROTOCOL <span class="eyebrow-rule"></span> AGENT GUIDE</p>
+            <h1 id="page-title">Mollo Planer.<br><em>Im Kontext.</em></h1>
+            <p class="hero-intro">Diese Anleitung zeigt Agenten, wie sie einen sicheren Zugang zum Planer erhalten und Projekte lesen oder bearbeiten. Der MCP-Server handelt immer mit den Rechten des zugehörigen Kontos.</p>
+          </div>
+          <aside class="endpoint-card" aria-label="MCP-Endpunkt">
+            <span class="card-label">TEST ENDPOINT</span>
+            <code>https://api.planer.mollo.dev/mcp</code>
+            <span class="card-footnote">Testumgebung. Produktion: <code>https://api.planer.mollo.ch/mcp</code>. Der MCP-Server nimmt JSON-RPC-Anfragen per POST entgegen.</span>
+          </aside>
+        </section>
+
+        <div class="guide-grid">
+          <aside class="guide-rail" aria-label="Inhalt">
+            <span class="rail-title">IN DIESER ANLEITUNG</span>
+            <a href="#zugang">01 <span>Zugang erhalten</span></a>
+            <a href="#einrichten">02 <span>Agent verbinden</span></a>
+            <a href="#werkzeuge">03 <span>Werkzeuge</span></a>
+            <a href="#sicher">04 <span>Sicher arbeiten</span></a>
+            <a href="#hilfe">05 <span>Hilfe</span></a>
+            <div class="rail-note"><span class="rail-note-mark">i</span><p>Die Seite ist eine Anleitung. Der MCP-Endpunkt ist die API-Adresse oben.</p></div>
+          </aside>
+
+          <article class="guide-content">
+            <section id="zugang" class="guide-section">
+              <p class="section-index">01 <span>IDENTITÄT & ZUGRIFF</span></p>
+              <h2>Dein Zugang beginnt beim Team.</h2>
+              <p>Menschen verbinden ihr persönliches Konto über den einmalig angezeigten Zugang im Profil. Agenten verwenden stattdessen ein eigenes Agent-Konto, nicht das Konto eines Teammitglieds: Bitte die Planer-Administration, das Konto anzulegen, dich den benötigten Projekten mit der Rolle <strong>Agent</strong> zuzuweisen und einen MCP-Zugang bereitzustellen. Agent-Konten werden administrativ eingerichtet und melden sich nicht in der Weboberfläche an.</p>
+              <div class="callout callout-accent">
+                <span class="callout-symbol">↗</span>
+                <p><strong>Der Token ist ein Passwort.</strong> Er wird nur einmal ausgegeben. Bewahre ihn in der Secret-Verwaltung oder geschützten lokalen Konfiguration deines Agenten auf – niemals in Prompts, Repositorys, Logs oder Screenshots.</p>
+              </div>
+              <p>Der Server prüft jede Anfrage im Namen des Kontos. Du siehst nur freigegebene Projekte und darfst nur Aktionen ausführen, für die dieses Konto die nötigen Rechte besitzt. Persönliche Zugänge laufen nach 90 Tagen ab; Agent-Zugänge kann die Administration widerrufen oder erneuern.</p>
+            </section>
+
+            <section id="einrichten" class="guide-section">
+              <p class="section-index">02 <span>VERBINDUNG</span></p>
+              <h2>Agent mit dem MCP-Server verbinden.</h2>
+              <p>Trage Endpunkt und Token in die MCP-Konfiguration deines Clients ein. Der <code>.dev</code>-Host ist TEST, <code>.ch</code> ist PRODUKTION; lokal verwendest du die API-Adresse deines Teams. Sende den Token als <code>Authorization: Bearer …</code>.</p>
+              <h3>Claude Desktop</h3>
+              <p>Konfiguriere den Remote-Server mit <code>mcp-remote</code>. Die lokale Konfiguration enthält den Token und muss geschützt bleiben; sie gehört nicht in die Versionsverwaltung. Node.js muss auf dem Rechner verfügbar sein.</p>
+              <pre><code>{
+  "mcpServers": {
+    "mollo-planer": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://api.planer.mollo.dev/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
+      "env": { "AUTH_TOKEN": "Bearer &lt;dein-agent-token&gt;" }
+    }
+  }
+}</code></pre>
+              <p>Ersetze den Platzhalter lokal, sichere die Konfigurationsdatei und teile sie nie mit dem echten Token. Beende Claude Desktop vollständig und starte es neu, damit die Konfiguration geladen wird.</p>
+              <h3>Claude Code</h3>
+              <p>In diesem Repository ist der MCP-Server bereits in <code>.mcp.json</code> eingetragen und liest <code>MOLLOPLANER_TOKEN</code>. Stelle die Variable über die Secret-Verwaltung deiner Umgebung bereit und starte Claude Code danach neu. Prüfe bei anderen Projekten deren MCP-Konfiguration, bevor du Zugangsdaten einträgst.</p>
+              <h3>JetBrains AI Assistant</h3>
+              <p>Öffne Settings → Tools → AI Assistant → Model Context Protocol (MCP), wähle Add → As JSON und füge diese Konfiguration ein. Sie nutzt wie bei Claude Desktop <code>mcp-remote</code>; ersetze den Platzhalter lokal durch deinen Token. Unter Windows startet <code>npx</code> über <code>cmd /c</code>.</p>
+              <pre><code>{
+  "mcpServers": {
+    "mollo-planer": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://api.planer.mollo.dev/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
+      "env": { "AUTH_TOKEN": "Bearer &lt;dein-agent-token&gt;" }
+    }
+  }
+}</code></pre>
+              <p>Menüpfade können je nach IDE-Version abweichen. Übernimm die Konfiguration mit Apply und starte die IDE danach neu. Der Token gehört nicht in Projektdateien, die versioniert werden.</p>
+              <h3>JetBrains Junie</h3>
+              <p>Trage den Server über Settings → Tools → Junie → MCP Settings ein oder bearbeite direkt die Benutzerdatei <code>~/.junie/mcp/mcp.json</code>. Remote-Server werden mit <code>url</code> und <code>headers</code> beschrieben. Der Token gehört nur in die Benutzerdatei <code>~/.junie/mcp/mcp.json</code>, nie in die projektweite <code>.junie/mcp/mcp.json</code>, die versioniert werden kann.</p>
+              <pre><code>{
+  "mcpServers": {
+    "mollo-planer": {
+      "url": "https://api.planer.mollo.dev/mcp",
+      "headers": { "Authorization": "Bearer &lt;dein-agent-token&gt;" }
+    }
+  }
+}</code></pre>
+              <p>Menüpfade können je nach IDE-Version abweichen. Übernimm die Konfiguration mit Apply und starte Junie bzw. die IDE danach neu.</p>
+            </section>
+
+            <section id="werkzeuge" class="guide-section">
+              <p class="section-index">03 <span>FÄHIGKEITEN</span></p>
+              <h2>Nutze das passende Werkzeug.</h2>
+              <p>Beim Verbinden stellt der Server seine Instruktionen und elf Werkzeuge bereit. Starte mit <code>list_projects</code>, um Projekt-ID, Rolle und Revision zu sehen; ergänze bei Bedarf <code>include_rights: true</code> oder <code>include_members: true</code>. Lies nur die Informationen, die du für den Auftrag brauchst.</p>
+              <div class="tool-list">
+                <div><code>list_projects</code><span>Sichtbare Projekte und Rechte</span></div>
+                <div><code>list_templates</code><span>Verfügbare Projektvorlagen</span></div>
+                <div><code>list_users</code><span>Personen, soweit dein Recht es erlaubt</span></div>
+                <div><code>export_plan</code><span>Plan lesen, bei Bedarf gefiltert</span></div>
+                <div><code>import_plan</code><span>Planänderungen nach Rechteprüfung eintragen</span></div>
+                <div><code>update_tasks</code><span>Status, Commit oder Zuweisung pflegen</span></div>
+                <div><code>add_comment</code> <code>list_comments</code><span>Kommentare schreiben und lesen</span></div>
+                <div><code>create_idea</code> <code>list_ideas</code><span>Private Ideen erfassen und ansehen</span></div>
+                <div><code>get_project_ai_context</code><span>Freigegebenes Projektwissen lesen</span></div>
+              </div>
+              <p>Ein Plan hat das Format <code>planer-v2</code> und die Hierarchie Projekt → Milestone → ToDo → Task. IDs wie <code>m-42</code>, <code>t-81</code> und <code>k-105</code> bleiben beim Bearbeiten erhalten; neue Elemente bekommen IDs wie <code>m-new-1</code>. Der Server vergibt daraus die echten IDs. Listen liefern <code>has_more</code> und <code>next_cursor</code>; folge dem Cursor, bis keine weiteren Treffer vorliegen. Abgeschnittene Kommentare und Ideen lassen sich mit ihrer ID und dem nächsten Text-Offset fortsetzen.</p>
+            </section>
+
+            <section id="sicher" class="guide-section">
+              <p class="section-index">04 <span>SICHER SCHREIBEN</span></p>
+              <h2>Erst prüfen. Dann eintragen.</h2>
+              <ol class="workflow">
+                <li><span>1</span><p><strong>Gezielt exportieren.</strong> Bei grossen Plänen Filter wie Version, Milestone, Task-Status oder „nicht veröffentlichte“ Milestones nutzen.</p></li>
+                <li><span>2</span><p><strong>IDs und Revision erhalten.</strong> Verwende die exportierten IDs und bei vollständigen Planänderungen die aktuelle Revision.</p></li>
+                <li><span>3</span><p><strong>Trockenlauf zuerst.</strong> Rufe <code>import_plan</code> und <code>update_tasks</code> zuerst mit <code>dry_run: true</code> auf. Bei <code>update_tasks</code> ist <code>base_revision</code> aus dem Export Pflicht. Lies alle Änderungen und Fehler, bevor du einen echten Schreibaufruf machst; ein Trockenlauf reserviert keine Revision.</p></li>
+                <li><span>4</span><p><strong>Den passenden Modus wählen.</strong> Ein gefilterter Export ist ein Ausschnitt: schreibe ihn nur mit <code>mode: "partial"</code> zurück. <code>full</code> behandelt den Inhalt als ganzen Plan und verschiebt fehlende Elemente in den Papierkorb.</p></li>
+              </ol>
+              <div class="callout callout-warning">
+                <span class="callout-symbol">!</span>
+                <p><strong>Status nie direkt setzen:</strong> Milestone- und ToDo-Status werden aus Tasks abgeleitet. Schreibe nur Task-Status wie <code>idea</code>, <code>planned</code>, <code>open</code>, <code>in_progress</code>, <code>review</code> oder <code>done</code>.</p>
+              </div>
+              <p><code>update_tasks</code> ändert nur angegebene Felder; <code>commit: null</code> und <code>assigneeEmail: null</code> leeren die Werte. <code>partial</code> ergänzt oder ändert, löscht aber nichts. Der Trockenlauf ersetzt keine Rechteprüfung: der Server kontrolliert jedes konkrete Feld und jede Aktion erneut. Benachrichtigungen an Zugewiesene bleiben standardmässig aus; aktiviere sie nur, wenn der Auftrag es verlangt.</p>
+            </section>
+
+            <section id="hilfe" class="guide-section">
+              <p class="section-index">05 <span>FEHLERSUCHE</span></p>
+              <h2>Wenn die Verbindung stockt.</h2>
+              <dl class="troubleshooting">
+                <div><dt>401 · Unauthenticated</dt><dd>Token prüfen. Er könnte fehlerhaft, widerrufen oder abgelaufen sein; frage die Administration nach einem neuen Zugang.</dd></div>
+                <div><dt>403 · Nicht berechtigt</dt><dd>Das Konto hat keinen MCP-Zugang oder nicht das benötigte Projekt-Recht. Bitte das Team, Mitgliedschaft und Rechte zu prüfen.</dd></div>
+                <div><dt>429 · Zu viele Anfragen</dt><dd>Warte kurz, bevor du es erneut versuchst. Der Server begrenzt die Anfragen.</dd></div>
+                <div><dt>Server wird nicht angezeigt</dt><dd>Prüfe die MCP-Konfiguration und starte den Client vollständig neu.</dd></div>
+              </dl>
+            </section>
+
+            <footer class="page-footer">
+              <span>MODEL CONTEXT PROTOCOL · MOLLO PLANER</span>
+              <a href="#page-title">Zurück nach oben ↑</a>
+            </footer>
+          </article>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

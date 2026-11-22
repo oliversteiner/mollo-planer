@@ -13,6 +13,7 @@ final class ImportResult
      * @param  list<array{path: string, kind: string, message: string}>  $errors  Nothing was written when there are any
      * @param  array<string, string>  $idMap  "-new-" ids of the file => the ids the app gave them
      * @param  array<string, mixed>|null  $document  The export after the import; null in a dry run and on errors
+     * @param  list<array{path: string, email: string, message: string}>  $warnings  Assignments left out; they do not stop the import
      */
     public function __construct(
         public readonly array $changes = [],
@@ -21,6 +22,7 @@ final class ImportResult
         public readonly ?array $document = null,
         public readonly bool $dryRun = false,
         public readonly int|string|null $projectId = null,
+        public readonly array $warnings = [],
     ) {}
 
     public function ok(): bool
@@ -41,6 +43,7 @@ final class ImportResult
             'projectId' => $this->projectId,
             'changes' => $this->changes,
             'errors' => $this->errors,
+            'warnings' => $this->warnings,
             'idMap' => array_map(fn (string $from, string $to): array => ['from' => $from, 'to' => $to], array_keys($this->idMap), array_values($this->idMap)),
             'document' => $this->document === null ? null : Canonical::text($this->document),
         ];

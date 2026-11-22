@@ -5,6 +5,7 @@ namespace App\Mcp\Tools;
 use App\Mcp\Support\GraphQLFailed;
 use App\Mcp\Support\GraphQLRunner;
 use Closure;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Response;
 
 /**
@@ -31,7 +32,7 @@ trait RunsGraphQL
         try {
             return $work();
         } catch (GraphQLFailed $failure) {
-            return Response::error($failure->getMessage());
+            return Response::error(Str::limit($failure->getMessage(), 400));
         }
     }
 }

@@ -187,6 +187,8 @@ type Mutation @guard {
     ideaId: ID
     "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
     appendOnly: Boolean = false
+    "Abbruch, wenn sich die Projekt-Revision seit dem Export geändert hat"
+    expectedRevision: Int
   ): ImportResult!
     @field(resolver: "App\\GraphQL\\Mutations\\ImportPlan")
   "KI-Assistent (assistant.use): der nächste Schritt eines Plans aus dem Chat, mit Rückfrage-Knöpfen und Vorschau (Trockenlauf mit appendOnly). Speichert nichts. Grenzen je Person und Stunde/Tag."
@@ -196,6 +198,8 @@ type Mutation @guard {
     projectId: ID
     "Die gewählte Vorlage eines neuen Projekts"
     templateId: ID
+    "Art des Elements, das angelegt werden soll; ohne Angabe plant der Assistent wie bisher automatisch"
+    targetKind: PlanTargetKind
     "Der Plan der Vorschau (kanonischer Text), damit Claude ihn ändert statt neu beginnt"
     currentPlan: String @rules(apply: ["max:400000"])
     "Die Idee, aus der der Plan entsteht"
