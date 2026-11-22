@@ -1,7 +1,8 @@
-query ListProjects($archived: Boolean) {
+query ListProjects($archived: Boolean, $includeMembers: Boolean! = false, $includeRights: Boolean! = false) {
     projects(archived: $archived) {
-        id name description locale archivedAt viewerRole { key } viewerRights
+        id name locale archivedAt planerRevision viewerRole { key }
         progress { done total percent }
-        members { role { key } user { id name email } }
+        viewerRights @include(if: $includeRights)
+        members @include(if: $includeMembers) { role { key } user { id name email } }
     }
 }

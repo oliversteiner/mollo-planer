@@ -16,4 +16,12 @@ describe('layout auth', () => {
     expect(link.attributes('aria-label')).toBe('Mollo Planer, zur Startseite')
     expect(link.find('svg.app-logo').exists()).toBe(true)
   })
+
+  it('links to the static MCP guide from the footer', async () => {
+    const layout = await mountSuspended(AuthLayout, { route: '/login' })
+    const link = layout.find('footer a')
+
+    expect(link.text()).toBe('MCP')
+    expect(link.attributes('href')).toBe('/mcp/')
+  })
 })

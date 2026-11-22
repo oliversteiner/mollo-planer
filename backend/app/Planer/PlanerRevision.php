@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\DB;
  * The only place that counts projects.planer_revision (docs/umsetzung.md S3c,
  * docs/refactoring-m1-m3.md RF2). Every change that the planer file shows
  * touches its project. Inside a transaction the projects are remembered and
- * counted once each after the commit; a rollback forgets them. Outside a
+ * counted once each inside the transaction; updating the project row also
+ * serializes concurrent plan writes. A rollback undoes the count. Outside a
  * transaction the count goes up at once.
  *
  * Not counted: derived statuses (written quietly), comments, archive and
@@ -29,7 +30,14 @@ final class PlanerRevision
             return;
         }
 
-        $this->pending[(int) $projectId] = true;
+        $id = (int) $projectId;
+
+        if (isset($this->pending[$id])) {
+            return;
+        }
+
+        $this->pending[$id] = true;
+        DB::table('projects')->where('id', $id)->increment('planer_revision');
 
         if ($this->scheduled) {
             return;
@@ -47,7 +55,6 @@ final class PlanerRevision
         $this->forget();
 
         if ($ids !== []) {
-            DB::table('projects')->whereIn('id', $ids)->increment('planer_revision');
             // Projects with a webhook announce the new revision (bundled, at most every five minutes).
             app(PlanerWebhooks::class)->changed($ids);
         }

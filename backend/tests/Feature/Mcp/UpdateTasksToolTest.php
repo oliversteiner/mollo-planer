@@ -5,6 +5,7 @@ namespace Tests\Feature\Mcp;
 use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Mcp\Servers\MolloPlanerServer;
+use App\Mcp\Support\GraphQLRunner;
 use App\Mcp\Tools\UpdateTasksTool;
 use App\Models\Milestone;
 use App\Models\Task;
@@ -40,7 +41,11 @@ class UpdateTasksToolTest extends GraphQLTestCase
     private function update(string $as, array $arguments): mixed
     {
         return MolloPlanerServer::actingAs($this->users[$as])
-            ->tool(UpdateTasksTool::class, ['project_id' => (string) $this->project->id, ...$arguments]);
+            ->tool(UpdateTasksTool::class, [
+                'project_id' => (string) $this->project->id,
+                'base_revision' => (int) $this->project->fresh()->planer_revision,
+                ...$arguments,
+            ]);
     }
 
     public function test_it_sets_status_and_commit_and_reports_before_and_after(): void
@@ -73,6 +78,44 @@ class UpdateTasksToolTest extends GraphQLTestCase
 
         $this->assertSame(TaskStatus::OPEN, $this->task->fresh()->status);
         $this->assertSame($revision, (int) $this->project->fresh()->planer_revision);
+    }
+
+    public function test_null_clears_commit_and_assignee(): void
+    {
+        $this->task->forceFill([
+            'commit' => 'abc1234',
+            'assigned_user_id' => $this->users['member']->id,
+        ])->saveQuietly();
+
+        $this->update('owner', ['tasks' => [[
+            'id' => "k-{$this->task->id}",
+            'commit' => null,
+            'assigneeEmail' => null,
+        ]]])->assertOk();
+
+        $this->assertNull($this->task->fresh()->commit);
+        $this->assertNull($this->task->fresh()->assigned_user_id);
+    }
+
+    public function test_a_change_after_export_is_rejected_before_import(): void
+    {
+        $runner = app(GraphQLRunner::class);
+        $mock = \Mockery::mock($runner)->makePartial();
+        $mock->shouldReceive('run')->andReturnUsing(function (string $query, array $variables) use ($runner): array {
+            if (str_contains($query, 'importPlan(')) {
+                $this->task->update(['title' => 'Concurrent change']);
+            }
+
+            return $runner->run($query, $variables);
+        });
+        $this->app->instance(GraphQLRunner::class, $mock);
+
+        $this->update('owner', ['tasks' => [['id' => "k-{$this->task->id}", 'status' => 'review']]])
+            ->assertHasErrors()
+            ->assertSee('Der Plan wurde inzwischen geändert');
+
+        $this->assertSame('Concurrent change', $this->task->fresh()->title);
+        $this->assertSame(TaskStatus::OPEN, $this->task->fresh()->status);
     }
 
     public function test_the_right_to_import_is_needed(): void

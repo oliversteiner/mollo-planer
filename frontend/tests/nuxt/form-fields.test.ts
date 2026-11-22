@@ -101,6 +101,12 @@ describe('FormSelect', () => {
 
     expect(select.emitted('update:modelValue')).toEqual([['MEMBER']])
   })
+
+  it('can disable the select', async () => {
+    const select = await mountSuspended(FormSelect, { props: { modelValue: '', items, disabled: true } })
+
+    expect((select.element as unknown as { disabled: boolean }).disabled).toBe(true)
+  })
 })
 
 describe.each([

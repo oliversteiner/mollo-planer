@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('list_projects')]
-#[Description('Lists the projects you can see, with your role, what you may do there (abilities), the progress and the members (name, e-mail, role). Use it first to find a project id or the people of a project. Archived projects (read only) are left out unless you ask for them with archived: true.')]
+#[Description('Lists visible projects compactly (id, name, progress, role). Set include_members or include_rights only when needed. Default archived: false.')]
 #[IsReadOnly]
 class ListProjectsTool extends Tool
 {
@@ -21,13 +21,56 @@ class ListProjectsTool extends Tool
     public function handle(Request $request): Response
     {
         $validated = $request->validate(
-            ['archived' => ['sometimes', 'boolean']],
-            ['archived.boolean' => 'archived is true (only archived projects) or false (the others, default).'],
+            [
+                'archived' => ['sometimes', 'boolean'],
+                'include_members' => ['sometimes', 'boolean'],
+                'include_rights' => ['sometimes', 'boolean'],
+            ],
+            ['archived.boolean' => 'archived must be true or false.'],
         );
 
-        return $this->respond(fn () => Response::json(
-            $this->operation('ListProjects', ['archived' => (bool) ($validated['archived'] ?? false)])['projects'] ?? [],
-        ));
+        $includeMembers = (bool) ($validated['include_members'] ?? false);
+        $includeRights = (bool) ($validated['include_rights'] ?? false);
+
+        return $this->respond(function () use ($validated, $includeMembers, $includeRights): Response {
+            $projects = $this->operation('ListProjects', [
+                'archived' => (bool) ($validated['archived'] ?? false),
+                'includeMembers' => $includeMembers,
+                'includeRights' => $includeRights,
+            ])['projects'] ?? [];
+
+            $slim = array_map(function (array $project) use ($includeMembers, $includeRights): array {
+                $item = [
+                    'id' => $project['id'] ?? null,
+                    'name' => $project['name'] ?? null,
+                    'locale' => $project['locale'] ?? null,
+                    'archived_at' => $project['archivedAt'] ?? null,
+                    'planer_revision' => $project['planerRevision'] ?? null,
+                    'progress' => $project['progress'] ?? null,
+                    'role' => $project['viewerRole']['key'] ?? null,
+                ];
+
+                if ($includeMembers && isset($project['members'])) {
+                    $item['members'] = array_map(fn (array $member): array => [
+                        'id' => $member['user']['id'] ?? null,
+                        'name' => $member['user']['name'] ?? null,
+                        'email' => $member['user']['email'] ?? null,
+                        'role' => $member['role']['key'] ?? null,
+                    ], $project['members']);
+                }
+
+                if ($includeRights && isset($project['viewerRights'])) {
+                    $item['abilities'] = $project['viewerRights'];
+                }
+
+                return $item;
+            }, $projects);
+
+            return Response::text(json_encode(
+                $slim,
+                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            ));
+        });
     }
 
     /**
@@ -36,7 +79,9 @@ class ListProjectsTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'archived' => $schema->boolean()->description('true: only archived projects (read only). Default false: the others.'),
+            'archived' => $schema->boolean()->description('true: only archived projects (read only). Default false.'),
+            'include_members' => $schema->boolean()->description('true: include project members. Default false to save tokens.'),
+            'include_rights' => $schema->boolean()->description('true: include viewerRights in project. Default false to save tokens.'),
         ];
     }
 }

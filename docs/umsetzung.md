@@ -297,11 +297,13 @@ Details: `docs/assistent-ideen-konzept.md` (Fassung 3, verbindlich). Nach I2, I3
 - `ProjectPlanAssistant`: Prompt nach §8 (Personen nach Rechten, kompakter Baum, Labels, Vorlagen, KI-Kontext als Datenblock), Structured-Output-Schema aus `spec/planer-v2.schema.json` erzeugt, Entwurf als Ausschnitt nach §6, `-new-`-IDs vom Server, Vorschau über den Trockenlauf des Importers.
 - `/assistant` öffnen für `assistant.use` (bisher nur `projects.create`).
 - Oberfläche: Projekt- und Milestone-Auswahl mit Buttons (§4, §5), Vorschlag einer Vorlage bei neuem Projekt, Vorschau mit `PlanerTree`.
-- Bei jedem Entwurf alle aktiven, für die Person sichtbaren Projekte (ID, Name, Kennzeichnung für `todo.create`) in den Prompt aufnehmen, auch wenn bereits ein Projekt gesetzt ist. Als PROJECT-Auswahlziel nur Projekte mit `todo.create` anbieten; die serverseitige Prüfung bleibt massgebend.
+- Bei jedem Entwurf alle aktiven, für die Person sichtbaren Projekte (ID, Name, getrennte Kennzeichnungen für `milestone.create`, `todo.create`, `task.create`) in den Prompt aufnehmen, auch wenn bereits ein Projekt gesetzt ist. Optionale `targetKind`-Eingabe (`MILESTONE`, `TODO`, `TASK`) vor Claude mit dem passenden Recht prüfen; ohne Angabe bleibt die bisherige `todo.create`-Regel. PROJECT-Auswahlziele ebenfalls nach der gewählten Zielart filtern; der Importer bleibt massgebend für jede tatsächliche Änderung.
 - MCP `list_users` nach §8 einschränken.
 - Tests nach §14.
 
-**Teilstand 1.2 (2026-11-22):** Der vollständige sichtbare Projektkontext samt separater Kennzeichnung des ToDo-Anlegerechts ist umgesetzt und mit Assistant-Featuretests abgedeckt. Dieser Teilstand ersetzt nicht die übrigen noch offenen Arbeiten für 1.2.
+**Teilstand 1.2 (2026-11-22):** Der vollständige sichtbare Projektkontext und die typisierte Zielauswahl mit separater Prüfung der Anlegerechte für Milestones, ToDos und Tasks sind serverseitig umgesetzt und mit Assistant-Featuretests abgedeckt. Die Assistentenseite bietet die Auswahl vor Gesprächsbeginn an, speichert sie sitzungsbezogen und sperrt sie während eines Chats. Ohne Zielart bleibt die bisherige automatische Mehrstufenplanung erhalten; die bestehende Projektprüfung verlangt weiterhin `todo.create`, und der Importer prüft jede tatsächliche Änderung. Dieser Teilstand ersetzt nicht die übrigen noch offenen Arbeiten für 1.2.
+
+**Teilstand MCP-Zugangsseite und Optimierung (2026-11-22):** Die statische, JavaScript-freie Anleitung für Agenten ist unter `/mcp/` auf Deutsch und `/mcp/en/` auf Englisch erreichbar. Beide Layout-Footer verlinken sie, ohne die Hauptnavigation zu erweitern; Anleitung und Serverinstruktionen unterscheiden persönliche Zugänge und Agent-Konten sowie TEST (`.dev`) und PROD (`.ch`). `update_tasks` verlangt jetzt `base_revision`, prüft sie unter Projektsperre atomar mit dem Import und setzt `null`-Felder tatsächlich zurück; die Revisionszählung erfolgt innerhalb der Transaktion. Projekt-/Vorlagenlisten laden Details bei Bedarf; Benutzer-, Kommentar- und Ideenlisten sind cursor-paginiert, lange Kommentare, Ideen und KI-Kontexte abschnittsweise abrufbar.
 
 ## B6. Ideen und KI-Kontext (entschieden 2026-11-13)
 

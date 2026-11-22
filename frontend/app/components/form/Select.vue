@@ -13,6 +13,7 @@ defineProps<{
   hideLabel?: boolean
   hint?: string
   error?: string
+  disabled?: boolean
   /** With a search field for long lists (wa-combobox instead of wa-select). */
   searchable?: boolean
 }>()
@@ -30,6 +31,7 @@ function onChange(event: Event) {
     :value="model ?? ''"
     :label="label"
     :class="{ 'wa-visually-hidden-label': hideLabel }"
+    :disabled="disabled"
     :hint="error ? undefined : hint"
     :aria-invalid="error ? 'true' : undefined"
     :data-invalid="error ? '' : undefined"

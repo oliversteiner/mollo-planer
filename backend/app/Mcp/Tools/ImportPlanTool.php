@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('import_plan')]
-#[Description('Writes a planer-v2 document into a project (project_id), or into a new project (without project_id). Work on the document that export_plan gave you. mode "full" (default): the document is the whole plan, what it lacks goes to the trash as one undoable deletion, and its revision must be the one of the project. mode "partial": adds and changes, never deletes, fields you leave out stay, the revision is not checked. New items get ids like m-new-1, t-new-1, k-new-1; the result maps them to real ids. Always try dry_run: true first: nothing is written, the result lists every change and every error with its path in the document. All or nothing, with your rights: each change is checked on its own. No mails unless notify_assignees is true.')]
+#[Description('Writes a planer-v2 document into a project (or creates one without project_id). Always run dry_run: true first. mode "full" (default) checks revision and trashes missing items; mode "partial" only adds/updates. New IDs: m-new-1, t-new-1, k-new-1.')]
 class ImportPlanTool extends Tool
 {
     use RunsGraphQL;
@@ -40,16 +40,18 @@ class ImportPlanTool extends Tool
                 'template_id' => ['sometimes', 'nullable'],
                 'idea_id' => ['sometimes', 'nullable'],
                 'append_only' => ['sometimes', 'boolean'],
+                'include_document' => ['sometimes', 'boolean'],
             ],
             [
-                'plan.required' => 'Give the plan: a planer-v2 document, for example the one export_plan returned.',
-                'mode.in' => 'mode is "full" (the document is the whole plan) or "partial" (add and change only).',
+                'plan.required' => 'Give plan (planer-v2 document).',
+                'mode.in' => 'mode must be "full" or "partial".',
             ],
         );
 
         $plan = $validated['plan'];
+        $includeDocument = (bool) ($validated['include_document'] ?? false);
 
-        return $this->respond(function () use ($validated, $plan): Response {
+        return $this->respond(function () use ($validated, $plan, $includeDocument): Response {
             $data = app(GraphQLRunner::class)->run(self::MUTATION, [
                 'projectId' => isset($validated['project_id']) ? (string) $validated['project_id'] : null,
                 'document' => is_string($plan) ? $plan : json_encode($plan, JSON_THROW_ON_ERROR),
@@ -61,10 +63,22 @@ class ImportPlanTool extends Tool
                 'appendOnly' => (bool) ($validated['append_only'] ?? false),
             ])['importPlan'];
 
-            $data['idMap'] = (object) array_column($data['idMap'], 'to', 'from');
-            $data['document'] = $data['document'] === null ? null : json_decode($data['document'], true, 512, JSON_THROW_ON_ERROR);
+            $payload = [
+                'ok' => $data['ok'],
+                'dryRun' => $data['dryRun'],
+                'projectId' => $data['projectId'],
+                'changes' => $data['changes'],
+                'errors' => $data['errors'],
+                'idMap' => (object) array_column($data['idMap'], 'to', 'from'),
+            ];
 
-            return $data['ok'] ? Response::json($data) : Response::error(json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            if ($includeDocument && $data['document'] !== null) {
+                $payload['document'] = json_decode($data['document'], true, 512, JSON_THROW_ON_ERROR);
+            }
+
+            $encoded = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            return $data['ok'] ? Response::text($encoded) : Response::error($encoded);
         });
     }
 
@@ -74,14 +88,15 @@ class ImportPlanTool extends Tool
     public function schema(JsonSchema $schema): array
     {
         return [
-            'project_id' => $schema->string()->description('Id of the project (from list_projects). Leave out to create a new project from the plan.'),
-            'plan' => $schema->object()->description('The planer-v2 document (format, revision, project, milestones).')->required(),
+            'project_id' => $schema->string()->description('Target project ID; omit to create a new project.'),
+            'plan' => $schema->object()->description('planer-v2 document.')->required(),
             'mode' => $schema->string()->enum(['full', 'partial'])->description('"full" (default) or "partial".'),
-            'dry_run' => $schema->boolean()->description('true: write nothing, only report the changes and errors.'),
-            'notify_assignees' => $schema->boolean()->description('true: send the assignment mails. Default false.'),
-            'template_id' => $schema->string()->description('Only without project_id: the template the new project comes from (sets its origin; the outline and labels must stand in the plan).'),
-            'idea_id' => $schema->string()->description('The idea (yours) this plan is made from: it is adopted afterwards.'),
-            'append_only' => $schema->boolean()->description('true: only add; any change of something that exists is an error. Default false.'),
+            'dry_run' => $schema->boolean()->description('true: validate and preview without writing.'),
+            'notify_assignees' => $schema->boolean()->description('true: send assignment emails. Default false.'),
+            'template_id' => $schema->string()->description('Only without project_id: template origin ID.'),
+            'idea_id' => $schema->string()->description('Idea ID to adopt after import.'),
+            'append_only' => $schema->boolean()->description('true: error on any modification of existing items. Default false.'),
+            'include_document' => $schema->boolean()->description('true: include exported document in response. Default false to save tokens.'),
         ];
     }
 }

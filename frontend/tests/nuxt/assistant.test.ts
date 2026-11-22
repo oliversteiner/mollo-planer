@@ -98,4 +98,44 @@ describe('AssistantChat choices', () => {
 
     expect(view.find('.chat-choices').exists()).toBe(false)
   })
+
+  it('starts in automatic mode and emits the chosen target kind', async () => {
+    const view = await mountSuspended(Chat, { props: { messages: [] } })
+    const select = view.find('wa-select')
+
+    expect((select.element as unknown as { value: string }).value).toBe('')
+    expect(select.findAll('wa-option').map(option => option.text())).toEqual(['Automatisch', 'Milestones', 'ToDo', 'Tasks'])
+
+    Object.defineProperty(select.element, 'value', { value: 'TASK', writable: true, configurable: true })
+    select.element.dispatchEvent(new Event('change'))
+
+    expect(view.emitted('update:targetKind')).toEqual([['TASK']])
+  })
+
+  it('locks the target choice while a conversation is active', async () => {
+    const view = await mountSuspended(Chat, {
+      props: {
+        messages: [{ role: 'USER', content: 'Plane Tasks.' }],
+        targetKind: 'TASK',
+        targetKindLocked: true
+      }
+    })
+    const select = view.find('wa-select').element as unknown as { value: string, disabled: boolean }
+
+    expect(select.value).toBe('TASK')
+    expect(select.disabled).toBe(true)
+  })
+
+  it('translates target choices into English', async () => {
+    const i18n = useNuxtApp().$i18n
+    await i18n.setLocale('en')
+    const view = await mountSuspended(Chat, { props: { messages: [] } })
+
+    expect(view.find('wa-select').text()).toContain('Automatic')
+    expect(view.find('wa-select').text()).toContain('Milestones')
+    expect(view.find('wa-select').text()).toContain('Todo')
+    expect(view.find('wa-select').text()).toContain('Tasks')
+
+    await i18n.setLocale('de')
+  })
 })

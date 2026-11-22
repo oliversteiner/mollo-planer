@@ -141,8 +141,9 @@ final class Import
      * @param  bool  $appendOnly  Only add: every change of something that exists is an error (the assistant, docs/auftrag-m6.md §1 Nr. 4)
      * @param  int|null  $templateId  The template a new project comes from (only without $project)
      * @param  Idea|null  $idea  The idea this file is made from: afterwards adopted, its new todos know it
+     * @param  int|null  $expectedRevision  Abort if the project changed before the transaction acquired its lock
      */
-    public function run(?Project $project, array $document, ImportMode $mode, bool $dryRun, bool $notifyAssignees, User $actor, bool $appendOnly = false, ?int $templateId = null, ?Idea $idea = null): ImportResult
+    public function run(?Project $project, array $document, ImportMode $mode, bool $dryRun, bool $notifyAssignees, User $actor, bool $appendOnly = false, ?int $templateId = null, ?Idea $idea = null, ?int $expectedRevision = null): ImportResult
     {
         $this->reset($document, $mode, $notifyAssignees, $actor);
         $this->dryRun = $dryRun;
@@ -164,10 +165,6 @@ final class Import
             $this->error('excerpt', 'excerpt', __('planer.import.excerpt'));
         }
 
-        if ($project !== null) {
-            $this->precheck($project, $document);
-        }
-
         if ($this->errors !== []) {
             return new ImportResult(errors: $this->errors, dryRun: $dryRun, projectId: $project?->getKey());
         }
@@ -177,6 +174,23 @@ final class Import
         DB::beginTransaction();
 
         try {
+            if ($project !== null) {
+                $project = Project::query()->whereKey($project->getKey())->lockForUpdate()->firstOrFail();
+                $this->precheck($project, $document);
+
+                $currentRevision = (int) $project->planer_revision;
+
+                if ($expectedRevision !== null && $expectedRevision !== $currentRevision) {
+                    $this->error('revision', 'revision', __('planer.update_tasks.revision', ['file' => $expectedRevision, 'project' => $currentRevision]));
+                }
+            }
+
+            if ($this->errors !== []) {
+                DB::rollBack();
+
+                return new ImportResult(errors: $this->errors, dryRun: $dryRun, projectId: $project?->getKey());
+            }
+
             ReleaseRules::withoutChecks(fn () => PlanerLimits::withoutChecks(fn () => $this->apply($project)));
             $this->checkResult();
             $this->checkAppendOnly();

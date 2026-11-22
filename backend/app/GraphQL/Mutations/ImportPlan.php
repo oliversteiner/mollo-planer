@@ -28,7 +28,7 @@ class ImportPlan
     public function __construct(private readonly Import $import) {}
 
     /**
-     * @param  array{projectId?: int|string|null, document: string, mode?: string, dryRun?: bool, notifyAssignees?: bool, templateId?: int|string|null, ideaId?: int|string|null, appendOnly?: bool}  $args
+     * @param  array{projectId?: int|string|null, document: string, mode?: string, dryRun?: bool, notifyAssignees?: bool, templateId?: int|string|null, ideaId?: int|string|null, appendOnly?: bool, expectedRevision?: int|null}  $args
      * @return array<string, mixed>
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): array
@@ -82,6 +82,7 @@ class ImportPlan
             (bool) ($args['appendOnly'] ?? false),
             $templateId === null ? null : (int) $templateId,
             $idea,
+            isset($args['expectedRevision']) ? (int) $args['expectedRevision'] : null,
         );
 
         return [
