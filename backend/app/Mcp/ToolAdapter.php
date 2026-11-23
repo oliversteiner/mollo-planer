@@ -3,6 +3,7 @@
 namespace App\Mcp;
 
 use App\Models\User;
+use App\Support\McpScopes;
 use App\Tools\Tool as AgentTool;
 use App\Tools\ToolResult;
 use Illuminate\Support\Str;
@@ -57,9 +58,21 @@ final class ToolAdapter extends McpTool
         return [...parent::toArray(), 'inputSchema' => $this->tool->schema()];
     }
 
+    /**
+     * A token of the OAuth server with only mcp:read does not even see the tools that change something.
+     */
+    public function shouldRegister(): bool
+    {
+        return $this->tool->readOnly() || McpScopes::mayWrite();
+    }
+
     public function handle(Request $request): Response
     {
         $actor = $request->user();
+
+        if (! $this->tool->readOnly() && ! McpScopes::mayWrite()) {
+            return Response::error('This token may only read (scope mcp:read).');
+        }
 
         if (! $actor instanceof User) {
             return Response::error('Not signed in.');

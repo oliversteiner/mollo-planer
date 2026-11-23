@@ -1,7 +1,7 @@
 # OAuth und OpenID Connect: der Planer als Anmeldedienst
 
-Stand: Auftrag 35, Teil A (Authorization Server, OpenID Provider, Zustimmungsseite, Verwaltung der Clients). Noch offen:
-Teil B (OAuth für `/mcp`), D (iOS), E (Registrierung aus Club DB), siehe unten.
+Stand: Auftrag 41, Teil A (Authorization Server, OpenID Provider, Zustimmungsseite, Verwaltung der Clients) und Teil B
+(OAuth für `/mcp`). Noch offen: D (iOS), E (Registrierung aus Club DB), siehe unten.
 
 Der Code gehört zur Basis (Modul Identität, `docs/starter-kit.md`): Backend unter `App\Core\Identity`, Routen in
 `backend/routes/oauth.php`. Er importiert nichts aus dem Fachcode (Projekte, Aufgaben, Dokumente).
@@ -38,6 +38,23 @@ Rückweg nach der Anmeldung und gibt die Anfrage wieder an die API.
 3. Das Frontend zeigt «Zugriff erlauben» (wer fragt, wofür, wohin es danach geht). Zulassen oder Ablehnen geht als JSON
    an die API; die Antwort enthält die Weiterleitung (`redirect`), das Frontend navigiert dorthin (auch zu einem URL-Schema einer App).
 4. Die Anwendung tauscht den Code mit `code_verifier` gegen `access_token`, `refresh_token` und, bei `openid`, `id_token`.
+
+## OAuth für den MCP-Server (Teil B)
+
+Claude verbindet sich als Custom Connector ohne Token (`docs/claude-connector.md`).
+
+- **Metadaten:** `/.well-known/oauth-protected-resource` (und mit Pfad, `…/mcp`) und `/.well-known/oauth-authorization-server`, gebaut von `laravel/mcp`
+  (`Mcp::oauthRoutes()` in `routes/ai.php`); Aussteller ist `APP_URL` (`config/mcp.php`).
+- **Anmeldung am Server:** Ein Request ohne Token bekommt `401` mit `WWW-Authenticate: Bearer … resource_metadata="…"`.
+- **Dynamische Client-Registrierung** (RFC 7591, `POST /oauth/register`): nur **öffentliche** Clients (PKCE), Redirect-Adressen nur
+  `https://claude.ai/`, `https://claude.com/` und `localhost` (Liste in `config/mcp.php`, mehr mit `MCP_REDIRECT_DOMAINS`, nie `*`), höchstens
+  10 Registrierungen pro Stunde und IP. Die Clients erscheinen in der Verwaltung und lassen sich widerrufen.
+- **Der Aufruf von `/mcp`:** `App\Http\Middleware\AuthenticateMcp` nimmt einen persönlichen Zugang (Sanctum, wie bisher) oder ein JWT des
+  Anmeldedienstes. Das JWT arbeitet als die Person: die Person muss bestätigt und freigegeben sein, ein Agent-Konto kommt so nicht hinein.
+- **Scopes:** `mcp:use` = der ganze Connector, `mcp:read` = nur lesende Werkzeuge (die schreibenden sind weder in der Liste noch aufrufbar),
+  `mcp:write` = auch schreibende. Ein Token mit nur einem anderen Scope bekommt 403. Die Rechte der Person gelten zusätzlich.
+- **Ein Token für den Connector gilt nur dort:** Auf `/api` (Oberfläche) wird es nicht angenommen; dort gilt später der Scope `api` (Teil D).
+  Eine Prüfung des Parameters `resource` (RFC 8707) gibt es nicht: der Scope trennt die Ziele.
 
 ## Das `id_token`
 
@@ -93,8 +110,6 @@ Teile), Signatur und alle Claims des `id_token`, `amr` bei Passkey, `userinfo` j
 
 ## Noch offen
 
-- **B:** OAuth für `/mcp` (`Mcp::oauthRoutes()` von `laravel/mcp` bringt die Metadaten und die dynamische Registrierung mit; zu
-  prüfen, wie das mit den Routen und der Sperre hier zusammengeht). Dafür muss der Guard `oauth` mit Sanctum zusammen auf `/mcp` stehen.
 - **D:** Client «Planer iOS» und der Scope `api` im Guard der GraphQL-API.
 - **E:** Registrierung aus Club DB.
 - **Abmelden auf allen Geräten** und die Liste der angemeldeten Apps im Profil (Teil D).
