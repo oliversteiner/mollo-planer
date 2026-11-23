@@ -7,7 +7,7 @@
 # folder is the folder above deploy/, everything else comes from backend/.env of that folder.
 # The built frontend (.output/public) arrives as a tar.gz archive on stdin.
 #
-# Order: read and check backend/.env -> stage frontend -> update code -> back up DB -> maintenance on ->
+# Order: read and check backend/.env -> stage frontend -> back up DB (deploy/db-backup.sh) -> update code -> maintenance on ->
 # composer, migrations, caches (incl. the Lighthouse schema) -> publish frontend -> maintenance off ->
 # smoke test of the API.
 set -euo pipefail
@@ -15,7 +15,6 @@ set -euo pipefail
 APP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND="$APP/backend"
 STAGE="$(dirname "$APP")/.planer-stage"
-KEEP_BACKUPS=20 # the last backups before a deployment (the daily ones are made by deploy/db-backup.sh)
 PHP="php" # overridden by DEPLOY_PHP in backend/.env (full path), see below
 COMPOSER="/usr/local/bin/composer"
 
@@ -111,12 +110,8 @@ echo "App-Ordner: $APP"
 echo "Docroot Frontend: $WEB_ROOT"
 echo "Sicherungen: $BACKUP_DIR"
 
-DB_OPTIONS_FILE=""
-
 on_exit() {
     local status=$?
-    [ -z "$DB_OPTIONS_FILE" ] || rm -f "$DB_OPTIONS_FILE"
-
     if [ "$maintenance" = 1 ]; then
         "$PHP" "$BACKEND/artisan" up >/dev/null 2>&1 || true
     fi
@@ -135,59 +130,19 @@ if [ ! -f "$STAGE/index.html" ]; then
     exit 1
 fi
 
-log "Code aktualisieren"
+# The backup comes BEFORE the code is replaced: if it fails, nothing has changed (the old code still matches the old schema).
+# git fetch only loads objects, the working tree stays as it is. The script is called from the code that is running now.
+log "Datenbank sichern"
 cd "$APP"
 git fetch --quiet origin "$DEPLOY_BRANCH"
+bash "$APP/deploy/db-backup.sh" deploy "$(git rev-parse --short "origin/$DEPLOY_BRANCH")"
+
+log "Code aktualisieren"
 git reset --hard --quiet "origin/$DEPLOY_BRANCH"
 echo "Commit: $(git rev-parse --short HEAD)"
 # Werkzeuge und Testdaten für planer-v2 gehören nicht auf den Server (dort gibt es kein Node).
 # spec/planer-v2.schema.json bleibt: die App liest es.
 rm -rf "$APP/tools" "$APP/spec/fixtures"
-
-log "Datenbank sichern"
-COMMIT_SHORT=$(git rev-parse --short HEAD)
-# --- db-backup begin
-# Dump of the database BEFORE the migration (TEST holds the real planning data, PROD the same rule). The credentials never
-# appear on a command line or in the output: they go into a temporary option file (rights 600, in the closed backup folder) that
-# is deleted right after. If the dump fails, or is not complete, nothing is migrated: the half dump is removed and the script stops.
-backup_database() {
-    local dir="$BACKUP_DIR/db" file host port name user password previous_umask
-    host=$(env_value DB_HOST)
-    port=$(env_value DB_PORT)
-    name=$(env_value DB_DATABASE)
-    user=$(env_value DB_USERNAME)
-    password=$(env_value DB_PASSWORD)
-
-    previous_umask=$(umask)
-    umask 077
-    mkdir -p "$dir"
-    chmod 700 "$BACKUP_DIR" "$dir"
-    file="$dir/planer-$(date +%Y%m%d-%H%M%S)-$COMMIT_SHORT.sql.gz"
-    DB_OPTIONS_FILE=$(mktemp "$dir/.options.XXXXXX")
-    chmod 600 "$DB_OPTIONS_FILE"
-    {
-        printf '[client]\nhost="%s"\nport="%s"\nuser="%s"\n' "$host" "$port" "$user"
-        printf 'password="%s"\n' "$(printf '%s' "$password" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
-    } > "$DB_OPTIONS_FILE"
-
-    if ! mysqldump --defaults-extra-file="$DB_OPTIONS_FILE" --single-transaction --no-tablespaces "$name" | gzip > "$file" \
-        || ! gzip -t "$file" \
-        || ! gzip -dc "$file" | tail -n 1 | grep -q 'Dump completed'; then
-        rm -f "$DB_OPTIONS_FILE" "$file"
-        DB_OPTIONS_FILE=""
-        echo "Die Datenbanksicherung ist fehlgeschlagen, es wird nichts migriert. Der Code ist aktualisiert, die Datenbank unverändert; Wartungsmodus war nicht an." >&2
-        exit 1
-    fi
-
-    rm -f "$DB_OPTIONS_FILE"
-    DB_OPTIONS_FILE=""
-    umask "$previous_umask"
-    echo "Backup: $file"
-    # shellcheck disable=SC2012
-    ls -1t "$dir"/planer-*.sql.gz | tail -n +$((KEEP_BACKUPS + 1)) | xargs -r rm -f --
-}
-backup_database
-# --- db-backup end
 
 log "Wartungsmodus an"
 "$PHP" "$BACKEND/artisan" down --retry=60 >/dev/null

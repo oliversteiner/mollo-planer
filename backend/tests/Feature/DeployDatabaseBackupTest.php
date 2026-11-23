@@ -6,8 +6,8 @@ use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
 /**
- * deploy/deploy.sh dumps the database before the migration (Auftrag 37 A): the block of the script runs in a folder that looks
- * like a server, with a stand-in for mysqldump that records how it was called.
+ * deploy/db-backup.sh dumps the database (Auftrag 37 A and B): the script runs in a folder that looks like a server, with a
+ * stand-in for mysqldump that records how it was called. deploy.sh calls it before the code is replaced (see DeployOrderTest).
  */
 class DeployDatabaseBackupTest extends TestCase
 {
@@ -22,8 +22,11 @@ class DeployDatabaseBackupTest extends TestCase
         $this->root = sys_get_temp_dir().'/deploy-backup-'.bin2hex(random_bytes(4));
         $this->backups = $this->root.'/backups';
         mkdir($this->root.'/bin', 0777, true);
-        mkdir($this->root.'/backend', 0777, true);
-        file_put_contents($this->root.'/backend/.env', "APP_ENV=staging\nDB_HOST=db.example\nDB_PORT=3307\nDB_DATABASE=planer_test\nDB_USERNAME=planer\nDB_PASSWORD=\"se\"cr\\et\$x\"\n");
+        mkdir($this->root.'/app/deploy', 0777, true);
+        mkdir($this->root.'/app/backend', 0777, true);
+        copy(base_path('../deploy/db-backup.sh'), $this->root.'/app/deploy/db-backup.sh');
+        chmod($this->root.'/app/deploy/db-backup.sh', 0755);
+        file_put_contents($this->root.'/app/backend/.env', 'DEPLOY_BACKUP_DIR='.$this->root."/backups\nAPP_ENV=staging\nDB_HOST=db.example\nDB_PORT=3307\nDB_DATABASE=planer_test\nDB_USERNAME=planer\nDB_PASSWORD=\"se\"cr\\et\$x\"\n");
     }
 
     protected function tearDown(): void
@@ -105,18 +108,86 @@ class DeployDatabaseBackupTest extends TestCase
         $this->assertFileExists($this->backups.'/db/planer-20260101-000024-old24.sql.gz');
     }
 
+    public function test_a_failing_dump_leaves_no_part_file_and_keeps_the_earlier_dumps(): void
+    {
+        mkdir($this->backups.'/db', 0700, true);
+        file_put_contents($this->backups.'/db/planer-20260101-000000-old.sql.gz', 'x');
+
+        $this->deploy('fail');
+
+        $this->assertSame([$this->backups.'/db/planer-20260101-000000-old.sql.gz'], glob($this->backups.'/db/*') ?: []);
+    }
+
+    public function test_the_daily_backup_goes_in_its_own_folder_and_keeps_the_last_fourteen(): void
+    {
+        mkdir($this->backups.'/db/daily', 0700, true);
+        foreach (range(1, 16) as $i) {
+            $file = $this->backups.'/db/daily/'.sprintf('planer-202601%02d-030000.sql.gz', $i);
+            file_put_contents($file, 'x');
+            touch($file, strtotime(sprintf('2026-01-%02d 03:00:00', $i)));
+        }
+        file_put_contents($this->backups.'/db/planer-20260101-000000-keepme.sql.gz', 'x');
+
+        $result = $this->run_script('daily');
+
+        $this->assertSame(0, $result['exit'], $result['output']);
+        $daily = glob($this->backups.'/db/daily/planer-*.sql.gz') ?: [];
+        $this->assertCount(14, $daily);
+        $this->assertFileDoesNotExist($this->backups.'/db/daily/planer-20260101-030000.sql.gz');
+        $this->assertFileDoesNotExist($this->backups.'/db/daily/planer-20260103-030000.sql.gz');
+        $this->assertFileExists($this->backups.'/db/daily/planer-20260104-030000.sql.gz');
+        $this->assertFileExists($this->backups.'/db/planer-20260101-000000-keepme.sql.gz', 'the dumps before deployments are not touched');
+        $this->assertSame('0700', substr(sprintf('%o', fileperms($this->backups.'/db/daily')), -4));
+    }
+
+    public function test_the_first_daily_backup_of_a_month_is_kept_for_six_months(): void
+    {
+        mkdir($this->backups.'/db/monthly', 0700, true);
+        foreach (range(1, 7) as $i) {
+            $file = $this->backups.'/db/monthly/'.sprintf('planer-20250%d.sql.gz', $i);
+            file_put_contents($file, 'x');
+            touch($file, strtotime(sprintf('2025-0%d-01 03:00:00', $i)));
+        }
+
+        $this->assertSame(0, $this->run_script('daily')['exit']);
+        $month = $this->backups.'/db/monthly/planer-'.date('Ym').'.sql.gz';
+        $this->assertFileExists($month);
+        $this->assertSame('0600', substr(sprintf('%o', fileperms($month)), -4));
+        $this->assertCount(6, glob($this->backups.'/db/monthly/planer-*.sql.gz') ?: []);
+        $this->assertFileDoesNotExist($this->backups.'/db/monthly/planer-202501.sql.gz');
+
+        $before = filemtime($month);
+        $this->assertSame(0, $this->run_script('daily')['exit']);
+        $this->assertSame($before, filemtime($month), 'a second run in the same month does not replace it');
+        $this->assertCount(6, glob($this->backups.'/db/monthly/planer-*.sql.gz') ?: []);
+    }
+
+    public function test_a_failing_daily_backup_exits_with_an_error(): void
+    {
+        $result = $this->run_script('daily', 'fail');
+
+        $this->assertNotSame(0, $result['exit']);
+        $this->assertStringContainsString('tägliche Datenbanksicherung ist fehlgeschlagen', $result['output']);
+        $this->assertSame([], glob($this->backups.'/db/daily/*') ?: []);
+    }
+
+    public function test_without_a_commit_the_deploy_mode_refuses_to_run(): void
+    {
+        $result = $this->run_script('deploy');
+
+        $this->assertSame(64, $result['exit']);
+        $this->assertSame([], glob($this->backups.'/db/*') ?: []);
+    }
+
     /** @return array{exit: int, output: string} */
     private function deploy(string $mode): array
     {
-        $script = (string) file_get_contents(base_path('../deploy/deploy.sh'));
-        preg_match('/^env_value\(\) \{.*?^\}/ms', $script, $envValue);
-        preg_match('/^KEEP_BACKUPS=\d+/m', $script, $keep);
-        preg_match('/DB_OPTIONS_FILE=""\n/', $script, $optionsVar);
-        preg_match('/# --- db-backup begin.*?# --- db-backup end/s', $script, $block);
-        $this->assertNotEmpty($envValue);
-        $this->assertNotEmpty($keep);
-        $this->assertNotEmpty($block);
+        return $this->run_script('deploy abc1234', $mode);
+    }
 
+    /** @return array{exit: int, output: string} */
+    private function run_script(string $arguments, string $mode = 'ok'): array
+    {
         file_put_contents($this->root.'/bin/mysqldump', <<<'SH'
             #!/usr/bin/env bash
             {
@@ -133,9 +204,7 @@ class DeployDatabaseBackupTest extends TestCase
             SH);
         chmod($this->root.'/bin/mysqldump', 0755);
 
-        $program = 'set -euo pipefail; BACKUP_DIR="$ROOT/backups"; BACKEND="$ROOT/backend"; COMMIT_SHORT=abc1234; '
-            .$keep[0]."\n".($optionsVar[0] ?? '')."\n".$envValue[0]."\n".$block[0]."\necho MIGRATE\n";
-        $process = new Process(['bash', '-c', $program], null, ['ROOT' => $this->root, 'PATH' => $this->root.'/bin:'.getenv('PATH'), 'MODE' => $mode, 'CALL_FILE' => $this->root.'/call.txt', 'HOME' => $this->root]);
+        $process = new Process(['bash', '-c', 'bash "$ROOT/app/deploy/db-backup.sh" '.$arguments.' && echo MIGRATE'], null, ['ROOT' => $this->root, 'PATH' => $this->root.'/bin:'.getenv('PATH'), 'MODE' => $mode, 'CALL_FILE' => $this->root.'/call.txt', 'HOME' => $this->root]);
         $process->run();
 
         return ['exit' => (int) $process->getExitCode(), 'output' => $process->getOutput().$process->getErrorOutput()];
