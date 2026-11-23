@@ -185,6 +185,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'user_story', type: 'json', nullable: true },
       { name: 'icon', type: 'varchar', nullable: true },
       { name: 'status', type: 'varchar', default: 'open', values: ['idea', 'planned', 'open', 'in_progress', 'review', 'done'] },
+      { name: 'done_at', type: 'timestamp', nullable: true },
       { name: 'commit', type: 'varchar', nullable: true },
       { name: 'board_position', type: 'int', default: '0' },
       { name: 'position', type: 'int', default: '0' },

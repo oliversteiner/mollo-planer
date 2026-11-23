@@ -6,6 +6,7 @@ use App\Mcp\Tools\AddCommentTool;
 use App\Mcp\Tools\CreateIdeaTool;
 use App\Mcp\Tools\ExportPlanTool;
 use App\Mcp\Tools\GetProjectAiContextTool;
+use App\Mcp\Tools\GetProjectStatisticsTool;
 use App\Mcp\Tools\ImportPlanTool;
 use App\Mcp\Tools\ListCommentsTool;
 use App\Mcp\Tools\ListIdeasTool;
@@ -58,6 +59,7 @@ class MolloPlanerServer extends Server
         CreateIdeaTool::class,
         ListIdeasTool::class,
         GetProjectAiContextTool::class,
+        GetProjectStatisticsTool::class,
     ];
 
     protected array $resources = [];

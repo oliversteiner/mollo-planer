@@ -16,7 +16,7 @@ const { project, loaded, can } = useProject()
 /** Name of the page within the project (the tab), for breadcrumb and window title. */
 const pageName = computed(() => {
   const page = route.path.split('/')[3] ?? ''
-  const keys: Record<string, string> = { '': 'milestones', 'todos': 'todos', 'kanban': 'tasks', 'documents': 'documents', 'members': 'members', 'settings': 'settings', 'trash': 'trash' }
+  const keys: Record<string, string> = { '': 'milestones', 'todos': 'todos', 'kanban': 'tasks', 'documents': 'documents', 'members': 'members', 'statistics': 'statistics', 'settings': 'settings', 'trash': 'trash' }
 
   return t(`project.tabs.${keys[page] ?? 'milestones'}`)
 })
@@ -59,6 +59,7 @@ useCommands(() => {
     tab('tasks', '/kanban', 'table-columns'),
     tab('documents', '/documents', 'file-lines'),
     tab('members', '/members', 'users'),
+    tab('statistics', '/statistics', 'chart-simple'),
     tab('settings', '/settings', 'gear', withSettings.value),
     tab('trash', '/trash', 'trash-can', withTrash.value),
     {

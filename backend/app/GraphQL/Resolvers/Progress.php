@@ -57,6 +57,19 @@ class Progress
     }
 
     /**
+     * Counts for the card of a project: milestones, todos and tasks, all projects of a list in three queries.
+     *
+     * @param  array<string, mixed>  $args
+     */
+    public function projectCounts(Project $project, array $args, GraphQLContext $context, ResolveInfo $resolveInfo): Deferred
+    {
+        return BatchLoaderRegistry::instance(
+            $resolveInfo->path,
+            fn (): ProjectCountsBatchLoader => new ProjectCountsBatchLoader,
+        )->load($project->getKey());
+    }
+
+    /**
      * One loader per field path, so every todo in a list shares it.
      *
      * @param  \Closure(list<int|string>): Builder<Task>  $tasksByKey
