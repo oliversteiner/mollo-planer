@@ -18,7 +18,7 @@ Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuers
 - **KI-Assistent:** offizielles PHP-SDK `anthropic-ai/sdk` (Claude-API), Schlüssel `ANTHROPIC_API_KEY` nur in `.env`
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
-- **Frontend:** Nuxt 4 (Vue 3) mit **Web Awesome Pro** (Web Components `wa-*`, Theme „Matter“; nicht Nuxt UI, kein Tailwind) in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente, über `wa-icon`)
+- **Frontend:** Nuxt 4 (Vue 3) mit **Web Awesome Pro** (Web Components `wa-*`, Theme „Matter“; nicht Nuxt UI, kein Tailwind) in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente, über `wa-icon`; die Pro-SVGs liegen **nicht** im Repo, sondern in einem privaten Repo und kommen mit `npm run icons:fetch` nach `frontend/vendor/`; ohne sie nutzt der Build Font Awesome Free)
 - **Hosting:** Hostpoint (Schweiz), nur PHP und MySQL/MariaDB, Queue per Cron. Hosting-Themen erst später, nicht jetzt bearbeiten.
 - **Entwicklung:** macOS (Mac mini, Apple Silicon) mit Homebrew (PHP, Composer, MariaDB, Mailpit), Node 24 über nvm, PhpStorm, GitHub
 
@@ -56,7 +56,7 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - Status von ToDo und Milestone wird nur vom Observer berechnet, nie per Eingabe gesetzt.
 - RichText wird als TipTap-JSON gespeichert, **nie HTML**. Frontend zeigt es mit TipTap an, **nie mit `v-html`**.
 - Mails nur über Notifications mit `ShouldQueue` und `afterCommit`, Sprache = `project->locale`.
-- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. Das Font-Awesome-npm-Token gehört in `.npmrc` (lokal, nicht eingecheckt) bzw. in ein GitHub-Secret; das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
+- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. **Das Repo ist öffentlich: keine Pro-Dateien committen** (Font Awesome Pro, `frontend/vendor/`; ein Wächter in CI und Test schlägt an). Font Awesome braucht kein npm-Token mehr, die Symbole holt `npm run icons:fetch` aus dem privaten Repo `mollo-pro-assets` (Secret `PRO_ASSETS_TOKEN`); das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
 - Oberfläche nur mit `wa-*`-Elementen von Web Awesome und den eigenen Bausteinen (`FormInput`, `AppDialog`, `ActionMenu` …), Layout mit den Hilfsklassen `wa-stack`/`wa-cluster`/… und `<style scoped>` mit Tokens (`--wa-*`). Kein Nuxt UI, kein Tailwind.
 - Zu jeder neuen Policy, Mutation oder Regel gehören Tests (siehe Punkt 12 im Backend-Plan).
 - Nach einem abgeschlossenen Schritt aus der Bau-Reihenfolge den Abschnitt „Stand“ unten aktualisieren.

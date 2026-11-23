@@ -4,7 +4,8 @@ import { registerIconLibrary } from '@web.awesome.me/webawesome-pro/dist/webawes
  * Icon libraries of Web Awesome: both `default` (icons of the app) and
  * `system` (icons inside the components: arrows, check mark, close, ...)
  * load Font Awesome Pro "Duotone Light" from our own server, the SVG files
- * that nitro serves under /icons/duotone-light/<name>.svg (nuxt.config.ts).
+ * that nitro serves under /icons/<version>/<style>/<name>.svg (nuxt.config.ts; Duotone Light from the private
+ * repository of the Pro icons, else Font Awesome Free solid, see scripts/icon-source.mjs).
  * Nothing comes from the Font Awesome CDN.
  */
 
@@ -17,10 +18,15 @@ const systemAliases: Record<string, string> = {
 /** Same format as the server rule FontAwesomeIconRule. */
 export const iconNameFormat = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-export function duotoneLightUrl(baseURL: string, name: string): string {
+/** Folder of the catalogue with the version: `${baseURL}icons/${iconVersion}/`; the SVGs are in its subfolder <style>. */
+export function iconBaseUrl(baseURL: string, iconVersion: string): string {
+  return `${baseURL}icons/${iconVersion}/`
+}
+
+export function iconUrl(iconBase: string, iconStyle: string, name: string): string {
   const file = iconNameFormat.test(name) ? name : 'circle-question'
 
-  return `${baseURL}icons/duotone-light/${file}.svg`
+  return `${iconBase}${iconStyle}/${file}.svg`
 }
 
 /**
@@ -46,14 +52,14 @@ export function prepareDuotoneSvg(svg: SVGElement): void {
   }
 }
 
-export function registerDuotoneLightIcons(baseURL: string): void {
+export function registerAppIcons(iconBase: string, iconStyle: string): void {
   registerIconLibrary('default', {
-    resolver: name => duotoneLightUrl(baseURL, name),
+    resolver: name => iconUrl(iconBase, iconStyle, name),
     mutator: prepareDuotoneSvg
   })
 
   registerIconLibrary('system', {
-    resolver: name => duotoneLightUrl(baseURL, systemAliases[name] ?? name),
+    resolver: name => iconUrl(iconBase, iconStyle, systemAliases[name] ?? name),
     mutator: prepareDuotoneSvg
   })
 }

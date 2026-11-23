@@ -29,7 +29,7 @@ Ergänzt `docs/frontend-plan.md`. Wo sich beide widersprechen, gilt für die Obe
 - `useToast` an 23 Stellen; 59 benannte Slots; 9 `:ui`-Overrides; `app.config.ts` setzt Farben und `uiIcons`.
 - Formulare über `composables/useServerForm.ts` und `useGraphqlForm.ts` (keine Schema-Bibliothek).
 - Tailwind: rund 400 `class`-Attribute mit etwa 900 Utility-Klassen; `assets/css/main.css` mit `@theme` und den Utilities `plan-in`, `plan-timeline`; ESLint-Plugin `better-tailwindcss`.
-- Icons: SVGs aus `@fortawesome/fontawesome-pro/svgs-full/duotone-light` werden als Public Assets ausgeliefert; UI-Icons über die Iconify-Collection `fadl` (`app/ui-icons.ts`); Icon-Katalog für den Picker unter `/icons/catalog.json`.
+- Icons: SVGs (seit Auftrag 38: Pro-Symbole aus dem privaten Repo `mollo-pro-assets` nach `frontend/vendor/`, ohne sie Font Awesome Free; vorher das npm-Paket `@fortawesome/fontawesome-pro`) werden als Public Assets unter `/icons/<version>/<Stil>/` ausgeliefert; UI-Icons über die Iconify-Collection `fadl` (`app/ui-icons.ts`); Icon-Katalog für den Picker unter `/icons/<version>/catalog.json`.
 - Drag-and-drop mit `vue-draggable-plus`, TipTap 3, Vitest (`tests/unit`, `tests/nuxt`), CI in `.github/workflows/`.
 
 ## Web Awesome: das Wichtigste für die Umsetzung

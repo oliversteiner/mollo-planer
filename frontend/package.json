@@ -11,13 +11,15 @@
     "typecheck": "nuxt typecheck",
     "codegen": "graphql-codegen",
     "versions": "node scripts/build-versions.mjs",
+    "icons:update": "node scripts/icons-update.mjs",
+    "icons:fetch": "node scripts/icons-fetch.mjs",
+    "icons:check": "node scripts/check-no-pro-assets.mjs",
     "knip": "knip",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.14.1",
-    "@fortawesome/fontawesome-pro": "^7.3.1",
     "@nuxt/fonts": "^0.14.0",
     "@nuxtjs/i18n": "^10.6.0",
     "@simplewebauthn/browser": "^14.0.0",
@@ -49,6 +51,7 @@
     "vue-draggable-plus": "^0.6.1"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "@graphql-codegen/cli": "^8.0.0",
     "@graphql-codegen/client-preset": "^7.0.0",
     "@nuxt/eslint": "^1.17.0",

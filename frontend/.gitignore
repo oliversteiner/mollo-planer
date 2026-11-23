@@ -33,3 +33,6 @@ logs
 .nuxt-e2e
 test-results/
 playwright-report/
+
+# Licensed icons (Font Awesome Pro), fetched by `npm run icons:fetch`. The repository is public: never commit.
+vendor/

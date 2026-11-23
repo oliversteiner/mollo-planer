@@ -1,13 +1,10 @@
 import { fileURLToPath } from 'node:url'
-import { ensureIconCatalog } from './scripts/icon-catalog'
+import { resolveIconSource } from './scripts/icon-source.mjs'
 
-// Font Awesome Pro, style "Duotone Light", fixed-width SVGs (640 grid).
-const fontAwesome = fileURLToPath(new URL('./node_modules/@fortawesome/fontawesome-pro', import.meta.url))
-const duotoneLight = `${fontAwesome}/svgs-full/duotone-light`
-
-// Search catalogue for the icon picker (/icons/catalog.json).
-const iconCatalog = fileURLToPath(new URL('./node_modules/.cache/icon-catalog', import.meta.url))
-ensureIconCatalog(fontAwesome, iconCatalog)
+// Icons: Font Awesome Pro "Duotone Light" from frontend/vendor (private repository, `npm run icons:fetch`), else
+// Font Awesome Free. The source and the style are decided in scripts/icon-source.mjs. A deployment sets
+// ICONS_REQUIRE_PRO=1 and stops here when the Pro icons are missing.
+const iconSource = resolveIconSource(fileURLToPath(new URL('.', import.meta.url)), { requirePro: process.env.ICONS_REQUIRE_PRO === '1' })
 
 // The Markdown view of a planer file is the one of tools/planer (docs/auftrag-m4.md §7): only
 // modules without node: imports (render-planer, planer-words) are used in the browser.
@@ -60,7 +57,10 @@ export default defineNuxtConfig({
     public: {
       // Address of the Laravel backend; set it with NUXT_PUBLIC_API_BASE. Empty: the development server uses the
       // host of the page with port 8000, a build falls back to http://localhost:8000 (utils/api-base.ts).
-      apiBase: ''
+      apiBase: '',
+      // Version and style of the icon files (part of the icon URLs, see scripts/icon-source.mjs).
+      iconVersion: iconSource.version,
+      iconStyle: iconSource.style
     }
   },
   alias: {
@@ -77,20 +77,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-06-30',
 
   nitro: {
-    // All Duotone Light SVGs, loaded one by one on demand by <ItemIcon>
-    // (icons chosen in the app are stored as names, so they are not known
-    // at build time).
-    publicAssets: [
-      {
-        dir: duotoneLight,
-        baseURL: '/icons/duotone-light',
-        maxAge: 60 * 60 * 24 * 30
-      },
-      {
-        dir: iconCatalog,
-        baseURL: '/icons'
-      }
-    ]
+    // The icon SVGs (/icons/<version>/<style>/<name>.svg), loaded one by one on demand by <ItemIcon> (icons chosen in
+    // the app are stored as names, so they are not known at build time), and the search catalogue of the icon picker
+    // (/icons/<version>/catalog.json). The version is in the URL, so the files may be cached for a long time.
+    publicAssets: iconSource.assets.map(asset => ({ ...asset, maxAge: 60 * 60 * 24 * 365 }))
   },
 
   vite: {
