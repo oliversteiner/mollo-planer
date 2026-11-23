@@ -12,7 +12,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Tool;
 
 #[Name('import_plan')]
-#[Description('Writes a planer-v2 document into a project (or creates one without project_id). Always run dry_run: true first. mode "full" (default) checks revision and trashes missing items; mode "partial" only adds/updates. New IDs: m-new-1, t-new-1, k-new-1.')]
+#[Description('Writes a planer-v2 document into a project (or creates one without project_id). Always run dry_run: true first. mode "full" (default) checks revision and trashes missing items; mode "partial" only adds/updates. Tasks whose assignee is unknown or not a project member are imported without that assignee and listed in warnings (path, email, message). New IDs: m-new-1, t-new-1, k-new-1.')]
 class ImportPlanTool extends Tool
 {
     use RunsGraphQL;
@@ -23,6 +23,7 @@ class ImportPlanTool extends Tool
             ok dryRun projectId document
             changes { kind path id fields title }
             errors { path kind message }
+            warnings { path email message }
             idMap { from to }
           }
         }
@@ -69,6 +70,7 @@ class ImportPlanTool extends Tool
                 'projectId' => $data['projectId'],
                 'changes' => $data['changes'],
                 'errors' => $data['errors'],
+                'warnings' => $data['warnings'],
                 'idMap' => (object) array_column($data['idMap'], 'to', 'from'),
             ];
 

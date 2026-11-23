@@ -1,1070 +1,902 @@
 input AddCommentInput {
-  body: RichText!
-  taskId: ID!
+ body: RichText!
+ taskId: ID!
 }
-
 "Ein persönlicher Zugang für Claude (MCP-Server unter /mcp). Er handelt mit deinen Rechten."
 type ApiToken {
-  createdAt: DateTime!
-  expiresAt: DateTime
-  id: ID!
-
-  "null, solange er noch nie benutzt wurde"
-  lastUsedAt: DateTime
-
-  name: String!
+ createdAt: DateTime!
+ expiresAt: DateTime
+ id: ID!
+ "null, solange er noch nie benutzt wurde"
+ lastUsedAt: DateTime
+ name: String!
 }
-
 "Einstellungen der ganzen App. Lesen alle Angemeldeten, ändern nur Admins."
 type AppSettings {
-  "Läuft das Backend nicht als Produktion (Testumgebung oder Entwicklungsrechner)? Dann zeigt die App ein Band «Testumgebung»."
-  isTestEnvironment: Boolean!
-
-  "Projektrolle, die man im Projekt bekommt, das man selbst anlegt (Standard: Owner). Muss project.delete haben."
-  projectCreatorRole: Role!
-
-  "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."
-  twoFactorEnabled: Boolean!
-
-  "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
-  twoFactorSwitchable: Boolean!
+ "Läuft das Backend nicht als Produktion (Testumgebung oder Entwicklungsrechner)? Dann zeigt die App ein Band «Testumgebung»."
+ isTestEnvironment: Boolean!
+ "Projektrolle, die man im Projekt bekommt, das man selbst anlegt (Standard: Owner). Muss project.delete haben."
+ projectCreatorRole: Role!
+ "Braucht die Anmeldung einen zweiten Faktor (2FA-App oder Passkey)? Ohne 2FA genügt das Passwort, und die App fragt nicht nach der Einrichtung."
+ twoFactorEnabled: Boolean!
+ "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
+ twoFactorSwitchable: Boolean!
 }
-
 "Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
 type Comment {
-  "null, wenn die Person inzwischen gelöscht wurde"
-  author: User
-
-  "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
-  body: RichText!
-
-  createdAt: DateTime!
-
-  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
-  deletionId: ID
-
-  "Wann der Text zuletzt geändert wurde; null, solange er unverändert ist. Löschen und Wiederherstellen zählen nicht."
-  editedAt: DateTime
-
-  id: ID!
-  task: Task!
-  updatedAt: DateTime!
-
-  "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
-  viewerCanDelete: Boolean!
-
-  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
-  viewerCanEdit: Boolean!
+ "null, wenn die Person inzwischen gelöscht wurde"
+ author: User
+ "Formatierter Text, gleiche Regeln wie bei den Beschreibungen"
+ body: RichText!
+ createdAt: DateTime!
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ "Wann der Text zuletzt geändert wurde; null, solange er unverändert ist. Löschen und Wiederherstellen zählen nicht."
+ editedAt: DateTime
+ id: ID!
+ task: Task!
+ updatedAt: DateTime!
+ "Darfst du ihn löschen? Autor oder Owner/Manager des Projekts."
+ viewerCanDelete: Boolean!
+ "Darfst du den Text ändern? Nur die Autorin oder der Autor."
+ viewerCanEdit: Boolean!
 }
-
+input CreateDocumentInput {
+ "Der Inhalt aus dem Editor. Der Server prüft das Profil «Dokument» (höchstens 200 000 Zeichen Markdown) und schreibt Markdown."
+ contentJson: RichText!
+ kind: DocumentKind = OTHER
+ "NONE, READ oder EDIT; Standard READ"
+ projectAccess: DocumentAccess = READ
+ projectId: ID!
+ title: String!
+}
 input CreateIdeaInput {
-  description: RichText
-
-  "Entwurf: ein planer-v2-Ausschnitt als Text. Wird gegen das Schema geprüft und kanonisch gespeichert."
-  draft: String
-
-  "Ein Projekt, das die Person sieht"
-  projectId: ID
-  title: String!
+ description: RichText
+ "Entwurf: ein planer-v2-Ausschnitt als Text. Wird gegen das Schema geprüft und kanonisch gespeichert."
+ draft: String
+ "Ein Projekt, das die Person sieht"
+ projectId: ID
+ title: String!
 }
-
 input CreateMilestoneInput {
-  description: RichText
-  dueDate: Date
-  icon: String
-
-  "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
-  position: Int
-  projectId: ID!
-
-  "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
-  releaseDate: Date
-  releaseStatus: ReleaseStatus
-
-  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
-  releaseVersion: String
-  title: String!
+ description: RichText
+ dueDate: Date
+ icon: String
+ "Stelle in der Reihenfolge des Projekts (0 = erster). Ohne Angabe ans Ende."
+ position: Int
+ projectId: ID!
+ "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+ releaseDate: Date
+ releaseStatus: ReleaseStatus
+ "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+ releaseVersion: String
+ title: String!
 }
-
 input CreateProjectInput {
-  description: RichText
-  icon: String
-  locale: Locale = DE
-
-  "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
-  members: [ProjectMemberInput!]
-  name: String!
-
-  "Vorlage: Die Labels und das Gerüst werden übernommen. Ohne eigene Beschreibung gilt die der Vorlage."
-  templateId: ID
+ description: RichText
+ icon: String
+ locale: Locale = DE
+ "Weitere Mitglieder, gleich beim Anlegen. Die Person, die anlegt, bekommt die Ersteller-Rolle; steht sie hier, gilt der Eintrag nicht."
+ members: [ProjectMemberInput!]
+ name: String!
+ "Vorlage: Die Labels und das Gerüst werden übernommen. Ohne eigene Beschreibung gilt die der Vorlage."
+ templateId: ID
 }
-
 input CreateRoleFunctionInput {
-  names: LocalizedNameInput!
-
-  "Rechte desselben Bereichs"
-  rights: [Right!]!
-  scope: RoleScope!
+ names: LocalizedNameInput!
+ "Rechte desselben Bereichs"
+ rights: [Right!]!
+ scope: RoleScope!
 }
-
 input CreateRoleInput {
-  "Funktionen desselben Bereichs"
-  functionIds: [ID!]!
-  names: LocalizedNameInput!
-
-  "Nur Systemrollen: die Projektrechte, die wirken dürfen. Ohne Angabe oder null: alle. Leere Liste: keine."
-  projectCap: [Right!]
-  scope: RoleScope!
+ "Funktionen desselben Bereichs"
+ functionIds: [ID!]!
+ names: LocalizedNameInput!
+ "Nur Systemrollen: die Projektrechte, die wirken dürfen. Ohne Angabe oder null: alle. Leere Liste: keine."
+ projectCap: [Right!]
+ scope: RoleScope!
 }
-
 input CreateTaskInput {
-  assigneeId: ID
-
-  "Commit: Hash oder none, siehe Typ Task"
-  commit: String
-  description: RichText
-  dueDate: Date
-  icon: String
-
-  "Labels aus dem Set des Projekts"
-  labelIds: [ID!]
-  title: String!
-  todoId: ID!
-
-  "Die Story des Tasks, alle drei Teile oder keiner"
-  userStory: UserStoryInput
+ assigneeId: ID
+ "Commit: Hash oder none, siehe Typ Task"
+ commit: String
+ description: RichText
+ dueDate: Date
+ icon: String
+ "Labels aus dem Set des Projekts"
+ labelIds: [ID!]
+ title: String!
+ todoId: ID!
+ "Die Story des Tasks, alle drei Teile oder keiner"
+ userStory: UserStoryInput
 }
-
 input CreateTodoInput {
-  description: RichText
-  dueDate: Date
-  icon: String
-  milestoneId: ID!
-
-  "Stelle im Milestone (0 = erstes ToDo). Ohne Angabe ans Ende."
-  position: Int
-  title: String!
+ description: RichText
+ dueDate: Date
+ icon: String
+ milestoneId: ID!
+ "Stelle im Milestone (0 = erstes ToDo). Ohne Angabe ans Ende."
+ position: Int
+ title: String!
 }
-
 input CreateUserInput {
-  activity: UserActivity
-  email: String!
-  name: String!
-
-  "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
-  role: String
+ activity: UserActivity
+ email: String!
+ name: String!
+ "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
+ role: String
 }
-
 "Alles für die Startseite in einem Aufruf"
 type Dashboard {
-  "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
-  myOpenTasks: [Task!]!
-
-  projects: [Project!]!
-
-  "Offene ToDos, nach Fälligkeit sortiert"
-  upcomingTodos(limit: Int = 5): [Todo!]!
+ "Deine Tasks, die noch nicht erledigt sind, nach Fälligkeit sortiert"
+ myOpenTasks: [Task!]!
+ projects: [Project!]!
+ "Offene ToDos, nach Fälligkeit sortiert"
+ upcomingTodos(limit: Int = 5): [Todo!]!
 }
-
 "Datum ohne Uhrzeit, Format YYYY-MM-DD"
 scalar Date
-
 "Zeitpunkt, Format ISO 8601"
 scalar DateTime
-
+"Ein Dokument eines Projekts (Vorgehensweise, Protokoll, Analyse …). Gespeichert als Markdown, geschrieben und gelesen als TipTap-JSON."
+type Document {
+ "Markdown in der kanonischen Form. Nur in der Einzelabfrage verlangen: die Liste lädt es nicht aus der Datenbank (pro Zeile eine Abfrage mehr)."
+ content: String!
+ "Derselbe Inhalt als TipTap-JSON für den Editor und den Lesemodus. Nur in der Einzelabfrage verlangen."
+ contentJson: RichText!
+ createdAt: DateTime!
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ id: ID!
+ kind: DocumentKind!
+ "null, wenn die Person das Projekt verlassen hat oder gelöscht wurde. Dann verwaltet, wer alle Dokumente verwalten darf."
+ owner: User
+ project: Project!
+ "Stufe für alle Projektmitglieder: NONE, READ oder EDIT"
+ projectAccess: DocumentAccess!
+ "Zählt bei jedem Sichern hoch; updateDocument verlangt die geladene Revision (Konflikt: DOCUMENT_CONFLICT)"
+ revision: Int!
+ "Freigaben je Person. Nur mit viewerAccess MANAGE sichtbar, sonst leer."
+ shares: [DocumentShare!]!
+ title: String!
+ updatedAt: DateTime!
+ updatedBy: User
+ "Die gesicherten Fassungen, neueste zuerst, ohne Inhalt (den liefert documentVersion). Wer das Dokument lesen darf, sieht sie."
+ versions: [DocumentVersion!]!
+ "Die wirksame Stufe der angemeldeten Person, mit dem Recht document.update schon verrechnet. Das Frontend rechnet sie nie selbst."
+ viewerAccess: DocumentAccess!
+}
+"Wie weit eine Person in ein Dokument reicht. MANAGE gibt es nur als viewerAccess (Owner und wer alle Dokumente verwaltet); gespeichert werden NONE, READ und EDIT."
+enum DocumentAccess {
+ EDIT
+ MANAGE
+ NONE
+ READ
+}
+"Eine erzeugte Datei zum Herunterladen"
+type DocumentFile {
+ "Der Inhalt der Datei, Base64"
+ contentBase64: String!
+ fileName: String!
+ mimeType: String!
+}
+"Feste Arten eines Dokuments"
+enum DocumentKind {
+ ANALYSIS
+ CONCEPT
+ MINUTES
+ OTHER
+ PROCEDURE
+}
+"Freigabe eines Dokuments an eine Person"
+type DocumentShare {
+ access: DocumentShareAccess!
+ user: User!
+}
+"Stufe einer Freigabe an eine Person"
+enum DocumentShareAccess {
+ EDIT
+ READ
+}
+input DocumentShareInput {
+ access: DocumentShareAccess!
+ "Muss Mitglied des Projekts sein"
+ userId: ID!
+}
+"Die Stufe für alle Mitglieder und die Freigaben je Person. Eine genannte Liste ersetzt die bisherige; ohne Angabe bleibt sie."
+input DocumentSharingInput {
+ projectAccess: DocumentAccess
+ shares: [DocumentShareInput!]
+}
+"Eine gesicherte Fassung eines Dokuments. Fassungen werden nie geändert und nie einzeln gelöscht."
+type DocumentVersion {
+ "Markdown dieser Fassung. Nur in documentVersion verlangen: die Liste der Fassungen lädt es nicht."
+ content: String!
+ "Alle Personen, die an dieser Fassung mitgewirkt haben. In dieser Stufe nur die Person, die gesichert hat."
+ contributors: [User!]!
+ createdAt: DateTime!
+ "Wer gesichert hat (null, wenn die Person gelöscht wurde)"
+ createdBy: User
+ kind: DocumentKind!
+ "Die Revision, aus der diese Fassung durch Zurückholen entstand, sonst null"
+ restoredFrom: Int
+ revision: Int!
+ title: String!
+}
 "Eine private Idee. Nur die Autorin oder der Autor ändert sie; wer ideas.viewAny hat, liest alle."
 type Idea {
-  adoptedAt: DateTime
-  author: User!
-  createdAt: DateTime!
-
-  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
-  deletionId: ID
-
-  description: RichText
-
-  "Entwurf: ein planer-v2-Ausschnitt als kanonischer Text, oder null"
-  draft: String
-
-  id: ID!
-
-  "Das Projekt, zu dem die Idee gehört, oder null"
-  project: Project
-
-  status: IdeaStatus!
-  title: String!
-
-  "Die ToDos, die aus dieser Idee entstanden sind"
-  todos: [Todo!]!
-
-  "Darf die angemeldete Person die Idee ändern (nur die Autorin)?"
-  viewerCanUpdate: Boolean!
+ adoptedAt: DateTime
+ author: User!
+ createdAt: DateTime!
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ description: RichText
+ "Entwurf: ein planer-v2-Ausschnitt als kanonischer Text, oder null"
+ draft: String
+ id: ID!
+ "Das Projekt, zu dem die Idee gehört, oder null"
+ project: Project
+ status: IdeaStatus!
+ title: String!
+ "Die ToDos, die aus dieser Idee entstanden sind"
+ todos: [Todo!]!
+ "Darf die angemeldete Person die Idee ändern (nur die Autorin)?"
+ viewerCanUpdate: Boolean!
 }
-
 "A paginated list of Idea items."
 type IdeaPaginator {
-  "A list of Idea items."
-  data: [Idea!]!
-
-  "Pagination information about the list of items."
-  paginatorInfo: PaginatorInfo!
+ "A list of Idea items."
+ data: [Idea!]!
+ "Pagination information about the list of items."
+ paginatorInfo: PaginatorInfo!
 }
-
 "Wo eine Idee steht. Nicht der Status IDEA eines Tasks: der gehört zu einem Projekt."
 enum IdeaStatus {
-  ADOPTED
-  DISCARDED
-  OPEN
+ ADOPTED
+ DISCARDED
+ OPEN
 }
-
 type ImportChange {
-  "Welche Felder betroffen sind"
-  fields: [String!]!
-
-  "ID des Elements (m-<id>, t-<id>, k-<id>)"
-  id: String
-
-  kind: ImportChangeKind!
-
-  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]; bei einem Löschen die ID des Elements"
-  path: String!
-
-  "Titel des Elements, bei einem Löschen (das Dokument kennt es nicht)"
-  title: String
+ "Welche Felder betroffen sind"
+ fields: [String!]!
+ "ID des Elements (m-<id>, t-<id>, k-<id>)"
+ id: String
+ kind: ImportChangeKind!
+ "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]; bei einem Löschen die ID des Elements"
+ path: String!
+ "Titel des Elements, bei einem Löschen (das Dokument kennt es nicht)"
+ title: String
 }
-
 "Art einer Änderung in einem Import"
 enum ImportChangeKind {
-  CREATE
-  DELETE
-  MOVE
-  UPDATE
+ CREATE
+ DELETE
+ MOVE
+ UPDATE
 }
-
 type ImportError {
-  "invalid, revision, archived, denied, unknown_id, person, role, self, assignee, description, limit oder rule"
-  kind: String!
-
-  message: String!
-  path: String!
+ "invalid, revision, archived, denied, unknown_id, person, role, self, assignee, description, limit oder rule"
+ kind: String!
+ message: String!
+ path: String!
 }
-
 type ImportId {
-  from: String!
-  to: String!
+ from: String!
+ to: String!
 }
-
 "Wie ein Import behandelt, was das Projekt hat und die Datei nicht"
 enum ImportMode {
-  "Die Datei ist der ganze Plan: Fehlendes kommt als ein Vorgang in den Papierkorb, nicht Genanntes in einem Feld wird geleert. Die Revision der Datei muss stimmen."
-  FULL
-
-  "Die Datei ist ein Teil: sie ergänzt und ändert, löscht nie, und Felder, die sie nicht nennt, bleiben."
-  PARTIAL
+ "Die Datei ist der ganze Plan: Fehlendes kommt als ein Vorgang in den Papierkorb, nicht Genanntes in einem Feld wird geleert. Die Revision der Datei muss stimmen."
+ FULL
+ "Die Datei ist ein Teil: sie ergänzt und ändert, löscht nie, und Felder, die sie nicht nennt, bleiben."
+ PARTIAL
 }
-
 "Was ein Import tat, oder bei dryRun tun würde"
 type ImportResult {
-  changes: [ImportChange!]!
-
-  "Der Export nach dem Import als kanonischer Text (nicht im Trockenlauf und nicht bei Fehlern)"
-  document: String
-
-  dryRun: Boolean!
-
-  "Bei Fehlern wurde nichts geschrieben"
-  errors: [ImportError!]!
-
-  "Die „-new-“-IDs der Datei und die IDs, die die App ihnen gab (leer im Trockenlauf)"
-  idMap: [ImportId!]!
-
-  "Ohne Fehler"
-  ok: Boolean!
-
-  "Das Projekt (bei einem neuen erst nach dem Eintragen, nicht im Trockenlauf)"
-  projectId: ID
+ changes: [ImportChange!]!
+ "Der Export nach dem Import als kanonischer Text (nicht im Trockenlauf und nicht bei Fehlern)"
+ document: String
+ dryRun: Boolean!
+ "Bei Fehlern wurde nichts geschrieben"
+ errors: [ImportError!]!
+ "Die „-new-“-IDs der Datei und die IDs, die die App ihnen gab (leer im Trockenlauf)"
+ idMap: [ImportId!]!
+ "Ohne Fehler"
+ ok: Boolean!
+ "Das Projekt (bei einem neuen erst nach dem Eintragen, nicht im Trockenlauf)"
+ projectId: ID
+ "Zuweisungen, die wegfallen (unbekannte oder nicht zugehörige Person); der Import läuft trotzdem weiter"
+ warnings: [ImportWarning!]!
 }
-
+type ImportWarning {
+ email: String!
+ message: String!
+ "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]"
+ path: String!
+}
 "Status von Milestone und ToDo (wird automatisch berechnet)"
 enum ItemStatus {
-  DONE
-  OPEN
+ DONE
+ OPEN
 }
-
 "Eine Spalte im Kanban-Board mit ihren Tasks"
 type KanbanColumn {
-  status: TaskStatus!
-  tasks: [Task!]!
+ status: TaskStatus!
+ tasks: [Task!]!
 }
-
 "Ein Label eines Projekts. Jedes Projekt hat eigene Labels."
 type Label {
-  "Gruppe, zum Beispiel `phase` oder `type`, wie geschrieben"
-  category: String
-
-  "Die Gruppe für die Anzeige: bei mitgelieferten Vorlagen übersetzt, sonst wie geschrieben"
-  categoryLabel: String
-
-  color: LabelColor!
-  id: ID!
-
-  "Stabiler Schlüssel (a-z, 0-9, _ und -, höchstens 40 Zeichen, eindeutig im Projekt), ändert sich nie"
-  key: String!
-
-  "Name in der Sprache der Oberfläche, sonst in der des Projekts"
-  name: String!
-
-  "Die Namen in allen Sprachen, die das Label hat"
-  names: [LabelName!]!
-
-  "Reihenfolge im Projekt, beginnt bei 0"
-  position: Int!
-
-  "An wie vielen Tasks das Label hängt (ohne Tasks im Papierkorb)"
-  taskCount: Int!
+ "Gruppe, zum Beispiel `phase` oder `type`, wie geschrieben"
+ category: String
+ "Die Gruppe für die Anzeige: bei mitgelieferten Vorlagen übersetzt, sonst wie geschrieben"
+ categoryLabel: String
+ color: LabelColor!
+ id: ID!
+ "Stabiler Schlüssel (a-z, 0-9, _ und -, höchstens 40 Zeichen, eindeutig im Projekt), ändert sich nie"
+ key: String!
+ "Name in der Sprache der Oberfläche, sonst in der des Projekts"
+ name: String!
+ "Die Namen in allen Sprachen, die das Label hat"
+ names: [LabelName!]!
+ "Reihenfolge im Projekt, beginnt bei 0"
+ position: Int!
+ "An wie vielen Tasks das Label hängt (ohne Tasks im Papierkorb)"
+ taskCount: Int!
 }
-
 "Farbe eines Labels: ein Farbton der Palette des Themes (hell und dunkel passend)"
 enum LabelColor {
-  BLUE
-  CYAN
-  GRAY
-  GREEN
-  INDIGO
-  ORANGE
-  PINK
-  PURPLE
-  RED
-  YELLOW
+ BLUE
+ CYAN
+ GRAY
+ GREEN
+ INDIGO
+ ORANGE
+ PINK
+ PURPLE
+ RED
+ YELLOW
 }
-
 "Ein Label eines Projekts oder einer Vorlage"
 input LabelInput {
-  category: String
-  color: LabelColor!
-
-  "Schlüssel eines bestehenden Labels; fehlt er, ist das Label neu (der Schlüssel entsteht aus dem Namen und ändert sich nie)"
-  key: String
-
-  "Namen je Sprache; der Name in der Sprache des Projekts bzw. der Vorlage ist Pflicht, einmal je Sprache, je Sprache eindeutig"
-  names: [LabelNameInput!]!
+ category: String
+ color: LabelColor!
+ "Schlüssel eines bestehenden Labels; fehlt er, ist das Label neu (der Schlüssel entsteht aus dem Namen und ändert sich nie)"
+ key: String
+ "Namen je Sprache; der Name in der Sprache des Projekts bzw. der Vorlage ist Pflicht, einmal je Sprache, je Sprache eindeutig"
+ names: [LabelNameInput!]!
 }
-
 "Der Name eines Labels in einer Sprache"
 type LabelName {
-  locale: Locale!
-  name: String!
+ locale: Locale!
+ name: String!
 }
-
 "Der Name eines Labels in einer Sprache"
 input LabelNameInput {
-  locale: Locale!
-  name: String!
+ locale: Locale!
+ name: String!
 }
-
 "Sprache eines Projekts. Bestimmt die Sprache der Mails."
 enum Locale {
-  DE
-  EN
+ DE
+ EN
 }
-
 "Ein Name in beiden Sprachen der Oberfläche"
 type LocalizedName {
-  de: String!
-  en: String!
+ de: String!
+ en: String!
 }
-
 "Ein Name in beiden Sprachen der Oberfläche"
 input LocalizedNameInput {
-  de: String!
-  en: String!
+ de: String!
+ en: String!
 }
-
 "Eine Person für die Auswahl von Mitgliedern: nur Name und Bild, ohne E-Mail und Sicherheitsstatus."
 type MemberCandidate {
-  avatarUrl: String
-  id: ID!
-
-  "Konto eines Agenten (Claude): in der Auswahl mit dem Kennzeichen «Agent»"
-  isAgent: Boolean!
-
-  "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
-  isMember: Boolean!
-
-  name: String!
+ avatarUrl: String
+ id: ID!
+ "Konto eines Agenten (Claude): in der Auswahl mit dem Kennzeichen «Agent»"
+ isAgent: Boolean!
+ "Schon Mitglied des Projekts (nur mit projectId, sonst false)"
+ isMember: Boolean!
+ name: String!
 }
-
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
-  createdAt: DateTime!
-  createdBy: User
-
-  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
-  deletionId: ID
-
-  description: RichText
-  dueDate: Date
-
-  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
-  icon: String
-
-  id: ID!
-
-  "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
-  position: Int!
-
-  progress: Progress!
-  project: Project!
-
-  "Version und Freigabe, null wenn der Milestone keine Version hat"
-  release: Release
-
-  "DONE, sobald alle ToDos erledigt sind"
-  status: ItemStatus!
-
-  title: String!
-  todos: [Todo!]!
+ createdAt: DateTime!
+ createdBy: User
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ description: RichText
+ dueDate: Date
+ "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+ icon: String
+ id: ID!
+ "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
+ position: Int!
+ progress: Progress!
+ project: Project!
+ "Version und Freigabe, null wenn der Milestone keine Version hat"
+ release: Release
+ "DONE, sobald alle ToDos erledigt sind"
+ status: ItemStatus!
+ title: String!
+ todos: [Todo!]!
 }
-
 type Mutation {
-  addComment(input: AddCommentInput!): Comment!
-
-  "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
-  applyTemplateLabels(mode: TemplateLabelMode!, projectId: ID!, templateId: ID!): Project!
-
-  "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
-  approveUser(id: ID!): User!
-
-  "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
-  archiveProject(id: ID!): Project!
-
-  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
-  assignTask(assigneeId: ID, id: ID!): Task!
-
-  "Löscht den ganzen KI-Kontext"
-  clearProjectAiContext(projectId: ID!): Project!
-
-  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
-  createApiToken(name: String!): NewApiToken!
-
-  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
-  createIdea(input: CreateIdeaInput!): Idea!
-
-  createMilestone(input: CreateMilestoneInput!): Milestone!
-  createProject(input: CreateProjectInput!): Project!
-
-  "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
-  createRole(input: CreateRoleInput!): Role!
-
-  "Legt eine eigene Funktion an. Der Schlüssel entsteht aus dem englischen Namen."
-  createRoleFunction(input: CreateRoleFunctionInput!): RoleFunction!
-
-  "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
-  createTask(input: CreateTaskInput!): Task!
-
-  "Legt eine eigene Vorlage an: Name, Beschreibung, Sprache und Labels, ohne Gerüst."
-  createTemplate(input: TemplateInput!): Template!
-
-  "Legt aus einer hochgeladenen Planer-Datei (planer-v2, als JSON-Text) eine eigene Vorlage an. Der Name der Vorlage ist der Projektname der Datei. Recht templates.manage."
-  createTemplateFromFile(document: String!): Template!
-
-  "Legt aus einem Projekt eine eigene Vorlage an („Als Vorlage speichern“): Export mit den festen Werten einer Vorlage (keine Mitglieder, Fälligkeiten, Zuweisungen, Commits, alle Tasks geplant). Recht planer.export im Projekt und templates.manage. Das Projekt braucht mindestens ein Label."
-  createTemplateFromProject(name: String!, projectId: ID!): Template!
-
-  createTodo(input: CreateTodoInput!): Todo!
-  createUser(input: CreateUserInput!): User!
-
-  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
-  deleteApiToken(id: ID!): ApiToken
-
-  deleteComment(id: ID!): Comment!
-
-  "Löscht eine eigene Idee in den Papierkorb"
-  deleteIdea(id: ID!): Idea!
-
-  deleteMilestone(id: ID!): Milestone!
-  deleteProject(id: ID!): Project!
-
-  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
-  deleteRole(id: ID!): Role!
-
-  "Löscht eine eigene Funktion, die keine Rolle mehr verwendet."
-  deleteRoleFunction(id: ID!): RoleFunction!
-
-  deleteTask(id: ID!): Task!
-
-  "Löscht eine eigene Vorlage endgültig (kein Papierkorb). Projekte aus ihr behalten ihre Kopien."
-  deleteTemplate(id: ID!): Boolean!
-
-  deleteTodo(id: ID!): Todo!
-  deleteUser(id: ID!): User!
-
-  "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
-  deleteUserAvatar(id: ID!): User!
-
-  "KI-Assistent (assistant.use): der nächste Schritt eines Plans aus dem Chat, mit Rückfrage-Knöpfen und Vorschau (Trockenlauf mit appendOnly). Speichert nichts. Grenzen je Person und Stunde/Tag."
-  draftPlan(
-    "Der Plan der Vorschau (kanonischer Text), damit Claude ihn ändert statt neu beginnt"
-    currentPlan: String
-
-    "Die Idee, aus der der Plan entsteht"
-    ideaId: ID
-
-    messages: [PlanChatMessageInput!]!
-
-    "Das Projekt, zu dem ergänzt wird; ohne: neues Projekt oder noch offen"
-    projectId: ID
-
-    "Art des Elements, das angelegt werden soll; ohne Angabe plant der Assistent wie bisher automatisch"
-    targetKind: PlanTargetKind
-
-    "Die gewählte Vorlage eines neuen Projekts"
-    templateId: ID
-  ): PlanDraft!
-
-  "Kopiert eine Rolle mit ihren Funktionen als eigene Rolle."
-  duplicateRole(id: ID!): Role!
-
-  "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
-  duplicateRoleFunction(id: ID!): RoleFunction!
-
-  "Kopiert eine Vorlage (auch eine mitgelieferte) mit ihrem Gerüst als eigene Vorlage, um sie anzupassen."
-  duplicateTemplate(id: ID!): Template!
-
-  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
-  emptyProjectTrash(projectId: ID!): Int!
-
-  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
-  importPlan(
-    "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
-    appendOnly: Boolean = false
-
-    document: String!
-    dryRun: Boolean = false
-
-    "Abbruch, wenn sich die Projekt-Revision seit dem Export geändert hat"
-    expectedRevision: Int
-
-    "Die Idee, aus der die Datei entstand (nur die Autorin): danach angenommen, ihre neuen ToDos verweisen auf sie"
-    ideaId: ID
-
-    mode: ImportMode = FULL
-    notifyAssignees: Boolean = false
-    projectId: ID
-
-    "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
-    templateId: ID
-  ): ImportResult!
-
-  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
-  moveMilestone(id: ID!, position: Int!): Milestone!
-
-  "Verschiebt einen Task im Kanban"
-  moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
-
-  "Verschiebt einen Task an eine andere Stelle in seinem ToDo (Zeitachse). Die übrigen rücken nach; Status und Kanban-Platz bleiben."
-  moveTaskInTodo(id: ID!, position: Int!): Task!
-
-  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
-  moveTaskToTodo(id: ID!, todoId: ID!): Task!
-
-  moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
-
-  "Löscht einen Vorgang endgültig."
-  purgeFromTrash(deletionId: ID!): Boolean!
-
-  "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
-  rejectUser(id: ID!): User!
-
-  "Entfernt die Datei aus dem KI-Kontext, der Text bleibt"
-  removeProjectAiContextFile(projectId: ID!): Project!
-
-  removeProjectMember(projectId: ID!, userId: ID!): Project!
-
-  "Entfernt die Benachrichtigung (project.update)"
-  removeProjectWebhook(projectId: ID!): Project!
-
-  "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
-  resetRole(id: ID!): Role!
-
-  "Standard wiederherstellen: Namen und Rechte einer mitgelieferten Funktion."
-  resetRoleFunction(id: ID!): RoleFunction!
-
-  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
-  resetUserTwoFactor(id: ID!): User!
-
-  "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
-  restoreFromTrash(deletionId: ID!): TrashItem!
-
-  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
-  setDefaultRole(id: ID!): Role!
-
-  "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
-  setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
-
-  "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
-  setProjectAiContext(input: ProjectAiContextInput!, projectId: ID!): Project!
-
-  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
-  setProjectCreatorRole(roleKey: String!): AppSettings!
-
-  "Fügt eine Person hinzu oder ändert ihre Rolle"
-  setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
-
-  "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
-  setProjectWebhook(input: ProjectWebhookInput!, projectId: ID!): Project!
-
-  "Setzt die Labels eines Tasks. Neue Labels müssen aus den Labels des Projekts stammen; bisherige dürfen bleiben."
-  setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
-
-  "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
-  testProjectWebhook(projectId: ID!): WebhookTestResult!
-
-  "Holt ein archiviertes Projekt zurück."
-  unarchiveProject(id: ID!): Project!
-
-  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
-  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
-
-  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
-
-  "Ändert eine eigene Idee"
-  updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
-
-  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
-
-  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
-  updateMyAvatar(avatar: Upload!): User!
-
-  "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
-  updateMyNotifications(notifyByEmail: Boolean!): User!
-
-  updateProject(id: ID!, input: UpdateProjectInput!): Project!
-
-  "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
-  updateProjectLabels(labels: [LabelInput!]!, projectId: ID!): Project!
-
-  "Ändert Namen, Funktionen oder Obergrenze einer Rolle. Der Schlüssel bleibt."
-  updateRole(id: ID!, input: UpdateRoleInput!): Role!
-
-  "Ändert Namen oder Rechte einer Funktion. Wirkt sofort für alle Rollen, die sie verwenden."
-  updateRoleFunction(id: ID!, input: UpdateRoleFunctionInput!): RoleFunction!
-
-  updateTask(id: ID!, input: UpdateTaskInput!): Task!
-
-  "Ändert Name, Beschreibung und Labels einer eigenen Vorlage in einem Zug. Labels mit Schlüssel bleiben, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht."
-  updateTemplate(id: ID!, input: UpdateTemplateInput!): Template!
-
-  updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
-
-  "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
-  updateUser(id: ID!, input: UpdateUserInput!): User!
-
-  "Lädt eine Datei (.txt oder .md, UTF-8, höchstens 100 KB) in den KI-Kontext und ersetzt eine vorhandene. Gespeichert wird nur ihr Text."
-  uploadProjectAiContextFile(file: Upload!, projectId: ID!): Project!
+ addComment(input: AddCommentInput!): Comment!
+ "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
+ applyTemplateLabels(mode: TemplateLabelMode!, projectId: ID!, templateId: ID!): Project!
+ "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
+ approveUser(id: ID!): User!
+ "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
+ archiveProject(id: ID!): Project!
+ "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
+ assignTask(assigneeId: ID, id: ID!): Task!
+ "Löscht den ganzen KI-Kontext"
+ clearProjectAiContext(projectId: ID!): Project!
+ "Erzeugt einen Zugang für ein Agent-Konto (nur Konten mit isAgent), 90 Tage gültig. Nur mit dem Recht users.manage und frischer Passwortbestätigung. Den Klartext gibt es nur in der Antwort; Protokolleintrag und Mail an die Admins."
+ createAgentToken(name: String!, userId: ID!): NewApiToken!
+ "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
+ createApiToken(name: String!): NewApiToken!
+ "Legt ein Dokument an (document.create im Projekt). Der Owner bist du."
+ createDocument(input: CreateDocumentInput!): Document!
+ "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
+ createIdea(input: CreateIdeaInput!): Idea!
+ createMilestone(input: CreateMilestoneInput!): Milestone!
+ createProject(input: CreateProjectInput!): Project!
+ "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
+ createRole(input: CreateRoleInput!): Role!
+ "Legt eine eigene Funktion an. Der Schlüssel entsteht aus dem englischen Namen."
+ createRoleFunction(input: CreateRoleFunctionInput!): RoleFunction!
+ "Legt einen Task zu einem ToDo an. Eine zugewiesene Person muss Mitglied des Projekts sein."
+ createTask(input: CreateTaskInput!): Task!
+ "Legt eine eigene Vorlage an: Name, Beschreibung, Sprache und Labels, ohne Gerüst."
+ createTemplate(input: TemplateInput!): Template!
+ "Legt aus einer hochgeladenen Planer-Datei (planer-v2, als JSON-Text) eine eigene Vorlage an. Der Name der Vorlage ist der Projektname der Datei. Recht templates.manage."
+ createTemplateFromFile(document: String!): Template!
+ "Legt aus einem Projekt eine eigene Vorlage an („Als Vorlage speichern“): Export mit den festen Werten einer Vorlage (keine Mitglieder, Fälligkeiten, Zuweisungen, Commits, alle Tasks geplant). Recht planer.export im Projekt und templates.manage. Das Projekt braucht mindestens ein Label."
+ createTemplateFromProject(name: String!, projectId: ID!): Template!
+ createTodo(input: CreateTodoInput!): Todo!
+ createUser(input: CreateUserInput!): User!
+ "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
+ deleteApiToken(id: ID!): ApiToken
+ deleteComment(id: ID!): Comment!
+ "Legt das Dokument in den Papierkorb (Stufe MANAGE). deletionId für „Rückgängig“ (restoreFromTrash)."
+ deleteDocument(id: ID!): Document!
+ "Löscht eine eigene Idee in den Papierkorb"
+ deleteIdea(id: ID!): Idea!
+ deleteMilestone(id: ID!): Milestone!
+ deleteProject(id: ID!): Project!
+ "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
+ deleteRole(id: ID!): Role!
+ "Löscht eine eigene Funktion, die keine Rolle mehr verwendet."
+ deleteRoleFunction(id: ID!): RoleFunction!
+ deleteTask(id: ID!): Task!
+ "Löscht eine eigene Vorlage endgültig (kein Papierkorb). Projekte aus ihr behalten ihre Kopien."
+ deleteTemplate(id: ID!): Boolean!
+ deleteTodo(id: ID!): Todo!
+ deleteUser(id: ID!): User!
+ "Entfernt ein Avatarbild: dein eigenes, als Admin auch das einer anderen Person."
+ deleteUserAvatar(id: ID!): User!
+ "KI-Assistent (assistant.use): der nächste Schritt eines Plans aus dem Chat, mit Rückfrage-Knöpfen und Vorschau (Trockenlauf mit appendOnly). Speichert nichts. Grenzen je Person und Stunde/Tag."
+ draftPlan(
+ "Der Plan der Vorschau (kanonischer Text), damit Claude ihn ändert statt neu beginnt"
+ currentPlan: String
+ "Die Idee, aus der der Plan entsteht"
+ ideaId: ID
+ messages: [PlanChatMessageInput!]!
+ "Das Projekt, zu dem ergänzt wird; ohne: neues Projekt oder noch offen"
+ projectId: ID
+ "Art des Elements, das angelegt werden soll; ohne Angabe plant der Assistent wie bisher automatisch"
+ targetKind: PlanTargetKind
+ "Die gewählte Vorlage eines neuen Projekts"
+ templateId: ID
+ ): PlanDraft!
+ "Kopiert eine Rolle mit ihren Funktionen als eigene Rolle."
+ duplicateRole(id: ID!): Role!
+ "Kopiert eine Funktion mit ihren Rechten als eigene Funktion. Keine Rolle verwendet die Kopie."
+ duplicateRoleFunction(id: ID!): RoleFunction!
+ "Kopiert eine Vorlage (auch eine mitgelieferte) mit ihrem Gerüst als eigene Vorlage, um sie anzupassen."
+ duplicateTemplate(id: ID!): Template!
+ "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
+ emptyProjectTrash(projectId: ID!): Int!
+ "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+ exportDocumentPdf(id: ID!): DocumentFile!
+ "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
+ importPlan(
+ "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
+ appendOnly: Boolean = false
+ document: String!
+ dryRun: Boolean = false
+ "Abbruch, wenn sich die Projekt-Revision seit dem Export geändert hat"
+ expectedRevision: Int
+ "Die Idee, aus der die Datei entstand (nur die Autorin): danach angenommen, ihre neuen ToDos verweisen auf sie"
+ ideaId: ID
+ mode: ImportMode = FULL
+ notifyAssignees: Boolean = false
+ projectId: ID
+ "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
+ templateId: ID
+ ): ImportResult!
+ "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
+ moveMilestone(id: ID!, position: Int!): Milestone!
+ "Verschiebt einen Task im Kanban"
+ moveTask(id: ID!, position: Int!, status: TaskStatus!): Task!
+ "Verschiebt einen Task an eine andere Stelle in seinem ToDo (Zeitachse). Die übrigen rücken nach; Status und Kanban-Platz bleiben."
+ moveTaskInTodo(id: ID!, position: Int!): Task!
+ "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
+ moveTaskToTodo(id: ID!, todoId: ID!): Task!
+ moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
+ "Löscht einen Vorgang endgültig."
+ purgeFromTrash(deletionId: ID!): Boolean!
+ "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
+ rejectUser(id: ID!): User!
+ "Entfernt die Datei aus dem KI-Kontext, der Text bleibt"
+ removeProjectAiContextFile(projectId: ID!): Project!
+ removeProjectMember(projectId: ID!, userId: ID!): Project!
+ "Entfernt die Benachrichtigung (project.update)"
+ removeProjectWebhook(projectId: ID!): Project!
+ "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
+ resetRole(id: ID!): Role!
+ "Standard wiederherstellen: Namen und Rechte einer mitgelieferten Funktion."
+ resetRoleFunction(id: ID!): RoleFunction!
+ "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
+ resetUserTwoFactor(id: ID!): User!
+ "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."
+ restoreDocumentVersion(id: ID!, revision: Int!): Document!
+ "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
+ restoreFromTrash(deletionId: ID!): TrashItem!
+ "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
+ revokeAgentToken(tokenId: ID!, userId: ID!): ApiToken
+ "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
+ setDefaultRole(id: ID!): Role!
+ "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
+ setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
+ "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
+ setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
+ "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
+ setProjectAiContext(input: ProjectAiContextInput!, projectId: ID!): Project!
+ "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
+ setProjectCreatorRole(roleKey: String!): AppSettings!
+ "Fügt eine Person hinzu oder ändert ihre Rolle"
+ setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
+ "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
+ setProjectWebhook(input: ProjectWebhookInput!, projectId: ID!): Project!
+ "Setzt die Labels eines Tasks. Neue Labels müssen aus den Labels des Projekts stammen; bisherige dürfen bleiben."
+ setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
+ "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
+ testProjectWebhook(projectId: ID!): WebhookTestResult!
+ "Übergibt das Dokument an ein anderes Projektmitglied (Stufe MANAGE)"
+ transferDocument(id: ID!, ownerId: ID!): Document!
+ "Holt ein archiviertes Projekt zurück."
+ unarchiveProject(id: ID!): Project!
+ "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
+ updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
+ updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ "Ändert Titel, Art und Inhalt (Stufe EDIT und document.update). revision ist die geladene; weicht sie ab, kommt DOCUMENT_CONFLICT und nichts wird gesichert. Ohne Änderung entsteht keine neue Fassung."
+ updateDocument(id: ID!, input: UpdateDocumentInput!, revision: Int!): Document!
+ "Ändert eine eigene Idee"
+ updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
+ updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
+ "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
+ updateMyAvatar(avatar: Upload!): User!
+ "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
+ updateMyNotifications(notifyByEmail: Boolean!): User!
+ updateProject(id: ID!, input: UpdateProjectInput!): Project!
+ "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
+ updateProjectLabels(labels: [LabelInput!]!, projectId: ID!): Project!
+ "Ändert Namen, Funktionen oder Obergrenze einer Rolle. Der Schlüssel bleibt."
+ updateRole(id: ID!, input: UpdateRoleInput!): Role!
+ "Ändert Namen oder Rechte einer Funktion. Wirkt sofort für alle Rollen, die sie verwenden."
+ updateRoleFunction(id: ID!, input: UpdateRoleFunctionInput!): RoleFunction!
+ updateTask(id: ID!, input: UpdateTaskInput!): Task!
+ "Ändert Name, Beschreibung und Labels einer eigenen Vorlage in einem Zug. Labels mit Schlüssel bleiben, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht."
+ updateTemplate(id: ID!, input: UpdateTemplateInput!): Template!
+ updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
+ "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
+ updateUser(id: ID!, input: UpdateUserInput!): User!
+ "Lädt eine Datei (.txt oder .md, UTF-8, höchstens 100 KB) in den KI-Kontext und ersetzt eine vorhandene. Gespeichert wird nur ihr Text."
+ uploadProjectAiContextFile(file: Upload!, projectId: ID!): Project!
 }
-
 "Ein neu erzeugter Zugang. Den Klartext gibt es nur in dieser Antwort."
 type NewApiToken {
-  plainTextToken: String!
-  token: ApiToken!
+ plainTextToken: String!
+ token: ApiToken!
 }
-
 "Allows ordering a list of records."
 input OrderByClause {
-  "The column that is used for ordering."
-  column: String!
-
-  "The direction that is used for ordering."
-  order: SortOrder!
+ "The column that is used for ordering."
+ column: String!
+ "The direction that is used for ordering."
+ order: SortOrder!
 }
-
 "Aggregate functions when ordering by a relation without specifying a column."
 enum OrderByRelationAggregateFunction {
-  "Amount of items."
-  COUNT
+ "Amount of items."
+ COUNT
 }
-
 "Aggregate functions when ordering by a relation that may specify a column."
 enum OrderByRelationWithColumnAggregateFunction {
-  "Average."
-  AVG
-
-  "Amount of items."
-  COUNT
-
-  "Maximum."
-  MAX
-
-  "Minimum."
-  MIN
-
-  "Sum."
-  SUM
+ "Average."
+ AVG
+ "Amount of items."
+ COUNT
+ "Maximum."
+ MAX
+ "Minimum."
+ MIN
+ "Sum."
+ SUM
 }
-
 "Information about pagination using a fully featured paginator."
 type PaginatorInfo {
-  "Number of items in the current page."
-  count: Int!
-
-  "Index of the current page."
-  currentPage: Int!
-
-  "Index of the first item in the current page."
-  firstItem: Int
-
-  "Are there more pages after this one?"
-  hasMorePages: Boolean!
-
-  "Index of the last item in the current page."
-  lastItem: Int
-
-  "Index of the last available page."
-  lastPage: Int!
-
-  "Number of items per page."
-  perPage: Int!
-
-  "Number of total available items."
-  total: Int!
+ "Number of items in the current page."
+ count: Int!
+ "Index of the current page."
+ currentPage: Int!
+ "Index of the first item in the current page."
+ firstItem: Int
+ "Are there more pages after this one?"
+ hasMorePages: Boolean!
+ "Index of the last item in the current page."
+ lastItem: Int
+ "Index of the last available page."
+ lastPage: Int!
+ "Number of items per page."
+ perPage: Int!
+ "Number of total available items."
+ total: Int!
 }
-
 "Ein Passkey zum Anmelden, zum Beispiel auf dem Laptop oder im Passwortmanager"
 type Passkey {
-  createdAt: DateTime!
-  id: ID!
-
-  "null, solange der Passkey noch nie benutzt wurde"
-  lastUsedAt: DateTime
-
-  name: String!
+ createdAt: DateTime!
+ id: ID!
+ "null, solange der Passkey noch nie benutzt wurde"
+ lastUsedAt: DateTime
+ name: String!
 }
-
 "Berechnete Übersicht Rolle × Recht: Systemrechte und Projektrechte, je mit den Rollen, die sie haben."
 type PermissionMatrix {
-  project: [ProjectRightRow!]!
-  system: [SystemRightRow!]!
+ project: [ProjectRightRow!]!
+ system: [SystemRightRow!]!
 }
-
 input PlanChatMessageInput {
-  content: String!
-  role: PlanChatRole!
+ content: String!
+ role: PlanChatRole!
 }
-
 enum PlanChatRole {
-  ASSISTANT
-  USER
+ ASSISTANT
+ USER
 }
-
 type PlanChoice {
-  detail: String
-  kind: PlanChoiceKind!
-  label: String!
-  recommended: Boolean!
-  value: String
+ detail: String
+ kind: PlanChoiceKind!
+ label: String!
+ recommended: Boolean!
+ value: String
 }
-
 "Welche Art Antwort-Knopf der Assistent anbietet"
 enum PlanChoiceKind {
-  "An ein vorhandenes ToDo anhängen (value = t-<id>)"
-  APPEND_TO_TODO
-  CUSTOM_MILESTONE
-
-  "Als Idee ablegen"
-  IDEA
-
-  "Ein vorhandener Milestone (value = m-<id>)"
-  MILESTONE
-  NEW_MILESTONE
-  NEW_PROJECT
-  NO_TEMPLATE
-
-  "Ein vorhandenes Projekt (value = ID)"
-  PROJECT
-  SHOW_ALL
-
-  "Eine Vorlage für das neue Projekt (value = ID)"
-  TEMPLATE
+ "An ein vorhandenes ToDo anhängen (value = t-<id>)"
+ APPEND_TO_TODO
+ CUSTOM_MILESTONE
+ "Als Idee ablegen"
+ IDEA
+ "Ein vorhandener Milestone (value = m-<id>)"
+ MILESTONE
+ NEW_MILESTONE
+ NEW_PROJECT
+ NO_TEMPLATE
+ "Ein vorhandenes Projekt (value = ID)"
+ PROJECT
+ SHOW_ALL
+ "Eine Vorlage für das neue Projekt (value = ID)"
+ TEMPLATE
 }
-
 "Antwort des Assistenten"
 type PlanDraft {
-  "Rückfrage-Knöpfe (höchstens fünf, dann „Alle anzeigen“), sonst leer"
-  choices: [PlanChoice!]!
-
-  "Hinweise der Nachbearbeitung (unbekannte Person, Duplikat, Beschreibung zu Text geworden …)"
-  hints: [String!]!
-
-  "Der Auszug als kanonischer Text, null solange Angaben fehlen; geht mit der nächsten Nachricht als currentPlan zurück"
-  plan: String
-
-  "Trockenlauf des Imports mit appendOnly; null ohne Plan"
-  preview: ImportResult
-
-  projectId: ID
-
-  "Text für den Chat"
-  reply: String!
-
-  templateId: ID
+ "Rückfrage-Knöpfe (höchstens fünf, dann „Alle anzeigen“), sonst leer"
+ choices: [PlanChoice!]!
+ "Hinweise der Nachbearbeitung (unbekannte Person, Duplikat, Beschreibung zu Text geworden …)"
+ hints: [String!]!
+ "Der Auszug als kanonischer Text, null solange Angaben fehlen; geht mit der nächsten Nachricht als currentPlan zurück"
+ plan: String
+ "Trockenlauf des Imports mit appendOnly; null ohne Plan"
+ preview: ImportResult
+ projectId: ID
+ "Text für den Chat"
+ reply: String!
+ templateId: ID
 }
-
 "Art des Elements, das die Person anlegen will"
 enum PlanTargetKind {
-  MILESTONE
-  TASK
-  TODO
+ IDEA
+ MILESTONE
+ TASK
+ TODO
 }
-
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
 type Progress {
-  done: Int!
-
-  "Prozentwert von 0 bis 100, gerundet"
-  percent: Int!
-
-  total: Int!
+ done: Int!
+ "Prozentwert von 0 bis 100, gerundet"
+ percent: Int!
+ total: Int!
 }
-
 "Ein Projekt mit Mitgliedern und Milestones"
 type Project {
-  "KI-Kontext: Hintergrundwissen für den Assistenten. Lesen dürfen alle, die das Projekt sehen; null, solange keiner angelegt ist."
-  aiContext: ProjectAiContext
-
-  "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
-  archivedAt: DateTime
-
-  createdAt: DateTime!
-
-  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
-  deletionId: ID
-
-  "Formatierter Text, gleiche Regeln wie bei Milestones"
-  description: RichText
-
-  "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
-  icon: String
-
-  id: ID!
-
-  "Die Labels dieses Projekts in ihrer Reihenfolge"
-  labels: [Label!]!
-
-  "Sprache der Benachrichtigungsmails dieses Projekts"
-  locale: Locale!
-
-  members: [ProjectMember!]!
-  milestones: [Milestone!]!
-  name: String!
-
-  "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
-  planerRevision: Int!
-
-  "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
-  progress: Progress!
-
-  "Die Vorlage, aus der das Projekt angelegt wurde (nur zur Anzeige; null: ohne Vorlage oder Vorlage gelöscht)"
-  template: Template
-
-  "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
-  viewerRights: [Right!]!
-
-  "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
-  viewerRole: Role
-
-  "Benachrichtigung bei Änderungen der Planer-Datei (GitHub oder allgemein). Nur mit project.update, sonst null."
-  webhook: ProjectWebhook
+ "KI-Kontext: Hintergrundwissen für den Assistenten. Lesen dürfen alle, die das Projekt sehen; null, solange keiner angelegt ist."
+ aiContext: ProjectAiContext
+ "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
+ archivedAt: DateTime
+ createdAt: DateTime!
+ "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
+ deletionId: ID
+ "Formatierter Text, gleiche Regeln wie bei Milestones"
+ description: RichText
+ "Name eines Font-Awesome-Icons (Stil fest im Frontend), z. B. `rocket`. Wird in der Seitenleiste gezeigt."
+ icon: String
+ id: ID!
+ "Die Labels dieses Projekts in ihrer Reihenfolge"
+ labels: [Label!]!
+ "Sprache der Benachrichtigungsmails dieses Projekts"
+ locale: Locale!
+ members: [ProjectMember!]!
+ milestones: [Milestone!]!
+ name: String!
+ "Zählt jede Änderung an der Planer-Datei (wird in S3c gezählt, bis dahin 0)"
+ planerRevision: Int!
+ "Erledigte Tasks im Verhältnis zu allen Tasks des Projekts"
+ progress: Progress!
+ "Die Vorlage, aus der das Projekt angelegt wurde (nur zur Anzeige; null: ohne Vorlage oder Vorlage gelöscht)"
+ template: Template
+ "Was du in diesem Projekt tun darfst. Das Frontend zeigt danach Knöpfe an oder aus."
+ viewerRights: [Right!]!
+ "Deine Rolle im Projekt. null, wenn du nur als Admin Zugriff hast."
+ viewerRole: Role
+ "Benachrichtigung bei Änderungen der Planer-Datei (GitHub oder allgemein). Nur mit project.update, sonst null."
+ webhook: ProjectWebhook
 }
-
 "Hintergrundwissen eines Projekts für den Assistenten: ein Text und der Text einer Datei, zusammen höchstens 20 000 Zeichen"
 type ProjectAiContext {
-  "Zeichen von Text und Datei zusammen"
-  characters: Int!
-
-  fileName: String
-  fileText: String
-
-  "Für externe Werkzeuge (MCP get_project_ai_context) freigegeben"
-  sharedWithTools: Boolean!
-
-  text: String
-  updatedAt: DateTime!
-  updatedBy: User
+ "Zeichen von Text und Datei zusammen"
+ characters: Int!
+ fileName: String
+ fileText: String
+ "Für externe Werkzeuge (MCP get_project_ai_context) freigegeben"
+ sharedWithTools: Boolean!
+ text: String
+ updatedAt: DateTime!
+ updatedBy: User
 }
-
 input ProjectAiContextInput {
-  "Für externe Werkzeuge freigeben (Standard aus)"
-  sharedWithTools: Boolean! = false
-
-  "Der Text; leer entfernt ihn (die Datei bleibt)"
-  text: String!
+ "Für externe Werkzeuge freigeben (Standard aus)"
+ sharedWithTools: Boolean! = false
+ "Der Text; leer entfernt ihn (die Datei bleibt)"
+ text: String!
 }
-
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
-  role: Role!
-  user: User!
+ role: Role!
+ user: User!
 }
-
 "Ein Mitglied beim Anlegen eines Projekts"
 input ProjectMemberInput {
-  "Schlüssel einer Projektrolle (siehe roles)"
-  role: String!
-  userId: ID!
+ "Schlüssel einer Projektrolle (siehe roles)"
+ role: String!
+ userId: ID!
 }
-
 "Ein Projektrecht und die Projektrollen, die es haben. Wer das Systemrecht projects.manageAny hat, hat in jedem Projekt alle Projektrechte."
 type ProjectRightRow {
-  right: Right!
-  roles: [Role!]!
+ right: Right!
+ roles: [Role!]!
 }
-
 "Wohin die App meldet, dass die Planer-Datei eine neue Revision hat. Das Geheimnis (Token oder HMAC-Geheimnis) gibt kein Feld zurück."
 type ProjectWebhook {
-  "Ein Geheimnis ist gespeichert (der Wert nie)"
-  hasSecret: Boolean!
-
-  kind: WebhookKind!
-
-  "Kurzer Code: timeout, connection, target, HTTP <Status>, error. Nie Kopfzeilen oder Antworttext."
-  lastError: String
-
-  lastFailedAt: DateTime
-  lastSentAt: DateTime
-  lastSentRevision: Int
-
-  "GitHub: besitzer/name. Allgemein: die Adresse."
-  target: String!
+ "Ein Geheimnis ist gespeichert (der Wert nie)"
+ hasSecret: Boolean!
+ kind: WebhookKind!
+ "Kurzer Code: timeout, connection, target, HTTP <Status>, error. Nie Kopfzeilen oder Antworttext."
+ lastError: String
+ lastFailedAt: DateTime
+ lastSentAt: DateTime
+ lastSentRevision: Int
+ "GitHub: besitzer/name. Allgemein: die Adresse."
+ target: String!
 }
-
 "Benachrichtigung bei Änderungen. Das Geheimnis ist beim Anlegen und beim Wechsel der Art Pflicht, sonst optional (fehlt es, bleibt das gespeicherte)."
 input ProjectWebhookInput {
-  kind: WebhookKind!
-
-  "GitHub: Token. Allgemein: Geheimnis für die Signatur. Wird nie wieder angezeigt."
-  secret: String
-
-  "GitHub: besitzer/name. Allgemein: https-Adresse."
-  target: String!
+ kind: WebhookKind!
+ "GitHub: Token. Allgemein: Geheimnis für die Signatur. Wird nie wieder angezeigt."
+ secret: String
+ "GitHub: besitzer/name. Allgemein: https-Adresse."
+ target: String!
 }
-
 type Query {
-  "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
-  appSettings: AppSettings!
-
-  "Startseite"
-  dashboard: Dashboard!
-
-  "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Mit einem Filter ist sie ein Ausschnitt (excerpt: true), den der Import im Modus FULL ablehnt. Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
-  exportPlan(
-    "false: veröffentlichte Milestones weglassen"
-    includeReleased: Boolean = true
-
-    "Nur diese Milestones (Ids ohne Präfix)"
-    milestoneIds: [ID!]
-
-    projectId: ID!
-
-    "Nur Tasks mit diesen Status; ToDos und Milestones ohne passende Task entfallen"
-    taskStatus: [TaskStatus!]
-
-    "Nur der Milestone dieser Version (z. B. \"1.21\")"
-    version: String
-  ): String!
-
-  "Eine Idee, oder null, wenn es sie nicht gibt oder du sie nicht lesen darfst"
-  idea(id: ID!): Idea
-
-  "Deine Ideen, neueste zuerst. Mit ideas.viewAny alle, oder die einer Autorin mit authorId (nur mit diesem Recht)."
-  ideas(
-    authorId: ID
-
-    "Limits number of fetched items. Maximum allowed value: 100."
-    first: Int! = 20
-
-    "The offset from which items are returned."
-    page: Int
-
-    projectId: ID
-    status: IdeaStatus
-  ): IdeaPaginator!
-
-  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
-  kanban(projectId: ID!): [KanbanColumn!]!
-
-  "Der angemeldete Benutzer"
-  me: User!
-
-  "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
-  memberCandidates(projectId: ID): [MemberCandidate!]!
-
-  milestone(id: ID!): Milestone
-
-  "Milestones eines Projekts (Seite Milestones)"
-  milestones(projectId: ID!): [Milestone!]!
-
-  "Tasks, die dir zugewiesen sind (ohne archivierte Projekte)"
-  myTasks(status: TaskStatus): [Task!]!
-
-  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
-  permissionMatrix: PermissionMatrix!
-
-  project(id: ID!): Project
-
-  "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
-  projects(archived: Boolean = false): [Project!]!
-
-  "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
-  rights(scope: RoleScope!): [Right!]!
-
-  "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."
-  roleFunctions(scope: RoleScope): [RoleFunction!]!
-
-  "Alle Rollen, auf Wunsch nur eines Bereichs. Für die Rollenauswahl bei Benutzern und Mitgliedern."
-  roles(scope: RoleScope): [Role!]!
-
-  "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
-  task(id: ID!): Task
-
-  "Eine Vorlage"
-  template(id: ID!): Template
-
-  "Alle Vorlagen (mitgelieferte zuerst, dann eigene nach Name). Alle Angemeldeten sehen alle."
-  templates: [Template!]!
-
-  todo(id: ID!): Todo
-
-  "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
-  todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
-
-  "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst, und deine gelöschten Ideen."
-  trash(projectId: ID): [TrashItem!]!
-
-  "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
-  users: [User!]!
-
-  "Welche Systemrechte du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
-  viewerRights: [Right!]!
+ "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
+ appSettings: AppSettings!
+ "Startseite"
+ dashboard: Dashboard!
+ "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
+ document(id: ID!): Document
+ "Eine Fassung mit ihrem Inhalt, oder null, wenn es sie nicht gibt oder du das Dokument nicht lesen darfst"
+ documentVersion(documentId: ID!, revision: Int!): DocumentVersion
+ "Die Dokumente eines Projekts, die du lesen darfst, zuletzt geändert zuerst. Die Liste lädt den Inhalt nicht. search sucht in Titel und Inhalt."
+ documents(kind: DocumentKind, projectId: ID!, search: String): [Document!]!
+ "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Mit einem Filter ist sie ein Ausschnitt (excerpt: true), den der Import im Modus FULL ablehnt. Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
+ exportPlan(
+ "false: veröffentlichte Milestones weglassen"
+ includeReleased: Boolean = true
+ "Nur diese Milestones (Ids ohne Präfix)"
+ milestoneIds: [ID!]
+ projectId: ID!
+ "Nur Tasks mit diesen Status; ToDos und Milestones ohne passende Task entfallen"
+ taskStatus: [TaskStatus!]
+ "Nur der Milestone dieser Version (z. B. \"1.21\")"
+ version: String
+ ): String!
+ "Eine Idee, oder null, wenn es sie nicht gibt oder du sie nicht lesen darfst"
+ idea(id: ID!): Idea
+ "Deine Ideen, neueste zuerst. Mit ideas.viewAny alle, oder die einer Autorin mit authorId (nur mit diesem Recht)."
+ ideas(
+ authorId: ID
+ "Limits number of fetched items. Maximum allowed value: 100."
+ first: Int! = 20
+ "The offset from which items are returned."
+ page: Int
+ projectId: ID
+ status: IdeaStatus
+ ): IdeaPaginator!
+ "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
+ kanban(projectId: ID!): [KanbanColumn!]!
+ "Der angemeldete Benutzer"
+ me: User!
+ "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
+ memberCandidates(projectId: ID): [MemberCandidate!]!
+ milestone(id: ID!): Milestone
+ "Milestones eines Projekts (Seite Milestones)"
+ milestones(projectId: ID!): [Milestone!]!
+ "Tasks, die dir zugewiesen sind (ohne archivierte Projekte)"
+ myTasks(status: TaskStatus): [Task!]!
+ "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
+ permissionMatrix: PermissionMatrix!
+ project(id: ID!): Project
+ "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
+ projects(archived: Boolean = false): [Project!]!
+ "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
+ rights(scope: RoleScope!): [Right!]!
+ "Alle Funktionen (Bündel von Rechten), auf Wunsch nur eines Bereichs. Für die Einstellungen der Rollen (Recht roles.manage)."
+ roleFunctions(scope: RoleScope): [RoleFunction!]!
+ "Alle Rollen, auf Wunsch nur eines Bereichs. Für die Rollenauswahl bei Benutzern und Mitgliedern."
+ roles(scope: RoleScope): [Role!]!
+ "Ein einzelner Task mit seinen Kommentaren (Detailansicht im Kanban)"
+ task(id: ID!): Task
+ "Eine Vorlage"
+ template(id: ID!): Template
+ "Alle Vorlagen (mitgelieferte zuerst, dann eigene nach Name). Alle Angemeldeten sehen alle."
+ templates: [Template!]!
+ todo(id: ID!): Todo
+ "ToDos eines Projekts, optional gefiltert (Seite ToDo-Liste)"
+ todos(milestoneId: ID, projectId: ID!, status: ItemStatus): [Todo!]!
+ "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst, und deine gelöschten Ideen."
+ trash(projectId: ID): [TrashItem!]!
+ "Alle Benutzer. Nur für Benutzerverwaltung (Rolle Admin)."
+ users: [User!]!
+ "Welche Systemrechte du hast. Das Frontend blendet danach Bereiche und Knöpfe ein oder aus."
+ viewerRights: [Right!]!
 }
-
 "Version eines Milestones und ihre Freigabe"
 type Release {
-  "Datum der Veröffentlichung. Immer optional; setzt die App beim Wechsel auf «veröffentlicht» auf heute, wenn es fehlt, und leert es beim Zurück auf «geplant»."
-  date: Date
-
-  status: ReleaseStatus!
-
-  "Version im Format M.m, zum Beispiel 1.4"
-  version: String!
+ "Datum der Veröffentlichung. Immer optional; setzt die App beim Wechsel auf «veröffentlicht» auf heute, wenn es fehlt, und leert es beim Zurück auf «geplant»."
+ date: Date
+ status: ReleaseStatus!
+ "Version im Format M.m, zum Beispiel 1.4"
+ version: String!
 }
-
 "Freigabe einer Version: geplant oder veröffentlicht"
 enum ReleaseStatus {
-  PLANNED
-  RELEASED
+ PLANNED
+ RELEASED
 }
-
 """
 Formatierter Text als TipTap-Dokument (JSON-Objekt mit type "doc"). Der Server
 speichert nie HTML, sondern prüft das Dokument gegen eine Whitelist:
@@ -1073,531 +905,416 @@ Zeilenumbruch, Zitat sowie fett, kursiv und Links (http, https, mailto).
 Maximal 20000 Zeichen. Ein Dokument ohne Text wird als null gespeichert.
 """
 scalar RichText
-
 "Rechte, die der Code prüft (docs/rollen-funktionen-rechte.md, §4). Projektrechte gelten in einem Projekt, Systemrechte in der ganzen App. Welche Rolle ein Recht hat, steht in den Einstellungen (Rollen und Funktionen)."
 enum Right {
-  AI_CONTEXT_UPDATE
-  ASSISTANT_USE
-  COMMENT_CREATE
-  COMMENT_MODERATE
-  DATABASE_VIEW
-  IDEAS_CREATE
-  IDEAS_VIEW_ANY
-  MEMBERS_MANAGE
-  MILESTONE_CREATE
-  MILESTONE_DELETE
-  MILESTONE_UPDATE
-  OWNER_MANAGE
-  PLANER_EXPORT
-  PLANER_IMPORT
-  PROJECTS_CREATE
-  PROJECTS_MANAGE_ANY
-  PROJECTS_VIEW_ALL
-  PROJECT_ARCHIVE
-  PROJECT_DELETE
-  PROJECT_UPDATE
-  ROLES_MANAGE
-  SETTINGS_MANAGE
-  SYSTEM_VIEW
-  TASK_ASSIGN
-  TASK_ASSIGN_SELF
-  TASK_CREATE
-  TASK_DELETE
-  TASK_MOVE
-  TASK_UPDATE
-  TASK_UPDATE_OWN
-  TEMPLATES_MANAGE
-  TEMPLATES_MANAGE_ANY
-  TODO_CREATE
-  TODO_DELETE
-  TODO_UPDATE
-  TRASH_PURGE
-  TRASH_RESTORE
-  USERS_MANAGE
+ AI_CONTEXT_UPDATE
+ ASSISTANT_USE
+ COMMENT_CREATE
+ COMMENT_MODERATE
+ DATABASE_VIEW
+ DOCUMENT_CREATE
+ DOCUMENT_MANAGE_ANY
+ DOCUMENT_UPDATE
+ IDEAS_CREATE
+ IDEAS_VIEW_ANY
+ MEMBERS_MANAGE
+ MILESTONE_CREATE
+ MILESTONE_DELETE
+ MILESTONE_UPDATE
+ OWNER_MANAGE
+ PLANER_EXPORT
+ PLANER_IMPORT
+ PROJECTS_CREATE
+ PROJECTS_MANAGE_ANY
+ PROJECTS_VIEW_ALL
+ PROJECT_ARCHIVE
+ PROJECT_DELETE
+ PROJECT_UPDATE
+ ROLES_MANAGE
+ SETTINGS_MANAGE
+ SYSTEM_VIEW
+ TASK_ASSIGN
+ TASK_ASSIGN_SELF
+ TASK_CREATE
+ TASK_DELETE
+ TASK_MOVE
+ TASK_UPDATE
+ TASK_UPDATE_OWN
+ TEMPLATES_MANAGE
+ TEMPLATES_MANAGE_ANY
+ TODO_CREATE
+ TODO_DELETE
+ TODO_UPDATE
+ TRASH_PURGE
+ TRASH_RESTORE
+ USERS_MANAGE
 }
-
 "Eine Rolle: ein benanntes Bündel von Funktionen. Systemrollen gelten für eine Person in der ganzen App, Projektrollen für eine Mitgliedschaft. Siehe docs/rollen-funktionen-rechte.md."
 type Role {
-  "Die Funktionen der Rolle"
-  functions: [RoleFunction!]!
-
-  id: ID!
-
-  "Rolle für neue Personen (System) bzw. neue Mitglieder (Projekt)"
-  isDefault: Boolean!
-
-  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
-  isStandard: Boolean!
-
-  "Fester Schlüssel, zum Beispiel manager. Eingaben und die Planer-Datei (members[].role) nennen die Rolle damit."
-  key: String!
-
-  names: LocalizedName!
-
-  "Obergrenze einer Systemrolle: die Projektrechte, die für die Person überhaupt wirken dürfen. null: alle (auch bei Projektrollen). Leere Liste: keine, die Person liest nur."
-  projectCap: [Right!]
-
-  "Die Rechte, die die Rolle über ihre Funktionen gibt"
-  rights: [Right!]!
-
-  scope: RoleScope!
-
-  "Wie oft die Rolle vergeben ist (Personen bzw. Mitgliedschaften). Eine vergebene Rolle lässt sich nicht löschen. Nur mit dem Recht roles.manage."
-  usageCount: Int!
+ "Die Funktionen der Rolle"
+ functions: [RoleFunction!]!
+ id: ID!
+ "Rolle für neue Personen (System) bzw. neue Mitglieder (Projekt)"
+ isDefault: Boolean!
+ "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+ isStandard: Boolean!
+ "Fester Schlüssel, zum Beispiel manager. Eingaben und die Planer-Datei (members[].role) nennen die Rolle damit."
+ key: String!
+ names: LocalizedName!
+ "Obergrenze einer Systemrolle: die Projektrechte, die für die Person überhaupt wirken dürfen. null: alle (auch bei Projektrollen). Leere Liste: keine, die Person liest nur."
+ projectCap: [Right!]
+ "Die Rechte, die die Rolle über ihre Funktionen gibt"
+ rights: [Right!]!
+ scope: RoleScope!
+ "Wie oft die Rolle vergeben ist (Personen bzw. Mitgliedschaften). Eine vergebene Rolle lässt sich nicht löschen. Nur mit dem Recht roles.manage."
+ usageCount: Int!
 }
-
 "Eine Funktion: ein benanntes Bündel von Rechten eines Bereichs. Rollen bestehen aus Funktionen. Siehe docs/rollen-funktionen-rechte.md."
 type RoleFunction {
-  id: ID!
-
-  "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
-  isStandard: Boolean!
-
-  "Fester Schlüssel, zum Beispiel manage-tasks"
-  key: String!
-
-  names: LocalizedName!
-  rights: [Right!]!
-  scope: RoleScope!
-
-  "Wie viele Rollen die Funktion verwenden. Eine verwendete Funktion lässt sich nicht löschen."
-  usageCount: Int!
+ id: ID!
+ "Mit der App geliefert (zurücksetzbar), nicht in den Einstellungen angelegt"
+ isStandard: Boolean!
+ "Fester Schlüssel, zum Beispiel manage-tasks"
+ key: String!
+ names: LocalizedName!
+ rights: [Right!]!
+ scope: RoleScope!
+ "Wie viele Rollen die Funktion verwenden. Eine verwendete Funktion lässt sich nicht löschen."
+ usageCount: Int!
 }
-
 "Bereich einer Rolle: System (ganze App) oder Projekt (eine Mitgliedschaft)"
 enum RoleScope {
-  PROJECT
-  SYSTEM
+ PROJECT
+ SYSTEM
 }
-
 "Directions for ordering a list of records."
 enum SortOrder {
-  "Sort records in ascending order."
-  ASC
-
-  "Sort records in descending order."
-  DESC
+ "Sort records in ascending order."
+ ASC
+ "Sort records in descending order."
+ DESC
 }
-
 "Ein Systemrecht und die Systemrollen, die es haben."
 type SystemRightRow {
-  right: Right!
-  roles: [Role!]!
+ right: Right!
+ roles: [Role!]!
 }
-
 "Eine Arbeitseinheit für eine Person. Sie erscheint im Kanban."
 type Task {
-  assignee: User
-
-  "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
-  boardPosition: Int!
-
-  commentCount: Int!
-
-  "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
-  comments: [Comment!]!
-
-  "Commit der Umsetzung: Hash (7 bis 40 Zeichen), none (ohne Commit, nur bei erledigten Tasks) oder null"
-  commit: String
-
-  createdAt: DateTime!
-  createdBy: User
-
-  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
-  deletionId: ID
-
-  description: RichText
-  dueDate: Date
-
-  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
-  icon: String
-
-  id: ID!
-
-  "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
-  labels: [Label!]!
-
-  "Reihenfolge im ToDo, von 0 an. Die Tasks eines ToDos kommen in dieser Reihenfolge (Zeitachse, Planer-Datei)."
-  position: Int!
-
-  project: Project!
-  status: TaskStatus!
-  title: String!
-  todo: Todo!
-
-  "Die Story des Tasks: Als <Rolle> möchte ich <Ziel>, damit <Nutzen>."
-  userStory: UserStory
-
-  "Darf sie den Task beliebigen Personen zuweisen (task.assign)?"
-  viewerCanAssign: Boolean!
-
-  "Darf sie sich den Task wenigstens selbst zuweisen (task.assign oder task.assignSelf)?"
-  viewerCanAssignSelf: Boolean!
-
-  "Darf sie den Task löschen?"
-  viewerCanDelete: Boolean!
-
-  "Darf die angemeldete Person den Task ändern? Auch mit task.updateOwn beim selbst angelegten Task."
-  viewerCanUpdate: Boolean!
+ assignee: User
+ "Reihenfolge innerhalb der Kanban-Spalte, beginnt bei 0"
+ boardPosition: Int!
+ commentCount: Int!
+ "Kommentare, älteste zuerst (die Relation im Model sortiert nach id)"
+ comments: [Comment!]!
+ "Commit der Umsetzung: Hash (7 bis 40 Zeichen), none (ohne Commit, nur bei erledigten Tasks) oder null"
+ commit: String
+ createdAt: DateTime!
+ createdBy: User
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ description: RichText
+ dueDate: Date
+ "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+ icon: String
+ id: ID!
+ "Labels des Tasks (nach `position` sortieren für die Reihenfolge des Sets). Kann Labels enthalten, die nach einem Set-Wechsel nicht mehr im Set des Projekts sind."
+ labels: [Label!]!
+ "Reihenfolge im ToDo, von 0 an. Die Tasks eines ToDos kommen in dieser Reihenfolge (Zeitachse, Planer-Datei)."
+ position: Int!
+ project: Project!
+ status: TaskStatus!
+ title: String!
+ todo: Todo!
+ "Die Story des Tasks: Als <Rolle> möchte ich <Ziel>, damit <Nutzen>."
+ userStory: UserStory
+ "Darf sie den Task beliebigen Personen zuweisen (task.assign)?"
+ viewerCanAssign: Boolean!
+ "Darf sie sich den Task wenigstens selbst zuweisen (task.assign oder task.assignSelf)?"
+ viewerCanAssignSelf: Boolean!
+ "Darf sie den Task löschen?"
+ viewerCanDelete: Boolean!
+ "Darf die angemeldete Person den Task ändern? Auch mit task.updateOwn beim selbst angelegten Task."
+ viewerCanUpdate: Boolean!
 }
-
 "Spalten im Kanban-Board"
 enum TaskStatus {
-  DONE
-  IDEA
-  IN_PROGRESS
-  OPEN
-  PLANNED
-  REVIEW
+ DONE
+ IDEA
+ IN_PROGRESS
+ OPEN
+ PLANNED
+ REVIEW
 }
-
 "Eine Vorlage für Projekte: Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks. Alle Angemeldeten sehen alle Vorlagen."
 type Template {
-  "null bei mitgelieferten Vorlagen und wenn die Person gelöscht wurde"
-  createdBy: User
-
-  description: String
-
-  "Die Vorlage als Planer-Datei (planer-v2, kanonischer Text), zum Herunterladen und Ansehen"
-  file: String!
-
-  id: ID!
-
-  "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
-  isBuiltin: Boolean!
-
-  "Nur mitgelieferte Vorlagen haben einen Schlüssel"
-  key: String
-
-  labels: [TemplateLabel!]!
-
-  "Sprache der Vorlage (ihrer Titel und Beschreibungen)"
-  locale: Locale!
-
-  "Mitgelieferte Vorlagen: übersetzt nach Accept-Language"
-  name: String!
-
-  "Das Gerüst zum Ansehen: Milestones, ToDos und Tasks nach Titel"
-  outline: [TemplateOutlineMilestone!]!
-
-  "Wie viele Projekte aus dieser Vorlage angelegt wurden"
-  projectCount: Int!
-
-  viewerCanDelete: Boolean!
-  viewerCanUpdate: Boolean!
+ "null bei mitgelieferten Vorlagen und wenn die Person gelöscht wurde"
+ createdBy: User
+ description: String
+ "Die Vorlage als Planer-Datei (planer-v2, kanonischer Text), zum Herunterladen und Ansehen"
+ file: String!
+ id: ID!
+ "Mitgeliefert: lässt sich nicht ändern, nur duplizieren"
+ isBuiltin: Boolean!
+ "Nur mitgelieferte Vorlagen haben einen Schlüssel"
+ key: String
+ labels: [TemplateLabel!]!
+ "Sprache der Vorlage (ihrer Titel und Beschreibungen)"
+ locale: Locale!
+ "Mitgelieferte Vorlagen: übersetzt nach Accept-Language"
+ name: String!
+ "Das Gerüst zum Ansehen: Milestones, ToDos und Tasks nach Titel"
+ outline: [TemplateOutlineMilestone!]!
+ "Wie viele Projekte aus dieser Vorlage angelegt wurden"
+ projectCount: Int!
+ viewerCanDelete: Boolean!
+ viewerCanUpdate: Boolean!
 }
-
 "Eine neue Vorlage: ohne Gerüst, mit Labels"
 input TemplateInput {
-  description: String
-
-  "Mindestens ein, höchstens 30 Labels"
-  labels: [LabelInput!]!
-
-  "Sprache der Vorlage; die Labels brauchen einen Namen in dieser Sprache"
-  locale: Locale!
-  name: String!
+ description: String
+ "Mindestens ein, höchstens 30 Labels"
+ labels: [LabelInput!]!
+ "Sprache der Vorlage; die Labels brauchen einen Namen in dieser Sprache"
+ locale: Locale!
+ name: String!
 }
-
 "Ein Label einer Vorlage"
 type TemplateLabel {
-  category: String
-  categoryLabel: String
-  color: LabelColor!
-  key: String!
-
-  "Name in der Sprache der Oberfläche, sonst in der der Vorlage"
-  name: String!
-
-  names: [LabelName!]!
+ category: String
+ categoryLabel: String
+ color: LabelColor!
+ key: String!
+ "Name in der Sprache der Oberfläche, sonst in der der Vorlage"
+ name: String!
+ names: [LabelName!]!
 }
-
 "Wie die Labels einer Vorlage in ein bestehendes Projekt kommen"
 enum TemplateLabelMode {
-  "Nur Labels ergänzen, deren Schlüssel im Projekt fehlt"
-  APPEND
-
-  "Die Labels der Vorlage setzen; Labels, die an Tasks hängen und nicht in der Vorlage stehen, bleiben am Ende"
-  REPLACE
+ "Nur Labels ergänzen, deren Schlüssel im Projekt fehlt"
+ APPEND
+ "Die Labels der Vorlage setzen; Labels, die an Tasks hängen und nicht in der Vorlage stehen, bleiben am Ende"
+ REPLACE
 }
-
 type TemplateOutlineMilestone {
-  title: String!
-  todos: [TemplateOutlineTodo!]!
-
-  "Version, wenn der Milestone eine hat"
-  version: String
+ title: String!
+ todos: [TemplateOutlineTodo!]!
+ "Version, wenn der Milestone eine hat"
+ version: String
 }
-
 type TemplateOutlineTask {
-  "Schlüssel der Labels des Tasks"
-  labels: [String!]!
-
-  title: String!
+ "Schlüssel der Labels des Tasks"
+ labels: [String!]!
+ title: String!
 }
-
 type TemplateOutlineTodo {
-  tasks: [TemplateOutlineTask!]!
-  title: String!
+ tasks: [TemplateOutlineTask!]!
+ title: String!
 }
-
 "Eine Aufgabe auf Planungsebene. Aus ihr entstehen Tasks für die Mitarbeiter."
 type Todo {
-  createdAt: DateTime!
-  createdBy: User
-
-  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
-  deletionId: ID
-
-  description: RichText
-  dueDate: Date
-
-  "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
-  icon: String
-
-  id: ID!
-  milestone: Milestone!
-
-  "Reihenfolge im Milestone, von 0 an. Die ToDos kommen in dieser Reihenfolge."
-  position: Int!
-
-  progress: Progress!
-  project: Project!
-
-  "DONE, sobald alle Tasks erledigt sind"
-  status: ItemStatus!
-
-  tasks: [Task!]!
-  title: String!
+ createdAt: DateTime!
+ createdBy: User
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ description: RichText
+ dueDate: Date
+ "Name eines Font-Awesome-Pro-Icons ohne Stil, zum Beispiel rocket. Der Stil ist fest Duotone Light. null = Standard-Icon des Frontends."
+ icon: String
+ id: ID!
+ milestone: Milestone!
+ "Reihenfolge im Milestone, von 0 an. Die ToDos kommen in dieser Reihenfolge."
+ position: Int!
+ progress: Progress!
+ project: Project!
+ "DONE, sobald alle Tasks erledigt sind"
+ status: ItemStatus!
+ tasks: [Task!]!
+ title: String!
 }
-
 "Anzahl mitgelöschter Elemente einer Art"
 type TrashChildCount {
-  count: Int!
-  type: TrashItemType!
+ count: Int!
+ type: TrashItemType!
 }
-
 "Ein Vorgang im Papierkorb: das Element, mit dem das Löschen begann. Die anderen Elemente gingen mit (childCount)."
 type TrashItem {
-  "Wie viele weitere Elemente im selben Vorgang"
-  childCount: Int!
-
-  "Dieselben je Art, zum Beispiel 3 ToDos und 12 Tasks"
-  childCounts: [TrashChildCount!]!
-
-  deletedAt: DateTime!
-
-  "null, wenn die Person inzwischen gelöscht wurde"
-  deletedBy: User
-
-  "Kennung des Vorgangs für restoreFromTrash und purgeFromTrash"
-  deletionId: ID!
-
-  id: ID!
-
-  "Das Projekt, auch wenn es selbst gelöscht ist"
-  project: Project
-
-  "Titel bzw. Name; bei Kommentaren ein Auszug, höchstens 80 Zeichen Klartext"
-  title: String!
-
-  type: TrashItemType!
-  viewerCanPurge: Boolean!
-  viewerCanRestore: Boolean!
+ "Wie viele weitere Elemente im selben Vorgang"
+ childCount: Int!
+ "Dieselben je Art, zum Beispiel 3 ToDos und 12 Tasks"
+ childCounts: [TrashChildCount!]!
+ deletedAt: DateTime!
+ "null, wenn die Person inzwischen gelöscht wurde"
+ deletedBy: User
+ "Kennung des Vorgangs für restoreFromTrash und purgeFromTrash"
+ deletionId: ID!
+ id: ID!
+ "Das Projekt, auch wenn es selbst gelöscht ist"
+ project: Project
+ "Titel bzw. Name; bei Kommentaren ein Auszug, höchstens 80 Zeichen Klartext"
+ title: String!
+ type: TrashItemType!
+ viewerCanPurge: Boolean!
+ viewerCanRestore: Boolean!
 }
-
 "Art eines Elements im Papierkorb"
 enum TrashItemType {
-  COMMENT
-  IDEA
-  MILESTONE
-  PROJECT
-  TASK
-  TODO
+ COMMENT
+ DOCUMENT
+ IDEA
+ MILESTONE
+ PROJECT
+ TASK
+ TODO
 }
-
 "Specify if you want to include or exclude trashed results from a query."
 enum Trashed {
-  "Only return trashed results."
-  ONLY
-
-  "Return both trashed and non-trashed results."
-  WITH
-
-  "Only return non-trashed results."
-  WITHOUT
+ "Only return trashed results."
+ ONLY
+ "Return both trashed and non-trashed results."
+ WITH
+ "Only return non-trashed results."
+ WITHOUT
 }
-
 input UpdateCommentInput {
-  body: RichText!
+ body: RichText!
 }
-
+"Nur die genannten Felder ändern sich."
+input UpdateDocumentInput {
+ contentJson: RichText
+ kind: DocumentKind
+ title: String
+}
 "Nur die genannten Felder ändern sich; null leert Beschreibung, Projekt und Entwurf."
 input UpdateIdeaInput {
-  description: RichText
-  draft: String
-  projectId: ID
-  title: String
+ description: RichText
+ draft: String
+ projectId: ID
+ title: String
 }
-
 input UpdateMilestoneInput {
-  description: RichText
-  dueDate: Date
-  icon: String
-
-  "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
-  releaseDate: Date
-  releaseStatus: ReleaseStatus
-
-  "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
-  releaseVersion: String
-  title: String
+ description: RichText
+ dueDate: Date
+ icon: String
+ "Datum der Veröffentlichung (JJJJ-MM-TT), nur bei veröffentlicht. Fehlt es beim Wechsel auf veröffentlicht, gilt heute."
+ releaseDate: Date
+ releaseStatus: ReleaseStatus
+ "Version im Format M.m. Zusammen mit releaseStatus setzen oder beide leeren."
+ releaseVersion: String
+ title: String
 }
-
 input UpdateProjectInput {
-  description: RichText
-  icon: String
-  locale: Locale
-  name: String
+ description: RichText
+ icon: String
+ locale: Locale
+ name: String
 }
-
 "Nur was angegeben ist, ändert sich."
 input UpdateRoleFunctionInput {
-  names: LocalizedNameInput
-  rights: [Right!]
+ names: LocalizedNameInput
+ rights: [Right!]
 }
-
 "Nur was angegeben ist, ändert sich."
 input UpdateRoleInput {
-  functionIds: [ID!]
-  names: LocalizedNameInput
-
-  "Nur Systemrollen. null: alle Projektrechte. Leere Liste: keine. Ohne Angabe bleibt die Obergrenze."
-  projectCap: [Right!]
+ functionIds: [ID!]
+ names: LocalizedNameInput
+ "Nur Systemrollen. null: alle Projektrechte. Leere Liste: keine. Ohne Angabe bleibt die Obergrenze."
+ projectCap: [Right!]
 }
-
 input UpdateTaskInput {
-  "Commit: Hash oder none, siehe Typ Task"
-  commit: String
-  description: RichText
-  dueDate: Date
-  icon: String
-  title: String
-
-  "Die Story des Tasks, null entfernt sie"
-  userStory: UserStoryInput
+ "Commit: Hash oder none, siehe Typ Task"
+ commit: String
+ description: RichText
+ dueDate: Date
+ icon: String
+ title: String
+ "Die Story des Tasks, null entfernt sie"
+ userStory: UserStoryInput
 }
-
 "Name, Beschreibung und Labels einer eigenen Vorlage; Sprache und Gerüst bleiben"
 input UpdateTemplateInput {
-  description: String
-  labels: [LabelInput!]!
-  name: String!
+ description: String
+ labels: [LabelInput!]!
+ name: String!
 }
-
 input UpdateTodoInput {
-  description: RichText
-  dueDate: Date
-  icon: String
-  title: String
+ description: RichText
+ dueDate: Date
+ icon: String
+ title: String
 }
-
 input UpdateUserInput {
-  activity: UserActivity
-  email: String
-  name: String
-
-  "Schlüssel einer Systemrolle (siehe roles)"
-  role: String
+ activity: UserActivity
+ email: String
+ name: String
+ "Schlüssel einer Systemrolle (siehe roles)"
+ role: String
 }
-
 "Datei-Upload (GraphQL multipart request), zum Beispiel mit apollo-upload-client"
 scalar Upload
-
 "Eine Person mit Zugang. Anlegen und Löschen nur durch Admins."
 type User {
-  "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
-  activity: UserActivity
-
-  "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
-  apiTokens: [ApiToken!]
-
-  "Hat ein Admin das Konto freigegeben? Selbst registrierte Konten warten, bis ein Admin es freigibt."
-  approved: Boolean!
-
-  "Zugewiesene Tasks, soweit du sie sehen darfst"
-  assignedTasks: [Task!]!
-
-  "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
-  avatarUrl: String
-
-  createdAt: DateTime!
-  email: String!
-
-  "Ist die E-Mail-Adresse bestätigt? Selbst registrierte Konten bestätigen sie zuerst."
-  emailVerified: Boolean!
-
-  "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
-  hasPasskey: Boolean
-
-  id: ID!
-
-  "Konto eines Agenten (Claude, Assistenz): keine Anmeldung im Browser, Zugang nur über ein Token des Connectors (Befehl app:user-token)."
-  isAgent: Boolean!
-
-  name: String!
-
-  "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
-  notifyByEmail: Boolean!
-
-  "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
-  passkeys: [Passkey!]
-
-  "Projekte dieser Person, soweit du sie sehen darfst"
-  projects: [Project!]!
-
-  "Globale Berechtigungsrolle, unabhängig von Projekten"
-  role: Role!
-
-  "Hat die Person eine bestätigte 2FA-App? Nur für dich selbst und für Admins, sonst null."
-  twoFactorConfirmed: Boolean
+ "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
+ activity: UserActivity
+ "Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst; bei einem Agent-Konto auch für Admins (users.manage), sonst null. Nie der Wert."
+ apiTokens: [ApiToken!]
+ "Hat ein Admin das Konto freigegeben? Selbst registrierte Konten warten, bis ein Admin es freigibt."
+ approved: Boolean!
+ "Zugewiesene Tasks, soweit du sie sehen darfst"
+ assignedTasks: [Task!]!
+ "Adresse des Avatarbilds (500 x 500 Pixel, WebP). null = kein Bild, das Frontend zeigt dann zum Beispiel die Initialen."
+ avatarUrl: String
+ createdAt: DateTime!
+ email: String!
+ "Ist die E-Mail-Adresse bestätigt? Selbst registrierte Konten bestätigen sie zuerst."
+ emailVerified: Boolean!
+ "Hat die Person mindestens einen Passkey? Nur für dich selbst und für Admins, sonst null."
+ hasPasskey: Boolean
+ id: ID!
+ "Konto eines Agenten (Claude, Assistenz): keine Anmeldung im Browser, Zugang nur über ein Token des Connectors (Befehl app:user-token)."
+ isAgent: Boolean!
+ name: String!
+ "Will diese Person E-Mail-Benachrichtigungen? Standard: ja. Ändern nur sie selbst."
+ notifyByEmail: Boolean!
+ "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
+ passkeys: [Passkey!]
+ "Projekte dieser Person, soweit du sie sehen darfst"
+ projects: [Project!]!
+ "Globale Berechtigungsrolle, unabhängig von Projekten"
+ role: Role!
+ "Hat die Person eine bestätigte 2FA-App? Nur für dich selbst und für Admins, sonst null."
+ twoFactorConfirmed: Boolean
 }
-
 "Tätigkeit eines Benutzers (zum Beispiel Designer). Nur zur Anzeige, sie gibt keine Rechte."
 enum UserActivity {
-  CONTENT
-  DESIGNER
-  ENTWICKLUNG
-  TECHNIK
-  TESTER
-  VOLUNTEER
+ CONTENT
+ DESIGNER
+ ENTWICKLUNG
+ TECHNIK
+ TESTER
+ VOLUNTEER
 }
-
 "Die Story eines Tasks, Klartext in drei Teilen."
 type UserStory {
-  benefit: String!
-  goal: String!
-  role: String!
+ benefit: String!
+ goal: String!
+ role: String!
 }
-
 input UserStoryInput {
-  benefit: String!
-  goal: String!
-  role: String!
+ benefit: String!
+ goal: String!
+ role: String!
 }
-
 "Art der Benachrichtigung bei Änderungen"
 enum WebhookKind {
-  "POST an eine Adresse, der Body mit HMAC-SHA256 signiert"
-  GENERIC
-
-  "repository_dispatch an GitHub, mit einem fein eingeschränkten Token"
-  GITHUB
+ "POST an eine Adresse, der Body mit HMAC-SHA256 signiert"
+ GENERIC
+ "repository_dispatch an GitHub, mit einem fein eingeschränkten Token"
+ GITHUB
 }
-
 "Ergebnis eines Testversands"
 type WebhookTestResult {
-  message: String!
-  ok: Boolean!
+ message: String!
+ ok: Boolean!
 }
 

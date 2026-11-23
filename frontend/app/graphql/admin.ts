@@ -10,6 +10,7 @@ export const adminUsersQuery = graphql(`
       activity
       avatarUrl
       isAgent
+      apiTokens { id name createdAt lastUsedAt expiresAt }
       twoFactorConfirmed
       hasPasskey
       createdAt
@@ -46,6 +47,21 @@ export const updateUserMutation = graphql(`
 export const resetUserTwoFactorMutation = graphql(`
   mutation ResetUserTwoFactor($id: ID!) {
     resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }
+  }
+`)
+
+export const createAgentTokenMutation = graphql(`
+  mutation CreateAgentToken($userId: ID!, $name: String!) {
+    createAgentToken(userId: $userId, name: $name) {
+      plainTextToken
+      token { id name }
+    }
+  }
+`)
+
+export const revokeAgentTokenMutation = graphql(`
+  mutation RevokeAgentToken($userId: ID!, $tokenId: ID!) {
+    revokeAgentToken(userId: $userId, tokenId: $tokenId) { id }
   }
 `)
 

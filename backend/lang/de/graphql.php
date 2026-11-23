@@ -9,4 +9,8 @@ return [
     'account_not_ready_approval' => 'Bitte warte, bis ein Admin dein Konto freigibt.',
     'creator_role_needs_delete' => 'Diese Rolle darf kein Projekt löschen. Wähle eine Rolle mit dem Recht „Projekt besitzen“.',
     'two_factor_not_switchable' => 'Die 2FA lässt sich in Produktion nicht ausschalten.',
+    'agent_access' => [
+        'not_an_agent' => 'Das Konto von :name ist kein Agent-Konto. Zugänge gibt es nur für Agenten; Menschen legen ihren Zugang selbst im Profil an.',
+    ],
+    'password_confirmation_required' => 'Bitte bestätige zuerst dein Passwort.',
 ];

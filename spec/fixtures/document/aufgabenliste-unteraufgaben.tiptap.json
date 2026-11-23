@@ -1,0 +1,66 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "taskList",
+            "content": [
+                {
+                    "type": "taskItem",
+                    "attrs": {
+                        "checked": false
+                    },
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "eins"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "taskList",
+                            "content": [
+                                {
+                                    "type": "taskItem",
+                                    "attrs": {
+                                        "checked": true
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "paragraph",
+                                            "content": [
+                                                {
+                                                    "type": "text",
+                                                    "text": "a"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "taskItem",
+                                    "attrs": {
+                                        "checked": false
+                                    },
+                                    "content": [
+                                        {
+                                            "type": "paragraph",
+                                            "content": [
+                                                {
+                                                    "type": "text",
+                                                    "text": "b"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

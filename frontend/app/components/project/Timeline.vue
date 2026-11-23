@@ -191,6 +191,28 @@ function toggleZenOpen(id: string): void {
   zenOpened.value = next
 }
 
+/** Full view: every milestone shows its todos, "Zuklappen" hides them (until "Aufklappen" again). */
+const collapsedMilestones = ref(new Set<string>())
+
+function isMilestoneOpen(id: string): boolean {
+  return calm.value ? id === current.value || zenOpened.value.has(id) : !collapsedMilestones.value.has(id)
+}
+
+function toggleMilestone(id: string): void {
+  if (calm.value) {
+    toggleZenOpen(id)
+    return
+  }
+
+  const next = new Set(collapsedMilestones.value)
+
+  if (!next.delete(id)) {
+    next.add(id)
+  }
+
+  collapsedMilestones.value = next
+}
+
 watch([calm, current, milestones], () => {
   if (calm.value) {
     const todos = milestones.value.find(milestone => milestone.id === current.value)?.todos ?? []
@@ -202,6 +224,15 @@ watch([calm, current, milestones], () => {
 /** Only the milestones: without descriptions and todos, as an outline. */
 const milestonesOnly = defineModel<boolean>('milestonesOnly', { default: false })
 
+/** "Nur Milestones anzeigen" collapses all todos, so they are closed when the full view comes back. */
+function toggleMilestonesOnly() {
+  if (!milestonesOnly.value) {
+    openTodos.value = new Set()
+  }
+
+  milestonesOnly.value = !milestonesOnly.value
+}
+
 function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>): ActionMenuItem[] {
   const place = kind === 'milestone'
     ? { index: milestones.value.findIndex(milestone => milestone.id === item.id), count: milestones.value.length }
@@ -210,8 +241,16 @@ function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item
   return props.actions?.(kind, item, place) ?? []
 }
 
+/** "Alle ToDos zeigen" opens every todo and every milestone (also those closed in the full or calm view); the other way closes the todos. */
 function toggleAll() {
-  openTodos.value = allOpen.value ? new Set() : new Set(allTodoIds.value)
+  if (allOpen.value) {
+    openTodos.value = new Set()
+    return
+  }
+
+  openTodos.value = new Set(allTodoIds.value)
+  collapsedMilestones.value = new Set()
+  zenOpened.value = new Set(milestones.value.map(milestone => milestone.id))
 }
 </script>
 
@@ -239,7 +278,7 @@ function toggleAll() {
           variant="neutral"
           size="s"
           :aria-pressed="milestonesOnly"
-          @click="milestonesOnly = !milestonesOnly"
+          @click="toggleMilestonesOnly"
         >
           <wa-icon
             slot="start"
@@ -320,24 +359,22 @@ function toggleAll() {
               The marking is data (is it the current one?), the hiding is zen.css.
             -->
             <wa-button
-              v-if="!milestonesOnly && item.milestone.id !== current"
+              v-if="!milestonesOnly && (!calm || item.milestone.id !== current)"
               appearance="plain"
               variant="neutral"
               size="s"
-              data-zen="only"
-              :aria-expanded="zenOpened.has(item.milestone.id)"
-              @click="toggleZenOpen(item.milestone.id)"
+              :aria-expanded="isMilestoneOpen(item.milestone.id)"
+              @click="toggleMilestone(item.milestone.id)"
             >
               <wa-icon
                 slot="start"
-                :name="zenOpened.has(item.milestone.id) ? 'chevron-up' : 'chevron-down'"
+                :name="isMilestoneOpen(item.milestone.id) ? 'chevron-up' : 'chevron-down'"
               ></wa-icon>
-              {{ zenOpened.has(item.milestone.id) ? t('zen.collapseMilestone') : t('zen.expandMilestone') }}
+              {{ isMilestoneOpen(item.milestone.id) ? t('zen.collapseMilestone') : t('zen.expandMilestone') }}
             </wa-button>
             <div
-              v-if="!milestonesOnly"
+              v-if="!milestonesOnly && isMilestoneOpen(item.milestone.id)"
               class="wa-stack wa-gap-s"
-              :data-zen="item.milestone.id === current || zenOpened.has(item.milestone.id) ? undefined : 'hide'"
             >
               <ul
                 v-if="item.milestone.todos.length"

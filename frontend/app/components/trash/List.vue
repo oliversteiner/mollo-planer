@@ -30,7 +30,8 @@ const icons: Record<TrashEntry['type'], string> = {
   TODO: 'list-check',
   TASK: 'square-check',
   COMMENT: 'comment',
-  IDEA: 'lightbulb'
+  IDEA: 'lightbulb',
+  DOCUMENT: 'file-lines'
 }
 
 function meta(entry: TrashEntry): string {

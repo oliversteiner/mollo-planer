@@ -7,6 +7,9 @@ use App\Enums\ProjectRole;
 use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Models\Comment;
+use App\Models\Document;
+use App\Models\DocumentShare;
+use App\Models\DocumentVersion;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Role;
@@ -34,6 +37,7 @@ class DemoSeederTest extends TestCase
         $this->seedDemo();
 
         $this->assertSame([4, 2, 6, 7, 10, 3], [User::count(), Project::count(), Milestone::count(), Todo::count(), Task::count(), Comment::count()]);
+        $this->assertSame([2, 2, 1], [Document::count(), DocumentVersion::count(), DocumentShare::count()]);
         $this->assertSame(['anna.keller@example.ch'], User::where('role_id', Role::idOf(Role::SCOPE_SYSTEM, 'admin'))->pluck('email')->all());
 
         $relaunch = Project::where('name', 'Website-Relaunch')->firstOrFail();

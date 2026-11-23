@@ -91,7 +91,7 @@ export function readPlanerFile(text: string): { document: PlanerDocument } | { p
 }
 
 /** The name of a download: the project name as a slug, e.g. "mollo-planer.planer.json". */
-export function downloadName(projectName: string, extension: 'planer.json' | 'md'): string {
+export function downloadName(projectName: string, extension: 'planer.json' | 'md' | 'pdf', fallback = 'projekt'): string {
   const slug = projectName
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
@@ -99,7 +99,7 @@ export function downloadName(projectName: string, extension: 'planer.json' | 'md
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
-  return `${slug || 'projekt'}.${extension}`
+  return `${slug || fallback}.${extension}`
 }
 
 /** The file as Markdown, in the chosen language, with the legend in the other languages on request. */
@@ -116,4 +116,22 @@ export function downloadText(name: string, text: string, type: string): void {
   link.download = name
   link.click()
   URL.revokeObjectURL(url)
+}
+
+/** Offers a file that is already a Blob (for example the PDF of a document) as a download. */
+export function downloadBlob(name: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = url
+  link.download = name
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+/** The bytes of a Base64 text (the way the backend sends a generated file) as a Blob. */
+export function base64Blob(base64: string, type: string): Blob {
+  const bytes = Uint8Array.from(atob(base64), character => character.charCodeAt(0))
+
+  return new Blob([bytes], { type })
 }

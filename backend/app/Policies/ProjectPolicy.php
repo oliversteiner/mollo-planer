@@ -59,6 +59,12 @@ class ProjectPolicy
         return $this->allows($user, $project, Right::MEMBERS_MANAGE);
     }
 
+    /** Create a document in the project. */
+    public function createDocument(User $user, Project $project): bool
+    {
+        return $this->allows($user, $project, Right::DOCUMENT_CREATE);
+    }
+
     public function createMilestone(User $user, Project $project): bool
     {
         return $this->allows($user, $project, Right::MILESTONE_CREATE);

@@ -2,9 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\DocumentAccess;
+use App\Enums\DocumentKind;
+use App\Enums\DocumentShareAccess;
 use App\Enums\UserActivity;
 use App\Enums\UserRole;
 use App\Models\Comment;
+use App\Models\Document;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Task;
@@ -152,6 +156,27 @@ class DemoSeeder extends Seeder
         $this->comment($components, 'ben', 'Bitte dokumentiere auch die Icons.', '2026-11-04 09:15');
         $this->comment($components, 'david', 'Mache ich. Morgen bin ich damit durch.', '2026-11-04 10:02');
         $this->comment($wireframes, 'chiara', 'Die mobile Version folgt nach dem Review.', '2026-11-05 14:30');
+
+        $this->document($project, 'chiara', 'Vorgehensweise Redaktion', DocumentKind::PROCEDURE, DocumentAccess::READ,
+            "# Vorgehensweise Redaktion\n\nInhalte werden in drei Schritten freigegeben.\n\n1. Entwurf schreiben\n2. Gegenlesen\n3. Veröffentlichen\n");
+        $minutes = $this->document($project, 'ben', 'Sitzung 12. November', DocumentKind::MINUTES, DocumentAccess::NONE,
+            "# Sitzung 12. November\n\n## Beschlüsse\n\n- [x] Design wird freigegeben\n- [ ] Termin für den Go-live festlegen\n");
+        $minutes->shares()->create(['user_id' => $this->users['david']->getKey(), 'access' => DocumentShareAccess::EDIT]);
+    }
+
+    /** A document with its first version, like saving makes it. */
+    private function document(Project $project, string $owner, string $title, DocumentKind $kind, DocumentAccess $access, string $content): Document
+    {
+        $document = new Document(['title' => $title, 'kind' => $kind, 'content' => $content, 'project_access' => $access]);
+        $document->project_id = $project->getKey();
+        $document->owner_id = $this->users[$owner]->getKey();
+        $document->updated_by = $this->users[$owner]->getKey();
+        $document->save();
+        $document->versions()->create([
+            'revision' => 1, 'title' => $title, 'kind' => $kind, 'content' => $content, 'created_by' => $this->users[$owner]->getKey(),
+        ]);
+
+        return $document;
     }
 
     private function createSummerParty(): void

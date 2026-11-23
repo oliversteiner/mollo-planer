@@ -45,7 +45,8 @@ const targetKindItems = computed(() => [
   { label: t('assistant.chat.targetAutomatic'), value: '' },
   { label: t('assistant.chat.targetMilestone'), value: 'MILESTONE' },
   { label: t('assistant.chat.targetTodo'), value: 'TODO' },
-  { label: t('assistant.chat.targetTask'), value: 'TASK' }
+  { label: t('assistant.chat.targetTask'), value: 'TASK' },
+  { label: t('assistant.chat.targetIdea'), value: 'IDEA' }
 ])
 
 const input = ref('')

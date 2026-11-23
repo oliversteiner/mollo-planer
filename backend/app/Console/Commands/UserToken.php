@@ -57,7 +57,7 @@ class UserToken extends Command implements PromptsForMissingInput
             return self::FAILURE;
         }
 
-        $token = McpTokens::create($user, (string) $this->argument('name'));
+        $token = McpTokens::createForAgent($user, (string) $this->argument('name'));
 
         // The log gets no part of the token, only the fact.
         $this->logIntervention($user, 'token-create');

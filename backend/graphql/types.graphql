@@ -21,7 +21,7 @@ type User {
   hasPasskey: Boolean @with(relation: "passkeys") @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@hasPasskey")
   "Deine Passkeys, neueste zuerst. Nur für dich selbst, sonst null. Hinzufügen und Entfernen über die Passkey-Routen (REST)."
   passkeys: [Passkey!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@passkeys")
-  "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
+  "Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst; bei einem Agent-Konto auch für Admins (users.manage), sonst null. Nie der Wert."
   apiTokens: [ApiToken!] @field(resolver: "App\\GraphQL\\Resolvers\\UserSecurity@apiTokens")
   "Projekte dieser Person, soweit du sie sehen darfst"
   projects: [Project!]! @field(resolver: "App\\GraphQL\\Resolvers\\UserProjects")
@@ -444,6 +444,8 @@ type ImportResult {
   changes: [ImportChange!]!
   "Bei Fehlern wurde nichts geschrieben"
   errors: [ImportError!]!
+  "Zuweisungen, die wegfallen (unbekannte oder nicht zugehörige Person); der Import läuft trotzdem weiter"
+  warnings: [ImportWarning!]!
   "Die „-new-“-IDs der Datei und die IDs, die die App ihnen gab (leer im Trockenlauf)"
   idMap: [ImportId!]!
   "Der Export nach dem Import als kanonischer Text (nicht im Trockenlauf und nicht bei Fehlern)"
@@ -466,6 +468,13 @@ type ImportError {
   path: String!
   "invalid, revision, archived, denied, unknown_id, person, role, self, assignee, description, limit oder rule"
   kind: String!
+  message: String!
+}
+
+type ImportWarning {
+  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]"
+  path: String!
+  email: String!
   message: String!
 }
 
@@ -526,4 +535,63 @@ type ProjectAiContext {
   sharedWithTools: Boolean! @rename(attribute: "shared_with_tools")
   updatedAt: DateTime! @rename(attribute: "updated_at")
   updatedBy: User @belongsTo(relation: "updatedBy")
+}
+
+"Ein Dokument eines Projekts (Vorgehensweise, Protokoll, Analyse …). Gespeichert als Markdown, geschrieben und gelesen als TipTap-JSON."
+type Document {
+  id: ID!
+  project: Project! @belongsTo
+  title: String!
+  kind: DocumentKind!
+  "Markdown in der kanonischen Form. Nur in der Einzelabfrage verlangen: die Liste lädt es nicht aus der Datenbank (pro Zeile eine Abfrage mehr)."
+  content: String! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@content")
+  "Derselbe Inhalt als TipTap-JSON für den Editor und den Lesemodus. Nur in der Einzelabfrage verlangen."
+  contentJson: RichText! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@contentJson")
+  "null, wenn die Person das Projekt verlassen hat oder gelöscht wurde. Dann verwaltet, wer alle Dokumente verwalten darf."
+  owner: User @belongsTo(relation: "owner")
+  "Stufe für alle Projektmitglieder: NONE, READ oder EDIT"
+  projectAccess: DocumentAccess! @rename(attribute: "project_access")
+  "Freigaben je Person. Nur mit viewerAccess MANAGE sichtbar, sonst leer."
+  shares: [DocumentShare!]! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@shares")
+  "Zählt bei jedem Sichern hoch; updateDocument verlangt die geladene Revision (Konflikt: DOCUMENT_CONFLICT)"
+  revision: Int!
+  updatedBy: User @belongsTo(relation: "updatedBy")
+  createdAt: DateTime! @rename(attribute: "created_at")
+  updatedAt: DateTime! @rename(attribute: "updated_at")
+  "Die wirksame Stufe der angemeldeten Person, mit dem Recht document.update schon verrechnet. Das Frontend rechnet sie nie selbst."
+  viewerAccess: DocumentAccess! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@viewerAccess")
+  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+  deletionId: ID @rename(attribute: "deletion_id")
+  "Die gesicherten Fassungen, neueste zuerst, ohne Inhalt (den liefert documentVersion). Wer das Dokument lesen darf, sieht sie."
+  versions: [DocumentVersion!]! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentFields@versions")
+}
+
+"Eine gesicherte Fassung eines Dokuments. Fassungen werden nie geändert und nie einzeln gelöscht."
+type DocumentVersion {
+  revision: Int!
+  title: String!
+  kind: DocumentKind!
+  "Markdown dieser Fassung. Nur in documentVersion verlangen: die Liste der Fassungen lädt es nicht."
+  content: String! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentVersionFields@content")
+  "Wer gesichert hat (null, wenn die Person gelöscht wurde)"
+  createdBy: User @belongsTo(relation: "createdBy")
+  "Alle Personen, die an dieser Fassung mitgewirkt haben. In dieser Stufe nur die Person, die gesichert hat."
+  contributors: [User!]! @field(resolver: "App\\GraphQL\\Resolvers\\DocumentVersionFields@contributors")
+  "Die Revision, aus der diese Fassung durch Zurückholen entstand, sonst null"
+  restoredFrom: Int @rename(attribute: "restored_from")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Freigabe eines Dokuments an eine Person"
+type DocumentShare {
+  user: User! @belongsTo
+  access: DocumentShareAccess!
+}
+
+"Eine erzeugte Datei zum Herunterladen"
+type DocumentFile {
+  fileName: String!
+  mimeType: String!
+  "Der Inhalt der Datei, Base64"
+  contentBase64: String!
 }

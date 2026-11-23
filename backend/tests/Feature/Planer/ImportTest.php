@@ -374,15 +374,17 @@ class ImportTest extends GraphQLTestCase
 
     // ─── Members ─────────────────────────────────────────────────────
 
-    public function test_a_person_without_an_account_is_refused_with_the_path(): void
+    public function test_a_person_without_an_account_is_skipped_with_a_warning(): void
     {
         $document = $this->exported();
         $document['project']['members'][] = ['email' => 'niemand@example.org', 'role' => 'member'];
 
         $result = $this->import($this->project, $document);
 
-        $this->assertSame('person', $result->errors[0]['kind']);
-        $this->assertSame('project.members[3].email', $result->errors[0]['path']);
+        $this->assertSame([], $result->errors, json_encode($result->errors));
+        $this->assertCount(1, $result->warnings);
+        $this->assertSame('project.members[3].email', $result->warnings[0]['path']);
+        $this->assertSame('niemand@example.org', $result->warnings[0]['email']);
     }
 
     public function test_an_unknown_role_is_refused(): void
@@ -450,6 +452,57 @@ class ImportTest extends GraphQLTestCase
 
         $this->assertSame('denied', $result->errors[0]['kind']);
         $this->assertSame('member', $this->project->fresh()->roleOf($this->users['member'])->key);
+    }
+
+    // ─── Assignees that are not members: a warning, not a refusal ────
+
+    public function test_a_new_task_with_an_assignee_who_is_not_a_member_is_imported_without_one(): void
+    {
+        $document = $this->exported();
+        $document['milestones'][0]['todos'][0]['tasks'][] = ['id' => 'k-new-1', 'title' => 'Neu', 'status' => 'open', 'assigneeEmail' => $this->users['stranger']->email];
+
+        $result = $this->import($this->project, $document);
+
+        $this->assertSame([], $result->errors, json_encode($result->errors));
+        $this->assertCount(1, $result->warnings);
+        $this->assertSame($this->users['stranger']->email, $result->warnings[0]['email']);
+        $this->assertStringStartsWith('milestones[0].todos[0].tasks[', $result->warnings[0]['path']);
+        $this->assertNull(Task::query()->where('title', 'Neu')->firstOrFail()->assigned_user_id);
+    }
+
+    public function test_the_dry_run_reports_the_same_warning_and_changes_nothing(): void
+    {
+        $document = $this->exported();
+        $document['milestones'][0]['todos'][0]['tasks'][] = ['id' => 'k-new-1', 'title' => 'Neu', 'status' => 'open', 'assigneeEmail' => $this->users['stranger']->email];
+        $before = $this->revision($this->project);
+
+        $result = $this->import($this->project, $document, dryRun: true);
+
+        $this->assertSame([], $result->errors, json_encode($result->errors));
+        $this->assertCount(1, $result->warnings);
+        $this->assertSame($before, $this->revision($this->project));
+        $this->assertFalse(Task::query()->where('title', 'Neu')->exists());
+    }
+
+    public function test_an_existing_assignment_stays_when_the_file_names_someone_who_is_not_a_member(): void
+    {
+        $this->task->forceFill(['assigned_user_id' => $this->users['member']->id])->save();
+        $document = $this->exported();
+        $document['milestones'][0]['todos'][0]['tasks'][0]['assigneeEmail'] = $this->users['stranger']->email;
+
+        $result = $this->import($this->project, $document);
+
+        $this->assertSame([], $result->errors, json_encode($result->errors));
+        $this->assertCount(1, $result->warnings);
+        $this->assertSame($this->users['member']->id, $this->task->fresh()->assigned_user_id);
+    }
+
+    public function test_a_file_without_unknown_assignees_has_no_warnings(): void
+    {
+        $result = $this->import($this->project, $this->exported());
+
+        $this->assertSame([], $result->errors, json_encode($result->errors));
+        $this->assertSame([], $result->warnings);
     }
 
     // ─── Mails ───────────────────────────────────────────────────────

@@ -1,0 +1,4 @@
+# GraphQL-Konfiguration für das IDE-Plugin.
+# Das Plugin liest das vollständige, gedruckte Schema (eine Datei, Scalars einmal deklariert).
+# Die Datei entsteht mit `composer schema:frontend` aus dem Backend.
+schema: frontend/graphql/schema.graphql

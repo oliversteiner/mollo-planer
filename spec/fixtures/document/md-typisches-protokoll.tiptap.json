@@ -1,0 +1,363 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 1
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Protokoll Sitzung 12"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Datum:",
+                    "marks": [
+                        {
+                            "type": "bold"
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "text": " 2026-11-18"
+                },
+                {
+                    "type": "hardBreak"
+                },
+                {
+                    "type": "text",
+                    "text": "Ort:",
+                    "marks": [
+                        {
+                            "type": "bold"
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "text": " Zürich"
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Teilnehmende"
+                }
+            ]
+        },
+        {
+            "type": "bulletList",
+            "content": [
+                {
+                    "type": "listItem",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Anna"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "listItem",
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Ben"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Beschlüsse"
+                }
+            ]
+        },
+        {
+            "type": "table",
+            "content": [
+                {
+                    "type": "tableRow",
+                    "content": [
+                        {
+                            "type": "tableHeader",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Nr"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableHeader",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Beschluss"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableHeader",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Verantwortlich"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "tableRow",
+                    "content": [
+                        {
+                            "type": "tableCell",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "1"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Release 1.0 deployen"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Oliver"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "tableRow",
+                    "content": [
+                        {
+                            "type": "tableCell",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "2"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Zen-Zeichen vergrößern"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "tableCell",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": "Bob"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Aufgaben"
+                }
+            ]
+        },
+        {
+            "type": "taskList",
+            "content": [
+                {
+                    "type": "taskItem",
+                    "attrs": {
+                        "checked": true
+                    },
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Deploy durchführen"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "taskItem",
+                    "attrs": {
+                        "checked": false
+                    },
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Cron-Eintrag setzen"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "taskItem",
+                    "attrs": {
+                        "checked": false
+                    },
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Connector neu einrichten"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "horizontalRule"
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Anhang"
+                }
+            ]
+        },
+        {
+            "type": "codeBlock",
+            "attrs": {
+                "language": "bash"
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "php artisan assistant:ping"
+                }
+            ]
+        },
+        {
+            "type": "blockquote",
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Hinweis: nur Oliver ist Nutzer."
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

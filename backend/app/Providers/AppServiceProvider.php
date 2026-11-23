@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Planer\PlanerRevision;
+use App\Services\DocumentAccessService;
 use App\Services\TaskNotifier;
 use App\Support\DeploymentEnvironment;
 use App\Support\PasswordPolicy;
@@ -31,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Remembers the projects of one transaction; per request and per queued job.
         $this->app->scoped(PlanerRevision::class);
+
+        // Remembers the shares read for a list of documents; per request.
+        $this->app->scoped(DocumentAccessService::class);
 
         // The check against known leaked passwords waits 3 seconds at most (Laravel's own: 30).
         $this->app->extend(UncompromisedVerifier::class, PasswordPolicy::verifier());

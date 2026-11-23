@@ -118,6 +118,7 @@ export function useSecurity() {
   }
 
   return {
+    ensurePasswordConfirmed,
     startTwoFactor,
     confirmTwoFactor,
     recoveryCodes,
