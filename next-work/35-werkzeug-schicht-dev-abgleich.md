@@ -1,6 +1,6 @@
 # 35 · PR 30 (Werkzeug-Schicht) mit `dev` zusammenführen: dev-Funktionen in `App\Tools` übernehmen
 
-Status: offen
+Status: erledigt (5c5fb1e)
 Priorität: HOCH (Oliver: PR 30 hat Merge-Konflikte auf GitHub). Branch: `refactor/werkzeug-schicht` (PR nach `dev`, Oliver merget). Entscheid (Oliver): **Refactor behalten, dev-Funktionen portieren.** Die Schicht `App\Tools` aus Auftrag 34 bleibt, die Funktionen aus `dev` werden dort neu umgesetzt.
 
 ## Befund
