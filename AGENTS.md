@@ -1,7 +1,9 @@
 # Mollo Planer
 
 Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu ein Dashboard als Startseite.
-Produktiv-Domain später: `planer.mollo.ch` (Frontend und API als getrennte Subdomains).
+Testserver: `planer.mollo.dev` (API `api.planer.mollo.dev`). Produktion: `planer.mollo.ch` (API `api.planer.mollo.ch`). Frontend und API laufen als getrennte Subdomains.
+
+Allgemeine Regeln für alle Projekte: `~/www/agents/AGENTS.md`. Zuerst lesen, falls sie nicht schon geladen ist.
 
 ## Bevor du etwas baust, lies
 - `docs/README.md`: Einstieg, **Vorrang der Dokumente** und welche historisch sind. Zuerst lesen.
@@ -14,7 +16,7 @@ Produktiv-Domain später: `planer.mollo.ch` (Frontend und API als getrennte Subd
 Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuerst `umsetzung.md`). `backend-plan.md` und `graphql-kontext.md` sind historisch. Weicht der Code vom Schema oder von den Dokumenten ab, nicht stillschweigend ändern, sondern nachfragen.
 
 ## Stack
-- **Backend:** Laravel 13 headless in `backend/`, Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
+- **Backend:** Laravel 13 headless in `backend/` mit PHP 8.5 (lokal, CI, Test- und Produktionsserver; `composer.json` verlangt `^8.5`), Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
 - **KI-Assistent:** offizielles PHP-SDK `anthropic-ai/sdk` (Claude-API), Schlüssel `ANTHROPIC_API_KEY` nur in `.env`
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
@@ -58,27 +60,14 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - Mails nur über Notifications mit `ShouldQueue` und `afterCommit`, Sprache = `project->locale`.
 - Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. **Das Repo ist öffentlich: keine Pro-Dateien committen** (Font Awesome Pro, `frontend/vendor/`; ein Wächter in CI und Test schlägt an). Font Awesome braucht kein npm-Token mehr, die Symbole holt `npm run icons:fetch` aus dem privaten Repo `mollo-pro-assets` (Secret `PRO_ASSETS_TOKEN`); das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
 - Oberfläche nur mit `wa-*`-Elementen von Web Awesome und den eigenen Bausteinen (`FormInput`, `AppDialog`, `ActionMenu` …), Layout mit den Hilfsklassen `wa-stack`/`wa-cluster`/… und `<style scoped>` mit Tokens (`--wa-*`). Kein Nuxt UI, kein Tailwind.
+- Enums im GraphQL-Schema mit `App\Enums` synchron halten (`tests/Unit/GraphqlEnumBindingTest.php`).
+- Rechte nie nur im Frontend prüfen.
+- RichText höchstens 20.000 Zeichen.
+- Icons: Font-Awesome-Pro-Namen ohne Stil-Präfix.
+- Die 2FA- und Passkey-Middleware in Produktion nicht lockern.
+- «cpm»: Vor dem Merge Branch und Ziel-Branch nennen, wenn unklar. Commits von Junie mit Co-Author-Trailer.
 - Zu jeder neuen Policy, Mutation oder Regel gehören Tests (siehe Punkt 12 im Backend-Plan).
 - Nach einem abgeschlossenen Schritt aus der Bau-Reihenfolge den Abschnitt „Stand“ unten aktualisieren.
-
-# Mollo Planer — Agent Guidelines
-
-## 1. System & MCP-Zugang
-- **App:** Projektverwaltung mit Hierarchie `Project` -> `Milestone` -> `Todo` -> `Task` (Kanban-Status: `idea`, `planned`, `open`, `in_progress`, `review`, `done`). Status von `Todo` und `Milestone` werden automatisch aus den Tasks abgeleitet – niemals manuell setzen.
-- **MCP-Endpunkt:** `POST /mcp` (`mollo-planer`)[cite: 31]. Handelt im Namen des Token-Inhabers; jedes Recht und jede Regel wird serverseitig geprüft[cite: 31].
-- **Verfügbare Tools:** `list_projects`, `list_templates`, `list_users`, `export_plan`, `import_plan`, `update_tasks`, `add_comment`, `list_comments`, `create_idea`, `list_ideas`, `get_project_ai_context`[cite: 31].
-
-## 2. Token-sparender Arbeitsablauf
-1. **Einstieg über `list_projects`:** Projekt-ID, Rolle und Fähigkeiten prüfen[cite: 31]. Zusatzfelder (`include_members`, `include_rights`) sowie `list_users` oder `list_templates` nur bei Bedarf anfordern[cite: 28, 29, 30, 31].
-2. **Gefilterter Export (`export_plan`):** Bei größeren Projekten bevorzugt `version`, `milestone_ids`, `task_status` oder `include_released: false` nutzen (`excerpt: true` -> beim Zurückschreiben zwingend `mode: "partial"`)[cite: 23, 31].
-3. **IDs & Revisionen:** Bestehende IDs (`m-<id>`, `t-<id>`, `k-<id>`) beibehalten; neue Elemente mit `m-new-1`, `t-new-1`, `k-new-1` benennen[cite: 31]. `mode: "full"` (Standard) prüft `revision` und verschiebt fehlende Elemente in den Papierkorb; `mode: "partial"` ergänzt/ändert nur[cite: 25, 31].
-4. **Dry-Run zuerst:** `import_plan` und `update_tasks` (mit `base_revision`) immer zuerst mit `dry_run: true` ausführen, Änderungen und Fehler prüfen und erst danach scharf schalten[cite: 25, 31, 33]. Bei `import_plan` `include_document` standardmäßig auslassen (`false`)[cite: 25].
-5. **Kommentare, Ideen & Kontext begrenzen:** `list_comments`, `list_ideas`, `list_users`, `list_templates` und `get_project_ai_context` mit gezielten Filtern und kleinen Limits (`limit`, `max_chars`) nutzen; Benachrichtigungsmails (`notify_assignees`) nur auf Wunsch aktivieren[cite: 24, 25, 26, 27, 28, 29, 30, 31].
-
-## 3. Inhalts-, Sicherheits- & Qualitätsregeln
-- **Sprache & Format:** Titel und Beschreibungen in der Sprache des Nutzers verfassen[cite: 31]. Beschreibungen und Kommentare nutzen die erlaubte Markdown-/RichText-Whitelist (Absätze, H2/H3, Listen, Zitate, fett, kursiv, Inline-Code, `http`/`https`/`mailto`-Links; kein HTML, keine Bilder, Tabellen oder Codeblöcke)[cite: 21, 31].
-- **Limits:** Max. 200 Milestones/Projekt, 50 ToDos/Milestone, 50 Tasks/ToDo, 50 Mitglieder, 30 Labels, Beschreibungen bis 5.000 Zeichen[cite: 31].
-- **Sicherheit:** Niemals Klartext-Tokens, Secrets oder sensible Daten ausgeben oder protokollieren; Änderungen immer zielgerichtet und nachvollziehbar halten.
 
 ## Stand
 - [x] 1. Migrationen
