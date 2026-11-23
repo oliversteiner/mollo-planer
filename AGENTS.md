@@ -5,6 +5,8 @@ Testserver: `planer.mollo.dev` (API `api.planer.mollo.dev`). Produktion: `planer
 
 Allgemeine Regeln für alle Projekte: `~/www/agents/AGENTS.md`. Zuerst lesen, falls sie nicht schon geladen ist.
 
+**Planung:** im Mollo Planer auf `planer.mollo.dev`, Projekt **2 · Mollo Planer**. Agent dieses Repos ist **Bob** (Konto `bob.agent@mollo.dev`, Token `MOLLOPLANER_BOB_TOKEN`, eingetragen in `.mcp.json`). Aufträge in `next-work/`, jede Datei nennt ihr ToDo; Stand dort nachführen. Regeln dazu: Abschnitt «Planung im Mollo Planer» in `~/www/agents/AGENTS.md`. TEST enthält echte Daten: kein Dump, kein `migrate:fresh`, keine Seeder auf `planer.mollo.dev`.
+
 ## Bevor du etwas baust, lies
 - `docs/README.md`: Einstieg, **Vorrang der Dokumente** und welche historisch sind. Zuerst lesen.
 - `docs/umsetzung.md`: Arbeitsschritte, Reihenfolge, Meilensteine, Stand. **Was dort steht, wird gebaut.**
