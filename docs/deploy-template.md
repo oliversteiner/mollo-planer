@@ -145,7 +145,7 @@ Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
 
 - `DEPLOY_SSH_KEY` (**je Umgebung**): der **private** Schlüssel, vollständig von `-----BEGIN OPENSSH PRIVATE KEY-----` bis `-----END OPENSSH PRIVATE KEY-----` (lokal: `pbcopy < ~/.ssh/<projekt>-<test|prod>-deploy`)
 - `DEPLOY_KNOWN_HOSTS`: Ausgabe des Host-Schlüssel-Befehls aus Abschnitt 6
-- `FONTAWESOME_NPM_AUTH_TOKEN`: nur bei Font Awesome Pro
+- `PRO_ASSETS_TOKEN`: nur bei Pro-Symbolen aus einem privaten Repo (Auftrag 38): fine-grained Token, nur Lesen, nur dieses eine Repository. Ein altes `FONTAWESOME_NPM_AUTH_TOKEN` kann gelöscht werden. Das Repo des Projekts darf öffentlich sein; lizenzierte Dateien gehören nie hinein.
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
 
 ### Variablen
@@ -311,7 +311,7 @@ php artisan app:user-token claude-clubdb@example.ch --revoke              # wide
 - **Zugang auch ohne SSH (Auftrag 32):** Ein Admin (Recht `users.manage`, starke Sitzung) macht und widerruft Zugänge eines Agent-Kontos in der App unter **Admin → Benutzer**, im Bereich «Zugänge» der Zeile des Agenten: Name eingeben, Passwort bestätigen, der Zugang erscheint **einmal** in einem Dialog (Kopierknopf). Nur für Agent-Konten, nie für Menschen. Jedes Erzeugen und Widerrufen steht im Log (wer, welcher Agent, welcher Zugang, nie das Token), und alle Admins bekommen eine Info-Mail.
 - Das Token gehört in die Einstellung des Connectors (siehe `docs/claude-connector.md`), nicht in `.env`, nicht ins Repository. Es gilt 90 Tage; danach ein neues machen.
 - `app:user-token` verweigert Konten von Menschen: die machen ihr Token selbst im Profil.
-- Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent).
+- Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent). Ohne diesen Schritt fehlt «Agent» im Auswahlfeld der Projektrolle. `php artisan permissions:sync-defaults --check` zeigt, was fehlt, und ändert nichts (Exit 1, wenn etwas fehlt). `deploy.sh` ruft die Prüfung am Ende jedes Deployments auf und gibt eine **WARNUNG** aus (kein Abbruch, kein automatischer Abgleich, weil der Abgleich die Standardbelegung zurücksetzt). Da `deploy.sh` die Fassung vom Server ausführt, wirkt die Prüfung erst im Deployment nach dem ersten, das sie mitbringt.
 
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 

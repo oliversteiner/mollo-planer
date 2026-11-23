@@ -173,7 +173,7 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
 - **GitHub-Secrets** unter *Settings → Secrets and variables → Actions → Secrets*:
   - `DEPLOY_SSH_KEY`: Inhalt der privaten Datei `~/.ssh/mollo-planer-deploy`
   - `DEPLOY_KNOWN_HOSTS`: Ausgabe von `ssh-keygen -F <DEPLOY_HOST> | grep -v '^#'`, damit der Server fest geprüft wird
-  - `FONTAWESOME_NPM_AUTH_TOKEN` und `WEBAWESOME_NPM_AUTH_TOKEN` (wie bei der Frontend-CI)
+  - `WEBAWESOME_NPM_AUTH_TOKEN` und `PRO_ASSETS_TOKEN` (wie bei der Frontend-CI; Font Awesome braucht kein npm-Token mehr)
 - **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
 - **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
 - **Docroots:** `~/www/planer.mollo.dev` ist das Frontend. `~/www/api.planer.mollo.dev` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Hostpoint-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.

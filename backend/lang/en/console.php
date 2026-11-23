@@ -12,6 +12,10 @@ return [
         'invited' => 'Admin :email created. The invitation is sent through the queue. A second factor or passkey is set up at the first login.',
         'created' => 'Admin :email created. A second factor or passkey is set up at the first login.',
     ],
+    'permissions_check' => [
+        'complete' => 'All standard roles and functions exist in the database.',
+        'missing' => ':count standard roles or functions are missing in the database. `php artisan permissions:sync-defaults` brings them in (it resets the standard assignments).',
+    ],
     'check_limits' => [
         'clean' => 'No project breaks a limit of the planer file.',
         'found' => ':findings places in :projects projects break a limit of the planer file. Clean them up before exporting.',
