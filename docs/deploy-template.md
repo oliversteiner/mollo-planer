@@ -332,6 +332,16 @@ Wer die Anmeldung als Dienst nutzt (`docs/oauth-sso.md`), braucht je Umgebung ei
 `backend/`, `php artisan passport:keys` (legt `storage/oauth-private.key` und `-public.key` an; nicht ins Repository). Danach prüfen:
 `https://<API>/.well-known/jwks.json` liefert den öffentlichen Schlüssel. Die Migrationen laufen mit dem Deployment.
 
+### Datenbank-Sicherung vor jeder Migration (Auftrag 37 A)
+
+TEST enthält die echten Planungsdaten (PROD gleich geregelt). Darum legt `deploy.sh` vor `migrate --force` einen Dump an:
+
+- **Wo:** `DEPLOY_BACKUP_DIR/db/planer-<Datum>-<Uhrzeit>-<Commit>.sql.gz` (Ordner `700`, Dateien `600`, `umask 077`). Aufbewahrt werden die **letzten 20** Sicherungen vor Deploys. Ältere Dateien im Ordner `DEPLOY_BACKUP_DIR` selbst (aus der Zeit vor Auftrag 37) bleiben liegen und lassen sich von Hand löschen.
+- **Zugangsdaten:** Aus `backend/.env` in eine temporäre Optionsdatei (`mysqldump --defaults-extra-file`, Rechte `600`, im geschlossenen Ordner), die danach gelöscht wird. Das Passwort steht nie auf der Befehlszeile, nie in der Umgebung des Dumps und nie in der Ausgabe.
+- **Schlägt der Dump fehl, wird nichts migriert:** Auch ein abgebrochener oder unvollständiger Dump (er muss gzip-gültig sein und mit «Dump completed» enden) zählt als Fehlschlag. Die halbe Datei wird gelöscht, das Skript bricht ab, der Wartungsmodus war noch nicht an, die Datenbank ist unverändert (der Code ist schon aktualisiert).
+- **Prüfen:** `ls -l ~/dev/backups/planer/db/` (PROD: `~/ch/...`) zeigt nach dem Deploy die neue Datei; `gzip -dc <Datei> | tail -n 1` endet mit «-- Dump completed on …».
+- Wie bei jeder Änderung von `deploy.sh` wirkt das erst im Deployment nach dem ersten, das es mitbringt.
+
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
 - **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.
