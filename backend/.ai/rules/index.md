@@ -6,3 +6,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | --- | --- |
 | **/* | .ai/rules/general.md |
 | backend/graphql/** | .ai/rules/graphql.md |
+| .junie/plans/** | .ai/rules/plans.md |
