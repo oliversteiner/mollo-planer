@@ -1,7 +1,7 @@
 # OAuth und OpenID Connect: der Planer als Anmeldedienst
 
-Stand: Auftrag 35, Teil A (Authorization Server und OpenID Provider). Noch offen: Teil B (OAuth für `/mcp`),
-D (iOS), E (Registrierung aus Club DB) und die Verwaltung der Clients in der Oberfläche, siehe unten.
+Stand: Auftrag 35, Teil A (Authorization Server, OpenID Provider, Zustimmungsseite, Verwaltung der Clients). Noch offen:
+Teil B (OAuth für `/mcp`), D (iOS), E (Registrierung aus Club DB), siehe unten.
 
 Der Code gehört zur Basis (Modul Identität, `docs/starter-kit.md`): Backend unter `App\Core\Identity`, Routen in
 `backend/routes/oauth.php`. Er importiert nichts aus dem Fachcode (Projekte, Aufgaben, Dokumente).
@@ -64,8 +64,15 @@ Person gelten dann zusätzlich.
 - **Migrationen:** `php artisan migrate` (Tabellen `oauth_*`, dazu `oauth_auth_code_claims`).
 - **Aufräumen:** Der Scheduler ruft täglich `passport:purge` (abgelaufene und widerrufene Tokens und Codes nach einer
   Woche) und löscht die Notizen zu Codes nach einem Tag (`routes/console.php`).
-- **Clients** werden nie im Code angelegt. Bis die Verwaltung in der Oberfläche da ist (offen), gibt es keinen Weg, sie ohne
-  Befehl auf dem Server anzulegen.
+- **Clients** werden nie im Code angelegt, sondern von Admins in der Oberfläche unter **System → Anmeldedienst**
+  (`/admin/oauth-clients`, Recht `settings.manage`):
+  - Angelegt wird mit Name, den exakten Redirect-Adressen (eine pro Zeile, höchstens 10) und der Art: *vertraulich* (ein Server
+    mit Geheimnis, das nur einmal angezeigt wird) oder *öffentlich* (Browser oder App, nur mit PKCE).
+  - Erlaubte Adressen: `https`, `http` nur für `localhost` und `127.0.0.1`, ein eigenes URL-Schema (zum Beispiel
+    `ch.mollo.planer:/oauth/callback`) nur für öffentliche Clients. Keine Platzhalter, kein Fragment, keine Zugangsdaten in der Adresse.
+  - Anlegen und Widerrufen verlangen eine frische Passwortbestätigung. Widerrufen sperrt den Client und widerruft alle seine
+    Zugänge und Refresh-Tokens. Beides steht im Log (wer, welcher Client, nie ein Geheimnis).
+  - GraphQL: `oauthClients`, `createOAuthClient`, `revokeOAuthClient` (`backend/graphql/identity.graphql`).
 
 ## Sicherheit (was erzwungen ist)
 
@@ -81,14 +88,13 @@ Person gelten dann zusätzlich.
 
 `backend/tests/Feature/Core/`: der ganze Ablauf bis zu den Tokens, Ablehnung, falscher `code_verifier`, nicht
 registrierte Redirect-URI, Gast und schwache Sitzung, Wiederverwendung eines Refresh-Tokens, Discovery, JWKS (ohne private
-Teile), Signatur und alle Claims des `id_token`, `amr` bei Passkey, `userinfo` je Scope. Frontend:
-`frontend/tests/nuxt/oauth-consent.test.ts`.
+Teile), Signatur und alle Claims des `id_token`, `amr` bei Passkey, `userinfo` je Scope. Clients: `backend/tests/Feature/GraphQL/OAuthClientsTest.php` (Rechte, Passwortbestätigung, Adressregeln, Widerruf mit Tokens). Frontend:
+`frontend/tests/nuxt/oauth-consent.test.ts` und `frontend/tests/nuxt/admin-oauth-clients.test.ts`.
 
 ## Noch offen
 
 - **B:** OAuth für `/mcp` (`Mcp::oauthRoutes()` von `laravel/mcp` bringt die Metadaten und die dynamische Registrierung mit; zu
   prüfen, wie das mit den Routen und der Sperre hier zusammengeht). Dafür muss der Guard `oauth` mit Sanctum zusammen auf `/mcp` stehen.
-- **Verwaltung der Clients** in der Systemverwaltung (Anlegen, Redirect-URIs, vertraulich oder öffentlich, Widerruf).
 - **D:** Client «Planer iOS» und der Scope `api` im Guard der GraphQL-API.
 - **E:** Registrierung aus Club DB.
 - **Abmelden auf allen Geräten** und die Liste der angemeldeten Apps im Profil (Teil D).

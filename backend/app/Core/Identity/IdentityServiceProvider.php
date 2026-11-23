@@ -5,15 +5,18 @@ namespace App\Core\Identity;
 use App\Core\Identity\Oidc\IdTokenResponse;
 use App\Core\Identity\Oidc\OidcAuthCodeGrant;
 use App\Core\Identity\Oidc\RotatingRefreshTokenGrant;
+use App\Core\Identity\Policies\OAuthClientPolicy;
 use DateInterval;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Bridge\AuthCodeRepository;
 use Laravel\Passport\Bridge\RefreshTokenRepository;
+use Laravel\Passport\Client;
 use Laravel\Passport\Passport;
 use League\OAuth2\Server\AuthorizationServer;
 
@@ -55,6 +58,8 @@ class IdentityServiceProvider extends ServiceProvider
 
         // The page where the person agrees is a page of the frontend; it loads the details from /oauth/consent.
         Passport::authorizationView(fn (array $parameters) => redirect()->away(rtrim((string) config('app.frontend_url'), '/').'/oauth/consent'));
+
+        Gate::policy(Client::class, OAuthClientPolicy::class);
 
         RateLimiter::for('oauth-authorize', fn (Request $request) => Limit::perMinute(30)->by('oauth-authorize:'.$request->ip()));
         RateLimiter::for('oauth-token', fn (Request $request) => Limit::perMinute(60)->by('oauth-token:'.$request->ip()));

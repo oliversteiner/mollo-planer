@@ -10,7 +10,8 @@ export const ROUTE_RIGHTS: Readonly<Record<string, string>> = {
   '/system/db': 'USERS_MANAGE',
   '/admin/users': 'USERS_MANAGE',
   '/admin/roles': 'ROLES_MANAGE',
-  '/admin/settings': 'SETTINGS_MANAGE'
+  '/admin/settings': 'SETTINGS_MANAGE',
+  '/admin/oauth-clients': 'SETTINGS_MANAGE'
 }
 
 /** The system right that opens this path, or null when the path needs none. */

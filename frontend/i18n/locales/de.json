@@ -23,7 +23,8 @@
     "roles": "Rollen",
     "trash": "Papierkorb",
     "templates": "Vorlagen",
-    "ideas": "Ideen"
+    "ideas": "Ideen",
+    "oauthClients": "Anmeldedienst"
   },
   "settings": {
     "language": "Sprache",
@@ -665,6 +666,35 @@
       "twoFactorOff": "2FA ist ausgeschaltet: Das Passwort genügt.",
       "notSwitchable": "Auf dem Produktivserver ist die 2FA immer Pflicht und lässt sich nicht ausschalten.",
       "offWarning": "Die 2FA ist ausgeschaltet. Das ist nur für Tests gedacht."
+    },
+    "oauthClients": {
+      "title": "Anmeldedienst",
+      "intro": "Anwendungen, die sich über den Planer anmelden dürfen (zum Beispiel Club DB oder eine App). Jede hat exakte Redirect-Adressen. Widerrufen sperrt sie und alle ihre Zugänge sofort.",
+      "none": "Noch keine Anwendung.",
+      "create": "Anwendung anlegen",
+      "createHint": "Danach kann sich die Anwendung über den Planer anmelden. Das Geheimnis eines vertraulichen Clients wird nur einmal angezeigt.",
+      "createSubmit": "Anlegen",
+      "name": "Name",
+      "nameHint": "So sehen Personen die Anwendung bei der Zustimmung, zum Beispiel «Club DB».",
+      "redirectUris": "Redirect-Adressen",
+      "redirectUrisHint": "Eine Adresse pro Zeile, exakt. https, http nur für localhost, ein eigenes URL-Schema (ch.mollo.planer:/oauth/callback) nur für öffentliche Clients.",
+      "confidential": "Vertraulicher Client",
+      "confidentialHint": "Ein Server, der ein Geheimnis sicher aufbewahren kann. Aus: Browser- oder App-Client, nur mit PKCE.",
+      "confidentialBadge": "Vertraulich",
+      "publicBadge": "Öffentlich",
+      "revokedBadge": "Widerrufen",
+      "madeOn": "Angelegt am {date}",
+      "created": "{name} wurde angelegt.",
+      "actions": "Aktionen für {name}",
+      "revoke": "Widerrufen",
+      "revoked": "{name} wurde widerrufen.",
+      "revokeTitle": "{name} widerrufen?",
+      "revokeDescription": "Die Anwendung kann sich nicht mehr anmelden, alle ihre Zugänge und Refresh-Tokens werden ungültig. Das lässt sich nicht rückgängig machen.",
+      "revokeConfirm": "Ja, widerrufen",
+      "secretTitle": "Geheimnis für {name}",
+      "secretOnce": "Wird nicht mehr angezeigt. Trag es in die Einstellungen der Anwendung ein, nicht in ein Repository.",
+      "secret": "Geheimnis (Client Secret)",
+      "copySecret": "Geheimnis kopieren"
     }
   },
   "claude": {

@@ -10,4 +10,9 @@ return [
         'mcp:read' => 'Pläne und Kommentare lesen',
         'mcp:write' => 'Pläne, Aufgaben und Kommentare ändern',
     ],
+
+    'client' => [
+        'redirect_count' => 'Es sind 1 bis :max Redirect-Adressen erlaubt.',
+        'redirect_invalid' => '«:uri» ist keine erlaubte Redirect-Adresse. Erlaubt: https, http nur für localhost, ein eigenes URL-Schema nur für öffentliche Clients; keine Platzhalter, kein Fragment.',
+    ],
 ];

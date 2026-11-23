@@ -114,6 +114,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {role: "admin"}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
             'createAgentToken' => ['owner', 'mutation ($id: ID!) { createAgentToken(userId: $id, name: "Claude") { plainTextToken } }', $member],
             'revokeAgentToken' => ['owner', 'mutation ($id: ID!) { revokeAgentToken(userId: $id, tokenId: 1) { id } }', $member],
+            'createOAuthClient' => ['owner', 'mutation { createOAuthClient(name: "Club DB", redirectUris: ["https://clubdb.example/cb"], confidential: true) { secret } }', fn (self $test) => []],
+            'revokeOAuthClient' => ['owner', 'mutation { revokeOAuthClient(id: "x") { id } }', fn (self $test) => []],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],
             'updateAppSettings (2FA off)' => ['owner', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],
