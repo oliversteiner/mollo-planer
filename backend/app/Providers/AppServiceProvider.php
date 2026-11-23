@@ -10,10 +10,12 @@ use App\Support\PasswordPolicy;
 use App\Support\Rights;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Validation\UncompromisedVerifier;
+use Illuminate\Database\Console\Seeds\SeedCommand;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -46,6 +48,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Password::defaults(fn (): Password => PasswordPolicy::defaults());
+
+        // TEST holds the real planning data (Auftrag 37 D): on both server environments (staging, production) the commands that
+        // empty or replace the database refuse to run, with or without --force: migrate:fresh, migrate:refresh, migrate:reset,
+        // migrate:rollback, db:wipe and db:seed.
+        // DB::prohibitDestructiveCommands() leaves db:seed out, so it is added here.
+        DB::prohibitDestructiveCommands(DeploymentEnvironment::isLive());
+        SeedCommand::prohibit(DeploymentEnvironment::isLive());
 
         // Outside the live environments (production and staging), loading a relation per row (N+1) is an error.
         // GraphQL lists batch-load instead (@with, ProgressBatchLoader).

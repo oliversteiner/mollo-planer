@@ -375,6 +375,10 @@ Zusätzlich zur Sicherung vor Deploys läuft einmal täglich `deploy/db-backup.s
 
 **Probe:** Das Zurückspielen wird einmal auf TEST mit Oliver geprobt, bevor man sich im Ernstfall darauf verlässt (Auftrag 37 C). Der Ablauf ist mit Stand-ins für `mysql`, `mysqldump` und `php` getestet (`DeployRestoreTest`), nicht gegen eine echte Datenbank.
 
+#### Schutz gegen Überschreiben (Auftrag 37 D)
+
+Auf TEST (`APP_ENV=staging`) und PROD (`APP_ENV=production`) verweigern `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `migrate:rollback`, `db:wipe` und `db:seed` den Dienst, auch mit `--force` (`App\Providers\AppServiceProvider`, Test `DestructiveCommandsProhibitedTest`). Der Schutz greift nur, wenn `APP_ENV` stimmt: **TEST muss auf `APP_ENV=staging` stehen** (offener Punkt aus Auftrag 28, Task «TEST auf APP_ENV=staging umstellen»). `migrate --force` im Deployment ist nicht betroffen.
+
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
 - **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.
