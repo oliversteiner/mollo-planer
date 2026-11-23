@@ -313,6 +313,12 @@ php artisan app:user-token claude-clubdb@example.ch --revoke              # wide
 - `app:user-token` verweigert Konten von Menschen: die machen ihr Token selbst im Profil.
 - Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent). Ohne diesen Schritt fehlt «Agent» im Auswahlfeld der Projektrolle. `php artisan permissions:sync-defaults --check` zeigt, was fehlt, und ändert nichts (Exit 1, wenn etwas fehlt). `deploy.sh` ruft die Prüfung am Ende jedes Deployments auf und gibt eine **WARNUNG** aus (kein Abbruch, kein automatischer Abgleich, weil der Abgleich die Standardbelegung zurücksetzt). Da `deploy.sh` die Fassung vom Server ausführt, wirkt die Prüfung erst im Deployment nach dem ersten, das sie mitbringt.
 
+### OAuth-Server (Auftrag 35)
+
+Wer die Anmeldung als Dienst nutzt (`docs/oauth-sso.md`), braucht je Umgebung einmal ein Schlüsselpaar: **auf dem Server**, im Ordner
+`backend/`, `php artisan passport:keys` (legt `storage/oauth-private.key` und `-public.key` an; nicht ins Repository). Danach prüfen:
+`https://<API>/.well-known/jwks.json` liefert den öffentlichen Schlüssel. Die Migrationen laufen mit dem Deployment.
+
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
 - **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.

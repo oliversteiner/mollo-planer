@@ -1,0 +1,37 @@
+# ─── Anmeldedienst: Clients (Modul Identität, docs/oauth-sso.md) ───
+
+"Eine Anwendung, die sich über den Planer anmelden darf (OAuth-Client). Nur für Admins (Recht settings.manage)."
+type OAuthClient {
+  id: ID!
+  name: String!
+  "Exakte Adressen, zu denen die Anwendung nach der Anmeldung zurückgeleitet werden darf"
+  redirectUris: [String!]! @rename(attribute: "redirect_uris")
+  "Vertraulich: hat ein Geheimnis (Server einer Anwendung). Öffentlich: Browser- oder App-Client, nur mit PKCE."
+  confidential: Boolean! @method(name: "confidential")
+  revoked: Boolean!
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Ein neu angelegter Client. Das Geheimnis eines vertraulichen Clients gibt es nur in dieser Antwort."
+type NewOAuthClient {
+  client: OAuthClient!
+  secret: String
+}
+
+extend type Query @guard {
+  "Alle Clients des Anmeldedienstes, auch widerrufene. Nur Admins."
+  oauthClients: [OAuthClient!]!
+    @can(ability: "viewAny", model: "Laravel\\Passport\\Client")
+    @field(resolver: "App\\Core\\Identity\\GraphQL\\OAuthClients")
+}
+
+extend type Mutation @guard {
+  "Legt einen Client an. Redirect-Adressen exakt: https, http nur für localhost, ein eigenes URL-Schema nur für öffentliche Clients (Apps). Recht settings.manage und frische Passwortbestätigung; das Geheimnis gibt es nur in der Antwort."
+  createOAuthClient(name: String! @rules(apply: ["min:2", "max:80"]), redirectUris: [String!]!, confidential: Boolean!): NewOAuthClient!
+    @can(ability: "create", model: "Laravel\\Passport\\Client")
+    @field(resolver: "App\\Core\\Identity\\GraphQL\\CreateOAuthClient")
+  "Widerruft einen Client und alle seine Tokens. Gleiche Voraussetzungen wie createOAuthClient. null, wenn es den Client nicht gibt."
+  revokeOAuthClient(id: ID!): OAuthClient
+    @can(ability: "revoke", model: "Laravel\\Passport\\Client")
+    @field(resolver: "App\\Core\\Identity\\GraphQL\\RevokeOAuthClient")
+}

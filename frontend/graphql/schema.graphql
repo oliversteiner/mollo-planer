@@ -457,6 +457,8 @@ type Mutation {
  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
  createIdea(input: CreateIdeaInput!): Idea!
  createMilestone(input: CreateMilestoneInput!): Milestone!
+ "Legt einen Client an. Redirect-Adressen exakt: https, http nur für localhost, ein eigenes URL-Schema nur für öffentliche Clients (Apps). Recht settings.manage und frische Passwortbestätigung; das Geheimnis gibt es nur in der Antwort."
+ createOAuthClient(confidential: Boolean!, name: String!, redirectUris: [String!]!): NewOAuthClient!
  createProject(input: CreateProjectInput!): Project!
  "Legt eine eigene Rolle an. Der Schlüssel entsteht aus dem englischen Namen."
  createRole(input: CreateRoleInput!): Role!
@@ -562,6 +564,8 @@ type Mutation {
  restoreFromTrash(deletionId: ID!): TrashItem!
  "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
  revokeAgentToken(tokenId: ID!, userId: ID!): ApiToken
+ "Widerruft einen Client und alle seine Tokens. Gleiche Voraussetzungen wie createOAuthClient. null, wenn es den Client nicht gibt."
+ revokeOAuthClient(id: ID!): OAuthClient
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
  "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
@@ -616,6 +620,22 @@ type Mutation {
 type NewApiToken {
  plainTextToken: String!
  token: ApiToken!
+}
+"Ein neu angelegter Client. Das Geheimnis eines vertraulichen Clients gibt es nur in dieser Antwort."
+type NewOAuthClient {
+ client: OAuthClient!
+ secret: String
+}
+"Eine Anwendung, die sich über den Planer anmelden darf (OAuth-Client). Nur für Admins (Recht settings.manage)."
+type OAuthClient {
+ "Vertraulich: hat ein Geheimnis (Server einer Anwendung). Öffentlich: Browser- oder App-Client, nur mit PKCE."
+ confidential: Boolean!
+ createdAt: DateTime!
+ id: ID!
+ name: String!
+ "Exakte Adressen, zu denen die Anwendung nach der Anmeldung zurückgeleitet werden darf"
+ redirectUris: [String!]!
+ revoked: Boolean!
 }
 "Allows ordering a list of records."
 input OrderByClause {
@@ -904,6 +924,8 @@ type Query {
  milestones(projectId: ID!): [Milestone!]!
  "Tasks, die dir zugewiesen sind (ohne archivierte Projekte)"
  myTasks(status: TaskStatus): [Task!]!
+ "Alle Clients des Anmeldedienstes, auch widerrufene. Nur Admins."
+ oauthClients: [OAuthClient!]!
  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
  permissionMatrix: PermissionMatrix!
  project(id: ID!): Project

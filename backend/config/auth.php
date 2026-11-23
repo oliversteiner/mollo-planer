@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\OAuthUser;
 use App\Models\User;
 
 return [
@@ -42,6 +43,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Bearer tokens of the OAuth server (Passport): the userinfo endpoint, later /mcp and /api.
+        'oauth' => [
+            'driver' => 'passport',
+            'provider' => 'oauth-users',
+        ],
     ],
 
     /*
@@ -65,6 +72,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'oauth-users' => [
+            'driver' => 'eloquent',
+            'model' => OAuthUser::class,
         ],
 
         // 'users' => [

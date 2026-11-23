@@ -23,7 +23,8 @@
     "roles": "Roles",
     "trash": "Trash",
     "templates": "Templates",
-    "ideas": "Ideas"
+    "ideas": "Ideas",
+    "oauthClients": "Login service"
   },
   "settings": {
     "language": "Language",
@@ -665,6 +666,35 @@
       "twoFactorOff": "2FA is off: the password is enough.",
       "notSwitchable": "On the production server 2FA is always required and cannot be switched off.",
       "offWarning": "2FA is switched off. This is meant for testing only."
+    },
+    "oauthClients": {
+      "title": "Login service",
+      "intro": "Applications that may log in through the planer (for example Club DB or an app). Each has exact redirect addresses. Revoking locks it and all its access at once.",
+      "none": "No application yet.",
+      "create": "Add application",
+      "createHint": "Afterwards the application can log in through the planer. The secret of a confidential client is shown only once.",
+      "createSubmit": "Add",
+      "name": "Name",
+      "nameHint": "How people see the application when they agree, for example “Club DB”.",
+      "redirectUris": "Redirect addresses",
+      "redirectUrisHint": "One address per line, exact. https, http only for localhost, an own URL scheme (ch.mollo.planer:/oauth/callback) only for public clients.",
+      "confidential": "Confidential client",
+      "confidentialHint": "A server that can keep a secret safe. Off: browser or app client, with PKCE only.",
+      "confidentialBadge": "Confidential",
+      "publicBadge": "Public",
+      "revokedBadge": "Revoked",
+      "madeOn": "Added on {date}",
+      "created": "{name} was added.",
+      "actions": "Actions for {name}",
+      "revoke": "Revoke",
+      "revoked": "{name} was revoked.",
+      "revokeTitle": "Revoke {name}?",
+      "revokeDescription": "The application can no longer log in, all its access and refresh tokens become invalid. This cannot be undone.",
+      "revokeConfirm": "Yes, revoke",
+      "secretTitle": "Secret for {name}",
+      "secretOnce": "It is not shown again. Enter it in the settings of the application, not in a repository.",
+      "secret": "Secret (client secret)",
+      "copySecret": "Copy secret"
     }
   },
   "claude": {
@@ -2310,5 +2340,21 @@
     "allSaved": "Saved",
     "focusBack": "Back",
     "fileFallback": "document"
+  },
+  "oauth": {
+    "authorize": {
+      "title": "Continuing the login",
+      "text": "One moment, you are being redirected."
+    },
+    "consent": {
+      "title": "Allow access",
+      "intro": "{client} wants to work with your account (logged in as {name}).",
+      "scopes": "The application may:",
+      "redirect": "Afterwards you continue to {host}.",
+      "allow": "Allow",
+      "deny": "Deny",
+      "unavailableTitle": "Request no longer valid",
+      "unavailableText": "This request is no longer valid. Start the login in the application again."
+    }
   }
 }
