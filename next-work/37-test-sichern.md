@@ -40,3 +40,7 @@ Das Verzeichnis der Verweise auf `users` (Teil A des alten Auftrags) wird trotzd
 ## Prüfen
 
 Tests für D und E; `deploy.sh` mit einem Trockenlauf-Schalter oder in einer Testumgebung prüfen, dass der Dump vor der Migration entsteht und ein Fehlschlag abbricht. `composer test`, `test:mariadb`, `analyse`.
+
+## Folgepunkt aus der Abnahme von A (Stuart, 23.11.)
+
+PR #44 ist abgenommen. Offen: Schlägt die Sicherung fehl, ist der Code schon aktualisiert und läuft gegen das alte Schema. Die Sicherung vor `git reset`/Aktualisierung des Codes verschieben (oder bei Fehlschlag auf den vorherigen Commit zurücksetzen). Mit Test. Gehört zu B.
