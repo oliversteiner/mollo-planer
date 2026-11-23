@@ -234,7 +234,7 @@ parameters:
 			message: '#^Access to an undefined property App\\Models\\User\:\:\$membership\.$#'
 			identifier: property.notFound
 			count: 1
-			path: app/Services/UserDirectory.php
+			path: app/Tools/ListUsers.php
 
 		-
 			message: '#^Cannot access property \$value on string\.$#'
