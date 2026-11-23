@@ -41,6 +41,9 @@ class MarkSessionAsStrong
             return;
         }
 
-        StrongAuthentication::mark(session()->driver(), $user);
+        // amr: the password came first in every case except the passkey login.
+        $methods = $event instanceof PasskeyVerified ? ['hwk'] : ($event instanceof PasskeyRegistered ? ['pwd', 'hwk'] : ['pwd', 'otp']);
+
+        StrongAuthentication::mark(session()->driver(), $user, $methods);
     }
 }

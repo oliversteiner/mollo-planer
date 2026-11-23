@@ -2,13 +2,19 @@
 
 namespace App\Core\Identity;
 
+use App\Core\Identity\Oidc\IdTokenResponse;
+use App\Core\Identity\Oidc\OidcAuthCodeGrant;
+use DateInterval;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Bridge\AuthCodeRepository;
+use Laravel\Passport\Bridge\RefreshTokenRepository;
 use Laravel\Passport\Passport;
+use League\OAuth2\Server\AuthorizationServer;
 
 /**
  * The planer as an authorization server (OAuth 2.1, later OpenID Connect): Passport with our own routes, so that
@@ -24,6 +30,16 @@ class IdentityServiceProvider extends ServiceProvider
     {
         // The routes of Passport are replaced by routes/oauth.php (same names, other middleware).
         Passport::ignoreRoutes();
+
+        // The tokens carry an id_token for the scope openid, and the code grant notes what it needs.
+        Passport::useAuthorizationServerResponseType(new IdTokenResponse);
+        $this->app->extend(AuthorizationServer::class, function (AuthorizationServer $server): AuthorizationServer {
+            $grant = new OidcAuthCodeGrant($this->app->make(AuthCodeRepository::class), $this->app->make(RefreshTokenRepository::class), new DateInterval('PT10M'));
+            $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
+            $server->enableGrantType($grant, Passport::tokensExpireIn());
+
+            return $server;
+        });
     }
 
     public function boot(): void
