@@ -9,21 +9,23 @@ function parse(markup: string): SVGElement {
 }
 
 describe('icon libraries', () => {
-  it('load Duotone Light from our own server, for the app and for the components', async () => {
-    const base = useRuntimeConfig().app.baseURL
+  it('load the icons from our own server, for the app and for the components', async () => {
+    const config = useRuntimeConfig()
+    const base = `${config.app.baseURL}icons/${config.public.iconVersion}/${config.public.iconStyle}/`
 
     for (const name of ['default', 'system']) {
       const library = getIconLibrary(name)!
-      expect(await library.resolver('rocket', 'classic', 'solid', false)).toBe(`${base}icons/duotone-light/rocket.svg`)
+      expect(await library.resolver('rocket', 'classic', 'solid', false)).toBe(`${base}rocket.svg`)
     }
   })
 
   it('map system icons without a Duotone Light twin and refuse odd names', async () => {
-    const base = useRuntimeConfig().app.baseURL
+    const config = useRuntimeConfig()
+    const base = `${config.app.baseURL}icons/${config.public.iconVersion}/${config.public.iconStyle}/`
     const system = getIconLibrary('system')!
 
-    expect(await system.resolver('indeterminate', 'classic', 'solid', false)).toBe(`${base}icons/duotone-light/minus.svg`)
-    expect(await getIconLibrary('default')!.resolver('../../etc', 'classic', 'solid', false)).toBe(`${base}icons/duotone-light/circle-question.svg`)
+    expect(await system.resolver('indeterminate', 'classic', 'solid', false)).toBe(`${base}minus.svg`)
+    expect(await getIconLibrary('default')!.resolver('../../etc', 'classic', 'solid', false)).toBe(`${base}circle-question.svg`)
   })
 
   it('mark the two layers of a duotone icon so they can be coloured apart', () => {

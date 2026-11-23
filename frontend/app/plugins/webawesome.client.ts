@@ -55,8 +55,9 @@ import '@web.awesome.me/webawesome-pro/dist/components/tree-item/tree-item.js'
 export default defineNuxtPlugin({
   name: 'webawesome',
   setup() {
-    // Icons of the app and of the components: Duotone Light from our server.
-    registerDuotoneLightIcons(useRuntimeConfig().app.baseURL)
+    // Icons of the app and of the components: Font Awesome from our server.
+    const config = useRuntimeConfig()
+    registerAppIcons(iconBaseUrl(config.app.baseURL, config.public.iconVersion), config.public.iconStyle)
 
     // The components read the language from <html lang> (set in app.vue).
     registerTranslation(de, en)

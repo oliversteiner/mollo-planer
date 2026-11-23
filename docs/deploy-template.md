@@ -145,7 +145,7 @@ Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
 
 - `DEPLOY_SSH_KEY` (**je Umgebung**): der **private** Schlüssel, vollständig von `-----BEGIN OPENSSH PRIVATE KEY-----` bis `-----END OPENSSH PRIVATE KEY-----` (lokal: `pbcopy < ~/.ssh/<projekt>-<test|prod>-deploy`)
 - `DEPLOY_KNOWN_HOSTS`: Ausgabe des Host-Schlüssel-Befehls aus Abschnitt 6
-- `FONTAWESOME_NPM_AUTH_TOKEN`: nur bei Font Awesome Pro
+- `PRO_ASSETS_TOKEN`: nur bei Pro-Symbolen aus einem privaten Repo (Auftrag 38): fine-grained Token, nur Lesen, nur dieses eine Repository. Ein altes `FONTAWESOME_NPM_AUTH_TOKEN` kann gelöscht werden. Das Repo des Projekts darf öffentlich sein; lizenzierte Dateien gehören nie hinein.
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
 
 ### Variablen

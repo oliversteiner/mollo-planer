@@ -86,6 +86,8 @@ jobs:
   test-frontend:
     name: Tests (Frontend)
     runs-on: ubuntu-latest
+    env:
+      PRO_ASSETS_TOKEN: ${{ secrets.PRO_ASSETS_TOKEN }}
     defaults:
       run:
         working-directory: frontend
@@ -101,13 +103,6 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Font Awesome registry
-        run: |
-          echo "@fortawesome:registry=https://npm.fontawesome.com/" > .npmrc
-          echo "//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" >> .npmrc
-        env:
-          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
-
       - name: Web Awesome registry
         run: |
           echo '@web.awesome.me:registry=https://npm.cloudsmith.io/fortawesome/webawesome-pro/' >> .npmrc
@@ -117,6 +112,24 @@ jobs:
         run: npm ci
         env:
           WEBAWESOME_NPM_TOKEN: ${{ secrets.WEBAWESOME_NPM_AUTH_TOKEN }}
+
+      # Font Awesome Pro icons: from the private repository mollo-pro-assets (secret PRO_ASSETS_TOKEN, read-only, that one
+      # repository). Without the secret (fork, pull request from a fork) nothing is restored or fetched and the build
+      # uses Font Awesome Free (scripts/icon-source.mjs). The cache is only touched with the secret, so a fork cannot read it.
+      - name: Font Awesome Pro icons (cache)
+        id: pro-icons-cache
+        if: env.PRO_ASSETS_TOKEN != ''
+        uses: actions/cache@v5
+        with:
+          path: frontend/vendor/fontawesome
+          key: pro-icons-${{ hashFiles('frontend/pro-assets.json') }}
+
+      - name: Font Awesome Pro icons (private repository)
+        if: env.PRO_ASSETS_TOKEN != '' && steps.pro-icons-cache.outputs.cache-hit != 'true'
+        run: npm run icons:fetch
+
+      - name: No Font Awesome Pro files in git
+        run: npm run icons:check
 
       - name: Lint
         run: npm run lint
@@ -162,14 +175,6 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Font Awesome registry
-        working-directory: frontend
-        run: |
-          echo "@fortawesome:registry=https://npm.fontawesome.com/" > .npmrc
-          echo "//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" >> .npmrc
-        env:
-          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
-
       - name: Web Awesome registry
         working-directory: frontend
         run: |
@@ -182,11 +187,28 @@ jobs:
         env:
           WEBAWESOME_NPM_TOKEN: ${{ secrets.WEBAWESOME_NPM_AUTH_TOKEN }}
 
+      # A deployment never uses Font Awesome Free: without the Pro icons this step fails (no token, no access) and the
+      # build below stops as well (ICONS_REQUIRE_PRO).
+      - name: Font Awesome Pro icons (cache)
+        id: pro-icons-cache
+        uses: actions/cache@v5
+        with:
+          path: frontend/vendor/fontawesome
+          key: pro-icons-${{ hashFiles('frontend/pro-assets.json') }}
+
+      - name: Font Awesome Pro icons (private repository)
+        if: steps.pro-icons-cache.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: npm run icons:fetch
+        env:
+          PRO_ASSETS_TOKEN: ${{ secrets.PRO_ASSETS_TOKEN }}
+
       - name: Build frontend
         working-directory: frontend
         run: npm run build
         env:
           NUXT_PUBLIC_API_BASE: ${{ vars.API_BASE }}
+          ICONS_REQUIRE_PRO: '1'
 
       - name: Deploy key and host key
         env:

@@ -14,7 +14,8 @@ defineProps<{
 const model = defineModel<string | null>({ default: null })
 
 const { t } = useI18n()
-const baseURL = useRuntimeConfig().app.baseURL
+const config = useRuntimeConfig()
+const iconBase = iconBaseUrl(config.app.baseURL, config.public.iconVersion)
 
 const catalog = useState<IconEntry[] | null>('iconCatalog', () => null)
 const open = ref(false)
@@ -28,7 +29,7 @@ watch(open, async (isOpen) => {
   }
   loading.value = true
   try {
-    const data = await $fetch<{ icons: IconEntry[] }>(`${baseURL}icons/catalog.json`)
+    const data = await $fetch<{ icons: IconEntry[] }>(`${iconBase}catalog.json`)
     catalog.value = data.icons
   } finally {
     loading.value = false
