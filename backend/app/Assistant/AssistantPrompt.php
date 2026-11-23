@@ -26,12 +26,16 @@ class AssistantPrompt
     public function __construct(private readonly Export $export) {}
 
     /**
-     * @return array{system: string, messages: list<array{role: string, content: string}>}
+     * "cacheable" is the first part of "system": the instructions, which are the same for every request of the same kind
+     * and language (the Claude API can keep them in its prompt cache; everything after them changes per request).
+     *
+     * @return array{system: string, cacheable: string, messages: list<array{role: string, content: string}>}
      */
     public function build(AssistantRequest $request): array
     {
+        $instructions = $this->instructions($request);
         $blocks = [
-            $this->instructions($request),
+            $instructions,
             $this->today(),
             $this->person($request),
             $this->visibleProjects($request),
@@ -47,7 +51,7 @@ class AssistantPrompt
             $blocks[] = "<idea>\nTitle: {$request->idea->title}\n{$description}\n</idea>\nThe plan of this idea is the current plan: put it into the project.";
         }
 
-        return ['system' => implode("\n\n", $blocks), 'messages' => $this->conversation($request)];
+        return ['system' => implode("\n\n", $blocks), 'cacheable' => $instructions, 'messages' => $this->conversation($request)];
     }
 
     private function instructions(AssistantRequest $request): string
