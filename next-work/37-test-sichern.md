@@ -2,7 +2,7 @@
 
 Planer: planer.mollo.dev · Projekt 2 «Mollo Planer» · ToDo `t-379` (Status der Teile dort nachführen).
 
-Status: Teil A umgesetzt: PR nach dev, nicht gemergt (Branch `chore/test-sichern`). Teile B bis E offen. Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). **Ersetzt** den früheren Auftrag «Dump auf TEST einspielen» (nicht mehr bauen). Branch von `origin/dev` (`chore/test-sichern`), PR nach `dev`, nicht mergen.
+Status: Teil A umgesetzt und gemergt (PR #44, Branch `chore/test-sichern`). Teile B bis E umgesetzt auf Branch `chore/test-sichern-b`, noch nicht committet und kein PR (B mit dem Folgepunkt aus der Abnahme von A; C `deploy/db-restore.sh`, D Schutz in `AppServiceProvider`, E `App\Core\Accounts\AccountReferences`). Geprüft: `composer test`, `test:mariadb`, `analyse`, `pint` grün. Offen: Probe von C auf TEST mit Oliver, Cron einrichten (Oliver), `APP_ENV=staging` auf TEST (Oliver, Task k-1460). Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). **Ersetzt** den früheren Auftrag «Dump auf TEST einspielen» (nicht mehr bauen). Branch von `origin/dev` (`chore/test-sichern`), PR nach `dev`, nicht mergen.
 
 ## Entscheid (Oliver, 2026-11-23)
 
