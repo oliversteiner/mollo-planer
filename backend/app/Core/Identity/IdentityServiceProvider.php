@@ -4,6 +4,7 @@ namespace App\Core\Identity;
 
 use App\Core\Identity\Oidc\IdTokenResponse;
 use App\Core\Identity\Oidc\OidcAuthCodeGrant;
+use App\Core\Identity\Oidc\RotatingRefreshTokenGrant;
 use DateInterval;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -37,6 +38,10 @@ class IdentityServiceProvider extends ServiceProvider
             $grant = new OidcAuthCodeGrant($this->app->make(AuthCodeRepository::class), $this->app->make(RefreshTokenRepository::class), new DateInterval('PT10M'));
             $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
             $server->enableGrantType($grant, Passport::tokensExpireIn());
+
+            $refresh = new RotatingRefreshTokenGrant($this->app->make(RefreshTokenRepository::class));
+            $refresh->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
+            $server->enableGrantType($refresh, Passport::tokensExpireIn());
 
             return $server;
         });

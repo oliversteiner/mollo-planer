@@ -5,6 +5,7 @@ namespace Tests\Feature\Core;
 use App\Models\User;
 use App\Support\StrongAuthentication;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Laravel\Passport\Client;
 use Laravel\Passport\ClientRepository;
 use Tests\TestCase;
@@ -94,6 +95,36 @@ class OAuthAuthorizationTest extends TestCase
         $this->assertNotEmpty($tokens->json('access_token'));
         $this->assertNotEmpty($tokens->json('refresh_token'));
         $this->assertSame(3600, $tokens->json('expires_in'));
+    }
+
+    public function test_a_refresh_token_works_once_and_a_reused_one_locks_the_person_out(): void
+    {
+        $user = User::factory()->create();
+        $client = $this->client();
+        [$verifier, $challenge] = $this->pkce();
+        $session = [StrongAuthentication::SESSION_KEY => (string) $user->getKey()];
+
+        $this->withSession($session)->actingAs($user)->get($this->authorizeUrl($client, $challenge));
+        $token = $this->withSession($session)->actingAs($user)->getJson('/oauth/consent')->json('authToken');
+        $redirect = $this->withSession($session)->actingAs($user)->postJson('/oauth/consent/approve', ['auth_token' => $token])->json('redirect');
+        parse_str((string) parse_url($redirect, PHP_URL_QUERY), $query);
+        $first = $this->postJson('/oauth/token', [
+            'grant_type' => 'authorization_code',
+            'client_id' => $client->getKey(),
+            'redirect_uri' => self::REDIRECT_URI,
+            'code' => $query['code'],
+            'code_verifier' => $verifier,
+        ])->assertOk()->json();
+
+        $refresh = fn (string $token) => $this->postJson('/oauth/token', ['grant_type' => 'refresh_token', 'client_id' => $client->getKey(), 'refresh_token' => $token]);
+
+        $second = $refresh($first['refresh_token'])->assertOk()->json();
+        $this->assertNotSame($first['refresh_token'], $second['refresh_token']);
+
+        // The first one again (a copy): refused, and the new one is locked as well.
+        $refresh($first['refresh_token'])->assertStatus(400)->assertJsonPath('error', 'invalid_grant');
+        $refresh($second['refresh_token'])->assertStatus(400)->assertJsonPath('error', 'invalid_grant');
+        $this->assertSame(0, DB::table('oauth_access_tokens')->where('user_id', $user->getKey())->where('revoked', false)->count());
     }
 
     public function test_the_person_can_refuse(): void
