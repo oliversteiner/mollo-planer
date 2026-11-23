@@ -8,6 +8,7 @@ use App\Mcp\Servers\MolloPlanerServer;
 use App\Models\Milestone;
 use App\Models\Task;
 use App\Models\Todo;
+use App\Planer\PlanerRevision;
 use App\Tools\Support\GraphQLRunner;
 use Tests\Feature\GraphQL\GraphQLTestCase;
 use Tests\McpTools;
@@ -48,7 +49,7 @@ class UpdateTasksToolTest extends GraphQLTestCase
             ]);
     }
 
-    public function test_it_sets_status_and_commit_and_reports_before_and_after(): void
+    public function test_it_sets_status_and_commit_and_reports_only_what_changed_as_old_and_new(): void
     {
         $revision = (int) $this->project->fresh()->planer_revision;
 
@@ -57,9 +58,11 @@ class UpdateTasksToolTest extends GraphQLTestCase
             ['id' => (string) $this->second->id, 'status' => 'in_progress'],
         ]])
             ->assertOk()
-            ->assertSee('"before"')
-            ->assertSee('"in_progress"')
-            ->assertSee('abc1234');
+            ->assertSee('"status":["open","done"]')
+            ->assertSee('"commit":[null,"abc1234"]')
+            ->assertSee('"status":["open","in_progress"]')
+            ->assertDontSee('"before"')
+            ->assertDontSee('"unchanged"');
 
         $this->assertSame(TaskStatus::DONE, $this->task->fresh()->status);
         $this->assertSame('abc1234', $this->task->fresh()->commit);
@@ -173,5 +176,60 @@ class UpdateTasksToolTest extends GraphQLTestCase
             ['id' => 'k-999999', 'status' => 'open'],
         ]])->assertHasErrors()->assertSee('tasks[1].id');
         $this->assertSame(TaskStatus::OPEN, $this->task->fresh()->status);
+    }
+
+    public function test_a_task_that_does_not_change_is_only_counted(): void
+    {
+        $this->update('owner', ['tasks' => [
+            ['id' => "k-{$this->task->id}", 'status' => 'review'],
+            ['id' => (string) $this->second->id, 'status' => $this->second->status->value],
+        ]])
+            ->assertOk()
+            ->assertSee('"unchanged":1')
+            ->assertSee('"status":["open","review"]');
+    }
+
+    public function test_without_a_base_revision_a_change_by_somebody_else_is_no_reason_to_refuse(): void
+    {
+        $this->second->update(['title' => 'Changed by somebody else']);
+
+        $this->update('owner', ['base_revision' => null, 'tasks' => [['id' => "k-{$this->task->id}", 'status' => 'review']]])->assertOk();
+
+        $this->assertSame(TaskStatus::REVIEW, $this->task->fresh()->status);
+        $this->assertSame('Changed by somebody else', $this->second->fresh()->title, 'the change of the other one is kept');
+    }
+
+    public function test_without_a_base_revision_it_tries_again_when_the_plan_changes_while_it_writes(): void
+    {
+        $runner = app(GraphQLRunner::class);
+        $once = false;
+        $mock = \Mockery::mock($runner)->makePartial();
+        $mock->shouldReceive('run')->andReturnUsing(function (string $query, array $variables) use ($runner, &$once): array {
+            if (! $once && str_contains($query, 'importPlan(')) {
+                $once = true;
+                app(PlanerRevision::class)->touch($this->project->id);
+            }
+
+            return $runner->run($query, $variables);
+        });
+        $this->app->instance(GraphQLRunner::class, $mock);
+
+        $this->update('owner', ['base_revision' => null, 'tasks' => [['id' => "k-{$this->task->id}", 'status' => 'review']]])->assertOk();
+
+        $this->assertTrue($once);
+        $this->assertSame(TaskStatus::REVIEW, $this->task->fresh()->status);
+    }
+
+    public function test_an_old_base_revision_answers_with_the_current_state_of_the_tasks_asked_for(): void
+    {
+        $revision = (int) $this->project->fresh()->planer_revision;
+        $this->second->update(['status' => TaskStatus::DONE]);
+
+        $response = $this->update('owner', ['base_revision' => $revision - 1, 'tasks' => [['id' => "k-{$this->task->id}", 'status' => 'review']]])->assertHasErrors();
+
+        $response->assertSee('"error":"revision"')
+            ->assertSee('"revision":'.(int) $this->project->fresh()->planer_revision)
+            ->assertSee('"tasks":[{"id":"k-'.$this->task->id.'"')
+            ->assertDontSee('k-'.$this->second->id.'"', false);
     }
 }

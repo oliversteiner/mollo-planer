@@ -504,7 +504,7 @@
     {
         "name": "update_tasks",
         "title": "Update Tasks Tool",
-        "description": "Sets status, commit and/or assigneeEmail of tasks in one atomic step. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. Use base_revision (from export_plan) against concurrent edits and dry_run: true first.",
+        "description": "Sets status, commit and/or assigneeEmail of tasks, atomically. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. No export needed first. Optional base_revision aborts if the plan changed since (the answer then has the current state of your tasks).",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -514,7 +514,7 @@
                 },
                 "base_revision": {
                     "type": "integer",
-                    "description": "Required revision from export_plan; aborts if project changed meanwhile."
+                    "description": "Optional. Revision from list_projects, list_tasks or export_plan: abort if the plan changed since."
                 },
                 "tasks": {
                     "type": "array",
@@ -558,7 +558,6 @@
             },
             "required": [
                 "project_id",
-                "base_revision",
                 "tasks"
             ]
         },

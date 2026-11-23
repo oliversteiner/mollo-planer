@@ -6,6 +6,9 @@ use App\Models\User;
 
 class ImportPlan extends Tool
 {
+    /** How many errors and how many warnings the answer lists. */
+    private const LISTED = 20;
+
     public function name(): string
     {
         return 'import_plan';
@@ -82,10 +85,17 @@ class ImportPlan extends Tool
             'dryRun' => $data['dryRun'],
             'projectId' => $data['projectId'],
             'changes' => $data['changes'],
-            'errors' => $data['errors'],
-            'warnings' => $data['warnings'],
+            'errors' => array_slice($data['errors'], 0, self::LISTED),
+            'warnings' => array_slice($data['warnings'], 0, self::LISTED),
             'idMap' => (object) array_column($data['idMap'], 'to', 'from'),
         ];
+
+        // Errors and warnings: the first ones, and how many there are in all (a long list costs tokens and says it all).
+        foreach (['errors', 'warnings'] as $kind) {
+            if (count($data[$kind]) > self::LISTED) {
+                $payload["{$kind}_total"] = count($data[$kind]);
+            }
+        }
 
         if ($includeDocument && $data['document'] !== null) {
             $payload['document'] = json_decode($data['document'], true, 512, JSON_THROW_ON_ERROR);

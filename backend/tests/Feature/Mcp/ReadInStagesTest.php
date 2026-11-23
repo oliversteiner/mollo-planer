@@ -185,4 +185,20 @@ class ReadInStagesTest extends GraphQLTestCase
 
         return json_decode($text, true, 512, JSON_THROW_ON_ERROR);
     }
+
+    public function test_import_lists_at_most_twenty_errors_and_says_how_many_there_are(): void
+    {
+        $document = $this->decode(MolloPlanerServer::actingAs($this->users['owner'])
+            ->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id, 'milestone_ids' => ["m-{$this->milestone->id}"]]))['document'];
+        $document['milestones'][0]['todos'][0]['tasks'] = array_map(fn (int $i): array => ['id' => 'k-'.(9000 + $i), 'title' => "Task $i", 'status' => 'open'], range(1, 25));
+
+        $response = MolloPlanerServer::actingAs($this->users['owner'])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'mode' => 'partial']);
+        $text = (string) ((fn (): array => $this->content())->call($response)[0] ?? '');
+        $payload = json_decode($text, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertFalse($payload['ok']);
+        $this->assertCount(20, $payload['errors']);
+        $this->assertSame(25, $payload['errors_total']);
+    }
 }

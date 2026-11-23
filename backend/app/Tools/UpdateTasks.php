@@ -15,14 +15,14 @@ class UpdateTasks extends Tool
 
     public function description(): string
     {
-        return 'Sets status, commit and/or assigneeEmail of tasks in one atomic step. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. Use base_revision (from export_plan) against concurrent edits and dry_run: true first.';
+        return 'Sets status, commit and/or assigneeEmail of tasks, atomically. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. No export needed first. Optional base_revision aborts if the plan changed since (the answer then has the current state of your tasks).';
     }
 
     public function schema(): array
     {
         return Schema::input([
             'project_id' => Schema::string('Project ID (from list_projects).'),
-            'base_revision' => Schema::integer('Required revision from export_plan; aborts if project changed meanwhile.'),
+            'base_revision' => Schema::integer('Optional. Revision from list_projects, list_tasks or export_plan: abort if the plan changed since.'),
             'tasks' => Schema::list(Schema::object([
                 'id' => Schema::string('Task ID (k-<id> or number).'),
                 'status' => Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']),
@@ -30,7 +30,7 @@ class UpdateTasks extends Tool
                 'assigneeEmail' => Schema::string('Member email, or null to unassign.'),
             ], null, ['id']), 'Tasks to update (max 500).'),
             'dry_run' => Schema::boolean('true: preview changes without writing.'),
-        ], ['project_id', 'base_revision', 'tasks']);
+        ], ['project_id', 'tasks']);
     }
 
     /**
@@ -42,7 +42,7 @@ class UpdateTasks extends Tool
             $arguments,
             [
                 'project_id' => ['required'],
-                'base_revision' => ['required', 'integer'],
+                'base_revision' => ['sometimes', 'nullable', 'integer'],
                 'tasks' => ['required', 'array', 'min:1', 'max:500'],
                 'tasks.*.id' => ['required'],
                 'tasks.*.status' => ['sometimes', 'in:idea,planned,open,in_progress,review,done'],
@@ -52,7 +52,6 @@ class UpdateTasks extends Tool
             ],
             [
                 'project_id.required' => 'Give project_id (from list_projects).',
-                'base_revision.required' => 'Give base_revision from export_plan.',
                 'tasks.required' => 'Give tasks: [{ id, status?, commit?, assigneeEmail? }].',
                 'tasks.*.status.in' => 'status must be idea, planned, open, in_progress, review or done.',
             ],
@@ -63,7 +62,7 @@ class UpdateTasks extends Tool
                 $actor,
                 (string) $validated['project_id'],
                 $validated['tasks'],
-                (int) $validated['base_revision'],
+                isset($validated['base_revision']) ? (int) $validated['base_revision'] : null,
                 (bool) ($validated['dry_run'] ?? false),
             ));
         } catch (PlanTaskUpdatesRefused $refused) {
