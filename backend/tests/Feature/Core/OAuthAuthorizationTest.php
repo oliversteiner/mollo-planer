@@ -39,7 +39,12 @@ class OAuthAuthorizationTest extends TestCase
 
         $response->assertRedirect();
         $this->assertStringStartsWith('https://planer.test/login?redirect=', $response->headers->get('Location'));
-        $this->assertStringContainsString(rawurlencode('/oauth/authorize'), $response->headers->get('Location'));
+        // The way back is a path of the frontend (it takes no other), with the whole request in its query.
+        parse_str((string) parse_url($response->headers->get('Location'), PHP_URL_QUERY), $query);
+        $this->assertSame('/oauth/authorize', parse_url($query['redirect'], PHP_URL_PATH));
+        parse_str((string) parse_url($query['redirect'], PHP_URL_QUERY), $back);
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $original);
+        $this->assertEquals($original, $back);
     }
 
     public function test_a_session_without_the_second_factor_authorizes_nothing(): void

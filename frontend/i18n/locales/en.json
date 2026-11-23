@@ -2310,5 +2310,21 @@
     "allSaved": "Saved",
     "focusBack": "Back",
     "fileFallback": "document"
+  },
+  "oauth": {
+    "authorize": {
+      "title": "Continuing the login",
+      "text": "One moment, you are being redirected."
+    },
+    "consent": {
+      "title": "Allow access",
+      "intro": "{client} wants to work with your account (logged in as {name}).",
+      "scopes": "The application may:",
+      "redirect": "Afterwards you continue to {host}.",
+      "allow": "Allow",
+      "deny": "Deny",
+      "unavailableTitle": "Request no longer valid",
+      "unavailableText": "This request is no longer valid. Start the login in the application again."
+    }
   }
 }

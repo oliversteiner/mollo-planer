@@ -2310,5 +2310,21 @@
     "allSaved": "Gesichert",
     "focusBack": "Zurück",
     "fileFallback": "dokument"
+  },
+  "oauth": {
+    "authorize": {
+      "title": "Anmeldung wird fortgesetzt",
+      "text": "Einen Moment, du wirst weitergeleitet."
+    },
+    "consent": {
+      "title": "Zugriff erlauben",
+      "intro": "{client} möchte mit deinem Konto arbeiten (angemeldet als {name}).",
+      "scopes": "Die Anwendung darf:",
+      "redirect": "Danach geht es weiter zu {host}.",
+      "allow": "Zulassen",
+      "deny": "Ablehnen",
+      "unavailableTitle": "Anfrage nicht mehr gültig",
+      "unavailableText": "Diese Anfrage gilt nicht mehr. Starte die Anmeldung in der Anwendung noch einmal."
+    }
   }
 }
