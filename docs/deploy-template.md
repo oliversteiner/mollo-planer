@@ -357,6 +357,24 @@ Zusätzlich zur Sicherung vor Deploys läuft einmal täglich `deploy/db-backup.s
 - **Platzbedarf:** höchstens 20 + 14 + 6 = 40 Dumps je Umgebung, im Schnitt also das Vierzigfache der gepackten Datenbankgrösse. Die Grösse nach dem ersten Lauf **auf dem Server** ablesen: `ls -lh ~/dev/backups/planer/db/daily/` und `du -sh ~/dev/backups/planer`, und im Abschlussbericht melden.
 - **Kopie ausser Haus:** noch nicht gebaut, braucht einen Entscheid (Vorschlag im Abschlussbericht von Auftrag 37). Die Sicherungen liegen sonst auf demselben Server wie die Datenbank.
 
+#### Zurückspielen (Auftrag 37 C)
+
+`deploy/db-restore.sh <Datei>` ersetzt die **ganze** Datenbank einer Umgebung durch eine Sicherung. Alles, was seit der Sicherung dazukam, ist danach weg. Darum fragt das Skript zuerst, und es gibt keinen Schalter, der die Frage überspringt.
+
+1. **Auf dem Server** (per SSH angemeldet, im Ordner der Umgebung) die Sicherung wählen: `ls -lt ~/dev/backups/planer/db/daily/ | head` (oder `db/monthly/`, oder die Sicherungen vor Deploys direkt in `db/`).
+2. **Auf dem Server** starten (PROD: `~/ch/...`):
+   ```bash
+   # AUF DEM SERVER
+   ~/dev/apps/mollo-planer/deploy/db-restore.sh ~/dev/backups/planer/db/daily/planer-20261124-031700.sql.gz
+   ```
+3. Das Skript prüft zuerst die Datei (gültiges gzip, endet mit «Dump completed») und zeigt **Umgebung, Datenbank, Datei, Datum und Grösse**. Zur Bestätigung tippst du den Namen der Umgebung ein (`staging` oder `production`, der Wert von `APP_ENV`). Jede andere Eingabe bricht ab, ohne etwas zu ändern.
+4. Danach legt es **automatisch eine Sicherung des jetzigen Stands** an (`db/planer-<Datum>-<Uhrzeit>-vor-restore.sql.gz`). Schlägt sie fehl, wird nichts zurückgespielt.
+5. Es schaltet den Wartungsmodus ein, spielt die Datei ein, führt `optimize:clear`, `lighthouse:clear-cache` und `lighthouse:cache` aus und schaltet den Wartungsmodus wieder aus. Bei einem Fehler in der Mitte wird der Wartungsmodus ebenfalls aufgehoben, die Meldung nennt dann die Sicherung des Stands von vorher.
+6. **Stammt die Datei aus der Zeit vor neueren Migrationen,** passt das Schema nicht zum Code. `php artisan migrate:status` (im Ordner `backend/`, **auf dem Server**) zeigt es, `php artisan migrate --force` holt es nach. Das Skript tut das nicht von selbst.
+7. Danach im Browser prüfen (Anmeldung, ein Projekt öffnen).
+
+**Probe:** Das Zurückspielen wird einmal auf TEST mit Oliver geprobt, bevor man sich im Ernstfall darauf verlässt (Auftrag 37 C). Der Ablauf ist mit Stand-ins für `mysql`, `mysqldump` und `php` getestet (`DeployRestoreTest`), nicht gegen eine echte Datenbank.
+
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
 - **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.
