@@ -148,6 +148,19 @@ Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
 - `PRO_ASSETS_TOKEN`: nur bei Pro-Symbolen aus einem privaten Repo (Auftrag 38): fine-grained Token, nur Lesen, nur dieses eine Repository. Ein altes `FONTAWESOME_NPM_AUTH_TOKEN` kann gelöscht werden. Das Repo des Projekts darf öffentlich sein; lizenzierte Dateien gehören nie hinein.
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
 
+### Lizenzierte Dateien: nie in Cache oder Artefakte
+
+Dateien, die einer Lizenz unterliegen (Font Awesome Pro und alles, was aus dem privaten Repo `mollo-pro-assets` kommt), landen **nie**
+im Actions-Cache (`actions/cache`) und **nie** in einem Artefakt (`actions/upload-artifact`) und nicht im Repository (das ist öffentlich).
+
+- **Warum:** Ein Cache gehört dem Repository und kann von anderen Branches und von Pull Requests gelesen werden, die auf diesen Branch zielen; ein
+  Artefakt lässt sich herunterladen. So käme lizenziertes Material an Stellen, die das Secret `PRO_ASSETS_TOKEN` nie hätten.
+- **Wie stattdessen:** Jeder Lauf holt die Symbole selbst, mit `npm run icons:fetch` aus dem privaten Repo (rund 2,5 MB). Das kostet bei Font Awesome nichts
+  (Download von GitHub, nicht aus dem npm-Register) und braucht kein Cache.
+- **Der Wächter** (`npm run icons:check`, Test `no-pro-assets`) prüft das Repository, nicht den Cache: Beim Ändern eines Workflows darauf achten, dass
+  `frontend/vendor/` in keinem Cache-Pfad und in keinem Artefakt vorkommt.
+- **Aufräumen:** Gab es früher Caches mit dem Schlüssel `pro-icons-*`, löschen: `gh cache list --key pro-icons`, dann `gh cache delete <id>`.
+
 ### Variablen
 
 - `DEPLOY_HOST` (Repository): Hostname des Hostpoint-Servers, z. B. `<servername.hostpoint.ch>`. Muss zum Eintrag in `DEPLOY_KNOWN_HOSTS` passen.
