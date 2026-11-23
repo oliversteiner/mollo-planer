@@ -12,6 +12,11 @@ return [
         'invited' => 'Admin :email angelegt. Die Einladung wird über die Queue verschickt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
         'created' => 'Admin :email angelegt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
     ],
+    'mcp_usage' => [
+        'none' => 'Keine Werkzeugaufrufe in den letzten :days Tagen.',
+        'per_tool' => 'Aufrufe je Werkzeug (letzte :days Tage)',
+        'per_account' => 'Aufrufe je Konto und Werkzeug (letzte :days Tage)',
+    ],
     'permissions_check' => [
         'complete' => 'Alle Standardrollen und -funktionen sind in der Datenbank vorhanden.',
         'missing' => ':count Standardrollen oder -funktionen fehlen in der Datenbank. `php artisan permissions:sync-defaults` holt sie (setzt die Standardbelegung zurück).',

@@ -14,7 +14,7 @@ class ListTemplates extends Tool
 
     public function description(): string
     {
-        return 'Lists available project templates compactly (id, key, name, locale, isBuiltin). Set include_details: true for labels and outline.';
+        return 'Lists project templates (id, key, name, locale). include_details adds labels and outline.';
     }
 
     public function readOnly(): bool
@@ -25,7 +25,7 @@ class ListTemplates extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'include_details' => Schema::boolean('true: include labels and outline. Default false to save tokens.'),
+            'include_details' => Schema::boolean('Add labels and outline.'),
         ]);
     }
 

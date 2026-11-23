@@ -7,6 +7,7 @@
     <title>MCP für Agenten · Mollo Planer</title>
     <link rel="stylesheet" href="../mcp.css">
     <link rel="alternate" hreflang="en" href="/mcp/">
+    <link rel="alternate" type="text/markdown" href="/mcp/llms.txt">
   </head>
   <body>
     <div class="page-shell">
@@ -20,7 +21,7 @@
           <div class="hero-copy">
             <p class="eyebrow"><span class="status-dot"></span> MODEL CONTEXT PROTOCOL <span class="eyebrow-rule"></span> AGENT GUIDE</p>
             <h1 id="page-title">Mollo Planer.<br><em>Im Kontext.</em></h1>
-            <p class="hero-intro">Diese Anleitung zeigt Agenten, wie sie einen sicheren Zugang zum Planer erhalten und Projekte lesen oder bearbeiten. Der MCP-Server handelt immer mit den Rechten des zugehörigen Kontos.</p>
+            <p class="hero-intro">Diese Anleitung zeigt Agenten, wie sie einen sicheren Zugang zum Planer erhalten und Projekte lesen oder bearbeiten. Der MCP-Server handelt immer mit den Rechten des zugehörigen Kontos. <strong>Für Agenten: <a href="/mcp/llms.txt">/mcp/llms.txt</a></strong>, dasselbe als reines Markdown (englisch).</p>
           </div>
           <aside class="endpoint-card" aria-label="MCP-Endpunkt">
             <span class="card-label">TEST ENDPOINT</span>
@@ -69,7 +70,7 @@
 }</code></pre>
               <p>Ersetze den Platzhalter lokal, sichere die Konfigurationsdatei und teile sie nie mit dem echten Token. Beende Claude Desktop vollständig und starte es neu, damit die Konfiguration geladen wird.</p>
               <h3>Claude Code</h3>
-              <p>In diesem Repository ist der MCP-Server bereits in <code>.mcp.json</code> eingetragen und liest <code>MOLLOPLANER_TOKEN</code>. Stelle die Variable über die Secret-Verwaltung deiner Umgebung bereit und starte Claude Code danach neu. Prüfe bei anderen Projekten deren MCP-Konfiguration, bevor du Zugangsdaten einträgst.</p>
+              <p>Trage den Server auf der Kommandozeile ein und nimm das Token aus deiner Umgebung: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_TOKEN}'</code>. Lass die einfachen Anführungszeichen stehen: Claude Code liest die Variable beim Start, das Token landet also nicht in der Konfiguration. Setze <code>MOLLOPLANER_TOKEN</code> in deiner Umgebung (nicht in einer Datei unter Versionskontrolle) und starte Claude Code neu. Prüfen: <code>claude mcp list</code>.</p>
               <h3>JetBrains AI Assistant</h3>
               <p>Öffne Settings → Tools → AI Assistant → Model Context Protocol (MCP), wähle Add → As JSON und füge diese Konfiguration ein. Sie nutzt wie bei Claude Desktop <code>mcp-remote</code>; ersetze den Platzhalter lokal durch deinen Token. Unter Windows startet <code>npx</code> über <code>cmd /c</code>.</p>
               <pre><code>{
@@ -98,12 +99,14 @@
             <section id="werkzeuge" class="guide-section">
               <p class="section-index">03 <span>FÄHIGKEITEN</span></p>
               <h2>Nutze das passende Werkzeug.</h2>
-              <p>Beim Verbinden stellt der Server seine Instruktionen und elf Werkzeuge bereit. Starte mit <code>list_projects</code>, um Projekt-ID, Rolle und Revision zu sehen; ergänze bei Bedarf <code>include_rights: true</code> oder <code>include_members: true</code>. Lies nur die Informationen, die du für den Auftrag brauchst.</p>
+              <p>Beim Verbinden stellt der Server seine Instruktionen und dreizehn Werkzeuge bereit. Starte mit <code>list_projects</code>, um Projekt-ID, Rolle und Revision zu sehen; ergänze bei Bedarf <code>include_rights: true</code> oder <code>include_members: true</code>. Lies nur die Informationen, die du für den Auftrag brauchst.</p>
               <div class="tool-list">
                 <div><code>list_projects</code><span>Sichtbare Projekte und Rechte</span></div>
                 <div><code>list_templates</code><span>Verfügbare Projektvorlagen</span></div>
                 <div><code>list_users</code><span>Personen, soweit dein Recht es erlaubt</span></div>
-                <div><code>export_plan</code><span>Plan lesen, bei Bedarf gefiltert</span></div>
+                <div><code>export_plan</code><span>Plan lesen: ganz, gefiltert oder als Übersicht</span></div>
+                <div><code>list_tasks</code><span>Tasks finden, flach und knapp; eine Task mit Detail</span></div>
+                <div><code>get_project_statistics</code><span>Die Zahlen eines Projekts, ohne den Plan zu lesen</span></div>
                 <div><code>import_plan</code><span>Planänderungen nach Rechteprüfung eintragen</span></div>
                 <div><code>update_tasks</code><span>Status, Commit oder Zuweisung pflegen</span></div>
                 <div><code>add_comment</code> <code>list_comments</code><span>Kommentare schreiben und lesen</span></div>
@@ -111,6 +114,15 @@
                 <div><code>get_project_ai_context</code><span>Freigegebenes Projektwissen lesen</span></div>
               </div>
               <p>Ein Plan hat das Format <code>planer-v2</code> und die Hierarchie Projekt → Milestone → ToDo → Task. IDs wie <code>m-42</code>, <code>t-81</code> und <code>k-105</code> bleiben beim Bearbeiten erhalten; neue Elemente bekommen IDs wie <code>m-new-1</code>. Der Server vergibt daraus die echten IDs. Listen liefern <code>has_more</code> und <code>next_cursor</code>; folge dem Cursor, bis keine weiteren Treffer vorliegen. Abgeschnittene Kommentare und Ideen lassen sich mit ihrer ID und dem nächsten Text-Offset fortsetzen.</p>
+              <h3>Günstig arbeiten</h3>
+              <p>Ein ganzer Export eines grossen Projekts kostet rund 20 000 Tokens, und die meisten Tasks darin sind meist erledigt. Lies in Stufen:</p>
+              <ol class="workflow">
+                <li><span>1</span><p><strong>Überblick.</strong> <code>list_projects</code> (IDs, Revision), dann <code>get_project_statistics</code> oder <code>export_plan</code> mit <code>view: "outline"</code> (rund 1 000 Tokens).</p></li>
+                <li><span>2</span><p><strong>Arbeit finden.</strong> <code>list_tasks</code> mit <code>assignee: "me"</code> und <code>status: ["open", "in_progress"]</code>. Eine Task mit allem: <code>list_tasks</code> mit <code>ids</code> und <code>include: ["description", "comments"]</code>.</p></li>
+                <li><span>3</span><p><strong>Fortschritt melden.</strong> <code>update_tasks</code> direkt: kein Export, kein Trockenlauf vorher. <code>base_revision</code> ist optional.</p></li>
+                <li><span>4</span><p><strong>Struktur ändern.</strong> <code>export_plan</code> für einen Milestone, bearbeiten, <code>import_plan</code> mit <code>mode: "partial"</code>. Den ganzen Export nur, um den ganzen Plan umzubauen.</p></li>
+              </ol>
+              <p>Dieselben Rezepte als reines Markdown: <a href="/mcp/llms.txt">/mcp/llms.txt</a>.</p>
             </section>
 
             <section id="sicher" class="guide-section">
@@ -118,8 +130,8 @@
               <h2>Erst prüfen. Dann eintragen.</h2>
               <ol class="workflow">
                 <li><span>1</span><p><strong>Gezielt exportieren.</strong> Bei grossen Plänen Filter wie Version, Milestone, Task-Status oder „nicht veröffentlichte“ Milestones nutzen.</p></li>
-                <li><span>2</span><p><strong>IDs und Revision erhalten.</strong> Verwende die exportierten IDs und bei vollständigen Planänderungen die aktuelle Revision.</p></li>
-                <li><span>3</span><p><strong>Trockenlauf zuerst.</strong> Rufe <code>import_plan</code> und <code>update_tasks</code> zuerst mit <code>dry_run: true</code> auf. Bei <code>update_tasks</code> ist <code>base_revision</code> aus dem Export Pflicht. Lies alle Änderungen und Fehler, bevor du einen echten Schreibaufruf machst; ein Trockenlauf reserviert keine Revision.</p></li>
+                <li><span>2</span><p><strong>IDs und Revision erhalten.</strong> Verwende die exportierten IDs und bei vollständigen Planänderungen die aktuelle Revision. Bei <code>update_tasks</code> ist <code>base_revision</code> optional: ohne sie wird jede Task und jedes Feld für sich geändert; mit ihr wird der Aufruf abgelehnt, wenn sich der Plan inzwischen geändert hat, und die Antwort trägt den aktuellen Stand deiner Tasks.</p></li>
+                <li><span>3</span><p><strong>Trockenlauf zuerst, bei <code>import_plan</code>.</strong> Rufe es zuerst mit <code>dry_run: true</code> auf und lies alle Änderungen und Fehler, bevor du einen echten Schreibaufruf machst; ein Trockenlauf reserviert keine Revision. <code>update_tasks</code> ist atomar und geprüft: kein Trockenlauf nötig (<code>dry_run: true</code> bleibt möglich).</p></li>
                 <li><span>4</span><p><strong>Den passenden Modus wählen.</strong> Ein gefilterter Export ist ein Ausschnitt: schreibe ihn nur mit <code>mode: "partial"</code> zurück. <code>full</code> behandelt den Inhalt als ganzen Plan und verschiebt fehlende Elemente in den Papierkorb.</p></li>
               </ol>
               <div class="callout callout-warning">

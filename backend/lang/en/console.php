@@ -12,6 +12,11 @@ return [
         'invited' => 'Admin :email created. The invitation is sent through the queue. A second factor or passkey is set up at the first login.',
         'created' => 'Admin :email created. A second factor or passkey is set up at the first login.',
     ],
+    'mcp_usage' => [
+        'none' => 'No tool calls in the last :days days.',
+        'per_tool' => 'Calls per tool (last :days days)',
+        'per_account' => 'Calls per account and tool (last :days days)',
+    ],
     'permissions_check' => [
         'complete' => 'All standard roles and functions exist in the database.',
         'missing' => ':count standard roles or functions are missing in the database. `php artisan permissions:sync-defaults` brings them in (it resets the standard assignments).',

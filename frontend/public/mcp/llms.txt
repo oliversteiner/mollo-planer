@@ -1,0 +1,57 @@
+# Mollo Planer MCP
+
+Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over POST. You act as the person or agent account of your token, with its exact permissions.
+
+- TEST: https://api.planer.mollo.dev/mcp
+- PROD: https://api.planer.mollo.ch/mcp
+- Auth: `Authorization: Bearer <token>`. Agents use their own agent account and token (the administrator makes it). The token is a secret: never in prompts, files under version control, logs.
+- Human guide: /mcp/ (English), /mcp/de/ (German)
+
+## Work cheaply (a whole export of a big plan is 15-25k tokens; most tasks are done)
+
+1. `list_projects`: IDs and plan revision (~0.3k).
+2. Overview: `get_project_statistics` or `export_plan` with `view: "outline"` (~1k).
+3. Find work: `list_tasks` with `assignee: "me"`, `status: ["open","in_progress"]` (30 rows ~2k).
+4. One task with detail: `list_tasks` with `ids: ["k-123"]`, `include: ["description","comments"]`.
+5. Status, commit, assignee: `update_tasks` directly. No export, no dry run. `base_revision` is optional.
+6. Change structure: `export_plan` for one milestone, edit, `import_plan` with `mode: "partial"`, `dry_run: true` first.
+
+## Recipes
+
+- Open for me: `list_tasks {project_id, assignee: "me", status: ["open","in_progress"]}`
+- Task done: `update_tasks {project_id, tasks: [{id: "k-123", status: "done", commit: "abc1234"}]}` (commit: hash, or "none")
+- New todos in a milestone: `export_plan {project_id, milestone_ids: ["m-12"]}`; add todos and tasks with new IDs (`t-new-1`, `k-new-1`); `import_plan {project_id, plan, mode: "partial", dry_run: true}`; then again without dry_run.
+- New project from a template: `list_templates`; `import_plan` without project_id, a plan with project name and locale, `template_id`; `dry_run` first.
+- Note on a task: `add_comment {task_id: "k-123", text: "..."}`
+
+## Do not
+
+- Export the whole plan to look around. Use the outline, statistics or `list_tasks`.
+- Send an excerpt (outline, filter, no descriptions) with `mode: "full"`: it is refused. Excerpts go back only with `mode: "partial"`.
+- Set the status of a milestone or todo (derived from tasks).
+- Put a token in files, prompts or screenshots.
+
+## Tools
+
+| Tool | Does | |
+|---|---|---|
+| list_projects | projects you see, role, revision | read |
+| list_templates | project templates | read |
+| list_users | accounts, or the members of a project | read |
+| export_plan | plan as planer-v2 JSON, filtered or outline | read |
+| list_tasks | tasks flat and short, one task with detail | read |
+| get_project_statistics | numbers of a project | read |
+| list_comments | comments of a task or project | read |
+| list_ideas | your private ideas | read |
+| get_project_ai_context | background notes of a project | read |
+| import_plan | write a plan (full or partial) | write |
+| update_tasks | status, commit, assignee of tasks | write |
+| add_comment | comment on a task | write |
+| create_idea | save a private idea | write |
+
+## Rules and limits
+
+- IDs: `m-<id>`, `t-<id>`, `k-<id>`; new items `m-new-1`, `t-new-1`, `k-new-1`. Lists have `has_more` and `next_cursor`.
+- Markdown in descriptions and comments: paragraphs, H2/H3, lists, quotes, bold, italic, inline code, links (http, https, mailto). No HTML, images, tables, code blocks.
+- Assignees are project members, by email. Mails only with `notify_assignees: true`.
+- Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, descriptions 5000 characters.

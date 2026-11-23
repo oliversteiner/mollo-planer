@@ -16,6 +16,7 @@ final class ToolRegistry
         ListTemplates::class,
         ListUsers::class,
         ExportPlan::class,
+        ListTasks::class,
         ImportPlan::class,
         UpdateTasks::class,
         AddComment::class,

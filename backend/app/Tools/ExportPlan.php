@@ -3,6 +3,7 @@
 namespace App\Tools;
 
 use App\Models\User;
+use App\Planer\PlanView;
 
 class ExportPlan extends Tool
 {
@@ -13,7 +14,7 @@ class ExportPlan extends Tool
 
     public function description(): string
     {
-        return 'Exports a project as planer-v2 JSON (with revision and m-/t-/k- IDs). Prefer filters (version, milestone_ids, task_status, include_released: false) on large plans -> returns excerpt: true, write back only with import_plan mode "partial".';
+        return 'Exports a project as planer-v2 JSON (revision, m-/t-/k- IDs). On large plans use view "outline" or filters; outline and filtered results are excerpts.';
     }
 
     public function readOnly(): bool
@@ -24,11 +25,13 @@ class ExportPlan extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Project ID (from list_projects).'),
-            'version' => Schema::string('Filter to release version, e.g. "1.21".'),
-            'milestone_ids' => Schema::list(Schema::string(), 'Filter to milestone IDs (m-<id> or number).'),
+            'project_id' => Schema::string('Project ID (list_projects).'),
+            'version' => Schema::string('Release version, e.g. "1.21".'),
+            'milestone_ids' => Schema::list(Schema::string(), 'm-<id> or number.'),
             'task_status' => Schema::list(Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']), 'Filter to task statuses.'),
-            'include_released' => Schema::boolean('false excludes released milestones. Default true.'),
+            'include_released' => Schema::boolean('false: skip released milestones.'),
+            'view' => Schema::string('"outline": milestones with task counts. Default "full".', ['full', 'outline']),
+            'include_descriptions' => Schema::boolean('false: no descriptions (excerpt).'),
         ], ['project_id']);
     }
 
@@ -43,6 +46,8 @@ class ExportPlan extends Tool
                 'task_status' => ['sometimes', 'array'],
                 'task_status.*' => ['in:idea,planned,open,in_progress,review,done'],
                 'include_released' => ['sometimes', 'boolean'],
+                'view' => ['sometimes', 'in:full,outline'],
+                'include_descriptions' => ['sometimes', 'boolean'],
             ],
             ['project_id.required' => 'Give project_id (from list_projects).'],
         );
@@ -59,6 +64,14 @@ class ExportPlan extends Tool
             ],
         );
 
-        return ToolResult::json(['document' => json_decode((string) $data['exportPlan'], true, 512, JSON_THROW_ON_ERROR)]);
+        $document = json_decode((string) $data['exportPlan'], true, 512, JSON_THROW_ON_ERROR);
+
+        if (($validated['view'] ?? 'full') === 'outline') {
+            $document = PlanView::outline($document);
+        } elseif (! ($validated['include_descriptions'] ?? true)) {
+            $document = PlanView::withoutDescriptions($document);
+        }
+
+        return ToolResult::json(['document' => $document]);
     }
 }
