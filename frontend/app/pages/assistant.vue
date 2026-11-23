@@ -54,7 +54,7 @@ onMounted(() => {
       hints.value = (saved.hints as string[]) ?? []
       preview.value = (saved.preview as Preview | null) ?? null
       choices.value = (saved.choices as ChatChoice[]) ?? []
-      targetKind.value = saved.targetKind === 'MILESTONE' || saved.targetKind === 'TODO' || saved.targetKind === 'TASK' ? saved.targetKind : null
+      targetKind.value = ['MILESTONE', 'TODO', 'TASK', 'IDEA'].includes(saved.targetKind as string) ? saved.targetKind as PlanTargetKind : null
     }
   } catch {
     // No storage (private mode) or an old format: start empty.
@@ -154,6 +154,11 @@ async function send(text: string, note?: string) {
         preview.value = answer.preview ?? null
         struck.value = new Set()
         importError.value = null
+      }
+
+      // The target "Idee" plans nothing into a project: the draft goes straight to the idea dialog.
+      if (targetKind.value === 'IDEA') {
+        toIdeas()
       }
     }
   } catch (error) {

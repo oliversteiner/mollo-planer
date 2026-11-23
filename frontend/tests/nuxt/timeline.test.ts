@@ -136,7 +136,7 @@ describe('ProjectTimeline', () => {
     expect(timeline.emitted('update:milestonesOnly')).toEqual([[true]])
     expect(timeline.text()).toContain('Konzept steht')
     expect(timeline.text()).not.toContain('Zielgruppe festlegen')
-    expect(timeline.text()).not.toContain('Alle aufklappen')
+    expect(timeline.text()).not.toContain('Alle ToDos zeigen')
     expect(toggle().text()).toBe('Alles anzeigen')
     expect(toggle().attributes('aria-pressed')).toBe('true')
 
@@ -145,11 +145,63 @@ describe('ProjectTimeline', () => {
     expect(timeline.text()).toContain('Zielgruppe festlegen')
   })
 
+  it('"Nur Milestones anzeigen" collapses all open todos', async () => {
+    const timeline = await mountSuspended(Timeline, {
+      props: {
+        'projectId': '1',
+        'milestonesOnly': false,
+        'onUpdate:milestonesOnly': (value: boolean) => timeline.setProps({ milestonesOnly: value })
+      }
+    })
+    const toggle = () => timeline.findAll('wa-button').find(button => ['Nur Milestones anzeigen', 'Alles anzeigen'].includes(button.text()))!
+    const todo = 'button[aria-label="ToDo «Zielgruppe festlegen» auf- oder zuklappen"]'
+
+    await timeline.find(todo).trigger('click')
+
+    expect(timeline.text()).toContain('Hörerprofile schreiben')
+
+    await toggle().trigger('click')
+    await toggle().trigger('click')
+
+    expect(timeline.text()).toContain('Zielgruppe festlegen')
+    expect(timeline.text()).not.toContain('Hörerprofile schreiben')
+  })
+
   it('starts with only the milestones when the page says so', async () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1', milestonesOnly: true } })
 
     expect(timeline.text()).toContain('Konzept steht')
     expect(timeline.text()).not.toContain('Zielgruppe festlegen')
+  })
+
+  it('opens and closes a single milestone in the full view, its todos follow', async () => {
+    const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+    const toggle = () => timeline.findAll('wa-button').find(button => button.text() === 'Zuklappen')!
+
+    expect(timeline.text()).toContain('Zielgruppe festlegen')
+
+    await toggle().trigger('click')
+
+    expect(timeline.text()).not.toContain('Zielgruppe festlegen')
+    expect(timeline.findAll('wa-button').find(button => button.text() === 'Aufklappen')).toBeDefined()
+
+    await timeline.findAll('wa-button').find(button => button.text() === 'Aufklappen')!.trigger('click')
+
+    expect(timeline.text()).toContain('Zielgruppe festlegen')
+  })
+
+  it('"Alle ToDos zeigen" opens the todos of all milestones, also the closed ones', async () => {
+    const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+    const button = (text: string) => timeline.findAll('wa-button').find(entry => entry.text() === text)!
+
+    await button('Zuklappen').trigger('click')
+
+    expect(timeline.text()).not.toContain('Zielgruppe festlegen')
+
+    await button('Alle ToDos zeigen').trigger('click')
+
+    expect(timeline.text()).toContain('Zielgruppe festlegen')
+    expect(timeline.text()).toContain('Hörerprofile schreiben')
   })
 
   it('offers a new todo per milestone only with the right to create one', async () => {
@@ -237,7 +289,7 @@ describe('ProjectTimeline', () => {
     const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
     const lists = () => timeline.findAllComponents({ name: 'VueDraggable' })
 
-    await timeline.findAll('wa-button').find(button => button.text() === 'Alle aufklappen')!.trigger('click')
+    await timeline.findAll('wa-button').find(button => button.text() === 'Alle ToDos zeigen')!.trigger('click')
 
     expect(lists()).toHaveLength(2)
     expect(lists().every(list => list.props('disabled'))).toBe(true)

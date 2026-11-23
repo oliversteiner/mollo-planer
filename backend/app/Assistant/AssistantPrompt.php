@@ -59,12 +59,14 @@ class AssistantPrompt
             PlanTargetKind::MILESTONE => 'The selected target kind is MILESTONE. Create only new milestones; do not create todos or tasks.',
             PlanTargetKind::TODO => 'The selected target kind is TODO. Create only new todos; do not create milestones or tasks.',
             PlanTargetKind::TASK => 'The selected target kind is TASK. Create only new tasks in named existing todos; do not create milestones or todos.',
+            PlanTargetKind::IDEA => 'The selected target kind is IDEA. Nothing is planned in a project: set plan to null, do not create milestones, todos or tasks, and reply in one or two short sentences that the idea can be kept under Ideen.',
         };
         $placementInstructions = match ($request->targetKind) {
             null => 'A todo always belongs to a milestone. If it is unclear which one, set plan to null and ask with choices: existing milestones (kind MILESTONE, value = its id, the best one recommended), a new milestone (NEW_MILESTONE), the person\'s own (CUSTOM_MILESTONE), or keeping it as an idea (IDEA). At most five choices; add SHOW_ALL if there are more. Never choose silently: a todo without a milestone the person named (by its title or id, or a button they pressed) is never put into one yourself, even if one seems obvious; recommend it with recommended true instead, and likewise for a task and its todo. If the project is not clear, offer PROJECT (value = project id), NEW_PROJECT and IDEA the same way. For a new project, propose a fitting template (TEMPLATE, value = template id) or NO_TEMPLATE and then plan on its outline and labels.',
             PlanTargetKind::MILESTONE => 'A milestone belongs directly to a project. If the project is not clear, offer PROJECT (value = project id), NEW_PROJECT and IDEA. For a new project, propose a fitting template (TEMPLATE, value = template id) or NO_TEMPLATE.',
             PlanTargetKind::TODO => 'A todo always belongs to a milestone. If it is unclear which one, set plan to null and ask with choices: existing milestones (kind MILESTONE, value = its id, the best one recommended) or keeping it as an idea (IDEA). At most five choices; add SHOW_ALL if there are more. Never choose silently: use only a milestone the person named (by its title or id, or a button they pressed). If the project is not clear, offer PROJECT (value = project id), NEW_PROJECT and IDEA.',
             PlanTargetKind::TASK => 'A task always belongs to a todo. If it is unclear which one, set plan to null and ask with choices: existing todos (kind APPEND_TO_TODO, value = its id, the best one recommended) or keeping it as an idea (IDEA). At most five choices; add SHOW_ALL if there are more. Never choose silently: use only a todo the person named (by its title or id, or a button they pressed). If the project is not clear, offer PROJECT (value = project id), NEW_PROJECT and IDEA.',
+            PlanTargetKind::IDEA => 'Ideas are kept without a project: no placement is needed and no choices are offered.',
         };
         $planRules = $request->targetKind === null
             ? '- Two to five todos per milestone, two to five concrete tasks per todo; fewer for small things, never pad.'
@@ -137,6 +139,7 @@ class AssistantPrompt
             PlanTargetKind::MILESTONE => 'mayCreateMilestones',
             PlanTargetKind::TODO => 'mayCreateTodos',
             PlanTargetKind::TASK => 'mayCreateTasks',
+            PlanTargetKind::IDEA => 'mayKeepIdeas',
         };
     }
 

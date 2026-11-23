@@ -38,7 +38,7 @@ final class Validator
 
     /**
      * @param  array<string, mixed>  $document
-     * @return list<array{path: string, severity: string, message: string}>
+     * @return list<array{path: string, severity: string, message: string, code?: string, email?: string}>
      */
     public static function validate(array $document): array
     {

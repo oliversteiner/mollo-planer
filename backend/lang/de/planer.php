@@ -71,6 +71,7 @@ return [
             'idea' => 'diese Idee einplanen (nur die Autorin)',
         ],
         'person_unknown' => 'Zu :email gibt es kein freigegebenes Konto. Ein Import legt keine Konten an.',
+        'member_unknown_warning' => 'Zu :email gibt es kein freigegebenes Konto. Das Mitglied wird nicht übernommen, ein Import legt keine Konten an.',
         'role_unknown' => 'Die Projektrolle „:role“ gibt es nicht.',
         'self_removal' => 'Die Datei würde dich selbst aus dem Projekt entfernen. Nimm dich in die Mitglieder auf oder importiere im Modus „partial“.',
         'description' => ':problem',

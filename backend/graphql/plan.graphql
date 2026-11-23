@@ -60,4 +60,5 @@ enum PlanTargetKind {
   MILESTONE
   TODO
   TASK
+  IDEA
 }

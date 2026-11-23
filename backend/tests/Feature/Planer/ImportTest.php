@@ -374,15 +374,17 @@ class ImportTest extends GraphQLTestCase
 
     // ─── Members ─────────────────────────────────────────────────────
 
-    public function test_a_person_without_an_account_is_refused_with_the_path(): void
+    public function test_a_person_without_an_account_is_skipped_with_a_warning(): void
     {
         $document = $this->exported();
         $document['project']['members'][] = ['email' => 'niemand@example.org', 'role' => 'member'];
 
         $result = $this->import($this->project, $document);
 
-        $this->assertSame('person', $result->errors[0]['kind']);
-        $this->assertSame('project.members[3].email', $result->errors[0]['path']);
+        $this->assertSame([], $result->errors, json_encode($result->errors));
+        $this->assertCount(1, $result->warnings);
+        $this->assertSame('project.members[3].email', $result->warnings[0]['path']);
+        $this->assertSame('niemand@example.org', $result->warnings[0]['email']);
     }
 
     public function test_an_unknown_role_is_refused(): void

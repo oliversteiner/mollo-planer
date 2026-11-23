@@ -71,6 +71,7 @@ return [
             'idea' => 'put this idea into a plan (only its author)',
         ],
         'person_unknown' => 'There is no approved account for :email. An import does not create accounts.',
+        'member_unknown_warning' => 'There is no approved account for :email. The member is not taken over, an import does not create accounts.',
         'role_unknown' => 'There is no project role “:role”.',
         'self_removal' => 'The file would remove you from the project. List yourself among the members, or import in “partial” mode.',
         'description' => ':problem',
