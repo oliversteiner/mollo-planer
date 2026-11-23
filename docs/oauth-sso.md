@@ -1,7 +1,9 @@
 # OAuth und OpenID Connect: der Planer als Anmeldedienst
 
 Stand: Auftrag 41, Teil A (Authorization Server, OpenID Provider, Zustimmungsseite, Verwaltung der Clients) und Teil B
-(OAuth für `/mcp`). Noch offen: D (iOS), E (Registrierung aus Club DB), siehe unten.
+(OAuth für `/mcp`), mit den Nachbesserungen aus der Abnahme (F1 bis F6). Noch offen: D (iOS), E (Registrierung aus Club DB), siehe unten.
+
+**Nummer:** Der Auftrag heißt **41** (`next-work/41-oauth-sso.md`). In den frühen Commits und im Titel von PR #36 steht noch «35», das war die erste Nummer; gemergte Commits werden nicht umgeschrieben. Neue Commits, PR-Titel und Doku sagen 41.
 
 Der Code gehört zur Basis (Modul Identität, `docs/starter-kit.md`): Backend unter `App\Core\Identity`, Routen in
 `backend/routes/oauth.php`. Er importiert nichts aus dem Fachcode (Projekte, Aufgaben, Dokumente).
