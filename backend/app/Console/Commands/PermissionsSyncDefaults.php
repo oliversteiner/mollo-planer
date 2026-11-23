@@ -7,10 +7,16 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('permissions:sync-defaults {--check : Only list standard roles and functions that are missing in the tables, change nothing (exit code 1 when there are any)}')]
+#[Signature('permissions:sync-defaults {--check : Only list standard roles and functions that are missing in the tables, change nothing (exit code 2 when there are any)}')]
 #[Description('Write the standard roles and rights from config/permissions.php back into the tables')]
 class PermissionsSyncDefaults extends Command
 {
+    /**
+     * Exit code of --check when something is missing. Every other failure (an exception, no database) ends with the usual
+     * code 1, so a caller (deploy/deploy.sh) can tell "something is missing" from "the check could not run".
+     */
+    public const EXIT_MISSING = 2;
+
     /**
      * Restores the standard rows. Roles and functions that are not in the
      * config stay as they are. With --check nothing is written.
@@ -44,6 +50,6 @@ class PermissionsSyncDefaults extends Command
 
         $this->components->error(__('console.permissions_check.missing', ['count' => count($missing)]));
 
-        return self::FAILURE;
+        return self::EXIT_MISSING;
     }
 }

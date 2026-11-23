@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\PermissionsSyncDefaults;
 use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Enums\UserRole;
@@ -83,7 +84,7 @@ class RightsDataTest extends TestCase
 
         $this->artisan('permissions:sync-defaults --check')
             ->expectsOutputToContain('project.role.agent')
-            ->assertFailed();
+            ->assertExitCode(PermissionsSyncDefaults::EXIT_MISSING);
         $this->assertDatabaseMissing('roles', ['scope' => 'project', 'key' => ProjectRole::AGENT->value]);
 
         $this->artisan('permissions:sync-defaults')->assertSuccessful();
