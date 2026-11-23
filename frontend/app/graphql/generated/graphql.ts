@@ -187,6 +187,7 @@ export type PlanChoiceKind =
 
 /** Art des Elements, das die Person anlegen will */
 export type PlanTargetKind =
+  | 'IDEA'
   | 'MILESTONE'
   | 'TASK'
   | 'TODO';

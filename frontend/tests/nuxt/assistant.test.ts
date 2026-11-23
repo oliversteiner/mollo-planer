@@ -104,7 +104,7 @@ describe('AssistantChat choices', () => {
     const select = view.find('wa-select')
 
     expect((select.element as unknown as { value: string }).value).toBe('')
-    expect(select.findAll('wa-option').map(option => option.text())).toEqual(['Automatisch', 'Milestones', 'ToDo', 'Tasks'])
+    expect(select.findAll('wa-option').map(option => option.text())).toEqual(['Automatisch', 'Milestones', 'ToDo', 'Tasks', 'Idee'])
 
     Object.defineProperty(select.element, 'value', { value: 'TASK', writable: true, configurable: true })
     select.element.dispatchEvent(new Event('change'))
@@ -135,6 +135,7 @@ describe('AssistantChat choices', () => {
     expect(view.find('wa-select').text()).toContain('Milestones')
     expect(view.find('wa-select').text()).toContain('Todo')
     expect(view.find('wa-select').text()).toContain('Tasks')
+    expect(view.find('wa-select').text()).toContain('Idea')
 
     await i18n.setLocale('de')
   })

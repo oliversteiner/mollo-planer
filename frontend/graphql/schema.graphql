@@ -598,6 +598,7 @@ type PlanDraft {
 }
 "Art des Elements, das die Person anlegen will"
 enum PlanTargetKind {
+ IDEA
  MILESTONE
  TASK
  TODO
