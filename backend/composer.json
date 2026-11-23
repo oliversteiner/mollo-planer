@@ -12,6 +12,7 @@
         "laravel/fortify": "^1.41",
         "laravel/framework": "^13.17",
         "laravel/mcp": "^1.1",
+        "laravel/passport": "^13.12",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "mpdf/mpdf": "^8.3",

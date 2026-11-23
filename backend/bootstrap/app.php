@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Identity\Http\Middleware\EnsureStrongAuthenticationForOAuth;
 use App\Http\Middleware\ProtectAccountSecurityRoutes;
 use App\Http\Middleware\RedirectIfStronglyAuthenticated;
 use App\Http\Middleware\SetLocaleFromRequest;
@@ -20,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [ProtectAccountSecurityRoutes::class]);
         // Login routes accept a session that still lacks the second factor.
         $middleware->alias(['guest' => RedirectIfStronglyAuthenticated::class]);
+        // A guest at the authorization page of the OAuth server goes to the login of the frontend and comes back.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('oauth/*') && ! $request->expectsJson()
+            ? EnsureStrongAuthenticationForOAuth::loginUrl($request)
+            : null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

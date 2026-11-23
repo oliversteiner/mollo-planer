@@ -60,7 +60,8 @@ const adminItems = computed<NavItem[]>(() => [
   { label: t('nav.users'), icon: 'users', to: '/admin/users' },
   { label: t('nav.roles'), icon: 'user-shield', to: '/admin/roles' },
   { label: t('nav.templates'), icon: 'copy', to: '/templates' },
-  { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' }
+  { label: t('nav.appSettings'), icon: 'sliders', to: '/admin/settings' },
+  { label: t('nav.oauthClients'), icon: 'key', to: '/admin/oauth-clients' }
 ].filter(allowed))
 
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {

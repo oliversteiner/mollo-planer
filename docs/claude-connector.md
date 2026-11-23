@@ -46,6 +46,26 @@ Die Werkzeuge laufen im Namen der Person durch dasselbe GraphQL-Schema wie die O
 
 Ein Agent (Claude im Projekt, ein Assistent) benutzt **nicht** das Konto einer Person mit, sondern hat ein eigenes **Agent-Konto**: Es ist Mitglied im Projekt mit der Projektrolle «Agent», hat keinen Zugang zur Oberfläche (keine Anmeldung, nur das Token) und erscheint in der App mit dem Kennzeichen «Agent», auch an Kommentaren und Zuweisungen. Die Konten legt Oliver an (Befehl `app:create-agent` auf dem Server). Den Zugang (das Token) macht ein Admin entweder in der App unter Admin → Benutzer (Bereich «Zugänge» beim Agenten, nach Passwortbestätigung) oder per `app:user-token` auf dem Server; siehe `docs/deploy-template.md`, Abschnitt «Agent-Konten». Das Token erscheint einmal und gehört nur in die Einstellung des Connectors.
 
+### Der Weg ohne Zugang: Custom Connector mit OAuth
+
+Seit Auftrag 41 kann Claude sich **ohne Token und ohne Node.js** verbinden. Der Planer ist selbst der Anmeldedienst
+(`docs/oauth-sso.md`). Das gilt für die Konten von Personen; ein Agent-Konto hat keinen Web-Zugang und bleibt beim Zugang unten.
+
+1. In Claude (Desktop oder claude.ai) unter *Einstellungen → Connectors* einen **Custom Connector** hinzufügen mit der Adresse
+   `https://api.planer.mollo.dev/mcp` (TEST) bzw. `https://api.planer.mollo.ch/mcp` (PROD).
+2. Claude findet die Anmeldung selbst (`/.well-known/oauth-protected-resource/mcp`) und **registriert sich als öffentlicher Client**
+   (nur zu den Adressen von Claude und `localhost`, mit PKCE). Danach erscheint der Client unter **System → Anmeldedienst**
+   und lässt sich dort widerrufen.
+3. Der Browser öffnet die Anmeldung des Planers (mit dem zweiten Faktor) und die Seite «Zugriff erlauben». Nach «Zulassen»
+   arbeitet Claude mit **deinen Rechten**, wie mit einem Zugang.
+
+Rechte des Tokens (Scopes): `mcp:use` ist der ganze Connector (alles, was auch ein Zugang darf). `mcp:read` allein zeigt und
+erlaubt nur die Werkzeuge, die lesen. `mcp:write` erlaubt auch die schreibenden (`import_plan`, `update_tasks`, `add_comment`,
+`create_idea`). Claude fragt `mcp:use` an. Ein Token für den Connector gilt **nur** hier, nicht für die API der Oberfläche.
+
+Er endet, wenn der Client widerrufen wird, die Person nicht mehr freigegeben oder bestätigt ist, oder nach dem Ablauf (Access-Token
+1 Stunde, erneuert mit dem Refresh-Token bis zu 90 Tage). Der Weg mit dem Zugang unten bleibt daneben bestehen.
+
 ### Schritt 1: Zugang erzeugen
 
 1. In der App anmelden und **Profil** öffnen.
@@ -284,9 +304,10 @@ Der Zugang für die Action ist ein gewöhnlicher Zugang für Claude (90 Tage) un
 
 ## Grenzen
 
-- **Kein „Custom Connector“ über die Einstellungen von Claude Desktop.** Der braucht OAuth. Das Backend hat dafür keinen Authorization-Server. Der Weg über den Zugang funktioniert auch ohne.
+- **Custom Connector mit OAuth** (seit Auftrag 41) gilt für Personen, nicht für Agent-Konten. Er braucht auf dem Server die Schlüssel
+  (`php artisan passport:keys`, `docs/deploy-template.md`). Ohne sie bleibt der Weg über den Zugang.
 - **Keine Abfrage von Benachrichtigungen oder Kommentaren** über den Connector. Die Werkzeuge decken Projekte, Mitglieder (als Teil der Datei) und Pläne ab.
-- **Die Bridge braucht Node.js** auf dem Rechner. Dieser Schritt entfällt, wenn ein Connector mit OAuth gebaut würde.
+- **Die Bridge braucht Node.js** auf dem Rechner. Dieser Schritt entfällt beim Custom Connector mit OAuth.
 
 ---
 

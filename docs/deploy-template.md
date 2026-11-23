@@ -148,6 +148,19 @@ Es gibt zwei Ebenen, und der Fehler liegt meist in der Verwechslung:
 - `PRO_ASSETS_TOKEN`: nur bei Pro-Symbolen aus einem privaten Repo (Auftrag 38): fine-grained Token, nur Lesen, nur dieses eine Repository. Ein altes `FONTAWESOME_NPM_AUTH_TOKEN` kann gelöscht werden. Das Repo des Projekts darf öffentlich sein; lizenzierte Dateien gehören nie hinein.
 - `WEBAWESOME_NPM_AUTH_TOKEN`: nur bei Web Awesome Pro
 
+### Lizenzierte Dateien: nie in Cache oder Artefakte
+
+Dateien, die einer Lizenz unterliegen (Font Awesome Pro und alles, was aus dem privaten Repo `mollo-pro-assets` kommt), landen **nie**
+im Actions-Cache (`actions/cache`) und **nie** in einem Artefakt (`actions/upload-artifact`) und nicht im Repository (das ist öffentlich).
+
+- **Warum:** Ein Cache gehört dem Repository und kann von anderen Branches und von Pull Requests gelesen werden, die auf diesen Branch zielen; ein
+  Artefakt lässt sich herunterladen. So käme lizenziertes Material an Stellen, die das Secret `PRO_ASSETS_TOKEN` nie hätten.
+- **Wie stattdessen:** Jeder Lauf holt die Symbole selbst, mit `npm run icons:fetch` aus dem privaten Repo (rund 2,5 MB). Das kostet bei Font Awesome nichts
+  (Download von GitHub, nicht aus dem npm-Register) und braucht kein Cache.
+- **Der Wächter** (`npm run icons:check`, Test `no-pro-assets`) prüft das Repository, nicht den Cache: Beim Ändern eines Workflows darauf achten, dass
+  `frontend/vendor/` in keinem Cache-Pfad und in keinem Artefakt vorkommt.
+- **Aufräumen:** Gab es früher Caches mit dem Schlüssel `pro-icons-*`, löschen: `gh cache list --key pro-icons`, dann `gh cache delete <id>`.
+
 ### Variablen
 
 - `DEPLOY_HOST` (Repository): Hostname des Hostpoint-Servers, z. B. `<servername.hostpoint.ch>`. Muss zum Eintrag in `DEPLOY_KNOWN_HOSTS` passen.
@@ -312,6 +325,12 @@ php artisan app:user-token claude-clubdb@example.ch --revoke              # wide
 - Das Token gehört in die Einstellung des Connectors (siehe `docs/claude-connector.md`), nicht in `.env`, nicht ins Repository. Es gilt 90 Tage; danach ein neues machen.
 - `app:user-token` verweigert Konten von Menschen: die machen ihr Token selbst im Profil.
 - Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent). Ohne diesen Schritt fehlt «Agent» im Auswahlfeld der Projektrolle. `php artisan permissions:sync-defaults --check` zeigt, was fehlt, und ändert nichts (Exit 1, wenn etwas fehlt). `deploy.sh` ruft die Prüfung am Ende jedes Deployments auf und gibt eine **WARNUNG** aus (kein Abbruch, kein automatischer Abgleich, weil der Abgleich die Standardbelegung zurücksetzt). Da `deploy.sh` die Fassung vom Server ausführt, wirkt die Prüfung erst im Deployment nach dem ersten, das sie mitbringt.
+
+### OAuth-Server (Auftrag 41)
+
+Wer die Anmeldung als Dienst nutzt (`docs/oauth-sso.md`), braucht je Umgebung einmal ein Schlüsselpaar: **auf dem Server**, im Ordner
+`backend/`, `php artisan passport:keys` (legt `storage/oauth-private.key` und `-public.key` an; nicht ins Repository). Danach prüfen:
+`https://<API>/.well-known/jwks.json` liefert den öffentlichen Schlüssel. Die Migrationen laufen mit dem Deployment.
 
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
