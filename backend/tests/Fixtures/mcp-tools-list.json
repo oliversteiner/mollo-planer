@@ -96,6 +96,18 @@
                 "include_released": {
                     "type": "boolean",
                     "description": "false excludes released milestones. Default true."
+                },
+                "view": {
+                    "type": "string",
+                    "enum": [
+                        "full",
+                        "outline"
+                    ],
+                    "description": "\"outline\": only milestones with task counts per status (cheap, excerpt). Default \"full\"."
+                },
+                "include_descriptions": {
+                    "type": "boolean",
+                    "description": "false leaves out all descriptions (excerpt, write back with mode \"partial\" only). Default true."
                 }
             },
             "required": [
@@ -359,6 +371,85 @@
         },
         "annotations": {
             "title": "List Projects Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "list_tasks",
+        "title": "List Tasks Tool",
+        "description": "Lists tasks flat and short (not the plan tree), with the plan revision. Filter by status, assignee (\"me\" or email), milestones, title or ids. With ids and include you get one task with what you need to edit it.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID (from list_projects)."
+                },
+                "status": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "idea",
+                            "planned",
+                            "open",
+                            "in_progress",
+                            "review",
+                            "done"
+                        ]
+                    },
+                    "description": "Only these statuses."
+                },
+                "assignee": {
+                    "type": "string",
+                    "description": "\"me\" or a member email."
+                },
+                "milestone_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Only tasks of these milestones (m-<id> or number)."
+                },
+                "query": {
+                    "type": "string",
+                    "description": "Words in the title."
+                },
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Only these tasks (k-<id> or number)."
+                },
+                "include": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "description",
+                            "comments",
+                            "labels",
+                            "user_story"
+                        ]
+                    },
+                    "description": "More per task; use with ids, it costs tokens."
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max tasks (1-100). Default 30."
+                },
+                "cursor": {
+                    "type": "string",
+                    "description": "next_cursor from the previous page."
+                }
+            },
+            "required": [
+                "project_id"
+            ]
+        },
+        "annotations": {
+            "title": "List Tasks Tool",
             "readOnlyHint": true
         }
     },
