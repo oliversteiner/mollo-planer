@@ -2,8 +2,8 @@ import { graphql } from '~/graphql/generated'
 
 /** The next step of a plan from the chat: reply, buttons, the plan (canonical text) and the preview (dry run, appendOnly). */
 export const draftPlanMutation = graphql(`
-  mutation DraftPlan($messages: [PlanChatMessageInput!]!, $projectId: ID, $templateId: ID, $currentPlan: String, $ideaId: ID) {
-    draftPlan(messages: $messages, projectId: $projectId, templateId: $templateId, currentPlan: $currentPlan, ideaId: $ideaId) {
+  mutation DraftPlan($messages: [PlanChatMessageInput!]!, $projectId: ID, $templateId: ID, $targetKind: PlanTargetKind, $currentPlan: String, $ideaId: ID) {
+    draftPlan(messages: $messages, projectId: $projectId, templateId: $templateId, targetKind: $targetKind, currentPlan: $currentPlan, ideaId: $ideaId) {
       reply
       plan
       projectId

@@ -241,7 +241,8 @@
     },
     "archive": {
       "title": "Archive ({count})"
-    }
+    },
+    "counts": "{milestones} milestones · {todos} todos · {tasks} tasks"
   },
   "status": {
     "IDEA": "Idea",
@@ -277,7 +278,9 @@
       "milestones": "Milestones",
       "todos": "Todos",
       "tasks": "Tasks",
+      "documents": "Documents",
       "members": "Members",
+      "statistics": "Statistics",
       "settings": "Settings",
       "trash": "Trash"
     },
@@ -308,6 +311,44 @@
     "archived": {
       "title": "Archived, read only",
       "description": "This project is archived. Changing, creating, deleting and commenting are locked until someone with the right “Archive” brings it back in the settings."
+    },
+    "statistics": {
+      "emptyTitle": "Nothing to count yet",
+      "emptyDescription": "Once the project has milestones, todos and tasks, the numbers appear here.",
+      "kpiMilestones": "Milestones",
+      "kpiMilestonesDetail": "{released} released · {planned} planned · {unversioned} without version",
+      "kpiTodos": "Todos",
+      "kpiTasks": "Tasks",
+      "kpiDone": "Done",
+      "kpiDoneDetail": "{done} of {total} tasks (ideas do not count)",
+      "percent": "{value} %",
+      "countAndPercent": "{count} · {percent} %",
+      "byStatus": "Tasks by status",
+      "byLabel": "Tasks by label",
+      "noLabel": "No label",
+      "byPerson": "Tasks by person",
+      "unassigned": "Not assigned",
+      "openAndDone": "{open} open · {done} done",
+      "due": "Due dates of open tasks",
+      "overdue": "Overdue",
+      "soon": "Due in the next 7 days",
+      "undated": "No date",
+      "perMilestone": "Milestones in the plan",
+      "table": "Milestones with version, status, date and progress",
+      "colMilestone": "Milestone",
+      "colVersion": "Version",
+      "colStatus": "Status",
+      "colDate": "Released",
+      "colTodos": "Todos",
+      "colTasks": "Tasks",
+      "colDone": "Done",
+      "noVersion": "–",
+      "more": "More",
+      "withCommit": "Tasks with a commit",
+      "comments": "Comments",
+      "course": "Done tasks per week",
+      "courseWeek": "Week of {date}",
+      "courseHint": "The last 12 weeks. Tasks done before the time was recorded do not appear here."
     }
   },
   "todos": {
@@ -358,7 +399,22 @@
       "apply": "Apply",
       "remove": "Remove link",
       "invalid": "Only links with http://, https:// or mailto: are possible."
-    }
+    },
+    "headingLevel": "Heading {level}",
+    "strike": "Strike-through",
+    "taskList": "Task list",
+    "codeBlock": "Code block",
+    "codeLanguage": "Language",
+    "horizontalRule": "Rule",
+    "table": "Table",
+    "tableInsert": "Insert table",
+    "tableRowBefore": "Insert row above",
+    "tableRowAfter": "Insert row below",
+    "tableColumnBefore": "Insert column left",
+    "tableColumnAfter": "Insert column right",
+    "tableDeleteRow": "Delete row",
+    "tableDeleteColumn": "Delete column",
+    "tableDelete": "Delete table"
   },
   "icons": {
     "choose": "Choose icon",
@@ -434,8 +490,7 @@
   },
   "agent": {
     "badge": "Agent",
-    "hint": "Agent account: no access to the interface, only through a token for the connector",
-    "access": "Access by token only (command app:user-token)"
+    "hint": "Agent account: no access to the interface, only through a token for the connector"
   },
   "comments": {
     "title": "Comments ({count})",
@@ -578,7 +633,24 @@
         "rejectDescription": "The waiting account will be deleted. The person cannot sign in afterwards.",
         "failed": "That did not work. The list has been updated."
       },
-      "resetConfirm": "Yes, reset"
+      "resetConfirm": "Yes, reset",
+      "agent": {
+        "title": "Accesses",
+        "name": "Name of the access",
+        "nameHint": "To recognise it, for example “{agent} server”",
+        "create": "Create access",
+        "none": "No access yet.",
+        "showOnceTitle": "Access made for {agent}",
+        "showOnce": "Shown only once. Keep it in your password manager.",
+        "token": "Access (token)",
+        "copyToken": "Copy access",
+        "revoke": "Revoke access “{name}”",
+        "revokeTitle": "Revoke access “{name}”?",
+        "revokeDescription": "{agent} can no longer use this access afterwards.",
+        "revokeConfirm": "Revoke",
+        "revoked": "Access revoked.",
+        "cli": "Or in a terminal on the server: app:user-token"
+      }
     },
     "settings": {
       "title": "App settings",
@@ -629,7 +701,14 @@
       "you": "You",
       "assistant": "Assistant",
       "emptyTitle": "What should be added or planned?",
-      "emptyDescription": "Describe a task, a to-do or a whole project. Where something is unclear the assistant asks with buttons. Nothing is saved until “Add now”.",
+      "emptyDescription": "Describe a task, a to-do or a whole project. Where something is unclear the assistant asks. Nothing is saved until “Add now”.",
+      "targetKind": "What would you like to plan?",
+      "targetHint": "Automatic lets the assistant plan suitable milestones, todos and tasks. This choice applies to a new chat.",
+      "targetAutomatic": "Automatic",
+      "targetMilestone": "Milestones",
+      "targetTodo": "Todo",
+      "targetTask": "Tasks",
+      "targetIdea": "Idea",
       "placeholder": "Message to the assistant (Enter sends, Shift+Enter new line)",
       "listening": "Listening …",
       "send": "Send",
@@ -1293,6 +1372,10 @@
         "commit": {
           "label": "Commit",
           "description": "Hash of the implementation (7 to 40 characters), none for done tasks without a commit, empty when none is recorded yet."
+        },
+        "done_at": {
+          "label": "Done at",
+          "description": "When the task was done. Set by the app when the status becomes done and cleared when it leaves done. Empty for tasks that were done before it was recorded."
         }
       },
       "comments": {
@@ -1717,6 +1800,9 @@
       "PLANER_EXPORT": "Export planer file",
       "PLANER_IMPORT": "Import planer file",
       "AI_CONTEXT_UPDATE": "Edit AI context",
+      "DOCUMENT_CREATE": "Create documents",
+      "DOCUMENT_UPDATE": "Edit documents",
+      "DOCUMENT_MANAGE_ANY": "Manage all documents",
       "PROJECTS_CREATE": "Create projects",
       "PROJECTS_VIEW_ALL": "See all projects, even without membership",
       "PROJECTS_MANAGE_ANY": "Manage any project: all project rights in all projects",
@@ -1897,7 +1983,8 @@
       "TODO": "Todo",
       "TASK": "Task",
       "COMMENT": "Comment",
-      "IDEA": "Idea"
+      "IDEA": "Idea",
+      "DOCUMENT": "Document"
     },
     "count": {
       "PROJECT": "{count} project | {count} projects",
@@ -1905,7 +1992,8 @@
       "TODO": "{count} todo | {count} todos",
       "TASK": "{count} task | {count} tasks",
       "COMMENT": "{count} comment | {count} comments",
-      "IDEA": "{count} idea | {count} ideas"
+      "IDEA": "{count} idea | {count} ideas",
+      "DOCUMENT": "{count} document | {count} documents"
     }
   },
   "planer": {
@@ -2115,5 +2203,112 @@
       "project": "Projects"
     },
     "open": "Open search"
+  },
+  "documents": {
+    "title": "Documents",
+    "none": "No documents yet",
+    "noneHint": "Create the first document, for example a procedure or minutes.",
+    "noMatch": "No documents found",
+    "create": "Create document",
+    "search": "Search",
+    "kind": "Kind",
+    "allKinds": "All kinds",
+    "kinds": {
+      "PROCEDURE": "Procedure",
+      "MINUTES": "Minutes",
+      "ANALYSIS": "Analysis",
+      "CONCEPT": "Concept",
+      "OTHER": "Other"
+    },
+    "access": {
+      "NONE": "Private",
+      "READ": "Project reads",
+      "EDIT": "Project edits"
+    },
+    "owner": "Owner: {name}",
+    "noOwner": "No owner",
+    "updated": "Changed {date} by {name}",
+    "updatedAt": "Changed {date}",
+    "createTitle": "Create document",
+    "fieldTitle": "Title",
+    "fieldKind": "Kind",
+    "fieldAccess": "Access for the project",
+    "accessHint": "Who in the project may read or change the document. You share it with single people afterwards.",
+    "createSubmit": "Create",
+    "created": "Document created.",
+    "notFound": "Document not found",
+    "backToList": "Back to the list",
+    "emptyContent": "The document has no content yet.",
+    "edit": "Edit",
+    "save": "Save",
+    "saved": "Saved.",
+    "cancelEdit": "Stop editing",
+    "saving": "Saving …",
+    "unsavedHint": "Not saved",
+    "history": "History",
+    "export": "Export",
+    "exportMarkdown": "As Markdown",
+    "exportPdf": "As PDF",
+    "exportFailed": "The export did not work.",
+    "share": "Share",
+    "transfer": "Transfer ownership",
+    "focus": "Focus",
+    "draft": {
+      "title": "Restore the unsaved draft?",
+      "text": "You started changes on {date} and did not save them. The draft is in this browser.",
+      "restore": "Restore"
+    },
+    "leave": {
+      "title": "Unsaved changes",
+      "text": "If you leave the page, your changes are not saved. A draft stays in this browser.",
+      "confirm": "Leave"
+    },
+    "conflict": {
+      "title": "The document has changed in the meantime",
+      "text": "Somebody saved a newer version. Your changes are not saved and stay as a draft in this browser.",
+      "reload": "Reload",
+      "saveAsNew": "Save as a new document",
+      "savedAsNew": "Saved as a new document."
+    },
+    "sharing": {
+      "title": "Share document",
+      "projectAccess": "For all members of the project",
+      "people": "Single people",
+      "addPerson": "Add person",
+      "personAccess": "Level",
+      "read": "Read",
+      "edit": "Edit",
+      "remove": "Remove {name}",
+      "none": "No single shares.",
+      "saved": "Sharing saved.",
+      "membersOnly": "Members of the project only"
+    },
+    "transferTitle": "Transfer ownership",
+    "transferText": "The new owner manages the document. You lose the management unless you have it for another reason.",
+    "transferOwner": "New owner",
+    "transferConfirm": "Transfer",
+    "transferred": "Ownership transferred.",
+    "versions": {
+      "title": "History",
+      "none": "No versions yet.",
+      "revision": "Version {revision}",
+      "by": "by {name}",
+      "restoredFrom": "restored from version {revision}",
+      "compare": "Compare",
+      "pick": "Pick two versions to compare.",
+      "restore": "Restore",
+      "restoreTitle": "Restore version {revision}?",
+      "restoreText": "A new version with this content is made. Nothing is overwritten.",
+      "restored": "Version restored.",
+      "noChanges": "No difference between the versions.",
+      "added": "added",
+      "removed": "removed",
+      "diff": "Differences between the versions"
+    },
+    "exportPdfMaking": "Making the PDF …",
+    "saveFailed": "Saving did not work.",
+    "allSaved": "Saved",
+    "focusBack": "Back",
+    "fileFallback": "document"
   }
 }

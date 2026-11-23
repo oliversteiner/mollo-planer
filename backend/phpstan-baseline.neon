@@ -36,11 +36,6 @@ parameters:
 			count: 1
 			path: app/Assistant/AssistantPrompt.php
 
-		-
-			message: '#^Parameter \#1 \$doc of static method App\\Planer\\RichText\\TiptapToMarkdown\:\:convert\(\) expects array\<string, mixed\>, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Assistant/AssistantPrompt.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>key" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
@@ -144,11 +139,6 @@ parameters:
 			count: 1
 			path: app/GraphQL/Mutations/DuplicateTemplate.php
 
-		-
-			message: '#^Property App\\Models\\Idea\:\:\$status \(string\) does not accept App\\Enums\\IdeaState\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: app/GraphQL/Mutations/IdeaMutations.php
 
 		-
 			message: '#^Parameter \#3 \$target of method App\\Services\\Ordering\:\:move\(\) expects Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Milestone\> given\.$#'
@@ -594,11 +584,6 @@ parameters:
 			count: 1
 			path: app/Planer/Import.php
 
-		-
-			message: '#^Property App\\Models\\Idea\:\:\$status \(string\) does not accept App\\Enums\\IdeaState\:\:ADOPTED\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: app/Planer/Import.php
 
 		-
 			message: '#^Right side of && is always true\.$#'
@@ -858,11 +843,6 @@ parameters:
 			count: 1
 			path: app/Services/TrashListing.php
 
-		-
-			message: '#^Parameter \#1 \$document of static method App\\Support\\RichTextDocument\:\:excerpt\(\) expects array\<string, mixed\>\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Services/TrashListing.php
 
 		-
 			message: '#^Parameter \#1 \$rows of method App\\Services\\TrashListing\:\:items\(\) expects Illuminate\\Support\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Idea\> given\.$#'

@@ -17,11 +17,12 @@ class PlanTaskUpdates
 
     private const EXPORT = 'query ($id: ID!) { exportPlan(projectId: $id) }';
 
+    private const REVISION = 'query ($id: ID!) { project(id: $id) { planerRevision } }';
+
     private const IMPORT = <<<'GRAPHQL'
-        mutation ($projectId: ID, $document: String!, $dryRun: Boolean!) {
-          importPlan(projectId: $projectId, document: $document, mode: PARTIAL, dryRun: $dryRun, notifyAssignees: false, appendOnly: false) {
-            ok dryRun document
-            changes { kind path id fields }
+        mutation ($projectId: ID, $document: String!, $dryRun: Boolean!, $expectedRevision: Int!) {
+          importPlan(projectId: $projectId, document: $document, mode: PARTIAL, dryRun: $dryRun, notifyAssignees: false, appendOnly: false, expectedRevision: $expectedRevision) {
+            ok dryRun
             errors { path kind message }
           }
         }
@@ -33,12 +34,12 @@ class PlanTaskUpdates
      *
      * @throws PlanTaskUpdatesRefused with the sentence or the errors (JSON) the AI client reads
      */
-    public function apply(User $actor, string $projectId, array $updates, bool $dryRun = false, ?int $baseRevision = null): array
+    public function apply(User $actor, string $projectId, array $updates, int $baseRevision, bool $dryRun = false): array
     {
         $runner = app(GraphQLRunner::class);
         $document = json_decode((string) $runner->run(self::EXPORT, ['id' => $projectId], $actor)['exportPlan'], true, 512, JSON_THROW_ON_ERROR);
 
-        if ($baseRevision !== null && $baseRevision !== (int) $document['revision']) {
+        if ($baseRevision !== (int) $document['revision']) {
             throw new PlanTaskUpdatesRefused(__('planer.update_tasks.revision', ['file' => $baseRevision, 'project' => $document['revision']]));
         }
 
@@ -75,8 +76,6 @@ class PlanTaskUpdates
                 }
             }
 
-            // The file has no null: a cleared commit or assignee is a missing field.
-            $current = array_filter($current, fn ($value): bool => $value !== null);
             $changes[$mi][$ti][$ki] = $current;
             $after[$id] = $this->fieldsOf($current);
         }
@@ -89,20 +88,24 @@ class PlanTaskUpdates
             'projectId' => $projectId,
             'document' => json_encode($this->excerpt($document, $changes), JSON_THROW_ON_ERROR),
             'dryRun' => $dryRun,
+            'expectedRevision' => $baseRevision,
         ], $actor)['importPlan'];
 
         if (! $result['ok']) {
             throw $this->failure($result['errors']);
         }
 
-        $revision = $result['document'] === null
+        $revision = $dryRun
             ? (int) $document['revision']
-            : (int) json_decode($result['document'], true, 512, JSON_THROW_ON_ERROR)['revision'];
+            : (int) ($runner->run(self::REVISION, ['id' => $projectId], $actor)['project']['planerRevision'] ?? $document['revision']);
 
         $tasks = [];
         foreach ($after as $id => $values) {
-            if ($values !== $before[$id]) {
-                $tasks[] = ['id' => $id, 'before' => $before[$id], 'after' => $values];
+            $diffBefore = array_diff_assoc($before[$id], $values);
+            $diffAfter = array_diff_assoc($values, $before[$id]);
+
+            if ($diffAfter !== []) {
+                $tasks[] = ['id' => $id, 'before' => $diffBefore, 'after' => $diffAfter];
             }
         }
 

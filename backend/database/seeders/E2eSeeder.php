@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ProjectRole;
 use App\Enums\UserRole;
+use App\Models\Project;
 use App\Models\User;
 use App\Planer\TemplateSync;
 use App\Support\DeploymentEnvironment;
@@ -12,7 +14,8 @@ use RuntimeException;
 
 /**
  * The accounts of the browser tests (frontend/e2e): an admin and a member, both confirmed, approved and with an
- * authenticator app. Password and authenticator secret come from the environment of the tests
+ * authenticator app, and one project with both of them ("E2E Dokumente": the admin owns it, the member is in it;
+ * for the tests of the documents). Password and authenticator secret come from the environment of the tests
  * (E2E_PASSWORD, E2E_TOTP_SECRET, E2E_RECOVERY_CODES in frontend/e2e/support/environment.ts), not from this code:
  * like the DemoSeeder, the seeder itself holds no known password. It refuses to run on a server (production or staging) and
  * without these values.
@@ -37,6 +40,8 @@ class E2eSeeder extends Seeder
 
         TemplateSync::sync();
 
+        $people = [];
+
         foreach ([['Ada Admin', 'admin@e2e.test', UserRole::ADMIN], ['Mia Member', 'member@e2e.test', UserRole::MITGLIED]] as [$name, $email, $role]) {
             $user = new User(['name' => $name, 'email' => $email, 'password' => $password]);
             $user->role = $role;
@@ -48,6 +53,12 @@ class E2eSeeder extends Seeder
                 'two_factor_recovery_codes' => Fortify::currentEncrypter()->encrypt(json_encode($recovery)),
                 'two_factor_confirmed_at' => now(),
             ])->save();
+            $people[$email] = $user;
         }
+
+        Project::factory()
+            ->withMember($people['admin@e2e.test'], ProjectRole::OWNER)
+            ->withMember($people['member@e2e.test'], ProjectRole::MEMBER)
+            ->create(['name' => 'E2E Dokumente']);
     }
 }

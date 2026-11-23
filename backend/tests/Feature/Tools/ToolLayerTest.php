@@ -7,8 +7,10 @@ use App\Enums\ProjectRole;
 use App\Mcp\ToolAdapter;
 use App\Models\User;
 use App\Support\McpTokens;
+use App\Tools\Schema;
 use App\Tools\Tool;
 use App\Tools\ToolRegistry;
+use App\Tools\ToolResult;
 use Illuminate\Support\Facades\Auth;
 use Tests\Feature\Mcp\McpTestCase;
 
@@ -25,7 +27,7 @@ class ToolLayerTest extends McpTestCase
 
         $this->assertSame(array_values(array_unique($names)), $names, 'a name twice in the registry');
         $this->assertSame(array_values(array_unique(ToolRegistry::TOOLS)), ToolRegistry::TOOLS, 'a class twice in the registry');
-        $this->assertCount(11, $names);
+        $this->assertCount(12, $names);
 
         // Everything under App\Tools that is a tool is in the registry: a tool written but not entered would be offered nowhere.
         $classes = collect(glob(app_path('Tools/*.php')))
@@ -74,7 +76,30 @@ class ToolLayerTest extends McpTestCase
 
     public function test_a_tool_without_arguments_has_an_object_of_properties_for_claude(): void
     {
-        $schema = collect(app(ToolBridge::class)->definitions())->firstWhere('name', 'list_templates')['input_schema'];
+        $tool = new class extends Tool
+        {
+            public function name(): string
+            {
+                return 'no_arguments';
+            }
+
+            public function description(): string
+            {
+                return 'A tool without arguments.';
+            }
+
+            public function schema(): array
+            {
+                return Schema::input();
+            }
+
+            public function handle(User $actor, array $arguments): ToolResult
+            {
+                return ToolResult::text('ok');
+            }
+        };
+
+        $schema = (new \ReflectionMethod(ToolBridge::class, 'inputSchema'))->invoke(app(ToolBridge::class), $tool);
 
         $this->assertSame('{"type":"object","properties":{}}', json_encode($schema));
     }
@@ -112,7 +137,7 @@ class ToolLayerTest extends McpTestCase
         $missing = $bridge->call($this->owner, 'export_plan', []);
 
         $this->assertTrue($missing->isError());
-        $this->assertStringContainsString('Give the project_id', $missing->data);
+        $this->assertStringContainsString('Give project_id', $missing->data);
     }
 
     public function test_an_agent_account_works_through_mcp_as_before(): void

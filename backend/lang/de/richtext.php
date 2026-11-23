@@ -12,4 +12,6 @@ return [
     'too_large' => 'Das Feld :attribute ist zu umfangreich.',
     'markdown_too_long' => 'Das Feld :attribute darf als Markdown höchstens :max Zeichen haben (jetzt :length).',
     'empty' => 'Das Feld :attribute darf nicht leer sein.',
+    'table_cell' => 'Eine Tabellenzelle darf nur einen Absatz mit Text enthalten, ohne Zeilenumbruch, verbundene Zellen oder Ausrichtung.',
+    'heading_level_document' => 'Im Feld :attribute sind nur Überschriften der Ebenen 1 bis 4 erlaubt.',
 ];

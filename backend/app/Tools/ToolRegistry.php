@@ -23,6 +23,7 @@ final class ToolRegistry
         CreateIdea::class,
         ListIdeas::class,
         GetProjectAiContext::class,
+        GetProjectStatistics::class,
     ];
 
     /**

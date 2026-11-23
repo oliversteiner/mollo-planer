@@ -15,7 +15,7 @@ class CreateIdea extends Tool
 
     public function description(): string
     {
-        return 'Saves a private idea for the person whose token you use: a title, a description in Markdown (paragraphs, lists, bold, italic, links), optionally a project (project_id) and a draft (a planer-v2 excerpt that the assistant can put into a project later). Use it to keep something that does not belong in a plan yet. Anything in the description that the editor cannot hold becomes plain text; the answer lists those warnings.';
+        return 'Saves a private idea (title, Markdown description, optional project_id or planer-v2 draft).';
     }
 
     private const MUTATION = <<<'GRAPHQL'
@@ -62,9 +62,15 @@ class CreateIdea extends Tool
             'title' => $validated['title'],
             'description' => $description,
             'projectId' => isset($validated['project_id']) ? (string) $validated['project_id'] : null,
-            'draft' => is_array($draft) ? json_encode($draft, JSON_THROW_ON_ERROR) : $draft,
+            'draft' => is_array($draft) ? json_encode($draft, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $draft,
         ], fn ($value): bool => $value !== null)])['createIdea'];
 
-        return ToolResult::json(['idea' => $idea, 'warnings' => $warnings]);
+        $payload = ['idea' => $idea];
+
+        if ($warnings !== []) {
+            $payload['warnings'] = $warnings;
+        }
+
+        return ToolResult::json($payload);
     }
 }

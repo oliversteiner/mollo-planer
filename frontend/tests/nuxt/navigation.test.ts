@@ -127,11 +127,18 @@ describe('ProjectTabs', () => {
       ['Milestones', '/projects/7'],
       ['ToDo', '/projects/7/todos'],
       ['Tasks', '/projects/7/kanban'],
-      ['Mitglieder', '/projects/7/members']
+      ['Dokumente', '/projects/7/documents'],
+      ['Mitglieder', '/projects/7/members'],
+      ['Statistik', '/projects/7/statistics']
     ])
 
     await tabs.setProps({ withSettings: true })
 
     expect(tabs.findAll('a').at(-1)!.text()).toBe('Einstellungen')
+    expect(tabs.findAll('a').at(-2)!.text()).toBe('Statistik')
+
+    await tabs.setProps({ withTrash: true })
+
+    expect(tabs.findAll('a').map(link => link.text()).slice(-3)).toEqual(['Statistik', 'Einstellungen', 'Papierkorb'])
   })
 })

@@ -49,6 +49,7 @@ class Task extends Model implements BelongsToProject
             'description' => RichTextCast::class,
             'status' => TaskStatus::class,
             'due_date' => 'date',
+            'done_at' => 'datetime',
             'board_position' => 'integer',
             'position' => 'integer',
             'user_story' => 'array',

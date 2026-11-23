@@ -1,0 +1,25 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Seite",
+                    "marks": [
+                        {
+                            "type": "strike"
+                        },
+                        {
+                            "type": "link",
+                            "attrs": {
+                                "href": "https://example.ch/a"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

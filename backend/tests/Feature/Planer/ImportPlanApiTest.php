@@ -78,6 +78,18 @@ class ImportPlanApiTest extends GraphQLTestCase
             ->assertJsonPath('data.importPlan.errors.0.kind', 'invalid');
     }
 
+    public function test_an_assignee_who_is_not_a_member_comes_back_as_a_warning(): void
+    {
+        $document = $this->exported();
+        $document['milestones'][0]['todos'][0]['tasks'][] = ['id' => 'k-new-1', 'title' => 'Mit fremder Person', 'status' => 'open', 'assigneeEmail' => $this->users['stranger']->email];
+
+        $this->as('owner')->gql('mutation ($p: ID, $d: String!, $dry: Boolean) { importPlan(projectId: $p, document: $d, dryRun: $dry) { ok warnings { path email message } } }', ['p' => $this->project->id, 'd' => json_encode($document), 'dry' => true])
+            ->assertJsonMissingPath('errors')
+            ->assertJsonPath('data.importPlan.ok', true)
+            ->assertJsonPath('data.importPlan.warnings.0.path', 'milestones[0].todos[0].tasks[1]')
+            ->assertJsonPath('data.importPlan.warnings.0.email', $this->users['stranger']->email);
+    }
+
     public function test_without_a_project_it_creates_one_for_those_who_may(): void
     {
         $document = $this->exported();
@@ -130,6 +142,18 @@ class ImportPlanApiTest extends GraphQLTestCase
             ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document])
             ->assertHasErrors()
             ->assertSee('milestones[0].title');
+    }
+
+    public function test_the_mcp_tool_returns_the_warnings(): void
+    {
+        $document = $this->exported();
+        $document['milestones'][0]['todos'][0]['tasks'][] = ['id' => 'k-new-1', 'title' => 'Per MCP fremd', 'status' => 'open', 'assigneeEmail' => $this->users['stranger']->email];
+
+        MolloPlanerServer::actingAs($this->users['owner'])
+            ->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'dry_run' => true])
+            ->assertOk()
+            ->assertSee('"warnings"')
+            ->assertSee($this->users['stranger']->email);
     }
 
     public function test_the_mcp_tool_refuses_a_stranger(): void

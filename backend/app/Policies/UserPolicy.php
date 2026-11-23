@@ -79,6 +79,16 @@ class UserPolicy
     }
 
     /**
+     * Makes, lists and revokes the connector accesses of an agent account (task 32). The right is users.manage;
+     * that the target is an agent is checked by the callers, so that a person's account is refused with a clear
+     * message instead of a bare "not allowed".
+     */
+    public function manageAgentAccess(User $user): bool
+    {
+        return Rights::allows($user, Right::USERS_MANAGE);
+    }
+
+    /**
      * Settings of the whole application (for example two-factor
      * authentication) need the right settings.manage.
      */

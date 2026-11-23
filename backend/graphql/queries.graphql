@@ -14,6 +14,8 @@ type Query @guard {
   "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
   projects(archived: Boolean = false @scope(name: "archived")): [Project!]! @all(scopes: ["visibleToViewer"])
   project(id: ID! @eq): Project @find(scopes: ["visibleToViewer"])
+  "Die Zahlen der Seite Statistik eines Projekts. Gezählt wird in der Datenbank; Elemente im Papierkorb zählen nicht. Wer das Projekt sehen darf, sieht sie (auch archiviert); sonst eine Ablehnung."
+  projectStatistics(projectId: ID!): ProjectStatistics! @field(resolver: "App\\GraphQL\\Queries\\ProjectStatistics")
 
   "Milestones eines Projekts (Seite Milestones)"
   milestones(projectId: ID! @eq(key: "project_id")): [Milestone!]! @all(scopes: ["visibleToViewer"])
@@ -79,4 +81,14 @@ type Query @guard {
 
   "Papierkorb. Mit projectId: die Vorgänge des Projekts (mit trash.restore oder trash.purge, sonst leer), älteste zuerst. Ohne: gelöschte Projekte, die du wiederherstellen darfst, und deine gelöschten Ideen."
   trash(projectId: ID): [TrashItem!]! @field(resolver: "App\\GraphQL\\Queries\\Trash")
+
+  "Die Dokumente eines Projekts, die du lesen darfst, zuletzt geändert zuerst. Die Liste lädt den Inhalt nicht. search sucht in Titel und Inhalt."
+  documents(projectId: ID!, kind: DocumentKind, search: String): [Document!]!
+    @field(resolver: "App\\GraphQL\\Queries\\DocumentQueries@list")
+  "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
+  document(id: ID!): Document
+    @field(resolver: "App\\GraphQL\\Queries\\DocumentQueries@one")
+  "Eine Fassung mit ihrem Inhalt, oder null, wenn es sie nicht gibt oder du das Dokument nicht lesen darfst"
+  documentVersion(documentId: ID!, revision: Int!): DocumentVersion
+    @field(resolver: "App\\GraphQL\\Queries\\DocumentQueries@version")
 }

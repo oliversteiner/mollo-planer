@@ -28,6 +28,13 @@ const { t } = useI18n()
       </div>
     </main>
 
+    <footer
+      slot="footer"
+      class="auth-footer"
+    >
+      <a href="/mcp/">MCP</a>
+    </footer>
+
     <PasswordPromptModal />
   </wa-page>
 </template>
@@ -71,5 +78,26 @@ const { t } = useI18n()
 .auth-column {
   inline-size: 100%;
   max-inline-size: 24rem;
+}
+
+.auth-footer {
+  padding: var(--wa-space-m);
+  text-align: center;
+}
+
+.auth-footer a {
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+  text-decoration: none;
+}
+
+.auth-footer a:hover {
+  color: var(--wa-color-text-normal);
+  text-decoration: underline;
+}
+
+.auth-footer a:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
 }
 </style>

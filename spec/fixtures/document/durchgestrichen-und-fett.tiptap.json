@@ -1,0 +1,38 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "x",
+                    "marks": [
+                        {
+                            "type": "bold"
+                        },
+                        {
+                            "type": "strike"
+                        }
+                    ]
+                },
+                {
+                    "type": "text",
+                    "text": " y "
+                },
+                {
+                    "type": "text",
+                    "text": "z",
+                    "marks": [
+                        {
+                            "type": "italic"
+                        },
+                        {
+                            "type": "strike"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

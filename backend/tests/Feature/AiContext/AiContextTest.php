@@ -133,7 +133,25 @@ class AiContextTest extends GraphQLTestCase
         $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'in' => ['text' => 'Sie-Form verwenden.', 'sharedWithTools' => true]]);
         $this->upload('manager', $this->file('wissen.md', 'Budget 2000 CHF'));
 
-        $call('member')->assertOk()->assertSee(__('ai_context.label'))->assertSee('Sie-Form verwenden.')->assertSee('wissen.md')->assertSee('Budget 2000 CHF');
+        $call('member')->assertOk()->assertSee('Sie-Form verwenden.')->assertSee('wissen.md')->assertSee('Budget 2000 CHF');
+    }
+
+    public function test_the_tool_returns_the_full_twenty_thousand_character_context_without_header_truncation(): void
+    {
+        $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'in' => ['text' => str_repeat('ä', 12000), 'sharedWithTools' => true]]);
+        $this->upload('manager', $this->file('wissen.md', str_repeat('界', 8000)));
+
+        $response = MolloPlanerServer::actingAs($this->users['member'])->tool(McpTools::of('get_project_ai_context'), [
+            'project_id' => (string) $this->project->id, 'max_chars' => 20000,
+        ]);
+        $response->assertOk();
+        $content = (string) ((fn (): array => $this->content())->call($response)[0] ?? '');
+        $json = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(20000, $json['total_chars']);
+        $this->assertFalse($json['truncated']);
+        $this->assertSame(20000, mb_strlen($json['text']));
+        $this->assertSame(12000, $json['file_offset']);
     }
 
     public function test_the_tool_has_the_read_rights_of_the_project(): void
@@ -141,6 +159,6 @@ class AiContextTest extends GraphQLTestCase
         $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'in' => ['text' => 'Geheim', 'sharedWithTools' => true]]);
 
         MolloPlanerServer::actingAs($this->users['stranger'])->tool(McpTools::of('get_project_ai_context'), ['project_id' => (string) $this->project->id])
-            ->assertHasErrors(['This project does not exist, or you have no access to it.']);
+            ->assertHasErrors(['Project not found or not accessible.']);
     }
 }

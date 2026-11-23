@@ -45,6 +45,12 @@ enum Right: string
     case PLANER_EXPORT = 'planer.export';
     case PLANER_IMPORT = 'planer.import';
     case AI_CONTEXT_UPDATE = 'aiContext.update';
+    /** Create documents in the project. */
+    case DOCUMENT_CREATE = 'document.create';
+    /** Change documents that belong to the person or are shared for editing (the share level alone is not enough). */
+    case DOCUMENT_UPDATE = 'document.update';
+    /** See every document of the project (private ones too), change, share, hand over and delete them. */
+    case DOCUMENT_MANAGE_ANY = 'document.manageAny';
 
     // System
     case PROJECTS_CREATE = 'projects.create';

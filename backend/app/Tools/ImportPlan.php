@@ -13,7 +13,7 @@ class ImportPlan extends Tool
 
     public function description(): string
     {
-        return 'Writes a planer-v2 document into a project (project_id), or into a new project (without project_id). Work on the document that export_plan gave you. mode "full" (default): the document is the whole plan, what it lacks goes to the trash as one undoable deletion, and its revision must be the one of the project. mode "partial": adds and changes, never deletes, fields you leave out stay, the revision is not checked. New items get ids like m-new-1, t-new-1, k-new-1; the result maps them to real ids. Always try dry_run: true first: nothing is written, the result lists every change and every error with its path in the document. All or nothing, with your rights: each change is checked on its own. No mails unless notify_assignees is true.';
+        return 'Writes a planer-v2 document into a project (or creates one without project_id). Always run dry_run: true first. mode "full" (default) checks revision and trashes missing items; mode "partial" only adds/updates. Tasks whose assignee is unknown or not a project member are imported without that assignee and listed in warnings (path, email, message). New IDs: m-new-1, t-new-1, k-new-1.';
     }
 
     private const MUTATION = <<<'GRAPHQL'
@@ -22,6 +22,7 @@ class ImportPlan extends Tool
             ok dryRun projectId document
             changes { kind path id fields title }
             errors { path kind message }
+            warnings { path email message }
             idMap { from to }
           }
         }
@@ -30,14 +31,15 @@ class ImportPlan extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Id of the project (from list_projects). Leave out to create a new project from the plan.'),
-            'plan' => Schema::object(null, 'The planer-v2 document (format, revision, project, milestones).'),
+            'project_id' => Schema::string('Target project ID; omit to create a new project.'),
+            'plan' => Schema::object(null, 'planer-v2 document.'),
             'mode' => Schema::string('"full" (default) or "partial".', ['full', 'partial']),
-            'dry_run' => Schema::boolean('true: write nothing, only report the changes and errors.'),
-            'notify_assignees' => Schema::boolean('true: send the assignment mails. Default false.'),
-            'template_id' => Schema::string('Only without project_id: the template the new project comes from (sets its origin; the outline and labels must stand in the plan).'),
-            'idea_id' => Schema::string('The idea (yours) this plan is made from: it is adopted afterwards.'),
-            'append_only' => Schema::boolean('true: only add; any change of something that exists is an error. Default false.'),
+            'dry_run' => Schema::boolean('true: validate and preview without writing.'),
+            'notify_assignees' => Schema::boolean('true: send assignment emails. Default false.'),
+            'template_id' => Schema::string('Only without project_id: template origin ID.'),
+            'idea_id' => Schema::string('Idea ID to adopt after import.'),
+            'append_only' => Schema::boolean('true: error on any modification of existing items. Default false.'),
+            'include_document' => Schema::boolean('true: include exported document in response. Default false to save tokens.'),
         ], ['plan']);
     }
 
@@ -54,13 +56,15 @@ class ImportPlan extends Tool
                 'template_id' => ['sometimes', 'nullable'],
                 'idea_id' => ['sometimes', 'nullable'],
                 'append_only' => ['sometimes', 'boolean'],
+                'include_document' => ['sometimes', 'boolean'],
             ],
             [
-                'plan.required' => 'Give the plan: a planer-v2 document, for example the one export_plan returned.',
-                'mode.in' => 'mode is "full" (the document is the whole plan) or "partial" (add and change only).',
+                'plan.required' => 'Give plan (planer-v2 document).',
+                'mode.in' => 'mode must be "full" or "partial".',
             ],
         );
         $plan = $validated['plan'];
+        $includeDocument = (bool) ($validated['include_document'] ?? false);
 
         $data = $this->graphql($actor, self::MUTATION, [
             'projectId' => isset($validated['project_id']) ? (string) $validated['project_id'] : null,
@@ -73,9 +77,20 @@ class ImportPlan extends Tool
             'appendOnly' => (bool) ($validated['append_only'] ?? false),
         ])['importPlan'];
 
-        $data['idMap'] = (object) array_column($data['idMap'], 'to', 'from');
-        $data['document'] = $data['document'] === null ? null : json_decode($data['document'], true, 512, JSON_THROW_ON_ERROR);
+        $payload = [
+            'ok' => $data['ok'],
+            'dryRun' => $data['dryRun'],
+            'projectId' => $data['projectId'],
+            'changes' => $data['changes'],
+            'errors' => $data['errors'],
+            'warnings' => $data['warnings'],
+            'idMap' => (object) array_column($data['idMap'], 'to', 'from'),
+        ];
 
-        return $data['ok'] ? ToolResult::json($data) : ToolResult::error(json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        if ($includeDocument && $data['document'] !== null) {
+            $payload['document'] = json_decode($data['document'], true, 512, JSON_THROW_ON_ERROR);
+        }
+
+        return $data['ok'] ? ToolResult::json($payload) : ToolResult::error(json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 }

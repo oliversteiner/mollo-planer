@@ -1,0 +1,26 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 4
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Mit "
+                },
+                {
+                    "type": "text",
+                    "text": "fett",
+                    "marks": [
+                        {
+                            "type": "bold"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * The author (user_id) is set from the logged-in user, never from input.
+ *
+ * @property array<string, mixed>|null $body
  */
 #[Fillable(['body'])]
 #[ObservedBy(CommentObserver::class)]

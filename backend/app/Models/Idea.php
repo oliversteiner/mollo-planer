@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * A private idea (docs/auftrag-m6.md §2): title, description, optionally a project and a draft (a planer-v2
  * excerpt). Only its author changes it; with ideas.viewAny others may read it. The author (user_id) comes from
  * the login, never from input.
+ *
+ * @property array<string, mixed>|null $description
+ * @property IdeaState $status
  */
 #[Fillable(['title', 'description', 'draft'])]
 class Idea extends Model

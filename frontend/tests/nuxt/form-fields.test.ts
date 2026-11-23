@@ -35,6 +35,55 @@ describe('FormInput', () => {
     expect(text.element.hasAttribute('placeholder')).toBe(false)
   })
 
+  it.each(['date', 'time', 'datetime-local', 'month', 'week'])('preserves an explicit placeholder for %s fields', async (type) => {
+    const input = await mountSuspended(FormInput, { attrs: { type, placeholder: 'Choose a value' } })
+
+    expect((input.element as HTMLElement & { placeholder: string }).placeholder).toBe('Choose a value')
+  })
+
+  it('toggles password visibility without changing the value', async () => {
+    const input = await mountSuspended(FormInput, { props: { modelValue: 'secret' }, attrs: { type: 'password' } })
+    const button = input.get('wa-button')
+
+    expect(field(input).type).toBe('password')
+    expect((button.element as HTMLElement & { type: string }).type).toBe('button')
+    expect(button.attributes('aria-label')).toBe('Passwort anzeigen')
+    expect((button.get('wa-icon').element as HTMLElement & { name: string }).name).toBe('eye')
+
+    await button.trigger('click')
+
+    expect(field(input).type).toBe('text')
+    expect(field(input).value).toBe('secret')
+    expect(button.attributes('aria-label')).toBe('Passwort verbergen')
+    expect((button.get('wa-icon').element as HTMLElement & { name: string }).name).toBe('eye-slash')
+
+    await button.trigger('click')
+
+    expect(field(input).type).toBe('password')
+    expect(field(input).value).toBe('secret')
+    expect(input.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  it('does not show a password toggle for other input types', async () => {
+    const input = await mountSuspended(FormInput, { attrs: { type: 'text' } })
+
+    expect(input.find('wa-button').exists()).toBe(false)
+  })
+
+  it('prevents the password toggle click from reaching the form', async () => {
+    const input = await mountSuspended(FormInput, { attrs: { type: 'password' } })
+    let bubbled = false
+    input.element.addEventListener('click', () => {
+      bubbled = true
+    })
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+
+    input.get('wa-button').element.dispatchEvent(click)
+
+    expect(click.defaultPrevented).toBe(true)
+    expect(bubbled).toBe(false)
+  })
+
   it('writes what the user types back with v-model', async () => {
     const input = await mountSuspended(FormInput, { props: { modelValue: '' } })
 
@@ -100,6 +149,12 @@ describe('FormSelect', () => {
     select.element.dispatchEvent(new Event('change'))
 
     expect(select.emitted('update:modelValue')).toEqual([['MEMBER']])
+  })
+
+  it('can disable the select', async () => {
+    const select = await mountSuspended(FormSelect, { props: { modelValue: '', items, disabled: true } })
+
+    expect((select.element as unknown as { disabled: boolean }).disabled).toBe(true)
   })
 })
 

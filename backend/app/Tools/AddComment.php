@@ -16,10 +16,10 @@ class AddComment extends Tool
 
     public function description(): string
     {
-        return 'Adds a comment to a task. text is Markdown with the small whitelist of the app (paragraphs, headings level 2 and 3, lists, quotes, bold, italic, inline code, links); anything else becomes plain text and is named in "warnings". The author is the account of your token. You need the right to comment on the task (the same as in the app). Use it for short notes on a task instead of files. Read them with list_comments.';
+        return 'Adds a Markdown comment to a task for short notes. Read comments via list_comments.';
     }
 
-    private const MUTATION = 'mutation ($input: AddCommentInput!) { addComment(input: $input) { id createdAt body author { name email isAgent } } }';
+    private const MUTATION = 'mutation ($input: AddCommentInput!) { addComment(input: $input) { id body createdAt author { name isAgent } } }';
 
     public function schema(): array
     {
@@ -49,20 +49,26 @@ class AddComment extends Tool
             return ToolResult::error('The comment is empty.');
         }
 
+        $taskNum = preg_replace('/^k-/', '', (string) $validated['task_id']);
         $comment = $this->graphql($actor, self::MUTATION, ['input' => [
-            'taskId' => preg_replace('/^k-/', '', (string) $validated['task_id']),
+            'taskId' => $taskNum,
             'body' => $result->doc,
         ]])['addComment'];
 
-        return ToolResult::json([
+        $payload = [
             'comment' => [
                 'id' => $comment['id'],
-                'task_id' => 'k-'.preg_replace('/^k-/', '', (string) $validated['task_id']),
+                'task_id' => "k-{$taskNum}",
+                'text' => TiptapToMarkdown::convert($comment['body']),
                 'author' => $comment['author'],
                 'created_at' => $comment['createdAt'],
-                'text' => TiptapToMarkdown::convert($comment['body']),
             ],
-            'warnings' => array_map(fn ($warning): array => $warning->toArray(), $result->warnings),
-        ]);
+        ];
+
+        if ($result->warnings !== []) {
+            $payload['warnings'] = array_map(fn ($warning): array => $warning->toArray(), $result->warnings);
+        }
+
+        return ToolResult::json($payload);
     }
 }

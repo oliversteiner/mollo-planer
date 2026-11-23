@@ -49,6 +49,15 @@ type Mutation @guard {
   deleteApiToken(id: ID!): ApiToken
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteApiToken")
 
+  "Erzeugt einen Zugang für ein Agent-Konto (nur Konten mit isAgent), 90 Tage gültig. Nur mit dem Recht users.manage und frischer Passwortbestätigung. Den Klartext gibt es nur in der Antwort; Protokolleintrag und Mail an die Admins."
+  createAgentToken(userId: ID!, name: String! @rules(apply: ["min:2", "max:60"])): NewApiToken!
+    @can(ability: "manageAgentAccess", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\CreateAgentToken")
+  "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
+  revokeAgentToken(userId: ID!, tokenId: ID!): ApiToken
+    @can(ability: "manageAgentAccess", model: "App\\Models\\User")
+    @field(resolver: "App\\GraphQL\\Mutations\\RevokeAgentToken")
+
   # Einstellungen der App: nur Admins.
   "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
   updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
@@ -178,6 +187,8 @@ type Mutation @guard {
     ideaId: ID
     "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
     appendOnly: Boolean = false
+    "Abbruch, wenn sich die Projekt-Revision seit dem Export geändert hat"
+    expectedRevision: Int
   ): ImportResult!
     @field(resolver: "App\\GraphQL\\Mutations\\ImportPlan")
   "KI-Assistent (assistant.use): der nächste Schritt eines Plans aus dem Chat, mit Rückfrage-Knöpfen und Vorschau (Trockenlauf mit appendOnly). Speichert nichts. Grenzen je Person und Stunde/Tag."
@@ -187,6 +198,8 @@ type Mutation @guard {
     projectId: ID
     "Die gewählte Vorlage eines neuen Projekts"
     templateId: ID
+    "Art des Elements, das angelegt werden soll; ohne Angabe plant der Assistent wie bisher automatisch"
+    targetKind: PlanTargetKind
     "Der Plan der Vorschau (kanonischer Text), damit Claude ihn ändert statt neu beginnt"
     currentPlan: String @rules(apply: ["max:400000"])
     "Die Idee, aus der der Plan entsteht"
@@ -324,4 +337,34 @@ type Mutation @guard {
   emptyProjectTrash(projectId: ID!): Int!
     @can(ability: "emptyTrash", find: "projectId", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Mutations\\TrashMutations@emptyProjectTrash")
+
+  # Dokumente (docs/dokumentenverwaltung.md §8.1). Owner und updatedBy kommen aus der Anmeldung.
+  "Legt ein Dokument an (document.create im Projekt). Der Owner bist du."
+  createDocument(input: CreateDocumentInput!): Document!
+    @can(ability: "createDocument", find: "input.projectId", model: "App\\Models\\Project")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@create")
+  "Ändert Titel, Art und Inhalt (Stufe EDIT und document.update). revision ist die geladene; weicht sie ab, kommt DOCUMENT_CONFLICT und nichts wird gesichert. Ohne Änderung entsteht keine neue Fassung."
+  updateDocument(id: ID!, revision: Int!, input: UpdateDocumentInput!): Document!
+    @can(ability: "update", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@update")
+  "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+  exportDocumentPdf(id: ID!): DocumentFile!
+    @can(ability: "view", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@exportPdf")
+  "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."
+  restoreDocumentVersion(id: ID!, revision: Int!): Document!
+    @can(ability: "update", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@restoreVersion")
+  "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
+  setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
+    @can(ability: "manage", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@setSharing")
+  "Übergibt das Dokument an ein anderes Projektmitglied (Stufe MANAGE)"
+  transferDocument(id: ID!, ownerId: ID!): Document!
+    @can(ability: "manage", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@transfer")
+  "Legt das Dokument in den Papierkorb (Stufe MANAGE). deletionId für „Rückgängig“ (restoreFromTrash)."
+  deleteDocument(id: ID!): Document!
+    @can(ability: "delete", find: "id", model: "App\\Models\\Document")
+    @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@delete")
 }

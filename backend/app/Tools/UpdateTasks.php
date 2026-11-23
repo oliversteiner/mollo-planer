@@ -15,22 +15,22 @@ class UpdateTasks extends Tool
 
     public function description(): string
     {
-        return 'Sets status, commit and/or assigneeEmail of several tasks in one step (the usual work of an agent). tasks: a list of { id (k-<id>), status?, commit?, assigneeEmail? }; what you leave out stays, null clears commit or assignee. All or nothing, with your rights and the rules of the app (commit when done in a released version, assignee must be a member). base_revision (from export_plan) protects against changes made meanwhile: if the plan moved on, nothing is written. dry_run: true shows the result without writing. Needs the rights to export and import the plan. For anything else (titles, new tasks, structure) use import_plan.';
+        return 'Sets status, commit and/or assigneeEmail of tasks in one atomic step. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. Use base_revision (from export_plan) against concurrent edits and dry_run: true first.';
     }
 
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Id of the project (from list_projects).'),
-            'base_revision' => Schema::integer('The revision you worked on (from export_plan). If the plan has another revision now, nothing is written.'),
+            'project_id' => Schema::string('Project ID (from list_projects).'),
+            'base_revision' => Schema::integer('Required revision from export_plan; aborts if project changed meanwhile.'),
             'tasks' => Schema::list(Schema::object([
-                'id' => Schema::string('Task id, k-<id> or the number.'),
+                'id' => Schema::string('Task ID (k-<id> or number).'),
                 'status' => Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']),
                 'commit' => Schema::string('Commit hash, "none", or null to clear.'),
-                'assigneeEmail' => Schema::string('E-mail of a member of the project, or null for nobody.'),
-            ], null, ['id']), 'The tasks to change, up to 500.'),
-            'dry_run' => Schema::boolean('true: write nothing, show what would change.'),
-        ], ['project_id', 'tasks']);
+                'assigneeEmail' => Schema::string('Member email, or null to unassign.'),
+            ], null, ['id']), 'Tasks to update (max 500).'),
+            'dry_run' => Schema::boolean('true: preview changes without writing.'),
+        ], ['project_id', 'base_revision', 'tasks']);
     }
 
     /**
@@ -42,7 +42,7 @@ class UpdateTasks extends Tool
             $arguments,
             [
                 'project_id' => ['required'],
-                'base_revision' => ['sometimes', 'nullable', 'integer'],
+                'base_revision' => ['required', 'integer'],
                 'tasks' => ['required', 'array', 'min:1', 'max:500'],
                 'tasks.*.id' => ['required'],
                 'tasks.*.status' => ['sometimes', 'in:idea,planned,open,in_progress,review,done'],
@@ -51,9 +51,10 @@ class UpdateTasks extends Tool
                 'dry_run' => ['sometimes', 'boolean'],
             ],
             [
-                'project_id.required' => 'Give the project_id, for example from list_projects.',
-                'tasks.required' => 'Give tasks: a list of { id, status?, commit?, assigneeEmail? }.',
-                'tasks.*.status.in' => 'status is one of idea, planned, open, in_progress, review, done.',
+                'project_id.required' => 'Give project_id (from list_projects).',
+                'base_revision.required' => 'Give base_revision from export_plan.',
+                'tasks.required' => 'Give tasks: [{ id, status?, commit?, assigneeEmail? }].',
+                'tasks.*.status.in' => 'status must be idea, planned, open, in_progress, review or done.',
             ],
         );
 
@@ -62,8 +63,8 @@ class UpdateTasks extends Tool
                 $actor,
                 (string) $validated['project_id'],
                 $validated['tasks'],
+                (int) $validated['base_revision'],
                 (bool) ($validated['dry_run'] ?? false),
-                isset($validated['base_revision']) ? (int) $validated['base_revision'] : null,
             ));
         } catch (PlanTaskUpdatesRefused $refused) {
             return ToolResult::error($refused->getMessage());

@@ -22,9 +22,11 @@ const tabs = computed(() => {
     { label: t('project.tabs.milestones'), to: base, exact: true },
     { label: t('project.tabs.todos'), to: `${base}/todos` },
     { label: t('project.tabs.tasks'), to: `${base}/kanban` },
+    { label: t('project.tabs.documents'), to: `${base}/documents` },
     { label: t('project.tabs.members'), to: `${base}/members` },
-    ...(props.withTrash ? [{ label: t('project.tabs.trash'), to: `${base}/trash` }] : []),
-    ...(props.withSettings ? [{ label: t('project.tabs.settings'), to: `${base}/settings` }] : [])
+    { label: t('project.tabs.statistics'), to: `${base}/statistics` },
+    ...(props.withSettings ? [{ label: t('project.tabs.settings'), to: `${base}/settings` }] : []),
+    ...(props.withTrash ? [{ label: t('project.tabs.trash'), to: `${base}/trash` }] : [])
   ]
 })
 

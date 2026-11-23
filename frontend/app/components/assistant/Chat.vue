@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PlanTargetKind } from '~/graphql/generated/graphql'
 /**
  * Chat with the AI assistant: messages, a text field with voice input
  * and a send button. Enter sends, Shift+Enter makes a new line.
@@ -27,15 +28,26 @@ const props = defineProps<{
   canReset?: boolean
   /** Buttons of the last answer (docs/auftrag-m6.md §4.1) */
   choices?: readonly ChatChoice[]
+  targetKind?: PlanTargetKind | null
+  targetKindLocked?: boolean
 }>()
 
 const emit = defineEmits<{
-  send: [text: string]
-  reset: []
-  choose: [choice: ChatChoice]
+  'send': [text: string]
+  'reset': []
+  'choose': [choice: ChatChoice]
+  'update:targetKind': [targetKind: PlanTargetKind | null]
 }>()
 
 const { t, localeProperties } = useI18n()
+
+const targetKindItems = computed(() => [
+  { label: t('assistant.chat.targetAutomatic'), value: '' },
+  { label: t('assistant.chat.targetMilestone'), value: 'MILESTONE' },
+  { label: t('assistant.chat.targetTodo'), value: 'TODO' },
+  { label: t('assistant.chat.targetTask'), value: 'TASK' },
+  { label: t('assistant.chat.targetIdea'), value: 'IDEA' }
+])
 
 const input = ref('')
 const list = ref<HTMLElement | null>(null)
@@ -168,6 +180,14 @@ watch(() => [props.messages.length, props.pending], async () => {
         class="chat-column wa-stack wa-gap-xs"
         @submit.prevent="send"
       >
+        <FormSelect
+          :model-value="targetKind ?? ''"
+          :items="targetKindItems"
+          :label="t('assistant.chat.targetKind')"
+          :hint="t('assistant.chat.targetHint')"
+          :disabled="targetKindLocked || pending"
+          @update:model-value="emit('update:targetKind', $event ? $event as PlanTargetKind : null)"
+        />
         <FormTextarea
           v-model="shown"
           :placeholder="speech.listening.value ? t('assistant.chat.listening') : t('assistant.chat.placeholder')"

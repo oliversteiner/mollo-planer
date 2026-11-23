@@ -13,7 +13,7 @@ class ListProjects extends Tool
 
     public function description(): string
     {
-        return 'Lists the projects you can see, with your role, what you may do there (abilities), the progress and the members (name, e-mail, role). Use it first to find a project id or the people of a project. Archived projects (read only) are left out unless you ask for them with archived: true.';
+        return 'Lists visible projects compactly (id, name, progress, role). Set include_members or include_rights only when needed. Default archived: false.';
     }
 
     public function readOnly(): bool
@@ -24,7 +24,9 @@ class ListProjects extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'archived' => Schema::boolean('true: only archived projects (read only). Default false: the others.'),
+            'archived' => Schema::boolean('true: only archived projects (read only). Default false.'),
+            'include_members' => Schema::boolean('true: include project members. Default false to save tokens.'),
+            'include_rights' => Schema::boolean('true: include viewerRights in project. Default false to save tokens.'),
         ]);
     }
 
@@ -32,10 +34,48 @@ class ListProjects extends Tool
     {
         $validated = $this->validate(
             $arguments,
-            ['archived' => ['sometimes', 'boolean']],
-            ['archived.boolean' => 'archived is true (only archived projects) or false (the others, default).'],
+            [
+                'archived' => ['sometimes', 'boolean'],
+                'include_members' => ['sometimes', 'boolean'],
+                'include_rights' => ['sometimes', 'boolean'],
+            ],
+            ['archived.boolean' => 'archived must be true or false.'],
         );
 
-        return ToolResult::json($this->operation($actor, 'ListProjects', ['archived' => (bool) ($validated['archived'] ?? false)])['projects'] ?? []);
+        $includeMembers = (bool) ($validated['include_members'] ?? false);
+        $includeRights = (bool) ($validated['include_rights'] ?? false);
+
+        $projects = $this->operation($actor, 'ListProjects', [
+            'archived' => (bool) ($validated['archived'] ?? false),
+            'includeMembers' => $includeMembers,
+            'includeRights' => $includeRights,
+        ])['projects'] ?? [];
+
+        return ToolResult::json(array_map(function (array $project) use ($includeMembers, $includeRights): array {
+            $item = [
+                'id' => $project['id'] ?? null,
+                'name' => $project['name'] ?? null,
+                'locale' => $project['locale'] ?? null,
+                'archived_at' => $project['archivedAt'] ?? null,
+                'planer_revision' => $project['planerRevision'] ?? null,
+                'progress' => $project['progress'] ?? null,
+                'role' => $project['viewerRole']['key'] ?? null,
+            ];
+
+            if ($includeMembers && isset($project['members'])) {
+                $item['members'] = array_map(fn (array $member): array => [
+                    'id' => $member['user']['id'] ?? null,
+                    'name' => $member['user']['name'] ?? null,
+                    'email' => $member['user']['email'] ?? null,
+                    'role' => $member['role']['key'] ?? null,
+                ], $project['members']);
+            }
+
+            if ($includeRights && isset($project['viewerRights'])) {
+                $item['abilities'] = $project['viewerRights'];
+            }
+
+            return $item;
+        }, $projects));
     }
 }

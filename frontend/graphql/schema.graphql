@@ -41,6 +41,15 @@ type Comment {
  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
  viewerCanEdit: Boolean!
 }
+input CreateDocumentInput {
+ "Der Inhalt aus dem Editor. Der Server prüft das Profil «Dokument» (höchstens 200 000 Zeichen Markdown) und schreibt Markdown."
+ contentJson: RichText!
+ kind: DocumentKind = OTHER
+ "NONE, READ oder EDIT; Standard READ"
+ projectAccess: DocumentAccess = READ
+ projectId: ID!
+ title: String!
+}
 input CreateIdeaInput {
  description: RichText
  "Entwurf: ein planer-v2-Ausschnitt als Text. Wird gegen das Schema geprüft und kanonisch gespeichert."
@@ -129,6 +138,91 @@ type Dashboard {
 scalar Date
 "Zeitpunkt, Format ISO 8601"
 scalar DateTime
+"Ein Dokument eines Projekts (Vorgehensweise, Protokoll, Analyse …). Gespeichert als Markdown, geschrieben und gelesen als TipTap-JSON."
+type Document {
+ "Markdown in der kanonischen Form. Nur in der Einzelabfrage verlangen: die Liste lädt es nicht aus der Datenbank (pro Zeile eine Abfrage mehr)."
+ content: String!
+ "Derselbe Inhalt als TipTap-JSON für den Editor und den Lesemodus. Nur in der Einzelabfrage verlangen."
+ contentJson: RichText!
+ createdAt: DateTime!
+ "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
+ deletionId: ID
+ id: ID!
+ kind: DocumentKind!
+ "null, wenn die Person das Projekt verlassen hat oder gelöscht wurde. Dann verwaltet, wer alle Dokumente verwalten darf."
+ owner: User
+ project: Project!
+ "Stufe für alle Projektmitglieder: NONE, READ oder EDIT"
+ projectAccess: DocumentAccess!
+ "Zählt bei jedem Sichern hoch; updateDocument verlangt die geladene Revision (Konflikt: DOCUMENT_CONFLICT)"
+ revision: Int!
+ "Freigaben je Person. Nur mit viewerAccess MANAGE sichtbar, sonst leer."
+ shares: [DocumentShare!]!
+ title: String!
+ updatedAt: DateTime!
+ updatedBy: User
+ "Die gesicherten Fassungen, neueste zuerst, ohne Inhalt (den liefert documentVersion). Wer das Dokument lesen darf, sieht sie."
+ versions: [DocumentVersion!]!
+ "Die wirksame Stufe der angemeldeten Person, mit dem Recht document.update schon verrechnet. Das Frontend rechnet sie nie selbst."
+ viewerAccess: DocumentAccess!
+}
+"Wie weit eine Person in ein Dokument reicht. MANAGE gibt es nur als viewerAccess (Owner und wer alle Dokumente verwaltet); gespeichert werden NONE, READ und EDIT."
+enum DocumentAccess {
+ EDIT
+ MANAGE
+ NONE
+ READ
+}
+"Eine erzeugte Datei zum Herunterladen"
+type DocumentFile {
+ "Der Inhalt der Datei, Base64"
+ contentBase64: String!
+ fileName: String!
+ mimeType: String!
+}
+"Feste Arten eines Dokuments"
+enum DocumentKind {
+ ANALYSIS
+ CONCEPT
+ MINUTES
+ OTHER
+ PROCEDURE
+}
+"Freigabe eines Dokuments an eine Person"
+type DocumentShare {
+ access: DocumentShareAccess!
+ user: User!
+}
+"Stufe einer Freigabe an eine Person"
+enum DocumentShareAccess {
+ EDIT
+ READ
+}
+input DocumentShareInput {
+ access: DocumentShareAccess!
+ "Muss Mitglied des Projekts sein"
+ userId: ID!
+}
+"Die Stufe für alle Mitglieder und die Freigaben je Person. Eine genannte Liste ersetzt die bisherige; ohne Angabe bleibt sie."
+input DocumentSharingInput {
+ projectAccess: DocumentAccess
+ shares: [DocumentShareInput!]
+}
+"Eine gesicherte Fassung eines Dokuments. Fassungen werden nie geändert und nie einzeln gelöscht."
+type DocumentVersion {
+ "Markdown dieser Fassung. Nur in documentVersion verlangen: die Liste der Fassungen lädt es nicht."
+ content: String!
+ "Alle Personen, die an dieser Fassung mitgewirkt haben. In dieser Stufe nur die Person, die gesichert hat."
+ contributors: [User!]!
+ createdAt: DateTime!
+ "Wer gesichert hat (null, wenn die Person gelöscht wurde)"
+ createdBy: User
+ kind: DocumentKind!
+ "Die Revision, aus der diese Fassung durch Zurückholen entstand, sonst null"
+ restoredFrom: Int
+ revision: Int!
+ title: String!
+}
 "Eine private Idee. Nur die Autorin oder der Autor ändert sie; wer ideas.viewAny hat, liest alle."
 type Idea {
  adoptedAt: DateTime
@@ -211,6 +305,14 @@ type ImportResult {
  ok: Boolean!
  "Das Projekt (bei einem neuen erst nach dem Eintragen, nicht im Trockenlauf)"
  projectId: ID
+ "Zuweisungen, die wegfallen (unbekannte oder nicht zugehörige Person); der Import läuft trotzdem weiter"
+ warnings: [ImportWarning!]!
+}
+type ImportWarning {
+ email: String!
+ message: String!
+ "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]"
+ path: String!
 }
 "Status von Milestone und ToDo (wird automatisch berechnet)"
 enum ItemStatus {
@@ -320,6 +422,20 @@ type Milestone {
  title: String!
  todos: [Todo!]!
 }
+type MilestoneCounts {
+ planned: Int!
+ released: Int!
+ total: Int!
+ "Milestones ohne Version"
+ unversioned: Int!
+}
+type MilestoneStatistics {
+ milestone: Milestone!
+ progress: Progress!
+ "Alle Tasks, Ideen eingeschlossen"
+ tasks: Int!
+ todos: Int!
+}
 type Mutation {
  addComment(input: AddCommentInput!): Comment!
  "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
@@ -332,8 +448,12 @@ type Mutation {
  assignTask(assigneeId: ID, id: ID!): Task!
  "Löscht den ganzen KI-Kontext"
  clearProjectAiContext(projectId: ID!): Project!
+ "Erzeugt einen Zugang für ein Agent-Konto (nur Konten mit isAgent), 90 Tage gültig. Nur mit dem Recht users.manage und frischer Passwortbestätigung. Den Klartext gibt es nur in der Antwort; Protokolleintrag und Mail an die Admins."
+ createAgentToken(name: String!, userId: ID!): NewApiToken!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
+ "Legt ein Dokument an (document.create im Projekt). Der Owner bist du."
+ createDocument(input: CreateDocumentInput!): Document!
  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
  createIdea(input: CreateIdeaInput!): Idea!
  createMilestone(input: CreateMilestoneInput!): Milestone!
@@ -355,6 +475,8 @@ type Mutation {
  "Widerruft einen eigenen Zugang für Claude. null, wenn es ihn nicht (mehr) gibt."
  deleteApiToken(id: ID!): ApiToken
  deleteComment(id: ID!): Comment!
+ "Legt das Dokument in den Papierkorb (Stufe MANAGE). deletionId für „Rückgängig“ (restoreFromTrash)."
+ deleteDocument(id: ID!): Document!
  "Löscht eine eigene Idee in den Papierkorb"
  deleteIdea(id: ID!): Idea!
  deleteMilestone(id: ID!): Milestone!
@@ -379,6 +501,8 @@ type Mutation {
  messages: [PlanChatMessageInput!]!
  "Das Projekt, zu dem ergänzt wird; ohne: neues Projekt oder noch offen"
  projectId: ID
+ "Art des Elements, das angelegt werden soll; ohne Angabe plant der Assistent wie bisher automatisch"
+ targetKind: PlanTargetKind
  "Die gewählte Vorlage eines neuen Projekts"
  templateId: ID
  ): PlanDraft!
@@ -390,12 +514,16 @@ type Mutation {
  duplicateTemplate(id: ID!): Template!
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
+ "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+ exportDocumentPdf(id: ID!): DocumentFile!
  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
  importPlan(
  "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
  appendOnly: Boolean = false
  document: String!
  dryRun: Boolean = false
+ "Abbruch, wenn sich die Projekt-Revision seit dem Export geändert hat"
+ expectedRevision: Int
  "Die Idee, aus der die Datei entstand (nur die Autorin): danach angenommen, ihre neuen ToDos verweisen auf sie"
  ideaId: ID
  mode: ImportMode = FULL
@@ -428,10 +556,16 @@ type Mutation {
  resetRoleFunction(id: ID!): RoleFunction!
  "Entfernt 2FA-Gerät und Passkeys (zum Beispiel bei verlorenem Gerät). Beim nächsten Login wird ein neuer zweiter Faktor eingerichtet."
  resetUserTwoFactor(id: ID!): User!
+ "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."
+ restoreDocumentVersion(id: ID!, revision: Int!): Document!
  "Holt einen Vorgang aus dem Papierkorb zurück (ans Ende der Liste bzw. Spalte). Abgelehnt, solange ein Elternteil im Papierkorb liegt. Gibt den Eintrag zurück, wie er im Papierkorb stand."
  restoreFromTrash(deletionId: ID!): TrashItem!
+ "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
+ revokeAgentToken(tokenId: ID!, userId: ID!): ApiToken
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
+ "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
+ setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
  "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
  setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
  "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
@@ -446,11 +580,15 @@ type Mutation {
  setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
  "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
  testProjectWebhook(projectId: ID!): WebhookTestResult!
+ "Übergibt das Dokument an ein anderes Projektmitglied (Stufe MANAGE)"
+ transferDocument(id: ID!, ownerId: ID!): Document!
  "Holt ein archiviertes Projekt zurück."
  unarchiveProject(id: ID!): Project!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ "Ändert Titel, Art und Inhalt (Stufe EDIT und document.update). revision ist die geladene; weicht sie ab, kommt DOCUMENT_CONFLICT und nichts wird gesichert. Ohne Änderung entsteht keine neue Fassung."
+ updateDocument(id: ID!, input: UpdateDocumentInput!, revision: Int!): Document!
  "Ändert eine eigene Idee"
  updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
@@ -584,6 +722,13 @@ type PlanDraft {
  reply: String!
  templateId: ID
 }
+"Art des Elements, das die Person anlegen will"
+enum PlanTargetKind {
+ IDEA
+ MILESTONE
+ TASK
+ TODO
+}
 "Fortschritt, berechnet aus den Tasks. Wird nicht gespeichert."
 type Progress {
  done: Int!
@@ -597,6 +742,8 @@ type Project {
  aiContext: ProjectAiContext
  "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
  archivedAt: DateTime
+ "Anzahl Milestones, ToDos und Tasks (alle Status, Ideen eingeschlossen; Papierkorb nicht), für die Karte in der Projektliste. Alle Projekte einer Liste werden zusammen gezählt."
+ counts: ProjectCounts!
  createdAt: DateTime!
  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
  deletionId: ID
@@ -643,6 +790,12 @@ input ProjectAiContextInput {
  "Der Text; leer entfernt ihn (die Datei bleibt)"
  text: String!
 }
+"Anzahl Milestones, ToDos und Tasks eines Projekts"
+type ProjectCounts {
+ milestones: Int!
+ tasks: Int!
+ todos: Int!
+}
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
  role: Role!
@@ -658,6 +811,31 @@ input ProjectMemberInput {
 type ProjectRightRow {
  right: Right!
  roles: [Role!]!
+}
+"Die Zahlen der Seite Statistik. Offen heisst: weder erledigt noch eine Idee (wie beim Fortschritt). Prozent sind ganze Zahlen, gerundet wie beim Fortschritt."
+type ProjectStatistics {
+ "Kommentare an Tasks des Projekts"
+ comments: Int!
+ "Erledigte Tasks je Woche (ab Montag) der letzten 12 Wochen, die älteste zuerst, auch Wochen mit 0. Tasks, die vor der Erfassung des Zeitpunkts erledigt wurden, haben keinen Zeitpunkt und fehlen."
+ doneByWeek: [WeekCount!]!
+ "Offene Tasks nach Fälligkeit"
+ due: TaskDueCounts!
+ milestones: MilestoneCounts!
+ "Je Milestone eine Zeile in der Reihenfolge des Plans"
+ perMilestone: [MilestoneStatistics!]!
+ "Anteil erledigter Tasks, gleiche Zählung wie Project.progress"
+ progress: Progress!
+ "Alle Tasks, Ideen eingeschlossen"
+ tasks: Int!
+ "Alle Labels des Projekts in ihrer Reihenfolge, auch mit 0; zuletzt die Tasks ohne Label (label null)"
+ tasksByLabel: [TaskLabelCount!]!
+ "Offene und erledigte Tasks je zugewiesener Person, die meisten offenen zuerst; zuletzt die nicht zugewiesenen (user null)"
+ tasksByPerson: [TaskPersonCount!]!
+ "Je Status eine Zeile, in der Reihenfolge des Boards, auch mit 0"
+ tasksByStatus: [TaskStatusCount!]!
+ todos: Int!
+ "Tasks mit Commit"
+ withCommit: Int!
 }
 "Wohin die App meldet, dass die Planer-Datei eine neue Revision hat. Das Geheimnis (Token oder HMAC-Geheimnis) gibt kein Feld zurück."
 type ProjectWebhook {
@@ -685,6 +863,12 @@ type Query {
  appSettings: AppSettings!
  "Startseite"
  dashboard: Dashboard!
+ "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
+ document(id: ID!): Document
+ "Eine Fassung mit ihrem Inhalt, oder null, wenn es sie nicht gibt oder du das Dokument nicht lesen darfst"
+ documentVersion(documentId: ID!, revision: Int!): DocumentVersion
+ "Die Dokumente eines Projekts, die du lesen darfst, zuletzt geändert zuerst. Die Liste lädt den Inhalt nicht. search sucht in Titel und Inhalt."
+ documents(kind: DocumentKind, projectId: ID!, search: String): [Document!]!
  "Die Planer-Datei (planer-v2) des Projekts als kanonischer Text (Recht planer.export, auch im Archiv). Mit einem Filter ist sie ein Ausschnitt (excerpt: true), den der Import im Modus FULL ablehnt. Der Papierkorb fehlt, die Revision ändert sich nicht. Ein Projekt, das eine Grenze des Formats verletzt (siehe `php artisan planer:check-limits`), meldet die Stellen als Fehler."
  exportPlan(
  "false: veröffentlichte Milestones weglassen"
@@ -723,6 +907,8 @@ type Query {
  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
  permissionMatrix: PermissionMatrix!
  project(id: ID!): Project
+ "Die Zahlen der Seite Statistik eines Projekts. Gezählt wird in der Datenbank; Elemente im Papierkorb zählen nicht. Wer das Projekt sehen darf, sieht sie (auch archiviert); sonst eine Ablehnung."
+ projectStatistics(projectId: ID!): ProjectStatistics!
  "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
  projects(archived: Boolean = false): [Project!]!
  "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
@@ -775,6 +961,9 @@ enum Right {
  COMMENT_CREATE
  COMMENT_MODERATE
  DATABASE_VIEW
+ DOCUMENT_CREATE
+ DOCUMENT_MANAGE_ANY
+ DOCUMENT_UPDATE
  IDEAS_CREATE
  IDEAS_VIEW_ANY
  MEMBERS_MANAGE
@@ -897,6 +1086,21 @@ type Task {
  "Darf die angemeldete Person den Task ändern? Auch mit task.updateOwn beim selbst angelegten Task."
  viewerCanUpdate: Boolean!
 }
+"Offene Tasks: überfällig, fällig in den nächsten 7 Tagen (heute eingeschlossen) und ohne Datum"
+type TaskDueCounts {
+ overdue: Int!
+ soon: Int!
+ undated: Int!
+}
+type TaskLabelCount {
+ count: Int!
+ label: Label
+}
+type TaskPersonCount {
+ done: Int!
+ open: Int!
+ user: User
+}
 "Spalten im Kanban-Board"
 enum TaskStatus {
  DONE
@@ -905,6 +1109,12 @@ enum TaskStatus {
  OPEN
  PLANNED
  REVIEW
+}
+type TaskStatusCount {
+ count: Int!
+ "Anteil an allen Tasks in Prozent"
+ percent: Int!
+ status: TaskStatus!
 }
 "Eine Vorlage für Projekte: Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks. Alle Angemeldeten sehen alle Vorlagen."
 type Template {
@@ -1020,6 +1230,7 @@ type TrashItem {
 "Art eines Elements im Papierkorb"
 enum TrashItemType {
  COMMENT
+ DOCUMENT
  IDEA
  MILESTONE
  PROJECT
@@ -1037,6 +1248,12 @@ enum Trashed {
 }
 input UpdateCommentInput {
  body: RichText!
+}
+"Nur die genannten Felder ändern sich."
+input UpdateDocumentInput {
+ contentJson: RichText
+ kind: DocumentKind
+ title: String
 }
 "Nur die genannten Felder ändern sich; null leert Beschreibung, Projekt und Entwurf."
 input UpdateIdeaInput {
@@ -1109,7 +1326,7 @@ scalar Upload
 type User {
  "Tätigkeit, zum Beispiel Designer. Nur zur Anzeige."
  activity: UserActivity
- "Deine Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst, sonst null."
+ "Zugänge für Claude (MCP), neueste zuerst. Nur für dich selbst; bei einem Agent-Konto auch für Admins (users.manage), sonst null. Nie der Wert."
  apiTokens: [ApiToken!]
  "Hat ein Admin das Konto freigegeben? Selbst registrierte Konten warten, bis ein Admin es freigibt."
  approved: Boolean!
@@ -1169,5 +1386,10 @@ enum WebhookKind {
 type WebhookTestResult {
  message: String!
  ok: Boolean!
+}
+type WeekCount {
+ count: Int!
+ "Montag der Woche"
+ weekStart: Date!
 }
 

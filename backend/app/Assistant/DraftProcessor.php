@@ -66,7 +66,7 @@ class DraftProcessor
         $this->targets = [];
 
         $reply = Str::limit(trim((string) ($answer['reply'] ?? '')), 4000);
-        $choices = PlanChoices::clean((array) ($answer['choices'] ?? []), $request->viewer, $request->project);
+        $choices = PlanChoices::clean((array) ($answer['choices'] ?? []), $request->viewer, $request->project, $request->targetKind);
         $template = $this->template($request);
         $result = ['reply' => $reply, 'choices' => $choices, 'plan' => null, 'projectId' => $request->project?->getKey(), 'templateId' => $template?->getKey(), 'preview' => null, 'hints' => []];
 
@@ -86,7 +86,7 @@ class DraftProcessor
 
         $preview = $this->import->run($request->project, $document, ImportMode::Partial, true, false, $request->viewer, true, $template?->getKey());
 
-        $choices = PlanChoices::clean([...$choices, ...$this->extraChoices], $request->viewer, $request->project);
+        $choices = PlanChoices::clean([...$choices, ...$this->extraChoices], $request->viewer, $request->project, $request->targetKind);
 
         return [...$result, 'choices' => $choices, 'plan' => Canonical::text($document), 'preview' => $preview->forGraphQL(), 'hints' => $this->hints];
     }

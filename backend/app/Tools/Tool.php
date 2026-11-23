@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Tools\Support\GraphQLFailed;
 use App\Tools\Support\GraphQLRunner;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -57,7 +58,7 @@ abstract class Tool
         try {
             return $this->handle($actor, $arguments);
         } catch (GraphQLFailed $failure) {
-            return ToolResult::error($failure->getMessage());
+            return ToolResult::error(Str::limit($failure->getMessage(), 400));
         }
     }
 

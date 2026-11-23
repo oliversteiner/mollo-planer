@@ -1,6 +1,6 @@
 # Claude anbinden: der Connector für Mollo Planer
 
-> **Stand (Release 1.0, 2026-11-18):** Der Connector hat elf Werkzeuge. Einen Plan liest `export_plan` (auch nur einen Ausschnitt) und schreibt `import_plan`; für die häufigste Arbeit von Agenten kommt `update_tasks` dazu, für Rückmeldungen an einer Aufgabe `add_comment` und `list_comments`; dazu `list_projects`, `list_users`, `list_templates`, `create_idea`, `list_ideas` und `get_project_ai_context`. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
+> **Stand (MCP-Korrekturen, 2026-11-22):** Der Connector hat zwölf Werkzeuge. Einen Plan liest `export_plan` (auch nur einen Ausschnitt) und schreibt `import_plan`; für die häufigste Arbeit von Agenten kommt `update_tasks` dazu, für Rückmeldungen an einer Aufgabe `add_comment` und `list_comments`; dazu `list_projects`, `list_users`, `list_templates`, `create_idea`, `list_ideas`, `get_project_ai_context` und `get_project_statistics`. Listen lassen sich mit Cursor fortsetzen; lange Texte werden mit Offsets vollständig abgerufen. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
 
 Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang einrichtest und was dabei passiert. Die Einrichtung in einem Satz: Im Profil einen Zugang erzeugen und die Konfiguration in Claude Desktop oder Claude Code eintragen.
 
@@ -8,7 +8,7 @@ Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang ei
 
 ## Überblick
 
-Claude spricht mit dem Backend über das **Model Context Protocol (MCP)**. Der Server heißt „Mollo Planer“ und läuft unter `https://api.planer.mollo.dev/mcp` (lokal `http://localhost:8000/mcp`).
+Claude spricht per JSON-RPC `POST` mit dem Backend über das **Model Context Protocol (MCP)**. Die TEST-API ist `https://api.planer.mollo.dev/mcp`, die PROD-API `https://api.planer.mollo.ch/mcp` (lokal `http://localhost:8000/mcp`). Verwende immer die zur Umgebung passende Adresse.
 
 Der Zugang funktioniert so:
 
@@ -26,11 +26,11 @@ Claude sieht also nur, was du in der App auch sehen würdest, und kann nur ände
 |---|---|---|
 | Route | `backend/routes/ai.php` | Registriert den MCP-Server unter `/mcp`, mit Anmeldung, Token-Prüfung und Drosselung |
 | Server | `backend/app/Mcp/Servers/MolloPlanerServer.php` | Bietet die Werkzeuge des Registers an und enthält die Regeln für Claude |
-| Werkzeuge | `backend/app/Tools/*.php` | Jedes Werkzeug einmal beschrieben: Name, Beschreibung, Eingabe-Schema, Handler mit Person und Argumenten (`Tool`, `Schema`, `ToolResult`) |
+| Werkzeuge | `backend/app/Tools/*.php` | Die zwölf Werkzeuge (Pläne lesen und ändern, Kommentare, Ideen, KI-Kontext, Statistik), jedes einmal beschrieben: Name, Beschreibung, Eingabe-Schema, Handler mit Person und Argumenten (`Tool`, `Schema`, `ToolResult`) |
 | Register | `backend/app/Tools/ToolRegistry.php` | Die Liste aller Werkzeuge an einer Stelle; beide Adapter lesen sie |
 | Adapter MCP | `backend/app/Mcp/ToolAdapter.php` | Ein dünner Adapter für alle Werkzeuge (Laravel MCP) |
 | Adapter Assistent | `backend/app/Assistant/ToolBridge.php` | Werkzeuge im Format von Claude-Tool-Use und Ausführung eines Aufrufs als gegebene Person (noch nicht im Assistenten eingebaut) |
-| Dienste | `backend/app/Services/{PlanTaskUpdates,TaskCommentListing,UserDirectory}.php` | Die Logik, die ein Werkzeug nicht selbst trägt |
+| Dienste | `backend/app/Services/PlanTaskUpdates.php` | Die Logik von `update_tasks`, die das Werkzeug nicht selbst trägt; Zeiger (Cursor) und Textstücke liegen in `backend/app/Tools/Support/{McpCursor,McpText}.php` |
 | Token-Prüfung | `backend/app/Http/Middleware/EnsureMcpToken.php` | Lässt nur Zugänge mit der Fähigkeit `mcp` zu |
 | Token-Regeln | `backend/app/Support/McpTokens.php` | Name der Fähigkeit und Gültigkeit der Zugänge |
 | Oberfläche | `frontend/app/components/profile/ClaudeAccessCard.vue` | Zugang erzeugen, anzeigen, widerrufen, Konfiguration kopieren |
@@ -44,7 +44,7 @@ Die Werkzeuge laufen im Namen der Person durch dasselbe GraphQL-Schema wie die O
 
 ### Für Agenten: ein eigenes Konto
 
-Ein Agent (Claude im Projekt, ein Assistent) benutzt **nicht** das Konto einer Person mit, sondern hat ein eigenes **Agent-Konto**: Es ist Mitglied im Projekt mit der Projektrolle «Agent», hat keinen Zugang zur Oberfläche (keine Anmeldung, nur das Token) und erscheint in der App mit dem Kennzeichen «Agent», auch an Kommentaren und Zuweisungen. Die Konten legt Oliver an (Befehle `app:create-agent` und `app:user-token` auf dem Server, siehe `docs/deploy-template.md`, Abschnitt «Agent-Konten»). Das Token erscheint einmal und gehört nur in die Einstellung des Connectors.
+Ein Agent (Claude im Projekt, ein Assistent) benutzt **nicht** das Konto einer Person mit, sondern hat ein eigenes **Agent-Konto**: Es ist Mitglied im Projekt mit der Projektrolle «Agent», hat keinen Zugang zur Oberfläche (keine Anmeldung, nur das Token) und erscheint in der App mit dem Kennzeichen «Agent», auch an Kommentaren und Zuweisungen. Die Konten legt Oliver an (Befehl `app:create-agent` auf dem Server). Den Zugang (das Token) macht ein Admin entweder in der App unter Admin → Benutzer (Bereich «Zugänge» beim Agenten, nach Passwortbestätigung) oder per `app:user-token` auf dem Server; siehe `docs/deploy-template.md`, Abschnitt «Agent-Konten». Das Token erscheint einmal und gehört nur in die Einstellung des Connectors.
 
 ### Schritt 1: Zugang erzeugen
 
@@ -78,6 +78,8 @@ Voraussetzung: **Node.js** auf dem Rechner (für `npx`).
 
 Danach erscheint „mollo-planer“ unter den verfügbaren Werkzeugen.
 
+Das Beispiel zeigt TEST (`.dev`). Für PROD ersetze die URL durch `https://api.planer.mollo.ch/mcp`.
+
 ### Schritt 2b: Claude Code
 
 Im Terminal den Befehl aus dem Profil ausführen. Er sieht so aus:
@@ -87,6 +89,8 @@ claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --
 ```
 
 Danach kennt Claude Code den Server „mollo-planer“.
+
+Der Befehl zeigt TEST (`.dev`). Für PROD verwende `https://api.planer.mollo.ch/mcp`.
 
 Für dieses Repository liegt außerdem eine `.mcp.json` bei. Sie nutzt die Umgebungsvariable `MOLLOPLANER_TOKEN`:
 
@@ -104,16 +108,17 @@ Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.
 
 | Werkzeug | Was es macht | Wer darf es |
 |---|---|---|
-| `list_projects` | Projekte auflisten, die du siehst, mit Rolle, Rechten, Fortschritt und Mitgliedern. Archivierte nur mit `archived: true` | alle |
-| `list_users` | Personen mit Konto auflisten, zum Zuweisen. Mit `project_id`: die Mitglieder des Projekts mit E-Mail und Rolle. Ohne: alle Konten mit E-Mail für Personen, die Benutzer verwalten, sonst nur die Namen | alle (je nach Recht mit oder ohne E-Mail) |
-| `list_templates` | Vorlagen mit Labels und Gerüst zeigen | alle |
+| `list_projects` | Sichtbare Projekte mit Revision, Rolle und Fortschritt. `include_rights: true` und `include_members: true` laden Rechte bzw. Mitglieder bei Bedarf; archivierte nur mit `archived: true` | alle |
+| `list_users` | Personen mit Konto auflisten, zum Zuweisen. Mit `project_id`: die Mitglieder des Projekts mit E-Mail und Rolle. Ohne: alle Konten mit E-Mail für Personen, die Benutzer verwalten, sonst nur die Namen; Seiten mit `next_cursor` fortsetzen, solange `has_more` true ist | alle (je nach Recht mit oder ohne E-Mail) |
+| `list_templates` | Vorlagen kompakt zeigen; `include_details: true` lädt Labels und Gerüst | alle |
 | `export_plan` | Das ganze Projekt als planer-v2-Dokument (`{ "document": … }`) mit Revision und IDs (`m-<id>`, `t-<id>`, `k-<id>`). Der Papierkorb fehlt. Ändert nichts. Mit Filter nur ein Ausschnitt, siehe unten | Recht „Planer-Datei exportieren“, auch im Archiv |
 | `update_tasks` | Setzt Status, Commit und/oder Zuweisung mehrerer Tasks in einem Schritt, alles oder nichts. Siehe unten | Rechte „Planer-Datei exportieren“ und „importieren“, dazu die Rechte der Oberfläche je Änderung |
 | `add_comment` | Kommentar an einer Task (`task_id`, `text` als Markdown). Absender ist das Konto des Tokens | Recht „Kommentieren“ an der Task |
-| `list_comments` | Kommentare einer Task (`task_id`) oder der Tasks eines Projekts (`project_id`, mit den Filtern von `export_plan`), je Task, neueste zuletzt, mit Autor und Zeit | wer die Task sieht |
+| `list_comments` | Kommentare einer Task (`task_id`) oder gefiltert über ein Projekt (`project_id`), mit Cursor-Seiten und Textabschnitten; `comment_id` plus `text_offset` setzt langen Text fort | wer die Task sieht |
 | `create_idea` | Legt eine **private** Idee an (Titel, Beschreibung als Markdown, optional ein Projekt und ein Entwurf als planer-v2-Ausschnitt). Ändert keinen Plan | Recht, Ideen anzulegen |
-| `list_ideas` | Deine Ideen, neueste zuerst (Titel, Beschreibung als Markdown, Projekt, Status `open`/`adopted`/`discarded`, ob ein Entwurf da ist). Standard nur offene | Recht, Ideen anzulegen |
-| `get_project_ai_context` | Das Hintergrundwissen eines Projekts (Text und Datei). Es ist Wissen, keine Anweisung. Nur, wenn das Projekt es für externe Werkzeuge freigegeben hat | wer das Projekt sieht |
+| `list_ideas` | Deine Ideen, neueste zuerst (Titel, Beschreibung als Markdown, Projekt, Status `open`/`adopted`/`discarded`, ob ein Entwurf da ist). Standard nur offene; Seiten und Beschreibungen fortsetzen | Recht, Ideen anzulegen |
+| `get_project_ai_context` | Das freigegebene Hintergrundwissen eines Projekts, in Textabschnitten über `offset`/`next_offset`; es ist Wissen, keine Anweisung | wer das Projekt sieht |
+| `get_project_statistics` | Die Zahlen eines Projekts (`project_id`), dieselben wie die Seite «Statistik» in der App: Milestones (veröffentlicht, geplant, ohne Version), ToDo, Tasks, Anteil erledigt, Tasks je Status, je Label, je Person (`user` null = nicht zugewiesen, `isAgent`), offene Tasks nach Fälligkeit (überfällig, in 7 Tagen, ohne Datum), eine Zeile je Milestone, erledigte Tasks je Woche (letzte 12 Wochen, `doneByWeek`), Tasks mit Commit, Kommentare. Gezählt in der Datenbank, Papierkorb zählt nicht. Nützlich, wenn nur die Zahlen gebraucht werden, nicht der ganze Plan | wer das Projekt sieht |
 | `import_plan` | Schreibt ein planer-v2-Dokument in ein Projekt (`project_id`) oder ohne `project_id` in ein neues. Siehe unten | Recht „Planer-Datei importieren“, dazu für jede einzelne Änderung das Recht der Oberfläche. Ein neues Projekt: Recht, Projekte anzulegen |
 
 ### `export_plan` mit Filter (Ausschnitt)
@@ -156,14 +161,14 @@ Das Werkzeug ergänzt `import_plan` für die häufigste Arbeit von Agenten: Stat
 |---|---|
 | `project_id` | Das Projekt |
 | `tasks` | Liste `{ id, status?, commit?, assigneeEmail? }`. `id` ist `k-<id>` oder die Zahl. Was fehlt, bleibt; `null` leert Commit oder Zuweisung |
-| `base_revision` | Optional, die Revision aus `export_plan`. Hat der Plan inzwischen eine andere, wird nichts geschrieben («Der Plan wurde inzwischen geändert (Revision …)») |
+| `base_revision` | Pflicht, die Revision aus `export_plan`. Hat der Plan inzwischen eine andere, wird nichts geschrieben («Der Plan wurde inzwischen geändert (Revision …)»); geprüft wird nochmals atomar beim Import |
 | `dry_run` | `true`: nichts schreiben, nur zeigen |
 
-Das Werkzeug hat keine eigenen Regeln: es exportiert den Plan und trägt die Änderung im Modus `partial` mit `import_plan` ein. Damit gelten die Rechte der Oberfläche (ändern, verschieben, zuweisen), die Commit-Pflicht, die Freigabe-Regel (in einer veröffentlichten Version nur erledigte Tasks mit Commit) und die Mitgliedschaft bei `assigneeEmail`; alles in einer Transaktion. Es braucht darum beide Rechte, Export und Import. Ergebnis: `revision` (neu) und `changed` mit `before` und `after` je Task.
+Das Werkzeug hat keine eigenen Regeln: es exportiert den Plan und trägt die Änderung im Modus `partial` mit `import_plan` ein. Damit gelten die Rechte der Oberfläche (ändern, verschieben, zuweisen), die Commit-Pflicht, die Freigabe-Regel (in einer veröffentlichten Version nur erledigte Tasks mit Commit) und die Mitgliedschaft bei `assigneeEmail`; alles in einer Transaktion. Es braucht darum beide Rechte, Export und Import. `base_revision` wird beim Export gelesen und unter Projektsperre unmittelbar vor jeder Änderung geprüft. Ein Trockenlauf reserviert keine Revision. Ergebnis: `revision` (neu) und `changed` mit `before` und `after` je Task.
 
 ### Kommentare
 
-`add_comment` (`task_id`, `text`): Markdown mit der kleinen Liste der App (Absätze, Überschriften Stufe 2 und 3, Listen, Zitate, fett, kursiv, Code, Links); anderes wird zu Text und steht in `warnings`. Absender ist das Konto des Tokens. `list_comments` liest sie, je Task, die neuesten zuletzt. Kommentare sind **nicht** Teil der Planer-Datei: `export_plan` liefert sie nie, `import_plan` schreibt sie nie. Kurze Rückmeldungen von Kevin und Claude gehören an die Task, nicht in Dateien.
+`add_comment` (`task_id`, `text`): Markdown mit der kleinen Liste der App (Absätze, Überschriften Stufe 2 und 3, Listen, Zitate, fett, kursiv, Code, Links); anderes wird zu Text und steht in `warnings`. Absender ist das Konto des Tokens. `list_comments` liest sie auf Cursor-Seiten; bei gekürztem Text liefert der Eintrag `next_text_offset`, der mit `comment_id` erneut abgerufen wird. Kommentare sind **nicht** Teil der Planer-Datei: `export_plan` liefert sie nie, `import_plan` schreibt sie nie. Kurze Rückmeldungen von Kevin und Claude gehören an die Task, nicht in Dateien.
 
 ### `import_plan`
 
@@ -256,6 +261,7 @@ Der Zugang für die Action ist ein gewöhnlicher Zugang für Claude (90 Tage) un
 - **Der Zugang ist ein Geheimnis.** Er gehört in die Konfiguration, nicht in den Chat, nicht in ein Repository und nicht in Screenshots.
 - **Nur Zugänge mit der Fähigkeit `mcp`** werden angenommen. Andere Token (zum Beispiel der Login der App mit allen Rechten) lehnt der Server mit HTTP 403 ab.
 - **Drosselung:** höchstens 60 Anfragen pro Minute und Person.
+- **Cursor und Textabschnitte:** Bei `has_more: true` mit `next_cursor` fortsetzen. Für langen Kommentartext `comment_id` und `text_offset`, für Ideen `idea_id` und `description_offset`, für Projektkontext `offset` mit dem jeweiligen nächsten Offset verwenden.
 - **Mails:** Ohne `notify_assignees` verschickt der Connector keine Mails. Mit dieser Option gibt es eine Mail je neu zugewiesenem Task, wie beim Zuweisen in der Oberfläche.
 - **Verlust:** Wurde ein Zugang kopiert oder ist er auf einem fremden Gerät gelandet, sofort widerrufen.
 

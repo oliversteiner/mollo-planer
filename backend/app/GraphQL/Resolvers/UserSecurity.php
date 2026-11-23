@@ -52,14 +52,17 @@ class UserSecurity
     }
 
     /**
-     * Only the tokens made for Claude (ability "mcp").
+     * Only the tokens made for Claude (ability "mcp"). Yours; for an agent account also for those who manage
+     * users (name and dates, never the value). Nobody else sees a person's list.
      *
      * @param  array<string, mixed>  $args
      * @return Collection<int, PersonalAccessToken>|null
      */
     public function apiTokens(User $user, array $args, GraphQLContext $context): ?Collection
     {
-        return $this->viewer($context)->is($user)
+        $viewer = $this->viewer($context);
+
+        return $viewer->is($user) || ($user->isAgent() && $viewer->can('manageAgentAccess', User::class))
             ? $user->tokens()->whereJsonContains('abilities', McpTokens::ABILITY)->latest('id')->get()
             : null;
     }
