@@ -332,6 +332,8 @@ Wer die Anmeldung als Dienst nutzt (`docs/oauth-sso.md`), braucht je Umgebung ei
 `backend/`, `php artisan passport:keys` (legt `storage/oauth-private.key` und `-public.key` an; nicht ins Repository). Danach prüfen:
 `https://<API>/.well-known/jwks.json` liefert den öffentlichen Schlüssel. Die Migrationen laufen mit dem Deployment.
 
+**`deploy.sh` bricht ab**, wenn die Schlüssel fehlen (weder `PASSPORT_PRIVATE_KEY` und `PASSPORT_PUBLIC_KEY` in `backend/.env` noch `storage/oauth-private.key` und `storage/oauth-public.key`) oder wenn die private Datei nicht die Rechte `600` (oder `400`) hat. Das Skript erzeugt die Schlüssel **nie** selbst: ein neues Paar würde alle Anmeldungen beenden. Die Prüfung läuft vor jeder Änderung; wie immer wirkt sie erst im Deployment nach dem ersten, das sie mitbringt, weil `deploy.sh` die Fassung vom Server ausführt.
+
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
 - **Passwortregel:** mindestens 12 Zeichen, keine Vorgaben zur Zusammensetzung, höchstens 72 Byte (bcrypt liest nicht mehr; längere werden mit Meldung abgelehnt, nicht still abgeschnitten). Neue Passwörter werden gegen bekannte Datenlecks geprüft. **Das ist ein ausgehender Aufruf des Servers an `https://api.pwnedpasswords.com/range/<erste 5 Zeichen des Hashs>`** (haveibeenpwned; das Passwort selbst verlässt den Server nicht). Bei einer Netzwerkfreigabe (Firewall) muss `api.pwnedpasswords.com` Port 443 erreichbar sein. Antwortet der Dienst nicht, wird das Passwort nach höchstens 3 Sekunden angenommen. Schalter: `PASSWORD_UNCOMPROMISED_CHECK` (Standard `true`, in Produktion an lassen; aus nur ohne Netz, zum Beispiel in den Browser-Tests). Bestehende Konten bleiben unberührt.
