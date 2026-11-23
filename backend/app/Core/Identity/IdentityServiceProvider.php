@@ -62,6 +62,8 @@ class IdentityServiceProvider extends ServiceProvider
         Gate::policy(Client::class, OAuthClientPolicy::class);
 
         RateLimiter::for('oauth-authorize', fn (Request $request) => Limit::perMinute(30)->by('oauth-authorize:'.$request->ip()));
+        // Registration of a client by itself (dynamic client registration): few per hour and address.
+        RateLimiter::for('oauth-register', fn (Request $request) => Limit::perHour(10)->by('oauth-register:'.$request->ip()));
         RateLimiter::for('oauth-token', fn (Request $request) => Limit::perMinute(60)->by('oauth-token:'.$request->ip()));
 
         Route::middleware([])->group(__DIR__.'/../../../routes/oauth.php');
