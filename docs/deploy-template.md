@@ -333,6 +333,15 @@ Wer die Anmeldung als Dienst nutzt (`docs/oauth-sso.md`), braucht je Umgebung ei
 `https://<API>/.well-known/jwks.json` liefert den öffentlichen Schlüssel. Die Migrationen laufen mit dem Deployment.
 
 **`deploy.sh` bricht ab**, wenn die Schlüssel fehlen (weder `PASSPORT_PRIVATE_KEY` und `PASSPORT_PUBLIC_KEY` in `backend/.env` noch `storage/oauth-private.key` und `storage/oauth-public.key`) oder wenn die private Datei nicht die Rechte `600` (oder `400`) hat. Das Skript erzeugt die Schlüssel **nie** selbst: ein neues Paar würde alle Anmeldungen beenden. Die Prüfung läuft vor jeder Änderung; wie immer wirkt sie erst im Deployment nach dem ersten, das sie mitbringt, weil `deploy.sh` die Fassung vom Server ausführt.
+### Datenbank-Sicherung vor jeder Migration (Auftrag 37 A)
+
+TEST enthält die echten Planungsdaten (PROD gleich geregelt). Darum legt `deploy.sh` vor `migrate --force` einen Dump an:
+
+- **Wo:** `DEPLOY_BACKUP_DIR/db/planer-<Datum>-<Uhrzeit>-<Commit>.sql.gz` (Ordner `700`, Dateien `600`, `umask 077`). Aufbewahrt werden die **letzten 20** Sicherungen vor Deploys. Ältere Dateien im Ordner `DEPLOY_BACKUP_DIR` selbst (aus der Zeit vor Auftrag 37) bleiben liegen und lassen sich von Hand löschen.
+- **Zugangsdaten:** Aus `backend/.env` in eine temporäre Optionsdatei (`mysqldump --defaults-extra-file`, Rechte `600`, im geschlossenen Ordner), die danach gelöscht wird. Das Passwort steht nie auf der Befehlszeile, nie in der Umgebung des Dumps und nie in der Ausgabe.
+- **Schlägt der Dump fehl, wird nichts migriert:** Auch ein abgebrochener oder unvollständiger Dump (er muss gzip-gültig sein und mit «Dump completed» enden) zählt als Fehlschlag. Die halbe Datei wird gelöscht, das Skript bricht ab, der Wartungsmodus war noch nicht an, die Datenbank ist unverändert (der Code ist schon aktualisiert).
+- **Prüfen:** `ls -l ~/dev/backups/planer/db/` (PROD: `~/ch/...`) zeigt nach dem Deploy die neue Datei; `gzip -dc <Datei> | tail -n 1` endet mit «-- Dump completed on …».
+- Wie bei jeder Änderung von `deploy.sh` wirkt das erst im Deployment nach dem ersten, das es mitbringt.
 
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 

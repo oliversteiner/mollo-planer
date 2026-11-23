@@ -15,7 +15,7 @@ set -euo pipefail
 APP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND="$APP/backend"
 STAGE="$(dirname "$APP")/.planer-stage"
-KEEP_BACKUPS=10
+KEEP_BACKUPS=20 # the last backups before a deployment (the daily ones are made by deploy/db-backup.sh)
 PHP="php" # overridden by DEPLOY_PHP in backend/.env (full path), see below
 COMPOSER="/usr/local/bin/composer"
 
@@ -111,8 +111,12 @@ echo "App-Ordner: $APP"
 echo "Docroot Frontend: $WEB_ROOT"
 echo "Sicherungen: $BACKUP_DIR"
 
+DB_OPTIONS_FILE=""
+
 on_exit() {
     local status=$?
+    [ -z "$DB_OPTIONS_FILE" ] || rm -f "$DB_OPTIONS_FILE"
+
     if [ "$maintenance" = 1 ]; then
         "$PHP" "$BACKEND/artisan" up >/dev/null 2>&1 || true
     fi
@@ -141,19 +145,49 @@ echo "Commit: $(git rev-parse --short HEAD)"
 rm -rf "$APP/tools" "$APP/spec/fixtures"
 
 log "Datenbank sichern"
-DB_HOST=$(env_value DB_HOST)
-DB_PORT=$(env_value DB_PORT)
-DB_DATABASE=$(env_value DB_DATABASE)
-DB_USERNAME=$(env_value DB_USERNAME)
-DB_PASSWORD=$(env_value DB_PASSWORD)
-mkdir -p "$BACKUP_DIR"
-chmod 700 "$BACKUP_DIR"
-BACKUP="$BACKUP_DIR/planer-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD).sql.gz"
-MYSQL_PWD="$DB_PASSWORD" mysqldump --single-transaction --no-tablespaces \
-    -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" "$DB_DATABASE" | gzip > "$BACKUP"
-chmod 600 "$BACKUP"
-echo "Backup: $BACKUP"
-ls -1t "$BACKUP_DIR"/planer-*.sql.gz | tail -n +$((KEEP_BACKUPS + 1)) | xargs -r rm -f --
+COMMIT_SHORT=$(git rev-parse --short HEAD)
+# --- db-backup begin
+# Dump of the database BEFORE the migration (TEST holds the real planning data, PROD the same rule). The credentials never
+# appear on a command line or in the output: they go into a temporary option file (rights 600, in the closed backup folder) that
+# is deleted right after. If the dump fails, or is not complete, nothing is migrated: the half dump is removed and the script stops.
+backup_database() {
+    local dir="$BACKUP_DIR/db" file host port name user password previous_umask
+    host=$(env_value DB_HOST)
+    port=$(env_value DB_PORT)
+    name=$(env_value DB_DATABASE)
+    user=$(env_value DB_USERNAME)
+    password=$(env_value DB_PASSWORD)
+
+    previous_umask=$(umask)
+    umask 077
+    mkdir -p "$dir"
+    chmod 700 "$BACKUP_DIR" "$dir"
+    file="$dir/planer-$(date +%Y%m%d-%H%M%S)-$COMMIT_SHORT.sql.gz"
+    DB_OPTIONS_FILE=$(mktemp "$dir/.options.XXXXXX")
+    chmod 600 "$DB_OPTIONS_FILE"
+    {
+        printf '[client]\nhost="%s"\nport="%s"\nuser="%s"\n' "$host" "$port" "$user"
+        printf 'password="%s"\n' "$(printf '%s' "$password" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+    } > "$DB_OPTIONS_FILE"
+
+    if ! mysqldump --defaults-extra-file="$DB_OPTIONS_FILE" --single-transaction --no-tablespaces "$name" | gzip > "$file" \
+        || ! gzip -t "$file" \
+        || ! gzip -dc "$file" | tail -n 1 | grep -q 'Dump completed'; then
+        rm -f "$DB_OPTIONS_FILE" "$file"
+        DB_OPTIONS_FILE=""
+        echo "Die Datenbanksicherung ist fehlgeschlagen, es wird nichts migriert. Der Code ist aktualisiert, die Datenbank unverändert; Wartungsmodus war nicht an." >&2
+        exit 1
+    fi
+
+    rm -f "$DB_OPTIONS_FILE"
+    DB_OPTIONS_FILE=""
+    umask "$previous_umask"
+    echo "Backup: $file"
+    # shellcheck disable=SC2012
+    ls -1t "$dir"/planer-*.sql.gz | tail -n +$((KEEP_BACKUPS + 1)) | xargs -r rm -f --
+}
+backup_database
+# --- db-backup end
 
 log "Wartungsmodus an"
 "$PHP" "$BACKEND/artisan" down --retry=60 >/dev/null
