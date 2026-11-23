@@ -6,6 +6,13 @@
                 "backend/artisan",
                 "boost:mcp"
             ]
+        },
+        "mollo-planer": {
+            "type": "http",
+            "url": "https://api.planer.mollo.dev/mcp",
+            "headers": {
+                "Authorization": "Bearer ${MOLLOPLANER_BOB_TOKEN}"
+            }
         }
     }
 }
