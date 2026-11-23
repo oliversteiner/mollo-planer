@@ -6,6 +6,7 @@ use App\Core\Identity\Http\Controllers\JwksController;
 use App\Core\Identity\Http\Controllers\UserInfoController;
 use App\Core\Identity\Http\Middleware\EnsureMayAuthorize;
 use App\Core\Identity\Http\Middleware\EnsureStrongAuthenticationForOAuth;
+use App\Core\Identity\Http\Middleware\RefuseUnsupportedGrants;
 use App\Core\Identity\Http\Middleware\RememberAuthorizationClaims;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
@@ -16,7 +17,7 @@ use Laravel\Passport\Http\Controllers\AuthorizationController;
 // with the JSON routes below (session cookie, CSRF as for every call of the frontend).
 Route::prefix('oauth')->name('passport.')->group(function (): void {
     Route::post('/token', [AccessTokenController::class, 'issueToken'])
-        ->middleware('throttle:oauth-token')
+        ->middleware(['throttle:oauth-token', RefuseUnsupportedGrants::class])
         ->name('token');
 
     Route::get('/authorize', [AuthorizationController::class, 'authorize'])

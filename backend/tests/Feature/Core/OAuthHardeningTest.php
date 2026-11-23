@@ -5,6 +5,7 @@ namespace Tests\Feature\Core;
 use App\Models\User;
 use App\Support\StrongAuthentication;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Laravel\Passport\Client;
 use Laravel\Passport\ClientRepository;
 use Tests\TestCase;
@@ -130,6 +131,48 @@ class OAuthHardeningTest extends TestCase
             ->assertForbidden()->assertJsonPath('error', 'account_not_allowed')->assertJsonPath('reason', 'email_unverified');
         $this->withSession($session)->actingAs($user)->postJson('/oauth/consent/approve', ['auth_token' => $token])
             ->assertForbidden()->assertJsonPath('reason', 'email_unverified');
+    }
+
+    // ---- F3: no grant without a person ----------------------------------------------------------------------
+
+    public function test_client_credentials_gives_no_token(): void
+    {
+        $client = $this->client(true);
+
+        $this->postJson('/oauth/token', ['grant_type' => 'client_credentials', 'client_id' => $client->getKey(), 'client_secret' => $client->plainSecret, 'scope' => 'mcp:use'])
+            ->assertStatus(400)
+            ->assertJsonPath('error', 'unsupported_grant_type');
+
+        $this->post('/oauth/token', ['grant_type' => 'client_credentials', 'client_id' => $client->getKey(), 'client_secret' => $client->plainSecret])
+            ->assertStatus(400)
+            ->assertJsonPath('error', 'unsupported_grant_type');
+        $this->assertSame(0, DB::table('oauth_access_tokens')->count());
+    }
+
+    public function test_the_other_grants_that_passport_may_switch_on_are_refused_too(): void
+    {
+        foreach (['password', 'implicit', 'urn:ietf:params:oauth:grant-type:device_code', 'something_else'] as $grant) {
+            $this->postJson('/oauth/token', ['grant_type' => $grant, 'client_id' => $this->client(true)->getKey()])
+                ->assertStatus(400)
+                ->assertJsonPath('error', 'unsupported_grant_type');
+        }
+    }
+
+    public function test_the_two_grants_of_the_discovery_document_still_work(): void
+    {
+        $user = User::factory()->create();
+        $client = $this->client(false);
+        $verifier = 'a-verifier-of-enough-length-for-pkce-0123456789';
+        $session = [StrongAuthentication::SESSION_KEY => (string) $user->getKey()];
+        $this->authorize($user, $client, ['code_challenge' => $this->challenge(), 'code_challenge_method' => 'S256'])->assertRedirect();
+        $token = $this->withSession($session)->actingAs($user)->getJson('/oauth/consent')->json('authToken');
+        $redirect = $this->withSession($session)->actingAs($user)->postJson('/oauth/consent/approve', ['auth_token' => $token])->json('redirect');
+        parse_str((string) parse_url($redirect, PHP_URL_QUERY), $query);
+
+        $tokens = $this->postJson('/oauth/token', ['grant_type' => 'authorization_code', 'client_id' => $client->getKey(), 'redirect_uri' => self::REDIRECT_URI, 'code' => $query['code'], 'code_verifier' => $verifier])
+            ->assertOk();
+        $this->postJson('/oauth/token', ['grant_type' => 'refresh_token', 'client_id' => $client->getKey(), 'refresh_token' => $tokens->json('refresh_token')])
+            ->assertOk();
     }
 
     // ---- helpers ------------------------------------------------------------------------------------------------
