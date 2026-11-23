@@ -15,21 +15,21 @@ class UpdateTasks extends Tool
 
     public function description(): string
     {
-        return 'Sets status, commit and/or assigneeEmail of tasks, atomically. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. No export needed first. Optional base_revision aborts if the plan changed since (the answer then has the current state of your tasks).';
+        return 'Sets status, commit, assigneeEmail of tasks, atomically, no export needed. Omitted fields stay, null clears. Optional base_revision: abort if the plan changed since.';
     }
 
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Project ID (from list_projects).'),
-            'base_revision' => Schema::integer('Optional. Revision from list_projects, list_tasks or export_plan: abort if the plan changed since.'),
+            'project_id' => Schema::string('Project ID.'),
+            'base_revision' => Schema::integer('Optional: abort if the plan is newer.'),
             'tasks' => Schema::list(Schema::object([
-                'id' => Schema::string('Task ID (k-<id> or number).'),
+                'id' => Schema::string('k-<id> or number.'),
                 'status' => Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']),
-                'commit' => Schema::string('Commit hash, "none", or null to clear.'),
-                'assigneeEmail' => Schema::string('Member email, or null to unassign.'),
+                'commit' => Schema::string('Hash, "none" or null to clear.'),
+                'assigneeEmail' => Schema::string('Member email or null.'),
             ], null, ['id']), 'Tasks to update (max 500).'),
-            'dry_run' => Schema::boolean('true: preview changes without writing.'),
+            'dry_run' => Schema::boolean('Preview only.'),
         ], ['project_id', 'tasks']);
     }
 

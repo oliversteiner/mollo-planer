@@ -16,7 +16,7 @@ class AddComment extends Tool
 
     public function description(): string
     {
-        return 'Adds a Markdown comment to a task for short notes. Read comments via list_comments.';
+        return 'Adds a Markdown comment to a task.';
     }
 
     private const MUTATION = 'mutation ($input: AddCommentInput!) { addComment(input: $input) { id body createdAt author { name isAgent } } }';

@@ -24,7 +24,7 @@ class ListUsers extends Tool
 
     public function description(): string
     {
-        return 'Lists users with accounts. With project_id: project members (id, name, email, role). Without it: all accounts with email if allowed, else names only.';
+        return 'Lists accounts; with project_id the members (id, name, email, role).';
     }
 
     public function readOnly(): bool
@@ -35,10 +35,10 @@ class ListUsers extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Project ID (from list_projects) to list its members with email.'),
-            'query' => Schema::string('Optional name/email filter.'),
-            'limit' => Schema::integer('Max results (1-100). Default 30.'),
-            'cursor' => Schema::string('next_cursor from the previous page.'),
+            'project_id' => Schema::string('Members of this project, with email.'),
+            'query' => Schema::string('Name or email.'),
+            'limit' => Schema::integer('1-100, default 30.'),
+            'cursor' => Schema::string('next_cursor.'),
         ]);
     }
 

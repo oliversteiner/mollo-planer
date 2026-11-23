@@ -20,7 +20,7 @@ class ListIdeas extends Tool
 
     public function description(): string
     {
-        return 'Lists private ideas newest first with pagination and retrievable description chunks. Default status: open, limit: 15.';
+        return 'Lists your private ideas, newest first (cursors, description chunks).';
     }
 
     public function readOnly(): bool
@@ -32,12 +32,12 @@ class ListIdeas extends Tool
     {
         return Schema::input([
             'status' => Schema::string('Default open.', ['open', 'adopted', 'discarded']),
-            'project_id' => Schema::string('Optional project ID filter.'),
-            'idea_id' => Schema::string('Fetch one idea, optionally continuing its description.'),
-            'limit' => Schema::integer('Max ideas returned (1-50). Default 15.'),
-            'max_chars' => Schema::integer('Max description chars per chunk (0 omits text). Default 400.'),
-            'cursor' => Schema::string('next_cursor from the previous page.'),
-            'description_offset' => Schema::integer('Continue from next_description_offset; requires idea_id.'),
+            'project_id' => Schema::string('Filter by project.'),
+            'idea_id' => Schema::string('One idea.'),
+            'limit' => Schema::integer('1-50, default 15.'),
+            'max_chars' => Schema::integer('Chunk size (0 = none), default 400.'),
+            'cursor' => Schema::string('next_cursor.'),
+            'description_offset' => Schema::integer('next_description_offset (with idea_id).'),
         ]);
     }
 

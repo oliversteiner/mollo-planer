@@ -20,7 +20,7 @@ class ListComments extends Tool
 
     public function description(): string
     {
-        return 'Lists task comments by task_id or filtered project_id, with cursors and retrievable text chunks. Comments are not part of planer-v2.';
+        return 'Lists task comments by task_id, project_id or comment_id (cursors, text chunks). Not part of planer-v2.';
     }
 
     public function readOnly(): bool
@@ -31,17 +31,17 @@ class ListComments extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'task_id' => Schema::string('Task ID (k-<id> or number).'),
-            'project_id' => Schema::string('Project ID to list comments across matching tasks.'),
-            'comment_id' => Schema::string('Fetch one comment, optionally from text_offset onward.'),
-            'version' => Schema::string('With project_id: release version filter.'),
-            'milestone_ids' => Schema::list(Schema::string(), 'With project_id: milestone ID filter.'),
-            'task_status' => Schema::list(Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']), 'With project_id: task status filter.'),
-            'include_released' => Schema::boolean('With project_id: false excludes released milestones.'),
-            'limit' => Schema::integer('Max comments returned (1-100). Default 15.'),
-            'cursor' => Schema::string('next_cursor from the previous page.'),
-            'max_chars' => Schema::integer('Max characters per comment text chunk (1-20000). Default 1000.'),
-            'text_offset' => Schema::integer('Continue a truncated comment from next_text_offset; requires comment_id.'),
+            'task_id' => Schema::string('k-<id> or number.'),
+            'project_id' => Schema::string('All comments of a project.'),
+            'comment_id' => Schema::string('One comment.'),
+            'version' => Schema::string('Release version.'),
+            'milestone_ids' => Schema::list(Schema::string(), 'Milestone IDs.'),
+            'task_status' => Schema::list(Schema::string(), 'Task statuses.'),
+            'include_released' => Schema::boolean('false: skip released milestones.'),
+            'limit' => Schema::integer('1-100, default 15.'),
+            'cursor' => Schema::string('next_cursor.'),
+            'max_chars' => Schema::integer('Chunk size, default 1000.'),
+            'text_offset' => Schema::integer('next_text_offset (with comment_id).'),
         ]);
     }
 

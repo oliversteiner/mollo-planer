@@ -2,6 +2,7 @@
 
 namespace App\Tools;
 
+use App\Enums\TaskStatus;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Task;
@@ -25,7 +26,7 @@ class ListTasks extends Tool
 
     public function description(): string
     {
-        return 'Lists tasks flat and short (not the plan tree), with the plan revision. Filter by status, assignee ("me" or email), milestones, title or ids. With ids and include you get one task with what you need to edit it.';
+        return 'Lists tasks flat and short, with the plan revision. Filter by status, assignee, milestone, title or ids; include adds detail (use with ids).';
     }
 
     public function readOnly(): bool
@@ -36,15 +37,15 @@ class ListTasks extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Project ID (from list_projects).'),
+            'project_id' => Schema::string('Project ID.'),
             'status' => Schema::list(Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']), 'Only these statuses.'),
-            'assignee' => Schema::string('"me" or a member email.'),
-            'milestone_ids' => Schema::list(Schema::string(), 'Only tasks of these milestones (m-<id> or number).'),
+            'assignee' => Schema::string('"me" or an email.'),
+            'milestone_ids' => Schema::list(Schema::string(), 'm-<id> or number.'),
             'query' => Schema::string('Words in the title.'),
-            'ids' => Schema::list(Schema::string(), 'Only these tasks (k-<id> or number).'),
-            'include' => Schema::list(Schema::string(null, ['description', 'comments', 'labels', 'user_story']), 'More per task; use with ids, it costs tokens.'),
-            'limit' => Schema::integer('Max tasks (1-100). Default 30.'),
-            'cursor' => Schema::string('next_cursor from the previous page.'),
+            'ids' => Schema::list(Schema::string(), 'k-<id> or number.'),
+            'include' => Schema::list(Schema::string(null, ['description', 'comments', 'labels', 'user_story']), 'More per task, use with ids.'),
+            'limit' => Schema::integer('1-100, default 30.'),
+            'cursor' => Schema::string('next_cursor.'),
         ], ['project_id']);
     }
 
@@ -116,10 +117,13 @@ class ListTasks extends Tool
      */
     private function row(Task $task, array $include, array $comments): array
     {
+        /** @var TaskStatus $status */
+        $status = $task->status;
+
         $row = [
             'id' => 'k-'.$task->getKey(),
             'title' => $task->title,
-            'status' => $task->status->value,
+            'status' => $status->value,
             'todo' => ['id' => 't-'.$task->todo?->getKey(), 'title' => $task->todo?->title],
             'milestone' => ['id' => 'm-'.$task->todo?->milestone?->getKey(), 'title' => $task->todo?->milestone?->title],
             'assigneeEmail' => $task->assignee?->email,
@@ -127,7 +131,9 @@ class ListTasks extends Tool
         ];
 
         if (in_array('description', $include, true) && $task->description !== null) {
-            $text = TiptapToMarkdown::convert($task->description);
+            /** @var array<string, mixed> $document */
+            $document = $task->description;
+            $text = TiptapToMarkdown::convert($document);
             $row['description'] = $text === '' ? null : $text;
         }
 

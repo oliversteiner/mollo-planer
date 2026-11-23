@@ -14,7 +14,7 @@ class ExportPlan extends Tool
 
     public function description(): string
     {
-        return 'Exports a project as planer-v2 JSON (with revision and m-/t-/k- IDs). Prefer filters (version, milestone_ids, task_status, include_released: false) on large plans -> returns excerpt: true, write back only with import_plan mode "partial".';
+        return 'Exports a project as planer-v2 JSON (revision, m-/t-/k- IDs). On large plans use view "outline" or filters; outline and filtered results are excerpts.';
     }
 
     public function readOnly(): bool
@@ -25,13 +25,13 @@ class ExportPlan extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Project ID (from list_projects).'),
-            'version' => Schema::string('Filter to release version, e.g. "1.21".'),
-            'milestone_ids' => Schema::list(Schema::string(), 'Filter to milestone IDs (m-<id> or number).'),
+            'project_id' => Schema::string('Project ID (list_projects).'),
+            'version' => Schema::string('Release version, e.g. "1.21".'),
+            'milestone_ids' => Schema::list(Schema::string(), 'm-<id> or number.'),
             'task_status' => Schema::list(Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']), 'Filter to task statuses.'),
-            'include_released' => Schema::boolean('false excludes released milestones. Default true.'),
-            'view' => Schema::string('"outline": only milestones with task counts per status (cheap, excerpt). Default "full".', ['full', 'outline']),
-            'include_descriptions' => Schema::boolean('false leaves out all descriptions (excerpt, write back with mode "partial" only). Default true.'),
+            'include_released' => Schema::boolean('false: skip released milestones.'),
+            'view' => Schema::string('"outline": milestones with task counts. Default "full".', ['full', 'outline']),
+            'include_descriptions' => Schema::boolean('false: no descriptions (excerpt).'),
         ], ['project_id']);
     }
 

@@ -20,22 +20,17 @@ use Laravel\Mcp\Server\Contracts\Transport;
 #[Name('mollo-planer')]
 #[Version('2.0.0')]
 #[Instructions(<<<'TEXT'
-Mollo Planer manages projects with hierarchy: Project -> Milestone -> Todo -> Task (Kanban status: idea, planned, open, in_progress, review, done). Todo and milestone statuses are derived automatically from their tasks; never set them manually.
+Mollo Planer: Project -> Milestone -> Todo -> Task (status idea, planned, open, in_progress, review, done). Milestone and todo status are derived from their tasks; never set them. You act as the person of your token, with their exact permissions.
 
-You act as the owner of the personal access token with their exact permissions; every change is checked individually. Only admins create user accounts.
+Work cheaply (a whole export of a big project costs 15000+ tokens):
+1. list_projects: IDs and the plan revision.
+2. Overview: get_project_statistics, or export_plan with view "outline".
+3. Find work: list_tasks (assignee "me", status open/in_progress). One task with detail: list_tasks with ids and include.
+4. Status, commit, assignee: update_tasks directly (no export, no dry_run). Give base_revision only if you need the guarantee that nothing changed.
+5. Change structure: export_plan filtered to one milestone, edit it, import_plan with mode "partial" (dry_run first). The whole export only to rebuild the whole plan.
+6. Notes: add_comment, list_comments. Ideas: create_idea, list_ideas. Background: get_project_ai_context.
 
-Token-efficient workflow:
-1. Discover: Start with list_projects (compact by default; pass include_members or include_rights only when needed). It includes the current planer_revision. Use list_users or list_templates only when required; follow next_cursor while has_more is true.
-2. Read: Use export_plan(project_id) before structural edits to get revision and app IDs (m-<id>, t-<id>, k-<id>). On large plans, filter with version, milestone_ids, task_status, or include_released: false (returns excerpt: true, which must be written back with import_plan mode "partial").
-3. Update tasks: To change status, commit, or assigneeEmail, prefer update_tasks (atomic, base_revision is required and comes from export_plan; run dry_run: true first). Explicit null clears commit or assigneeEmail.
-4. Edit structure: Use import_plan with dry_run: true first. Keep existing IDs; name new items m-new-1, t-new-1, k-new-1 (mapped in idMap). mode "full" (default) requires matching revision and trashes omitted items; mode "partial" only adds/updates without deleting. include_document defaults to false. New projects: omit project_id with revision 0.
-5. Notes, ideas & context: Use add_comment and list_comments for short task notes (never part of planer-v2). Follow list_comments/list_ideas cursors, and request truncated text by comment_id + text_offset or idea_id + description_offset. get_project_ai_context returns a bounded text chunk; continue with offset when truncated.
-
-Rules & limits:
-- Write titles and descriptions in the user's language.
-- Markdown whitelist for descriptions/comments: paragraphs, H2/H3, lists, quotes, bold, italic, inline code, links (http, https, mailto). No HTML, images, tables, or code blocks.
-- Assignees are identified by email and must already be project members. Assignment emails are only sent when notify_assignees is true.
-- Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, descriptions up to 5000 chars.
+Rules: write titles and descriptions in the user's language. Markdown in descriptions and comments: paragraphs, H2/H3, lists, quotes, bold, italic, inline code, links (http, https, mailto); no HTML, images, tables, code blocks. Assignees are project members, by email. An excerpt (outline, filter, no descriptions) goes back only with mode "partial"; a missing description means unchanged. IDs m-<id>, t-<id>, k-<id>; new items m-new-1, t-new-1, k-new-1. Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, descriptions 5000 characters.
 TEXT)]
 class MolloPlanerServer extends Server
 {
