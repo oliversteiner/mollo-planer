@@ -74,4 +74,19 @@ class RightsDataTest extends TestCase
 
         $this->assertTrue(Rights::projectRoleAllows($this->projectRole(ProjectRole::MEMBER), Right::TASK_MOVE));
     }
+
+    public function test_check_reports_a_missing_standard_role_and_changes_nothing(): void
+    {
+        $this->artisan('permissions:sync-defaults --check')->assertSuccessful();
+
+        DB::table('roles')->where(['scope' => 'project', 'key' => ProjectRole::AGENT->value])->delete();
+
+        $this->artisan('permissions:sync-defaults --check')
+            ->expectsOutputToContain('project.role.agent')
+            ->assertFailed();
+        $this->assertDatabaseMissing('roles', ['scope' => 'project', 'key' => ProjectRole::AGENT->value]);
+
+        $this->artisan('permissions:sync-defaults')->assertSuccessful();
+        $this->artisan('permissions:sync-defaults --check')->assertSuccessful();
+    }
 }
