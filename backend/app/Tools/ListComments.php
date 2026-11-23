@@ -1,32 +1,54 @@
 <?php
 
-namespace App\Mcp\Tools;
+namespace App\Tools;
 
-use App\Mcp\Support\McpCursor;
-use App\Mcp\Support\McpText;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Planer\RichText\TiptapToMarkdown;
-use Illuminate\Contracts\JsonSchema\JsonSchema;
+use App\Tools\Support\McpCursor;
+use App\Tools\Support\McpText;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\JsonSchema\Types\Type;
-use Laravel\Mcp\Request;
-use Laravel\Mcp\Response;
-use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Attributes\Name;
-use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
-#[Name('list_comments')]
-#[Description('Lists task comments by task_id or filtered project_id, with cursors and retrievable text chunks. Comments are not part of planer-v2.')]
-#[IsReadOnly]
-class ListCommentsTool extends Tool
+class ListComments extends Tool
 {
-    public function handle(Request $request): Response
+    public function name(): string
     {
-        $validated = $request->validate(
+        return 'list_comments';
+    }
+
+    public function description(): string
+    {
+        return 'Lists task comments by task_id or filtered project_id, with cursors and retrievable text chunks. Comments are not part of planer-v2.';
+    }
+
+    public function readOnly(): bool
+    {
+        return true;
+    }
+
+    public function schema(): array
+    {
+        return Schema::input([
+            'task_id' => Schema::string('Task ID (k-<id> or number).'),
+            'project_id' => Schema::string('Project ID to list comments across matching tasks.'),
+            'comment_id' => Schema::string('Fetch one comment, optionally from text_offset onward.'),
+            'version' => Schema::string('With project_id: release version filter.'),
+            'milestone_ids' => Schema::list(Schema::string(), 'With project_id: milestone ID filter.'),
+            'task_status' => Schema::list(Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']), 'With project_id: task status filter.'),
+            'include_released' => Schema::boolean('With project_id: false excludes released milestones.'),
+            'limit' => Schema::integer('Max comments returned (1-100). Default 15.'),
+            'cursor' => Schema::string('next_cursor from the previous page.'),
+            'max_chars' => Schema::integer('Max characters per comment text chunk (1-20000). Default 1000.'),
+            'text_offset' => Schema::integer('Continue a truncated comment from next_text_offset; requires comment_id.'),
+        ]);
+    }
+
+    public function handle(User $actor, array $arguments): ToolResult
+    {
+        $validated = $this->validate(
+            $arguments,
             [
                 'task_id' => ['required_without_all:project_id,comment_id'],
                 'project_id' => ['required_without_all:task_id,comment_id'],
@@ -48,26 +70,21 @@ class ListCommentsTool extends Tool
         $maxChars = (int) ($validated['max_chars'] ?? 1000);
         $textOffset = (int) ($validated['text_offset'] ?? 0);
         $cursor = McpCursor::decode($validated['cursor'] ?? null, ['id']);
-        $viewer = $request->user();
-
-        if (! $viewer instanceof User) {
-            return Response::error('Not signed in.');
-        }
 
         if ($textOffset > 0 && ! isset($validated['comment_id'])) {
-            return Response::error('Use comment_id to retrieve a later text chunk.');
+            return ToolResult::error('Use comment_id to retrieve a later text chunk.');
         }
 
         $taskId = isset($validated['task_id']) ? (int) preg_replace('/^k-/', '', (string) $validated['task_id']) : null;
         $projectId = isset($validated['project_id']) ? (int) $validated['project_id'] : null;
         $commentId = isset($validated['comment_id']) ? (int) preg_replace('/^c-/', '', (string) $validated['comment_id']) : null;
 
-        if ($taskId !== null && Task::query()->visibleTo($viewer)->whereKey($taskId)->first() === null) {
-            return Response::error('Task not found or not accessible.');
+        if ($taskId !== null && Task::query()->visibleTo($actor)->whereKey($taskId)->first() === null) {
+            return ToolResult::error('Task not found or not accessible.');
         }
 
-        if ($projectId !== null && Project::query()->visibleTo($viewer)->whereKey($projectId)->first() === null) {
-            return Response::error('Project not found or not accessible.');
+        if ($projectId !== null && Project::query()->visibleTo($actor)->whereKey($projectId)->first() === null) {
+            return ToolResult::error('Project not found or not accessible.');
         }
 
         $milestoneIds = array_map(fn ($id): int => (int) preg_replace('/^m-/', '', (string) $id), $validated['milestone_ids'] ?? []);
@@ -76,8 +93,8 @@ class ListCommentsTool extends Tool
 
         $query = Comment::query()
             ->with(['task:id,title,project_id', 'author:id,name,is_agent'])
-            ->whereHas('task', function (Builder $tasks) use ($viewer, $taskId, $projectId, $statuses, $milestoneIds, $validated, $includeReleased): void {
-                $tasks->visibleTo($viewer)
+            ->whereHas('task', function (Builder $tasks) use ($actor, $taskId, $projectId, $statuses, $milestoneIds, $validated, $includeReleased): void {
+                $tasks->visibleTo($actor)
                     ->when($taskId !== null, fn (Builder $query) => $query->whereKey($taskId))
                     ->when($projectId !== null, fn (Builder $query) => $query->where('tasks.project_id', $projectId))
                     ->when($statuses !== [], fn (Builder $query) => $query->whereIn('tasks.status', $statuses))
@@ -96,7 +113,7 @@ class ListCommentsTool extends Tool
         $comments = $query->get();
 
         if ($commentId !== null && $comments->isEmpty()) {
-            return Response::error('Comment not found or not accessible.');
+            return ToolResult::error('Comment not found or not accessible.');
         }
 
         $hasMore = $comments->count() > $limit;
@@ -120,30 +137,10 @@ class ListCommentsTool extends Tool
             ];
         })->all();
 
-        return Response::text(json_encode([
+        return ToolResult::json([
             'comments' => $items,
             'next_cursor' => $hasMore && $last instanceof Comment ? McpCursor::encode(['id' => (int) $last->getKey()]) : null,
             'has_more' => $hasMore,
-        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    }
-
-    /**
-     * @return array<string, Type>
-     */
-    public function schema(JsonSchema $schema): array
-    {
-        return [
-            'task_id' => $schema->string()->description('Task ID (k-<id> or number).'),
-            'project_id' => $schema->string()->description('Project ID to list comments across matching tasks.'),
-            'comment_id' => $schema->string()->description('Fetch one comment, optionally from text_offset onward.'),
-            'version' => $schema->string()->description('With project_id: release version filter.'),
-            'milestone_ids' => $schema->array()->items($schema->string())->description('With project_id: milestone ID filter.'),
-            'task_status' => $schema->array()->items($schema->string()->enum(['idea', 'planned', 'open', 'in_progress', 'review', 'done']))->description('With project_id: task status filter.'),
-            'include_released' => $schema->boolean()->description('With project_id: false excludes released milestones.'),
-            'limit' => $schema->integer()->description('Max comments returned (1-100). Default 15.'),
-            'cursor' => $schema->string()->description('next_cursor from the previous page.'),
-            'max_chars' => $schema->integer()->description('Max characters per comment text chunk (1-20000). Default 1000.'),
-            'text_offset' => $schema->integer()->description('Continue a truncated comment from next_text_offset; requires comment_id.'),
-        ];
+        ]);
     }
 }

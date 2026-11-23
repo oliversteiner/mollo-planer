@@ -5,12 +5,12 @@ namespace Tests\Feature\Mcp;
 use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Support\GraphQLRunner;
-use App\Mcp\Tools\UpdateTasksTool;
 use App\Models\Milestone;
 use App\Models\Task;
 use App\Models\Todo;
+use App\Tools\Support\GraphQLRunner;
 use Tests\Feature\GraphQL\GraphQLTestCase;
+use Tests\McpTools;
 
 /**
  * update_tasks (task 30 B): the rules and rights are those of the app, because the tool goes through export_plan and
@@ -41,7 +41,7 @@ class UpdateTasksToolTest extends GraphQLTestCase
     private function update(string $as, array $arguments): mixed
     {
         return MolloPlanerServer::actingAs($this->users[$as])
-            ->tool(UpdateTasksTool::class, [
+            ->tool(McpTools::of('update_tasks'), [
                 'project_id' => (string) $this->project->id,
                 'base_revision' => (int) $this->project->fresh()->planer_revision,
                 ...$arguments,

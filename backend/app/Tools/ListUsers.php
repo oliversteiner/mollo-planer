@@ -1,42 +1,50 @@
 <?php
 
-namespace App\Mcp\Tools;
+namespace App\Tools;
 
 use App\Enums\Right;
-use App\Mcp\Support\McpCursor;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Rights;
-use Illuminate\Contracts\JsonSchema\JsonSchema;
+use App\Tools\Support\McpCursor;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\JsonSchema\Types\Type;
-use Laravel\Mcp\Request;
-use Laravel\Mcp\Response;
-use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Attributes\Name;
-use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 /**
  * The people an AI client may name (docs/assistent-ideen-konzept.md §8): with a project the members of it (name,
  * e-mail, role); without one all accounts with e-mail for whoever may manage users, and names only for everybody
  * else. Assigning is checked on import anyway.
  */
-#[Name('list_users')]
-#[Description('Lists users with accounts. With project_id: project members (id, name, email, role). Without it: all accounts with email if allowed, else names only.')]
-#[IsReadOnly]
-class ListUsersTool extends Tool
+class ListUsers extends Tool
 {
-    public function handle(Request $request): Response
+    public function name(): string
     {
-        $viewer = $request->user();
+        return 'list_users';
+    }
 
-        if (! $viewer instanceof User) {
-            return Response::error('Not signed in.');
-        }
+    public function description(): string
+    {
+        return 'Lists users with accounts. With project_id: project members (id, name, email, role). Without it: all accounts with email if allowed, else names only.';
+    }
 
-        $validated = $request->validate([
+    public function readOnly(): bool
+    {
+        return true;
+    }
+
+    public function schema(): array
+    {
+        return Schema::input([
+            'project_id' => Schema::string('Project ID (from list_projects) to list its members with email.'),
+            'query' => Schema::string('Optional name/email filter.'),
+            'limit' => Schema::integer('Max results (1-100). Default 30.'),
+            'cursor' => Schema::string('next_cursor from the previous page.'),
+        ]);
+    }
+
+    public function handle(User $actor, array $arguments): ToolResult
+    {
+        $validated = $this->validate($arguments, [
             'project_id' => ['sometimes', 'nullable'],
             'query' => ['sometimes', 'nullable', 'string', 'max:100'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:100'],
@@ -47,13 +55,13 @@ class ListUsersTool extends Tool
         $search = trim((string) ($validated['query'] ?? ''));
         $limit = (int) ($validated['limit'] ?? 30);
         $cursor = McpCursor::decode($validated['cursor'] ?? null, ['name', 'id']);
-        $canManageUsers = Rights::allows($viewer, Right::USERS_MANAGE);
+        $canManageUsers = Rights::allows($actor, Right::USERS_MANAGE);
 
         if ($projectId !== null && $projectId !== '') {
-            $project = Project::query()->visibleTo($viewer)->find($projectId);
+            $project = Project::query()->visibleTo($actor)->find($projectId);
 
             if ($project === null) {
-                return Response::error("Project {$projectId} not found.");
+                return ToolResult::error("Project {$projectId} not found.");
             }
 
             $members = $project->members()
@@ -74,7 +82,7 @@ class ListUsersTool extends Tool
             $members = $members->take($limit)->values();
             $last = $members->last();
 
-            return Response::text(json_encode([
+            return ToolResult::json([
                 'data' => $members->map(fn (User $member): array => [
                     'id' => (string) $member->getKey(),
                     'name' => $member->name,
@@ -83,9 +91,7 @@ class ListUsersTool extends Tool
                 ])->all(),
                 'next_cursor' => $hasMore && $last instanceof User ? McpCursor::encode(['name' => $last->name, 'id' => (int) $last->getKey()]) : null,
                 'has_more' => $hasMore,
-            ],
-                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-            ));
+            ]);
         }
 
         $accounts = User::query()
@@ -118,25 +124,10 @@ class ListUsersTool extends Tool
             ])->all()
             : $accounts->map(fn (User $user): array => ['name' => $user->name])->all();
 
-        return Response::text(json_encode([
+        return ToolResult::json([
             'data' => $payload,
             'next_cursor' => $hasMore && $last instanceof User ? McpCursor::encode(['name' => $last->name, 'id' => (int) $last->getKey()]) : null,
             'has_more' => $hasMore,
-        ],
-            JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-        ));
-    }
-
-    /**
-     * @return array<string, Type>
-     */
-    public function schema(JsonSchema $schema): array
-    {
-        return [
-            'project_id' => $schema->string()->description('Project ID (from list_projects) to list its members with email.'),
-            'query' => $schema->string()->description('Optional name/email filter.'),
-            'limit' => $schema->integer()->description('Max results (1-100). Default 30.'),
-            'cursor' => $schema->string()->description('next_cursor from the previous page.'),
-        ];
+        ]);
     }
 }

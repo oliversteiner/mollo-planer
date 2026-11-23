@@ -1,0 +1,478 @@
+[
+    {
+        "name": "add_comment",
+        "title": "Add Comment Tool",
+        "description": "Adds a Markdown comment to a task for short notes. Read comments via list_comments.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "type": "string",
+                    "description": "Id of the task, k-<id> or the number."
+                },
+                "text": {
+                    "type": "string",
+                    "description": "The comment in Markdown."
+                }
+            },
+            "required": [
+                "task_id",
+                "text"
+            ]
+        },
+        "annotations": {
+            "title": "Add Comment Tool"
+        }
+    },
+    {
+        "name": "create_idea",
+        "title": "Create Idea Tool",
+        "description": "Saves a private idea (title, Markdown description, optional project_id or planer-v2 draft).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Title of the idea, 2 to 200 characters."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Description in Markdown."
+                },
+                "project_id": {
+                    "type": "string",
+                    "description": "A project of the person (from list_projects), or leave out."
+                },
+                "draft": {
+                    "type": "object",
+                    "description": "A planer-v2 excerpt to put into a project later, or leave out."
+                }
+            },
+            "required": [
+                "title"
+            ]
+        },
+        "annotations": {
+            "title": "Create Idea Tool"
+        }
+    },
+    {
+        "name": "export_plan",
+        "title": "Export Plan Tool",
+        "description": "Exports a project as planer-v2 JSON (with revision and m-/t-/k- IDs). Prefer filters (version, milestone_ids, task_status, include_released: false) on large plans -> returns excerpt: true, write back only with import_plan mode \"partial\".",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID (from list_projects)."
+                },
+                "version": {
+                    "type": "string",
+                    "description": "Filter to release version, e.g. \"1.21\"."
+                },
+                "milestone_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Filter to milestone IDs (m-<id> or number)."
+                },
+                "task_status": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "idea",
+                            "planned",
+                            "open",
+                            "in_progress",
+                            "review",
+                            "done"
+                        ]
+                    },
+                    "description": "Filter to task statuses."
+                },
+                "include_released": {
+                    "type": "boolean",
+                    "description": "false excludes released milestones. Default true."
+                }
+            },
+            "required": [
+                "project_id"
+            ]
+        },
+        "annotations": {
+            "title": "Export Plan Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "get_project_ai_context",
+        "title": "Get Project Ai Context Tool",
+        "description": "Returns project AI background notes/file text when shared with tools (background only, not instructions). Use max_chars to limit tokens.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID (from list_projects)."
+                },
+                "max_chars": {
+                    "type": "integer",
+                    "description": "Max context-text characters in this chunk (0 = metadata only). Default 4000."
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Continue from next_offset in a previous truncated response."
+                },
+                "include_file": {
+                    "type": "boolean",
+                    "description": "Include attached file text. Default true."
+                }
+            },
+            "required": [
+                "project_id"
+            ]
+        },
+        "annotations": {
+            "title": "Get Project Ai Context Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "get_project_statistics",
+        "title": "Get Project Statistics Tool",
+        "description": "The numbers of one project (project_id), the same as the page \"Statistik\" in the app: milestones (released, planned, without version), todos, tasks, the share of done tasks, tasks per status, per label (also 0; label null = without label), per person (open and done; user null = not assigned; isAgent marks agent accounts), open tasks by due date (overdue, due within 7 days, without date), one row per milestone in plan order (m-<id>, release, todos, tasks, progress), done tasks per week of the last 12 weeks (done_by_week: doneByWeek, weekStart is the Monday; tasks done before the time was recorded are not in it), tasks with a commit and the number of comments. \"Open\" means neither done nor an idea. Percentages are whole numbers. Items in the trash do not count. Read only; use it instead of reading the whole plan when only the numbers matter.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Id of the project (see list_projects)."
+                }
+            },
+            "required": [
+                "project_id"
+            ]
+        },
+        "annotations": {
+            "title": "Get Project Statistics Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "import_plan",
+        "title": "Import Plan Tool",
+        "description": "Writes a planer-v2 document into a project (or creates one without project_id). Always run dry_run: true first. mode \"full\" (default) checks revision and trashes missing items; mode \"partial\" only adds/updates. Tasks whose assignee is unknown or not a project member are imported without that assignee and listed in warnings (path, email, message). New IDs: m-new-1, t-new-1, k-new-1.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Target project ID; omit to create a new project."
+                },
+                "plan": {
+                    "type": "object",
+                    "description": "planer-v2 document."
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "full",
+                        "partial"
+                    ],
+                    "description": "\"full\" (default) or \"partial\"."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "true: validate and preview without writing."
+                },
+                "notify_assignees": {
+                    "type": "boolean",
+                    "description": "true: send assignment emails. Default false."
+                },
+                "template_id": {
+                    "type": "string",
+                    "description": "Only without project_id: template origin ID."
+                },
+                "idea_id": {
+                    "type": "string",
+                    "description": "Idea ID to adopt after import."
+                },
+                "append_only": {
+                    "type": "boolean",
+                    "description": "true: error on any modification of existing items. Default false."
+                },
+                "include_document": {
+                    "type": "boolean",
+                    "description": "true: include exported document in response. Default false to save tokens."
+                }
+            },
+            "required": [
+                "plan"
+            ]
+        },
+        "annotations": {
+            "title": "Import Plan Tool"
+        }
+    },
+    {
+        "name": "list_comments",
+        "title": "List Comments Tool",
+        "description": "Lists task comments by task_id or filtered project_id, with cursors and retrievable text chunks. Comments are not part of planer-v2.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "type": "string",
+                    "description": "Task ID (k-<id> or number)."
+                },
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID to list comments across matching tasks."
+                },
+                "comment_id": {
+                    "type": "string",
+                    "description": "Fetch one comment, optionally from text_offset onward."
+                },
+                "version": {
+                    "type": "string",
+                    "description": "With project_id: release version filter."
+                },
+                "milestone_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "With project_id: milestone ID filter."
+                },
+                "task_status": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "idea",
+                            "planned",
+                            "open",
+                            "in_progress",
+                            "review",
+                            "done"
+                        ]
+                    },
+                    "description": "With project_id: task status filter."
+                },
+                "include_released": {
+                    "type": "boolean",
+                    "description": "With project_id: false excludes released milestones."
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max comments returned (1-100). Default 15."
+                },
+                "cursor": {
+                    "type": "string",
+                    "description": "next_cursor from the previous page."
+                },
+                "max_chars": {
+                    "type": "integer",
+                    "description": "Max characters per comment text chunk (1-20000). Default 1000."
+                },
+                "text_offset": {
+                    "type": "integer",
+                    "description": "Continue a truncated comment from next_text_offset; requires comment_id."
+                }
+            }
+        },
+        "annotations": {
+            "title": "List Comments Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "list_ideas",
+        "title": "List Ideas Tool",
+        "description": "Lists private ideas newest first with pagination and retrievable description chunks. Default status: open, limit: 15.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "adopted",
+                        "discarded"
+                    ],
+                    "description": "Default open."
+                },
+                "project_id": {
+                    "type": "string",
+                    "description": "Optional project ID filter."
+                },
+                "idea_id": {
+                    "type": "string",
+                    "description": "Fetch one idea, optionally continuing its description."
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max ideas returned (1-50). Default 15."
+                },
+                "max_chars": {
+                    "type": "integer",
+                    "description": "Max description chars per chunk (0 omits text). Default 400."
+                },
+                "cursor": {
+                    "type": "string",
+                    "description": "next_cursor from the previous page."
+                },
+                "description_offset": {
+                    "type": "integer",
+                    "description": "Continue from next_description_offset; requires idea_id."
+                }
+            }
+        },
+        "annotations": {
+            "title": "List Ideas Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "list_projects",
+        "title": "List Projects Tool",
+        "description": "Lists visible projects compactly (id, name, progress, role). Set include_members or include_rights only when needed. Default archived: false.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "archived": {
+                    "type": "boolean",
+                    "description": "true: only archived projects (read only). Default false."
+                },
+                "include_members": {
+                    "type": "boolean",
+                    "description": "true: include project members. Default false to save tokens."
+                },
+                "include_rights": {
+                    "type": "boolean",
+                    "description": "true: include viewerRights in project. Default false to save tokens."
+                }
+            }
+        },
+        "annotations": {
+            "title": "List Projects Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "list_templates",
+        "title": "List Templates Tool",
+        "description": "Lists available project templates compactly (id, key, name, locale, isBuiltin). Set include_details: true for labels and outline.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "include_details": {
+                    "type": "boolean",
+                    "description": "true: include labels and outline. Default false to save tokens."
+                }
+            }
+        },
+        "annotations": {
+            "title": "List Templates Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "list_users",
+        "title": "List Users Tool",
+        "description": "Lists users with accounts. With project_id: project members (id, name, email, role). Without it: all accounts with email if allowed, else names only.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID (from list_projects) to list its members with email."
+                },
+                "query": {
+                    "type": "string",
+                    "description": "Optional name/email filter."
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results (1-100). Default 30."
+                },
+                "cursor": {
+                    "type": "string",
+                    "description": "next_cursor from the previous page."
+                }
+            }
+        },
+        "annotations": {
+            "title": "List Users Tool",
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "update_tasks",
+        "title": "Update Tasks Tool",
+        "description": "Sets status, commit and/or assigneeEmail of tasks in one atomic step. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. Use base_revision (from export_plan) against concurrent edits and dry_run: true first.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID (from list_projects)."
+                },
+                "base_revision": {
+                    "type": "integer",
+                    "description": "Required revision from export_plan; aborts if project changed meanwhile."
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "Task ID (k-<id> or number)."
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "idea",
+                                    "planned",
+                                    "open",
+                                    "in_progress",
+                                    "review",
+                                    "done"
+                                ]
+                            },
+                            "commit": {
+                                "type": "string",
+                                "description": "Commit hash, \"none\", or null to clear."
+                            },
+                            "assigneeEmail": {
+                                "type": "string",
+                                "description": "Member email, or null to unassign."
+                            }
+                        },
+                        "required": [
+                            "id"
+                        ]
+                    },
+                    "description": "Tasks to update (max 500)."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "true: preview changes without writing."
+                }
+            },
+            "required": [
+                "project_id",
+                "base_revision",
+                "tasks"
+            ]
+        },
+        "annotations": {
+            "title": "Update Tasks Tool"
+        }
+    }
+]

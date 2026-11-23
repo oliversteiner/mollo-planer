@@ -5,7 +5,6 @@ namespace Tests\Feature\GraphQL;
 use App\Enums\ProjectRole;
 use App\Enums\ReleaseStatus;
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\GetProjectStatisticsTool;
 use App\Models\Comment;
 use App\Models\Label;
 use App\Models\Milestone;
@@ -17,6 +16,7 @@ use App\Services\Deletion;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Tests\McpTools;
 
 /**
  * The statistics of a project (task 33): every number counted in the database, the trash left out, the same rights
@@ -296,10 +296,10 @@ class ProjectStatisticsTest extends GraphQLTestCase
 
         $expected = $this->statistics($project, 'owner');
 
-        $response = MolloPlanerServer::actingAs($this->users['owner'])->tool(GetProjectStatisticsTool::class, ['project_id' => (string) $project->id]);
+        $response = MolloPlanerServer::actingAs($this->users['owner'])->tool(McpTools::of('get_project_statistics'), ['project_id' => (string) $project->id]);
         $response->assertOk()->assertSee('"tasks":7')->assertSee('"percent":33')->assertSee('Kevin')->assertSee('m-'.Milestone::query()->where('title', 'Erster')->value('id'));
         $this->assertSame(7, $expected['tasks']);
 
-        MolloPlanerServer::actingAs($this->users['stranger'])->tool(GetProjectStatisticsTool::class, ['project_id' => (string) $project->id])->assertHasErrors();
+        MolloPlanerServer::actingAs($this->users['stranger'])->tool(McpTools::of('get_project_statistics'), ['project_id' => (string) $project->id])->assertHasErrors();
     }
 }

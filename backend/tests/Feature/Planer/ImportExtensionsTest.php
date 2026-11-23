@@ -4,7 +4,6 @@ namespace Tests\Feature\Planer;
 
 use App\Enums\ProjectRole;
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\ImportPlanTool;
 use App\Models\Idea;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -14,6 +13,7 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Planer\Export;
 use Tests\Feature\GraphQL\GraphQLTestCase;
+use Tests\McpTools;
 
 /**
  * appendOnly, templateId and ideaId of importPlan and import_plan (docs/auftrag-m6.md §1, §2.3, §4.4).
@@ -85,7 +85,7 @@ class ImportExtensionsTest extends GraphQLTestCase
         $document = $this->exported();
         $document['milestones'][0]['title'] = 'Umbenannt';
 
-        MolloPlanerServer::actingAs($this->users['owner'])->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document, 'append_only' => true])
+        MolloPlanerServer::actingAs($this->users['owner'])->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'append_only' => true])
             ->assertHasErrors()
             ->assertSee('append_only');
         $this->assertNotSame('Umbenannt', $this->milestone->fresh()->title);

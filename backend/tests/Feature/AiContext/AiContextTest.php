@@ -3,12 +3,12 @@
 namespace Tests\Feature\AiContext;
 
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\GetProjectAiContextTool;
 use App\Models\ProjectAiContext;
 use App\Planer\PlanerLimits;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Testing\TestResponse;
 use Tests\Feature\GraphQL\GraphQLTestCase;
+use Tests\McpTools;
 
 /**
  * The AI context of a project (docs/auftrag-m6.md §3): limit over text and file together, upload rules,
@@ -126,7 +126,7 @@ class AiContextTest extends GraphQLTestCase
     public function test_the_tool_gives_the_context_only_when_it_is_shared_and_marks_it_as_background(): void
     {
         $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'in' => ['text' => 'Sie-Form verwenden.', 'sharedWithTools' => false]]);
-        $call = fn (string $who) => MolloPlanerServer::actingAs($this->users[$who])->tool(GetProjectAiContextTool::class, ['project_id' => (string) $this->project->id]);
+        $call = fn (string $who) => MolloPlanerServer::actingAs($this->users[$who])->tool(McpTools::of('get_project_ai_context'), ['project_id' => (string) $this->project->id]);
 
         $call('member')->assertOk()->assertSee(__('ai_context.not_shared'))->assertDontSee('Sie-Form');
 
@@ -141,7 +141,7 @@ class AiContextTest extends GraphQLTestCase
         $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'in' => ['text' => str_repeat('ä', 12000), 'sharedWithTools' => true]]);
         $this->upload('manager', $this->file('wissen.md', str_repeat('界', 8000)));
 
-        $response = MolloPlanerServer::actingAs($this->users['member'])->tool(GetProjectAiContextTool::class, [
+        $response = MolloPlanerServer::actingAs($this->users['member'])->tool(McpTools::of('get_project_ai_context'), [
             'project_id' => (string) $this->project->id, 'max_chars' => 20000,
         ]);
         $response->assertOk();
@@ -158,7 +158,7 @@ class AiContextTest extends GraphQLTestCase
     {
         $this->as('manager')->gql(self::SET, ['p' => $this->project->id, 'in' => ['text' => 'Geheim', 'sharedWithTools' => true]]);
 
-        MolloPlanerServer::actingAs($this->users['stranger'])->tool(GetProjectAiContextTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->users['stranger'])->tool(McpTools::of('get_project_ai_context'), ['project_id' => (string) $this->project->id])
             ->assertHasErrors(['Project not found or not accessible.']);
     }
 }
