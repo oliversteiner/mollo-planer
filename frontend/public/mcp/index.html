@@ -7,6 +7,7 @@
     <title>MCP for agents · Mollo Planer</title>
     <link rel="stylesheet" href="./mcp.css">
     <link rel="alternate" hreflang="de" href="/mcp/de/">
+    <link rel="alternate" type="text/markdown" href="/mcp/llms.txt">
   </head>
   <body>
     <div class="page-shell">
@@ -20,7 +21,7 @@
           <div class="hero-copy">
             <p class="eyebrow"><span class="status-dot"></span> MODEL CONTEXT PROTOCOL <span class="eyebrow-rule"></span> AGENT GUIDE</p>
             <h1 id="page-title">Mollo Planer.<br><em>In context.</em></h1>
-            <p class="hero-intro">This guide explains how agents can get secure access to Planer and read or update projects. The MCP server always acts with the permissions of its account.</p>
+            <p class="hero-intro">This guide explains how agents can get secure access to Planer and read or update projects. The MCP server always acts with the permissions of its account. <strong>For agents: <a href="/mcp/llms.txt">/mcp/llms.txt</a></strong>, the same in plain Markdown.</p>
           </div>
           <aside class="endpoint-card" aria-label="MCP endpoint">
             <span class="card-label">TEST ENDPOINT</span>
@@ -69,7 +70,7 @@
 }</code></pre>
               <p>Replace the placeholder locally, protect the configuration file, and never share it with the real token. Fully quit and restart Claude Desktop to load the configuration.</p>
               <h3>Claude Code</h3>
-              <p>This repository already defines the MCP server in <code>.mcp.json</code> and reads <code>MOLLOPLANER_TOKEN</code>. Provide the variable through your environment’s secret manager and restart Claude Code. In other projects, check their MCP configuration before adding credentials.</p>
+              <p>Add the server with the command line and take the token from your environment: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_TOKEN}'</code>. Keep the single quotes: the variable is read by Claude Code at start, so the token does not end up in the configuration. Set <code>MOLLOPLANER_TOKEN</code> in your environment (not in a file under version control) and start Claude Code again. Check with <code>claude mcp list</code>.</p>
               <h3>JetBrains AI Assistant</h3>
               <p>Open Settings → Tools → AI Assistant → Model Context Protocol (MCP), choose Add → As JSON and paste this configuration. Like Claude Desktop, it uses <code>mcp-remote</code>; replace the placeholder locally with your token. On Windows, <code>npx</code> starts through <code>cmd /c</code>.</p>
               <pre><code>{
@@ -98,12 +99,14 @@
             <section id="tools" class="guide-section">
               <p class="section-index">03 <span>CAPABILITIES</span></p>
               <h2>Choose the right tool.</h2>
-              <p>When connected, the server provides its instructions and eleven tools. Start with <code>list_projects</code> to check project IDs, roles, and revisions; add <code>include_rights: true</code> or <code>include_members: true</code> when needed. Read only the information needed for the task.</p>
+              <p>When connected, the server provides its instructions and thirteen tools. Start with <code>list_projects</code> to check project IDs, roles, and revisions; add <code>include_rights: true</code> or <code>include_members: true</code> when needed. Read only the information needed for the task.</p>
               <div class="tool-list">
                 <div><code>list_projects</code><span>Projects you can see and their permissions</span></div>
                 <div><code>list_templates</code><span>Available project templates</span></div>
                 <div><code>list_users</code><span>People, subject to your permissions</span></div>
-                <div><code>export_plan</code><span>Read a plan, optionally filtered</span></div>
+                <div><code>export_plan</code><span>Read a plan: whole, filtered or as an outline</span></div>
+                <div><code>list_tasks</code><span>Find tasks, flat and short; one task with detail</span></div>
+                <div><code>get_project_statistics</code><span>The numbers of a project without reading the plan</span></div>
                 <div><code>import_plan</code><span>Apply plan changes after permission checks</span></div>
                 <div><code>update_tasks</code><span>Update status, commit, or assignment</span></div>
                 <div><code>add_comment</code> <code>list_comments</code><span>Write and read comments</span></div>
@@ -111,6 +114,15 @@
                 <div><code>get_project_ai_context</code><span>Read project knowledge shared for AI tools</span></div>
               </div>
               <p>A plan uses the <code>planer-v2</code> format and the hierarchy Project → Milestone → ToDo → Task. Keep existing IDs such as <code>m-42</code>, <code>t-81</code>, and <code>k-105</code>; use IDs such as <code>m-new-1</code> for new items. The server assigns their permanent IDs. Lists return <code>has_more</code> and <code>next_cursor</code>; follow the cursor until there are no more results. Retrieve truncated comments and ideas by their ID and the next text offset.</p>
+              <h3>Work cheaply</h3>
+              <p>A whole export of a big project costs about 20,000 tokens, and most of its tasks are usually done. Read in stages:</p>
+              <ol class="workflow">
+                <li><span>1</span><p><strong>Overview.</strong> <code>list_projects</code> (IDs, revision), then <code>get_project_statistics</code> or <code>export_plan</code> with <code>view: "outline"</code> (about 1,000 tokens).</p></li>
+                <li><span>2</span><p><strong>Find work.</strong> <code>list_tasks</code> with <code>assignee: "me"</code> and <code>status: ["open", "in_progress"]</code>. One task with everything: <code>list_tasks</code> with <code>ids</code> and <code>include: ["description", "comments"]</code>.</p></li>
+                <li><span>3</span><p><strong>Report progress.</strong> <code>update_tasks</code> directly: no export, no dry run first. <code>base_revision</code> is optional.</p></li>
+                <li><span>4</span><p><strong>Change structure.</strong> <code>export_plan</code> for one milestone, edit it, <code>import_plan</code> with <code>mode: "partial"</code>. The whole export only to rebuild the whole plan.</p></li>
+              </ol>
+              <p>The same recipes in plain Markdown: <a href="/mcp/llms.txt">/mcp/llms.txt</a>.</p>
             </section>
 
             <section id="safety" class="guide-section">
@@ -118,8 +130,8 @@
               <h2>Review first. Then apply.</h2>
               <ol class="workflow">
                 <li><span>1</span><p><strong>Export selectively.</strong> For large plans, filter by version, milestone, task status, or unreleased milestones.</p></li>
-                <li><span>2</span><p><strong>Preserve IDs and revision.</strong> Keep exported IDs and use the current revision for full-plan changes.</p></li>
-                <li><span>3</span><p><strong>Run a dry run first.</strong> Call <code>import_plan</code> and <code>update_tasks</code> with <code>dry_run: true</code>. <code>update_tasks</code> requires <code>base_revision</code> from the export. Review all changes and errors before a real write; a dry run does not reserve a revision.</p></li>
+                <li><span>2</span><p><strong>Preserve IDs and revision.</strong> Keep exported IDs and use the current revision for full-plan changes. For <code>update_tasks</code>, <code>base_revision</code> is optional: without it every task and field is changed on its own; with it the call is refused if the plan changed since, and the answer carries the current state of your tasks.</p></li>
+                <li><span>3</span><p><strong>Run a dry run first for <code>import_plan</code>.</strong> Call it with <code>dry_run: true</code> and review all changes and errors before a real write; a dry run does not reserve a revision. <code>update_tasks</code> is atomic and checked: no dry run needed (<code>dry_run: true</code> stays possible).</p></li>
                 <li><span>4</span><p><strong>Choose the right mode.</strong> A filtered export is an excerpt: write it back only with <code>mode: "partial"</code>. <code>full</code> treats the input as the entire plan and moves missing items to the recycle bin.</p></li>
               </ol>
               <div class="callout callout-warning">

@@ -1,6 +1,6 @@
 # Claude anbinden: der Connector für Mollo Planer
 
-> **Stand (MCP-Korrekturen, 2026-11-22):** Der Connector hat zwölf Werkzeuge. Einen Plan liest `export_plan` (auch nur einen Ausschnitt) und schreibt `import_plan`; für die häufigste Arbeit von Agenten kommt `update_tasks` dazu, für Rückmeldungen an einer Aufgabe `add_comment` und `list_comments`; dazu `list_projects`, `list_users`, `list_templates`, `create_idea`, `list_ideas`, `get_project_ai_context` und `get_project_statistics`. Listen lassen sich mit Cursor fortsetzen; lange Texte werden mit Offsets vollständig abgerufen. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
+> **Stand (Auftrag 43, 2026-11-24):** Der Connector hat dreizehn Werkzeuge und ist auf wenig Tokens ausgelegt: Ein Agent liest in Stufen (Überblick, `list_tasks`, eine Task) statt den ganzen Plan, und `update_tasks` braucht weder Export noch Trockenlauf. Siehe «Günstig arbeiten». **Stand davor (MCP-Korrekturen, 2026-11-22):** Der Connector hatte zwölf Werkzeuge. Einen Plan liest `export_plan` (auch nur einen Ausschnitt) und schreibt `import_plan`; für die häufigste Arbeit von Agenten kommt `update_tasks` dazu, für Rückmeldungen an einer Aufgabe `add_comment` und `list_comments`; dazu `list_projects`, `list_users`, `list_templates`, `create_idea`, `list_ideas`, `get_project_ai_context` und `get_project_statistics`. Listen lassen sich mit Cursor fortsetzen; lange Texte werden mit Offsets vollständig abgerufen. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
 
 Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang einrichtest und was dabei passiert. Die Einrichtung in einem Satz: Im Profil einen Zugang erzeugen und die Konfiguration in Claude Desktop oder Claude Code eintragen.
 
@@ -26,7 +26,7 @@ Claude sieht also nur, was du in der App auch sehen würdest, und kann nur ände
 |---|---|---|
 | Route | `backend/routes/ai.php` | Registriert den MCP-Server unter `/mcp`, mit Anmeldung, Token-Prüfung und Drosselung |
 | Server | `backend/app/Mcp/Servers/MolloPlanerServer.php` | Bietet die Werkzeuge des Registers an und enthält die Regeln für Claude |
-| Werkzeuge | `backend/app/Tools/*.php` | Die zwölf Werkzeuge (Pläne lesen und ändern, Kommentare, Ideen, KI-Kontext, Statistik), jedes einmal beschrieben: Name, Beschreibung, Eingabe-Schema, Handler mit Person und Argumenten (`Tool`, `Schema`, `ToolResult`) |
+| Werkzeuge | `backend/app/Tools/*.php` | Die dreizehn Werkzeuge (Pläne lesen und ändern, Kommentare, Ideen, KI-Kontext, Statistik), jedes einmal beschrieben: Name, Beschreibung, Eingabe-Schema, Handler mit Person und Argumenten (`Tool`, `Schema`, `ToolResult`) |
 | Register | `backend/app/Tools/ToolRegistry.php` | Die Liste aller Werkzeuge an einer Stelle; beide Adapter lesen sie |
 | Adapter MCP | `backend/app/Mcp/ToolAdapter.php` | Ein dünner Adapter für alle Werkzeuge (Laravel MCP) |
 | Adapter Assistent | `backend/app/Assistant/ToolBridge.php` | Werkzeuge im Format von Claude-Tool-Use und Ausführung eines Aufrufs als gegebene Person (noch nicht im Assistenten eingebaut) |
@@ -122,6 +122,18 @@ Claude Code danach neu starten.
 
 ---
 
+## Günstig arbeiten
+
+Ein ganzer Export eines grossen Projekts (Club DB: 31 Milestones, 389 Tasks) kostet rund 23 000 Tokens, und 80 % der Tasks darin sind erledigt. Darum liest ein Agent in Stufen (dieselbe Anleitung für Agenten steht in `/mcp/llms.txt`):
+
+1. `list_projects` (IDs, Revision), dann `get_project_statistics` oder `export_plan` mit `view: "outline"`: nur Milestones mit Zahl der Tasks je Status (rund 1 000 Tokens, Ergebnis ist ein Ausschnitt).
+2. Arbeit finden: `list_tasks` mit `assignee: "me"` und `status: ["open", "in_progress"]`. Eine Task mit allem: `list_tasks` mit `ids` und `include`.
+3. Status, Commit, Zuweisung: `update_tasks` direkt, ohne Export und ohne Trockenlauf.
+4. Struktur ändern: `export_plan` für einen Milestone (oder `include_descriptions: false`), bearbeiten, `import_plan` mit `mode: "partial"`, vorher `dry_run: true`. Fehlt eine Beschreibung in einem Ausschnitt, heisst das «unverändert», nie «leeren».
+5. Den ganzen Export nur, wenn der ganze Plan umgebaut wird.
+
+`import_plan` nennt höchstens 20 Fehler und 20 Warnungen und dazu die Gesamtzahl (`errors_total`, `warnings_total`). Die Obergrenzen stehen in den Tests (`McpBudgetTest`): Werkzeugliste plus Instruktionen höchstens 11 000 Zeichen, die Übersicht auf einem Plan wie Club DB höchstens 6 000, `list_tasks` mit 30 Zeilen höchstens 9 500 Zeichen. **Messen im Betrieb:** Jeder Werkzeugaufruf wird mit Werkzeug, Konto, Zeichen der Antwort und Dauer notiert (Tabelle `mcp_tool_calls`, nie Inhalte, 90 Tage); `php artisan app:mcp-usage` fasst die letzten 7 Tage zusammen (`--days=` ändert das).
+
 ## Was Claude tun kann
 
 Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.md`): Projekt mit Mitgliedern und Labels, Milestones, ToDos und Tasks, mit der Revision und den IDs der App. Claude liest sie, ändert sie und schreibt sie zurück. Einen anderen Weg, einen Plan zu ändern, gibt es nicht.
@@ -132,6 +144,7 @@ Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.
 | `list_users` | Personen mit Konto auflisten, zum Zuweisen. Mit `project_id`: die Mitglieder des Projekts mit E-Mail und Rolle. Ohne: alle Konten mit E-Mail für Personen, die Benutzer verwalten, sonst nur die Namen; Seiten mit `next_cursor` fortsetzen, solange `has_more` true ist | alle (je nach Recht mit oder ohne E-Mail) |
 | `list_templates` | Vorlagen kompakt zeigen; `include_details: true` lädt Labels und Gerüst | alle |
 | `export_plan` | Das ganze Projekt als planer-v2-Dokument (`{ "document": … }`) mit Revision und IDs (`m-<id>`, `t-<id>`, `k-<id>`). Der Papierkorb fehlt. Ändert nichts. Mit Filter nur ein Ausschnitt, siehe unten | Recht „Planer-Datei exportieren“, auch im Archiv |
+| `list_tasks` | Tasks flach und knapp (Id, Titel, Status, ToDo, Milestone, Zuweisung, Commit) mit der Revision des Plans; Filter `status`, `assignee` (`"me"` oder E-Mail), `milestone_ids`, `query`, `ids`; `limit` (30, höchstens 100) und `cursor`. Mit `ids` und `include` (`description`, `comments`, `labels`, `user_story`) **eine Task mit allem zum Bearbeiten** (Kommentare: die letzten fünf, gekürzt). Nur lesen | wer das Projekt sieht |
 | `update_tasks` | Setzt Status, Commit und/oder Zuweisung mehrerer Tasks in einem Schritt, alles oder nichts. Siehe unten | Rechte „Planer-Datei exportieren“ und „importieren“, dazu die Rechte der Oberfläche je Änderung |
 | `add_comment` | Kommentar an einer Task (`task_id`, `text` als Markdown). Absender ist das Konto des Tokens | Recht „Kommentieren“ an der Task |
 | `list_comments` | Kommentare einer Task (`task_id`) oder gefiltert über ein Projekt (`project_id`), mit Cursor-Seiten und Textabschnitten; `comment_id` plus `text_offset` setzt langen Text fort | wer die Task sieht |
@@ -181,8 +194,10 @@ Das Werkzeug ergänzt `import_plan` für die häufigste Arbeit von Agenten: Stat
 |---|---|
 | `project_id` | Das Projekt |
 | `tasks` | Liste `{ id, status?, commit?, assigneeEmail? }`. `id` ist `k-<id>` oder die Zahl. Was fehlt, bleibt; `null` leert Commit oder Zuweisung |
-| `base_revision` | Pflicht, die Revision aus `export_plan`. Hat der Plan inzwischen eine andere, wird nichts geschrieben («Der Plan wurde inzwischen geändert (Revision …)»); geprüft wird nochmals atomar beim Import |
-| `dry_run` | `true`: nichts schreiben, nur zeigen |
+| `base_revision` | **Optional.** Ohne sie wird jede Task und jedes Feld für sich geändert; eine fremde Änderung im Projekt ist kein Grund abzulehnen (ändert sich der Plan genau zwischen Lesen und Schreiben, versucht es der Aufruf bis zu dreimal neu). Mit ihr wird nichts geschrieben, wenn der Plan inzwischen eine andere Revision hat; die Antwort nennt dann die aktuelle `revision` und den **aktuellen Stand nur der angefragten Tasks**, sodass kein neuer Export nötig ist |
+| `dry_run` | `true`: nichts schreiben, nur zeigen (nicht nötig: das Werkzeug ist atomar und geprüft) |
+
+Die Antwort ist knapp: `ok`, `revision`, je geänderte Task die `id` und nur die geänderten Felder als `[alt, neu]` (zum Beispiel `"status": ["open", "done"]`), Tasks ohne Änderung nur als Zahl (`unchanged`).
 
 Das Werkzeug hat keine eigenen Regeln: es exportiert den Plan und trägt die Änderung im Modus `partial` mit `import_plan` ein. Damit gelten die Rechte der Oberfläche (ändern, verschieben, zuweisen), die Commit-Pflicht, die Freigabe-Regel (in einer veröffentlichten Version nur erledigte Tasks mit Commit) und die Mitgliedschaft bei `assigneeEmail`; alles in einer Transaktion. Es braucht darum beide Rechte, Export und Import. `base_revision` wird beim Export gelesen und unter Projektsperre unmittelbar vor jeder Änderung geprüft. Ein Trockenlauf reserviert keine Revision. Ergebnis: `revision` (neu) und `changed` mit `before` und `after` je Task.
 
