@@ -47,7 +47,7 @@ Der Code fragt **nur** nach Rechten: „Darf Person P im Projekt X das Recht R?�
 Vollständige Liste, inklusive der bisher geplanten neuen Rechte. Namen wie heute (`bereich.aktion`).
 
 **Projekt:**
-`project.update`, `project.delete`, `project.archive`, `members.manage`, `owner.manage` (Rolle mit `project.delete` vergeben oder entziehen, heute „nur Owner“), `milestone.create`, `milestone.update`, `milestone.delete`, `todo.create`, `todo.update`, `todo.delete`, `task.create`, `task.update`, `task.updateOwn`, `task.assign`, `task.assignSelf`, `task.move`, `task.delete`, `comment.create`, `comment.moderate`, `trash.restore`, `trash.purge`, `planer.export`, `planer.import`, `aiContext.update`.
+`project.update`, `project.delete`, `project.archive`, `members.manage`, `owner.manage` (Rolle mit `project.delete` vergeben oder entziehen, heute „nur Owner“), `milestone.create`, `milestone.update`, `milestone.delete`, `todo.create`, `todo.update`, `todo.delete`, `task.create`, `task.update`, `task.updateOwn`, `task.assign`, `task.assignSelf`, `task.move`, `task.delete`, `comment.create`, `comment.moderate`, `trash.restore`, `trash.purge`, `planer.export`, `planer.import`, `aiContext.update`, `document.create`, `document.update`, `document.manageAny` (Dokumente, siehe `docs/dokumentenverwaltung.md` §4).
 
 **System:**
 `projects.create`, `projects.viewAll`, `projects.manageAny`, `users.manage`, `roles.manage` (diese Einstellungen), `templates.manage`, `templates.manageAny`, `assistant.use`, `ideas.create`, `ideas.viewAny`, `settings.manage` (App-Einstellungen, 2FA-Schalter), `system.view` (Status-Seite), `database.view` (Datenbank-Doku).
@@ -63,9 +63,9 @@ Die Standardbelegung bildet **genau das heutige Verhalten plus die bereits entsc
 | Funktion | Rechte |
 |---|---|
 | Planen | `milestone.create`, `milestone.update`, `todo.create`, `todo.update` |
-| Mitarbeiten | `task.create`, `task.updateOwn`, `task.assignSelf`, `task.move`, `comment.create`, `planer.export` |
+| Mitarbeiten | `task.create`, `task.updateOwn`, `task.assignSelf`, `task.move`, `comment.create`, `planer.export`, `document.create`, `document.update` |
 | Aufgaben verwalten | `task.update`, `task.assign`, `task.delete`, `milestone.delete`, `todo.delete`, `comment.moderate`, `trash.restore` |
-| Projekt verwalten | `project.update`, `project.archive`, `members.manage`, `aiContext.update`, `planer.import` |
+| Projekt verwalten | `project.update`, `project.archive`, `members.manage`, `aiContext.update`, `planer.import`, `document.manageAny` |
 | Projekt besitzen | `project.delete`, `owner.manage`, `trash.purge` |
 
 **Projektrollen:**

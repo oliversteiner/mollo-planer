@@ -52,6 +52,7 @@ return [
     'import' => [
         'draft_invalid' => 'Der Entwurf ist ungültig: :message',
         'invalid' => 'Die Datei ist ungültig: :message',
+        'assignee_unknown_warning' => ':email ist nicht Mitglied des Projekts oder existiert nicht. Die Zuweisung wird nicht übernommen.',
         'excerpt' => 'Die Datei ist ein Ausschnitt des Plans (excerpt). Im Modus full würde alles, was sie nicht enthält, gelöscht. Trage sie im Modus partial ein oder exportiere den ganzen Plan.',
         'revision' => 'Die Datei hat die Revision :file, das Projekt ist bei :project. Exportiere es zuerst neu.',
         'unknown_id' => ':id gehört nicht zu diesem Projekt oder liegt im Papierkorb.',
@@ -70,6 +71,7 @@ return [
             'idea' => 'diese Idee einplanen (nur die Autorin)',
         ],
         'person_unknown' => 'Zu :email gibt es kein freigegebenes Konto. Ein Import legt keine Konten an.',
+        'member_unknown_warning' => 'Zu :email gibt es kein freigegebenes Konto. Das Mitglied wird nicht übernommen, ein Import legt keine Konten an.',
         'role_unknown' => 'Die Projektrolle „:role“ gibt es nicht.',
         'self_removal' => 'Die Datei würde dich selbst aus dem Projekt entfernen. Nimm dich in die Mitglieder auf oder importiere im Modus „partial“.',
         'description' => ':problem',

@@ -3,6 +3,7 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
+use App\Models\Document;
 use App\Models\Idea;
 use App\Models\Task;
 use App\Models\Template;
@@ -20,9 +21,11 @@ class OutsiderAccessTest extends GraphQLTestCase
     /**
      * Tables a refused mutation must leave unchanged.
      */
-    private const TABLES = ['users', 'projects', 'project_user', 'milestones', 'todos', 'tasks', 'comments', 'app_settings'];
+    private const TABLES = ['users', 'projects', 'project_user', 'milestones', 'todos', 'tasks', 'comments', 'app_settings', 'documents', 'document_shares', 'document_versions'];
 
     private Comment $comment;
+
+    private Document $document;
 
     /** A task in the project's trash. */
     private string $deletionId;
@@ -31,6 +34,7 @@ class OutsiderAccessTest extends GraphQLTestCase
     {
         parent::setUp();
 
+        $this->document = Document::factory()->for($this->project)->create(['owner_id' => $this->users['owner']->id]);
         $this->comment = Comment::factory()->for($this->task)->for($this->users['owner'], 'author')->create();
         $this->deletionId = (string) app(Deletion::class)->delete(Task::factory()->for($this->todo)->create())->deletion_id;
     }
@@ -108,6 +112,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'createProject' => ['owner', 'mutation { createProject(input: {name: "Eigenes"}) { id } }', fn (self $test) => []],
             'createUser' => ['owner', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
             'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {role: "admin"}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
+            'createAgentToken' => ['owner', 'mutation ($id: ID!) { createAgentToken(userId: $id, name: "Claude") { plainTextToken } }', $member],
+            'revokeAgentToken' => ['owner', 'mutation ($id: ID!) { revokeAgentToken(userId: $id, tokenId: 1) { id } }', $member],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],
             'updateAppSettings (2FA off)' => ['owner', 'mutation { updateAppSettings(twoFactorEnabled: false) { twoFactorEnabled } }', fn (self $test) => []],
@@ -133,6 +139,18 @@ class OutsiderAccessTest extends GraphQLTestCase
             'createTemplate (member)' => ['member', 'mutation { createTemplate(input: {name: "Bau", locale: DE, labels: [{names: [{locale: DE, name: "Eins"}], color: RED}]}) { id } }', fn (self $test) => []],
             'updateTemplate (member)' => ['member', 'mutation ($id: ID!) { updateTemplate(id: $id, input: {name: "Hack", labels: [{names: [{locale: DE, name: "Eins"}], color: RED}]}) { id } }', $template],
             'deleteTemplate (member)' => ['member', 'mutation ($id: ID!) { deleteTemplate(id: $id) }', $template],
+            'createDocument' => ['stranger', 'mutation ($p: ID!, $c: RichText!) { createDocument(input: {projectId: $p, title: "Hack", contentJson: $c}) { id } }', fn (self $test) => ['p' => $test->project->id, 'c' => $test->doc('x')]],
+            'updateDocument' => ['stranger', 'mutation ($id: ID!) { updateDocument(id: $id, revision: 1, input: {title: "Hack"}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'updateDocument (member, document for reading)' => ['member', 'mutation ($id: ID!) { updateDocument(id: $id, revision: 1, input: {title: "Hack"}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'setDocumentSharing' => ['stranger', 'mutation ($id: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'setDocumentSharing (member)' => ['member', 'mutation ($id: ID!) { setDocumentSharing(id: $id, input: {projectAccess: EDIT}) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'restoreDocumentVersion' => ['stranger', 'mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'restoreDocumentVersion (member, document for reading)' => ['member', 'mutation ($id: ID!) { restoreDocumentVersion(id: $id, revision: 1) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'exportDocumentPdf' => ['stranger', 'mutation ($id: ID!) { exportDocumentPdf(id: $id) { fileName } }', fn (self $test) => ['id' => $test->document->id]],
+            'transferDocument' => ['stranger', 'mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['stranger']->id]],
+            'transferDocument (member)' => ['member', 'mutation ($id: ID!, $u: ID!) { transferDocument(id: $id, ownerId: $u) { id } }', fn (self $test) => ['id' => $test->document->id, 'u' => $test->users['member']->id]],
+            'deleteDocument' => ['stranger', 'mutation ($id: ID!) { deleteDocument(id: $id) { id } }', fn (self $test) => ['id' => $test->document->id]],
+            'deleteDocument (member)' => ['member', 'mutation ($id: ID!) { deleteDocument(id: $id) { id } }', fn (self $test) => ['id' => $test->document->id]],
             'duplicateTemplate (member)' => ['member', 'mutation ($id: ID!) { duplicateTemplate(id: $id) { id } }', $template],
         ];
     }
@@ -141,6 +159,7 @@ class OutsiderAccessTest extends GraphQLTestCase
     public function test_query_shows_nothing_of_a_foreign_project(string $query, string $path, mixed $expected): void
     {
         $variables = [
+            'document' => $this->document->id,
             'project' => $this->project->id,
             'milestone' => $this->milestone->id,
             'todo' => $this->todo->id,
@@ -167,6 +186,9 @@ class OutsiderAccessTest extends GraphQLTestCase
             'milestones' => ['query ($project: ID!) { milestones(projectId: $project) { id } }', 'data.milestones', []],
             'todos' => ['query ($project: ID!) { todos(projectId: $project) { id } }', 'data.todos', []],
             'kanban' => ['query ($project: ID!) { kanban(projectId: $project) { status } }', 'data.kanban', []],
+            'document' => ['query ($document: ID!) { document(id: $document) { id } }', 'data.document', null],
+            'documentVersion' => ['query ($document: ID!) { documentVersion(documentId: $document, revision: 1) { revision } }', 'data.documentVersion', null],
+            'documents' => ['query ($project: ID!) { documents(projectId: $project) { id } }', 'data.documents', []],
             'dashboard' => ['{ dashboard { projects { id } upcomingTodos { id } myOpenTasks { id } } }', 'data.dashboard', ['projects' => [], 'upcomingTodos' => [], 'myOpenTasks' => []]],
         ];
     }

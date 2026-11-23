@@ -1,7 +1,7 @@
-query ListTemplates {
+query ListTemplates($includeDetails: Boolean! = false) {
     templates {
-        id name description locale isBuiltin
-        labels { key name category }
-        outline { title version todos { title tasks { title labels } } }
+        id key name description locale isBuiltin projectCount
+        labels @include(if: $includeDetails) { key name category }
+        outline @include(if: $includeDetails) { title version todos { title tasks { title labels } } }
     }
 }

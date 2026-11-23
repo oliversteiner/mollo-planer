@@ -1,8 +1,32 @@
 import { describe, expect, it } from 'vitest'
 import { isZenQuery, withFirst } from '../../app/utils/commands'
-import { FALLBACK_AREA, chooseZenArea, cleanPath, isContentArea } from '../../app/utils/zen-area'
+import { FALLBACK_AREA, chooseZenArea, cleanPath, isContentArea, projectPageOf, rememberedArea } from '../../app/utils/zen-area'
 
 const everything = () => true
+
+describe('zen area for documents (task 17 D11)', () => {
+  it('knows the list, one document and its history as content areas', () => {
+    for (const path of ['/projects/3/documents', '/projects/3/documents/9', '/projects/3/documents/9/history', '/projects/3/documents/9?focus=1']) {
+      expect(isContentArea(path), path).toBe(true)
+    }
+
+    expect(isContentArea('/projects/3/documents/9/other')).toBe(false)
+  })
+
+  it('stays on the document the person is reading, but remembers only the list', () => {
+    expect(chooseZenArea('/projects/3/documents/9', '/ideas', everything)).toBe('/projects/3/documents/9')
+    expect(rememberedArea('/projects/3/documents/9')).toBe('/projects/3/documents')
+    expect(rememberedArea('/projects/3/documents/9/history')).toBe('/projects/3/documents')
+    expect(rememberedArea('/projects/3/kanban')).toBe('/projects/3/kanban')
+  })
+
+  it('names the page "documents" for the entry in the search', () => {
+    expect(projectPageOf('/projects/3/documents')).toBe('documents')
+    expect(projectPageOf('/projects/3/documents/9/history')).toBe('documents')
+    expect(projectPageOf('/projects/3/kanban')).toBe('kanban')
+    expect(projectPageOf('/projects/3')).toBe('')
+  })
+})
 
 describe('zen area', () => {
   it('knows the content areas', () => {

@@ -43,6 +43,9 @@ class RightsProjectTableTest extends TestCase
         'planer.export' => [true, true, true, false],
         'planer.import' => [true, true, false, false],
         'aiContext.update' => [true, true, false, false],
+        'document.create' => [true, true, true, false],
+        'document.update' => [true, true, true, false],
+        'document.manageAny' => [true, true, false, false],
     ];
 
     /**
@@ -95,6 +98,8 @@ class RightsProjectTableTest extends TestCase
             Right::TASK_MOVE,
             Right::COMMENT_CREATE,
             Right::PLANER_EXPORT,
+            Right::DOCUMENT_CREATE,
+            Right::DOCUMENT_UPDATE,
         ], Rights::projectRightsOfRole($this->projectRole(ProjectRole::MEMBER)));
     }
 }

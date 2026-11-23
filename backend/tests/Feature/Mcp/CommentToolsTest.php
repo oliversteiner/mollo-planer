@@ -68,10 +68,10 @@ class CommentToolsTest extends GraphQLTestCase
         $json = $this->decode(MolloPlanerServer::actingAs($this->users['member'])
             ->tool(ListCommentsTool::class, ['task_id' => "k-{$this->task->id}"]));
 
-        $comments = $json['tasks'][0]['comments'];
+        $comments = $json['comments'];
         $this->assertSame(['Erster', 'Zweiter'], array_column($comments, 'text'));
         $this->assertSame('Ben Owner', $comments[0]['author']['name']);
-        $this->assertFalse($comments[0]['author']['isAgent']);
+        $this->assertFalse($comments[0]['author']['is_agent']);
         $this->assertNotEmpty($comments[0]['created_at']);
     }
 
@@ -82,7 +82,7 @@ class CommentToolsTest extends GraphQLTestCase
 
         $json = $this->decode(MolloPlanerServer::actingAs($this->users['owner'])->tool(ListCommentsTool::class, ['task_id' => (string) $this->task->id]));
 
-        $this->assertTrue($json['tasks'][0]['comments'][0]['author']['isAgent']);
+        $this->assertTrue($json['comments'][0]['author']['is_agent']);
     }
 
     public function test_list_comments_of_a_project_uses_the_filters_and_skips_tasks_without_comments(): void
@@ -96,12 +96,39 @@ class CommentToolsTest extends GraphQLTestCase
         Comment::factory()->for($otherTask)->create(['body' => $this->bodyOf('B')]);
 
         $all = $this->decode(MolloPlanerServer::actingAs($this->users['member'])->tool(ListCommentsTool::class, ['project_id' => (string) $this->project->id]));
-        $this->assertCount(2, $all['tasks']);
+        $this->assertCount(2, $all['comments']);
 
         $filtered = $this->decode(MolloPlanerServer::actingAs($this->users['member'])->tool(ListCommentsTool::class, ['project_id' => (string) $this->project->id, 'version' => '2.0']));
-        $this->assertSame(["k-{$otherTask->id}"], array_column($filtered['tasks'], 'task_id'));
+        $this->assertSame(["k-{$otherTask->id}"], array_column($filtered['comments'], 'task_id'));
 
         MolloPlanerServer::actingAs($this->users['stranger'])->tool(ListCommentsTool::class, ['task_id' => (string) $this->task->id])->assertHasErrors();
+    }
+
+    public function test_comments_are_paginatable_and_long_text_can_be_retrieved_in_unicode_chunks(): void
+    {
+        $text = str_repeat('界', 1200);
+        $first = Comment::factory()->for($this->task)->create(['body' => $this->bodyOf($text)]);
+        Comment::factory()->for($this->task)->create(['body' => $this->bodyOf('Next comment')]);
+
+        $firstPage = $this->decode(MolloPlanerServer::actingAs($this->users['member'])->tool(ListCommentsTool::class, [
+            'task_id' => "k-{$this->task->id}", 'limit' => 1, 'max_chars' => 500,
+        ]));
+
+        $this->assertTrue($firstPage['has_more']);
+        $this->assertSame(500, mb_strlen($firstPage['comments'][0]['text']));
+        $this->assertTrue($firstPage['comments'][0]['text_truncated']);
+
+        $secondPage = $this->decode(MolloPlanerServer::actingAs($this->users['member'])->tool(ListCommentsTool::class, [
+            'task_id' => "k-{$this->task->id}", 'limit' => 1, 'cursor' => $firstPage['next_cursor'],
+        ]));
+        $this->assertSame('Next comment', $secondPage['comments'][0]['text']);
+        $this->assertFalse($secondPage['has_more']);
+
+        $rest = $this->decode(MolloPlanerServer::actingAs($this->users['member'])->tool(ListCommentsTool::class, [
+            'comment_id' => (string) $first->id, 'text_offset' => $firstPage['comments'][0]['next_text_offset'], 'max_chars' => 800,
+        ]));
+        $this->assertSame(700, mb_strlen($rest['comments'][0]['text']));
+        $this->assertSame($text, $firstPage['comments'][0]['text'].$rest['comments'][0]['text']);
     }
 
     /**

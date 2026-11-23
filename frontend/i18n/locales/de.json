@@ -278,6 +278,7 @@
       "milestones": "Milestones",
       "todos": "ToDo",
       "tasks": "Tasks",
+      "documents": "Dokumente",
       "members": "Mitglieder",
       "statistics": "Statistik",
       "settings": "Einstellungen",
@@ -289,8 +290,8 @@
     "taskCount": "{done}/{total} Tasks",
     "timeline": {
       "label": "Milestones",
-      "expandAll": "Alle aufklappen",
-      "collapseAll": "Alle zuklappen",
+      "expandAll": "Alle ToDos zeigen",
+      "collapseAll": "Alle ToDos zuklappen",
       "noDate": "Ohne Datum",
       "toggleTodo": "ToDo «{title}» auf- oder zuklappen",
       "unassigned": "Nicht zugewiesen",
@@ -398,7 +399,22 @@
       "apply": "Übernehmen",
       "remove": "Link entfernen",
       "invalid": "Nur Links mit http://, https:// oder mailto: sind möglich."
-    }
+    },
+    "headingLevel": "Überschrift {level}",
+    "strike": "Durchgestrichen",
+    "taskList": "Aufgabenliste",
+    "codeBlock": "Codeblock",
+    "codeLanguage": "Sprache",
+    "horizontalRule": "Trennlinie",
+    "table": "Tabelle",
+    "tableInsert": "Tabelle einfügen",
+    "tableRowBefore": "Zeile oberhalb einfügen",
+    "tableRowAfter": "Zeile unterhalb einfügen",
+    "tableColumnBefore": "Spalte links einfügen",
+    "tableColumnAfter": "Spalte rechts einfügen",
+    "tableDeleteRow": "Zeile löschen",
+    "tableDeleteColumn": "Spalte löschen",
+    "tableDelete": "Tabelle löschen"
   },
   "icons": {
     "choose": "Icon wählen",
@@ -474,8 +490,7 @@
   },
   "agent": {
     "badge": "Agent",
-    "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors",
-    "access": "Zugang nur über Token (Befehl app:user-token)"
+    "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors"
   },
   "comments": {
     "title": "Kommentare ({count})",
@@ -618,7 +633,24 @@
         "rejectDescription": "Das wartende Konto wird gelöscht. Die Person kann sich danach nicht mehr anmelden.",
         "failed": "Das hat nicht geklappt. Die Liste wurde aktualisiert."
       },
-      "resetConfirm": "Ja, zurücksetzen"
+      "resetConfirm": "Ja, zurücksetzen",
+      "agent": {
+        "title": "Zugänge",
+        "name": "Name des Zugangs",
+        "nameHint": "Zum Wiedererkennen, zum Beispiel «{agent} Server»",
+        "create": "Zugang erzeugen",
+        "none": "Noch kein Zugang.",
+        "showOnceTitle": "Zugang für {agent} erzeugt",
+        "showOnce": "Wird nicht mehr angezeigt. Leg ihn in deinem Passwortmanager ab.",
+        "token": "Zugang (Token)",
+        "copyToken": "Zugang kopieren",
+        "revoke": "Zugang «{name}» widerrufen",
+        "revokeTitle": "Zugang «{name}» widerrufen?",
+        "revokeDescription": "{agent} kann diesen Zugang danach nicht mehr benutzen.",
+        "revokeConfirm": "Widerrufen",
+        "revoked": "Zugang widerrufen.",
+        "cli": "Oder per Terminal auf dem Server: app:user-token"
+      }
     },
     "settings": {
       "title": "App-Einstellungen",
@@ -669,7 +701,14 @@
       "you": "Du",
       "assistant": "Assistent",
       "emptyTitle": "Was soll ergänzt oder geplant werden?",
-      "emptyDescription": "Beschreibe eine Aufgabe, ein ToDo oder ein ganzes Projekt. Wo etwas unklar ist, fragt der Assistent mit Knöpfen nach. Gespeichert wird erst mit «Jetzt eintragen».",
+      "emptyDescription": "Beschreibe eine Aufgabe, ein ToDo oder ein ganzes Projekt. Wo etwas unklar ist, fragt der Assistent nach. Gespeichert wird erst mit «Jetzt eintragen».",
+      "targetKind": "Was möchtest du planen?",
+      "targetHint": "Automatisch plant der Assistent passende Milestones, ToDo und Tasks. Die Auswahl gilt für einen neuen Chat.",
+      "targetAutomatic": "Automatisch",
+      "targetMilestone": "Milestones",
+      "targetTodo": "ToDo",
+      "targetTask": "Tasks",
+      "targetIdea": "Idee",
       "placeholder": "Nachricht an den Assistenten (Enter sendet, Shift+Enter neue Zeile)",
       "listening": "Ich höre zu …",
       "send": "Senden",
@@ -1761,6 +1800,9 @@
       "PLANER_EXPORT": "Planer-Datei exportieren",
       "PLANER_IMPORT": "Planer-Datei importieren",
       "AI_CONTEXT_UPDATE": "KI-Kontext bearbeiten",
+      "DOCUMENT_CREATE": "Dokumente anlegen",
+      "DOCUMENT_UPDATE": "Dokumente bearbeiten",
+      "DOCUMENT_MANAGE_ANY": "Alle Dokumente verwalten",
       "PROJECTS_CREATE": "Projekte anlegen",
       "PROJECTS_VIEW_ALL": "Alle Projekte sehen, auch ohne Mitgliedschaft",
       "PROJECTS_MANAGE_ANY": "Jedes Projekt verwalten: alle Projektrechte in allen Projekten",
@@ -1941,7 +1983,8 @@
       "TODO": "ToDo",
       "TASK": "Task",
       "COMMENT": "Kommentar",
-      "IDEA": "Idee"
+      "IDEA": "Idee",
+      "DOCUMENT": "Dokument"
     },
     "count": {
       "PROJECT": "{count} Projekt | {count} Projekte",
@@ -1949,7 +1992,8 @@
       "TODO": "{count} ToDo | {count} ToDos",
       "TASK": "{count} Task | {count} Tasks",
       "COMMENT": "{count} Kommentar | {count} Kommentare",
-      "IDEA": "{count} Idee | {count} Ideen"
+      "IDEA": "{count} Idee | {count} Ideen",
+      "DOCUMENT": "{count} Dokument | {count} Dokumente"
     }
   },
   "planer": {
@@ -2159,5 +2203,112 @@
       "project": "Projekte"
     },
     "open": "Suche öffnen"
+  },
+  "documents": {
+    "title": "Dokumente",
+    "none": "Noch keine Dokumente",
+    "noneHint": "Lege das erste Dokument an, zum Beispiel eine Vorgehensweise oder ein Protokoll.",
+    "noMatch": "Keine Dokumente gefunden",
+    "create": "Dokument anlegen",
+    "search": "Suchen",
+    "kind": "Art",
+    "allKinds": "Alle Arten",
+    "kinds": {
+      "PROCEDURE": "Vorgehensweise",
+      "MINUTES": "Protokoll",
+      "ANALYSIS": "Analyse",
+      "CONCEPT": "Konzept",
+      "OTHER": "Sonstiges"
+    },
+    "access": {
+      "NONE": "Privat",
+      "READ": "Projekt liest",
+      "EDIT": "Projekt bearbeitet"
+    },
+    "owner": "Owner: {name}",
+    "noOwner": "Kein Owner",
+    "updated": "Geändert {date} von {name}",
+    "updatedAt": "Geändert {date}",
+    "createTitle": "Dokument anlegen",
+    "fieldTitle": "Titel",
+    "fieldKind": "Art",
+    "fieldAccess": "Freigabe für das Projekt",
+    "accessHint": "Wer im Projekt das Dokument lesen oder ändern darf. Einzelne Personen gibst du danach frei.",
+    "createSubmit": "Anlegen",
+    "created": "Dokument angelegt.",
+    "notFound": "Dokument nicht gefunden",
+    "backToList": "Zur Liste",
+    "emptyContent": "Das Dokument hat noch keinen Inhalt.",
+    "edit": "Bearbeiten",
+    "save": "Sichern",
+    "saved": "Gesichert.",
+    "cancelEdit": "Bearbeiten beenden",
+    "saving": "Sichern …",
+    "unsavedHint": "Nicht gesichert",
+    "history": "Verlauf",
+    "export": "Exportieren",
+    "exportMarkdown": "Als Markdown",
+    "exportPdf": "Als PDF",
+    "exportFailed": "Der Export hat nicht geklappt.",
+    "share": "Freigeben",
+    "transfer": "Owner übergeben",
+    "focus": "Fokus",
+    "draft": {
+      "title": "Ungesicherten Entwurf wiederherstellen?",
+      "text": "Du hast am {date} Änderungen begonnen und nicht gesichert. Der Entwurf liegt in diesem Browser.",
+      "restore": "Wiederherstellen"
+    },
+    "leave": {
+      "title": "Ungesicherte Änderungen",
+      "text": "Wenn du die Seite verlässt, sind deine Änderungen nicht gesichert. Ein Entwurf bleibt in diesem Browser erhalten.",
+      "confirm": "Verlassen"
+    },
+    "conflict": {
+      "title": "Das Dokument wurde inzwischen geändert",
+      "text": "Jemand hat eine neuere Fassung gesichert. Deine Änderungen sind noch nicht gesichert und bleiben als Entwurf in diesem Browser.",
+      "reload": "Neu laden",
+      "saveAsNew": "Als neues Dokument sichern",
+      "savedAsNew": "Als neues Dokument gesichert."
+    },
+    "sharing": {
+      "title": "Dokument freigeben",
+      "projectAccess": "Für alle Mitglieder des Projekts",
+      "people": "Einzelne Personen",
+      "addPerson": "Person hinzufügen",
+      "personAccess": "Stufe",
+      "read": "Lesen",
+      "edit": "Bearbeiten",
+      "remove": "{name} entfernen",
+      "none": "Keine einzelnen Freigaben.",
+      "saved": "Freigabe gespeichert.",
+      "membersOnly": "Nur Mitglieder des Projekts"
+    },
+    "transferTitle": "Owner übergeben",
+    "transferText": "Der neue Owner verwaltet das Dokument. Du verlierst die Verwaltung, wenn du sie nicht aus anderem Grund hast.",
+    "transferOwner": "Neuer Owner",
+    "transferConfirm": "Übergeben",
+    "transferred": "Owner übergeben.",
+    "versions": {
+      "title": "Verlauf",
+      "none": "Noch keine Fassungen.",
+      "revision": "Fassung {revision}",
+      "by": "von {name}",
+      "restoredFrom": "zurückgeholt aus Fassung {revision}",
+      "compare": "Vergleichen",
+      "pick": "Wähle zwei Fassungen zum Vergleichen.",
+      "restore": "Zurückholen",
+      "restoreTitle": "Fassung {revision} zurückholen?",
+      "restoreText": "Es entsteht eine neue Fassung mit diesem Inhalt. Nichts wird überschrieben.",
+      "restored": "Fassung zurückgeholt.",
+      "noChanges": "Kein Unterschied zwischen den Fassungen.",
+      "added": "hinzugefügt",
+      "removed": "entfernt",
+      "diff": "Unterschiede der Fassungen"
+    },
+    "exportPdfMaking": "PDF wird erstellt …",
+    "saveFailed": "Das Sichern hat nicht geklappt.",
+    "allSaved": "Gesichert",
+    "focusBack": "Zurück",
+    "fileFallback": "dokument"
   }
 }

@@ -14,7 +14,7 @@ use Carbon\CarbonImmutable;
 /**
  * The buttons of a question of the assistant (docs/auftrag-m6.md §4.1): what Claude proposes, checked by the
  * server. A value must be something the person sees, in a project that is not archived and where they may create
- * todos; NEW_PROJECT needs projects.create, IDEA needs ideas.create. At most five proposals, then "show all".
+ * the requested target kind; NEW_PROJECT needs projects.create, IDEA needs ideas.create. At most five proposals, then "show all".
  */
 final class PlanChoices
 {
@@ -27,7 +27,7 @@ final class PlanChoices
      * @param  Project|null  $project  The project of the conversation, if known
      * @return list<array{kind: string, label: string, detail: ?string, value: ?string, recommended: bool}>
      */
-    public static function clean(array $choices, User $viewer, ?Project $project): array
+    public static function clean(array $choices, User $viewer, ?Project $project, ?PlanTargetKind $targetKind = null): array
     {
         $valid = [];
         $showAll = false;
@@ -47,7 +47,7 @@ final class PlanChoices
                 continue;
             }
 
-            if (! self::allowed($kind, $value, $viewer, $project)) {
+            if (! self::allowed($kind, $value, $viewer, $project, $targetKind)) {
                 continue;
             }
 
@@ -175,18 +175,18 @@ final class PlanChoices
         return trans_choice('assistant.milestones', count($milestones)).' · '.trans_choice('assistant.todos', $todos);
     }
 
-    /** May the person create todos in this project (and it is not archived)? */
-    public static function mayPlanIn(User $viewer, Project $project): bool
+    /** May the person create the requested target in this project (and it is not archived)? */
+    public static function mayPlanIn(User $viewer, Project $project, ?PlanTargetKind $targetKind = null): bool
     {
         return $project->archived_at === null
             && Project::query()->visibleTo($viewer)->whereKey($project->getKey())->exists()
-            && Rights::allows($viewer, Right::TODO_CREATE, $project);
+            && Rights::allows($viewer, ($targetKind ?? PlanTargetKind::TODO)->right(), $project);
     }
 
-    private static function allowed(string $kind, ?string $value, User $viewer, ?Project $project): bool
+    private static function allowed(string $kind, ?string $value, User $viewer, ?Project $project, ?PlanTargetKind $targetKind): bool
     {
         return match ($kind) {
-            'PROJECT' => $value !== null && ($found = Project::query()->visibleTo($viewer)->find($value)) !== null && self::mayPlanIn($viewer, $found),
+            'PROJECT' => $value !== null && ($found = Project::query()->visibleTo($viewer)->find($value)) !== null && self::mayPlanIn($viewer, $found, $targetKind),
             'NEW_PROJECT' => Rights::allows($viewer, Right::PROJECTS_CREATE),
             'IDEA' => Rights::allows($viewer, Right::IDEAS_CREATE),
             'TEMPLATE' => $value !== null && Template::query()->whereKey($value)->exists(),

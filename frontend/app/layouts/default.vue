@@ -236,6 +236,10 @@ function skipToContent(): void {
           :label="t('systemVersion.label')"
         />
       </NuxtLink>
+      <a
+        href="/mcp/"
+        class="app-mcp-link"
+      >MCP</a>
     </div>
 
     <main
@@ -383,6 +387,26 @@ function skipToContent(): void {
 }
 
 .app-version:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
+}
+
+.app-mcp-link {
+  display: block;
+  margin-block-start: var(--wa-space-2xs);
+  padding-inline: var(--wa-space-s);
+  border-radius: var(--wa-border-radius-m);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-xs);
+  text-decoration: none;
+}
+
+.app-mcp-link:hover {
+  color: var(--wa-color-text-normal);
+  text-decoration: underline;
+}
+
+.app-mcp-link:focus-visible {
   outline: var(--wa-focus-ring);
   outline-offset: var(--wa-focus-ring-offset);
 }

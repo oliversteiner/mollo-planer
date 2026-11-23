@@ -127,6 +127,7 @@ describe('ProjectTabs', () => {
       ['Milestones', '/projects/7'],
       ['ToDo', '/projects/7/todos'],
       ['Tasks', '/projects/7/kanban'],
+      ['Dokumente', '/projects/7/documents'],
       ['Mitglieder', '/projects/7/members'],
       ['Statistik', '/projects/7/statistics']
     ])

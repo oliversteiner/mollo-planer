@@ -1,0 +1,50 @@
+{
+    "type": "doc",
+    "content": [
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 2
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Zwei"
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 3
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Drei"
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "attrs": {
+                "level": 4
+            },
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Vier"
+                }
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Text"
+                }
+            ]
+        }
+    ]
+}

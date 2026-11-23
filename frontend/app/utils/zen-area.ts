@@ -1,11 +1,11 @@
 /**
  * The area Zen starts with (docs/zen-modus.md §4.4). Content areas are the pages with work in them: the dashboard,
- * my tasks, ideas, the assistant, and in a project the timeline, the kanban and the todos. Zen starts with the page
+ * my tasks, ideas, the assistant, and in a project the timeline, the kanban, the todos and the documents (list, one document, its history). Zen starts with the page
  * the person is on if it is a content area (an open task or todo stays, it is the same page); on any other page
  * (settings, members, templates, trash, admin, profile, system) with the content area last visited on this device
  * (cookie `zen_area`), and without one with "Meine Tasks".
  */
-const CONTENT = [/^\/$/, /^\/my-tasks$/, /^\/ideas$/, /^\/assistant$/, /^\/projects\/[^/]+$/, /^\/projects\/[^/]+\/(kanban|todos)$/]
+const CONTENT = [/^\/$/, /^\/my-tasks$/, /^\/ideas$/, /^\/assistant$/, /^\/projects\/[^/]+$/, /^\/projects\/[^/]+\/(kanban|todos|documents)$/, /^\/projects\/[^/]+\/documents\/[^/]+(\/history)?$/]
 
 export const FALLBACK_AREA = '/my-tasks'
 
@@ -39,14 +39,22 @@ export function chooseZenArea(current: string, remembered: string | null | undef
   return FALLBACK_AREA
 }
 
+/**
+ * What is remembered of a content area (cookie `zen_area`): one document and its history are remembered as the list
+ * of documents, because the document may be gone the next day.
+ */
+export function rememberedArea(path: string): string {
+  return cleanPath(path).replace(/^(\/projects\/[^/]+\/documents)\/[^/]+(?:\/history)?$/, '$1')
+}
+
 /** The project id in a project path, or null. */
 export function projectIdOf(path: string): string | null {
   return /^\/projects\/([^/]+)/.exec(cleanPath(path))?.[1] ?? null
 }
 
-/** The part of the path after the project: '' (timeline), 'kanban' or 'todos'. */
-export function projectPageOf(path: string): '' | 'kanban' | 'todos' {
-  const page = /^\/projects\/[^/]+\/(kanban|todos)$/.exec(cleanPath(path))?.[1]
+/** The part of the path after the project: '' (timeline), 'kanban', 'todos' or 'documents' (also one document and its history). */
+export function projectPageOf(path: string): '' | 'kanban' | 'todos' | 'documents' {
+  const page = /^\/projects\/[^/]+\/(kanban|todos|documents)(?:\/|$)/.exec(cleanPath(path))?.[1]
 
-  return page === 'kanban' || page === 'todos' ? page : ''
+  return page === 'kanban' || page === 'todos' || page === 'documents' ? page : ''
 }

@@ -59,7 +59,7 @@ class RoleAdministrationTest extends GraphQLTestCase
 
         $this->assertSame(array_map(fn (Right $right): string => $right->name, Right::ofScope(Right::SCOPE_SYSTEM)), $rights['system']);
         $this->assertSame('PROJECT_UPDATE', $rights['project'][0]);
-        $this->assertCount(25, $rights['project']);
+        $this->assertCount(28, $rights['project']);
     }
 
     public function test_functions_are_listed_by_scope_with_their_use(): void

@@ -28,13 +28,33 @@ class MolloPlanerServerTest extends McpTestCase
             ->assertDontSee('Fremd');
     }
 
+    public function test_project_revisions_are_real_and_optional_details_are_not_loaded_by_default(): void
+    {
+        $compact = $this->decode(MolloPlanerServer::actingAs($this->owner)->tool(ListProjectsTool::class));
+
+        $this->assertNotNull($compact[0]['planer_revision']);
+        $this->assertArrayNotHasKey('members', $compact[0]);
+        $this->assertArrayNotHasKey('abilities', $compact[0]);
+
+        $detailed = $this->decode(MolloPlanerServer::actingAs($this->owner)->tool(ListProjectsTool::class, [
+            'include_members' => true, 'include_rights' => true,
+        ]));
+        $this->assertNotEmpty($detailed[0]['members']);
+        $this->assertNotEmpty($detailed[0]['abilities']);
+    }
+
     public function test_list_templates_shows_the_templates_for_every_token_owner(): void
     {
         TemplateSync::sync();
 
-        MolloPlanerServer::actingAs($this->member)->tool(ListTemplatesTool::class)
+        $compact = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListTemplatesTool::class));
+        $event = collect($compact)->firstWhere('key', 'event');
+        $this->assertNotNull($event);
+        $this->assertArrayHasKey('project_count', $event);
+        $this->assertArrayNotHasKey('labels', $event);
+
+        MolloPlanerServer::actingAs($this->member)->tool(ListTemplatesTool::class, ['include_details' => true])
             ->assertOk()
-            ->assertSee('Event')
             ->assertSee('Veranstaltungsort anfragen')
             ->assertSee('location');
     }
@@ -64,6 +84,26 @@ class MolloPlanerServerTest extends McpTestCase
             ->assertHasErrors();
     }
 
+    public function test_list_users_returns_cursor_pages_beyond_the_first_limit(): void
+    {
+        for ($index = 1; $index <= 35; $index++) {
+            User::factory()->create([
+                'name' => sprintf('Page User %03d', $index),
+                'approved_at' => now(),
+            ]);
+        }
+
+        $firstPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListUsersTool::class, ['query' => 'Page User', 'limit' => 30]));
+        $this->assertCount(30, $firstPage['data']);
+        $this->assertTrue($firstPage['has_more']);
+
+        $lastPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListUsersTool::class, [
+            'query' => 'Page User', 'limit' => 30, 'cursor' => $firstPage['next_cursor'],
+        ]));
+        $this->assertCount(5, $lastPage['data']);
+        $this->assertFalse($lastPage['has_more']);
+    }
+
     public function test_the_server_offers_exactly_one_way_to_read_and_one_to_write_a_plan(): void
     {
         $list = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'];
@@ -91,5 +131,16 @@ class MolloPlanerServerTest extends McpTestCase
         $this->postJson('/mcp', $list, [...$headers, 'Authorization' => "Bearer {$token}"])
             ->assertOk()
             ->assertSee('export_plan');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decode(mixed $response): array
+    {
+        $response->assertOk();
+        $content = (string) ((fn (): array => $this->content())->call($response)[0] ?? '');
+
+        return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
     }
 }

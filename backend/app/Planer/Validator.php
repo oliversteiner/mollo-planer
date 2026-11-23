@@ -38,7 +38,7 @@ final class Validator
 
     /**
      * @param  array<string, mixed>  $document
-     * @return list<array{path: string, severity: string, message: string}>
+     * @return list<array{path: string, severity: string, message: string, code?: string, email?: string}>
      */
     public static function validate(array $document): array
     {
@@ -253,8 +253,15 @@ final class Validator
 
                     $assignee = $task['assigneeEmail'] ?? null;
 
+                    // The import turns this issue into a warning (the task goes on without an assignee); the code tells them apart.
                     if ($assignee !== null && $assignee !== '' && ! isset($members[mb_strtolower($assignee)])) {
-                        $add("{$kp}.assigneeEmail", __('planer.validation.assignee_not_member', ['email' => $assignee]));
+                        $issues[] = [
+                            'path' => "{$kp}.assigneeEmail",
+                            'severity' => 'error',
+                            'message' => __('planer.validation.assignee_not_member', ['email' => $assignee]),
+                            'code' => 'assignee_not_member',
+                            'email' => $assignee,
+                        ];
                     }
 
                     foreach ($task['labels'] ?? [] as $li => $key) {

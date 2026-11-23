@@ -68,6 +68,9 @@ Stand: 2026-11-08, vom Auftraggeber bestätigt; Oberfläche seit 2026-11-09 auf 
 | `/projects/:id?milestones=&task=` | Übersicht als Zeitstrahl: Milestones nach Fälligkeit (Nummer M1, M2 …), darin ToDos zum Aufklappen mit ihren Tasks, Darstellung wie die Vorschau des KI-Assistenten. Anlegen, Ändern und Löschen von Milestones, ToDos und Tasks nach Rechten. Tasks wie im Kanban: Klick öffnet die Details im Seitenpanel (`?task=`), Doppelklick das Bearbeiten. Tasks per Drag & Drop in ein anderes ToDo ziehen (`moveTaskToTodo`, mit Recht „Task ändern“); ein zugeklapptes ToDo öffnet sich, wenn man einen Task darüber hält. Innerhalb eines ToDos bleibt die Reihenfolge nach Fälligkeit. „Nur Milestones anzeigen“ blendet Beschreibungen und ToDos aus (`?milestones=only`) |
 | `/projects/:id/todos` | ToDo-Liste mit Filtern (Milestone, Status) |
 | `/projects/:id/kanban?task=` | Kanban; `?task=` öffnet die Task-Details im Seitenpanel (Link aus den Mails) |
+| `/projects/:id/documents` | Dokumente des Projekts: Liste mit Filter nach Art und Suche, «Dokument anlegen» (`document.create`) |
+| `/projects/:id/documents/:docId` | Ein Dokument lesen, mit der Stufe EDIT auf derselben Seite bearbeiten (Profil «Dokument», Sichern, Entwurf, Konflikt), Freigeben, Owner übergeben, Exportieren (Markdown, PDF), Löschen; `?focus=1` Fokus |
+| `/projects/:id/documents/:docId/history` | Verlauf: Fassungen, zwei vergleichen (Diff als Text), zurückholen |
 | `/projects/:id/members` | Mitglieder und Rollen (lesen alle, ändern mit `MEMBERS_MANAGE`) |
 | `/projects/:id/settings` | Name, Beschreibung, Icon, Sprache der Mails, Label-Set, Projekt löschen |
 | `/label-sets` | Label-Sets der App: mitgelieferte und eigene; anlegen, duplizieren, bearbeiten, löschen (siehe `labels-plan.md`) |

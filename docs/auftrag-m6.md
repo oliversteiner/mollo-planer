@@ -107,6 +107,7 @@ draftPlan(
   messages: [PlanChatMessageInput!]!   # 1 bis 40, je höchstens 8000 Zeichen
   projectId: ID                        # bekanntes Projekt (Seite oder Auswahl)
   templateId: ID                       # gewählte Vorlage bei neuem Projekt
+  targetKind: PlanTargetKind           # Zielart; optional, ohne Angabe wie bisher TODO
   currentPlan: String                  # Entwurf in der Vorschau, damit Claude ihn ändert
   ideaId: ID                           # Einplanen einer Idee: deren Entwurf ist currentPlan
 ): PlanDraft!                          # Recht assistant.use, Grenze §4.5
@@ -128,11 +129,13 @@ type PlanChoice {
   value: ID                            # Projekt-, Vorlagen-, Milestone- bzw. ToDo-ID
   recommended: Boolean!
 }
+
+enum PlanTargetKind { MILESTONE TODO TASK }
 ```
 
 - Eine Auswahl schickt die Oberfläche als nächste Nachricht der Person, mit `kind` und `value` als Text. `projectId` und `templateId` setzt sie aus der Auswahl.
 - **Regeln für `choices`:**
-  - Der Server prüft jede `value`: sichtbar, nicht archiviert, und bei Projekten mit dem Recht, dort ToDos anzulegen. Ungültige Einträge entfernt er.
+  - Der Server prüft jede `value`: sichtbar, nicht archiviert, und bei Projekten mit dem Recht für die gewählte Zielart (`milestone.create`, `todo.create` oder `task.create`). Ohne `targetKind` gilt `todo.create`. Ungültige Einträge entfernt er.
   - Höchstens fünf Vorschläge, danach `SHOW_ALL`.
   - `NEW_PROJECT` gibt es nur mit `projects.create`, `IDEA` nur mit `ideas.create`.
 
@@ -140,6 +143,7 @@ type PlanChoice {
 
 - **Personen** nach Konzept §8 Nr. 1–3.
 - **Projektbaum:** Export, verdichtet auf ID, Titel, Task-Status und Version. Beschreibungen nur bis 200 Elemente.
+- **Zielart und sichtbare Projekte:** `targetKind` ist `MILESTONE`, `TODO` oder `TASK`; ohne Angabe bleibt die bisherige ToDo-Regel. Bei jedem Aufruf alle aktiven sichtbaren Projekte mit ID, Name und getrennten Kennzeichnungen für die drei Anlegerechte aufnehmen. Als Projektziel nur Einträge anbieten, die das gewählte Recht haben; den Typ im Prompt ausdrücklich auf die gewählte Art begrenzen.
 - **Weitere Blöcke:**
   - Labels des Projekts
   - bei neuem Projekt die Vorlagen (Name, Beschreibung, Labels, Umfang)
@@ -153,6 +157,8 @@ type PlanChoice {
   - Kein zweites, von Hand gepflegtes Schema. Ein Test vergleicht die Felder mit `spec/`.
 
 ### 4.3 Nachbearbeitung auf dem Server (vor der Vorschau)
+
+Vor dem Claude-Aufruf: Bei ausgewähltem Projekt das Anlegerecht für `targetKind` prüfen; unbekannte oder archivierte Projekte bleiben ausgeschlossen. Der Importer prüft weiterhin jede tatsächliche Änderung nach ihren konkreten Rechten.
 
 1. Den Ausschnitt gegen das Schema prüfen. Ist er ungültig, kommt eine Antwort mit Rückfrage statt eines Fehlers. Es gibt keinen zweiten Aufruf an Claude (Konzept Entscheidung 10).
 2. **IDs:**

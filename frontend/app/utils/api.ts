@@ -184,6 +184,17 @@ export function classifyApolloError(error: unknown): ApiError {
   return classifyApiError(status, failure.graphQLErrors?.length ? [...failure.graphQLErrors] : bodyErrors)
 }
 
+/** The code of the error when somebody else saved a document in the meantime (backend: DocumentConflict). */
+export const DOCUMENT_CONFLICT = 'DOCUMENT_CONFLICT'
+
+/** Whether a failed mutation is the conflict of a document: its revision is not the current one, nothing was saved. */
+export function isDocumentConflict(error: unknown): boolean {
+  const failure = (error && typeof error === 'object' ? error : {}) as ApolloErrorLike
+  const errors = failure.graphQLErrors?.length ? [...failure.graphQLErrors] : []
+
+  return errors.some(item => item.extensions?.code === DOCUMENT_CONFLICT)
+}
+
 /**
  * Only paths inside this app are allowed as target after the login, so a
  * link like /login?redirect=https://evil.example cannot send people away.

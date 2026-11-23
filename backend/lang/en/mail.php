@@ -99,4 +99,15 @@ return [
         'ignore' => 'If you did not register, do not click the link and do nothing.',
         'approval' => 'After that you set up your second factor, and an admin releases your account.',
     ],
+    'agent_access' => [
+        'created' => [
+            'subject' => '[:app] Access made for :agent',
+            'line' => ':admin made the access “:access” for the agent account :agent.',
+        ],
+        'revoked' => [
+            'subject' => '[:app] Access of :agent revoked',
+            'line' => ':admin revoked the access “:access” of the agent account :agent.',
+        ],
+        'not_you' => 'If this was not expected, check the user administration and the log.',
+    ],
 ];

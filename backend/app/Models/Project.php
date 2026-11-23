@@ -135,6 +135,14 @@ class Project extends Model
     }
 
     /**
+     * @return HasMany<Document, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    /**
      * Role of the user in this project, null if not a member.
      *
      * Uses the loaded members relation if present, otherwise one query.

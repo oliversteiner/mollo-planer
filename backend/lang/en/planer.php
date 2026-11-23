@@ -52,6 +52,7 @@ return [
     'import' => [
         'draft_invalid' => 'The draft is not valid: :message',
         'invalid' => 'The file is not valid: :message',
+        'assignee_unknown_warning' => ':email is not a member of the project or does not exist. The assignment is not taken over.',
         'excerpt' => 'The file is an excerpt of the plan (excerpt). In mode full, everything it lacks would be deleted. Import it in mode partial, or export the whole plan.',
         'revision' => 'The file has revision :file, the project is at :project. Export it again first.',
         'unknown_id' => ':id does not belong to this project or is in the trash.',
@@ -70,6 +71,7 @@ return [
             'idea' => 'put this idea into a plan (only its author)',
         ],
         'person_unknown' => 'There is no approved account for :email. An import does not create accounts.',
+        'member_unknown_warning' => 'There is no approved account for :email. The member is not taken over, an import does not create accounts.',
         'role_unknown' => 'There is no project role “:role”.',
         'self_removal' => 'The file would remove you from the project. List yourself among the members, or import in “partial” mode.',
         'description' => ':problem',
