@@ -188,10 +188,24 @@ if [ "$RP_ID" != "$FRONTEND_HOST" ]; then
 fi
 
 # Standard roles and functions (config/permissions.php) reach an existing database only with permissions:sync-defaults
-# (e.g. the project role Agent, task 31). Not run here on purpose: it resets the standard assignments. Only a warning.
-if ! "$PHP" "$BACKEND/artisan" permissions:sync-defaults --check >/dev/null 2>&1; then
-    echo "WARNUNG: Standardrollen oder -funktionen fehlen in der Datenbank (z. B. die Projektrolle Agent). Auf dem Server 'php artisan permissions:sync-defaults --check' zeigt sie, 'php artisan permissions:sync-defaults' holt sie (setzt die Standardbelegung zurück)." >&2
-fi
+# (e.g. the project role Agent, task 31). Not run here on purpose: it resets the standard assignments. Only a warning, and
+# the output goes into the log, so one sees WHAT is missing. Exit code 2 of the check means "something is missing"; any
+# other failure (an exception, no database) is not reported as missing standard roles: the check could not run.
+CHECK_STATUS=0
+CHECK_OUTPUT=$("$PHP" "$BACKEND/artisan" permissions:sync-defaults --check 2>&1) || CHECK_STATUS=$?
+case "$CHECK_STATUS" in
+    0)
+        echo "Standardrollen und -funktionen: vollständig."
+        ;;
+    2)
+        echo "WARNUNG: Standardrollen oder -funktionen fehlen in der Datenbank (z. B. die Projektrolle Agent). 'php artisan permissions:sync-defaults' holt sie (setzt die Standardbelegung zurück):" >&2
+        echo "$CHECK_OUTPUT" >&2
+        ;;
+    *)
+        echo "WARNUNG: Die Prüfung der Standardrollen konnte nicht laufen (Exit $CHECK_STATUS). Sie sagt nichts darüber, ob etwas fehlt. Ausgabe:" >&2
+        echo "$CHECK_OUTPUT" >&2
+        ;;
+esac
 
 # The test environment says so in its mails: APP_NAME carries "(Test)". Only a warning.
 if [ "$(env_value APP_ENV || true)" = "staging" ] && [[ "$(env_value APP_NAME || true)" != *Test* ]]; then
