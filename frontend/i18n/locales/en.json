@@ -2354,7 +2354,14 @@
       "allow": "Allow",
       "deny": "Deny",
       "unavailableTitle": "Request no longer valid",
-      "unavailableText": "This request is no longer valid. Start the login in the application again."
+      "unavailableText": "This request is no longer valid. Start the login in the application again.",
+      "refusedTitle": "Access not possible",
+      "errors": {
+        "email_unverified": "Confirm your email address first. Then you can allow applications.",
+        "agent": "An agent account cannot allow an application.",
+        "not_approved": "Your account has not been approved by an admin yet. This application needs the approval.",
+        "other": "No application can be allowed with this account."
+      }
     }
   }
 }

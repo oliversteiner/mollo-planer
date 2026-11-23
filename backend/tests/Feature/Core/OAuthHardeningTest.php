@@ -78,11 +78,71 @@ class OAuthHardeningTest extends TestCase
             ->assertRedirect('https://planer.test/oauth/consent');
     }
 
+    // ---- F2: who may authorize -----------------------------------------------------------------------------
+
+    public function test_a_person_without_a_confirmed_address_may_not_authorize(): void
+    {
+        $this->authorize(User::factory()->unverified()->create(), $this->client(true), $this->s256())
+            ->assertRedirect('https://planer.test/oauth/consent?error=email_unverified');
+    }
+
+    public function test_an_agent_account_may_not_authorize(): void
+    {
+        $this->authorize(User::factory()->agent()->create(), $this->client(true), $this->s256())
+            ->assertRedirect('https://planer.test/oauth/consent?error=agent');
+    }
+
+    public function test_the_approval_of_an_admin_is_needed_for_the_scopes_that_open_the_planer(): void
+    {
+        $user = User::factory()->unapproved()->create();
+        $this->assertNotNull($user->email_verified_at, 'confirmed, but not approved');
+
+        foreach (['mcp:use', 'mcp:read', 'mcp:write', 'api', 'openid api', 'openid profile mcp:use'] as $scope) {
+            $this->authorize($user, $this->client(true), $this->s256(), $scope)
+                ->assertRedirect('https://planer.test/oauth/consent?error=not_approved');
+        }
+    }
+
+    public function test_for_the_identity_alone_the_confirmed_address_is_enough(): void
+    {
+        $user = User::factory()->unapproved()->create();
+
+        $this->authorize($user, $this->client(true), $this->s256(), 'openid profile email')
+            ->assertRedirect('https://planer.test/oauth/consent');
+    }
+
+    public function test_an_approved_person_may_authorize_every_scope(): void
+    {
+        $this->authorize(User::factory()->create(), $this->client(true), $this->s256(), 'openid email mcp:use api')
+            ->assertRedirect('https://planer.test/oauth/consent');
+    }
+
+    public function test_the_consent_page_is_checked_again_when_the_account_changes_meanwhile(): void
+    {
+        $user = User::factory()->create();
+        $session = [StrongAuthentication::SESSION_KEY => (string) $user->getKey()];
+        $this->authorize($user, $this->client(true), $this->s256())->assertRedirect('https://planer.test/oauth/consent');
+        $token = $this->withSession($session)->actingAs($user)->getJson('/oauth/consent')->assertOk()->json('authToken');
+
+        $user->forceFill(['email_verified_at' => null])->save();
+
+        $this->withSession($session)->actingAs($user)->getJson('/oauth/consent')
+            ->assertForbidden()->assertJsonPath('error', 'account_not_allowed')->assertJsonPath('reason', 'email_unverified');
+        $this->withSession($session)->actingAs($user)->postJson('/oauth/consent/approve', ['auth_token' => $token])
+            ->assertForbidden()->assertJsonPath('reason', 'email_unverified');
+    }
+
     // ---- helpers ------------------------------------------------------------------------------------------------
 
     private function client(bool $confidential): Client
     {
         return app(ClientRepository::class)->createAuthorizationCodeGrantClient('Test App', [self::REDIRECT_URI], confidential: $confidential);
+    }
+
+    /** @return array{code_challenge: string, code_challenge_method: string} */
+    private function s256(): array
+    {
+        return ['code_challenge' => $this->challenge(), 'code_challenge_method' => 'S256'];
     }
 
     private function challenge(): string

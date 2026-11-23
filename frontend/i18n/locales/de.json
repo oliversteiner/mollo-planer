@@ -2354,7 +2354,14 @@
       "allow": "Zulassen",
       "deny": "Ablehnen",
       "unavailableTitle": "Anfrage nicht mehr gültig",
-      "unavailableText": "Diese Anfrage gilt nicht mehr. Starte die Anmeldung in der Anwendung noch einmal."
+      "unavailableText": "Diese Anfrage gilt nicht mehr. Starte die Anmeldung in der Anwendung noch einmal.",
+      "refusedTitle": "Zugriff nicht möglich",
+      "errors": {
+        "email_unverified": "Bestätige zuerst deine E-Mail-Adresse. Danach kannst du Anwendungen zulassen.",
+        "agent": "Ein Agent-Konto kann keine Anwendung zulassen.",
+        "not_approved": "Dein Konto ist noch nicht von einem Admin freigegeben. Für diese Anwendung ist die Freigabe nötig.",
+        "other": "Mit diesem Konto kann keine Anwendung zugelassen werden."
+      }
     }
   }
 }

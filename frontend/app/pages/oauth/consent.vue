@@ -13,8 +13,9 @@ interface Consent {
   user: { name: string }
 }
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { $backend } = useNuxtApp()
+const route = useRoute()
 
 useHead({ title: () => t('oauth.consent.title') })
 
@@ -22,14 +23,36 @@ const consent = ref<Consent | null>(null)
 const loading = ref(true)
 // No request in the session (it ran out, or the page was opened by hand) or the answer was refused.
 const unavailable = ref(false)
+// The account may not authorize (unconfirmed address, agent, not approved yet): the API says why, as a parameter of this page or
+// as the answer 403 of the JSON routes.
+const refusedByApi = ref<string | null>(null)
+const refused = computed(() => refusedByApi.value ?? (typeof route.query.error === 'string' ? route.query.error : null))
 const answering = ref<'approve' | 'deny' | null>(null)
 
+/** The reason of a 403 of the API (account_not_allowed), or null. */
+function reasonOf(error: unknown): string | null {
+  const data = error as { status?: number, data?: { reason?: unknown } } | null
+
+  return data?.status === 403 && typeof data.data?.reason === 'string' ? data.data.reason : null
+}
+
+const refusalText = computed(() => (refused.value && te(`oauth.consent.errors.${refused.value}`)
+  ? t(`oauth.consent.errors.${refused.value}`)
+  : t('oauth.consent.errors.other')))
+
 onMounted(async () => {
+  if (refused.value) {
+    loading.value = false
+
+    return
+  }
+
   try {
     consent.value = await $backend<Consent>('/oauth/consent')
-  } catch {
-    // 404: no request in the session. Anything else: the page cannot help either, the application starts again.
-    unavailable.value = true
+  } catch (error) {
+    // 403: the account may not authorize (the reason is shown). 404 and anything else: the request is gone, the application starts again.
+    refusedByApi.value = reasonOf(error)
+    unavailable.value = refusedByApi.value === null
   } finally {
     loading.value = false
   }
@@ -48,9 +71,10 @@ async function answer(decision: 'approve' | 'deny'): Promise<void> {
       body: { auth_token: consent.value.authToken }
     })
     window.location.assign(redirect)
-  } catch {
-    // The request is used up after the first answer; the application has to start again.
-    unavailable.value = true
+  } catch (error) {
+    // The request is used up after the first answer; the application has to start again (or the account may not authorize).
+    refusedByApi.value = reasonOf(error)
+    unavailable.value = refusedByApi.value === null
     answering.value = null
   }
 }
@@ -62,7 +86,7 @@ async function answer(decision: 'approve' | 'deny'): Promise<void> {
       slot="header"
       class="wa-heading-l"
     >
-      {{ unavailable ? t('oauth.consent.unavailableTitle') : t('oauth.consent.title') }}
+      {{ refused ? t('oauth.consent.refusedTitle') : unavailable ? t('oauth.consent.unavailableTitle') : t('oauth.consent.title') }}
     </h1>
 
     <div
@@ -71,6 +95,12 @@ async function answer(decision: 'approve' | 'deny'): Promise<void> {
     >
       <wa-spinner />
     </div>
+
+    <AppCallout
+      v-else-if="refused"
+      variant="warning"
+      :description="refusalText"
+    />
 
     <AppCallout
       v-else-if="unavailable || !consent"

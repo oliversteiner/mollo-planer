@@ -1,5 +1,6 @@
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ref } from 'vue'
 import AuthorizePage from '~/pages/oauth/authorize.vue'
 import ConsentPage from '~/pages/oauth/consent.vue'
 
@@ -10,6 +11,9 @@ mockNuxtImport('useNuxtApp', original => () => {
 
   return new Proxy(nuxtApp, { get: (target, key) => (key === '$backend' ? backend : Reflect.get(target, key)) })
 })
+
+// A person is logged in, so the global middleware lets the pages through.
+mockNuxtImport('useViewer', () => () => ({ viewer: ref({ id: '1' }), load: vi.fn(), logout: vi.fn(), can: () => true, pendingEmail: ref(null) }))
 
 const consent = {
   client: { name: 'Club DB', redirectHost: 'clubdb.example' },
@@ -74,6 +78,53 @@ describe('consent page', () => {
 
     await vi.waitFor(() => expect(page.text()).toContain('Anfrage nicht mehr gültig'))
     expect(page.findAll('wa-button')).toHaveLength(0)
+  })
+})
+
+describe('consent page: an account that may not authorize', () => {
+  /** The router needs the real address of the window: the stub of the other tests (for the navigation) is taken away. */
+  const at = (): void => {
+    vi.unstubAllGlobals()
+  }
+  const refusal = (reason: string) => Object.assign(new Error('403'), { status: 403, data: { error: 'account_not_allowed', reason } })
+
+  it('says why when the API sent the person here with the reason', async () => {
+    at()
+    const page = await mountSuspended(ConsentPage, { route: '/oauth/consent?error=email_unverified' })
+
+    await vi.waitFor(() => expect(page.text()).toContain('Bestätige zuerst deine E-Mail-Adresse.'))
+    expect(page.text()).toContain('Zugriff nicht möglich')
+    expect(page.findAll('wa-button')).toHaveLength(0)
+    expect(backend).not.toHaveBeenCalled()
+  })
+
+  it('says why for each reason, and has a text for one it does not know', async () => {
+    for (const [reason, text] of [['agent', 'Ein Agent-Konto kann keine Anwendung zulassen.'], ['not_approved', 'noch nicht von einem Admin freigegeben'], ['whatever', 'Mit diesem Konto kann keine Anwendung zugelassen werden.']]) {
+      at()
+      const page = await mountSuspended(ConsentPage, { route: `/oauth/consent?error=${reason}` })
+
+      await vi.waitFor(() => expect(page.text()).toContain(text))
+    }
+  })
+
+  it('shows the reason of a 403 when the page loads the request', async () => {
+    backend.mockRejectedValue(refusal('not_approved'))
+
+    const page = await mountSuspended(ConsentPage)
+
+    await vi.waitFor(() => expect(page.text()).toContain('noch nicht von einem Admin freigegeben'))
+    expect(page.findAll('wa-button')).toHaveLength(0)
+  })
+
+  it('shows the reason of a 403 on the answer, instead of the text for a request that is gone', async () => {
+    backend.mockResolvedValueOnce(consent).mockRejectedValueOnce(refusal('email_unverified'))
+
+    const page = await mountSuspended(ConsentPage)
+    await vi.waitFor(() => expect(page.text()).toContain('Zulassen'))
+    await page.findAll('wa-button')[0]!.trigger('click')
+
+    await vi.waitFor(() => expect(page.text()).toContain('Bestätige zuerst deine E-Mail-Adresse.'))
+    expect(assign).not.toHaveBeenCalled()
   })
 })
 
