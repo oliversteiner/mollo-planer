@@ -311,7 +311,7 @@ php artisan app:user-token claude-clubdb@example.ch --revoke              # wide
 - **Zugang auch ohne SSH (Auftrag 32):** Ein Admin (Recht `users.manage`, starke Sitzung) macht und widerruft Zugänge eines Agent-Kontos in der App unter **Admin → Benutzer**, im Bereich «Zugänge» der Zeile des Agenten: Name eingeben, Passwort bestätigen, der Zugang erscheint **einmal** in einem Dialog (Kopierknopf). Nur für Agent-Konten, nie für Menschen. Jedes Erzeugen und Widerrufen steht im Log (wer, welcher Agent, welcher Zugang, nie das Token), und alle Admins bekommen eine Info-Mail.
 - Das Token gehört in die Einstellung des Connectors (siehe `docs/claude-connector.md`), nicht in `.env`, nicht ins Repository. Es gilt 90 Tage; danach ein neues machen.
 - `app:user-token` verweigert Konten von Menschen: die machen ihr Token selbst im Profil.
-- Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent).
+- Auf einem Bestand, dessen Rollen vor Auftrag 31 angelegt wurden, einmal `php artisan permissions:sync-defaults` (holt die Projektrolle Agent). Ohne diesen Schritt fehlt «Agent» im Auswahlfeld der Projektrolle. `php artisan permissions:sync-defaults --check` zeigt, was fehlt, und ändert nichts (Exit 1, wenn etwas fehlt). `deploy.sh` ruft die Prüfung am Ende jedes Deployments auf und gibt eine **WARNUNG** aus (kein Abbruch, kein automatischer Abgleich, weil der Abgleich die Standardbelegung zurücksetzt). Da `deploy.sh` die Fassung vom Server ausführt, wirkt die Prüfung erst im Deployment nach dem ersten, das sie mitbringt.
 
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 

@@ -187,6 +187,12 @@ if [ "$RP_ID" != "$FRONTEND_HOST" ]; then
     echo "WARNUNG: PASSKEYS_RELYING_PARTY_ID ist '$RP_ID', der Host von FRONTEND_URL ist '$FRONTEND_HOST'. Passkeys würden nicht passen (siehe docs/deploy-template.md)." >&2
 fi
 
+# Standard roles and functions (config/permissions.php) reach an existing database only with permissions:sync-defaults
+# (e.g. the project role Agent, task 31). Not run here on purpose: it resets the standard assignments. Only a warning.
+if ! "$PHP" "$BACKEND/artisan" permissions:sync-defaults --check >/dev/null 2>&1; then
+    echo "WARNUNG: Standardrollen oder -funktionen fehlen in der Datenbank (z. B. die Projektrolle Agent). Auf dem Server 'php artisan permissions:sync-defaults --check' zeigt sie, 'php artisan permissions:sync-defaults' holt sie (setzt die Standardbelegung zurück)." >&2
+fi
+
 # The test environment says so in its mails: APP_NAME carries "(Test)". Only a warning.
 if [ "$(env_value APP_ENV || true)" = "staging" ] && [[ "$(env_value APP_NAME || true)" != *Test* ]]; then
     echo "WARNUNG: APP_ENV ist staging, aber APP_NAME enthält nicht «Test» (z. B. \"Mollo Planer (Test)\"): Mails der Testumgebung wären nicht als Test erkennbar." >&2

@@ -39,6 +39,32 @@ final class RightsDefaults
         Rights::clearCache();
     }
 
+    /**
+     * The standard roles and functions of config/permissions.php that have no row yet
+     * (for example the project role Agent on a database made before it existed).
+     * Changes nothing.
+     *
+     * @return list<string> entries like "project.role.agent" or "project.function.agent-work"
+     */
+    public static function missing(): array
+    {
+        $missing = [];
+
+        foreach (['functions' => 'function', 'roles' => 'role'] as $section => $label) {
+            $table = $section;
+
+            foreach ((array) config("permissions.$section") as $scope => $entries) {
+                foreach (array_keys($entries) as $key) {
+                    if (! DB::table($table)->where(['scope' => $scope, 'key' => $key])->exists()) {
+                        $missing[] = "$scope.$label.$key";
+                    }
+                }
+            }
+        }
+
+        return $missing;
+    }
+
     /** @param  array{de: string, en: string}  $names */
     private static function upsertFunction(string $scope, string $key, array $names): int
     {

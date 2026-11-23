@@ -12,6 +12,10 @@ return [
         'invited' => 'Admin :email angelegt. Die Einladung wird über die Queue verschickt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
         'created' => 'Admin :email angelegt. Beim ersten Login wird ein zweiter Faktor oder Passkey eingerichtet.',
     ],
+    'permissions_check' => [
+        'complete' => 'Alle Standardrollen und -funktionen sind in der Datenbank vorhanden.',
+        'missing' => ':count Standardrollen oder -funktionen fehlen in der Datenbank. `php artisan permissions:sync-defaults` holt sie (setzt die Standardbelegung zurück).',
+    ],
     'check_limits' => [
         'clean' => 'Kein Projekt verletzt eine Grenze der Planer-Datei.',
         'found' => ':findings Stellen in :projects Projekten verletzen eine Grenze der Planer-Datei. Vor dem Export bereinigen.',
