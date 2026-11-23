@@ -91,7 +91,7 @@ export const updateAppSettingsMutation = graphql(`
 
 export const oauthClientsQuery = graphql(`
   query OAuthClients {
-    oauthClients { id name redirectUris confidential revoked createdAt }
+    oauthClients { id name redirectUris confidential revoked selfRegistered createdAt }
   }
 `)
 
@@ -99,7 +99,7 @@ export const createOAuthClientMutation = graphql(`
   mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {
     createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {
       secret
-      client { id name redirectUris confidential revoked createdAt }
+      client { id name redirectUris confidential revoked selfRegistered createdAt }
     }
   }
 `)

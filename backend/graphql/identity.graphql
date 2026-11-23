@@ -9,6 +9,8 @@ type OAuthClient {
   "Vertraulich: hat ein Geheimnis (Server einer Anwendung). Öffentlich: Browser- oder App-Client, nur mit PKCE."
   confidential: Boolean! @method(name: "confidential")
   revoked: Boolean!
+  "Hat sich selbst registriert (dynamische Client-Registrierung), kein Admin hat es angelegt oder geprüft"
+  selfRegistered: Boolean! @field(resolver: "App\\Core\\Identity\\GraphQL\\SelfRegistered")
   createdAt: DateTime! @rename(attribute: "created_at")
 }
 

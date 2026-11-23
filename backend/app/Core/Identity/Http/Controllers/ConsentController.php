@@ -2,6 +2,7 @@
 
 namespace App\Core\Identity\Http\Controllers;
 
+use App\Core\Identity\OAuthClients;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ class ConsentController
         return response()->json([
             'client' => [
                 'name' => $client->name,
+                'selfRegistered' => OAuthClients::isSelfRegistered($client),
                 'redirectHost' => parse_url((string) $authRequest->getRedirectUri(), PHP_URL_HOST) ?: parse_url((string) $authRequest->getRedirectUri(), PHP_URL_SCHEME),
             ],
             'scopes' => $scopes->map(fn (string $id): array => ['id' => $id, 'description' => __(Passport::$scopes[$id] ?? $id)])->all(),

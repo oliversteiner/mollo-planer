@@ -16,7 +16,7 @@ mockNuxtImport('useNuxtApp', original => () => {
 mockNuxtImport('useViewer', () => () => ({ viewer: ref({ id: '1' }), load: vi.fn(), logout: vi.fn(), can: () => true, pendingEmail: ref(null) }))
 
 const consent = {
-  client: { name: 'Club DB', redirectHost: 'clubdb.example' },
+  client: { name: 'Club DB', redirectHost: 'clubdb.example', selfRegistered: false },
   scopes: [{ id: 'openid', description: 'Deine Identität bestätigen' }, { id: 'email', description: 'Deine E-Mail-Adresse lesen' }],
   authToken: 'token-1',
   user: { name: 'Anna' }
@@ -78,6 +78,26 @@ describe('consent page', () => {
 
     await vi.waitFor(() => expect(page.text()).toContain('Anfrage nicht mehr gültig'))
     expect(page.findAll('wa-button')).toHaveLength(0)
+  })
+})
+
+describe('consent page: a client that registered itself', () => {
+  it('says so, and where it goes on', async () => {
+    backend.mockResolvedValue({ ...consent, client: { ...consent.client, name: 'Claude', selfRegistered: true } })
+
+    const page = await mountSuspended(ConsentPage)
+
+    await vi.waitFor(() => expect(page.text()).toContain('hat sich selbst registriert und wurde nicht von Mollo geprüft'))
+    expect(page.text()).toContain('weiter zu clubdb.example')
+  })
+
+  it('does not say so for a client that an admin registered', async () => {
+    backend.mockResolvedValue(consent)
+
+    const page = await mountSuspended(ConsentPage)
+
+    await vi.waitFor(() => expect(page.text()).toContain('Club DB möchte mit deinem Konto arbeiten'))
+    expect(page.text()).not.toContain('selbst registriert')
   })
 })
 

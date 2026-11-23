@@ -121,4 +121,17 @@ class OAuthClientsTest extends GraphQLTestCase
     {
         return $this->as($name)->withSession(['auth.password_confirmed_at' => time()]);
     }
+
+    public function test_the_list_says_which_clients_registered_themselves(): void
+    {
+        $this->client('Von Hand');
+        $this->postJson('/oauth/register', ['client_name' => 'Claude', 'redirect_uris' => ['https://claude.ai/api/mcp/auth_callback']])->assertCreated();
+        $this->confirmed('admin')->gql(self::CREATE, ['name' => 'Club DB', 'uris' => ['https://clubdb.example/callback'], 'confidential' => true])->assertJsonMissingPath('errors');
+
+        $rows = collect($this->as('admin')->gql('{ oauthClients { name selfRegistered } }')->assertJsonMissingPath('errors')->json('data.oauthClients'))->pluck('selfRegistered', 'name');
+
+        $this->assertFalse($rows['Club DB'], 'made by an admin in the interface');
+        $this->assertTrue($rows['Claude'], 'registered itself');
+        $this->assertTrue($rows['Von Hand'], 'made without an admin (the repository of Passport), so nobody looked at it');
+    }
 }

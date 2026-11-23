@@ -7,7 +7,7 @@
 definePageMeta({ layout: 'auth' })
 
 interface Consent {
-  client: { name: string, redirectHost: string | null }
+  client: { name: string, redirectHost: string | null, selfRegistered: boolean }
   scopes: { id: string, description: string }[]
   authToken: string
   user: { name: string }
@@ -112,6 +112,12 @@ async function answer(decision: 'approve' | 'deny'): Promise<void> {
       v-else
       class="wa-stack wa-gap-m"
     >
+      <AppCallout
+        v-if="consent.client.selfRegistered"
+        variant="warning"
+        :description="t('oauth.consent.selfRegistered', { host: consent.client.redirectHost ?? '' })"
+      />
+
       <p class="wa-body-s">
         {{ t('oauth.consent.intro', { client: consent.client.name, name: consent.user.name }) }}
       </p>

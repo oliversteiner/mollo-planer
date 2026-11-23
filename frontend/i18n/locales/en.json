@@ -694,7 +694,9 @@
       "secretTitle": "Secret for {name}",
       "secretOnce": "It is not shown again. Enter it in the settings of the application, not in a repository.",
       "secret": "Secret (client secret)",
-      "copySecret": "Copy secret"
+      "copySecret": "Copy secret",
+      "selfRegisteredBadge": "Self-registered",
+      "selfRegisteredHint": "Registered itself (for example Claude); no admin has checked it"
     }
   },
   "claude": {
@@ -2361,7 +2363,8 @@
         "agent": "An agent account cannot allow an application.",
         "not_approved": "Your account has not been approved by an admin yet. This application needs the approval.",
         "other": "No application can be allowed with this account."
-      }
+      },
+      "selfRegistered": "This application registered itself and has not been checked by Mollo. After you allow it, you continue to {host}."
     }
   }
 }

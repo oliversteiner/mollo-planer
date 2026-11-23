@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Core;
 
+use App\Core\Identity\OAuthClients;
 use App\Models\User;
 use App\Support\StrongAuthentication;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -173,6 +174,36 @@ class OAuthHardeningTest extends TestCase
             ->assertOk();
         $this->postJson('/oauth/token', ['grant_type' => 'refresh_token', 'client_id' => $client->getKey(), 'refresh_token' => $tokens->json('refresh_token')])
             ->assertOk();
+    }
+
+    // ---- F5: a client that registered itself is marked -------------------------------------------------------
+
+    public function test_the_consent_page_knows_a_client_that_registered_itself(): void
+    {
+        $user = User::factory()->create();
+        $session = [StrongAuthentication::SESSION_KEY => (string) $user->getKey()];
+        $registered = $this->postJson('/oauth/register', ['client_name' => 'Claude', 'redirect_uris' => ['http://localhost:3333/callback']])->assertCreated()->json('client_id');
+
+        $this->authorize($user, Client::query()->findOrFail($registered), ['redirect_uri' => 'http://localhost:3333/callback', ...$this->s256()])->assertRedirect('https://planer.test/oauth/consent');
+
+        $this->withSession($session)->actingAs($user)->getJson('/oauth/consent')
+            ->assertOk()
+            ->assertJsonPath('client.name', 'Claude')
+            ->assertJsonPath('client.selfRegistered', true)
+            ->assertJsonPath('client.redirectHost', 'localhost');
+    }
+
+    public function test_a_client_that_an_admin_registered_is_not_marked(): void
+    {
+        $user = User::factory()->create();
+        $session = [StrongAuthentication::SESSION_KEY => (string) $user->getKey()];
+        $client = app(OAuthClients::class)->create(User::factory()->admin()->create(), 'Club DB', [self::REDIRECT_URI], true);
+
+        $this->authorize($user, $client, $this->s256())->assertRedirect('https://planer.test/oauth/consent');
+
+        $this->withSession($session)->actingAs($user)->getJson('/oauth/consent')
+            ->assertOk()
+            ->assertJsonPath('client.selfRegistered', false);
     }
 
     // ---- helpers ------------------------------------------------------------------------------------------------

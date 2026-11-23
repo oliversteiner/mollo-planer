@@ -73,12 +73,14 @@ Person gelten dann zusätzlich.
 
 ## Betrieb
 
-- **Schlüssel:** Passport signiert mit einem RSA-Schlüsselpaar. Einmal je Umgebung auf dem Server erzeugen (**Server**, im
+- **Schlüssel (Pflicht für den Deploy):** `deploy/deploy.sh` bricht ab, wenn sie fehlen oder die private Datei nicht die Rechte `600` hat; es erzeugt sie nie selbst. Passport signiert mit einem RSA-Schlüsselpaar. Einmal je Umgebung auf dem Server erzeugen (**Server**, im
   Ordner `backend/`): `php artisan passport:keys`. Die Dateien `storage/oauth-private.key` und `storage/oauth-public.key` bleiben auf
   dem Server, nicht im Repository und nicht in Sicherungen, die weitergegeben werden. Alternativ in `backend/.env`:
   `PASSPORT_PRIVATE_KEY` und `PASSPORT_PUBLIC_KEY`. Wechselt man den Schlüssel, ändert sich die Schlüssel-ID im JWKS;
   bestehende Tokens werden ungültig, die Personen melden sich neu an.
 - **Migrationen:** `php artisan migrate` (Tabellen `oauth_*`, dazu `oauth_auth_code_claims`).
+- **Selbst registrierte Clients:** Ein Client, der sich selbst registriert hat (Claude über `POST /oauth/register`), hat kein `registered_by`; die Zustimmungsseite sagt «hat sich selbst registriert und wurde nicht von Mollo geprüft» und nennt den Host, an den es zurückgeht, die Verwaltung zeigt «Selbst registriert». Clients, die ein Admin in der Verwaltung anlegt, tragen sich selbst als `registered_by` ein.
+- **`MCP_REDIRECT_DOMAINS` auf PROD:** Die Voreinstellung (`config/mcp.php`) erlaubt `https://claude.ai/`, `https://claude.com/` und `localhost`. Auf **PROD** in `backend/.env` auf `MCP_REDIRECT_DOMAINS=https://claude.ai/,https://claude.com/` beschränken, solange niemand lokale Clients (Claude Code, Claude Desktop auf dem eigenen Rechner) braucht. Wer eine Anwendung auf `localhost` registrieren kann, kann sich als solche ausgeben. Auf TEST darf `localhost` bleiben.
 - **Aufräumen:** Der Scheduler ruft täglich `passport:purge` (abgelaufene und widerrufene Tokens und Codes nach einer
   Woche) und löscht die Notizen zu Codes nach einem Tag (`routes/console.php`).
 - **Clients** werden nie im Code angelegt, sondern von Admins in der Oberfläche unter **System → Anmeldedienst**
@@ -93,7 +95,9 @@ Person gelten dann zusätzlich.
 
 ## Sicherheit (was erzwungen ist)
 
-- PKCE ist Pflicht, die Redirect-URI muss genau übereinstimmen, `state` wird unverändert zurückgegeben.
+- **PKCE ist Pflicht, für jeden Client, und nur mit `S256`** (`plain` und ein fehlendes `code_challenge` werden mit `invalid_request` abgelehnt, auch bei vertraulichen Clients). Die Redirect-URI muss genau übereinstimmen, `state` wird unverändert zurückgegeben.
+- **Wer autorisieren darf:** eine Person mit bestätigter E-Mail-Adresse, nie ein Agent-Konto. Die Freigabe durch einen Admin ist nur für die Scopes `api` und `mcp:*` nötig; für `openid`, `profile` und `email` allein genügt die bestätigte Adresse (Entscheid SSO Club DB). Die Zustimmungsseite sagt, warum es nicht geht. Eine Sperre von Konten gibt es nicht, geprüft wird nur, was oben steht.
+- **Nur zwei Grants:** Der Token-Endpunkt gibt Tokens nur für `authorization_code` und `refresh_token`. Jeder andere `grant_type` (`client_credentials`, `password`, `device_code` …) wird mit `unsupported_grant_type` abgelehnt, auch wenn Passport ihn eingeschaltet hat.
 - `/oauth/authorize` verlangt eine starke Sitzung; Gäste gehen zum Login. Drosseln: 30 Anfragen pro Minute und IP auf
   `authorize` und `consent`, 60 auf `token` und `userinfo`.
 - Ein Refresh-Token gilt einmal. Kommt ein benutztes zurück, werden alle Tokens der Person für diese Anwendung
