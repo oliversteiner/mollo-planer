@@ -78,6 +78,18 @@ class McpOAuthTest extends TestCase
         $this->assertSame(0, Client::query()->count());
     }
 
+    public function test_on_prod_the_addresses_can_be_restricted_to_claude_so_that_localhost_is_refused(): void
+    {
+        config(['mcp.redirect_domains' => ['https://claude.ai/', 'https://claude.com/']]);
+
+        $this->postJson('/oauth/register', ['client_name' => 'Claude', 'redirect_uris' => [self::REDIRECT_URI]])->assertCreated();
+        $this->postJson('/oauth/register', ['client_name' => 'Claude', 'redirect_uris' => ['https://claude.com/api/mcp/auth_callback']])->assertCreated();
+        $this->postJson('/oauth/register', ['client_name' => 'Local', 'redirect_uris' => ['http://localhost:33418/callback']])
+            ->assertStatus(400)
+            ->assertJsonPath('error', 'invalid_redirect_uri');
+        $this->postJson('/oauth/register', ['client_name' => 'Local', 'redirect_uris' => ['http://127.0.0.1:33418/callback']])->assertStatus(400);
+    }
+
     public function test_the_registration_is_rate_limited(): void
     {
         for ($i = 0; $i < 10; $i++) {

@@ -9,9 +9,9 @@ import { installElementInternals } from './support/element-internals'
 
 const { clients, createClient, revokeClient, ensurePasswordConfirmed } = vi.hoisted(() => ({
   clients: [
-    { id: 'a-1', name: 'Club DB', redirectUris: ['https://clubdb.example/callback'], confidential: true, revoked: false, createdAt: '2026-11-23T10:00:00Z' },
-    { id: 'a-2', name: 'Planer iOS', redirectUris: ['ch.mollo.planer:/oauth/callback'], confidential: false, revoked: false, createdAt: '2026-11-23T11:00:00Z' },
-    { id: 'a-3', name: 'Alt', redirectUris: ['https://alt.example/cb'], confidential: true, revoked: true, createdAt: '2026-10-01T11:00:00Z' }
+    { id: 'a-1', name: 'Club DB', redirectUris: ['https://clubdb.example/callback'], confidential: true, revoked: false, selfRegistered: false, createdAt: '2026-11-23T10:00:00Z' },
+    { id: 'a-2', name: 'Planer iOS', redirectUris: ['ch.mollo.planer:/oauth/callback'], confidential: false, revoked: false, selfRegistered: true, createdAt: '2026-11-23T11:00:00Z' },
+    { id: 'a-3', name: 'Alt', redirectUris: ['https://alt.example/cb'], confidential: true, revoked: true, selfRegistered: false, createdAt: '2026-10-01T11:00:00Z' }
   ],
   createClient: vi.fn(),
   revokeClient: vi.fn(),
@@ -52,6 +52,14 @@ describe('admin: login service clients', () => {
     expect(rows[1]!.text()).toContain('Öffentlich')
     expect(rows[1]!.text()).toContain('ch.mollo.planer:/oauth/callback')
     expect(rows[2]!.text()).toContain('Widerrufen')
+  })
+
+  it('marks a client that registered itself', async () => {
+    const page = await mountSuspended(OAuthClientsPage)
+    const rows = page.findAll('.clients-row')
+
+    expect(rows[1]!.text()).toContain('Selbst registriert')
+    expect(rows[0]!.text()).not.toContain('Selbst registriert')
   })
 
   it('offers revoking for active clients only', async () => {

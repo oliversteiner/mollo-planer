@@ -114,6 +114,14 @@ function actions(client: Client): ActionMenuItem[][] {
               {{ client.confidential ? t('admin.oauthClients.confidentialBadge') : t('admin.oauthClients.publicBadge') }}
             </wa-badge>
             <wa-badge
+              v-if="client.selfRegistered"
+              variant="warning"
+              appearance="outlined"
+              :title="t('admin.oauthClients.selfRegisteredHint')"
+            >
+              {{ t('admin.oauthClients.selfRegisteredBadge') }}
+            </wa-badge>
+            <wa-badge
               v-if="client.revoked"
               variant="danger"
               appearance="filled"

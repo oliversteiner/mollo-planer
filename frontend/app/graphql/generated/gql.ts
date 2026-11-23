@@ -26,8 +26,8 @@ type Documents = {
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n": typeof types.AppSettingsDocument,
     "\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n": typeof types.SetProjectCreatorRoleDocument,
     "\n  mutation UpdateAppSettings($twoFactorEnabled: Boolean!) {\n    updateAppSettings(twoFactorEnabled: $twoFactorEnabled) { twoFactorEnabled twoFactorSwitchable }\n  }\n": typeof types.UpdateAppSettingsDocument,
-    "\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked createdAt }\n  }\n": typeof types.OAuthClientsDocument,
-    "\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked createdAt }\n    }\n  }\n": typeof types.CreateOAuthClientDocument,
+    "\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked selfRegistered createdAt }\n  }\n": typeof types.OAuthClientsDocument,
+    "\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked selfRegistered createdAt }\n    }\n  }\n": typeof types.CreateOAuthClientDocument,
     "\n  mutation RevokeOAuthClient($id: ID!) {\n    revokeOAuthClient(id: $id) { id revoked }\n  }\n": typeof types.RevokeOAuthClientDocument,
     "\n  query ProjectAiContext($id: ID!) {\n    project(id: $id) {\n      id\n      aiContext { text fileName fileText characters sharedWithTools updatedAt }\n    }\n  }\n": typeof types.ProjectAiContextDocument,
     "\n  mutation SetProjectAiContext($projectId: ID!, $input: ProjectAiContextInput!) {\n    setProjectAiContext(projectId: $projectId, input: $input) {\n      id\n      aiContext { text fileName fileText characters sharedWithTools updatedAt }\n    }\n  }\n": typeof types.SetProjectAiContextDocument,
@@ -149,8 +149,8 @@ const documents: Documents = {
     "\n  query AppSettings {\n    appSettings { twoFactorEnabled twoFactorSwitchable projectCreatorRole { key names { de en } } }\n  }\n": types.AppSettingsDocument,
     "\n  mutation SetProjectCreatorRole($key: String!) {\n    setProjectCreatorRole(roleKey: $key) { projectCreatorRole { key names { de en } } }\n  }\n": types.SetProjectCreatorRoleDocument,
     "\n  mutation UpdateAppSettings($twoFactorEnabled: Boolean!) {\n    updateAppSettings(twoFactorEnabled: $twoFactorEnabled) { twoFactorEnabled twoFactorSwitchable }\n  }\n": types.UpdateAppSettingsDocument,
-    "\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked createdAt }\n  }\n": types.OAuthClientsDocument,
-    "\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked createdAt }\n    }\n  }\n": types.CreateOAuthClientDocument,
+    "\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked selfRegistered createdAt }\n  }\n": types.OAuthClientsDocument,
+    "\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked selfRegistered createdAt }\n    }\n  }\n": types.CreateOAuthClientDocument,
     "\n  mutation RevokeOAuthClient($id: ID!) {\n    revokeOAuthClient(id: $id) { id revoked }\n  }\n": types.RevokeOAuthClientDocument,
     "\n  query ProjectAiContext($id: ID!) {\n    project(id: $id) {\n      id\n      aiContext { text fileName fileText characters sharedWithTools updatedAt }\n    }\n  }\n": types.ProjectAiContextDocument,
     "\n  mutation SetProjectAiContext($projectId: ID!, $input: ProjectAiContextInput!) {\n    setProjectAiContext(projectId: $projectId, input: $input) {\n      id\n      aiContext { text fileName fileText characters sharedWithTools updatedAt }\n    }\n  }\n": types.SetProjectAiContextDocument,
@@ -325,11 +325,11 @@ export function graphql(source: "\n  mutation UpdateAppSettings($twoFactorEnable
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked createdAt }\n  }\n"): (typeof documents)["\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked createdAt }\n  }\n"];
+export function graphql(source: "\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked selfRegistered createdAt }\n  }\n"): (typeof documents)["\n  query OAuthClients {\n    oauthClients { id name redirectUris confidential revoked selfRegistered createdAt }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked createdAt }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked createdAt }\n    }\n  }\n"];
+export function graphql(source: "\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked selfRegistered createdAt }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {\n    createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {\n      secret\n      client { id name redirectUris confidential revoked selfRegistered createdAt }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

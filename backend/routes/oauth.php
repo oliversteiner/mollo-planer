@@ -4,7 +4,9 @@ use App\Core\Identity\Http\Controllers\ConsentController;
 use App\Core\Identity\Http\Controllers\DiscoveryController;
 use App\Core\Identity\Http\Controllers\JwksController;
 use App\Core\Identity\Http\Controllers\UserInfoController;
+use App\Core\Identity\Http\Middleware\EnsureMayAuthorize;
 use App\Core\Identity\Http\Middleware\EnsureStrongAuthenticationForOAuth;
+use App\Core\Identity\Http\Middleware\RefuseUnsupportedGrants;
 use App\Core\Identity\Http\Middleware\RememberAuthorizationClaims;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
@@ -15,16 +17,16 @@ use Laravel\Passport\Http\Controllers\AuthorizationController;
 // with the JSON routes below (session cookie, CSRF as for every call of the frontend).
 Route::prefix('oauth')->name('passport.')->group(function (): void {
     Route::post('/token', [AccessTokenController::class, 'issueToken'])
-        ->middleware('throttle:oauth-token')
+        ->middleware(['throttle:oauth-token', RefuseUnsupportedGrants::class])
         ->name('token');
 
     Route::get('/authorize', [AuthorizationController::class, 'authorize'])
-        ->middleware(['web', 'throttle:oauth-authorize', EnsureStrongAuthenticationForOAuth::class, RememberAuthorizationClaims::class])
+        ->middleware(['web', 'throttle:oauth-authorize', EnsureStrongAuthenticationForOAuth::class, EnsureMayAuthorize::class, RememberAuthorizationClaims::class])
         ->name('authorizations.authorize');
 
     Route::middleware(['web', 'auth:web', 'throttle:oauth-authorize'])->group(function (): void {
-        Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
-        Route::post('/consent/approve', [ConsentController::class, 'approve'])->name('consent.approve');
+        Route::get('/consent', [ConsentController::class, 'show'])->middleware(EnsureMayAuthorize::class)->name('consent.show');
+        Route::post('/consent/approve', [ConsentController::class, 'approve'])->middleware(EnsureMayAuthorize::class)->name('consent.approve');
         Route::post('/consent/deny', [ConsentController::class, 'deny'])->name('consent.deny');
     });
 });

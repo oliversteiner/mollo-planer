@@ -80,6 +80,32 @@ if ! "$PHP" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
     fail "PHP 8.5 oder neuer nötig, gefunden: $("$PHP" -r 'echo PHP_VERSION;') ($PHP). DEPLOY_PHP in backend/.env auf PHP 8.5 setzen, z. B. /usr/local/php85/bin/php."
 fi
 
+# --- oauth-keys-check begin
+# The OAuth server signs its tokens with a key pair. Without it the keys endpoint, the token endpoint and the id_token end in an
+# error 500. The keys come from backend/.env (PASSPORT_PRIVATE_KEY and PASSPORT_PUBLIC_KEY) or from the files in backend/storage.
+# They are never made here, only checked (a new pair would end every session): the abort says what to run on the server.
+check_oauth_keys() {
+    local private public mode
+    if [ -n "$(env_value PASSPORT_PRIVATE_KEY || true)" ] && [ -n "$(env_value PASSPORT_PUBLIC_KEY || true)" ]; then
+        return 0
+    fi
+
+    private="$BACKEND/storage/oauth-private.key"
+    public="$BACKEND/storage/oauth-public.key"
+
+    if [ ! -s "$private" ] || [ ! -s "$public" ]; then
+        fail "Die Schlüssel des OAuth-Servers fehlen (weder PASSPORT_PRIVATE_KEY und PASSPORT_PUBLIC_KEY in backend/.env noch storage/oauth-private.key und storage/oauth-public.key). Einmal auf dem Server im Ordner backend/ 'php artisan passport:keys' ausführen (das Skript erzeugt sie nicht selbst)."
+    fi
+
+    mode=$(stat -c '%a' "$private" 2>/dev/null || stat -f '%Lp' "$private")
+    case "$mode" in
+        600 | 400) ;;
+        *) fail "storage/oauth-private.key hat die Rechte $mode, nötig sind 600 ('chmod 600 $private')." ;;
+    esac
+}
+check_oauth_keys
+# --- oauth-keys-check end
+
 log "Umgebung: APP_ENV=$(env_value APP_ENV || true), Branch $DEPLOY_BRANCH"
 echo "App-Ordner: $APP"
 echo "Docroot Frontend: $WEB_ROOT"

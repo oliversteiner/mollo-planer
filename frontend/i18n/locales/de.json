@@ -694,7 +694,9 @@
       "secretTitle": "Geheimnis für {name}",
       "secretOnce": "Wird nicht mehr angezeigt. Trag es in die Einstellungen der Anwendung ein, nicht in ein Repository.",
       "secret": "Geheimnis (Client Secret)",
-      "copySecret": "Geheimnis kopieren"
+      "copySecret": "Geheimnis kopieren",
+      "selfRegisteredBadge": "Selbst registriert",
+      "selfRegisteredHint": "Hat sich selbst registriert (zum Beispiel Claude); kein Admin hat sie geprüft"
     }
   },
   "claude": {
@@ -2354,7 +2356,15 @@
       "allow": "Zulassen",
       "deny": "Ablehnen",
       "unavailableTitle": "Anfrage nicht mehr gültig",
-      "unavailableText": "Diese Anfrage gilt nicht mehr. Starte die Anmeldung in der Anwendung noch einmal."
+      "unavailableText": "Diese Anfrage gilt nicht mehr. Starte die Anmeldung in der Anwendung noch einmal.",
+      "refusedTitle": "Zugriff nicht möglich",
+      "errors": {
+        "email_unverified": "Bestätige zuerst deine E-Mail-Adresse. Danach kannst du Anwendungen zulassen.",
+        "agent": "Ein Agent-Konto kann keine Anwendung zulassen.",
+        "not_approved": "Dein Konto ist noch nicht von einem Admin freigegeben. Für diese Anwendung ist die Freigabe nötig.",
+        "other": "Mit diesem Konto kann keine Anwendung zugelassen werden."
+      },
+      "selfRegistered": "Diese Anwendung hat sich selbst registriert und wurde nicht von Mollo geprüft. Nach dem Zulassen geht es weiter zu {host}."
     }
   }
 }

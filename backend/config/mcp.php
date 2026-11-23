@@ -10,9 +10,8 @@ return [
      * addresses of Claude, and localhost for the desktop and command line clients. Never "*". More with the
      * environment variable MCP_REDIRECT_DOMAINS (comma separated, with the scheme).
      */
-    'redirect_domains' => array_values(array_filter(array_map('trim', explode(',', (string) env(
-        'MCP_REDIRECT_DOMAINS',
-        'https://claude.ai/,https://claude.com/,http://localhost,http://127.0.0.1'
+    'redirect_domains' => array_values(array_filter(array_map('trim', explode(',', (string) (
+        env('MCP_REDIRECT_DOMAINS') ?: 'https://claude.ai/,https://claude.com/,http://localhost,http://127.0.0.1'
     ))))),
 
     /* Schemes of apps that may register (for example cursor://). None by default. */

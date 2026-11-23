@@ -636,6 +636,8 @@ type OAuthClient {
  "Exakte Adressen, zu denen die Anwendung nach der Anmeldung zurückgeleitet werden darf"
  redirectUris: [String!]!
  revoked: Boolean!
+ "Hat sich selbst registriert (dynamische Client-Registrierung), kein Admin hat es angelegt oder geprüft"
+ selfRegistered: Boolean!
 }
 "Allows ordering a list of records."
 input OrderByClause {
