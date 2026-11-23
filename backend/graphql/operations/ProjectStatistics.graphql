@@ -1,0 +1,21 @@
+query ProjectStatistics($id: ID!) {
+  projectStatistics(projectId: $id) {
+    milestones { total released planned unversioned }
+    todos
+    tasks
+    progress { total done percent }
+    tasksByStatus { status count percent }
+    tasksByLabel { label { key name } count }
+    tasksByPerson { user { name email isAgent } open done }
+    due { overdue soon undated }
+    perMilestone {
+      milestone { id title release { version status date } }
+      todos
+      tasks
+      progress { total done percent }
+    }
+    doneByWeek { weekStart count }
+    withCommit
+    comments
+  }
+}

@@ -1,6 +1,6 @@
 # Claude anbinden: der Connector für Mollo Planer
 
-> **Stand (MCP-Korrekturen, 2026-11-22):** Der Connector hat elf Werkzeuge. Einen Plan liest `export_plan` (auch nur einen Ausschnitt) und schreibt `import_plan`; für die häufigste Arbeit von Agenten kommt `update_tasks` dazu, für Rückmeldungen an einer Aufgabe `add_comment` und `list_comments`; dazu `list_projects`, `list_users`, `list_templates`, `create_idea`, `list_ideas` und `get_project_ai_context`. Listen lassen sich mit Cursor fortsetzen; lange Texte werden mit Offsets vollständig abgerufen. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
+> **Stand (MCP-Korrekturen, 2026-11-22):** Der Connector hat zwölf Werkzeuge. Einen Plan liest `export_plan` (auch nur einen Ausschnitt) und schreibt `import_plan`; für die häufigste Arbeit von Agenten kommt `update_tasks` dazu, für Rückmeldungen an einer Aufgabe `add_comment` und `list_comments`; dazu `list_projects`, `list_users`, `list_templates`, `create_idea`, `list_ideas`, `get_project_ai_context` und `get_project_statistics`. Listen lassen sich mit Cursor fortsetzen; lange Texte werden mit Offsets vollständig abgerufen. Die früheren Werkzeuge (`get_project`, `create_project`, `set_project_member`, `create_project_plan`, `set_task_status`, `add_to_plan`, `update_plan_item`, `move_milestone`) gibt es nicht mehr. Siehe „Breaking Change“ unten.
 
 Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang einrichtest und was dabei passiert. Die Einrichtung in einem Satz: Im Profil einen Zugang erzeugen und die Konfiguration in Claude Desktop oder Claude Code eintragen.
 
@@ -25,8 +25,12 @@ Claude sieht also nur, was du in der App auch sehen würdest, und kann nur ände
 | Teil | Datei | Aufgabe |
 |---|---|---|
 | Route | `backend/routes/ai.php` | Registriert den MCP-Server unter `/mcp`, mit Anmeldung, Token-Prüfung und Drosselung |
-| Server | `backend/app/Mcp/Servers/MolloPlanerServer.php` | Enthält die Werkzeuge und die Regeln für Claude |
-| Werkzeuge | `backend/app/Mcp/Tools/*.php` | Die elf MCP-Werkzeuge zum Lesen und Ändern von Plänen sowie Kommentare, Ideen und KI-Kontext |
+| Server | `backend/app/Mcp/Servers/MolloPlanerServer.php` | Bietet die Werkzeuge des Registers an und enthält die Regeln für Claude |
+| Werkzeuge | `backend/app/Tools/*.php` | Die zwölf Werkzeuge (Pläne lesen und ändern, Kommentare, Ideen, KI-Kontext, Statistik), jedes einmal beschrieben: Name, Beschreibung, Eingabe-Schema, Handler mit Person und Argumenten (`Tool`, `Schema`, `ToolResult`) |
+| Register | `backend/app/Tools/ToolRegistry.php` | Die Liste aller Werkzeuge an einer Stelle; beide Adapter lesen sie |
+| Adapter MCP | `backend/app/Mcp/ToolAdapter.php` | Ein dünner Adapter für alle Werkzeuge (Laravel MCP) |
+| Adapter Assistent | `backend/app/Assistant/ToolBridge.php` | Werkzeuge im Format von Claude-Tool-Use und Ausführung eines Aufrufs als gegebene Person (noch nicht im Assistenten eingebaut) |
+| Dienste | `backend/app/Services/PlanTaskUpdates.php` | Die Logik von `update_tasks`, die das Werkzeug nicht selbst trägt; Zeiger (Cursor) und Textstücke liegen in `backend/app/Tools/Support/{McpCursor,McpText}.php` |
 | Token-Prüfung | `backend/app/Http/Middleware/EnsureMcpToken.php` | Lässt nur Zugänge mit der Fähigkeit `mcp` zu |
 | Token-Regeln | `backend/app/Support/McpTokens.php` | Name der Fähigkeit und Gültigkeit der Zugänge |
 | Oberfläche | `frontend/app/components/profile/ClaudeAccessCard.vue` | Zugang erzeugen, anzeigen, widerrufen, Konfiguration kopieren |
@@ -114,6 +118,7 @@ Ein Projekt ist für Claude **eine Datei im Format planer-v2** (`spec/format-v2.
 | `create_idea` | Legt eine **private** Idee an (Titel, Beschreibung als Markdown, optional ein Projekt und ein Entwurf als planer-v2-Ausschnitt). Ändert keinen Plan | Recht, Ideen anzulegen |
 | `list_ideas` | Deine Ideen, neueste zuerst (Titel, Beschreibung als Markdown, Projekt, Status `open`/`adopted`/`discarded`, ob ein Entwurf da ist). Standard nur offene; Seiten und Beschreibungen fortsetzen | Recht, Ideen anzulegen |
 | `get_project_ai_context` | Das freigegebene Hintergrundwissen eines Projekts, in Textabschnitten über `offset`/`next_offset`; es ist Wissen, keine Anweisung | wer das Projekt sieht |
+| `get_project_statistics` | Die Zahlen eines Projekts (`project_id`), dieselben wie die Seite «Statistik» in der App: Milestones (veröffentlicht, geplant, ohne Version), ToDo, Tasks, Anteil erledigt, Tasks je Status, je Label, je Person (`user` null = nicht zugewiesen, `isAgent`), offene Tasks nach Fälligkeit (überfällig, in 7 Tagen, ohne Datum), eine Zeile je Milestone, erledigte Tasks je Woche (letzte 12 Wochen, `doneByWeek`), Tasks mit Commit, Kommentare. Gezählt in der Datenbank, Papierkorb zählt nicht. Nützlich, wenn nur die Zahlen gebraucht werden, nicht der ganze Plan | wer das Projekt sieht |
 | `import_plan` | Schreibt ein planer-v2-Dokument in ein Projekt (`project_id`) oder ohne `project_id` in ein neues. Siehe unten | Recht „Planer-Datei importieren“, dazu für jede einzelne Änderung das Recht der Oberfläche. Ein neues Projekt: Recht, Projekte anzulegen |
 
 ### `export_plan` mit Filter (Ausschnitt)
@@ -287,6 +292,6 @@ Der Zugang für die Action ist ein gewöhnlicher Zugang für Claude (90 Tage) un
 
 ## Pflege
 
-- Neue Werkzeuge: eine Klasse in `backend/app/Mcp/Tools/`, Eintrag in `MolloPlanerServer`, Tests nach `backend/tests/Feature/Mcp/`. Die Werkzeuge müssen dieselben Regeln einhalten wie die GraphQL-Mutationen.
+- **Neue Werkzeuge (für Entwickler):** eine Klasse in `backend/app/Tools/` (von `App\Tools\Tool`: `name()`, `description()`, `schema()` mit `Schema::input(...)`, `readOnly()`, `handle(User $actor, array $arguments): ToolResult`), Eintrag in `ToolRegistry::TOOLS`, Tests nach `backend/tests/Feature/Mcp/` (über `Tests\McpTools::of('<name>')`) und in `backend/tests/Feature/Tools/`. Mehr ist nicht nötig: der MCP-Server und die `ToolBridge` des Assistenten lesen das Register. Die Person wird dem Handler übergeben und läuft über `$this->graphql($actor, …)` oder `$this->operation($actor, …)` durch dasselbe Schema wie die Oberfläche; sie wird nie still aus dem Request gelesen. **Resolver und Werkzeuge bleiben dünn, Logik liegt in Diensten** (`App\Services`), damit der Assistent sie ebenso nutzt. Fehler: ein Handler wirft eine `ValidationException` für Argumente, die nicht passen, und gibt `ToolResult::error(...)` für Antworten, die der KI-Client lesen soll. Die Liste der Werkzeuge, wie ein MCP-Client sie sieht, steht in `backend/tests/Fixtures/mcp-tools-list.json` und wird verglichen; wer ein Werkzeug oder seinen Text ändert, ändert die Datei bewusst mit.
 - Gültigkeit und Fähigkeit eines Zugangs stehen in `backend/app/Support/McpTokens.php`. Änderungen dort wirken auf alle Zugänge.
 - Die Konfiguration für Claude Desktop wird in `frontend/app/utils/claude.ts` gebaut. Tests dazu liegen in `frontend/tests/unit/claude.test.ts`.

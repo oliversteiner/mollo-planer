@@ -1,32 +1,50 @@
 <?php
 
-namespace App\Mcp\Tools;
+namespace App\Tools;
 
 use App\Enums\Right;
-use App\Mcp\Support\McpCursor;
-use App\Mcp\Support\McpText;
 use App\Models\Idea;
 use App\Models\User;
 use App\Planer\RichText\TiptapToMarkdown;
 use App\Support\Rights;
-use Illuminate\Contracts\JsonSchema\JsonSchema;
+use App\Tools\Support\McpCursor;
+use App\Tools\Support\McpText;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\JsonSchema\Types\Type;
-use Laravel\Mcp\Request;
-use Laravel\Mcp\Response;
-use Laravel\Mcp\Server\Attributes\Description;
-use Laravel\Mcp\Server\Attributes\Name;
-use Laravel\Mcp\Server\Tool;
-use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
-#[Name('list_ideas')]
-#[Description('Lists private ideas newest first with pagination and retrievable description chunks. Default status: open, limit: 15.')]
-#[IsReadOnly]
-class ListIdeasTool extends Tool
+class ListIdeas extends Tool
 {
-    public function handle(Request $request): Response
+    public function name(): string
     {
-        $validated = $request->validate(
+        return 'list_ideas';
+    }
+
+    public function description(): string
+    {
+        return 'Lists private ideas newest first with pagination and retrievable description chunks. Default status: open, limit: 15.';
+    }
+
+    public function readOnly(): bool
+    {
+        return true;
+    }
+
+    public function schema(): array
+    {
+        return Schema::input([
+            'status' => Schema::string('Default open.', ['open', 'adopted', 'discarded']),
+            'project_id' => Schema::string('Optional project ID filter.'),
+            'idea_id' => Schema::string('Fetch one idea, optionally continuing its description.'),
+            'limit' => Schema::integer('Max ideas returned (1-50). Default 15.'),
+            'max_chars' => Schema::integer('Max description chars per chunk (0 omits text). Default 400.'),
+            'cursor' => Schema::string('next_cursor from the previous page.'),
+            'description_offset' => Schema::integer('Continue from next_description_offset; requires idea_id.'),
+        ]);
+    }
+
+    public function handle(User $actor, array $arguments): ToolResult
+    {
+        $validated = $this->validate(
+            $arguments,
             [
                 'status' => ['sometimes', 'in:open,adopted,discarded'],
                 'project_id' => ['sometimes', 'nullable'],
@@ -43,20 +61,15 @@ class ListIdeasTool extends Tool
         $maxChars = (int) ($validated['max_chars'] ?? 400);
         $descriptionOffset = (int) ($validated['description_offset'] ?? 0);
         $cursor = McpCursor::decode($validated['cursor'] ?? null, ['created_at', 'id']);
-        $viewer = $request->user();
-
-        if (! $viewer instanceof User) {
-            return Response::error('Not signed in.');
-        }
 
         if ($descriptionOffset > 0 && ! isset($validated['idea_id'])) {
-            return Response::error('Use idea_id to retrieve a later description chunk.');
+            return ToolResult::error('Use idea_id to retrieve a later description chunk.');
         }
 
-        $canViewAll = Rights::allows($viewer, Right::IDEAS_VIEW_ANY);
-        $ideasQuery = Idea::query()
+        $canViewAll = Rights::allows($actor, Right::IDEAS_VIEW_ANY);
+        $ideas = Idea::query()
             ->with('project:id,name')
-            ->when(! $canViewAll, fn (Builder $query) => $query->where('user_id', $viewer->getKey()))
+            ->when(! $canViewAll, fn (Builder $query) => $query->where('user_id', $actor->getKey()))
             ->when(isset($validated['status']), fn (Builder $query) => $query->where('status', $validated['status']))
             ->when(! isset($validated['status']) && ! isset($validated['idea_id']), fn (Builder $query) => $query->where('status', 'open'))
             ->when(isset($validated['project_id']), fn (Builder $query) => $query->where('project_id', $validated['project_id']))
@@ -66,12 +79,12 @@ class ListIdeasTool extends Tool
                     ->orWhere(fn (Builder $sameTime) => $sameTime->where('ideas.created_at', (string) $cursor['created_at'])->where('ideas.id', '<', (int) $cursor['id']));
             }))
             ->orderByDesc('ideas.created_at')
-            ->orderByDesc('ideas.id');
-
-        $ideas = $ideasQuery->limit(isset($validated['idea_id']) ? 1 : $limit + 1)->get();
+            ->orderByDesc('ideas.id')
+            ->limit(isset($validated['idea_id']) ? 1 : $limit + 1)
+            ->get();
 
         if (isset($validated['idea_id']) && $ideas->isEmpty()) {
-            return Response::error('Idea not found or not accessible.');
+            return ToolResult::error('Idea not found or not accessible.');
         }
 
         $hasMore = ! isset($validated['idea_id']) && $ideas->count() > $limit;
@@ -99,26 +112,10 @@ class ListIdeasTool extends Tool
 
         $createdAt = $last instanceof Idea ? $last->getRawOriginal('created_at') : null;
 
-        return Response::text(json_encode([
+        return ToolResult::json([
             'ideas' => $items,
             'next_cursor' => $hasMore && $last instanceof Idea ? McpCursor::encode(['created_at' => (string) $createdAt, 'id' => (int) $last->getKey()]) : null,
             'has_more' => $hasMore,
-        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-    }
-
-    /**
-     * @return array<string, Type>
-     */
-    public function schema(JsonSchema $schema): array
-    {
-        return [
-            'status' => $schema->string()->enum(['open', 'adopted', 'discarded'])->description('Default open.'),
-            'project_id' => $schema->string()->description('Optional project ID filter.'),
-            'idea_id' => $schema->string()->description('Fetch one idea, optionally continuing its description.'),
-            'limit' => $schema->integer()->description('Max ideas returned (1-50). Default 15.'),
-            'max_chars' => $schema->integer()->description('Max description chars per chunk (0 omits text). Default 400.'),
-            'cursor' => $schema->string()->description('next_cursor from the previous page.'),
-            'description_offset' => $schema->integer()->description('Continue from next_description_offset; requires idea_id.'),
-        ];
+        ]);
     }
 }

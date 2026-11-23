@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mcp\Support;
+namespace App\Tools\Support;
 
 use App\GraphQL\Errors\TranslatedRefusalHandler;
 use RuntimeException;

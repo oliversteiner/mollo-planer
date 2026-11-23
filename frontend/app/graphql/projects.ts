@@ -8,6 +8,7 @@ export const projectsQuery = graphql(`
       description
       viewerRole { key names { de en } }
       progress { done total percent }
+      counts { milestones todos tasks }
       members {
         role { key names { de en } }
         user { id name avatarUrl }

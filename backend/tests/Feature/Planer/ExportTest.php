@@ -3,7 +3,6 @@
 namespace Tests\Feature\Planer;
 
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\ExportPlanTool;
 use App\Models\Label;
 use App\Models\Milestone;
 use App\Models\Role;
@@ -15,6 +14,7 @@ use App\Planer\Validator;
 use App\Services\Deletion;
 use RuntimeException;
 use Tests\Feature\GraphQL\GraphQLTestCase;
+use Tests\McpTools;
 
 /**
  * The export of a project (docs/auftrag-m4.md §3): the document, its
@@ -158,7 +158,7 @@ class ExportTest extends GraphQLTestCase
     public function test_the_mcp_tool_returns_the_document(): void
     {
         MolloPlanerServer::actingAs($this->users['member'])
-            ->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id])
+            ->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id])
             ->assertOk()
             ->assertSee('"format":"planer-v2"')
             ->assertSee("\"id\":\"m-{$this->milestone->id}\"");
@@ -167,7 +167,7 @@ class ExportTest extends GraphQLTestCase
     public function test_the_mcp_tool_refuses_a_stranger(): void
     {
         MolloPlanerServer::actingAs($this->users['stranger'])
-            ->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id])
+            ->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id])
             ->assertHasErrors();
     }
 }

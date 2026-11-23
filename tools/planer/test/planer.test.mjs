@@ -49,7 +49,7 @@ test('ungültige Fixture: genau die fünf erwarteten Fehler, mit Pfad', () => {
 
 test('Beispiel aus spec/format-v2.md ist gültig', () => {
   const markdown = read('../../../spec/format-v2.md');
-  const block = markdown.match(/```json\n([\s\S]*?)\n```/)[1];
+  const block = markdown.match(/```json\r?\n([\s\S]*?)\r?\n```/)[1].replace(/\r\n/g, '\n');
   assert.deepEqual(errors(block), []);
 });
 

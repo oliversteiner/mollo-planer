@@ -3,13 +3,11 @@
 namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\ListProjectsTool;
-use App\Mcp\Tools\ListTemplatesTool;
-use App\Mcp\Tools\ListUsersTool;
 use App\Models\Project;
 use App\Models\User;
 use App\Planer\TemplateSync;
 use App\Support\McpTokens;
+use Tests\McpTools;
 
 /**
  * The MCP server acts through the GraphQL schema as the token's owner: same
@@ -22,7 +20,7 @@ class MolloPlanerServerTest extends McpTestCase
     {
         Project::factory()->create(['name' => 'Fremd']);
 
-        MolloPlanerServer::actingAs($this->member)->tool(ListProjectsTool::class)
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_projects'))
             ->assertOk()
             ->assertSee('Podcast')
             ->assertDontSee('Fremd');
@@ -30,13 +28,13 @@ class MolloPlanerServerTest extends McpTestCase
 
     public function test_project_revisions_are_real_and_optional_details_are_not_loaded_by_default(): void
     {
-        $compact = $this->decode(MolloPlanerServer::actingAs($this->owner)->tool(ListProjectsTool::class));
+        $compact = $this->decode(MolloPlanerServer::actingAs($this->owner)->tool(McpTools::of('list_projects')));
 
         $this->assertNotNull($compact[0]['planer_revision']);
         $this->assertArrayNotHasKey('members', $compact[0]);
         $this->assertArrayNotHasKey('abilities', $compact[0]);
 
-        $detailed = $this->decode(MolloPlanerServer::actingAs($this->owner)->tool(ListProjectsTool::class, [
+        $detailed = $this->decode(MolloPlanerServer::actingAs($this->owner)->tool(McpTools::of('list_projects'), [
             'include_members' => true, 'include_rights' => true,
         ]));
         $this->assertNotEmpty($detailed[0]['members']);
@@ -47,13 +45,13 @@ class MolloPlanerServerTest extends McpTestCase
     {
         TemplateSync::sync();
 
-        $compact = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListTemplatesTool::class));
+        $compact = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_templates')));
         $event = collect($compact)->firstWhere('key', 'event');
         $this->assertNotNull($event);
         $this->assertArrayHasKey('project_count', $event);
         $this->assertArrayNotHasKey('labels', $event);
 
-        MolloPlanerServer::actingAs($this->member)->tool(ListTemplatesTool::class, ['include_details' => true])
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_templates'), ['include_details' => true])
             ->assertOk()
             ->assertSee('Veranstaltungsort anfragen')
             ->assertSee('location');
@@ -61,14 +59,14 @@ class MolloPlanerServerTest extends McpTestCase
 
     public function test_list_users_names_the_people_by_e_mail(): void
     {
-        MolloPlanerServer::actingAs(User::factory()->admin()->create())->tool(ListUsersTool::class)
+        MolloPlanerServer::actingAs(User::factory()->admin()->create())->tool(McpTools::of('list_users'))
             ->assertOk()
             ->assertSee('lindita@example.ch');
     }
 
     public function test_list_users_without_a_project_gives_names_only_to_somebody_who_does_not_manage_users(): void
     {
-        MolloPlanerServer::actingAs($this->member)->tool(ListUsersTool::class)
+        MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_users'))
             ->assertOk()
             ->assertSee($this->owner->name)
             ->assertDontSee($this->owner->email);
@@ -76,11 +74,11 @@ class MolloPlanerServerTest extends McpTestCase
 
     public function test_list_users_with_a_project_gives_its_members_with_e_mail_and_hides_foreign_projects(): void
     {
-        MolloPlanerServer::actingAs($this->owner)->tool(ListUsersTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->owner)->tool(McpTools::of('list_users'), ['project_id' => (string) $this->project->id])
             ->assertOk()
             ->assertSee($this->owner->email);
 
-        MolloPlanerServer::actingAs($this->stranger)->tool(ListUsersTool::class, ['project_id' => (string) $this->project->id])
+        MolloPlanerServer::actingAs($this->stranger)->tool(McpTools::of('list_users'), ['project_id' => (string) $this->project->id])
             ->assertHasErrors();
     }
 
@@ -93,11 +91,11 @@ class MolloPlanerServerTest extends McpTestCase
             ]);
         }
 
-        $firstPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListUsersTool::class, ['query' => 'Page User', 'limit' => 30]));
+        $firstPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_users'), ['query' => 'Page User', 'limit' => 30]));
         $this->assertCount(30, $firstPage['data']);
         $this->assertTrue($firstPage['has_more']);
 
-        $lastPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(ListUsersTool::class, [
+        $lastPage = $this->decode(MolloPlanerServer::actingAs($this->member)->tool(McpTools::of('list_users'), [
             'query' => 'Page User', 'limit' => 30, 'cursor' => $firstPage['next_cursor'],
         ]));
         $this->assertCount(5, $lastPage['data']);
@@ -112,7 +110,7 @@ class MolloPlanerServerTest extends McpTestCase
 
         $names = collect($this->postJson('/mcp', $list, [...$headers, 'Authorization' => "Bearer {$token}"])->json('result.tools'))->pluck('name')->sort()->values()->all();
 
-        $this->assertSame(['add_comment', 'create_idea', 'export_plan', 'get_project_ai_context', 'import_plan', 'list_comments', 'list_ideas', 'list_projects', 'list_templates', 'list_users', 'update_tasks'], $names);
+        $this->assertSame(['add_comment', 'create_idea', 'export_plan', 'get_project_ai_context', 'get_project_statistics', 'import_plan', 'list_comments', 'list_ideas', 'list_projects', 'list_templates', 'list_users', 'update_tasks'], $names);
     }
 
     public function test_http_endpoint_needs_a_token_made_for_claude(): void

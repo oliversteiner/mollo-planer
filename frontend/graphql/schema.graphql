@@ -422,6 +422,20 @@ type Milestone {
  title: String!
  todos: [Todo!]!
 }
+type MilestoneCounts {
+ planned: Int!
+ released: Int!
+ total: Int!
+ "Milestones ohne Version"
+ unversioned: Int!
+}
+type MilestoneStatistics {
+ milestone: Milestone!
+ progress: Progress!
+ "Alle Tasks, Ideen eingeschlossen"
+ tasks: Int!
+ todos: Int!
+}
 type Mutation {
  addComment(input: AddCommentInput!): Comment!
  "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
@@ -728,6 +742,8 @@ type Project {
  aiContext: ProjectAiContext
  "Archiviert seit (null: nicht archiviert). Archivierte Projekte sind nur lesbar."
  archivedAt: DateTime
+ "Anzahl Milestones, ToDos und Tasks (alle Status, Ideen eingeschlossen; Papierkorb nicht), für die Karte in der Projektliste. Alle Projekte einer Liste werden zusammen gezählt."
+ counts: ProjectCounts!
  createdAt: DateTime!
  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
  deletionId: ID
@@ -774,6 +790,12 @@ input ProjectAiContextInput {
  "Der Text; leer entfernt ihn (die Datei bleibt)"
  text: String!
 }
+"Anzahl Milestones, ToDos und Tasks eines Projekts"
+type ProjectCounts {
+ milestones: Int!
+ tasks: Int!
+ todos: Int!
+}
 "Mitgliedschaft einer Person in einem Projekt"
 type ProjectMember {
  role: Role!
@@ -789,6 +811,31 @@ input ProjectMemberInput {
 type ProjectRightRow {
  right: Right!
  roles: [Role!]!
+}
+"Die Zahlen der Seite Statistik. Offen heisst: weder erledigt noch eine Idee (wie beim Fortschritt). Prozent sind ganze Zahlen, gerundet wie beim Fortschritt."
+type ProjectStatistics {
+ "Kommentare an Tasks des Projekts"
+ comments: Int!
+ "Erledigte Tasks je Woche (ab Montag) der letzten 12 Wochen, die älteste zuerst, auch Wochen mit 0. Tasks, die vor der Erfassung des Zeitpunkts erledigt wurden, haben keinen Zeitpunkt und fehlen."
+ doneByWeek: [WeekCount!]!
+ "Offene Tasks nach Fälligkeit"
+ due: TaskDueCounts!
+ milestones: MilestoneCounts!
+ "Je Milestone eine Zeile in der Reihenfolge des Plans"
+ perMilestone: [MilestoneStatistics!]!
+ "Anteil erledigter Tasks, gleiche Zählung wie Project.progress"
+ progress: Progress!
+ "Alle Tasks, Ideen eingeschlossen"
+ tasks: Int!
+ "Alle Labels des Projekts in ihrer Reihenfolge, auch mit 0; zuletzt die Tasks ohne Label (label null)"
+ tasksByLabel: [TaskLabelCount!]!
+ "Offene und erledigte Tasks je zugewiesener Person, die meisten offenen zuerst; zuletzt die nicht zugewiesenen (user null)"
+ tasksByPerson: [TaskPersonCount!]!
+ "Je Status eine Zeile, in der Reihenfolge des Boards, auch mit 0"
+ tasksByStatus: [TaskStatusCount!]!
+ todos: Int!
+ "Tasks mit Commit"
+ withCommit: Int!
 }
 "Wohin die App meldet, dass die Planer-Datei eine neue Revision hat. Das Geheimnis (Token oder HMAC-Geheimnis) gibt kein Feld zurück."
 type ProjectWebhook {
@@ -860,6 +907,8 @@ type Query {
  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
  permissionMatrix: PermissionMatrix!
  project(id: ID!): Project
+ "Die Zahlen der Seite Statistik eines Projekts. Gezählt wird in der Datenbank; Elemente im Papierkorb zählen nicht. Wer das Projekt sehen darf, sieht sie (auch archiviert); sonst eine Ablehnung."
+ projectStatistics(projectId: ID!): ProjectStatistics!
  "Deine Projekte. Admins sehen alle. Ohne Angabe die nicht archivierten, mit archived: true nur die archivierten."
  projects(archived: Boolean = false): [Project!]!
  "Die Rechte eines Bereichs in fester Reihenfolge (die Liste gibt der Code vor). Für die Auswahl in den Einstellungen der Rollen."
@@ -1037,6 +1086,21 @@ type Task {
  "Darf die angemeldete Person den Task ändern? Auch mit task.updateOwn beim selbst angelegten Task."
  viewerCanUpdate: Boolean!
 }
+"Offene Tasks: überfällig, fällig in den nächsten 7 Tagen (heute eingeschlossen) und ohne Datum"
+type TaskDueCounts {
+ overdue: Int!
+ soon: Int!
+ undated: Int!
+}
+type TaskLabelCount {
+ count: Int!
+ label: Label
+}
+type TaskPersonCount {
+ done: Int!
+ open: Int!
+ user: User
+}
 "Spalten im Kanban-Board"
 enum TaskStatus {
  DONE
@@ -1045,6 +1109,12 @@ enum TaskStatus {
  OPEN
  PLANNED
  REVIEW
+}
+type TaskStatusCount {
+ count: Int!
+ "Anteil an allen Tasks in Prozent"
+ percent: Int!
+ status: TaskStatus!
 }
 "Eine Vorlage für Projekte: Labels und auf Wunsch ein Gerüst aus Milestones, ToDos und Tasks. Alle Angemeldeten sehen alle Vorlagen."
 type Template {
@@ -1316,5 +1386,10 @@ enum WebhookKind {
 type WebhookTestResult {
  message: String!
  ok: Boolean!
+}
+type WeekCount {
+ count: Int!
+ "Montag der Woche"
+ weekStart: Date!
 }
 

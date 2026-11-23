@@ -5,8 +5,6 @@ namespace Tests\Feature\Webhooks;
 use App\GraphQL\Mutations\ProjectWebhookMutations;
 use App\Jobs\SendPlanerWebhook;
 use App\Mcp\Servers\MolloPlanerServer;
-use App\Mcp\Tools\ExportPlanTool;
-use App\Mcp\Tools\ImportPlanTool;
 use App\Models\Project;
 use App\Models\ProjectWebhook;
 use App\Planer\Export;
@@ -21,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
 use Tests\Feature\GraphQL\GraphQLTestCase;
+use Tests\McpTools;
 
 /**
  * The webhook of a project (docs/auftrag-m5.md §4): bundling, the two kinds of request, retries
@@ -374,11 +373,11 @@ class WebhookTest extends GraphQLTestCase
         $this->github();
         $document = app(Export::class)->document($this->project->fresh());
 
-        MolloPlanerServer::actingAs($this->users['owner'])->tool(ExportPlanTool::class, ['project_id' => (string) $this->project->id])->assertOk();
+        MolloPlanerServer::actingAs($this->users['owner'])->tool(McpTools::of('export_plan'), ['project_id' => (string) $this->project->id])->assertOk();
         Queue::assertNothingPushed();
 
         $document['milestones'][0]['title'] = 'Per MCP';
-        MolloPlanerServer::actingAs($this->users['owner'])->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document])->assertOk();
+        MolloPlanerServer::actingAs($this->users['owner'])->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document])->assertOk();
         Queue::assertPushed(SendPlanerWebhook::class, 1);
     }
 
@@ -389,8 +388,8 @@ class WebhookTest extends GraphQLTestCase
         $document = app(Export::class)->document($this->project->fresh());
         $document['milestones'][0]['title'] = 'Nur geprüft';
 
-        MolloPlanerServer::actingAs($this->users['owner'])->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => $document, 'dry_run' => true])->assertOk();
-        MolloPlanerServer::actingAs($this->users['owner'])->tool(ImportPlanTool::class, ['project_id' => (string) $this->project->id, 'plan' => app(Export::class)->document($this->project->fresh())])->assertOk();
+        MolloPlanerServer::actingAs($this->users['owner'])->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => $document, 'dry_run' => true])->assertOk();
+        MolloPlanerServer::actingAs($this->users['owner'])->tool(McpTools::of('import_plan'), ['project_id' => (string) $this->project->id, 'plan' => app(Export::class)->document($this->project->fresh())])->assertOk();
 
         Queue::assertNothingPushed();
     }

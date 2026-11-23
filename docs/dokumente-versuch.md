@@ -1,6 +1,6 @@
 # Dokumentenverwaltung: Versuch D0
 
-Stand: 2026-11-18 (Bob). Zu `docs/dokumentenverwaltung.md` §5.2, §7.2 und Ticket D0 (`next-work/16-dokumente-backend.md`).
+Stand: 2026-11-18 (Bob). Zu `docs/dokumentenverwaltung.md` §5.2, §7.2 und Ticket D0 (`../next-work/erledigt/16-dokumente-backend.md`).
 
 Der Versuch hat **keinen Produktivcode** und keine Abhängigkeit im Repo geändert. Alles lief auf Kopien im Scratchpad: der PHP-Konverter als Kopie mit dem Profil „Dokument“, die TipTap-Erweiterungen und beide PDF-Bibliotheken in je einem Wegwerf-Projekt. Die Skripte liegen nicht im Repo. Die Fälle stehen unten, damit D3 sie als Fixtures (`spec/fixtures/richtext/`) übernehmen kann.
 
