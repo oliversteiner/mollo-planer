@@ -36,6 +36,7 @@ const document = computed(() => readPlan(props.plan))
 const counts = computed(() => (document.value ? newCounts(document.value, props.struck) : { milestones: 0, todos: 0, tasks: 0 }))
 const countsLine = computed(() => countsText(counts.value, (kind, count) => t(`assistant.counts.${kind}`, { count }, count)))
 const errors = computed(() => props.preview?.errors ?? [])
+const warnings = computed(() => props.preview?.warnings ?? [])
 const canImport = computed(() => !props.busy && !props.checking && props.preview !== null && props.preview.ok && (props.preview.changes?.length ?? 0) > 0)
 </script>
 
@@ -64,6 +65,22 @@ const canImport = computed(() => !props.busy && !props.checking && props.preview
       <ul class="plan-list">
         <li
           v-for="(item, index) in errors"
+          :key="index"
+        >
+          <code v-if="item.path">{{ item.path }}</code>
+          {{ item.message }}
+        </li>
+      </ul>
+    </AppCallout>
+
+    <AppCallout
+      v-if="warnings.length"
+      variant="warning"
+      :title="t('assistant.plan.warnings', warnings.length)"
+    >
+      <ul class="plan-list">
+        <li
+          v-for="(item, index) in warnings"
           :key="index"
         >
           <code v-if="item.path">{{ item.path }}</code>
