@@ -26,7 +26,8 @@ const preview = {
   dryRun: true,
   projectId: '1',
   changes: [{ kind: 'CREATE' as const, path: 'milestones[0].todos[0]', id: 't-new-1', fields: [], title: null }],
-  errors: []
+  errors: [],
+  warnings: []
 }
 
 const props = { plan: JSON.stringify(document), preview, hints: [], struck: new Set<string>(), existingProject: true }
@@ -61,6 +62,23 @@ describe('AssistantPlanPreview', () => {
     await view.setProps({ preview: { ...preview, ok: false, errors: [{ path: 'milestones[0]', kind: 'rule', message: 'Fehler im Plan' }] } })
     expect(view.text()).toContain('Fehler im Plan')
     expect((button().element as unknown as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('shows a warning about an assignment that is left out, and the import stays possible', async () => {
+    const warning = { path: 'milestones[0].todos[0].tasks[0]', email: 'nobody@example.com', message: 'nobody@example.com ist nicht Mitglied des Projekts oder existiert nicht. Die Zuweisung wird nicht übernommen.' }
+    const view = await mountSuspended(PlanPreview, { props: { ...props, preview: { ...preview, warnings: [warning] } } })
+
+    expect(view.text()).toContain('1 Warnung')
+    expect(view.text()).toContain('milestones[0].todos[0].tasks[0]')
+    expect(view.text()).toContain('nobody@example.com ist nicht Mitglied')
+    expect(view.findAll('wa-callout').some(callout => (callout.element as unknown as { variant: string }).variant === 'warning')).toBe(true)
+    expect((view.findAll('wa-button').find(item => item.text() === 'Jetzt eintragen')!.element as unknown as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('shows no warning box without warnings', async () => {
+    const view = await mountSuspended(PlanPreview, { props })
+
+    expect(view.text()).not.toContain('Warnung')
   })
 
   it('offers "In Ideen ablegen" and "Verwerfen"', async () => {

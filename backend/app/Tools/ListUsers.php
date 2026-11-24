@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Rights;
+use App\Tools\Support\LikeSearch;
 use App\Tools\Support\McpCursor;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -66,8 +67,8 @@ class ListUsers extends Tool
 
             $members = $project->members()
                 ->when($search !== '', fn (Builder $q) => $q->where(function (Builder $sub) use ($search): void {
-                    $sub->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                    LikeSearch::where($sub, 'name', $search);
+                    LikeSearch::where($sub, 'email', $search, 'or');
                 }))
                 ->when($cursor !== null, fn (Builder $q) => $q->where(function (Builder $sub) use ($cursor): void {
                     $sub->where('name', '>', (string) $cursor['name'])
@@ -97,9 +98,9 @@ class ListUsers extends Tool
         $accounts = User::query()
             ->whereNotNull('approved_at')
             ->when($search !== '', fn (Builder $q) => $q->where(function (Builder $sub) use ($search, $canManageUsers): void {
-                $sub->where('name', 'like', "%{$search}%");
+                LikeSearch::where($sub, 'name', $search);
                 if ($canManageUsers) {
-                    $sub->orWhere('email', 'like', "%{$search}%");
+                    LikeSearch::where($sub, 'email', $search, 'or');
                 }
             }))
             ->when($cursor !== null, fn (Builder $q) => $q->where(function (Builder $sub) use ($cursor): void {
