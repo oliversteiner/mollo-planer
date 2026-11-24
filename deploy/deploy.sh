@@ -175,6 +175,10 @@ log "GraphQL-Schema neu erzeugen"
 
 log "Frontend veröffentlichen"
 rsync -a --delete "$STAGE/" "$WEB_ROOT/"
+# frontend/public/.htaccess carries the cache headers (Auftrag 36 A); rsync -a copies dotfiles, but say so if the build lacks it.
+if [ ! -f "$WEB_ROOT/.htaccess" ]; then
+    echo "WARNUNG: $WEB_ROOT/.htaccess fehlt: die Cache-Köpfe für /_nuxt/ und /icons/ sind nicht gesetzt (frontend/public/.htaccess gehört in den Build)." >&2
+fi
 
 log "Wartungsmodus aus"
 "$PHP" "$BACKEND/artisan" up >/dev/null
