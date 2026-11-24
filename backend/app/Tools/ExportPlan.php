@@ -4,6 +4,7 @@ namespace App\Tools;
 
 use App\Models\User;
 use App\Planer\PlanView;
+use App\Tools\Support\ToolArguments;
 
 class ExportPlan extends Tool
 {
@@ -58,7 +59,7 @@ class ExportPlan extends Tool
             [
                 'id' => (string) $validated['project_id'],
                 'version' => isset($validated['version']) ? (string) $validated['version'] : null,
-                'ids' => array_map(fn ($id): string => preg_replace('/^m-/', '', (string) $id), $validated['milestone_ids'] ?? []) ?: null,
+                'ids' => array_map('strval', ToolArguments::ids($validated['milestone_ids'] ?? [], 'm', 'milestone_ids')) ?: null,
                 'status' => array_map('strtoupper', $validated['task_status'] ?? []) ?: null,
                 'released' => (bool) ($validated['include_released'] ?? true),
             ],

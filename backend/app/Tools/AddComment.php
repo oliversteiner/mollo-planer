@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Planer\RichText\MarkdownToTiptap;
 use App\Planer\RichText\Mode;
 use App\Planer\RichText\TiptapToMarkdown;
+use App\Tools\Support\ToolArguments;
 
 class AddComment extends Tool
 {
@@ -49,7 +50,7 @@ class AddComment extends Tool
             return ToolResult::error('The comment is empty.');
         }
 
-        $taskNum = preg_replace('/^k-/', '', (string) $validated['task_id']);
+        $taskNum = (string) ToolArguments::id($validated['task_id'], 'k', 'task_id');
         $comment = $this->graphql($actor, self::MUTATION, ['input' => [
             'taskId' => $taskNum,
             'body' => $result->doc,

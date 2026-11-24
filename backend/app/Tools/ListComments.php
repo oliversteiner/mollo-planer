@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Planer\RichText\TiptapToMarkdown;
 use App\Tools\Support\McpCursor;
 use App\Tools\Support\McpText;
+use App\Tools\Support\ToolArguments;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListComments extends Tool
@@ -75,9 +76,9 @@ class ListComments extends Tool
             return ToolResult::error('Use comment_id to retrieve a later text chunk.');
         }
 
-        $taskId = isset($validated['task_id']) ? (int) preg_replace('/^k-/', '', (string) $validated['task_id']) : null;
+        $taskId = isset($validated['task_id']) ? ToolArguments::id($validated['task_id'], 'k', 'task_id') : null;
         $projectId = isset($validated['project_id']) ? (int) $validated['project_id'] : null;
-        $commentId = isset($validated['comment_id']) ? (int) preg_replace('/^c-/', '', (string) $validated['comment_id']) : null;
+        $commentId = isset($validated['comment_id']) ? ToolArguments::id($validated['comment_id'], 'c', 'comment_id') : null;
 
         if ($taskId !== null && Task::query()->visibleTo($actor)->whereKey($taskId)->first() === null) {
             return ToolResult::error('Task not found or not accessible.');
@@ -87,7 +88,7 @@ class ListComments extends Tool
             return ToolResult::error('Project not found or not accessible.');
         }
 
-        $milestoneIds = array_map(fn ($id): int => (int) preg_replace('/^m-/', '', (string) $id), $validated['milestone_ids'] ?? []);
+        $milestoneIds = ToolArguments::ids($validated['milestone_ids'] ?? [], 'm', 'milestone_ids');
         $statuses = $validated['task_status'] ?? [];
         $includeReleased = (bool) ($validated['include_released'] ?? true);
 
