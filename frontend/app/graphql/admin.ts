@@ -62,6 +62,12 @@ export const resetUserTwoFactorMutation = graphql(`
   }
 `)
 
+export const createAgentMutation = graphql(`
+  mutation CreateAgent($input: CreateAgentInput!) {
+    createAgent(input: $input) { id name }
+  }
+`)
+
 export const createAgentTokenMutation = graphql(`
   mutation CreateAgentToken($userId: ID!, $name: String!) {
     createAgentToken(userId: $userId, name: $name) {

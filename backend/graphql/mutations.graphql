@@ -53,6 +53,10 @@ type Mutation @guard {
   createAgentToken(userId: ID!, name: String! @rules(apply: ["min:2", "max:60"])): NewApiToken!
     @can(ability: "manageAgentAccess", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\CreateAgentToken")
+  "Legt ein Agent-Konto an (kein Login im Browser, Systemrolle Mitglied, keine Mail an das Konto). Nur mit dem Recht users.manage und frischer Passwortbestätigung; Protokolleintrag und Mail an die Admins. Dieselbe Aktion wie app:create-agent."
+  createAgent(input: CreateAgentInput!): User!
+    @can(ability: "manageAgentAccess", model: "App\\Models\\User")
+    @field(resolver: "App\\Core\\Accounts\\GraphQL\\CreateAgent")
   "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
   revokeAgentToken(userId: ID!, tokenId: ID!): ApiToken
     @can(ability: "manageAgentAccess", model: "App\\Models\\User")

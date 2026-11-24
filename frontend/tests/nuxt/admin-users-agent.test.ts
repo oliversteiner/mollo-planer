@@ -2,13 +2,14 @@ import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import AgentAccessDialog from '~/components/admin/AgentAccessDialog.vue'
+import AgentFormModal from '~/components/admin/AgentFormModal.vue'
 import AgentBadge from '~/components/AgentBadge.vue'
 import AppDialog from '~/components/AppDialog.vue'
 import ConfirmModal from '~/components/ConfirmModal.vue'
 import AdminUsersPage from '~/pages/admin/users.vue'
 import { installElementInternals } from './support/element-internals'
 
-const { users, projects, roles, createAgentToken, revokeAgentToken, setMember, removeMember, ensurePasswordConfirmed } = vi.hoisted(() => ({
+const { users, projects, roles, createAgent, createAgentToken, revokeAgentToken, setMember, removeMember, ensurePasswordConfirmed } = vi.hoisted(() => ({
   users: [
     { id: '2', name: 'Ben Müller', email: 'ben@example.ch', approved: true, createdAt: '2026-11-01T10:00:00Z', avatarUrl: null, isAgent: false, apiTokens: null, twoFactorConfirmed: true, hasPasskey: false, role: { id: '3', key: 'mitglied', isDefault: true, names: { de: 'Mitglied', en: 'Member' } } },
     {
@@ -27,6 +28,7 @@ const { users, projects, roles, createAgentToken, revokeAgentToken, setMember, r
     { id: '1', key: 'member', scope: 'PROJECT', isDefault: true, names: { de: 'Mitglied', en: 'Member' }, rights: [] },
     { id: '2', key: 'agent', scope: 'PROJECT', isDefault: false, names: { de: 'Agent', en: 'Agent' }, rights: [] }
   ],
+  createAgent: vi.fn(),
   createAgentToken: vi.fn(),
   revokeAgentToken: vi.fn(),
   setMember: vi.fn(),
@@ -47,7 +49,7 @@ vi.mock('@vue/apollo-composable', () => ({
   },
   useMutation: (document: { definitions?: { name?: { value: string } }[] }) => {
     const name = operation(document)
-    const mutate = { CreateAgentToken: createAgentToken, RevokeAgentToken: revokeAgentToken, SetProjectMember: setMember, RemoveProjectMember: removeMember }[name ?? ''] ?? vi.fn()
+    const mutate = { CreateAgent: createAgent, CreateAgentToken: createAgentToken, RevokeAgentToken: revokeAgentToken, SetProjectMember: setMember, RemoveProjectMember: removeMember }[name ?? ''] ?? vi.fn()
 
     return { mutate }
   }
@@ -62,6 +64,7 @@ beforeAll(async () => {
 })
 
 beforeEach(() => {
+  createAgent.mockReset().mockResolvedValue({ data: { createAgent: { id: '9', name: 'Claude Neu' } } })
   createAgentToken.mockReset().mockResolvedValue({ data: { createAgentToken: { plainTextToken: '7|geheim', token: { id: '12', name: 'Neu' } } } })
   revokeAgentToken.mockReset().mockResolvedValue({ data: { revokeAgentToken: { id: '11' } } })
   setMember.mockReset().mockResolvedValue({ data: {} })
@@ -231,5 +234,48 @@ describe('admin users: dialog of an agent', () => {
     await found.props('action')()
 
     expect(removeMember).toHaveBeenCalledWith({ projectId: '1', userId: '3' })
+  })
+})
+
+describe('admin users: create an agent', () => {
+  it('offers to create an agent in the page actions and opens the form', async () => {
+    const page = await mountSuspended(AdminUsersPage)
+    const button = page.findAll('wa-button').find(candidate => candidate.text() === 'Agent anlegen')!
+
+    expect(page.findComponent(AgentFormModal).props('open')).toBe(false)
+    await button.trigger('click')
+    expect(page.findComponent(AgentFormModal).props('open')).toBe(true)
+  })
+
+  it('opens the access dialog of the new agent once it is created', async () => {
+    const page = await mountSuspended(AdminUsersPage)
+
+    page.findComponent(AgentFormModal).vm.$emit('created', '3')
+    await vi.waitFor(() => expect(page.findComponent(AgentAccessDialog).exists()).toBe(true))
+
+    expect(page.findComponent(AgentFormModal).props('open')).toBe(false)
+    expect(page.findComponent(AgentAccessDialog).props('agent')).toMatchObject({ id: '3' })
+  })
+
+  it('creates the agent after the password was confirmed and reports its id', async () => {
+    const form = await mountSuspended(AgentFormModal, { props: { open: true } })
+
+    Object.assign((form.vm as unknown as { state: { name: string, email: string } }).state, { name: ' Claude Neu ', email: ' neu@example.ch ' })
+    await form.find('form').trigger('submit')
+
+    await vi.waitFor(() => expect(form.emitted('created')).toEqual([['9']]))
+    expect(ensurePasswordConfirmed).toHaveBeenCalledOnce()
+    expect(createAgent).toHaveBeenCalledWith({ input: { name: 'Claude Neu', email: 'neu@example.ch' } })
+  })
+
+  it('creates nothing when the password prompt is cancelled', async () => {
+    ensurePasswordConfirmed.mockResolvedValue(false)
+    const form = await mountSuspended(AgentFormModal, { props: { open: true } })
+
+    await form.find('form').trigger('submit')
+    await vi.waitFor(() => expect(ensurePasswordConfirmed).toHaveBeenCalled())
+
+    expect(createAgent).not.toHaveBeenCalled()
+    expect(form.emitted('created')).toBeUndefined()
   })
 })

@@ -686,6 +686,14 @@
         "noUsers": "No users yet.",
         "noAgents": "No agents yet.",
         "noMatches": "No matches."
+      },
+      "newAgent": {
+        "title": "Create agent",
+        "hint": "An agent account for Claude or an assistant. It does not sign in in the browser but works through the connector with an access you create right after.",
+        "nameHint": "Shown in the app, for example “Claude Club DB”.",
+        "emailHint": "No mail is sent, a mailbox is not needed.",
+        "submit": "Create",
+        "created": "Agent {name} created."
       }
     },
     "settings": {

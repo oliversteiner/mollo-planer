@@ -29,6 +29,7 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
         'approveUser' => 'user administration',
         'setProjectCreatorRole' => 'app settings, belong to no project',
         'createApiToken' => 'personal token',
+        'createAgent' => 'user administration',
         'createAgentToken' => 'user administration',
         'revokeAgentToken' => 'user administration',
         'createOAuthClient' => 'login service, belongs to no project',

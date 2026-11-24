@@ -25,6 +25,12 @@ useCommands(() => [{
   icon: 'user-plus',
   group: 'action',
   run: () => startEditing()
+}, {
+  id: 'users-create-agent',
+  label: t('admin.users.newAgent.title'),
+  icon: 'robot',
+  group: 'action',
+  run: () => { creatingAgent.value = true }
 }])
 const allUsers = computed(() => [...(result.value?.users ?? [])])
 const users = computed(() => {
@@ -50,6 +56,13 @@ const { mutate: rejectUser } = useMutation(rejectUserMutation, options)
  * and assigns projects (docs/verwaltung-agenten-anfasser.md §3.2, §3.3).
  */
 const accessAgentId = ref<string | null>(null)
+const creatingAgent = ref(false)
+
+/** A new agent goes straight on to its access: the next thing it needs. */
+function onAgentCreated(id: string): void {
+  creatingAgent.value = false
+  accessAgentId.value = id
+}
 const accessAgent = computed(() => allUsers.value.find(user => user.id === accessAgentId.value) ?? null)
 
 const accessIndicator: Record<AgentAccessState, { variant: 'brand' | 'success' | 'warning' | 'neutral', icon: string, appearance: 'filled' | 'outlined' }> = {
@@ -192,6 +205,17 @@ function factorLabel(user: User): string {
   >
     <template #actions>
       <wa-button
+        variant="neutral"
+        appearance="outlined"
+        @click="creatingAgent = true"
+      >
+        <wa-icon
+          slot="start"
+          name="robot"
+        ></wa-icon>
+        {{ t('admin.users.newAgent.title') }}
+      </wa-button>
+      <wa-button
         variant="brand"
         @click="startEditing()"
       >
@@ -243,12 +267,25 @@ function factorLabel(user: User): string {
         <h2 class="wa-heading-m">
           {{ group.title }} ({{ group.list.length }})
         </h2>
-        <p
+        <div
           v-if="!group.list.length"
-          class="users-empty"
+          class="users-empty wa-cluster wa-gap-s"
         >
-          {{ query.trim() && group.total ? t('admin.users.sections.noMatches') : group.empty }}
-        </p>
+          <p>{{ query.trim() && group.total ? t('admin.users.sections.noMatches') : group.empty }}</p>
+          <wa-button
+            v-if="group.key === 'agents' && !group.total"
+            size="s"
+            variant="neutral"
+            appearance="outlined"
+            @click="creatingAgent = true"
+          >
+            <wa-icon
+              slot="start"
+              name="robot"
+            ></wa-icon>
+            {{ t('admin.users.newAgent.title') }}
+          </wa-button>
+        </div>
         <ul
           v-else
           class="users-list wa-list-plain"
@@ -326,6 +363,11 @@ function factorLabel(user: User): string {
       :action="confirm"
       @close="confirming = null"
     />
+    <AdminAgentFormModal
+      :open="creatingAgent"
+      @close="creatingAgent = false"
+      @created="onAgentCreated"
+    />
     <AdminAgentAccessDialog
       v-if="accessAgent"
       :agent="accessAgent"
@@ -342,8 +384,11 @@ function factorLabel(user: User): string {
 }
 
 .users-empty {
-  margin: 0;
   color: var(--wa-color-text-quiet);
+}
+
+.users-empty p {
+  margin: 0;
 }
 
 .users-search {

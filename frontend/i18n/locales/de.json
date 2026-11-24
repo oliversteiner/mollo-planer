@@ -686,6 +686,14 @@
         "noUsers": "Noch keine Benutzer.",
         "noAgents": "Noch keine Agenten.",
         "noMatches": "Keine Treffer."
+      },
+      "newAgent": {
+        "title": "Agent anlegen",
+        "hint": "Ein Agent-Konto für Claude oder eine Assistenz. Es meldet sich nicht im Browser an, sondern arbeitet über den Connector mit einem Zugang, den du gleich danach erzeugst.",
+        "nameHint": "Wird in der App angezeigt, zum Beispiel «Claude Club DB».",
+        "emailHint": "Es wird keine Mail verschickt, ein Postfach ist nicht nötig.",
+        "submit": "Anlegen",
+        "created": "Agent {name} angelegt."
       }
     },
     "settings": {

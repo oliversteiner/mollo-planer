@@ -99,6 +99,12 @@ return [
         'ignore' => 'If you did not register, do not click the link and do nothing.',
         'approval' => 'After that you set up your second factor, and an admin releases your account.',
     ],
+    'agent_account' => [
+        'created' => [
+            'subject' => '[:app] Agent account :agent created',
+            'line' => ':admin created the agent account :agent. It does not sign in in the browser; accesses and projects are in the user administration.',
+        ],
+    ],
     'agent_access' => [
         'created' => [
             'subject' => '[:app] Access made for :agent',

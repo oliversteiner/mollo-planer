@@ -21,6 +21,7 @@ type Documents = {
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": typeof types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": typeof types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": typeof types.ResetUserTwoFactorDocument,
+    "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) { id name }\n  }\n": typeof types.CreateAgentDocument,
     "\n  mutation CreateAgentToken($userId: ID!, $name: String!) {\n    createAgentToken(userId: $userId, name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": typeof types.CreateAgentTokenDocument,
     "\n  mutation RevokeAgentToken($userId: ID!, $tokenId: ID!) {\n    revokeAgentToken(userId: $userId, tokenId: $tokenId) { id }\n  }\n": typeof types.RevokeAgentTokenDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": typeof types.DeleteUserDocument,
@@ -145,6 +146,7 @@ const documents: Documents = {
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": types.CreateUserDocument,
     "\n  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n    updateUser(id: $id, input: $input) { id name email role { key isDefault names { de en } } activity }\n  }\n": types.UpdateUserDocument,
     "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n": types.ResetUserTwoFactorDocument,
+    "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) { id name }\n  }\n": types.CreateAgentDocument,
     "\n  mutation CreateAgentToken($userId: ID!, $name: String!) {\n    createAgentToken(userId: $userId, name: $name) {\n      plainTextToken\n      token { id name }\n    }\n  }\n": types.CreateAgentTokenDocument,
     "\n  mutation RevokeAgentToken($userId: ID!, $tokenId: ID!) {\n    revokeAgentToken(userId: $userId, tokenId: $tokenId) { id }\n  }\n": types.RevokeAgentTokenDocument,
     "\n  mutation DeleteUser($id: ID!) {\n    deleteUser(id: $id) { id }\n  }\n": types.DeleteUserDocument,
@@ -304,6 +306,10 @@ export function graphql(source: "\n  mutation UpdateUser($id: ID!, $input: Updat
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n"): (typeof documents)["\n  mutation ResetUserTwoFactor($id: ID!) {\n    resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) { id name }\n  }\n"): (typeof documents)["\n  mutation CreateAgent($input: CreateAgentInput!) {\n    createAgent(input: $input) { id name }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

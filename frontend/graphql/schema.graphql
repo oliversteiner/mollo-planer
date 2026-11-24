@@ -41,6 +41,11 @@ type Comment {
  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
  viewerCanEdit: Boolean!
 }
+"Ein neues Agent-Konto. Ein Postfach ist nicht nötig, es geht keine Mail an die Adresse."
+input CreateAgentInput {
+ email: String!
+ name: String!
+}
 input CreateDocumentInput {
  "Der Inhalt aus dem Editor. Der Server prüft das Profil «Dokument» (höchstens 200 000 Zeichen Markdown) und schreibt Markdown."
  contentJson: RichText!
@@ -448,6 +453,8 @@ type Mutation {
  assignTask(assigneeId: ID, id: ID!): Task!
  "Löscht den ganzen KI-Kontext"
  clearProjectAiContext(projectId: ID!): Project!
+ "Legt ein Agent-Konto an (kein Login im Browser, Systemrolle Mitglied, keine Mail an das Konto). Nur mit dem Recht users.manage und frischer Passwortbestätigung; Protokolleintrag und Mail an die Admins. Dieselbe Aktion wie app:create-agent."
+ createAgent(input: CreateAgentInput!): User!
  "Erzeugt einen Zugang für ein Agent-Konto (nur Konten mit isAgent), 90 Tage gültig. Nur mit dem Recht users.manage und frischer Passwortbestätigung. Den Klartext gibt es nur in der Antwort; Protokolleintrag und Mail an die Admins."
  createAgentToken(name: String!, userId: ID!): NewApiToken!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
