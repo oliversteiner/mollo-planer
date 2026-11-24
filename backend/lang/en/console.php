@@ -17,9 +17,14 @@ return [
         'per_tool' => 'Calls per tool (last :days days)',
         'per_account' => 'Calls per account and tool (last :days days)',
     ],
+    'permissions_add' => [
+        'nothing' => 'Nothing to do: everything new in config/permissions.php is already in the database.',
+        'added' => ':count standard entries added.',
+        'extra' => 'Not in config/permissions.php, left as they are: :entries',
+    ],
     'permissions_check' => [
         'complete' => 'All standard roles and functions exist in the database.',
-        'missing' => ':count standard roles or functions are missing in the database. `php artisan permissions:sync-defaults` brings them in (it resets the standard assignments).',
+        'missing' => ':count standard roles or functions are missing in the database. `php artisan permissions:sync-defaults --add-missing` brings them in without overwriting anything (`permissions:sync-defaults` alone resets the standard assignments).',
     ],
     'check_limits' => [
         'clean' => 'No project breaks a limit of the planer file.',

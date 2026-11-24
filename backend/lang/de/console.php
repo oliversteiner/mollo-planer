@@ -17,9 +17,14 @@ return [
         'per_tool' => 'Aufrufe je Werkzeug (letzte :days Tage)',
         'per_account' => 'Aufrufe je Konto und Werkzeug (letzte :days Tage)',
     ],
+    'permissions_add' => [
+        'nothing' => 'Nichts zu tun: alles Neue aus config/permissions.php ist schon in der Datenbank.',
+        'added' => ':count Standardeinträge ergänzt.',
+        'extra' => 'Nicht in config/permissions.php, bleiben unverändert: :entries',
+    ],
     'permissions_check' => [
         'complete' => 'Alle Standardrollen und -funktionen sind in der Datenbank vorhanden.',
-        'missing' => ':count Standardrollen oder -funktionen fehlen in der Datenbank. `php artisan permissions:sync-defaults` holt sie (setzt die Standardbelegung zurück).',
+        'missing' => ':count Standardrollen oder -funktionen fehlen in der Datenbank. `php artisan permissions:sync-defaults --add-missing` holt sie, ohne etwas zu überschreiben (`permissions:sync-defaults` allein setzt die Standardbelegung zurück).',
     ],
     'check_limits' => [
         'clean' => 'Kein Projekt verletzt eine Grenze der Planer-Datei.',

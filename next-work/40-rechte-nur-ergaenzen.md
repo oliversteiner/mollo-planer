@@ -2,7 +2,7 @@
 
 Planer: planer.mollo.dev · Projekt 2 «Mollo Planer» · ToDo `t-375` (Status der Teile dort nachführen).
 
-Status: Teil A umgesetzt und gemergt (PR #40, Branch `fix/deploy-check-log`). Teil B offen (kommt nach Auftrag 42 B bis E). Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). Nach 38. Branch von `dev` (`feature/rechte-ergaenzen`), PR nach `dev`, nicht mergen.
+Status: Teil A umgesetzt und gemergt (PR #40, Branch `fix/deploy-check-log`). Teil B umgesetzt auf Branch `feature/rechte-ergaenzen` (PR nach dev, nicht gemergt): `App\Core\Rights\DefaultsAddMissing`, Tabelle `rights_defaults_applied`, Option `--add-missing`, Aufruf in `deploy.sh` nach `migrate`. Zu beachten: der erste Lauf auf einer bestehenden Datenbank ergänzt, was in der Konfiguration steht und heute fehlt (auch ein Recht, das ein Admin früher entfernt hat); vorher `--check` ansehen. Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). Nach 38. Branch von `dev` (`feature/rechte-ergaenzen`), PR nach `dev`, nicht mergen.
 
 ## A. Sofort, im offenen PR #33 (`feature/agent-rollen-pruefung`)
 
