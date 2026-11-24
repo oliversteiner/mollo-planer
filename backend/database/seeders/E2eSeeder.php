@@ -64,18 +64,20 @@ class E2eSeeder extends Seeder
             ->withMember($people['member@e2e.test'], ProjectRole::MEMBER)
             ->create(['name' => 'E2E Dokumente']);
 
-        // The timeline: two todos, one task in the first (for the test of the drag handle).
-        $timeline = Project::factory()
-            ->withMember($people['admin@e2e.test'], ProjectRole::OWNER)
-            ->create(['name' => 'E2E Zeitachse']);
-        $milestone = Milestone::factory()->for($timeline)->create(['title' => 'E2E Etappe']);
-        $source = Todo::factory()->for($milestone)->create(['title' => 'E2E Quelle']);
-        Todo::factory()->for($milestone)->create(['title' => 'E2E Ziel']);
-        Task::factory()->for($source)->create(['title' => 'E2E Beweglich']);
         // One milestone, todo and task, so the forms that pick an icon (Auftrag 36 B, frontend/e2e/icon-picker.spec.ts)
         // can be opened in every place: the todo form needs a milestone.
         $milestone = Milestone::factory()->for($project)->create(['title' => 'Symbole prüfen']);
         $todo = Todo::factory()->for($milestone)->create(['title' => 'Auswahl testen']);
         Task::factory()->for($todo)->create(['title' => 'Symbol wählen']);
+
+        // The timeline: two todos, one task in the first (for the test of the drag handle).
+        $timeline = Project::factory()
+            ->withMember($people['admin@e2e.test'], ProjectRole::OWNER)
+            ->create(['name' => 'E2E Zeitachse']);
+        $stage = Milestone::factory()->for($timeline)->create(['title' => 'E2E Etappe']);
+        $source = Todo::factory()->for($stage)->create(['title' => 'E2E Quelle']);
+        Todo::factory()->for($stage)->create(['title' => 'E2E Ziel']);
+        Task::factory()->for($source)->create(['title' => 'E2E Beweglich']);
+
     }
 }
