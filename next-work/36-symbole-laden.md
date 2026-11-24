@@ -2,7 +2,7 @@
 
 Planer: planer.mollo.dev · Projekt 2 «Mollo Planer» · ToDo `t-380` (Status der Teile dort nachführen).
 
-Status: offen. Auftrag von Oliver über Stuart (2026-11-23). Branch von `dev` (`refactor/symbole-laden`), PR nach `dev`, nicht mergen.
+Status: umgesetzt auf Branch `feature/symbole-laden-neu` (neu von `origin/dev`, der alte Branch `feature/symbole-laden` bleibt unberührt), PR nach `dev`, nicht gemergt. A: `frontend/public/.htaccess` (mit lokalem Apache geprüft; nach dem Deploy `curl -sI` auf TEST, Oliver). B: Debounce 250 ms ab 2 Zeichen, Symbol erst wenn die Kachel sichtbar war, ein gemeinsamer Tooltip. C und D waren mit Auftrag 38 erledigt (`icons/<version>/…`, `scripts/icon-source.mjs`). Auftrag von Oliver über Stuart (2026-11-23). Branch von `dev` (`refactor/symbole-laden`), PR nach `dev`, nicht mergen.
 
 ## Ausgangslage (geprüft von Stuart am 2026-11-23 auf PROD)
 
