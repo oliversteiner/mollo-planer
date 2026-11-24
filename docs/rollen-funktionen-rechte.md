@@ -146,7 +146,7 @@ Diese Regeln schützen vor Aussperren und vor Missbrauch. Sie sind keine Rechte,
 2. **„Funktion“ freimachen:** Das heutige Feld `job_function` heißt neu **„Tätigkeit“** (`users.activity`, GraphQL `User.activity`, Enum `UserActivity`) und bleibt eine reine Anzeige ohne Rechte.
 3. **Obergrenze** über die Systemrolle, „Lesend“ ohne Sonderregel im Code.
 4. **Grundregeln §7** bleiben im Code.
-5. **Projektrolle „Gast“** (nur lesen) wird mitgeliefert, ebenso die Projektrolle „Agent“ (Auftrag 31) mit der Funktion `agent-work`. Ein Bestand holt sie mit `php artisan permissions:sync-defaults`.
+5. **Projektrolle „Gast“** (nur lesen) wird mitgeliefert, ebenso die Projektrolle „Agent“ (Auftrag 31) mit der Funktion `agent-work`. Ein Bestand holt sie beim Deployment mit `php artisan permissions:sync-defaults --add-missing` (ergänzt nur Neues, überschreibt nichts, Auftrag 40 B); `permissions:sync-defaults` ohne Option setzt die Standardbelegung zurück.
 6. **Je eine Rolle:** eine Systemrolle je Person, eine Projektrolle je Mitgliedschaft.
 
 ## 10. Folgen für die laufende Umsetzung
