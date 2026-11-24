@@ -162,7 +162,7 @@ final class Import
             $this->error('', 'denied', __('planer.import.denied', ['what' => __('planer.import.what.idea')]));
         }
 
-        foreach (Validator::validate($document) as $issue) {
+        foreach (Validator::validate($document, $mode === ImportMode::Partial) as $issue) {
             if (($issue['code'] ?? null) === 'assignee_not_member') {
                 $path = substr($issue['path'], 0, -strlen('.assigneeEmail'));
                 $this->unassigned[$path] = true;
@@ -247,7 +247,7 @@ final class Import
      */
     private function reset(array $document, ImportMode $mode, bool $notify, User $actor): void
     {
-        $this->document = $document;
+        $this->document = $mode === ImportMode::Partial ? self::withLists($document) : $document;
         $this->mode = $mode;
         $this->notify = $notify;
         $this->actor = $actor;
@@ -269,6 +269,29 @@ final class Import
     /**
      * @param  array<string, mixed>  $document
      */
+    /**
+     * An excerpt may leave out the lists it does not touch (Auftrag 49 A): no `project`, no `milestones`, a todo without
+     * `tasks`. What is not listed keeps its place in partial mode, so an empty list says the same.
+     *
+     * @param  array<string, mixed>  $document
+     * @return array<string, mixed>
+     */
+    private static function withLists(array $document): array
+    {
+        $document['project'] ??= [];
+        $document['milestones'] ??= [];
+
+        foreach ($document['milestones'] as $mi => $milestone) {
+            $document['milestones'][$mi]['todos'] ??= [];
+
+            foreach ($document['milestones'][$mi]['todos'] as $ti => $todo) {
+                $document['milestones'][$mi]['todos'][$ti]['tasks'] ??= [];
+            }
+        }
+
+        return $document;
+    }
+
     private function precheck(Project $project, array $document): void
     {
         if ($project->archived_at !== null) {
@@ -279,6 +302,8 @@ final class Import
 
         $current = (int) Project::query()->whereKey($project->getKey())->value('planer_revision');
 
+        // Only the whole plan is held to its revision; an excerpt (partial) is not checked, with or without one
+        // (decision Oliver, Auftrag 49 A). The guarantee is expectedRevision of run().
         if ($this->mode === ImportMode::Full && isset($document['revision']) && (int) $document['revision'] !== $current) {
             $this->error('revision', 'revision', __('planer.import.revision', ['file' => $document['revision'], 'project' => $current]));
         }
@@ -296,6 +321,12 @@ final class Import
             }
 
             $project = $this->createProject();
+
+            if ($project === null) {
+                $this->project = new Project;
+
+                return;
+            }
         } else {
             $this->updateProject($project);
         }
@@ -310,9 +341,19 @@ final class Import
         $this->applyDeletions();
     }
 
-    private function createProject(): Project
+    private function createProject(): ?Project
     {
         $data = $this->document['project'];
+
+        foreach (['name', 'locale'] as $field) {
+            if (! isset($data[$field])) {
+                $this->error("project.{$field}", 'invalid', __('planer.import.invalid', ['message' => __('planer.validation.required')]));
+            }
+        }
+
+        if ($this->errors !== []) {
+            return null;
+        }
         $project = new Project([
             'name' => $data['name'],
             'description' => $this->description($data['description'] ?? null, 'project.description')[1],
@@ -334,12 +375,12 @@ final class Import
         $fields = [];
         $values = [];
 
-        if ($data['name'] !== $project->name) {
+        if ($this->present($data, 'name') && $data['name'] !== $project->name) {
             $fields[] = 'name';
             $values['name'] = $data['name'];
         }
 
-        if ($data['locale'] !== $project->locale->value) {
+        if ($this->present($data, 'locale') && $data['locale'] !== $project->locale->value) {
             $fields[] = 'locale';
             $values['locale'] = $data['locale'];
         }
@@ -466,7 +507,7 @@ final class Import
     {
         $listed = [];
 
-        foreach ($this->document['project']['members'] as $index => $entry) {
+        foreach ($this->document['project']['members'] ?? [] as $index => $entry) {
             $path = "project.members[{$index}]";
             $user = $this->person($entry['email']);
 
@@ -588,7 +629,7 @@ final class Import
         $values = [];
         $fields = [];
 
-        if ($isNew || $entry['title'] !== $model->title) {
+        if ($isNew || ($this->present($entry, 'title') && $entry['title'] !== $model->title)) {
             $values['title'] = $entry['title'];
 
             if (! $isNew) {
@@ -661,7 +702,7 @@ final class Import
         $values = [];
         $fields = [];
 
-        if ($isNew || $entry['title'] !== $model->title) {
+        if ($isNew || ($this->present($entry, 'title') && $entry['title'] !== $model->title)) {
             $values['title'] = $entry['title'];
 
             if (! $isNew) {
@@ -738,7 +779,7 @@ final class Import
         $values = [];
         $fields = [];
 
-        if ($isNew || $entry['title'] !== $model->title) {
+        if ($isNew || ($this->present($entry, 'title') && $entry['title'] !== $model->title)) {
             $values['title'] = $entry['title'];
 
             if (! $isNew) {
@@ -782,10 +823,15 @@ final class Import
             }
         }
 
-        $labelKeys = $this->present($entry, 'labels') ? array_values($entry['labels'] ?? []) : null;
+        $labelKeys = $this->present($entry, 'labels') ? $this->knownLabels(array_values($entry['labels'] ?? []), $path) : null;
         $labelsDiffer = $labelKeys !== null && ($isNew ? $labelKeys !== [] : $this->labelKeysOf($model) !== $this->orderedByProject($labelKeys));
 
-        $status = TaskStatus::from($entry['status']);
+        // An existing task in an excerpt without a status keeps its own (Auftrag 49 A); a new one always names it.
+        $status = match (true) {
+            array_key_exists('status', $entry) => TaskStatus::from($entry['status']),
+            $model instanceof Task => $model->status,
+            default => TaskStatus::OPEN,
+        };
         $assigneeGiven = $this->present($entry, 'assigneeEmail');
         $assignee = $assigneeGiven && ! isset($this->unassigned[$path]) ? $this->assigneeOf($entry, $path) : null;
 
@@ -966,6 +1012,29 @@ final class Import
         } catch (ValidationException $error) {
             $this->validation($path, $error);
         }
+    }
+
+    /**
+     * The label keys of a task, checked against the labels of the PROJECT (after the labels of the document were
+     * written): an excerpt need not list the labels. A key the project does not have is an error that names the
+     * ones it has; the task then keeps its labels.
+     *
+     * @param  list<string>  $keys
+     * @return list<string>|null null: leave the labels as they are
+     */
+    private function knownLabels(array $keys, string $path): ?array
+    {
+        $known = $this->labelOrder()->keys()->all();
+        $unknown = false;
+
+        foreach ($keys as $index => $key) {
+            if (! in_array($key, $known, true)) {
+                $this->error("{$path}.labels[{$index}]", 'label', __('planer.import.label_not_in_project', ['key' => $key, 'labels' => $known === [] ? '–' : implode(', ', $known)]));
+                $unknown = true;
+            }
+        }
+
+        return $unknown ? null : $keys;
     }
 
     /**

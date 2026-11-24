@@ -57,11 +57,11 @@ Pflicht ist mit „ja“ markiert. Alle anderen Felder dürfen fehlen. Fehlt ein
 |---|---|---|
 | `$schema` | nein | String. Hinweis für Editoren. Der Validator ignoriert das Feld und prüft immer gegen `spec/planer-v2.schema.json`. |
 | `format` | ja | Genau `"planer-v2"`. |
-| `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. |
+| `revision` | ja | Ganze Zahl, mindestens 0. Stand der App beim letzten Export oder Import, siehe Abschnitt 5.2. Im Ausschnitt (Import-Modus `partial`) freiwillig, siehe 5.7. |
 | `excerpt` | nein | Nur `true`, sonst fehlt das Feld. Die Datei ist ein **Ausschnitt** des Plans (Export mit Filter, siehe `docs/claude-connector.md`). Die App lehnt sie im Import-Modus `full` ab (was fehlt, würde sonst gelöscht), im Modus `partial` ist sie erlaubt. Die Revision ist die des Plans zur Zeit des Exports. |
 | `changed` | nein | Nur `true`, sonst fehlt das Feld. Die Datei wurde lokal geändert und ist noch nicht eingetragen. |
-| `project` | ja | Objekt, Abschnitt 2.2. |
-| `milestones` | ja | Liste mit höchstens 200 Milestones. Leer ist erlaubt (leeres Projekt). |
+| `project` | ja | Objekt, Abschnitt 2.2. Im Ausschnitt freiwillig, ebenso jedes seiner Felder (5.7). |
+| `milestones` | ja | Liste mit höchstens 200 Milestones. Leer ist erlaubt (leeres Projekt). Im Ausschnitt freiwillig (5.7). |
 
 ### 2.2 Projekt
 
@@ -208,6 +208,34 @@ Optionales Feld `userStory` am Task. Es ist ein Objekt aus drei Teilen. Zusammen
 ### 5.6 Leere Container
 
 - Leere ToDos und Tasks sind erlaubt, weil die App sie zulässt. Die Regel aus Spezifikation v1, nach der jeder ToDo und jeder Milestone Inhalt braucht, gilt für planer-v2 nicht.
+
+### 5.7 Ausschnitt (Import-Modus `partial`)
+
+Ein Ausschnitt ändert nur, was er nennt. Für den Import im Modus `partial` gilt:
+
+- Ein **bestehendes** Element (`m-12`, `t-34`, `k-56`) braucht nur seine `id` und die Felder, die sich ändern. Fehlt ein Feld, bleibt es **unverändert** (Titel, Status, Beschreibung, Fälligkeit, Zuweisung, Labels, Commit, User-Story, Release).
+- `revision`, `project` und jedes Feld von `project` (`name`, `locale`, `members`, `labels`) sind freiwillig. Die Revision des Dokuments wird im Modus `partial` nicht geprüft; wer die Garantie will, gibt beim Import `base_revision` an (Abbruch, wenn der Plan inzwischen neuer ist).
+- `labels` und `assigneeEmail` eines Tasks werden gegen das **Projekt** aufgelöst, nicht gegen das Dokument. Ein Label, das das Projekt nicht hat, ist ein Fehler, der die vorhandenen nennt. Steht `project.labels` im Dokument, ist das eine gewollte Änderung der Labels (neue kommen dazu, bestehende werden angepasst, keines wird gelöscht).
+- **Neue** Elemente (`m-new-1`, `t-new-1`, `k-new-1`) brauchen ihre Pflichtfelder wie immer (Titel, beim Task auch den Status).
+- Listen, die fehlen (`milestones`, `todos`, `tasks`), gelten als leer: was nicht genannt ist, bleibt, wo es ist. Ein Ausschnitt mit einem einzigen Element ändert keine Positionen. Verschoben wird nur, wenn ein Element unter einem anderen Eltern-Element steht oder mehrere Geschwister in anderer Reihenfolge.
+- Im Modus `full` gilt das alles nicht: das Dokument ist der ganze Plan, alle Pflichtfelder sind Pflicht, was fehlt, kommt in den Papierkorb.
+
+Beispiel: drei Tasks in zwei ToDos bekommen einen neuen Status, sonst ändert sich nichts.
+
+```json
+{
+  "format": "planer-v2",
+  "milestones": [
+    {
+      "id": "m-12",
+      "todos": [
+        { "id": "t-34", "tasks": [{ "id": "k-56", "status": "done", "commit": "a1b2c3d" }, { "id": "k-57", "status": "review" }] },
+        { "id": "t-35", "tasks": [{ "id": "k-60", "status": "in_progress" }] }
+      ]
+    }
+  ]
+}
+```
 
 ---
 

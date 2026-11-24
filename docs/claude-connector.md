@@ -211,7 +211,8 @@ Das Werkzeug hat keine eigenen Regeln: es exportiert den Plan und trägt die Än
 |---|---|
 | `project_id` | Das Projekt. Ohne: ein neues Projekt aus dem Dokument (Revision 0, IDs wie `m-new-1`) |
 | `plan` | Das Dokument, zum Beispiel das aus `export_plan` mit Änderungen |
-| `mode` | `full` (Standard): das Dokument ist der ganze Plan. Was darin fehlt, kommt als **ein** Vorgang in den Papierkorb und lässt sich in der App zurückholen. Felder, die das Dokument nicht nennt, werden geleert. Die `revision` muss die des Projekts sein (sonst Abbruch mit beiden Zahlen, dann neu exportieren). `partial`: ergänzt und ändert, löscht nie, Felder, die fehlen, bleiben, die Revision wird nicht geprüft |
+| `mode` | `full` (Standard): das Dokument ist der ganze Plan. Was darin fehlt, kommt als **ein** Vorgang in den Papierkorb und lässt sich in der App zurückholen. Felder, die das Dokument nicht nennt, werden geleert. Die `revision` muss die des Projekts sein (sonst Abbruch mit beiden Zahlen, dann neu exportieren). `partial`: ergänzt und ändert, löscht nie, Felder, die fehlen, bleiben, die Revision wird nicht geprüft. Ein bestehendes Element braucht nur `id` und die geänderten Felder; `revision` und `project` sind freiwillig, Labels und Zuweisungen gelten gegen das Projekt (`spec/format-v2.md` 5.7) |
+| `base_revision` | Freiwillig: Abbruch, wenn der Plan inzwischen neuer ist (wie bei `update_tasks`) |
 | `dry_run` | `true`: nichts wird geschrieben. Das Ergebnis zeigt, was geschähe (alle Änderungen) und was scheitern würde (alle Fehler mit Pfad). **Immer zuerst so versuchen.** |
 | `notify_assignees` | `true`: Mails für Zuweisungen. Standard `false` |
 | `template_id` | Nur ohne `project_id`: die Vorlage, aus der das neue Projekt kommt (setzt nur die Herkunft; Gerüst und Labels stehen im Dokument) |

@@ -210,6 +210,10 @@
                     "type": "boolean",
                     "description": "Refuse changes to existing items."
                 },
+                "base_revision": {
+                    "type": "integer",
+                    "description": "Optional: abort if the plan is newer."
+                },
                 "include_document": {
                     "type": "boolean",
                     "description": "Return the document too. Default false."
