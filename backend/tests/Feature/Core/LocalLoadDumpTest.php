@@ -10,9 +10,11 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Support\McpTokens;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -114,5 +116,53 @@ class LocalLoadDumpTest extends TestCase
         config(['local_accounts.test_dumps' => $this->dir.'/leer']);
 
         $this->artisan('app:local-load-dump', ['--force' => true])->assertFailed();
+    }
+
+    public function test_a_dump_that_fails_after_the_tables_were_emptied_names_the_snapshot_and_the_way_back(): void
+    {
+        User::factory()->admin()->create(['email' => 'oliver@example.ch', 'password' => self::LOCAL_PASSWORD]);
+
+        // The loader empties the accounts, then fails (a broken dump, the client missing, an abort).
+        $this->app->instance(DumpLoader::class, new class implements DumpLoader
+        {
+            public function replaceWith(string $file): void
+            {
+                DB::table('personal_access_tokens')->delete();
+                DB::table('passkeys')->delete();
+                DB::table('users')->delete();
+
+                throw new RuntimeException('Der Dump liess sich nicht einspielen: ERROR 1064');
+            }
+        });
+
+        $exit = Artisan::call('app:local-load-dump', ['file' => __FILE__, '--force' => true]);
+        $output = Artisan::output();
+        $snapshots = glob($this->dir.'/konten-*.json');
+
+        $this->assertSame(1, $exit, 'the command fails');
+        $this->assertCount(1, $snapshots);
+        $snapshot = $snapshots[0];
+        $this->assertStringContainsString('ERROR 1064', $output);
+        $this->assertStringContainsString('php artisan migrate', $output);
+        $this->assertStringContainsString('app:accounts-restore', $output);
+        $this->assertStringContainsString($snapshot, $output, 'the message names the snapshot');
+        $this->assertSame(0, User::query()->count(), 'the database is empty, as the message says');
+
+        // The snapshot is untouched and does what the message promises: the account comes back from it.
+        $this->assertSame('oliver@example.ch', json_decode((string) file_get_contents($snapshot), true)['users'][0]['email']);
+        $this->artisan('app:accounts-restore', ['file' => $snapshot])->assertSuccessful();
+        $this->assertTrue(Hash::check(self::LOCAL_PASSWORD, User::query()->where('email', 'oliver@example.ch')->sole()->password));
+    }
+
+    public function test_a_failure_before_anything_was_replaced_adds_no_instructions(): void
+    {
+        User::factory()->admin()->create(['email' => 'oliver@example.ch']);
+        // The folder of the snapshots cannot be made: nothing was saved, nothing was touched.
+        config(['local_accounts.dir' => '/dev/null/kein-ordner']);
+
+        Artisan::call('app:local-load-dump', ['file' => __FILE__, '--force' => true]);
+
+        $this->assertStringNotContainsString('app:accounts-restore', Artisan::output());
+        $this->assertSame(1, User::query()->count());
     }
 }

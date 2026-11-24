@@ -60,10 +60,15 @@ class LocalLoadDump extends Command
             return self::FAILURE;
         }
 
+        $saved = null;
+        $replacing = false;
+
         try {
             $saved = $snapshots->save();
             $this->components->info(__('console.local_accounts.saved', ['file' => (string) $saved]));
 
+            // From here the tables may be gone: if it fails, the person needs to know the way back (Auftrag 45, R2).
+            $replacing = true;
             $loader->replaceWith($file);
             Artisan::call('migrate', ['--force' => true]);
 
@@ -76,6 +81,10 @@ class LocalLoadDump extends Command
         } catch (Throwable $error) {
             $this->components->error($error->getMessage());
 
+            if ($replacing) {
+                $this->wayBack($saved);
+            }
+
             return self::FAILURE;
         }
 
@@ -85,6 +94,24 @@ class LocalLoadDump extends Command
         $this->components->info(__('console.local_accounts.references'));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The dump failed after the database may have been emptied: say what state it is in and how to get the accounts
+     * back, with the path of the snapshot made a moment ago (it is not touched by the failure).
+     */
+    private function wayBack(?string $saved): void
+    {
+        $this->newLine();
+        $this->components->warn(__('console.local_accounts.load_failed'));
+
+        if ($saved === null) {
+            $this->line(__('console.local_accounts.load_failed_no_snapshot'));
+
+            return;
+        }
+
+        $this->line(__('console.local_accounts.load_failed_steps', ['file' => $saved]));
     }
 
     private function newestDump(): ?string
