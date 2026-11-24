@@ -27,6 +27,8 @@ const language = computed(() => localeProperties.value.language ?? 'de-CH')
 const roleName = useRoleName()
 const toast = useToast()
 const { ensurePasswordConfirmed } = useSecurity()
+/** The prompt for the password is a dialog of its own: this one steps aside only while it is really shown. */
+const { open: promptOpen } = usePasswordPrompt()
 const apiBase = useApiBase()
 
 const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
@@ -43,33 +45,38 @@ const guideUrl = computed(() => (locale.value === 'en' ? '/mcp/' : '/mcp/de/'))
 const accessName = ref('')
 const created = ref<string | null>(null)
 const revoking = ref<{ tokenId: string, name: string } | null>(null)
-const suspended = ref(false)
-const { errors, pending, run } = useGraphqlForm()
+const { errors, run } = useGraphqlForm()
 
 const state = computed(() => agentAccessState(props.agent?.apiTokens))
+
+/**
+ * One access at a time, from the click to the answer (password prompt included): a second click must not make a second
+ * token that nobody sees. A token on screen is not replaced either: first «Fertig», then the next one (Auftrag 52).
+ */
+const busy = ref(false)
 
 async function createAccess(): Promise<void> {
   const agent = props.agent
 
-  if (!agent) {
+  if (!agent || busy.value || created.value !== null) {
     return
   }
 
-  // The prompt for the password has its own dialog: this one steps aside meanwhile.
-  suspended.value = true
-  const confirmed = await ensurePasswordConfirmed().finally(() => {
-    suspended.value = false
-  })
+  busy.value = true
 
-  if (!confirmed) {
-    return
-  }
-  const result = await run(() => createAgentToken({ userId: agent.id, name: accessName.value.trim() }))
-  const token = result?.data?.createAgentToken
+  try {
+    if (!await ensurePasswordConfirmed()) {
+      return
+    }
+    const result = await run(() => createAgentToken({ userId: agent.id, name: accessName.value.trim() }))
+    const token = result?.data?.createAgentToken
 
-  if (token) {
-    created.value = token.plainTextToken
-    accessName.value = ''
+    if (token) {
+      created.value = token.plainTextToken
+      accessName.value = ''
+    }
+  } finally {
+    busy.value = false
   }
 }
 
@@ -166,11 +173,16 @@ const steps = computed(() => [
   { key: 'project', done: memberships.value.length > 0 }
 ])
 
-const visible = computed(() => props.agent !== null && !suspended.value && !revoking.value && !removing.value)
+/** Hidden while another dialog asks something (password, revoke, remove); it comes back afterwards. */
+const stepsAside = computed(() => promptOpen.value || revoking.value !== null || removing.value !== null)
+const visible = computed(() => props.agent !== null && !stepsAside.value)
 
+/**
+ * Closing counts only as the person's wish: not while the dialog steps aside, and not while an access is being made
+ * (its token would be lost). `created` is cleared only here or by «Fertig».
+ */
 function onOpenChange(open: boolean): void {
-  // Hidden for a confirmation: the dialog comes back, nothing is closed.
-  if (!open && props.agent && !suspended.value && !revoking.value && !removing.value) {
+  if (!open && props.agent && !stepsAside.value && !busy.value) {
     created.value = null
     emit('close')
   }
@@ -338,7 +350,8 @@ function onOpenChange(open: boolean): void {
             <wa-button
               type="submit"
               variant="brand"
-              :loading="pending"
+              :loading="busy"
+              :disabled="created !== null"
             >
               <wa-icon
                 slot="start"
