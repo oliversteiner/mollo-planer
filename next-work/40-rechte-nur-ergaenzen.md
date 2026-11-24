@@ -2,7 +2,7 @@
 
 Planer: planer.mollo.dev · Projekt 2 «Mollo Planer» · ToDo `t-375` (Status der Teile dort nachführen).
 
-Status: Teil A: PR #40 nach dev, nicht gemergt (Branch `fix/deploy-check-log`; PR #33 war schon gemergt). Teil B offen (kommt nach Auftrag 42 B bis E). Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). Nach 38. Branch von `dev` (`feature/rechte-ergaenzen`), PR nach `dev`, nicht mergen.
+Status: Teil A umgesetzt und gemergt (PR #40, Branch `fix/deploy-check-log`). Teil B offen (kommt nach Auftrag 42 B bis E). Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). Nach 38. Branch von `dev` (`feature/rechte-ergaenzen`), PR nach `dev`, nicht mergen.
 
 ## A. Sofort, im offenen PR #33 (`feature/agent-rollen-pruefung`)
 

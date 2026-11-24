@@ -333,15 +333,51 @@ Wer die Anmeldung als Dienst nutzt (`docs/oauth-sso.md`), braucht je Umgebung ei
 `https://<API>/.well-known/jwks.json` liefert den öffentlichen Schlüssel. Die Migrationen laufen mit dem Deployment.
 
 **`deploy.sh` bricht ab**, wenn die Schlüssel fehlen (weder `PASSPORT_PRIVATE_KEY` und `PASSPORT_PUBLIC_KEY` in `backend/.env` noch `storage/oauth-private.key` und `storage/oauth-public.key`) oder wenn die private Datei nicht die Rechte `600` (oder `400`) hat. Das Skript erzeugt die Schlüssel **nie** selbst: ein neues Paar würde alle Anmeldungen beenden. Die Prüfung läuft vor jeder Änderung; wie immer wirkt sie erst im Deployment nach dem ersten, das sie mitbringt, weil `deploy.sh` die Fassung vom Server ausführt.
-### Datenbank-Sicherung vor jeder Migration (Auftrag 37 A)
+### Datenbank-Sicherung vor jeder Migration (Auftrag 37 A, B)
 
-TEST enthält die echten Planungsdaten (PROD gleich geregelt). Darum legt `deploy.sh` vor `migrate --force` einen Dump an:
+TEST enthält die echten Planungsdaten (PROD gleich geregelt). Darum legt `deploy.sh` vor dem Aktualisieren des Codes und vor `migrate --force` einen Dump an. Die Arbeit macht `deploy/db-backup.sh` (`deploy <commit>` für das Deployment, `daily` für den Cron):
 
 - **Wo:** `DEPLOY_BACKUP_DIR/db/planer-<Datum>-<Uhrzeit>-<Commit>.sql.gz` (Ordner `700`, Dateien `600`, `umask 077`). Aufbewahrt werden die **letzten 20** Sicherungen vor Deploys. Ältere Dateien im Ordner `DEPLOY_BACKUP_DIR` selbst (aus der Zeit vor Auftrag 37) bleiben liegen und lassen sich von Hand löschen.
 - **Zugangsdaten:** Aus `backend/.env` in eine temporäre Optionsdatei (`mysqldump --defaults-extra-file`, Rechte `600`, im geschlossenen Ordner), die danach gelöscht wird. Das Passwort steht nie auf der Befehlszeile, nie in der Umgebung des Dumps und nie in der Ausgabe.
-- **Schlägt der Dump fehl, wird nichts migriert:** Auch ein abgebrochener oder unvollständiger Dump (er muss gzip-gültig sein und mit «Dump completed» enden) zählt als Fehlschlag. Die halbe Datei wird gelöscht, das Skript bricht ab, der Wartungsmodus war noch nicht an, die Datenbank ist unverändert (der Code ist schon aktualisiert).
+- **Schlägt der Dump fehl, wird nichts migriert:** Auch ein abgebrochener oder unvollständiger Dump (er muss gzip-gültig sein und mit «Dump completed» enden) zählt als Fehlschlag. Die halbe Datei wird gelöscht (der Dump entsteht als `.part` und erhält den Namen erst, wenn er vollständig ist), das Skript bricht ab. **Die Sicherung kommt vor dem Aktualisieren des Codes:** bei einem Fehlschlag sind Code, Datenbank und Wartungsmodus unverändert, der alte Code passt also weiter zum alten Schema. Der Dateiname trägt den Commit, der ausgerollt werden soll.
 - **Prüfen:** `ls -l ~/dev/backups/planer/db/` (PROD: `~/ch/...`) zeigt nach dem Deploy die neue Datei; `gzip -dc <Datei> | tail -n 1` endet mit «-- Dump completed on …».
 - Wie bei jeder Änderung von `deploy.sh` wirkt das erst im Deployment nach dem ersten, das es mitbringt.
+
+#### Tägliche Sicherung (Auftrag 37 B)
+
+Zusätzlich zur Sicherung vor Deploys läuft einmal täglich `deploy/db-backup.sh daily`. Gleiche Technik, gleiche Rechte, gleicher Abbruch bei Fehlern (Exit 1, die Meldung steht auf der Fehlerausgabe).
+
+- **Wo:** `DEPLOY_BACKUP_DIR/db/daily/planer-<Datum>-<Uhrzeit>.sql.gz`, aufbewahrt werden die **letzten 14**. Dazu die erste tägliche Sicherung jedes Monats als `DEPLOY_BACKUP_DIR/db/monthly/planer-<JahrMonat>.sql.gz`, aufbewahrt die **letzten 6** (also 6 Monate). Die Sicherungen vor Deploys (`db/planer-*.sql.gz`, die letzten 20) bleiben davon unberührt.
+- **Cron-Eintrag** (Oliver richtet ihn im Hostpoint-Panel ein, je Umgebung einer; Pfad und Zeit prüfen, nachts, nicht zur vollen Stunde, damit der Server nicht gleichzeitig ausgelastet ist). Die normale Ausgabe wird verworfen, damit Cron nur bei einem Fehler eine Mail schickt:
+  ```
+  17 3 * * * ~/dev/apps/mollo-planer/deploy/db-backup.sh daily > /dev/null
+  17 4 * * * ~/ch/apps/mollo-planer/deploy/db-backup.sh daily > /dev/null
+  ```
+  (Der erste Eintrag gilt für TEST, der zweite für PROD. Läuft das Skript nicht direkt, `bash ~/dev/apps/…/deploy/db-backup.sh daily` schreiben. `mysqldump` muss im `PATH` von Cron liegen; einmal von Hand prüfen: `~/dev/apps/mollo-planer/deploy/db-backup.sh daily` **auf dem Server**.)
+- **Platzbedarf:** höchstens 20 + 14 + 6 = 40 Dumps je Umgebung, im Schnitt also das Vierzigfache der gepackten Datenbankgrösse. Die Grösse nach dem ersten Lauf **auf dem Server** ablesen: `ls -lh ~/dev/backups/planer/db/daily/` und `du -sh ~/dev/backups/planer`, und im Abschlussbericht melden.
+- **Kopie ausser Haus:** noch nicht gebaut, braucht einen Entscheid (Vorschlag im Abschlussbericht von Auftrag 37). Die Sicherungen liegen sonst auf demselben Server wie die Datenbank.
+
+#### Zurückspielen (Auftrag 37 C)
+
+`deploy/db-restore.sh <Datei>` ersetzt die **ganze** Datenbank einer Umgebung durch eine Sicherung. Alles, was seit der Sicherung dazukam, ist danach weg. Darum fragt das Skript zuerst, und es gibt keinen Schalter, der die Frage überspringt.
+
+1. **Auf dem Server** (per SSH angemeldet, im Ordner der Umgebung) die Sicherung wählen: `ls -lt ~/dev/backups/planer/db/daily/ | head` (oder `db/monthly/`, oder die Sicherungen vor Deploys direkt in `db/`).
+2. **Auf dem Server** starten (PROD: `~/ch/...`):
+   ```bash
+   # AUF DEM SERVER
+   ~/dev/apps/mollo-planer/deploy/db-restore.sh ~/dev/backups/planer/db/daily/planer-20261124-031700.sql.gz
+   ```
+3. Das Skript prüft zuerst die Datei (gültiges gzip, endet mit «Dump completed») und zeigt **Umgebung, Datenbank, Datei, Datum und Grösse**. Zur Bestätigung tippst du den Namen der Umgebung ein (`staging` oder `production`, der Wert von `APP_ENV`). Jede andere Eingabe bricht ab, ohne etwas zu ändern.
+4. Danach legt es **automatisch eine Sicherung des jetzigen Stands** an (`db/planer-<Datum>-<Uhrzeit>-vor-restore.sql.gz`). Schlägt sie fehl, wird nichts zurückgespielt.
+5. Es schaltet den Wartungsmodus ein, spielt die Datei ein, führt `optimize:clear`, `lighthouse:clear-cache` und `lighthouse:cache` aus und schaltet den Wartungsmodus wieder aus. Bei einem Fehler in der Mitte wird der Wartungsmodus ebenfalls aufgehoben, die Meldung nennt dann die Sicherung des Stands von vorher.
+6. **Stammt die Datei aus der Zeit vor neueren Migrationen,** passt das Schema nicht zum Code. `php artisan migrate:status` (im Ordner `backend/`, **auf dem Server**) zeigt es, `php artisan migrate --force` holt es nach. Das Skript tut das nicht von selbst.
+7. Danach im Browser prüfen (Anmeldung, ein Projekt öffnen).
+
+**Probe:** Das Zurückspielen wird einmal auf TEST mit Oliver geprobt, bevor man sich im Ernstfall darauf verlässt (Auftrag 37 C). Der Ablauf ist mit Stand-ins für `mysql`, `mysqldump` und `php` getestet (`DeployRestoreTest`), nicht gegen eine echte Datenbank.
+
+#### Schutz gegen Überschreiben (Auftrag 37 D)
+
+Auf TEST (`APP_ENV=staging`) und PROD (`APP_ENV=production`) verweigern `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `migrate:rollback`, `db:wipe` und `db:seed` den Dienst, auch mit `--force` (`App\Providers\AppServiceProvider`, Test `DestructiveCommandsProhibitedTest`). Der Schutz greift nur, wenn `APP_ENV` stimmt: **TEST muss auf `APP_ENV=staging` stehen** (offener Punkt aus Auftrag 28, Task «TEST auf APP_ENV=staging umstellen»). `migrate --force` im Deployment ist nicht betroffen.
 
 ## 14. Konto, Anmeldung und Mails (seit Onboarding-Härtung, Auftrag 22)
 
