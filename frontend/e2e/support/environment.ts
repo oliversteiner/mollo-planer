@@ -43,6 +43,9 @@ export const backendEnv: Record<string, string> = {
   MAIL_PASSWORD: '',
   MAIL_ENCRYPTION: '',
   PASSWORD_UNCOMPROMISED_CHECK: 'false',
+  // The seeding runs as "local": the accounts of this throwaway database must not go to the snapshots of the
+  // developer's own accounts (Auftrag 45).
+  LOCAL_ACCOUNTS_KEEP: 'false',
   SANCTUM_STATEFUL_DOMAINS: 'localhost:3100',
   // Frontend and API are both on "localhost" (other ports): the cookie of the session and the relying party of the
   // passkeys are "localhost". The virtual authenticator verifies the user (the app asks for it).

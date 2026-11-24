@@ -27,6 +27,7 @@ Bei Widerspruch gilt das weiter oben genannte Dokument. Widersprüche nicht stil
 - `registrierung-plan.md`: Selbstregistrierung und Freigabe
 - `system-plan.md`: Status und Datenbank-Doku
 - `deploy-template.md`: Deployment bei Hostpoint
+- `lokale-konten.md`: lokale Konten bleiben bei jedem Neuaufbau der Datenbank, Dump von TEST lokal einspielen
 - `desktop-plan.md`: geplante Desktop-App (Tauri)
 - `claude-connector.md`: heutiger Connector (bis I3)
 - `beispiel-planer.md`: Beispiel der Markdown-Ansicht von Planer v2
