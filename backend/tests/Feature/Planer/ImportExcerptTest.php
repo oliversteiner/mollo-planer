@@ -232,4 +232,36 @@ class ImportExcerptTest extends GraphQLTestCase
         $this->assertSame($this->second->id, $this->other->fresh()->todo_id);
         $this->assertSame('Zweite Aufgabe', $this->other->fresh()->title);
     }
+
+    public function test_an_excerpt_without_project_or_with_an_empty_one_leaves_members_and_labels_alone(): void
+    {
+        $state = fn (): array => [
+            'members' => $this->project->members()->orderBy('users.id')->get()->map(fn ($user): array => [$user->id, $user->membership->role_id])->all(),
+            'labels' => $this->project->labels()->orderBy('position')->pluck('key')->all(),
+        ];
+        $before = $state();
+        $tasks = [['id' => "t-{$this->todo->id}", 'tasks' => [['id' => "k-{$this->task->id}", 'status' => 'review']]]];
+
+        // project: {} reaches PHP as an empty array, through MCP as well.
+        foreach (['without project' => $this->excerpt($tasks), 'with project: {}' => ['project' => []] + $this->excerpt($tasks)] as $case => $document) {
+            $result = $this->import($document);
+
+            $this->assertSame([], $result->errors, $case);
+            $this->assertSame([], array_values(array_filter($result->changes, fn (array $change): bool => str_starts_with($change['path'], 'project'))), "{$case}: no change at project.*");
+            $this->assertSame($before, $state(), "{$case}: members with their roles and labels unchanged");
+        }
+
+        $this->assertSame(TaskStatus::REVIEW, $this->task->fresh()->status);
+    }
+
+    public function test_an_empty_project_through_the_mcp_tool_is_no_project(): void
+    {
+        MolloPlanerServer::actingAs($this->users['owner'])->tool(McpTools::of('import_plan'), [
+            'project_id' => (string) $this->project->id,
+            'mode' => 'partial',
+            'plan' => ['format' => 'planer-v2', 'project' => new \stdClass, 'milestones' => [['id' => "m-{$this->milestone->id}", 'todos' => [['id' => "t-{$this->todo->id}", 'tasks' => [['id' => "k-{$this->task->id}", 'status' => 'review']]]]]]],
+        ])->assertOk()->assertSee('"ok":true', false);
+
+        $this->assertSame(TaskStatus::REVIEW, $this->task->fresh()->status);
+    }
 }

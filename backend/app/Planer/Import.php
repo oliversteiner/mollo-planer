@@ -162,6 +162,12 @@ final class Import
             $this->error('', 'denied', __('planer.import.denied', ['what' => __('planer.import.what.idea')]));
         }
 
+        // `project: {}` arrives as an empty PHP array (JSON-RPC and GraphQL decode it so) and would read as a list: in an
+        // excerpt it says the same as no project.
+        if ($mode === ImportMode::Partial && ($document['project'] ?? null) === []) {
+            unset($document['project']);
+        }
+
         foreach (Validator::validate($document, $mode === ImportMode::Partial) as $issue) {
             if (($issue['code'] ?? null) === 'assignee_not_member') {
                 $path = substr($issue['path'], 0, -strlen('.assigneeEmail'));
