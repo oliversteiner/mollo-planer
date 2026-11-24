@@ -20,7 +20,7 @@ Die Basis des Mollo Planers wird ein wiederverwendbares **Starter-Kit** für neu
 |---|---|---|---|
 | Grundpaket | `core` (Composer) | Layer `core` | Schale (Layout, Haupt- und Benutzermenü), Profil, Einstellungen, Rechte und Rollen, SSO-Client, Agent-Konten und Tokens, MCP-Grundgerüst mit Werkzeug-Schicht, Mails, Sprachen, Fehlercodes, PDF-Rahmen (mPDF, Briefpapier, Satzspiegel; Auftrag 39 F) |
 | Modul Identität | `identity` | Layer `identity` | Registrierung, Onboarding, Passwort, 2FA, Passkeys, Freigabe, Authorization Server und OpenID Provider (OAuth 2.1, OIDC), Verwaltung der Clients |
-| Starter-Repo | bindet die Pakete ein | bindet die Layer ein | Deploy-Skript, CI, Vorlagen für `CLAUDE.md`/`AGENTS.md`, `next-work/`, `docs/` |
+| Starter-Repo | bindet die Pakete ein | bindet die Layer ein | Deploy-Skript, CI, Vorlagen für `CLAUDE.md`/`AGENTS.md`, `docs/` (Aufträge in `next-work/` bleiben lokal, nicht im Git) |
 
 **Optionale Module (später):** Abrechnung (Kunden, Rechnungen, QR-Rechnung; Auftrag 39) als eigenes Paket, das eine App zuschalten kann.
 
