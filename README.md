@@ -77,6 +77,8 @@ php artisan migrate:fresh --seed --seeder=DemoSeeder
 
 **Achtung:** Das löscht alle Tabellen und damit alle Daten, auch eigene Einträge. Danach ist der Stand wieder wie nach dem ersten Einspielen, mit neuem Passwort und neuen 2FA-Secrets.
 
+Lokal (`APP_ENV=local`) bleiben deine eigenen Konten dabei erhalten: sie werden vor dem Befehl gesichert und danach zurückgespielt, mit Passwort, zweitem Faktor, Passkeys und Zugängen. Die Sicherungen liegen in `~/www/_backups/planer/local/` und enthalten Passwort-Hashes und 2FA-Secrets: **nie weitergeben.** Details und das Einspielen eines Dumps von TEST: `docs/lokale-konten.md`.
+
 ### Anmelden
 
 Am Ende zeigt der Befehl einmalig an (danach nirgends mehr gespeichert, also gleich notieren):
