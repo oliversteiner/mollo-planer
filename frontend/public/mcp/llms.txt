@@ -16,20 +16,20 @@ Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over P
 3. Find work: `list_tasks` with `assignee: "me"`, `status: ["open","in_progress"]` (30 rows ~2k).
 4. One task with detail: `list_tasks` with `ids: ["k-123"]`, `include: ["description","comments"]`.
 5. Status, commit, assignee: `update_tasks` directly. No export, no dry run. `base_revision` is optional.
-6. Change structure: `export_plan` for one milestone, edit, `import_plan` with `mode: "partial"`, `dry_run: true` first.
+6. Change structure: `import_plan` with `mode: "partial"`, `dry_run: true` first. Existing items need only `id` + changed fields (missing = unchanged); `revision`, `project` optional; labels, assignees from the project; `base_revision` guards.
 
 ## Recipes
 
 - Open for me: `list_tasks {project_id, assignee: "me", status: ["open","in_progress"]}`
 - Task done: `update_tasks {project_id, tasks: [{id: "k-123", status: "done", commit: "abc1234"}]}` (commit: hash, or "none")
-- New todos in a milestone: `export_plan {project_id, milestone_ids: ["m-12"]}`; add todos and tasks with new IDs (`t-new-1`, `k-new-1`); `import_plan {project_id, plan, mode: "partial", dry_run: true}`; then again without dry_run.
+- New todo: `import_plan {project_id, mode: "partial", dry_run: true, plan: {format: "planer-v2", milestones: [{id: "m-12", todos: [{id: "t-new-1", title: "…"}]}]}}`, then without dry_run.
 - New project from a template: `list_templates`; `import_plan` without project_id, a plan with project name and locale, `template_id`; `dry_run` first.
 - Note on a task: `add_comment {task_id: "k-123", text: "..."}`
 
 ## Do not
 
 - Export the whole plan to look around. Use the outline, statistics or `list_tasks`.
-- Send an excerpt (outline, filter, no descriptions) with `mode: "full"`: it is refused. Excerpts go back only with `mode: "partial"`.
+- Send an excerpt with `mode: "full"` (refused; excerpts go back with `partial`).
 - Set the status of a milestone or todo (derived from tasks).
 - Put a token in files, prompts or screenshots.
 

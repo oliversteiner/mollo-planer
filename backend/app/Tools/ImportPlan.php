@@ -20,8 +20,8 @@ class ImportPlan extends Tool
     }
 
     private const MUTATION = <<<'GRAPHQL'
-        mutation ($projectId: ID, $document: String!, $mode: ImportMode!, $dryRun: Boolean!, $notify: Boolean!, $templateId: ID, $ideaId: ID, $appendOnly: Boolean!) {
-          importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notify, templateId: $templateId, ideaId: $ideaId, appendOnly: $appendOnly) {
+        mutation ($projectId: ID, $document: String!, $mode: ImportMode!, $dryRun: Boolean!, $notify: Boolean!, $templateId: ID, $ideaId: ID, $appendOnly: Boolean!, $expectedRevision: Int) {
+          importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notify, templateId: $templateId, ideaId: $ideaId, appendOnly: $appendOnly, expectedRevision: $expectedRevision) {
             ok dryRun projectId document
             changes { kind path id fields title }
             errors { path kind message }
@@ -42,6 +42,7 @@ class ImportPlan extends Tool
             'template_id' => Schema::string('New project only: template ID.'),
             'idea_id' => Schema::string('Idea to adopt.'),
             'append_only' => Schema::boolean('Refuse changes to existing items.'),
+            'base_revision' => Schema::integer('Optional: abort if the plan is newer.'),
             'include_document' => Schema::boolean('Return the document too. Default false.'),
         ], ['plan']);
     }
@@ -59,6 +60,7 @@ class ImportPlan extends Tool
                 'template_id' => ['sometimes', 'nullable'],
                 'idea_id' => ['sometimes', 'nullable'],
                 'append_only' => ['sometimes', 'boolean'],
+                'base_revision' => ['sometimes', 'nullable', 'integer'],
                 'include_document' => ['sometimes', 'boolean'],
             ],
             [
@@ -78,6 +80,7 @@ class ImportPlan extends Tool
             'templateId' => isset($validated['template_id']) ? (string) $validated['template_id'] : null,
             'ideaId' => isset($validated['idea_id']) ? (string) $validated['idea_id'] : null,
             'appendOnly' => (bool) ($validated['append_only'] ?? false),
+            'expectedRevision' => isset($validated['base_revision']) ? (int) $validated['base_revision'] : null,
         ])['importPlan'];
 
         $payload = [

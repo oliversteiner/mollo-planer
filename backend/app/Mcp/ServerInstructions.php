@@ -54,7 +54,7 @@ Work cheaply (a whole export of a big project costs 15000+ tokens):
 
 Document fields: {fields}
 
-Rules: write titles and descriptions in the user's language. Markdown in descriptions and comments: paragraphs, H2/H3, lists, quotes, bold, italic, inline code, links (http, https, mailto); no HTML, images, tables, code blocks. Assignees are project members, by email. An excerpt (outline, filter, no descriptions) goes back only with mode "partial"; a missing description means unchanged. IDs m-<id>, t-<id>, k-<id>; new items m-new-1, t-new-1, k-new-1. Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, titles 2-160 characters, descriptions 5000 characters. Unknown fields are refused.
+Rules: write titles and descriptions in the user's language. Markdown in descriptions and comments: paragraphs, H2/H3, lists, quotes, bold, italic, inline code, links (http, https, mailto); no HTML, images, tables, code blocks. Assignees are project members, by email. An excerpt goes back only with mode "partial": existing items need only id + changed fields (missing = unchanged); revision, project optional; labels, assignees from the project. IDs m-<id>, t-<id>, k-<id>; new items m-new-1, t-new-1, k-new-1. Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, titles 2-160 characters, descriptions 5000 characters. Unknown fields are refused.
 Guide: {frontend}/mcp/llms.txt, format schema: {frontend}/mcp/format-v2.schema.json
 TEXT
         );

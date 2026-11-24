@@ -35,21 +35,29 @@ final class Validator
     /** Read and parsed once: the library keeps what it parsed with the schema object. */
     private static ?object $schema = null;
 
+    /** The same schema for an excerpt that goes back with mode "partial" (see partialSchema()). */
+    private static ?object $partialSchema = null;
+
     private static ?SchemaValidator $validator = null;
 
     /**
+     * With $partial the document is an excerpt for the import mode "partial" (Auftrag 49 A, spec/format-v2.md
+     * «Ausschnitt»): an existing element needs only its id and the fields that change, `revision` and everything under
+     * `project` may be missing, new elements (`m-new-1`) need what they always need. Labels and assignees are then
+     * resolved against the project by the import, not against the document.
+     *
      * @param  array<string, mixed>  $document
      * @return list<array{path: string, severity: string, message: string, code?: string, email?: string}>
      */
-    public static function validate(array $document): array
+    public static function validate(array $document, bool $partial = false): array
     {
-        $issues = self::schemaIssues($document);
+        $issues = self::schemaIssues($document, $partial);
 
         if ($issues !== []) {
             return $issues;
         }
 
-        return [...self::semantics($document), ...self::markdown($document)];
+        return [...self::semantics($document, $partial), ...self::markdown($document)];
     }
 
     /**
@@ -65,13 +73,14 @@ final class Validator
      * @param  array<string, mixed>  $document
      * @return list<array{path: string, severity: string, message: string}>
      */
-    private static function schemaIssues(array $document): array
+    private static function schemaIssues(array $document, bool $partial): array
     {
         self::$schema ??= json_decode((string) file_get_contents(base_path(self::SCHEMA_FILE)), false, 512, JSON_THROW_ON_ERROR);
+        self::$partialSchema ??= self::partialSchema(self::$schema);
         self::$validator ??= (new SchemaValidator)->setMaxErrors(200);
 
         $data = json_decode(json_encode($document, JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR);
-        $result = self::$validator->validate($data, self::$schema);
+        $result = self::$validator->validate($data, $partial ? self::$partialSchema : self::$schema);
 
         if ($result->isValid()) {
             return [];
@@ -81,6 +90,32 @@ final class Validator
         self::collect($result->error(), $issues);
 
         return $issues;
+    }
+
+    /**
+     * The schema of an excerpt, made from the one schema (there is no second description of the form): `revision`,
+     * `project`, the fields of `project` and the lists `milestones`, `todos`, `tasks` may be missing; a milestone, todo
+     * or task needs only its id unless the id is new (`m-new-1`), then its required fields are required as always.
+     */
+    private static function partialSchema(object $schema): object
+    {
+        $partial = json_decode((string) json_encode($schema, JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR);
+        $partial->required = ['format'];
+        // A schema object is known to the library by its id: the excerpt gets its own.
+        $partial->{'$id'} = ($schema->{'$id'} ?? 'urn:mollo-planer:planer-v2').'-partial';
+        $defs = $partial->{'$defs'};
+        $defs->project->required = [];
+
+        foreach (['milestone' => 'todos', 'todo' => 'tasks', 'task' => null] as $level => $children) {
+            $whenNew = array_values(array_filter($defs->{$level}->required, fn (string $field): bool => $field !== $children));
+            $defs->{$level}->required = ['id'];
+            $defs->{$level}->allOf = [(object) [
+                'if' => (object) ['properties' => (object) ['id' => (object) ['pattern' => '^[mtk]-new-']], 'required' => ['id']],
+                'then' => (object) ['required' => $whenNew],
+            ]];
+        }
+
+        return $partial;
     }
 
     /**
@@ -199,10 +234,13 @@ final class Validator
     }
 
     /**
+     * In an excerpt (partial) the document is not the whole plan: assignees and labels are checked by the import
+     * against the project, and the rules of a release against the result (ReleaseRules), not against the document.
+     *
      * @param  array<string, mixed>  $plan
      * @return list<array{path: string, severity: string, message: string}>
      */
-    private static function semantics(array $plan): array
+    private static function semantics(array $plan, bool $partial = false): array
     {
         $issues = [];
         $add = function (string $path, string $message) use (&$issues): void {
@@ -222,8 +260,8 @@ final class Validator
             }
         };
 
-        $project = $plan['project'];
-        $members = array_flip(array_map(fn (array $member): string => mb_strtolower($member['email']), $project['members']));
+        $project = $plan['project'] ?? [];
+        $members = array_flip(array_map(fn (array $member): string => mb_strtolower($member['email']), $project['members'] ?? []));
 
         $labelKeys = [];
         $labelNames = [];
@@ -236,7 +274,7 @@ final class Validator
             }
             $labelKeys[$label['key']] = true;
 
-            if (! isset($label['names'][$project['locale']])) {
+            if (isset($project['locale']) && ! isset($label['names'][$project['locale']])) {
                 $add("{$lp}.names", __('planer.validation.label_name_missing', ['language' => $project['locale']]));
             }
 
@@ -250,11 +288,11 @@ final class Validator
             }
         }
 
-        foreach ($plan['milestones'] as $mi => $milestone) {
+        foreach ($plan['milestones'] ?? [] as $mi => $milestone) {
             $mp = "milestones[{$mi}]";
             $claimId($milestone['id'], "{$mp}.id");
 
-            $released = ($milestone['release']['status'] ?? null) === 'released';
+            $released = ! $partial && ($milestone['release']['status'] ?? null) === 'released';
             $open = 0;
 
             // The date of the release is always optional: a hint when a released version has none, an error for a planned one.
@@ -266,22 +304,23 @@ final class Validator
                 $add("{$mp}.release.date", __('planer.validation.release_date_planned', ['version' => $milestone['release']['version']]));
             }
 
-            foreach ($milestone['todos'] as $ti => $todo) {
+            foreach ($milestone['todos'] ?? [] as $ti => $todo) {
                 $tp = "{$mp}.todos[{$ti}]";
                 $claimId($todo['id'], "{$tp}.id");
 
-                foreach ($todo['tasks'] as $ki => $task) {
+                foreach ($todo['tasks'] ?? [] as $ki => $task) {
                     $kp = "{$tp}.tasks[{$ki}]";
                     $claimId($task['id'], "{$kp}.id");
+                    $status = $task['status'] ?? null;
 
-                    if ($task['status'] !== 'done') {
+                    if ($status !== 'done') {
                         $open++;
                     }
 
                     $assignee = $task['assigneeEmail'] ?? null;
 
                     // The import turns this issue into a warning (the task goes on without an assignee); the code tells them apart.
-                    if ($assignee !== null && $assignee !== '' && ! isset($members[mb_strtolower($assignee)])) {
+                    if (! $partial && $assignee !== null && $assignee !== '' && ! isset($members[mb_strtolower($assignee)])) {
                         $issues[] = [
                             'path' => "{$kp}.assigneeEmail",
                             'severity' => 'error',
@@ -291,7 +330,7 @@ final class Validator
                         ];
                     }
 
-                    foreach ($task['labels'] ?? [] as $li => $key) {
+                    foreach ($partial ? [] : $task['labels'] ?? [] as $li => $key) {
                         if (! isset($labelKeys[$key])) {
                             $add("{$kp}.labels[{$li}]", __('planer.validation.label_unknown', ['key' => $key]));
                         }
@@ -299,11 +338,11 @@ final class Validator
 
                     $commit = $task['commit'] ?? null;
 
-                    if ($commit === 'none' && $task['status'] !== 'done') {
+                    if ($commit === 'none' && $status !== null && $status !== 'done') {
                         $add("{$kp}.commit", __('planer.validation.commit_none'));
                     }
 
-                    if ($released && $task['status'] === 'done' && $commit === null) {
+                    if ($released && $status === 'done' && $commit === null) {
                         $add("{$kp}.commit", __('planer.validation.commit_missing', ['version' => $milestone['release']['version']]));
                     }
                 }
@@ -340,15 +379,15 @@ final class Validator
 
         $check($plan['project']['description'] ?? null, 'project.description');
 
-        foreach ($plan['milestones'] as $mi => $milestone) {
+        foreach ($plan['milestones'] ?? [] as $mi => $milestone) {
             $mp = "milestones[{$mi}]";
             $check($milestone['description'] ?? null, "{$mp}.description");
 
-            foreach ($milestone['todos'] as $ti => $todo) {
+            foreach ($milestone['todos'] ?? [] as $ti => $todo) {
                 $tp = "{$mp}.todos[{$ti}]";
                 $check($todo['description'] ?? null, "{$tp}.description");
 
-                foreach ($todo['tasks'] as $ki => $task) {
+                foreach ($todo['tasks'] ?? [] as $ki => $task) {
                     $check($task['description'] ?? null, "{$tp}.tasks[{$ki}].description");
                 }
             }
