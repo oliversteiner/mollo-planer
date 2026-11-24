@@ -1,0 +1,28 @@
+# Cache headers for the static frontend (Auftrag 36 A). Nitro cannot set them: Apache serves these files itself.
+# Lands in the docroot with `nuxt generate` (frontend/public/); deploy/deploy.sh checks that it arrived.
+# Everything is wrapped in <IfModule>: a server without the module serves the files as before, only without the headers.
+
+<IfModule mod_headers.c>
+  # Built files carry a hash in their name: they never change under one name.
+  <If "%{REQUEST_URI} =~ m#^/_nuxt/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
+
+  # Icons and their catalogue: the path holds the version of Font Awesome (/icons/<version>/...), a new version has new paths.
+  <ElseIf "%{REQUEST_URI} =~ m#^/icons/#">
+    Header set Cache-Control "public, max-age=2592000"
+  </ElseIf>
+
+  # A page is checked on every visit, so a deployment takes effect at once (the answer is a short "not modified").
+  <ElseIf "%{REQUEST_URI} =~ m#(/|\.html)$#">
+    Header set Cache-Control "no-cache"
+  </ElseIf>
+</IfModule>
+
+# Compression for the catalogue (540 KB) and the SVGs. AddOutputFilterByType belongs to mod_filter: without it the directive
+# would be an error 500 for the whole site, so both modules are asked for.
+<IfModule mod_deflate.c>
+  <IfModule mod_filter.c>
+    AddOutputFilterByType DEFLATE application/json image/svg+xml
+  </IfModule>
+</IfModule>
