@@ -21,6 +21,12 @@ const { errors, pending, run } = useGraphqlForm()
 
 const fromFile = ref(false)
 
+/** The file takes the place of this dialog (Auftrag 55, rule R11): never two dialogs on top of each other. */
+function startFromFile(): void {
+  open.value = false
+  fromFile.value = true
+}
+
 const state = reactive<{ name: string, description: Record<string, unknown> | null, icon: string | null, locale: Locale, templateId: string }>({ name: '', description: null, icon: null, locale: 'DE', templateId: 'none' })
 
 interface NewMember {
@@ -302,7 +308,7 @@ watch(open, (isOpen) => {
         appearance="plain"
         variant="neutral"
         class="create-from-file"
-        @click="fromFile = true"
+        @click="startFromFile"
       >
         <wa-icon
           slot="start"

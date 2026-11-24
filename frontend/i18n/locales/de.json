@@ -103,7 +103,7 @@
     "unauthorized": "Dafür fehlt dir die Berechtigung.",
     "csrf": "Die Sitzung war abgelaufen. Bitte versuche es nochmals.",
     "network": "Der Server ist nicht erreichbar.",
-    "unknown": "Die Anfrage ist fehlgeschlagen.",
+    "unknown": "Das hat nicht geklappt. Bitte nochmals versuchen.",
     "throttled": "Zu viele Versuche. Versuch es in einer Minute nochmals."
   },
   "auth": {
@@ -271,7 +271,8 @@
     "save": "Speichern",
     "edit": "Ändern",
     "delete": "Löschen",
-    "actions": "Aktionen"
+    "actions": "Aktionen",
+    "back": "Zurück"
   },
   "project": {
     "tabs": {
@@ -426,7 +427,8 @@
     "search": "Suchen (englische Begriffe, z. B. rocket, calendar)",
     "results": "{count} Treffer (höchstens 120)",
     "suggestions": "Vorschläge – oder oben suchen",
-    "noResults": "Kein Icon gefunden."
+    "noResults": "Kein Icon gefunden.",
+    "close": "Schliessen"
   },
   "kanban": {
     "showIdeas": "Ideen und Geplantes anzeigen",
@@ -551,7 +553,8 @@
     "confirmPassword": {
       "title": "Passwort bestätigen",
       "description": "Bitte bestätige dein Passwort, bevor du die Sicherheit deines Kontos änderst.",
-      "submit": "Bestätigen"
+      "submit": "Bestätigen",
+      "inline": "Bitte bestätige dein Passwort, bevor es weitergeht."
     },
     "twoFactor": {
       "title": "Authenticator-App",
@@ -639,7 +642,7 @@
       "agent": {
         "title": "Zugänge",
         "name": "Name des Zugangs",
-        "nameHint": "Zum Wiedererkennen, zum Beispiel «{agent} Server»",
+        "nameHint": "Vorgeschlagen ist der Name der Umgebungsvariable, in die der Token kommt. Du kannst ihn ändern.",
         "create": "Zugang erzeugen",
         "none": "Noch kein Zugang.",
         "showOnceTitle": "Zugang für {agent} erzeugt",
@@ -651,7 +654,8 @@
         "revokeDescription": "{agent} kann diesen Zugang danach nicht mehr benutzen.",
         "revokeConfirm": "Widerrufen",
         "revoked": "Zugang widerrufen.",
-        "cli": "Oder per Terminal auf dem Server: app:user-token"
+        "cli": "Oder per Terminal auf dem Server: app:user-token",
+        "nameMissing": "Name fehlt."
       },
       "access": {
         "title": "Zugang für {agent}",

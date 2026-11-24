@@ -4,8 +4,8 @@ import { createAgentMutation } from '~/graphql/admin'
 
 /**
  * Create an agent account (docs/verwaltung-agenten-anfasser.md §3.4): name and address, no mail is sent. Needs a
- * recent password confirmation; this dialog steps aside while the prompt for it is open. After creating, the page
- * opens the access dialog of the new agent.
+ * recent password confirmation, asked for in a field of this dialog (Auftrag 55, rule R11). After creating, the
+ * dialog closes and opens nothing else: the new row of the list offers «Zugang einrichten».
  */
 const props = defineProps<{ open: boolean }>()
 
@@ -16,9 +16,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const toast = useToast()
-const { ensurePasswordConfirmed } = useSecurity()
-/** The prompt for the password is a dialog of its own: this one steps aside only while it is really shown. */
-const { open: promptOpen } = usePasswordPrompt()
+const step = usePasswordStep()
 const { errors, run } = useGraphqlForm()
 const { mutate: createAgent } = useMutation(createAgentMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
 
@@ -26,55 +24,60 @@ const state = reactive({ name: '', email: '' })
 
 watch(() => props.open, (open) => {
   if (open) {
+    step.cancel()
     errors.value = {}
     Object.assign(state, { name: '', email: '' })
   }
 })
 
-/** Closing counts only as the person's wish: not while the prompt is shown, not while the agent is being made. */
+/**
+ * wa-dialog closes itself when told to (Escape, the X): while the agent is being made it must not. When the page itself
+ * closes it (`open` is false then, after the agent was made), it goes.
+ */
+function keepOpenWhileBusy(event: Event): void {
+  if (props.open && (step.working || step.checking) && event.target === event.currentTarget) {
+    event.preventDefault()
+  }
+}
+
+/** Closing is the person's wish, but not while the agent is being made. */
 function onOpenChange(open: boolean): void {
-  if (!open && !promptOpen.value && !busy.value) {
+  if (!open && !step.working && !step.checking) {
+    step.cancel()
     emit('close')
   }
 }
 
-/** One agent per click, from the click to the answer (password prompt included). */
-const busy = ref(false)
-
+/** One agent per click, from the click to the answer (password field included). */
 async function submit(): Promise<void> {
-  if (busy.value) {
+  if (step.working) {
     return
   }
 
-  busy.value = true
+  await step.run(async () => {
+    const name = state.name.trim()
+    const result = await run(() => createAgent({ input: { name, email: state.email.trim() } }))
 
-  try {
-    await create()
-  } finally {
-    busy.value = false
-  }
-}
+    // The confirmation ran out meanwhile: the step asks again and keeps what is typed here.
+    if (errors.value.password) {
+      return NEEDS_PASSWORD
+    }
+    const agent = result?.data?.createAgent
 
-async function create(): Promise<void> {
-  if (!await ensurePasswordConfirmed()) {
-    return
-  }
-  const name = state.name.trim()
-  const result = await run(() => createAgent({ input: { name, email: state.email.trim() } }))
-  const agent = result?.data?.createAgent
-
-  if (agent) {
-    toast.add({ title: t('admin.users.newAgent.created', { name: agent.name }), color: 'success' })
-    emit('created', agent.id)
-  }
+    if (agent) {
+      toast.add({ title: t('admin.users.newAgent.created', { name: agent.name }), color: 'success' })
+      emit('created', agent.id)
+    }
+  })
 }
 </script>
 
 <template>
   <AppDialog
-    :open="open && !promptOpen"
+    :open="open"
     :label="t('admin.users.newAgent.title')"
     :description="t('admin.users.newAgent.hint')"
+    @wa-hide="keepOpenWhileBusy"
     @update:open="onOpenChange"
   >
     <form
@@ -98,10 +101,14 @@ async function create(): Promise<void> {
         name="email"
         :label="t('auth.email')"
         :hint="t('admin.users.newAgent.emailHint')"
-        :error="errors.email ?? errors.password"
+        :error="errors.email"
         required
       />
     </form>
+    <PasswordConfirmField
+      class="agent-password"
+      :step="step"
+    />
 
     <template #footer>
       <wa-button
@@ -115,10 +122,17 @@ async function create(): Promise<void> {
         type="submit"
         form="agent-form"
         variant="brand"
-        :loading="busy"
+        :loading="step.working"
+        :disabled="step.waiting"
       >
         {{ t('admin.users.newAgent.submit') }}
       </wa-button>
     </template>
   </AppDialog>
 </template>
+
+<style scoped>
+.agent-password {
+  margin-block-start: var(--wa-space-m);
+}
+</style>

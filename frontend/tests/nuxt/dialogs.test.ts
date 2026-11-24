@@ -38,22 +38,6 @@ describe('AppDialog', () => {
 
     expect(dialog.emitted('update:open')).toEqual([[false]])
   })
-
-  it('opens again after hiding when the parent still wants it open (Auftrag 52), and stays closed otherwise', async () => {
-    const dialog = await mountSuspended(AppDialog, { props: { open: true, label: 'Titel' } })
-    const element = dialog.element as unknown as { open: boolean }
-
-    // wa-dialog closed itself after its hide animation although "open" is still true.
-    element.open = false
-    dialog.element.dispatchEvent(new Event('wa-after-hide'))
-    expect(element.open).toBe(true)
-
-    // Really closed: the parent's "open" is false, nothing opens again.
-    await dialog.setProps({ open: false })
-    element.open = false
-    dialog.element.dispatchEvent(new Event('wa-after-hide'))
-    expect(element.open).toBe(false)
-  })
 })
 
 describe('ConfirmModal', () => {

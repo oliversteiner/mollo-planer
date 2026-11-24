@@ -1,13 +1,15 @@
-import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import AppDialog from '~/components/AppDialog.vue'
 import ConfirmModal from '~/components/ConfirmModal.vue'
+import PasswordConfirmField from '~/components/PasswordConfirmField.vue'
 import OAuthClientFormModal from '~/components/admin/OAuthClientFormModal.vue'
 import OAuthClientsPage from '~/pages/admin/oauth-clients.vue'
+import { stubBackend } from './support/backend'
 import { installElementInternals } from './support/element-internals'
 
-const { clients, createClient, revokeClient, ensurePasswordConfirmed } = vi.hoisted(() => ({
+const { clients, createClient, revokeClient, backend } = vi.hoisted(() => ({
   clients: [
     { id: 'a-1', name: 'Club DB', redirectUris: ['https://clubdb.example/callback'], confidential: true, revoked: false, selfRegistered: false, createdAt: '2026-11-23T10:00:00Z' },
     { id: 'a-2', name: 'Planer iOS', redirectUris: ['ch.mollo.planer:/oauth/callback'], confidential: false, revoked: false, selfRegistered: true, createdAt: '2026-11-23T11:00:00Z' },
@@ -15,7 +17,7 @@ const { clients, createClient, revokeClient, ensurePasswordConfirmed } = vi.hois
   ],
   createClient: vi.fn(),
   revokeClient: vi.fn(),
-  ensurePasswordConfirmed: vi.fn()
+  backend: vi.fn()
 }))
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -26,7 +28,6 @@ vi.mock('@vue/apollo-composable', () => ({
     return { mutate: name === 'CreateOAuthClient' ? createClient : name === 'RevokeOAuthClient' ? revokeClient : vi.fn() }
   }
 }))
-mockNuxtImport('useSecurity', () => () => ({ ensurePasswordConfirmed }))
 
 installElementInternals()
 
@@ -37,7 +38,9 @@ beforeAll(async () => {
 beforeEach(() => {
   createClient.mockReset().mockResolvedValue({ data: { createOAuthClient: { secret: 'geheim-123', client: clients[0] } } })
   revokeClient.mockReset().mockResolvedValue({ data: { revokeOAuthClient: { id: 'a-1', revoked: true } } })
-  ensurePasswordConfirmed.mockReset().mockResolvedValue(true)
+  // The password confirmation of the dialogs (usePasswordStep) asks the backend: confirmed a moment ago, unless a test says not.
+  backend.mockReset().mockImplementation(async (url: string) => (url === '/user/confirmed-password-status' ? { confirmed: true } : {}))
+  stubBackend(backend)
 })
 
 describe('admin: login service clients', () => {
@@ -70,7 +73,7 @@ describe('admin: login service clients', () => {
     expect(rows[2]!.find('wa-dropdown, [data-action-menu]').exists()).toBe(false)
   })
 
-  it('asks before a client is revoked and revokes after the password was confirmed', async () => {
+  const openQuestion = async () => {
     const page = await mountSuspended(OAuthClientsPage)
     const actions = (page.vm as unknown as { actions: (client: unknown) => { label: string, onSelect: () => void }[][] }).actions
 
@@ -83,30 +86,34 @@ describe('admin: login service clients', () => {
       return open!
     })
 
+    return { page, modal }
+  }
+
+  it('asks before a client is revoked, the password in the same dialog (never in a second one), then revokes', async () => {
+    const { modal } = await openQuestion()
+
     expect(modal.props('title')).toBe('Club DB widerrufen?')
+    expect(modal.props('requiresPassword')).toBe(true)
     expect(revokeClient).not.toHaveBeenCalled()
 
-    await modal.props('action')()
+    await modal.findAll('wa-button').find(button => button.text() === 'Ja, widerrufen')!.trigger('click')
 
-    expect(ensurePasswordConfirmed).toHaveBeenCalledOnce()
-    expect(revokeClient).toHaveBeenCalledWith({ id: 'a-1' })
+    await vi.waitFor(() => expect(revokeClient).toHaveBeenCalledWith({ id: 'a-1' }))
   })
 
-  it('revokes nothing when the password prompt is cancelled', async () => {
-    ensurePasswordConfirmed.mockResolvedValue(false)
-    const page = await mountSuspended(OAuthClientsPage)
-    const actions = (page.vm as unknown as { actions: (client: unknown) => { onSelect: () => void }[][] }).actions
+  it('shows the password field in the question when the confirmation is old, and revokes nothing before it', async () => {
+    backend.mockImplementation(async (url: string) => (url === '/user/confirmed-password-status' ? { confirmed: false } : {}))
+    const { modal } = await openQuestion()
 
-    actions(clients[0]).flat()[0]!.onSelect()
-    const modal = await vi.waitFor(() => {
-      const open = page.findAllComponents(ConfirmModal).find(candidate => candidate.props('open'))
+    await modal.findAll('wa-button').find(button => button.text() === 'Ja, widerrufen')!.trigger('click')
+    await vi.waitFor(() => expect(modal.find('.password-confirm').exists()).toBe(true))
 
-      expect(open).toBeDefined()
+    expect(revokeClient).not.toHaveBeenCalled()
 
-      return open!
-    })
+    modal.findComponent(PasswordConfirmField).vm.$props.step.cancel()
+    await nextTick()
 
-    await expect(modal.props('action')()).rejects.toThrow()
+    expect(modal.find('.password-confirm').exists()).toBe(false)
     expect(revokeClient).not.toHaveBeenCalled()
   })
 
@@ -120,7 +127,6 @@ describe('admin: login service clients', () => {
     state.state.redirectUris = 'https://clubdb.example/callback\n\n  https://clubdb.example/other  \n'
     await state.submit()
 
-    expect(ensurePasswordConfirmed).toHaveBeenCalledOnce()
     expect(createClient).toHaveBeenCalledWith({
       name: 'Club DB',
       redirectUris: ['https://clubdb.example/callback', 'https://clubdb.example/other'],
@@ -133,13 +139,22 @@ describe('admin: login service clients', () => {
     expect(dialog().text()).toContain('Wird nicht mehr angezeigt.')
   })
 
-  it('makes nothing when the password prompt is cancelled', async () => {
-    ensurePasswordConfirmed.mockResolvedValue(false)
+  it('asks for the password in a field of the form and makes nothing when it is cancelled', async () => {
+    backend.mockImplementation(async (url: string) => (url === '/user/confirmed-password-status' ? { confirmed: false } : {}))
     const page = await mountSuspended(OAuthClientsPage)
-    const form = page.findComponent(OAuthClientFormModal).vm as unknown as { state: { name: string }, submit: () => Promise<void> }
+    const formComponent = page.findComponent(OAuthClientFormModal)
+    const form = formComponent.vm as unknown as { state: { name: string }, submit: () => Promise<void> }
+    ;(page.vm as unknown as { creating: boolean }).creating = true
+    await nextTick()
 
     form.state.name = 'Club DB'
     await form.submit()
+    await vi.waitFor(() => expect(formComponent.find('.password-confirm').exists()).toBe(true))
+
+    expect(createClient).not.toHaveBeenCalled()
+
+    formComponent.findComponent(PasswordConfirmField).vm.$props.step.cancel()
+    await nextTick()
 
     expect(createClient).not.toHaveBeenCalled()
   })

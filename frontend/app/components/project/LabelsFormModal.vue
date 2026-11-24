@@ -6,7 +6,8 @@ import { labelInputs, removalText, removedLabels, rowFromLabel } from '~/utils/l
 /**
  * The labels of a project in the editor (project.update). Labels that are
  * taken out are deleted from the tasks too; that is asked first and names
- * how many labels and tasks it concerns. One change for the planer file.
+ * how many labels and tasks it concerns, as a step of this dialog (Auftrag 55,
+ * rule R11: no second dialog). One change for the planer file.
  */
 const props = defineProps<{
   open: boolean
@@ -27,6 +28,7 @@ const confirming = ref(false)
 
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
+    confirming.value = false
     errors.value = {}
     rows.value = props.labels.map(rowFromLabel)
   }
@@ -58,6 +60,9 @@ async function save(): Promise<void> {
   if (result) {
     toast.add({ title: t('labels.saved'), color: 'success' })
     emit('close')
+  } else {
+    // Rejected by the server: back to the editor, where the messages are.
+    confirming.value = false
   }
 }
 </script>
@@ -68,7 +73,15 @@ async function save(): Promise<void> {
     :label="t('labels.editTitle')"
     class="labels-dialog"
   >
+    <AppCallout
+      v-if="confirming"
+      variant="warning"
+      :title="t('labels.removeTitle')"
+      :description="removeText"
+    />
+
     <form
+      v-show="!confirming"
       id="project-labels-form"
       class="wa-stack wa-gap-m"
       @submit.prevent="submit"
@@ -81,32 +94,42 @@ async function save(): Promise<void> {
     </form>
 
     <template #footer>
-      <wa-button
-        appearance="plain"
-        variant="neutral"
-        @click="open = false"
-      >
-        {{ t('common.cancel') }}
-      </wa-button>
-      <wa-button
-        type="submit"
-        form="project-labels-form"
-        variant="brand"
-        :loading="pending"
-      >
-        {{ t('common.save') }}
-      </wa-button>
+      <template v-if="confirming">
+        <wa-button
+          appearance="plain"
+          variant="neutral"
+          :disabled="pending"
+          @click="confirming = false"
+        >
+          {{ t('common.back') }}
+        </wa-button>
+        <wa-button
+          variant="brand"
+          :loading="pending"
+          @click="save"
+        >
+          {{ t('labels.removeConfirm') }}
+        </wa-button>
+      </template>
+      <template v-else>
+        <wa-button
+          appearance="plain"
+          variant="neutral"
+          @click="open = false"
+        >
+          {{ t('common.cancel') }}
+        </wa-button>
+        <wa-button
+          type="submit"
+          form="project-labels-form"
+          variant="brand"
+          :loading="pending"
+        >
+          {{ t('common.save') }}
+        </wa-button>
+      </template>
     </template>
   </AppDialog>
-
-  <ConfirmModal
-    :open="confirming"
-    :title="t('labels.removeTitle')"
-    :description="removeText"
-    :confirm-label="t('labels.removeConfirm')"
-    :action="save"
-    @close="confirming = false"
-  />
 </template>
 
 <style scoped>

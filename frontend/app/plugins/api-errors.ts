@@ -34,7 +34,10 @@ export default defineNuxtPlugin({
           toast.add({ title: t('apiError.network'), color: 'error' })
           break
         case 'unknown':
-          toast.add({ title: error.message ?? t('apiError.unknown'), color: 'error' })
+          // Never the wording of the server: what is not a message for people (a malformed request, an unknown variable,
+          // null for a required field) is no text for the screen. It goes to the console for whoever looks (Auftrag 55 D).
+          console.warn('[api]', error.message)
+          toast.add({ title: t('apiError.unknown'), color: 'error' })
           break
       }
     })

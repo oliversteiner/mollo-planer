@@ -7,6 +7,9 @@ import { searchIcons } from '~/utils/icon-search'
  * catalogue is loaded once, when the picker is opened for the first time.
  * Few requests (Auftrag 36 B): the search waits 250 ms after the last key and starts at two characters, a tile loads its
  * icon only when it comes into view, and one tooltip serves all tiles.
+ *
+ * The choice opens as a panel under the button, inside the form that holds it, not as a second dialog on top of the
+ * dialog of the form (Auftrag 55, rule R11). Escape closes the tooltip first, then the panel, never the dialog of the form.
  */
 defineProps<{
   /** Icon shown when none is chosen (the default of the level). */
@@ -21,6 +24,8 @@ const iconBase = iconBaseUrl(config.app.baseURL, config.public.iconVersion)
 
 const catalog = useState<IconEntry[] | null>('iconCatalog', () => null)
 const open = ref(false)
+const panel = ref<HTMLElement | null>(null)
+const opener = ref<HTMLElement | null>(null)
 const query = ref('')
 const gridId = useId()
 const loading = ref(false)
@@ -57,11 +62,38 @@ watch(open, async (isOpen) => {
 
 const results = computed(() => searchIcons(catalog.value ?? [], effectiveQuery.value))
 
-function choose(name: string | null): void {
-  model.value = name
+function close(): void {
   open.value = false
   query.value = ''
   flush()
+  // The focus goes back to the button that opened the panel.
+  void nextTick(() => opener.value?.focus())
+}
+
+function choose(name: string | null): void {
+  model.value = name
+  close()
+}
+
+/** The search takes the focus when the panel opens: the person types at once. */
+watch(open, async (isOpen) => {
+  if (isOpen) {
+    await nextTick()
+    panel.value?.querySelector<HTMLElement>('wa-input')?.focus()
+  }
+})
+
+/** Escape: the tooltip first, then the panel. It never reaches the dialog of the form. */
+function onEscape(event: KeyboardEvent): void {
+  event.stopPropagation()
+  event.preventDefault()
+
+  if (tip.value?.open) {
+    hideTip()
+
+    return
+  }
+  close()
 }
 
 /** The tooltip follows the tile that is hovered or focused; one element for all of them. */
@@ -122,10 +154,12 @@ function pointerLeft(): void {
 <template>
   <div class="icon-picker">
     <wa-button
+      ref="opener"
       appearance="outlined"
       variant="neutral"
       :aria-label="t('icons.choose')"
-      @click="open = true"
+      :aria-expanded="open"
+      @click="open = !open"
     >
       <ItemIcon
         slot="start"
@@ -146,11 +180,27 @@ function pointerLeft(): void {
       <wa-icon name="xmark"></wa-icon>
     </wa-button>
 
-    <AppDialog
-      v-model:open="open"
-      :label="t('icons.title')"
+    <div
+      v-if="open"
+      ref="panel"
+      class="icon-picker-panel"
+      role="group"
+      :aria-label="t('icons.title')"
+      @keydown.esc="onEscape"
     >
       <div class="wa-stack wa-gap-s">
+        <div class="icon-picker-head">
+          <strong>{{ t('icons.title') }}</strong>
+          <wa-button
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            :aria-label="t('icons.close')"
+            @click="close"
+          >
+            <wa-icon name="xmark"></wa-icon>
+          </wa-button>
+        </div>
         <FormInput
           v-model="query"
           :placeholder="t('icons.search')"
@@ -158,7 +208,6 @@ function pointerLeft(): void {
           autocomplete="off"
           :label="t('icons.search')"
           hide-label
-          autofocus
         >
           <template #start>
             <wa-icon
@@ -235,15 +284,30 @@ function pointerLeft(): void {
           bare
         />
       </div>
-    </AppDialog>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .icon-picker {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--wa-space-xs);
+}
+
+.icon-picker-panel {
+  flex-basis: 100%;
+  padding: var(--wa-space-s);
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  border-radius: var(--wa-border-radius-m);
+  background-color: var(--wa-color-surface-default);
+}
+
+.icon-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .icon-picker-current {
