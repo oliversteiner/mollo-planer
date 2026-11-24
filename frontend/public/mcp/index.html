@@ -70,7 +70,19 @@
 }</code></pre>
               <p>Replace the placeholder locally, protect the configuration file, and never share it with the real token. Fully quit and restart Claude Desktop to load the configuration.</p>
               <h3>Claude Code</h3>
-              <p>Add the server with the command line and take the token from your environment: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_TOKEN}'</code>. Keep the single quotes: the variable is read by Claude Code at start, so the token does not end up in the configuration. Set <code>MOLLOPLANER_TOKEN</code> in your environment (not in a file under version control) and start Claude Code again. Check with <code>claude mcp list</code>.</p>
+              <p>Put the server in the <code>.mcp.json</code> of the project. The file may be committed because it holds only the name of an environment variable, never the token. Use one variable per account: <code>MOLLOPLANER_&lt;NAME&gt;_TOKEN</code>, for example <code>MOLLOPLANER_BOB_TOKEN</code> for the agent Bob.</p>
+              <pre><code>{
+  "mcpServers": {
+    "mollo-planer": {
+      "type": "http",
+      "url": "https://api.planer.mollo.dev/mcp",
+      "headers": { "Authorization": "Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}" }
+    }
+  }
+}</code></pre>
+              <p>Claude Code reads <code>${…}</code> in <code>url</code> and <code>headers</code> when it starts, so the token stays in your environment (not in a file under version control). Set the variable and start Claude Code again; check with <code>claude mcp list</code>. Do not name the variable like a credential of another tool (<code>ANTHROPIC_API_KEY</code>, <code>NPM_TOKEN</code> …): Claude Code reads those as empty in <code>headers</code>. With an <code>Authorization</code> header set, Claude Code does not fall back to OAuth for this server. Alternatively, on the command line: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}'</code> (keep the single quotes).</p>
+              <h3>Custom Connector with OAuth (people)</h3>
+              <p>People can connect Claude (Desktop or claude.ai) without a token and without Node.js: Settings → Connectors → add a <strong>Custom Connector</strong> with the address <code>https://api.planer.mollo.dev/mcp</code>. Claude finds the sign-in itself, you approve it once, and Claude then works with <strong>your</strong> rights. This is for the accounts of people. An agent account cannot sign in on the web and uses the token as described above.</p>
               <h3>JetBrains AI Assistant</h3>
               <p>Open Settings → Tools → AI Assistant → Model Context Protocol (MCP), choose Add → As JSON and paste this configuration. Like Claude Desktop, it uses <code>mcp-remote</code>; replace the placeholder locally with your token. On Windows, <code>npx</code> starts through <code>cmd /c</code>.</p>
               <pre><code>{
@@ -138,7 +150,7 @@
                 <span class="callout-symbol">!</span>
                 <p><strong>Never set milestone or ToDo status directly:</strong> those statuses are derived from tasks. Only set task statuses such as <code>idea</code>, <code>planned</code>, <code>open</code>, <code>in_progress</code>, <code>review</code>, or <code>done</code>.</p>
               </div>
-              <p><code>update_tasks</code> changes only supplied fields; <code>commit: null</code> and <code>assigneeEmail: null</code> clear those values. <code>partial</code> adds or updates but never deletes. A dry run does not replace permission checks: the server validates every field and action again. Notifications to assignees are off by default; enable them only when the task requests it.</p>
+              <p><code>update_tasks</code> changes only supplied fields; <code>commit: null</code> and <code>assigneeEmail: null</code> clear those values. <code>partial</code> adds or updates but never deletes. A title (milestone, ToDo, task) has 2 to 160 characters; a longer one is refused. A dry run does not replace permission checks: the server validates every field and action again. Notifications to assignees are off by default; enable them only when the task requests it.</p>
             </section>
 
             <section id="help" class="guide-section">
