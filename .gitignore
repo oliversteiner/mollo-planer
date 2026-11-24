@@ -9,3 +9,7 @@
 
 # Local Codex settings (machine-specific)
 /.codex/
+
+# Auftraege liegen lokal (nicht im Git): das Repo ist oeffentlich, der Stand steht im Planer.
+# Reihenfolge in next-work/README.md, Ablauf in ~/www/agents/AGENTS.md (Zusammenarbeit: next-work und Planer).
+/next-work/
