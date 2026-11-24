@@ -123,7 +123,10 @@ async function run(): Promise<void> {
   }
 
   open.value = false
-  toast.add({ title: t('planer.import.done'), color: 'success' })
+  // The warnings of the dry run stay true for the real run: say what was left out, the dialog is gone.
+  toast.add(imported.warnings.length
+    ? { title: t('planer.import.done'), description: t('planer.import.warningsDone', imported.warnings.length), color: 'warning' }
+    : { title: t('planer.import.done'), color: 'success' })
 
   if (props.projectId) {
     await refreshProject(props.projectId)
@@ -223,6 +226,22 @@ function submit(): Promise<void> | void {
           variant="success"
           :description="t('planer.import.changes', result.changes.length)"
         />
+
+        <AppCallout
+          v-if="result.warnings.length"
+          variant="warning"
+          :title="t('planer.import.warnings', result.warnings.length)"
+        >
+          <ul class="import-errors">
+            <li
+              v-for="(warning, index) in result.warnings"
+              :key="index"
+            >
+              <code v-if="warning.path">{{ warning.path }}</code>
+              {{ warning.message }}
+            </li>
+          </ul>
+        </AppCallout>
 
         <PlanerTree
           v-if="!result.errors.length"

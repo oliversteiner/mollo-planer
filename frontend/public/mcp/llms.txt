@@ -4,7 +4,9 @@ Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over P
 
 - TEST: https://api.planer.mollo.dev/mcp
 - PROD: https://api.planer.mollo.ch/mcp
-- Auth: `Authorization: Bearer <token>`. Agents use their own agent account and token (the administrator makes it). The token is a secret: never in prompts, files under version control, logs.
+- Agents: `Authorization: Bearer <token>` of their own agent account (the administrator makes it). The token is a secret: never in prompts, files under version control, logs.
+- People: Custom Connector with OAuth (Claude: Settings > Connectors; no token, your rights). Not for agent accounts.
+- Claude Code: project `.mcp.json`, `{"mcpServers":{"mollo-planer":{"type":"http","url":"<address>","headers":{"Authorization":"Bearer ${MOLLOPLANER_<NAME>_TOKEN}"}}}}`, one variable per account (`MOLLOPLANER_BOB_TOKEN`) in the environment, never in the file.
 - Human guide: /mcp/ (English), /mcp/de/ (German)
 
 ## Work cheaply (a whole export of a big plan is 15-25k tokens; most tasks are done)
@@ -54,4 +56,4 @@ Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over P
 - IDs: `m-<id>`, `t-<id>`, `k-<id>`; new items `m-new-1`, `t-new-1`, `k-new-1`. Lists have `has_more` and `next_cursor`.
 - Markdown in descriptions and comments: paragraphs, H2/H3, lists, quotes, bold, italic, inline code, links (http, https, mailto). No HTML, images, tables, code blocks.
 - Assignees are project members, by email. Mails only with `notify_assignees: true`.
-- Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, descriptions 5000 characters.
+- Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, titles 2 to 160 characters, descriptions 5000 characters.

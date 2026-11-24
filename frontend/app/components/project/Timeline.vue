@@ -443,6 +443,7 @@ function toggleAll() {
                         tag="ul"
                         group="timeline-tasks"
                         :sort="false"
+                        handle=".task-handle"
                         :disabled="!canMoveTask"
                         :animation="150"
                         ghost-class="task-ghost"
@@ -457,6 +458,7 @@ function toggleAll() {
                           :key="task.id"
                           :task="task"
                           :menu="taskMenu(task, todo.id)"
+                          :movable="canMoveTask"
                           @open="emit('openTask', task.id)"
                           @edit="editTask(task)"
                         />

@@ -10,6 +10,12 @@
 # Local Codex settings (machine-specific)
 /.codex/
 
+# A downloaded composer.phar does not belong in the repository (CI uses composer from setup-php, the server /usr/local/bin/composer)
+/composer.phar
+
+# Personal MCP servers: never in the project files, see AGENTS.md
+/.mcp.local.json
+
 # Auftraege liegen lokal (nicht im Git): das Repo ist oeffentlich, der Stand steht im Planer.
 # Reihenfolge in next-work/README.md, Ablauf in ~/www/agents/AGENTS.md (Zusammenarbeit: next-work und Planer).
 /next-work/

@@ -16,6 +16,7 @@ export const importPlanMutation = graphql(`
       projectId
       changes { kind path id fields title }
       errors { path kind message }
+      warnings { path email message }
     }
   }
 `)

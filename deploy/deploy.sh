@@ -8,7 +8,7 @@
 # The built frontend (.output/public) arrives as a tar.gz archive on stdin.
 #
 # Order: read and check backend/.env -> stage frontend -> back up DB (deploy/db-backup.sh) -> update code -> maintenance on ->
-# composer, migrations, caches (incl. the Lighthouse schema) -> publish frontend -> maintenance off ->
+# composer, migrations, new standard rights (permissions:sync-defaults --add-missing), caches (incl. the Lighthouse schema) -> publish frontend -> maintenance off ->
 # smoke test of the API.
 set -euo pipefail
 
@@ -155,6 +155,12 @@ cd "$BACKEND"
 log "Migrationen ausführen"
 "$PHP" "$BACKEND/artisan" migrate --force
 
+# New standard roles, functions and rights of config/permissions.php reach the database (Auftrag 40 B). Only what is new is
+# added, nothing is overwritten, so no question is asked; a failure stops the deployment like a failing migration (the
+# maintenance mode is lifted by the exit handler). What was added is in the log, one line per entry.
+log "Standardrechte ergänzen"
+"$PHP" "$BACKEND/artisan" permissions:sync-defaults --add-missing
+
 # Die mitgelieferten Vorlagen (spec/templates) in die Datenbank schreiben; ändert nichts, wenn die Dateien gleich blieben.
 log "Vorlagen abgleichen"
 "$PHP" "$BACKEND/artisan" planer:sync-templates
@@ -175,6 +181,10 @@ log "GraphQL-Schema neu erzeugen"
 
 log "Frontend veröffentlichen"
 rsync -a --delete "$STAGE/" "$WEB_ROOT/"
+# frontend/public/.htaccess carries the cache headers (Auftrag 36 A); rsync -a copies dotfiles, but say so if the build lacks it.
+if [ ! -f "$WEB_ROOT/.htaccess" ]; then
+    echo "WARNUNG: $WEB_ROOT/.htaccess fehlt: die Cache-Köpfe für /_nuxt/ und /icons/ sind nicht gesetzt (frontend/public/.htaccess gehört in den Build)." >&2
+fi
 
 log "Wartungsmodus aus"
 "$PHP" "$BACKEND/artisan" up >/dev/null
@@ -202,10 +212,11 @@ if [ "$RP_ID" != "$FRONTEND_HOST" ]; then
     echo "WARNUNG: PASSKEYS_RELYING_PARTY_ID ist '$RP_ID', der Host von FRONTEND_URL ist '$FRONTEND_HOST'. Passkeys würden nicht passen (siehe docs/deploy-template.md)." >&2
 fi
 
-# Standard roles and functions (config/permissions.php) reach an existing database only with permissions:sync-defaults
-# (e.g. the project role Agent, task 31). Not run here on purpose: it resets the standard assignments. Only a warning, and
-# the output goes into the log, so one sees WHAT is missing. Exit code 2 of the check means "something is missing"; any
-# other failure (an exception, no database) is not reported as missing standard roles: the check could not run.
+# Standard roles and functions (config/permissions.php): --add-missing has just added what is new, so this check should find
+# nothing. It stays as a safety net: the output goes into the log, so one sees WHAT is missing. Exit code 2 of the check means
+# "something is missing"; any other failure (an exception, no database) is not reported as missing standard roles: the check
+# could not run. Only a warning. The reset (`permissions:sync-defaults` without options) is not run here on purpose: it
+# overwrites what was changed in the settings.
 CHECK_STATUS=0
 CHECK_OUTPUT=$("$PHP" "$BACKEND/artisan" permissions:sync-defaults --check 2>&1) || CHECK_STATUS=$?
 case "$CHECK_STATUS" in
@@ -213,7 +224,7 @@ case "$CHECK_STATUS" in
         echo "Standardrollen und -funktionen: vollständig."
         ;;
     2)
-        echo "WARNUNG: Standardrollen oder -funktionen fehlen in der Datenbank (z. B. die Projektrolle Agent). 'php artisan permissions:sync-defaults' holt sie (setzt die Standardbelegung zurück):" >&2
+        echo "WARNUNG: Standardrollen oder -funktionen fehlen in der Datenbank (z. B. die Projektrolle Agent). 'php artisan permissions:sync-defaults --add-missing' holt sie (ohne etwas zu überschreiben):" >&2
         echo "$CHECK_OUTPUT" >&2
         ;;
     *)

@@ -16,6 +16,8 @@ defineProps<{
   menu: ActionMenuItem[]
   /** Keep a done task in the calm view (the focus on a todo shows all of its tasks) */
   keepDone?: boolean
+  /** Show the drag handle: a task is only moved by it (the rest of the row never starts a drag) */
+  movable?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -35,6 +37,18 @@ const { t } = useI18n()
     @click="emit('open')"
     @dblclick="emit('edit')"
   >
+    <span
+      v-if="movable"
+      class="task-handle"
+      role="img"
+      data-zen="hide"
+      :aria-label="t('project.timeline.moveTask')"
+      :title="t('project.timeline.moveTask')"
+      @click.stop
+      @dblclick.stop
+    >
+      <wa-icon name="grip-vertical"></wa-icon>
+    </span>
     <ItemIcon
       :name="task.icon"
       fallback="square-check"
@@ -123,6 +137,21 @@ const { t } = useI18n()
 
 .task-ghost {
   opacity: 0.4;
+}
+
+.task-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.5rem;
+  min-block-size: 1.5rem;
+  color: var(--wa-color-text-quiet);
+  cursor: grab;
+  touch-action: none;
+}
+
+.task-handle:active {
+  cursor: grabbing;
 }
 
 .task-icon {

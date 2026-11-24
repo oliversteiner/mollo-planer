@@ -46,9 +46,9 @@ class TemplateSyncTest extends TestCase
         $this->assertSame(['software-development', 'event', 'podcast'], $templates->pluck('key')->all());
         $this->assertSame(['Softwareentwicklung', 'Event', 'Podcast'], $templates->pluck('name')->all());
         $this->assertSame(['de', 'de', 'de'], $templates->pluck('locale')->all());
-        $this->assertSame(['Research', 'Design', 'Feature', 'Bug', 'Planning', 'Blocked'], array_column(array_column($templates[0]->labels(), 'names'), 'en'));
+        $this->assertSame(['Research', 'Design', 'Feature', 'Bug', 'Refactor', 'Chore', 'Docs', 'Tests', 'Security', 'Planning', 'Blocked'], array_column(array_column($templates[0]->labels(), 'names'), 'en'));
         $this->assertNull($templates[0]->created_by);
-        $this->assertSame(6, count($templates[0]->labels()));
+        $this->assertSame(11, count($templates[0]->labels()));
     }
 
     public function test_running_it_twice_changes_nothing(): void

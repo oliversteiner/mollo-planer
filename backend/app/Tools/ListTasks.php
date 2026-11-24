@@ -153,7 +153,7 @@ class ListTasks extends Tool
     }
 
     /**
-     * The last comments of the given tasks, newest last, in one query; each text cut short (list_comments has the rest).
+     * The last comments of each given task, newest last, in one query; each text cut short (list_comments has the rest).
      *
      * @param  list<int>  $taskIds
      * @return array<int, list<array<string, mixed>>>
@@ -166,17 +166,19 @@ class ListTasks extends Tool
 
         $grouped = [];
 
-        Comment::query()
-            ->with('author:id,name,is_agent')
+        // The newest COMMENTS of EACH task (a window per task), so one task with many comments does not push the comments
+        // of the others out. Still one query, whatever the number of tasks.
+        $ranked = Comment::query()
             ->whereIn('task_id', $taskIds)
-            ->orderByDesc('id')
-            ->limit(self::COMMENTS * count($taskIds) * 4)
+            ->selectRaw('comments.*, ROW_NUMBER() OVER (PARTITION BY comments.task_id ORDER BY comments.id DESC) as comment_rank');
+
+        Comment::query()
+            ->fromSub($ranked, 'comments')
+            ->with('author:id,name,is_agent')
+            ->where('comment_rank', '<=', self::COMMENTS)
+            ->orderByDesc('comments.id')
             ->get()
             ->each(function (Comment $comment) use (&$grouped): void {
-                if (count($grouped[$comment->task_id] ?? []) >= self::COMMENTS) {
-                    return;
-                }
-
                 $chunk = McpText::chunk(TiptapToMarkdown::convert($comment->body), 0, self::COMMENT_CHARS);
                 $grouped[$comment->task_id][] = array_filter([
                     'id' => (string) $comment->getKey(),

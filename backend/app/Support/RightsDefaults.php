@@ -2,12 +2,15 @@
 
 namespace App\Support;
 
+use App\Core\Rights\DefaultsAddMissing;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Writes the standard rights from config/permissions.php into the tables.
  * Standard entries are reset to the file; roles and functions that are not
- * in the file (made in the settings later) stay untouched.
+ * in the file (made in the settings later) stay untouched. This RESETS what
+ * was changed in the settings; the safe way on a deployment is
+ * App\Core\Rights\DefaultsAddMissing (permissions:sync-defaults --add-missing).
  */
 final class RightsDefaults
 {
@@ -34,6 +37,8 @@ final class RightsDefaults
                     }
                 }
             }
+
+            DefaultsAddMissing::recordAll();
         });
 
         Rights::clearCache();
