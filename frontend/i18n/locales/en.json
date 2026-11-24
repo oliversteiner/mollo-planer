@@ -595,7 +595,7 @@
   "admin": {
     "users": {
       "title": "Users",
-      "invite": "Invite person",
+      "invite": "Add user",
       "inviteHint": "They get an email with a link to set their password (valid 7 days). Afterwards they set up a second factor.",
       "edit": "Edit person",
       "sendInvite": "Send invitation",
@@ -651,6 +651,41 @@
         "revokeConfirm": "Revoke",
         "revoked": "Access revoked.",
         "cli": "Or in a terminal on the server: app:user-token"
+      },
+      "access": {
+        "title": "Access for {agent}",
+        "intro": "An agent does not sign in in the browser. It works through the connector (MCP) with an access (token) and may do exactly what its role allows in the projects it is assigned to.",
+        "stepsLabel": "Steps to set up",
+        "steps": {
+          "create": "Create an access.",
+          "store": "Store the token: as an environment variable on the machine of the agent, never in a file in Git. It is shown only once.",
+          "connect": "Enter the connector: the address of the MCP server of this environment (below).",
+          "project": "Assign a project."
+        },
+        "done": "done",
+        "open": "open",
+        "address": "Address of the MCP server",
+        "copyAddress": "Copy address",
+        "guide": "Guide for the connector",
+        "projects": "Projects",
+        "noProjects": "Not in any project yet.",
+        "removeFrom": "Remove from project “{project}”",
+        "assign": "Assign project",
+        "assignConfirm": "Assign",
+        "state": {
+          "none": "Set up access",
+          "active": "Access active",
+          "expiring": "Access expiring",
+          "expired": "Access expired"
+        },
+        "menu": "Access and projects"
+      },
+      "sections": {
+        "users": "Users",
+        "agents": "Agents",
+        "noUsers": "No users yet.",
+        "noAgents": "No agents yet.",
+        "noMatches": "No matches."
       }
     },
     "settings": {

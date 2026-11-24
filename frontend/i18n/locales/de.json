@@ -595,7 +595,7 @@
   "admin": {
     "users": {
       "title": "Benutzer",
-      "invite": "Person einladen",
+      "invite": "Benutzer hinzufügen",
       "inviteHint": "Die Person bekommt eine E-Mail mit einem Link, um ihr Passwort zu setzen (7 Tage gültig). Danach richtet sie einen zweiten Faktor ein.",
       "edit": "Person ändern",
       "sendInvite": "Einladung schicken",
@@ -651,6 +651,41 @@
         "revokeConfirm": "Widerrufen",
         "revoked": "Zugang widerrufen.",
         "cli": "Oder per Terminal auf dem Server: app:user-token"
+      },
+      "access": {
+        "title": "Zugang für {agent}",
+        "intro": "Ein Agent meldet sich nicht im Browser an. Er arbeitet über den Connector (MCP) mit einem Zugang (Token) und darf genau das, was seine Rolle in den zugewiesenen Projekten erlaubt.",
+        "stepsLabel": "Schritte zur Einrichtung",
+        "steps": {
+          "create": "Zugang erzeugen.",
+          "store": "Token ablegen: als Umgebungsvariable auf dem Rechner des Agenten, nie in einer Datei im Git. Er wird nur einmal angezeigt.",
+          "connect": "Connector eintragen: die Adresse des MCP-Servers dieser Umgebung (unten).",
+          "project": "Projekt zuweisen."
+        },
+        "done": "erledigt",
+        "open": "offen",
+        "address": "Adresse des MCP-Servers",
+        "copyAddress": "Adresse kopieren",
+        "guide": "Anleitung für den Connector",
+        "projects": "Projekte",
+        "noProjects": "Noch in keinem Projekt.",
+        "removeFrom": "Aus Projekt «{project}» entfernen",
+        "assign": "Projekt zuweisen",
+        "assignConfirm": "Zuweisen",
+        "state": {
+          "none": "Zugang einrichten",
+          "active": "Zugang aktiv",
+          "expiring": "Zugang läuft ab",
+          "expired": "Zugang abgelaufen"
+        },
+        "menu": "Zugang und Projekte"
+      },
+      "sections": {
+        "users": "Benutzer",
+        "agents": "Agenten",
+        "noUsers": "Noch keine Benutzer.",
+        "noAgents": "Noch keine Agenten.",
+        "noMatches": "Keine Treffer."
       }
     },
     "settings": {

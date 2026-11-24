@@ -15,6 +15,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": typeof types.AdminUsersDocument,
+    "\n  query AgentProjects {\n    projects {\n      id\n      name\n      viewerRights\n      members { role { key names { de en } } user { id } }\n    }\n  }\n": typeof types.AgentProjectsDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": typeof types.ApproveUserDocument,
     "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n": typeof types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": typeof types.CreateUserDocument,
@@ -138,6 +139,7 @@ type Documents = {
 };
 const documents: Documents = {
     "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n": types.AdminUsersDocument,
+    "\n  query AgentProjects {\n    projects {\n      id\n      name\n      viewerRights\n      members { role { key names { de en } } user { id } }\n    }\n  }\n": types.AgentProjectsDocument,
     "\n  mutation ApproveUser($id: ID!) {\n    approveUser(id: $id) { id approved }\n  }\n": types.ApproveUserDocument,
     "\n  mutation RejectUser($id: ID!) {\n    rejectUser(id: $id) { id }\n  }\n": types.RejectUserDocument,
     "\n  mutation CreateUser($input: CreateUserInput!) {\n    createUser(input: $input) { id name }\n  }\n": types.CreateUserDocument,
@@ -278,6 +280,10 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"): (typeof documents)["\n  query AdminUsers {\n    users {\n      id\n      name\n      email\n      role { key isDefault names { de en } }\n      activity\n      avatarUrl\n      isAgent\n      apiTokens { id name createdAt lastUsedAt expiresAt }\n      twoFactorConfirmed\n      hasPasskey\n      createdAt\n      approved\n      emailVerified\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query AgentProjects {\n    projects {\n      id\n      name\n      viewerRights\n      members { role { key names { de en } } user { id } }\n    }\n  }\n"): (typeof documents)["\n  query AgentProjects {\n    projects {\n      id\n      name\n      viewerRights\n      members { role { key names { de en } } user { id } }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

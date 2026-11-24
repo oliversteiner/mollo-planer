@@ -2,18 +2,16 @@
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { AdminUsersQuery } from '~/graphql/generated/graphql'
-import { adminUsersQuery, approveUserMutation, createAgentTokenMutation, deleteUserMutation, rejectUserMutation, resetUserTwoFactorMutation, revokeAgentTokenMutation } from '~/graphql/admin'
+import { adminUsersQuery, approveUserMutation, deleteUserMutation, rejectUserMutation, resetUserTwoFactorMutation } from '~/graphql/admin'
 import { deleteUserAvatarMutation } from '~/graphql/profile'
-import { formatDateTime } from '~/utils/dates'
+import { agentAccessState, type AgentAccessState } from '~/utils/agent-access'
 
 type User = AdminUsersQuery['users'][number]
 
-const { t, localeProperties } = useI18n()
-const language = computed(() => localeProperties.value.language ?? 'de-CH')
+const { t } = useI18n()
 const roleName = useRoleName()
 const toast = useToast()
 const { viewer } = useViewer()
-const { ensurePasswordConfirmed } = useSecurity()
 
 useHead({ title: () => t('admin.users.title') })
 
@@ -46,53 +44,23 @@ const { mutate: deleteUser } = useMutation(deleteUserMutation, options)
 const { mutate: deleteAvatar } = useMutation(deleteUserAvatarMutation, options)
 const { mutate: approveUser } = useMutation(approveUserMutation, options)
 const { mutate: rejectUser } = useMutation(rejectUserMutation, options)
-const { mutate: createAgentToken } = useMutation(createAgentTokenMutation, options)
-const { mutate: revokeAgentToken } = useMutation(revokeAgentTokenMutation, options)
 
 /**
- * Connector accesses of an agent account (task 32). An agent cannot log in to make its own, so an admin makes it
- * here: after a recent password confirmation, shown once in a dialog. Never for a person's account.
+ * Access of an agent (task 32): the list only shows its state; the dialog makes, shows and revokes the accesses
+ * and assigns projects (docs/verwaltung-agenten-anfasser.md §3.2, §3.3).
  */
-const accessNames = ref<Record<string, string>>({})
-const creatingFor = ref<string | null>(null)
-const created = ref<{ agent: string, plainTextToken: string } | null>(null)
-const revoking = ref<{ user: User, tokenId: string, name: string } | null>(null)
-const { errors, pending, run } = useGraphqlForm()
+const accessAgentId = ref<string | null>(null)
+const accessAgent = computed(() => allUsers.value.find(user => user.id === accessAgentId.value) ?? null)
 
-async function createAccess(user: User): Promise<void> {
-  if (!await ensurePasswordConfirmed()) {
-    return
-  }
-  creatingFor.value = user.id
-  const result = await run(() => createAgentToken({ userId: user.id, name: (accessNames.value[user.id] ?? '').trim() }))
-  const token = result?.data?.createAgentToken
-
-  if (token) {
-    created.value = { agent: user.name, plainTextToken: token.plainTextToken }
-    accessNames.value[user.id] = ''
-  }
+const accessIndicator: Record<AgentAccessState, { variant: 'brand' | 'success' | 'warning' | 'neutral', icon: string, appearance: 'filled' | 'outlined' }> = {
+  none: { variant: 'brand', icon: 'plus', appearance: 'outlined' },
+  active: { variant: 'success', icon: 'key', appearance: 'outlined' },
+  expiring: { variant: 'warning', icon: 'key', appearance: 'outlined' },
+  expired: { variant: 'warning', icon: 'key', appearance: 'outlined' }
 }
 
-async function copyToken(): Promise<void> {
-  if (created.value) {
-    await navigator.clipboard.writeText(created.value.plainTextToken)
-    toast.add({ title: t('claude.copied'), color: 'success' })
-  }
-}
-
-async function confirmRevoke(): Promise<void> {
-  const target = revoking.value
-
-  if (!target) {
-    return
-  }
-
-  // A cancelled password prompt leaves the question open instead of closing it as if the access were revoked.
-  if (!await ensurePasswordConfirmed()) {
-    throw new Error('password confirmation cancelled')
-  }
-  await revokeAgentToken({ userId: target.user.id, tokenId: target.tokenId })
-  toast.add({ title: t('admin.users.agent.revoked'), color: 'success' })
+function accessState(user: User): AgentAccessState {
+  return agentAccessState(user.apiTokens)
 }
 
 /**
@@ -102,7 +70,8 @@ async function confirmRevoke(): Promise<void> {
 const pendingUsers = computed(() => allUsers.value
   .filter(user => !user.approved)
   .sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
-const activeUsers = computed(() => users.value.filter(user => user.approved))
+const people = computed(() => users.value.filter(user => user.approved && !user.isAgent))
+const agents = computed(() => users.value.filter(user => user.approved && user.isAgent))
 
 /**
  * A failed approval or rejection (for example because the account was already
@@ -132,8 +101,10 @@ function actions(user: User): ActionMenuItem[][] {
     { label: t('common.edit'), icon: 'pen', onSelect: () => startEditing(user) }
   ]
 
-  // An agent has no second factor and no password to reset: its access is a token (below the name, or app:user-token).
-  if (!user.isAgent) {
+  // An agent has no second factor and no password to reset: its access is a token (dialog "Access and projects").
+  if (user.isAgent) {
+    items.push({ label: t('admin.users.access.menu'), icon: 'key', onSelect: () => void (accessAgentId.value = user.id) })
+  } else {
     items.push({ label: t('admin.users.resetTwoFactor'), icon: 'shield-halved', onSelect: () => ask('reset', user) })
   }
 
@@ -197,6 +168,11 @@ const confirmCopy: Record<ConfirmKind, (name: string) => { title: string, descri
 
 const confirmTexts = computed(() => confirmCopy[confirming.value?.kind ?? 'delete'](confirming.value?.user.name ?? ''))
 
+const groups = computed(() => [
+  { key: 'people', title: t('admin.users.sections.users'), list: people.value, total: allUsers.value.filter(user => user.approved && !user.isAgent).length, empty: t('admin.users.sections.noUsers') },
+  { key: 'agents', title: t('admin.users.sections.agents'), list: agents.value, total: allUsers.value.filter(user => user.approved && user.isAgent).length, empty: t('admin.users.sections.noAgents') }
+])
+
 function factorLabel(user: User): string {
   if (user.twoFactorConfirmed && user.hasPasskey) {
     return t('admin.users.factorBoth')
@@ -259,167 +235,89 @@ function factorLabel(user: User): string {
         @reject="ask('reject', $event)"
       />
 
-      <ul class="users-list wa-list-plain">
-        <li
-          v-for="user in activeUsers"
-          :key="user.id"
-          class="users-row"
+      <section
+        v-for="group in groups"
+        :key="group.key"
+        class="users-section"
+      >
+        <h2 class="wa-heading-m">
+          {{ group.title }} ({{ group.list.length }})
+        </h2>
+        <p
+          v-if="!group.list.length"
+          class="users-empty"
         >
-          <UserAvatar
-            :name="user.name"
-            :src="user.avatarUrl"
-            size="md"
-          />
-          <span class="users-text">
-            <span class="users-name">
-              <span class="users-name-text">{{ user.name }}</span>
-              <AgentBadge v-if="user.isAgent" />
-              <wa-badge
-                v-if="!user.role.isDefault"
-                :title="t('admin.users.role')"
-                variant="brand"
-                appearance="filled"
-              >
-                {{ roleName(user.role) }}
-              </wa-badge>
-              <span
-                v-if="user.id === viewer?.id"
-                class="users-you"
-              >({{ t('settings.members.you') }})</span>
-            </span>
-            <span class="users-email">{{ user.email }}</span>
-          </span>
-          <wa-badge
-            v-if="!user.isAgent"
-            :variant="user.twoFactorConfirmed || user.hasPasskey ? 'success' : 'warning'"
-            appearance="filled"
+          {{ query.trim() && group.total ? t('admin.users.sections.noMatches') : group.empty }}
+        </p>
+        <ul
+          v-else
+          class="users-list wa-list-plain"
+        >
+          <li
+            v-for="user in group.list"
+            :key="user.id"
+            class="users-row"
           >
-            {{ factorLabel(user) }}
-          </wa-badge>
-          <ActionMenu
-            :items="actions(user)"
-            :label="t('admin.users.actions', { name: user.name })"
-            size="m"
-          />
-          <div
-            v-if="user.isAgent"
-            class="users-access wa-stack wa-gap-s"
-          >
-            <h3 class="wa-heading-s">
-              {{ t('admin.users.agent.title') }}
-            </h3>
-            <ul
-              v-if="user.apiTokens?.length"
-              class="users-access-list wa-list-plain"
-            >
-              <li
-                v-for="token in user.apiTokens"
-                :key="token.id"
-                class="users-access-row"
-              >
-                <wa-icon
-                  name="key"
-                  class="users-access-icon"
-                ></wa-icon>
-                <span class="users-text">
-                  <span class="users-access-name">{{ token.name }}</span>
-                  <span class="users-access-sub">
-                    {{ token.lastUsedAt ? t('claude.lastUsed', { date: formatDateTime(token.lastUsedAt, language) }) : t('claude.neverUsed') }}
-                    <template v-if="token.expiresAt"> · {{ t('claude.expires', { date: formatDateTime(token.expiresAt, language) }) }}</template>
-                  </span>
-                </span>
-                <wa-button
-                  appearance="plain"
-                  variant="neutral"
-                  size="s"
-                  :aria-label="t('admin.users.agent.revoke', { name: token.name })"
-                  @click="revoking = { user, tokenId: token.id, name: token.name }"
+            <UserAvatar
+              :name="user.name"
+              :src="user.avatarUrl"
+              size="md"
+            />
+            <span class="users-text">
+              <span class="users-name">
+                <span class="users-name-text">{{ user.name }}</span>
+                <AgentBadge v-if="user.isAgent" />
+                <wa-badge
+                  v-if="!user.role.isDefault"
+                  :title="t('admin.users.role')"
+                  variant="brand"
+                  appearance="filled"
                 >
-                  <wa-icon name="trash"></wa-icon>
-                </wa-button>
-              </li>
-            </ul>
-            <p
+                  {{ roleName(user.role) }}
+                </wa-badge>
+                <span
+                  v-if="user.id === viewer?.id"
+                  class="users-you"
+                >({{ t('settings.members.you') }})</span>
+              </span>
+              <span class="users-email">{{ user.email }}</span>
+            </span>
+            <wa-button
+              v-if="user.isAgent"
+              :variant="accessIndicator[accessState(user)].variant"
+              :appearance="accessIndicator[accessState(user)].appearance"
+              size="s"
+              class="users-access"
+              :data-state="accessState(user)"
+              @click="accessAgentId = user.id"
+            >
+              <wa-icon
+                slot="start"
+                :name="accessIndicator[accessState(user)].icon"
+              ></wa-icon>
+              {{ t(`admin.users.access.state.${accessState(user)}`) }}
+            </wa-button>
+            <wa-badge
               v-else
-              class="users-access-sub"
+              :variant="user.twoFactorConfirmed || user.hasPasskey ? 'success' : 'warning'"
+              appearance="filled"
             >
-              {{ t('admin.users.agent.none') }}
-            </p>
-            <form
-              class="users-access-form"
-              @submit.prevent="createAccess(user)"
-            >
-              <FormInput
-                v-model="accessNames[user.id]"
-                class="users-access-input"
-                :label="t('admin.users.agent.name')"
-                :hint="t('admin.users.agent.nameHint', { agent: user.name })"
-                :error="creatingFor === user.id ? (errors.name ?? errors.password ?? errors.userId) : undefined"
-                maxlength="60"
-              />
-              <wa-button
-                type="submit"
-                variant="brand"
-                :loading="pending && creatingFor === user.id"
-              >
-                <wa-icon
-                  slot="start"
-                  name="key"
-                ></wa-icon>
-                {{ t('admin.users.agent.create') }}
-              </wa-button>
-            </form>
-            <p class="users-access-sub">
-              {{ t('admin.users.agent.cli') }}
-            </p>
-          </div>
-        </li>
-      </ul>
+              {{ factorLabel(user) }}
+            </wa-badge>
+            <ActionMenu
+              :items="actions(user)"
+              :label="t('admin.users.actions', { name: user.name })"
+              size="m"
+            />
+          </li>
+        </ul>
+      </section>
     </template>
 
     <AdminUserFormModal
       :target="editing"
       @close="editing = null"
     />
-    <AppDialog
-      :open="created !== null"
-      :label="t('admin.users.agent.showOnceTitle', { agent: created?.agent ?? '' })"
-      @update:open="created = null"
-    >
-      <div class="wa-stack wa-gap-s">
-        <AppCallout
-          variant="warning"
-          :title="t('admin.users.agent.showOnce')"
-        />
-        <FormField :label="t('admin.users.agent.token')">
-          <div class="users-access-copy">
-            <FormInput
-              :model-value="created?.plainTextToken ?? ''"
-              :label="t('admin.users.agent.token')"
-              hide-label
-              readonly
-              class="users-access-token"
-            />
-            <wa-button
-              appearance="outlined"
-              variant="neutral"
-              :aria-label="t('admin.users.agent.copyToken')"
-              @click="copyToken"
-            >
-              <wa-icon name="copy"></wa-icon>
-            </wa-button>
-          </div>
-        </FormField>
-      </div>
-      <template #footer>
-        <wa-button
-          variant="brand"
-          @click="created = null"
-        >
-          {{ t('security.done') }}
-        </wa-button>
-      </template>
-    </AppDialog>
     <ConfirmModal
       :open="confirming !== null"
       :title="confirmTexts.title"
@@ -428,18 +326,26 @@ function factorLabel(user: User): string {
       :action="confirm"
       @close="confirming = null"
     />
-    <ConfirmModal
-      :open="revoking !== null"
-      :title="t('admin.users.agent.revokeTitle', { name: revoking?.name ?? '' })"
-      :description="t('admin.users.agent.revokeDescription', { agent: revoking?.user.name ?? '' })"
-      :confirm-label="t('admin.users.agent.revokeConfirm')"
-      :action="confirmRevoke"
-      @close="revoking = null"
+    <AdminAgentAccessDialog
+      v-if="accessAgent"
+      :agent="accessAgent"
+      @close="accessAgentId = null"
     />
   </PageFrame>
 </template>
 
 <style scoped>
+.users-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-s);
+}
+
+.users-empty {
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+}
+
 .users-search {
   max-inline-size: 24rem;
 }
@@ -491,72 +397,6 @@ function factorLabel(user: User): string {
   color: var(--wa-color-text-quiet);
   font-size: var(--wa-font-size-s);
   font-weight: var(--wa-font-weight-normal);
-}
-
-.users-access {
-  flex-basis: 100%;
-  padding-block-start: var(--wa-space-xs);
-}
-
-.users-access-list {
-  margin: 0;
-  padding: 0;
-  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
-  border-radius: var(--wa-border-radius-m);
-}
-
-.users-access-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--wa-space-s);
-  padding: var(--wa-space-xs) var(--wa-space-s);
-}
-
-.users-access-row + .users-access-row {
-  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
-}
-
-.users-access-icon {
-  font-size: var(--wa-font-size-l);
-  color: var(--wa-color-brand-on-quiet);
-}
-
-.users-access-name {
-  overflow: hidden;
-  font-weight: var(--wa-font-weight-semibold);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.users-access-sub {
-  margin: 0;
-  color: var(--wa-color-text-quiet);
-  font-size: var(--wa-font-size-xs);
-}
-
-.users-access-form {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--wa-space-s);
-}
-
-.users-access-input {
-  flex: 1;
-  min-inline-size: 12rem;
-}
-
-.users-access-copy {
-  display: flex;
-  align-items: center;
-  gap: var(--wa-space-s);
-  inline-size: 100%;
-}
-
-.users-access-token {
-  flex: 1;
-  font-family: var(--wa-font-family-code);
 }
 
 .users-email {
