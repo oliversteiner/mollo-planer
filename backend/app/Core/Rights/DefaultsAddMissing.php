@@ -16,8 +16,10 @@ use Illuminate\Support\Facades\Schema;
  * - For an existing one, names and assignments stay. A pair (right in a function, function in a role) that the file has and that
  *   was NEVER offered before is added. "Offered" is kept in the table rights_defaults_applied: a pair that was offered and
  *   is missing today was removed on purpose in the settings and is not added again.
- * - The first run on an existing database records the standard pairs that are there today as offered; what is missing
- *   then is new and is added.
+ * - The FIRST run (the table of offered pairs is empty) records ALL pairs of the file as offered and adds only whole missing
+ *   functions and roles (with their standard assignment), but no missing pair of an existing function or role: what is
+ *   missing there today was removed on purpose before this table existed. plan() and apply() tell which pairs that are.
+ *   From the second run on only pairs that are new in the file are added.
  * - Nothing is ever removed. Functions and roles that are not in the file are only reported.
  *
  * Everything in one transaction, then the rights cache is cleared.
@@ -31,7 +33,9 @@ final class DefaultsAddMissing
     /**
      * What a run would add, nothing is written.
      *
-     * @return list<string> one line per entry, for example "project.function.contribute + document.update"
+     * @return array{added: list<string>, skipped: list<string>} added: one line per entry, for example
+     *                                                           "project.function.contribute + document.update"; skipped: only on the first run, the pairs of the file that are missing in
+     *                                                           the database and are NOT added
      */
     public static function plan(): array
     {
@@ -41,19 +45,19 @@ final class DefaultsAddMissing
     /**
      * Adds what is missing and records the offered pairs.
      *
-     * @return list<string> one line per added entry
+     * @return array{added: list<string>, skipped: list<string>} the same lines as plan()
      */
     public static function apply(): array
     {
-        $added = DB::transaction(fn (): array => self::run(write: true));
+        $result = DB::transaction(fn (): array => self::run(write: true));
 
-        foreach ($added as $entry) {
+        foreach ($result['added'] as $entry) {
             Log::info('Standard rights added: '.$entry);
         }
 
         Rights::clearCache();
 
-        return $added;
+        return $result;
     }
 
     /**
@@ -102,10 +106,13 @@ final class DefaultsAddMissing
         return $extra;
     }
 
-    /** @return list<string> */
+    /** @return array{added: list<string>, skipped: list<string>} */
     private static function run(bool $write): array
     {
         $added = [];
+        $skipped = [];
+        // The first run puts nothing back that is missing in an existing function or role (see the class comment).
+        $first = ! DB::table('rights_defaults_applied')->exists();
 
         foreach ((array) config('permissions.functions') as $scope => $functions) {
             foreach ($functions as $key => $function) {
@@ -137,10 +144,14 @@ final class DefaultsAddMissing
                     }
 
                     if (! DB::table('function_rights')->where(['function_id' => $functionId, 'right' => $right])->exists()) {
-                        $added[] = "$scope.function.$key + $right";
+                        if ($first) {
+                            $skipped[] = "$scope.function.$key + $right";
+                        } else {
+                            $added[] = "$scope.function.$key + $right";
 
-                        if ($write) {
-                            DB::table('function_rights')->insert(['function_id' => $functionId, 'right' => $right]);
+                            if ($write) {
+                                DB::table('function_rights')->insert(['function_id' => $functionId, 'right' => $right]);
+                            }
                         }
                     }
 
@@ -185,10 +196,14 @@ final class DefaultsAddMissing
                     $attached = $functionId !== null && DB::table('role_functions')->where(['role_id' => $roleId, 'function_id' => $functionId])->exists();
 
                     if (! $attached) {
-                        $added[] = "$scope.role.$key + function $functionKey";
+                        if ($first) {
+                            $skipped[] = "$scope.role.$key + function $functionKey";
+                        } else {
+                            $added[] = "$scope.role.$key + function $functionKey";
 
-                        if ($write) {
-                            self::attach($roleId, $scope, $functionKey);
+                            if ($write) {
+                                self::attach($roleId, $scope, $functionKey);
+                            }
                         }
                     }
 
@@ -199,7 +214,7 @@ final class DefaultsAddMissing
             }
         }
 
-        return $added;
+        return ['added' => $added, 'skipped' => $skipped];
     }
 
     private static function attach(int $roleId, string $scope, string $functionKey): void

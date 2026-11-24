@@ -18,6 +18,7 @@ return [
         'per_account' => 'Aufrufe je Konto und Werkzeug (letzte :days Tage)',
     ],
     'permissions_add' => [
+        'skipped' => ':count Paare aus config/permissions.php fehlen in der Datenbank und werden NICHT ergänzt (der erste Lauf bringt nichts zurück, was in den Einstellungen entfernt wurde). Wer sie will, setzt sie in der Rechteverwaltung von Hand:',
         'nothing' => 'Nichts zu tun: alles Neue aus config/permissions.php ist schon in der Datenbank.',
         'added' => ':count Standardeinträge ergänzt.',
         'extra' => 'Nicht in config/permissions.php, bleiben unverändert: :entries',

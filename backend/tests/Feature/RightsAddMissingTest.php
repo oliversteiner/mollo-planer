@@ -116,7 +116,13 @@ class RightsAddMissingTest extends TestCase
         $this->assertFalse(DB::table('role_functions')->where(['role_id' => $this->roleId('guest'), 'function_id' => $this->functionId('contribute')])->exists());
     }
 
-    public function test_the_first_run_on_an_existing_database_changes_nothing_and_records_the_pairs_that_are_there(): void
+    private function pairsInTheFile(): int
+    {
+        return collect(config('permissions.functions'))->flatten(1)->sum(fn (array $function): int => count($function['rights']))
+            + collect(config('permissions.roles'))->flatten(1)->sum(fn (array $role): int => count($role['functions']));
+    }
+
+    public function test_the_first_run_on_an_existing_database_changes_nothing_and_records_every_pair_of_the_file(): void
     {
         $this->assertSame(0, DB::table('rights_defaults_applied')->count(), 'an existing database starts with an empty list');
         $before = $this->tables();
@@ -124,7 +130,77 @@ class RightsAddMissingTest extends TestCase
         $this->artisan('permissions:sync-defaults --add-missing')->expectsOutputToContain('Nichts zu tun')->assertSuccessful();
 
         $this->assertSame($before, $this->tables());
-        $this->assertGreaterThan(50, DB::table('rights_defaults_applied')->count());
+        $this->assertSame($this->pairsInTheFile(), DB::table('rights_defaults_applied')->count());
+    }
+
+    public function test_the_first_run_adds_no_missing_pair_to_an_existing_function_or_role_but_says_which(): void
+    {
+        $right = config('permissions.functions.project.contribute.rights')[0];
+        DB::table('function_rights')->where(['function_id' => $this->functionId('contribute'), 'right' => $right])->delete();
+        DB::table('role_functions')->where(['role_id' => $this->roleId('member'), 'function_id' => $this->functionId('contribute')])->delete();
+        $before = $this->tables();
+
+        $this->artisan('permissions:sync-defaults --add-missing')
+            ->expectsOutputToContain("project.function.contribute + $right")
+            ->expectsOutputToContain('project.role.member + function contribute')
+            ->expectsOutputToContain('Nichts zu tun')
+            ->assertSuccessful();
+
+        $this->assertSame($before, $this->tables(), 'removed on purpose before the table existed');
+        $this->assertSame($this->pairsInTheFile(), DB::table('rights_defaults_applied')->count(), 'even the missing pairs count as offered');
+
+        $this->artisan('permissions:sync-defaults --add-missing')->expectsOutputToContain('Nichts zu tun')->assertSuccessful();
+        $this->assertSame($before, $this->tables(), 'and the second run does not add them either');
+    }
+
+    public function test_the_first_run_still_creates_whole_missing_roles_and_functions(): void
+    {
+        DB::table('roles')->where(['scope' => 'project', 'key' => 'agent'])->delete();
+        DB::table('functions')->where(['scope' => 'project', 'key' => 'agent-work'])->delete();
+
+        $this->artisan('permissions:sync-defaults --add-missing')
+            ->expectsOutputToContain('project.function.agent-work')
+            ->expectsOutputToContain('project.role.agent')
+            ->assertSuccessful();
+
+        $this->assertTrue($this->hasRight('agent-work', config('permissions.functions.project.agent-work.rights')[0]));
+        $this->assertTrue(DB::table('role_functions')->where(['role_id' => $this->roleId('agent'), 'function_id' => $this->functionId('agent-work')])->exists());
+    }
+
+    public function test_a_pair_that_is_new_after_the_first_run_is_added(): void
+    {
+        $right = config('permissions.functions.project.contribute.rights')[0];
+        DB::table('function_rights')->where(['function_id' => $this->functionId('contribute'), 'right' => $right])->delete();
+        $this->artisan('permissions:sync-defaults --add-missing')->assertSuccessful();
+        config(['permissions.functions.project.contribute.rights' => [...config('permissions.functions.project.contribute.rights'), 'new.thing']]);
+
+        $this->artisan('permissions:sync-defaults --add-missing')->expectsOutputToContain('project.function.contribute + new.thing')->assertSuccessful();
+
+        $this->assertTrue($this->hasRight('contribute', 'new.thing'));
+        $this->assertFalse($this->hasRight('contribute', $right), 'the one from before the first run stays out');
+    }
+
+    public function test_check_before_the_first_run_shows_separately_what_would_be_added_and_what_would_not(): void
+    {
+        $right = config('permissions.functions.project.contribute.rights')[0];
+        DB::table('function_rights')->where(['function_id' => $this->functionId('contribute'), 'right' => $right])->delete();
+
+        // Only pairs that are not added: information, no warning (exit 0).
+        $this->artisan('permissions:sync-defaults --check')
+            ->expectsOutputToContain('NICHT ergänzt')
+            ->expectsOutputToContain("project.function.contribute + $right")
+            ->assertSuccessful();
+
+        // A whole missing role would be added: exit 2, and the skipped pair is still named apart.
+        DB::table('roles')->where(['scope' => 'project', 'key' => 'agent'])->delete();
+        $before = $this->tables();
+        $this->artisan('permissions:sync-defaults --check')
+            ->expectsOutputToContain('project.role.agent')
+            ->expectsOutputToContain('NICHT ergänzt')
+            ->assertExitCode(PermissionsSyncDefaults::EXIT_MISSING);
+
+        $this->assertSame(0, DB::table('rights_defaults_applied')->count(), 'check writes nothing');
+        $this->assertSame($before, $this->tables());
     }
 
     public function test_own_roles_functions_and_assignments_stay_and_are_reported(): void
@@ -155,11 +231,7 @@ class RightsAddMissingTest extends TestCase
 
         RightsDefaults::apply();
 
-        $this->assertSame(
-            collect(config('permissions.functions'))->flatten(1)->sum(fn (array $function): int => count($function['rights']))
-                + collect(config('permissions.roles'))->flatten(1)->sum(fn (array $role): int => count($role['functions'])),
-            DB::table('rights_defaults_applied')->count(),
-        );
+        $this->assertSame($this->pairsInTheFile(), DB::table('rights_defaults_applied')->count());
     }
 
     public function test_check_also_shows_what_add_missing_would_add_and_writes_nothing(): void

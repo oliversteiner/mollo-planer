@@ -18,6 +18,7 @@ return [
         'per_account' => 'Calls per account and tool (last :days days)',
     ],
     'permissions_add' => [
+        'skipped' => ':count pairs of config/permissions.php are missing in the database and are NOT added (the first run does not put back what was removed in the settings). Set them by hand in the rights settings if you want them:',
         'nothing' => 'Nothing to do: everything new in config/permissions.php is already in the database.',
         'added' => ':count standard entries added.',
         'extra' => 'Not in config/permissions.php, left as they are: :entries',

@@ -41,7 +41,7 @@ class PermissionsSyncDefaults extends Command
 
     private function addMissing(): int
     {
-        $added = DefaultsAddMissing::apply();
+        ['added' => $added, 'skipped' => $skipped] = DefaultsAddMissing::apply();
 
         if ($added === []) {
             $this->components->info(__('console.permissions_add.nothing'));
@@ -53,6 +53,8 @@ class PermissionsSyncDefaults extends Command
             $this->components->info(__('console.permissions_add.added', ['count' => count($added)]));
         }
 
+        $this->reportSkipped($skipped);
+
         $extra = DefaultsAddMissing::notInTheFile();
 
         if ($extra !== []) {
@@ -62,12 +64,28 @@ class PermissionsSyncDefaults extends Command
         return self::SUCCESS;
     }
 
+    /** @param  list<string>  $skipped */
+    private function reportSkipped(array $skipped): void
+    {
+        if ($skipped === []) {
+            return;
+        }
+
+        $this->line(__('console.permissions_add.skipped', ['count' => count($skipped)]));
+
+        foreach ($skipped as $entry) {
+            $this->line("  - $entry");
+        }
+    }
+
     private function check(): int
     {
-        $missing = array_values(array_unique([...RightsDefaults::missing(), ...DefaultsAddMissing::plan()]));
+        $plan = DefaultsAddMissing::plan();
+        $missing = array_values(array_unique([...RightsDefaults::missing(), ...$plan['added']]));
 
         if ($missing === []) {
             $this->components->info(__('console.permissions_check.complete'));
+            $this->reportSkipped($plan['skipped']);
 
             return self::SUCCESS;
         }
@@ -77,6 +95,7 @@ class PermissionsSyncDefaults extends Command
         }
 
         $this->components->error(__('console.permissions_check.missing', ['count' => count($missing)]));
+        $this->reportSkipped($plan['skipped']);
 
         return self::EXIT_MISSING;
     }
