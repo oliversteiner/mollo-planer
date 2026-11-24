@@ -2,7 +2,7 @@
 
 Planer: planer.mollo.dev · Projekt 2 «Mollo Planer» · ToDo `t-378` (Status der Teile dort nachführen).
 
-Status: PR #41 nach dev, nicht gemergt (Branch `feature/mcp-sparsam`). Teile A bis E umgesetzt, bis auf E4: `AGENTS.md` und `.junie/AGENTS.md` (Reste `[cite: 31]`, neuer Ablauf) sind offen, weil in der Arbeitskopie fremde, nicht committete Änderungen daran liegen. Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). Nach 42 A. Branch von `dev` (`feature/mcp-sparsam`), PR nach `dev`, nicht mergen. Teile je ein Commit. Werkzeuge nur in `App\Tools` (Auftrag 34), der Assistent profitiert mit.
+Status: Teile A bis E gemergt (PR #41). Folgepunkte k-1482 (Kommentare je Task begrenzt), k-1484 (OAuth, Variable `MOLLOPLANER_<NAME>_TOKEN`, `.mcp.json`, Titelgrenze in `llms.txt` und `/mcp`) auf Branch `fix/mcp-folgepunkte`, PR nach dev, nicht gemergt; k-1483 (`mcp_tool_calls.user_id` im Verzeichnis der Konto-Verweise) erledigt mit Auftrag 37 E (PR #46). E4 (`AGENTS.md`, `.junie/AGENTS.md`) siehe Stuart. Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). Nach 42 A. Branch von `dev` (`feature/mcp-sparsam`), PR nach `dev`, nicht mergen. Teile je ein Commit. Werkzeuge nur in `App\Tools` (Auftrag 34), der Assistent profitiert mit.
 
 ## Messung (Stuart, 2026-11-23, Stand `dev`)
 

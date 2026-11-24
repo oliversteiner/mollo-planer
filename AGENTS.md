@@ -60,13 +60,15 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - Status von ToDo und Milestone wird nur vom Observer berechnet, nie per Eingabe gesetzt.
 - RichText wird als TipTap-JSON gespeichert, **nie HTML**. Frontend zeigt es mit TipTap an, **nie mit `v-html`**.
 - Mails nur über Notifications mit `ShouldQueue` und `afterCommit`, Sprache = `project->locale`.
-- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. **Das Repo ist öffentlich: keine Pro-Dateien committen** (Font Awesome Pro, `frontend/vendor/`; ein Wächter in CI und Test schlägt an). Font Awesome braucht kein npm-Token mehr, die Symbole holt `npm run icons:fetch` aus dem privaten Repo `mollo-pro-assets` (Secret `PRO_ASSETS_TOKEN`); das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
+- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. **Das Repo ist öffentlich: keine Pro-Dateien committen** (Font Awesome Pro, `frontend/vendor/`, die Skills von Web Awesome Pro in `frontend/.claude/skills/webawesome*`; ein Wächter in CI und Test schlägt an). Font Awesome braucht kein npm-Token mehr, die Symbole holt `npm run icons:fetch` aus dem privaten Repo `mollo-pro-assets` (Secret `PRO_ASSETS_TOKEN`); das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
 - Oberfläche nur mit `wa-*`-Elementen von Web Awesome und den eigenen Bausteinen (`FormInput`, `AppDialog`, `ActionMenu` …), Layout mit den Hilfsklassen `wa-stack`/`wa-cluster`/… und `<style scoped>` mit Tokens (`--wa-*`). Kein Nuxt UI, kein Tailwind.
 - Enums im GraphQL-Schema mit `App\Enums` synchron halten (`tests/Unit/GraphqlEnumBindingTest.php`).
 - Rechte nie nur im Frontend prüfen.
 - RichText höchstens 20.000 Zeichen.
 - Icons: Font-Awesome-Pro-Namen ohne Stil-Präfix.
 - Die 2FA- und Passkey-Middleware in Produktion nicht lockern.
+- Änderungen nur über einen eigenen Branch und einen PR nach `dev`, nie direkt auf `dev`, nie mergen ohne Oliver (gilt für alle Agenten, auch Junie).
+- **MCP-Konfigurationen** (`.mcp.json`, `.junie/mcp/mcp.json` und gleichartige Dateien im Repo) enthalten nur Server ohne Geheimnis (`laravel-boost`) und sonst höchstens `${VARIABLE}`. **Nie ein Token und nie eine Adresse mit Zugangsdaten** in diese Dateien. Der Planer-Server steht nur in der `.mcp.json` des Repos, mit `${MOLLOPLANER_<NAME>_TOKEN}` für das eigene Agentenkonto, und verbindet nur mit TEST (`https://api.planer.mollo.dev/mcp`). Planer-Server nie mit `--scope user` eintragen, weil sie sonst in jedem Projekt mit demselben Konto auftauchen. Olivers persönliche Server nur mit `--scope local`.
 - «cpm»: Vor dem Merge Branch und Ziel-Branch nennen, wenn unklar. Commits von Junie mit Co-Author-Trailer.
 - Zu jeder neuen Policy, Mutation oder Regel gehören Tests (siehe Punkt 12 im Backend-Plan).
 - Nach einem abgeschlossenen Schritt aus der Bau-Reihenfolge den Abschnitt „Stand“ unten aktualisieren.

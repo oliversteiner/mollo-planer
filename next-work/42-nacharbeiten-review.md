@@ -2,7 +2,7 @@
 
 Planer: planer.mollo.dev · Projekt 2 «Mollo Planer» · ToDo `t-377` (Status der Teile dort nachführen).
 
-Status: Teil A umgesetzt und gemergt (PR #38, Branch `fix/review-2026-11-23`); Caches `pro-icons-*` gelöscht. Teile B bis E offen (Branch `fix/review-2026-11-23-b-e` angelegt, ohne Änderungen). Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). **Teil A dringend** (vor allem anderen). Branch von `dev` (`fix/review-2026-11-23`), PR nach `dev`, nicht mergen. Je Teil ein Commit.
+Status: Teil A umgesetzt und gemergt (PR #38, Branch `fix/review-2026-11-23`); Caches `pro-icons-*` gelöscht. Teile B bis E umgesetzt auf Branch `fix/review-2026-11-23-b` (PR nach dev, nicht gemergt; je Teil ein Commit). Zu C: Skills nur aus dem Index genommen und ignoriert, `skills-lock.json` bleibt (nur Pfade und Prüfsummen), Historie nicht umgeschrieben. Zu D: `.junie/AGENTS.md` ist nicht im Repo (nur `.junie/mcp/mcp.json`), die Regeln stehen in `AGENTS.md`. Ursprünglich: Status: offen. Auftrag von Oliver über Stuart (2026-11-23). **Teil A dringend** (vor allem anderen). Branch von `dev` (`fix/review-2026-11-23`), PR nach `dev`, nicht mergen. Je Teil ein Commit.
 
 Review von Stuart über die Commits auf `dev` vom 20. bis 23.11. (u. a. `bf8c87a`, `fd6bb64`, `ee56ca3`, PR #33, PR #34/Auftrag 38). Tests, Larastan, ESLint waren grün; die Punkte unten sind Lücken in Sicherheit, Lizenz und Verhalten.
 

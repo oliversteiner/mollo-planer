@@ -138,6 +138,22 @@ class ReadInStagesTest extends GraphQLTestCase
         $this->assertTrue($row['comments'][0]['truncated']);
     }
 
+    public function test_a_task_with_many_comments_does_not_push_out_the_comments_of_the_others(): void
+    {
+        // The older comments belong to the quiet task, the many newer ones to the noisy one.
+        Comment::factory()->for($this->other)->create(['user_id' => $this->users['owner']->id, 'body' => $this->bodyOf('Mikro: erster')]);
+        Comment::factory()->for($this->other)->create(['user_id' => $this->users['owner']->id, 'body' => $this->bodyOf('Mikro: zweiter')]);
+        foreach (range(1, 60) as $i) {
+            Comment::factory()->for($this->task)->create(['user_id' => $this->users['owner']->id, 'body' => $this->bodyOf("Laut $i")]);
+        }
+
+        $rows = collect($this->tasks(['project_id' => (string) $this->project->id, 'ids' => ["k-{$this->task->id}", "k-{$this->other->id}"], 'include' => ['comments']])['tasks'])->keyBy('id');
+
+        $this->assertCount(5, $rows["k-{$this->task->id}"]['comments'], 'at most five per task');
+        $this->assertSame('Laut 60', $rows["k-{$this->task->id}"]['comments'][4]['text'], 'the newest last');
+        $this->assertSame(['Mikro: erster', 'Mikro: zweiter'], array_column($rows["k-{$this->other->id}"]['comments'], 'text'), 'the quiet task keeps both of its comments');
+    }
+
     public function test_list_tasks_uses_a_fixed_number_of_queries(): void
     {
         // A first call warms the caches of the rights; then the number of queries is counted twice.

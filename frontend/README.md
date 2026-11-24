@@ -9,7 +9,7 @@ Dieses Repository ist **öffentlich**, die Pro-Symbole sind lizenziert und dürf
 - **Holen (einmal nach dem Klonen):** `npm run icons:fetch` im Ordner `frontend/`. Es klont den Stand aus `pro-assets.json` (Repository, Tag, Version) mit der Anmeldung von git/gh nach `frontend/vendor/fontawesome/<version>/` (nicht versioniert, in `.gitignore`).
 - **Ohne Zugriff** (Fork, fremde Mitwirkende, Pull Request aus einem Fork): Der Build nimmt **Font Awesome Free** (`@fortawesome/fontawesome-free`, Stil «solid») mit einem Katalog aus dessen Metadaten. Namen, die es in Free nicht gibt, zeigen das Ersatzsymbol. Quelle und Stil entscheidet `scripts/icon-source.mjs`.
 - **Deployment nie mit Free:** Mit `ICONS_REQUIRE_PRO=1` (gesetzt im Deploy-Job) bricht der Build ab, wenn die Pro-Symbole fehlen.
-- **CI:** Mit dem Secret `PRO_ASSETS_TOKEN` (fine-grained, nur Lesen, nur das eine Repository) holt `icons:fetch` die Symbole; `actions/cache` (Schlüssel aus `pro-assets.json`) spart meist den Download. Ohne das Secret passiert nichts davon und es gilt Free.
+- **CI:** Mit dem Secret `PRO_ASSETS_TOKEN` (fine-grained, nur Lesen, nur das eine Repository) holt `icons:fetch` die Symbole bei jedem Lauf (rund 10 MB von GitHub, **kein** `actions/cache` und kein Artefakt für lizenzierte Dateien). Ohne das Secret passiert nichts davon und es gilt Free.
 - **Wächter:** `npm run icons:check` und der Test `tests/unit/no-pro-assets.test.ts` schlagen fehl, wenn eine Datei mit dem Kopf «Font Awesome Pro» oder etwas in `frontend/vendor/` versioniert ist.
 - **Neue Version von Font Awesome:** Pro «For the Web» (ZIP) laden, **außerhalb** der Repositories entpacken (z. B. `~/www/_vendor/fontawesome-pro-<version>-web/`) und `npm run icons:update -- <entpackter Ordner> <Arbeitskopie von mollo-pro-assets>` ausführen. Im privaten Repo committen, taggen (`fontawesome-<version>`), dann `version` und `ref` in `pro-assets.json` setzen.
 
@@ -22,7 +22,16 @@ Web Awesome Pro kommt aus einem eigenen privaten Register (Cloudsmith), Der Toke
 //npm.cloudsmith.io/fortawesome/webawesome-pro/:_authToken=${WEBAWESOME_NPM_TOKEN}
 ```
 
-Installieren mit `WEBAWESOME_NPM_TOKEN="…" npm install` (oder die Variable mit direnv setzen). Die Version ist exakt gepinnt (`3.14.0`, ohne `^`). In GitHub steht der Token als Secret `WEBAWESOME_NPM_AUTH_TOKEN`. Die Skills `webawesome` und `webawesome-design` liegen in `frontend/.claude/skills/` (aus dem Paket kopiert).
+Installieren mit `WEBAWESOME_NPM_TOKEN="…" npm install` (oder die Variable mit direnv setzen). Die Version ist exakt gepinnt (`3.14.0`, ohne `^`). In GitHub steht der Token als Secret `WEBAWESOME_NPM_AUTH_TOKEN`. Die Skills `webawesome` und `webawesome-design` stammen aus dem Pro-Paket und liegen **nicht im Repository** (öffentlich, Lizenz unklar; Auftrag 42 C): `frontend/.claude/skills/webawesome*/` ist in `.gitignore`, der Wächter `npm run icons:check` schlägt an, wenn sie versioniert werden. Lokal einrichten, nach `npm install` mit dem Token:
+
+```bash
+# LOKAL (auf deinem Mac), im Ordner frontend/
+mkdir -p .claude/skills
+cp -R node_modules/@web.awesome.me/webawesome-pro/dist/skills/webawesome .claude/skills/
+cp -R node_modules/@web.awesome.me/webawesome-pro/dist/skills/webawesome-design .claude/skills/
+```
+
+`skills-lock.json` bleibt versioniert: sie nennt nur Quellpfade und Prüfsummen, keine lizenzierten Inhalte, und sagt, woher die Skills kommen. Die Dateien bleiben in der Git-Historie; ob die Historie bereinigt wird, entscheidet Oliver nach Klärung der Lizenz.
 
 ## Befehle (im Ordner `frontend/`)
 

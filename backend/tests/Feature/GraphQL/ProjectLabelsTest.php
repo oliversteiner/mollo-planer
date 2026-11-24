@@ -236,8 +236,13 @@ class ProjectLabelsTest extends GraphQLTestCase
                 ['key' => 'research', 'name' => 'Recherche', 'position' => 2],
                 ['key' => 'design', 'name' => 'Design', 'position' => 3],
                 ['key' => 'feature', 'name' => 'Feature', 'position' => 4],
-                ['key' => 'planning', 'name' => 'Planung', 'position' => 5],
-                ['key' => 'blocked', 'name' => 'Blockiert', 'position' => 6],
+                ['key' => 'refactor', 'name' => 'Umbau', 'position' => 5],
+                ['key' => 'chore', 'name' => 'Pflege', 'position' => 6],
+                ['key' => 'docs', 'name' => 'Doku', 'position' => 7],
+                ['key' => 'test', 'name' => 'Tests', 'position' => 8],
+                ['key' => 'security', 'name' => 'Sicherheit', 'position' => 9],
+                ['key' => 'planning', 'name' => 'Planung', 'position' => 10],
+                ['key' => 'blocked', 'name' => 'Blockiert', 'position' => 11],
             ]);
         $this->assertSame($before + 1, $this->revision());
     }
@@ -257,9 +262,14 @@ class ProjectLabelsTest extends GraphQLTestCase
                 ['key' => 'design', 'name' => 'Design', 'position' => 1],
                 ['key' => 'feature', 'name' => 'Feature', 'position' => 2],
                 ['key' => 'bug', 'name' => 'Fehler', 'position' => 3],
-                ['key' => 'planning', 'name' => 'Planung', 'position' => 4],
-                ['key' => 'blocked', 'name' => 'Blockiert', 'position' => 5],
-                ['key' => 'eigen', 'name' => 'Eigenes, an einem Task', 'position' => 6],
+                ['key' => 'refactor', 'name' => 'Umbau', 'position' => 4],
+                ['key' => 'chore', 'name' => 'Pflege', 'position' => 5],
+                ['key' => 'docs', 'name' => 'Doku', 'position' => 6],
+                ['key' => 'test', 'name' => 'Tests', 'position' => 7],
+                ['key' => 'security', 'name' => 'Sicherheit', 'position' => 8],
+                ['key' => 'planning', 'name' => 'Planung', 'position' => 9],
+                ['key' => 'blocked', 'name' => 'Blockiert', 'position' => 10],
+                ['key' => 'eigen', 'name' => 'Eigenes, an einem Task', 'position' => 11],
             ]);
 
         // The label with the same key is the same label: the task keeps it. Unused labels are gone.

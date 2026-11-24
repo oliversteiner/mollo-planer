@@ -70,7 +70,19 @@
 }</code></pre>
               <p>Ersetze den Platzhalter lokal, sichere die Konfigurationsdatei und teile sie nie mit dem echten Token. Beende Claude Desktop vollständig und starte es neu, damit die Konfiguration geladen wird.</p>
               <h3>Claude Code</h3>
-              <p>Trage den Server auf der Kommandozeile ein und nimm das Token aus deiner Umgebung: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_TOKEN}'</code>. Lass die einfachen Anführungszeichen stehen: Claude Code liest die Variable beim Start, das Token landet also nicht in der Konfiguration. Setze <code>MOLLOPLANER_TOKEN</code> in deiner Umgebung (nicht in einer Datei unter Versionskontrolle) und starte Claude Code neu. Prüfen: <code>claude mcp list</code>.</p>
+              <p>Trage den Server in die <code>.mcp.json</code> des Projekts ein. Die Datei darf eingecheckt werden, weil sie nur den Namen einer Umgebungsvariable enthält, nie das Token. Nimm eine Variable je Konto: <code>MOLLOPLANER_&lt;NAME&gt;_TOKEN</code>, zum Beispiel <code>MOLLOPLANER_BOB_TOKEN</code> für den Agenten Bob.</p>
+              <pre><code>{
+  "mcpServers": {
+    "mollo-planer": {
+      "type": "http",
+      "url": "https://api.planer.mollo.dev/mcp",
+      "headers": { "Authorization": "Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}" }
+    }
+  }
+}</code></pre>
+              <p>Claude Code liest <code>${…}</code> in <code>url</code> und <code>headers</code> beim Start, das Token bleibt also in deiner Umgebung (nicht in einer Datei unter Versionskontrolle). Setze die Variable und starte Claude Code neu; prüfen mit <code>claude mcp list</code>. Nenne die Variable nicht wie die Zugangsdaten eines anderen Werkzeugs (<code>ANTHROPIC_API_KEY</code>, <code>NPM_TOKEN</code> …): Claude Code liest solche Namen in <code>headers</code> als leer. Ist ein <code>Authorization</code>-Header gesetzt, fällt Claude Code für diesen Server nicht auf OAuth zurück. Alternativ auf der Kommandozeile: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}'</code> (die einfachen Anführungszeichen stehen lassen).</p>
+              <h3>Custom Connector mit OAuth (Personen)</h3>
+              <p>Personen können Claude (Desktop oder claude.ai) ohne Token und ohne Node.js verbinden: Einstellungen → Connectors → einen <strong>Custom Connector</strong> mit der Adresse <code>https://api.planer.mollo.dev/mcp</code> hinzufügen. Claude findet die Anmeldung selbst, du bestätigst sie einmal, und Claude arbeitet danach mit <strong>deinen</strong> Rechten. Das gilt für die Konten von Personen. Ein Agent-Konto kann sich im Web nicht anmelden und nimmt das Token wie oben beschrieben.</p>
               <h3>JetBrains AI Assistant</h3>
               <p>Öffne Settings → Tools → AI Assistant → Model Context Protocol (MCP), wähle Add → As JSON und füge diese Konfiguration ein. Sie nutzt wie bei Claude Desktop <code>mcp-remote</code>; ersetze den Platzhalter lokal durch deinen Token. Unter Windows startet <code>npx</code> über <code>cmd /c</code>.</p>
               <pre><code>{
@@ -138,7 +150,7 @@
                 <span class="callout-symbol">!</span>
                 <p><strong>Status nie direkt setzen:</strong> Milestone- und ToDo-Status werden aus Tasks abgeleitet. Schreibe nur Task-Status wie <code>idea</code>, <code>planned</code>, <code>open</code>, <code>in_progress</code>, <code>review</code> oder <code>done</code>.</p>
               </div>
-              <p><code>update_tasks</code> ändert nur angegebene Felder; <code>commit: null</code> und <code>assigneeEmail: null</code> leeren die Werte. <code>partial</code> ergänzt oder ändert, löscht aber nichts. Der Trockenlauf ersetzt keine Rechteprüfung: der Server kontrolliert jedes konkrete Feld und jede Aktion erneut. Benachrichtigungen an Zugewiesene bleiben standardmässig aus; aktiviere sie nur, wenn der Auftrag es verlangt.</p>
+              <p><code>update_tasks</code> ändert nur angegebene Felder; <code>commit: null</code> und <code>assigneeEmail: null</code> leeren die Werte. <code>partial</code> ergänzt oder ändert, löscht aber nichts. Ein Titel (Milestone, ToDo, Task) hat 2 bis 160 Zeichen; ein längerer wird abgelehnt. Der Trockenlauf ersetzt keine Rechteprüfung: der Server kontrolliert jedes konkrete Feld und jede Aktion erneut. Benachrichtigungen an Zugewiesene bleiben standardmässig aus; aktiviere sie nur, wenn der Auftrag es verlangt.</p>
             </section>
 
             <section id="hilfe" class="guide-section">

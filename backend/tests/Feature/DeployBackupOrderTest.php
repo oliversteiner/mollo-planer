@@ -57,7 +57,7 @@ class DeployBackupOrderTest extends TestCase
         chmod($this->root.'/app/backend/storage/oauth-private.key', 0600);
         file_put_contents($this->root.'/app/backend/storage/oauth-public.key', 'public');
 
-        file_put_contents($this->root.'/bin/php', "#!/usr/bin/env bash\nexit 0\n");
+        file_put_contents($this->root.'/bin/php', "#!/usr/bin/env bash\necho \"\$*\" >> \"\$ROOT/php.log\"\nif [ \"\$MODE\" = rights-fail ] && [[ \"\$*\" == *--add-missing* ]]; then echo 'add-missing failed' >&2; exit 1; fi\nexit 0\n");
         chmod($this->root.'/bin/php', 0755);
         file_put_contents($this->root.'/bin/mysqldump', <<<'SH'
             #!/usr/bin/env bash
@@ -99,6 +99,34 @@ class DeployBackupOrderTest extends TestCase
         $this->assertStringContainsString('Migrationen ausführen', $result['output'], $result['output']);
         $this->assertNotEmpty(glob($this->root.'/backups/db/planer-*-'.$this->newCommit.'.sql.gz'), 'named after the commit that is deployed');
         $this->assertSame($this->newCommit, trim($this->git($this->root.'/app', 'rev-parse', '--short', 'HEAD')));
+    }
+
+    public function test_new_standard_rights_are_added_after_the_migration_and_before_the_caches(): void
+    {
+        $result = $this->deploy('ok');
+
+        $migrate = strpos($result['output'], 'Migrationen ausführen');
+        $rights = strpos($result['output'], 'Standardrechte ergänzen');
+        $caches = strpos($result['output'], 'Caches erzeugen');
+        $this->assertNotFalse($rights, $result['output']);
+        $this->assertTrue($migrate < $rights && $rights < $caches, $result['output']);
+
+        $calls = array_values(array_filter(explode("\n", (string) file_get_contents($this->root.'/php.log'))));
+        $positions = array_map(fn (string $needle): int|false => array_find_key($calls, fn (string $call): bool => str_contains($call, $needle)), ['migrate --force', 'permissions:sync-defaults --add-missing', 'config:cache']);
+        $this->assertTrue($positions[0] < $positions[1] && $positions[1] < $positions[2], implode("\n", $calls));
+        $this->assertStringNotContainsString('permissions:sync-defaults --add-missing --force', implode("\n", $calls), 'no question, no reset');
+    }
+
+    public function test_a_failing_add_missing_stops_the_deployment_and_lifts_the_maintenance_mode(): void
+    {
+        $result = $this->deploy('rights-fail');
+
+        $this->assertNotSame(0, $result['exit']);
+        $this->assertStringContainsString('Deployment fehlgeschlagen', $result['output']);
+        $this->assertStringNotContainsString('Caches erzeugen', $result['output']);
+        $this->assertStringNotContainsString('Frontend veröffentlichen', $result['output']);
+        $calls = array_values(array_filter(explode("\n", (string) file_get_contents($this->root.'/php.log'))));
+        $this->assertStringEndsWith('artisan up', end($calls), 'the site is not left in maintenance');
     }
 
     /** @return array{exit: int, output: string} */

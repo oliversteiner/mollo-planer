@@ -41,12 +41,27 @@ describe('static MCP guide', () => {
       expect(page).toContain('mcp-remote')
       expect(page).toContain('headers')
       expect(page).toContain('~/.junie/mcp/mcp.json')
-      expect(page).not.toMatch(/"Bearer (?!&lt;)/)
+      expect(page).not.toMatch(/"Bearer (?!(&lt;|\$\{))/)
     }
     expect(pages.de).toContain('Bearer &lt;dein-agent-token&gt;')
     expect(pages.en).toContain('Bearer &lt;your-agent-token&gt;')
     expect(pages.de).toContain('nie in die projektweite <code>.junie/mcp/mcp.json</code>')
     expect(pages.en).toContain('never in the project-wide <code>.junie/mcp/mcp.json</code>')
+  })
+
+  it('names OAuth, the token variable per account, the project .mcp.json and the title limit', () => {
+    for (const page of Object.values(pages)) {
+      expect(page).toContain('Custom Connector')
+      expect(page).toContain('MOLLOPLANER_&lt;NAME&gt;_TOKEN')
+      expect(page).toContain('"type": "http"')
+      expect(page).toContain('.mcp.json')
+      expect(page).toContain('160')
+      expect(page).not.toMatch(/"Bearer (?!(\$\{|&lt;))/)
+    }
+    expect(llms).toContain('Custom Connector')
+    expect(llms).toContain('MOLLOPLANER_<NAME>_TOKEN')
+    expect(llms).toContain('.mcp.json')
+    expect(llms).toContain('titles 2 to 160 characters')
   })
 
   it('links the language versions and uses a shared stylesheet without external assets', () => {
