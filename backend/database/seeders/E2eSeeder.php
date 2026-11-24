@@ -4,7 +4,10 @@ namespace Database\Seeders;
 
 use App\Enums\ProjectRole;
 use App\Enums\UserRole;
+use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Task;
+use App\Models\Todo;
 use App\Models\User;
 use App\Planer\TemplateSync;
 use App\Support\DeploymentEnvironment;
@@ -15,7 +18,7 @@ use RuntimeException;
 /**
  * The accounts of the browser tests (frontend/e2e): an admin and a member, both confirmed, approved and with an
  * authenticator app, and one project with both of them ("E2E Dokumente": the admin owns it, the member is in it;
- * for the tests of the documents). Password and authenticator secret come from the environment of the tests
+ * for the tests of the documents) and one with a task to drag ("E2E Zeitachse", the admin owns it). Password and authenticator secret come from the environment of the tests
  * (E2E_PASSWORD, E2E_TOTP_SECRET, E2E_RECOVERY_CODES in frontend/e2e/support/environment.ts), not from this code:
  * like the DemoSeeder, the seeder itself holds no known password. It refuses to run on a server (production or staging) and
  * without these values.
@@ -60,5 +63,14 @@ class E2eSeeder extends Seeder
             ->withMember($people['admin@e2e.test'], ProjectRole::OWNER)
             ->withMember($people['member@e2e.test'], ProjectRole::MEMBER)
             ->create(['name' => 'E2E Dokumente']);
+
+        // The timeline: two todos, one task in the first (for the test of the drag handle).
+        $timeline = Project::factory()
+            ->withMember($people['admin@e2e.test'], ProjectRole::OWNER)
+            ->create(['name' => 'E2E Zeitachse']);
+        $milestone = Milestone::factory()->for($timeline)->create(['title' => 'E2E Etappe']);
+        $source = Todo::factory()->for($milestone)->create(['title' => 'E2E Quelle']);
+        Todo::factory()->for($milestone)->create(['title' => 'E2E Ziel']);
+        Task::factory()->for($source)->create(['title' => 'E2E Beweglich']);
     }
 }

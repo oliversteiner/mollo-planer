@@ -304,7 +304,8 @@
       "milestoneActions": "Actions for milestone “{title}”",
       "todoActions": "Actions for todo “{title}”",
       "taskActions": "Actions for task “{title}”",
-      "openTask": "Open task “{title}”"
+      "openTask": "Open task “{title}”",
+      "moveTask": "Move task"
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}",
