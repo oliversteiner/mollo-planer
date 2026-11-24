@@ -2,7 +2,7 @@
 
 Planer: planer.mollo.dev · Projekt 2 «Mollo Planer» · ToDo `t-380` (Status der Teile dort nachführen).
 
-Status: umgesetzt auf Branch `feature/symbole-laden-neu` (neu von `origin/dev`, der alte Branch `feature/symbole-laden` bleibt unberührt), PR nach `dev`, nicht gemergt. A: `frontend/public/.htaccess` (mit lokalem Apache geprüft; nach dem Deploy `curl -sI` auf TEST, Oliver). B: Debounce 250 ms ab 2 Zeichen, Symbol erst wenn die Kachel sichtbar war, ein gemeinsamer Tooltip. C und D waren mit Auftrag 38 erledigt (`icons/<version>/…`, `scripts/icon-source.mjs`). Auftrag von Oliver über Stuart (2026-11-23). Branch von `dev` (`refactor/symbole-laden`), PR nach `dev`, nicht mergen.
+Status: umgesetzt auf Branch `feature/symbole-laden-neu`, PR #51 nach `dev`, nicht gemergt. Gemessen mit `frontend/e2e/icon-picker.spec.ts` (Auswahl öffnen, «sta», ganz nach unten; Anfragen auf `/icons/`): vorher (`origin/dev`) 344 bis 345, nachher 146 bis 147, je Ebene (Projekt, Meilenstein, ToDo, Task). Obergrenze im Test: 156 (Katalog, 35 Vorschläge, 120 Treffer). Browser-Check mit Screenshots hell und dunkel in allen vier Ebenen (Übersicht als private Artefakt-Seite, Link im PR). Ein Tooltip für alle Kacheln ist eine bewusste Abweichung (Kommentar in `Picker.vue`). Auftrag von Oliver über Stuart (2026-11-23). Branch von `dev` (`refactor/symbole-laden`), PR nach `dev`, nicht mergen.
 
 ## Ausgangslage (geprüft von Stuart am 2026-11-23 auf PROD)
 
@@ -50,3 +50,11 @@ Siehe `docs/starter-kit.md`. Kein Umzug bestehender Dateien. Aber: Quelle der SV
 ## Prüfen
 
 `npm run lint`, `npm run typecheck`, `npm test` (Frontend), die Browser-Tests der Seiten mit Auswahlfeld (Projekt, Meilenstein, Todo, Task). Ein Test für Debounce und das Nachladen sichtbarer Kacheln.
+
+## Nachträge (Review 24.11.)
+
+PR #51: A und B passen. Im selben PR, dann kann Oliver mergen:
+
+1. **Echte Messung statt Rechnung.** Playwright-Lauf unter `frontend/e2e` mit der bestehenden Anmeldung (`support/environment.ts`): Auswahlfeld öffnen, «sta» tippen, ganz nach unten scrollen; alle Anfragen auf die Symbol-Pfade zählen, auf `origin/dev` (vorher) und auf dem Branch (nachher). Gemessene Zahlen in die Tabelle im PR, die berechnete raus. Der Test bleibt als Wächter mit einer Obergrenze im Repo.
+2. **Browser-Check im selben Lauf.** Je ein Bildschirmfoto des Auswahlfelds in Projekt, Meilenstein, ToDo und Task, hell und dunkel, an den PR (nicht ins Repo).
+3. **Tooltip.** Ein Tooltip für alle Kacheln statt einer pro Kachel ist eine bewusste Abweichung (Leistung; jede Kachel behält ihr `aria-label`). Als Kommentar an die Stelle in `Picker.vue` schreiben. Prüfen lassen von einem Agenten, der den Code nicht geschrieben hat (`ui-consistency:verifying`, nur `Picker.vue`): Tooltip wandert mit dem Fokus (Tab), bleibt beim Scrollen nicht falsch stehen, Escape schliesst, hell und dunkel.

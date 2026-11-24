@@ -35,6 +35,8 @@ const { isSeen, track, reset } = useVisibleOnce(grid)
 
 const tip = ref<(HTMLElement & { for: string | null, open: boolean }) | null>(null)
 const tipText = ref('')
+/** The tile the tooltip belongs to, while it is open. */
+const tipTile = ref<HTMLElement | null>(null)
 
 watch(open, async (isOpen) => {
   if (!isOpen) {
@@ -71,13 +73,35 @@ function showTip(event: Event): void {
   }
 
   tipText.value = `${tile.dataset.label} (${tile.dataset.icon})`
+  tipTile.value = tile
   tip.value.for = tile.id
   tip.value.open = true
 }
 
 function hideTip(): void {
+  tipTile.value = null
   if (tip.value) {
     tip.value.open = false
+  }
+}
+
+/**
+ * The list scrolls: the tooltip stays with its tile (the popup follows the anchor) and closes only when the tile has left the
+ * visible part of the list. A focus that scrolls the list to its tile keeps the tooltip, as it should.
+ */
+function scrolled(): void {
+  const tile = tipTile.value
+  const list = grid.value
+
+  if (!tile || !list || !tip.value?.open) {
+    return
+  }
+
+  const box = tile.getBoundingClientRect()
+  const area = list.getBoundingClientRect()
+
+  if (box.top < area.top || box.bottom > area.bottom) {
+    hideTip()
   }
 }
 
@@ -156,7 +180,7 @@ function pointerLeft(): void {
           @focusin="showTip"
           @pointerleave="pointerLeft"
           @focusout="hideTip"
-          @scroll.passive="hideTip"
+          @scroll.passive="scrolled"
         >
           <li
             v-for="[name, label] in results"
@@ -188,6 +212,14 @@ function pointerLeft(): void {
             </wa-button>
           </li>
         </ul>
+        <!--
+          Deliberate deviation (review of Auftrag 36, Abnahme of PR #51): ONE tooltip for all tiles instead of one per tile.
+          A search can give 120 tiles, and 120 tooltip elements cost time on every search. Every tile keeps its own
+          aria-label (the label of the icon), so a screen reader and the focus name a tile without the tooltip. The tooltip
+          follows the hovered or focused tile (showTip) and closes on focus-out. Escape closes the tooltip first (wa-tooltip
+          handles it; the picker stays open, a second Escape closes it), and the tooltip stays with its tile while the list
+          scrolls (scrolled).
+        -->
         <wa-tooltip
           ref="tip"
           trigger="manual"

@@ -4,7 +4,10 @@ namespace Database\Seeders;
 
 use App\Enums\ProjectRole;
 use App\Enums\UserRole;
+use App\Models\Milestone;
 use App\Models\Project;
+use App\Models\Task;
+use App\Models\Todo;
 use App\Models\User;
 use App\Planer\TemplateSync;
 use App\Support\DeploymentEnvironment;
@@ -56,9 +59,15 @@ class E2eSeeder extends Seeder
             $people[$email] = $user;
         }
 
-        Project::factory()
+        $project = Project::factory()
             ->withMember($people['admin@e2e.test'], ProjectRole::OWNER)
             ->withMember($people['member@e2e.test'], ProjectRole::MEMBER)
             ->create(['name' => 'E2E Dokumente']);
+
+        // One milestone, todo and task, so the forms that pick an icon (Auftrag 36 B, frontend/e2e/icon-picker.spec.ts)
+        // can be opened in every place: the todo form needs a milestone.
+        $milestone = Milestone::factory()->for($project)->create(['title' => 'Symbole prüfen']);
+        $todo = Todo::factory()->for($milestone)->create(['title' => 'Auswahl testen']);
+        Task::factory()->for($todo)->create(['title' => 'Symbol wählen']);
     }
 }
