@@ -242,23 +242,53 @@ class DraftPlanTest extends GraphQLTestCase
         );
     }
 
-    public function test_the_prompt_lists_more_than_fifty_visible_projects(): void
+    public function test_the_prompt_lists_at_most_fifty_projects_the_most_recently_used_ones_and_says_there_are_more(): void
     {
-        $lastProject = null;
-
         foreach (range(1, 55) as $number) {
-            $lastProject = Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)
-                ->create(['name' => sprintf('zz sichtbares Projekt %02d', $number)]);
+            Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)
+                ->create(['name' => sprintf('zz sichtbares Projekt %02d', $number), 'updated_at' => now()->subMinutes(100 - $number)]);
         }
 
         $this->claude($this->answer());
 
         $this->draft('manager')->assertJsonMissingPath('errors');
 
-        $this->assertStringContainsString(
-            '"id":"'.$lastProject->id.'","name":"zz sichtbares Projekt 55","mayCreateMilestones":false,"mayCreateTodos":false,"mayCreateTasks":false',
-            $this->sent['system'],
-        );
+        $prompt = $this->sent['system'];
+        $this->assertSame(50, substr_count($prompt, '"mayCreateMilestones"'), 'the limit');
+        $this->assertStringContainsString('"name":"zz sichtbares Projekt 55"', $prompt, 'the most recently used stay');
+        $this->assertStringContainsString('"name":"zz sichtbares Projekt 08"', $prompt);
+        $this->assertStringNotContainsString('zz sichtbares Projekt 01"', $prompt, 'the least recently used are left out');
+        $this->assertStringContainsString('more projects exist that are not listed here', $prompt);
+    }
+
+    public function test_up_to_fifty_projects_are_all_listed_without_a_hint(): void
+    {
+        foreach (range(1, 5) as $number) {
+            Project::factory()->withMember($this->users['manager'], ProjectRole::GUEST)->create(['name' => "Projekt $number"]);
+        }
+        $this->claude($this->answer());
+
+        $this->draft('manager')->assertJsonMissingPath('errors');
+
+        $this->assertStringContainsString('All active projects visible to the person.', $this->sent['system']);
+        $this->assertStringNotContainsString('not listed here', $this->sent['system']);
+    }
+
+    public function test_the_number_of_queries_does_not_grow_with_the_number_of_visible_projects(): void
+    {
+        $this->claude($this->answer());
+        $this->draft('manager')->assertJsonMissingPath('errors');
+        DB::enableQueryLog();
+        $this->draft('manager')->assertJsonMissingPath('errors');
+        $few = count(DB::getQueryLog());
+
+        foreach (range(1, 30) as $number) {
+            Project::factory()->withMember($this->users['manager'], ProjectRole::MEMBER)->create(['name' => "Viele $number"]);
+        }
+        DB::flushQueryLog();
+        $this->draft('manager')->assertJsonMissingPath('errors');
+
+        $this->assertSame($few, count(DB::getQueryLog()));
     }
 
     public function test_a_visible_project_without_todo_creation_right_is_not_kept_as_a_project_choice(): void
