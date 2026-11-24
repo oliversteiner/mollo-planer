@@ -18,8 +18,8 @@ use Tests\McpTools;
  */
 class McpBudgetTest extends McpTestCase
 {
-    /** tools/list and instructions together. */
-    private const FIXED_CEILING = 11000;
+    /** tools/list and instructions together (11000 until Auftrag 49 D: account line, fields, title limit, links, import_plan parameter: about 150 tokens more, 250 at most). */
+    private const FIXED_CEILING = 11500;
 
     private const OUTLINE_CEILING = 6000;
 

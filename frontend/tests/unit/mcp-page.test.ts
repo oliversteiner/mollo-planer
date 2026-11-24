@@ -141,3 +141,18 @@ describe('MCP documentation for agents', () => {
     expect(pages.de).not.toContain('In diesem Repository ist der MCP-Server bereits')
   })
 })
+
+describe('format schema for agents', () => {
+  it('serves the schema of the spec unchanged (made by npm run mcp:schema, never edited by hand)', () => {
+    const served = readFileSync(fileURLToPath(new URL('../../public/mcp/format-v2.schema.json', import.meta.url)), 'utf8')
+    const spec = readFileSync(fileURLToPath(new URL('../../../spec/planer-v2.schema.json', import.meta.url)), 'utf8')
+
+    expect(served).toBe(spec)
+  })
+
+  it('is named by llms.txt and by both guides', () => {
+    expect(llms).toContain('/mcp/format-v2.schema.json')
+    expect(pages.de).toContain('/mcp/format-v2.schema.json')
+    expect(pages.en).toContain('/mcp/format-v2.schema.json')
+  })
+})

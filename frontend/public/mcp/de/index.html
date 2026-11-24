@@ -150,7 +150,7 @@
                 <span class="callout-symbol">!</span>
                 <p><strong>Status nie direkt setzen:</strong> Milestone- und ToDo-Status werden aus Tasks abgeleitet. Schreibe nur Task-Status wie <code>idea</code>, <code>planned</code>, <code>open</code>, <code>in_progress</code>, <code>review</code> oder <code>done</code>.</p>
               </div>
-              <p><code>update_tasks</code> ändert nur angegebene Felder; <code>commit: null</code> und <code>assigneeEmail: null</code> leeren die Werte. <code>partial</code> ergänzt oder ändert, löscht aber nichts. Ein Titel (Milestone, ToDo, Task) hat 2 bis 160 Zeichen; ein längerer wird abgelehnt. Der Trockenlauf ersetzt keine Rechteprüfung: der Server kontrolliert jedes konkrete Feld und jede Aktion erneut. Benachrichtigungen an Zugewiesene bleiben standardmässig aus; aktiviere sie nur, wenn der Auftrag es verlangt.</p>
+              <p><code>update_tasks</code> ändert nur angegebene Felder; <code>commit: null</code> und <code>assigneeEmail: null</code> leeren die Werte. <code>partial</code> ergänzt oder ändert, löscht aber nichts. Ein Titel (Milestone, ToDo, Task) hat 2 bis 160 Zeichen; ein längerer wird abgelehnt. Unbekannte Felder in einem Dokument werden ebenfalls abgelehnt, mit Pfad und Vorschlag; die Form beschreibt das <a href="/mcp/format-v2.schema.json">JSON-Schema</a> (auch in den Anweisungen verlinkt, die der Server mitschickt). Der Trockenlauf ersetzt keine Rechteprüfung: der Server kontrolliert jedes konkrete Feld und jede Aktion erneut. Benachrichtigungen an Zugewiesene bleiben standardmässig aus; aktiviere sie nur, wenn der Auftrag es verlangt.</p>
             </section>
 
             <section id="hilfe" class="guide-section">

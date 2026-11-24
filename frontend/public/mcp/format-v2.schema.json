@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mollo-planer:planer-v2",
+  "title": "Planer-Datei planer-v2",
+  "description": "Form der Datei <projekt>.planer.json (Format planer-v2). Das Schema prüft die Struktur, Typen und Grenzwerte. Eindeutigkeit der IDs, Verweise auf Mitglieder und Labels, Release- und Commit-Regeln prüft der Validator (P2). Siehe spec/format-v2.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "revision",
+    "project",
+    "milestones"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Hinweis für Editoren. Der Validator ignoriert das Feld und prüft immer gegen dieses Schema."
+    },
+    "format": {
+      "const": "planer-v2"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Stand der App beim letzten Export oder Import. Nur die App erhöht ihn (spec/format-v2.md, Abschnitt 5.2)."
+    },
+    "excerpt": {
+      "const": true,
+      "description": "Gesetzt, wenn die Datei nur einen Ausschnitt des Plans enthält (Export mit Filter). Die App lehnt eine solche Datei im Modus full ab, im Modus partial ist sie erlaubt. Fehlt das Feld, ist die Datei der ganze Plan."
+    },
+    "changed": {
+      "const": true,
+      "description": "Gesetzt, wenn die Datei lokal geändert wurde und noch nicht eingetragen ist. Fehlt das Feld, ist die Datei unverändert."
+    },
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "milestones": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/$defs/milestone"
+      }
+    }
+  },
+  "$defs": {
+    "title": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 160,
+      "description": "Klartext ohne Formatierung."
+    },
+    "markdown": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 5000,
+      "description": "Beschreibung in Markdown, erlaubt ist nur die Whitelist aus spec/format-v2.md, Abschnitt 6. Die Struktur prüft der Validator."
+    },
+    "dueDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "Fälligkeitsdatum als JJJJ-MM-TT."
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "role": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]{1,40}$",
+      "description": "Schlüssel einer Projektrolle der App (Standardrollen owner, manager, member, guest oder eigene Rollen). Ob es die Rolle gibt, prüft der Import."
+    },
+    "locale": {
+      "enum": [
+        "de",
+        "en"
+      ],
+      "description": "In der Datei groß. Die App speichert klein (de, en). Die Umwandlung ist Aufgabe von P6."
+    },
+    "id-milestone": {
+      "type": "string",
+      "pattern": "^m-(new-)?[0-9]+$"
+    },
+    "id-todo": {
+      "type": "string",
+      "pattern": "^t-(new-)?[0-9]+$"
+    },
+    "id-task": {
+      "type": "string",
+      "pattern": "^k-(new-)?[0-9]+$"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "locale",
+        "members"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "locale": {
+          "$ref": "#/$defs/locale"
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "labels": {
+          "type": "array",
+          "maxItems": 30,
+          "description": "Labels des Projekts. Reihenfolge = Array-Reihenfolge. Die Tasks verweisen über ihre Schlüssel darauf.",
+          "items": {
+            "$ref": "#/$defs/label"
+          }
+        }
+      }
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "email",
+        "role"
+      ],
+      "properties": {
+        "email": {
+          "$ref": "#/$defs/email"
+        },
+        "role": {
+          "$ref": "#/$defs/role"
+        }
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "todos"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id-milestone"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "dueDate": {
+          "$ref": "#/$defs/dueDate"
+        },
+        "release": {
+          "$ref": "#/$defs/release"
+        },
+        "todos": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/todo"
+          }
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "description": "Nur auf Milestones. Fehlt das Feld, hat der Milestone keine Version.",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "status"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$",
+          "description": "M.m, ganze Zahlen, keine Patch-Stufe."
+        },
+        "status": {
+          "enum": [
+            "planned",
+            "released"
+          ]
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "Veröffentlichungsdatum als JJJJ-MM-TT. Immer optional; bei status released gibt der Validator einen Hinweis, wenn es fehlt. Bei planned gibt es kein Datum."
+        }
+      }
+    },
+    "todo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "tasks"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id-todo"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "dueDate": {
+          "$ref": "#/$defs/dueDate"
+        },
+        "tasks": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/task"
+          }
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id-task"
+        },
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "description": {
+          "$ref": "#/$defs/markdown"
+        },
+        "dueDate": {
+          "$ref": "#/$defs/dueDate"
+        },
+        "status": {
+          "enum": [
+            "idea",
+            "planned",
+            "open",
+            "in_progress",
+            "review",
+            "done"
+          ],
+          "description": "Spalten des Kanban-Boards (Enum TaskStatus). Markierungen: [i] idea, [p] planned, [ ] open, [~] in_progress, [?] review, [x] done."
+        },
+        "assigneeEmail": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "email",
+          "description": "E-Mail eines Mitglieds aus members. Der Validator prüft die Zugehörigkeit."
+        },
+        "labels": {
+          "type": "array",
+          "description": "Schlüssel aus project.labels. Der Validator prüft die Zugehörigkeit.",
+          "items": {
+            "$ref": "#/$defs/label-key"
+          }
+        },
+        "commit": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "const": "none"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{7,40}$"
+            }
+          ],
+          "description": "Hash (7 bis 40 Zeichen, Kleinbuchstaben), \"none\" für erledigte Tasks im Altbestand, oder null (kein Commit eingetragen). Die Regeln zu \"none\" und zur Commit-Pflicht prüft der Validator."
+        },
+        "userStory": {
+          "$ref": "#/$defs/userStory"
+        }
+      }
+    },
+    "userStory": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Optional. Ist das Feld gesetzt, sind role, goal und benefit alle Pflicht. Klartext ohne Formatierung.",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "goal",
+        "benefit"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "goal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "benefit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      }
+    },
+    "label-key": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]{1,40}$",
+      "description": "Schlüssel eines Labels: a-z, 0-9, _ und -, 1 bis 40 Zeichen. Stabiler Bezug aus den Tasks."
+    },
+    "label": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "names",
+        "color"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/label-key"
+        },
+        "names": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "description": "Namen je Sprache (de, en). Pflicht ist der Name in der Sprache des Projekts (§5.2).",
+          "properties": {
+            "de": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "en": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            }
+          }
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "color": {
+          "enum": [
+            "gray",
+            "red",
+            "orange",
+            "yellow",
+            "green",
+            "cyan",
+            "blue",
+            "indigo",
+            "purple",
+            "pink"
+          ],
+          "description": "Einer der zehn Töne der App."
+        }
+      }
+    }
+  }
+}
