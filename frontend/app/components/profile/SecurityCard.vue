@@ -204,6 +204,7 @@ async function onTwoFactorDone(): Promise<void> {
       :title="confirming?.kind === 'passkey' ? t('security.passkeys.removeTitle', { name: confirming.name }) : t('security.twoFactor.removeTitle')"
       :description="t('security.removeDescription') + lastFactorWarning"
       :confirm-label="t('common.delete')"
+      requires-password
       :action="confirmRemoval"
       @close="confirming = null"
     />

@@ -3,15 +3,16 @@ import { useMutation, useQuery } from '@vue/apollo-composable'
 import type { AdminUsersQuery } from '~/graphql/generated/graphql'
 import { agentProjectsQuery, createAgentTokenMutation, revokeAgentTokenMutation } from '~/graphql/admin'
 import { removeProjectMemberMutation, setProjectMemberMutation } from '~/graphql/settings'
-import { agentAccessState } from '~/utils/agent-access'
+import { classifyApolloError } from '~/utils/api'
+import { agentAccessState, defaultAccessName } from '~/utils/agent-access'
 import { formatDateTime } from '~/utils/dates'
 import { assignableRoles } from '~/utils/role-rights'
 
 /**
  * Access and projects of an agent account (docs/verwaltung-agenten-anfasser.md §3.3): what an agent is, the steps to
  * set it up (with their state), its accesses (a new token is shown once, in this dialog) and the projects it works in.
- * Confirmations (password, revoke, remove) hide this dialog while they are open and bring it back afterwards, so
- * there are never two dialogs on top of each other.
+ * Questions (revoke, remove) and the password confirmation happen inside this dialog, in the row or above the button
+ * (Auftrag 55, rule R11): there is never a second dialog on top of it.
  */
 type User = AdminUsersQuery['users'][number]
 
@@ -26,9 +27,6 @@ const { t, localeProperties, locale } = useI18n()
 const language = computed(() => localeProperties.value.language ?? 'de-CH')
 const roleName = useRoleName()
 const toast = useToast()
-const { ensurePasswordConfirmed } = useSecurity()
-/** The prompt for the password is a dialog of its own: this one steps aside only while it is really shown. */
-const { open: promptOpen } = usePasswordPrompt()
 const apiBase = useApiBase()
 
 const options = { refetchQueries: 'active' as const, awaitRefetchQueries: true }
@@ -43,41 +41,67 @@ const guideUrl = computed(() => (locale.value === 'en' ? '/mcp/' : '/mcp/de/'))
 // ─── Accesses ────────────────────────────────────────────────────
 
 const accessName = ref('')
+const nameTouched = ref(false)
+const nameError = ref('')
 const created = ref<string | null>(null)
 const revoking = ref<{ tokenId: string, name: string } | null>(null)
 const { errors, run } = useGraphqlForm()
+const createStep = usePasswordStep()
+const revokeStep = usePasswordStep()
 
 const state = computed(() => agentAccessState(props.agent?.apiTokens))
 
+/** The name of a new access: the variable the token goes into, changeable (Auftrag 55 D). */
+const suggestedName = computed(() => defaultAccessName(props.agent?.name ?? '', (props.agent?.apiTokens ?? []).map(token => token.name)))
+
+watch(suggestedName, (name) => {
+  if (!nameTouched.value) {
+    accessName.value = name
+  }
+}, { immediate: true })
+
+function onName(value: string): void {
+  accessName.value = value
+  nameTouched.value = true
+  nameError.value = ''
+}
+
+/** Something is being made or revoked: closing would lose the answer (a token is shown once). */
+const busy = computed(() => createStep.working || createStep.checking || revokeStep.working || revokeStep.checking)
+
 /**
- * One access at a time, from the click to the answer (password prompt included): a second click must not make a second
+ * One access at a time, from the click to the answer (password field included): a second click must not make a second
  * token that nobody sees. A token on screen is not replaced either: first «Fertig», then the next one (Auftrag 52).
  */
-const busy = ref(false)
-
 async function createAccess(): Promise<void> {
   const agent = props.agent
 
-  if (!agent || busy.value || created.value !== null) {
+  if (!agent || createStep.working || created.value !== null) {
     return
   }
 
-  busy.value = true
+  if (!accessName.value.trim()) {
+    nameError.value = t('admin.users.agent.nameMissing')
 
-  try {
-    if (!await ensurePasswordConfirmed()) {
-      return
-    }
+    return
+  }
+  nameError.value = ''
+
+  await createStep.run(async () => {
     const result = await run(() => createAgentToken({ userId: agent.id, name: accessName.value.trim() }))
+
+    // The confirmation ran out meanwhile: the step asks again and keeps what is typed here.
+    if (errors.value.password) {
+      return NEEDS_PASSWORD
+    }
     const token = result?.data?.createAgentToken
 
     if (token) {
       created.value = token.plainTextToken
-      accessName.value = ''
+      nameTouched.value = false
+      accessName.value = suggestedName.value
     }
-  } finally {
-    busy.value = false
-  }
+  })
 }
 
 async function copy(text: string): Promise<void> {
@@ -85,19 +109,36 @@ async function copy(text: string): Promise<void> {
   toast.add({ title: t('claude.copied'), color: 'success' })
 }
 
+function askRevoke(token: { id: string, name: string }): void {
+  removing.value = null
+  revokeStep.cancel()
+  revoking.value = { tokenId: token.id, name: token.name }
+}
+
+function cancelRevoke(): void {
+  revoking.value = null
+  revokeStep.cancel()
+}
+
+/** The question of the row was answered with «Widerrufen»: asks for the password in the row first, if needed. */
 async function confirmRevoke(): Promise<void> {
   const target = revoking.value
+  const agent = props.agent
 
-  if (!target || !props.agent) {
+  if (!target || !agent || revokeStep.working) {
     return
   }
 
-  // A cancelled password prompt leaves the question open instead of closing it as if the access were revoked.
-  if (!await ensurePasswordConfirmed()) {
-    throw new Error('password confirmation cancelled')
-  }
-  await revokeAgentToken({ userId: props.agent.id, tokenId: target.tokenId })
-  toast.add({ title: t('admin.users.agent.revoked'), color: 'success' })
+  await revokeStep.run(async () => {
+    try {
+      await revokeAgentToken({ userId: agent.id, tokenId: target.tokenId })
+    } catch (failure) {
+      // Without a recent confirmation the server asks for it: the row shows the field. Anything else is reported.
+      return classifyApolloError(failure).fields.password ? NEEDS_PASSWORD : undefined
+    }
+    toast.add({ title: t('admin.users.agent.revoked'), color: 'success' })
+    revoking.value = null
+  })
 }
 
 // ─── Projects (loaded when the dialog opens) ─────────────────────
@@ -156,10 +197,21 @@ async function assign(): Promise<void> {
   }
 }
 
+function askRemove(entry: { projectId: string, name: string }): void {
+  cancelRevoke()
+  removing.value = entry
+}
+
 async function confirmRemove(): Promise<void> {
   if (removing.value && props.agent) {
-    await removeMember({ projectId: removing.value.projectId, userId: props.agent.id })
+    try {
+      await removeMember({ projectId: removing.value.projectId, userId: props.agent.id })
+    } catch {
+      // Reported by the api plugin; the question stays.
+      return
+    }
     toast.add({ title: t('settings.members.removed'), color: 'success' })
+    removing.value = null
   }
 }
 
@@ -173,17 +225,30 @@ const steps = computed(() => [
   { key: 'project', done: memberships.value.length > 0 }
 ])
 
-/** Hidden while another dialog asks something (password, revoke, remove); it comes back afterwards. */
-const stepsAside = computed(() => promptOpen.value || revoking.value !== null || removing.value !== null)
-const visible = computed(() => props.agent !== null && !stepsAside.value)
+const visible = computed(() => props.agent !== null)
 
 /**
- * Closing counts only as the person's wish: not while the dialog steps aside, and not while an access is being made
- * (its token would be lost). `created` is cleared only here or by «Fertig».
+ * Closing is the person's wish (close button, Escape, «Fertig»), but not while an access is being made or revoked: its
+ * token would be lost. `created` is cleared only here or by «Fertig».
  */
+/**
+ * wa-dialog closes itself when it is told to (Escape, the X): while something is being made it must not, or the dialog
+ * would be gone with the token in it. Cancelling the event keeps it open (it pulses once).
+ */
+function keepOpenWhileBusy(event: Event): void {
+  // `visible` is false when the page itself closes the dialog: then it goes.
+  if (visible.value && busy.value && event.target === event.currentTarget) {
+    event.preventDefault()
+  }
+}
+
 function onOpenChange(open: boolean): void {
-  if (!open && props.agent && !stepsAside.value && !busy.value) {
+  if (!open && props.agent && !busy.value) {
     created.value = null
+    revoking.value = null
+    removing.value = null
+    createStep.cancel()
+    revokeStep.cancel()
     emit('close')
   }
 }
@@ -195,6 +260,7 @@ function onOpenChange(open: boolean): void {
       :open="visible"
       :label="t('admin.users.access.title', { agent: agent?.name ?? '' })"
       class="access-dialog"
+      @wa-hide="keepOpenWhileBusy"
       @update:open="onOpenChange"
     >
       <div class="wa-stack wa-gap-l">
@@ -305,6 +371,7 @@ function onOpenChange(open: boolean): void {
               v-for="token in agent.apiTokens"
               :key="token.id"
               class="access-row"
+              :data-asking="revoking?.tokenId === token.id ? '' : undefined"
             >
               <wa-icon
                 name="key"
@@ -318,14 +385,48 @@ function onOpenChange(open: boolean): void {
                 </span>
               </span>
               <wa-button
+                v-if="revoking?.tokenId !== token.id"
                 appearance="plain"
                 variant="neutral"
                 size="s"
                 :aria-label="t('admin.users.agent.revoke', { name: token.name })"
-                @click="revoking = { tokenId: token.id, name: token.name }"
+                @click="askRevoke(token)"
               >
                 <wa-icon name="trash"></wa-icon>
               </wa-button>
+              <div
+                v-else
+                class="access-question wa-stack wa-gap-s"
+                role="group"
+                :aria-label="t('admin.users.agent.revokeTitle', { name: token.name })"
+              >
+                <strong>{{ t('admin.users.agent.revokeTitle', { name: token.name }) }}</strong>
+                <p class="access-sub">
+                  {{ t('admin.users.agent.revokeDescription', { agent: agent.name }) }}
+                </p>
+                <PasswordConfirmField :step="revokeStep" />
+                <div
+                  v-if="!revokeStep.waiting"
+                  class="wa-cluster wa-gap-s"
+                >
+                  <wa-button
+                    variant="danger"
+                    size="s"
+                    :loading="revokeStep.working"
+                    @click="confirmRevoke"
+                  >
+                    {{ t('admin.users.agent.revokeConfirm') }}
+                  </wa-button>
+                  <wa-button
+                    appearance="plain"
+                    variant="neutral"
+                    size="s"
+                    @click="cancelRevoke"
+                  >
+                    {{ t('common.cancel') }}
+                  </wa-button>
+                </div>
+              </div>
             </li>
           </ul>
           <p
@@ -336,22 +437,24 @@ function onOpenChange(open: boolean): void {
           </p>
 
           <form
-            class="access-form"
+            class="access-form access-form-name"
             @submit.prevent="createAccess"
           >
             <FormInput
-              v-model="accessName"
+              :model-value="accessName"
               class="access-form-input"
+              name="access-name"
               :label="t('admin.users.agent.name')"
-              :hint="t('admin.users.agent.nameHint', { agent: agent?.name ?? '' })"
-              :error="errors.name ?? errors.password ?? errors.userId"
+              :hint="t('admin.users.agent.nameHint')"
+              :error="nameError || errors.name || errors.userId"
               maxlength="60"
+              @update:model-value="onName"
             />
             <wa-button
               type="submit"
               variant="brand"
-              :loading="busy"
-              :disabled="created !== null"
+              :loading="createStep.working"
+              :disabled="created !== null || createStep.waiting"
             >
               <wa-icon
                 slot="start"
@@ -360,6 +463,7 @@ function onOpenChange(open: boolean): void {
               {{ t('admin.users.agent.create') }}
             </wa-button>
           </form>
+          <PasswordConfirmField :step="createStep" />
           <p class="access-sub">
             {{ t('admin.users.agent.cli') }}
           </p>
@@ -392,15 +496,43 @@ function onOpenChange(open: boolean): void {
                 {{ roleName(entry.role) }}
               </wa-badge>
               <wa-button
-                v-if="canManage(entry.project)"
+                v-if="canManage(entry.project) && removing?.projectId !== entry.project.id"
                 appearance="plain"
                 variant="neutral"
                 size="s"
                 :aria-label="t('admin.users.access.removeFrom', { project: entry.project.name })"
-                @click="removing = { projectId: entry.project.id, name: entry.project.name }"
+                @click="askRemove({ projectId: entry.project.id, name: entry.project.name })"
               >
                 <wa-icon name="user-minus"></wa-icon>
               </wa-button>
+              <div
+                v-if="removing?.projectId === entry.project.id"
+                class="access-question wa-stack wa-gap-s"
+                role="group"
+                :aria-label="t('settings.members.removeTitle', { name: agent?.name ?? '' })"
+              >
+                <strong>{{ t('settings.members.removeTitle', { name: agent?.name ?? '' }) }}</strong>
+                <p class="access-sub">
+                  {{ t('settings.members.removeDescription') }}
+                </p>
+                <div class="wa-cluster wa-gap-s">
+                  <wa-button
+                    variant="danger"
+                    size="s"
+                    @click="confirmRemove"
+                  >
+                    {{ t('settings.members.removeConfirm') }}
+                  </wa-button>
+                  <wa-button
+                    appearance="plain"
+                    variant="neutral"
+                    size="s"
+                    @click="removing = null"
+                  >
+                    {{ t('common.cancel') }}
+                  </wa-button>
+                </div>
+              </div>
             </li>
           </ul>
           <p
@@ -454,23 +586,6 @@ function onOpenChange(open: boolean): void {
         </wa-button>
       </template>
     </AppDialog>
-
-    <ConfirmModal
-      :open="revoking !== null"
-      :title="t('admin.users.agent.revokeTitle', { name: revoking?.name ?? '' })"
-      :description="t('admin.users.agent.revokeDescription', { agent: agent?.name ?? '' })"
-      :confirm-label="t('admin.users.agent.revokeConfirm')"
-      :action="confirmRevoke"
-      @close="revoking = null"
-    />
-    <ConfirmModal
-      :open="removing !== null"
-      :title="t('settings.members.removeTitle', { name: agent?.name ?? '' })"
-      :description="t('settings.members.removeDescription')"
-      :confirm-label="t('settings.members.removeConfirm')"
-      :action="confirmRemove"
-      @close="removing = null"
-    />
   </div>
 </template>
 
@@ -575,6 +690,11 @@ function onOpenChange(open: boolean): void {
   font-size: var(--wa-font-size-xs);
 }
 
+.access-question {
+  flex-basis: 100%;
+  padding-block-start: var(--wa-space-xs);
+}
+
 .access-form {
   display: flex;
   flex-wrap: wrap;
@@ -585,5 +705,10 @@ function onOpenChange(open: boolean): void {
 .access-form-input {
   flex: 1;
   min-inline-size: 12rem;
+}
+
+/* The suggested name is long (MOLLOPLANER_<AGENT>_TOKEN): the field has the whole width, the button goes below it. */
+.access-form-name .access-form-input {
+  flex-basis: 100%;
 }
 </style>

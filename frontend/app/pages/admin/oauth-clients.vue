@@ -11,7 +11,6 @@ import { formatDateTime } from '~/utils/dates'
  */
 const { t, locale } = useI18n()
 const toast = useToast()
-const { ensurePasswordConfirmed } = useSecurity()
 
 useHead({ title: () => t('admin.oauthClients.title') })
 
@@ -47,10 +46,7 @@ async function confirmRevoke(): Promise<void> {
     return
   }
 
-  // A cancelled password prompt leaves the question open instead of closing it as if the client were revoked.
-  if (!await ensurePasswordConfirmed()) {
-    throw new Error('password confirmation cancelled')
-  }
+  // The password is asked for in the dialog of the question (ConfirmModal requires-password).
   await revokeClient({ id: target.id })
   toast.add({ title: t('admin.oauthClients.revoked', { name: target.name }), color: 'success' })
 }
@@ -190,6 +186,7 @@ function actions(client: Client): ActionMenuItem[][] {
       :title="t('admin.oauthClients.revokeTitle', { name: revoking?.name ?? '' })"
       :description="t('admin.oauthClients.revokeDescription')"
       :confirm-label="t('admin.oauthClients.revokeConfirm')"
+      requires-password
       :action="confirmRevoke"
       @close="revoking = null"
     />

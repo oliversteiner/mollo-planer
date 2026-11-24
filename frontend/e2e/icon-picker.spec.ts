@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import type { Page, Request } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { SUGGESTED_ICONS } from '../app/utils/icon-search'
-import { enterCode, freshTotp, login, PASSWORD, resetThrottles, TOTP_SECRET, unexpected, watch } from './support/helpers'
+import { enterCode, expectAtMostOneDialog, freshTotp, login, PASSWORD, resetThrottles, TOTP_SECRET, unexpected, watch } from './support/helpers'
 
 /**
  * The icon picker (Auftrag 36) in the four places where it is used: project settings, milestone, todo and task form.
@@ -15,6 +15,8 @@ import { enterCode, freshTotp, login, PASSWORD, resetThrottles, TOTP_SECRET, une
  *   branch ("nachher"). The guard (the upper limit ICON_REQUEST_CAP) is checked after the numbers are written.
  * - the SCREENSHOTS in light and dark (SCREENSHOTS_DIR), for the pull request, never for the repository.
  * The tooltip test checks what the code of Picker.vue promises: it follows the focus, closes when the list scrolls, and Escape.
+ * The picker is a panel inside the form, not a second dialog on top of the dialog of the form (Auftrag 55, rule R11): the
+ * forms of milestone, todo and task are dialogs, and after opening the picker at most one dialog is open.
  */
 
 /**
@@ -89,11 +91,12 @@ const PLACES: { place: string, open: (page: Page, id: string) => Promise<void> }
 async function openPicker(page: Page): Promise<void> {
   await page.locator('wa-button[aria-label="Icon wählen"]').first().click()
   await expect(page.locator('.icon-picker-grid').first()).toBeVisible()
+  await expectAtMostOneDialog(page)
 }
 
-/** The search field of the picker: the one in the dialog that opened last (the page may have search fields of its own). */
+/** The search field of the picker: the one in its panel (the page may have search fields of its own). */
 function pickerSearch(page: Page) {
-  return page.locator('wa-dialog[open]').last().locator('wa-input[type="search"]')
+  return page.locator('.icon-picker-panel wa-input[type="search"]')
 }
 
 async function typeSearch(page: Page, text: string): Promise<void> {
@@ -191,7 +194,7 @@ test.describe('tooltip of the picker', () => {
       return tile ? { icon: tile.dataset.icon, label: tile.dataset.label, id: tile.id } : null
     })
     const tip = () => page.evaluate(() => {
-      const element = document.querySelector('wa-dialog[open] wa-tooltip') as (HTMLElement & { for: string | null, open: boolean }) | null
+      const element = document.querySelector('.icon-picker-panel wa-tooltip') as (HTMLElement & { for: string | null, open: boolean }) | null
 
       return element ? { open: element.open, for: element.for, text: element.textContent?.trim() ?? '' } : null
     })
@@ -233,3 +236,42 @@ test.describe('tooltip of the picker', () => {
 async function openProjectSettings(page: Page, id: string): Promise<void> {
   await PLACES[0]!.open(page, id)
 }
+
+test.describe('picker in the dialog of a form', () => {
+  test('is a panel in the form: one dialog, Escape closes the panel and not the dialog, the choice comes back to the form', async ({ page }) => {
+    test.setTimeout(240_000)
+    const problems = watch(page)
+    const id = await signIn(page)
+    await PLACES[3]!.open(page, id)
+    await expectAtMostOneDialog(page)
+
+    const dialog = page.locator('wa-dialog[open]')
+    await openPicker(page)
+    await expect(dialog).toHaveCount(1)
+    await expect(page.locator('.icon-picker-panel')).toBeVisible()
+    await expect(dialog.locator('.icon-picker-panel')).toHaveCount(1)
+
+    // The search has the focus at once; Escape closes the panel, the dialog of the form stays.
+    await expect(pickerSearch(page)).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.icon-picker-panel')).toBeHidden()
+    await expect(dialog).toHaveCount(1)
+    await expect(page.locator('wa-button[aria-label="Icon wählen"]').first()).toBeFocused()
+
+    // A choice: the button of the form shows it, the panel is gone, still one dialog.
+    await openPicker(page)
+    await typeSearch(page, 'star')
+    await expect(page.locator('.icon-picker-count').first()).toContainText('Treffer')
+    await page.locator('.icon-picker-choice').first().click()
+    await expect(page.locator('.icon-picker-panel')).toBeHidden()
+    await expect(page.locator('wa-button[aria-label="Icon entfernen"]')).toBeVisible()
+    await expectAtMostOneDialog(page)
+    await screenshot(page, 'task-form-with-picker-choice')
+
+    // Escape with the panel closed closes the dialog of the form.
+    await page.keyboard.press('Escape')
+    await expect(page.locator('wa-dialog[open]')).toHaveCount(0)
+
+    expect(unexpected(problems)).toEqual([])
+  })
+})

@@ -22,20 +22,6 @@ function onHide(event: Event) {
     open.value = false
   }
 }
-
-/**
- * wa-dialog closes itself only after its hide animation, also when the parent wanted it open again in the meantime
- * (hidden for a moment, for example while a password prompt asked and answered at once): it then closed although
- * `open` is true, and showed nothing (Auftrag 52). After hiding it follows `open` again. For a dialog that was really
- * closed, `open` is false here and nothing happens.
- */
-function onAfterHide(event: Event) {
-  const element = event.currentTarget as (HTMLElement & { open: boolean }) | null
-
-  if (event.target === element && element && open.value && !element.open) {
-    element.open = true
-  }
-}
 </script>
 
 <template>
@@ -44,7 +30,6 @@ function onAfterHide(event: Event) {
     :label="label"
     :light-dismiss="lightDismiss"
     @wa-hide="onHide"
-    @wa-after-hide="onAfterHide"
   >
     <p
       v-if="description"

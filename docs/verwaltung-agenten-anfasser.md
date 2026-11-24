@@ -69,7 +69,7 @@ Eigene Komponente (Vorschlag `components/admin/AgentAccessDialog.vue`), `AppDial
 5. Hinweis auf die CLI (`app:user-token`) bleibt als kleine Zeile.
 
 Edge Cases:
-- Passwortbestätigung (`ensurePasswordConfirmed`) öffnet heute einen eigenen Dialog. Aus dem Zugangs-Dialog heraus wären das zwei Dialoge übereinander: prüfen, ob `wa-dialog` das sauber kann (Fokus, Escape, Hintergrund). Wenn nicht: Zugangs-Dialog für die Dauer der Bestätigung schliessen und danach im selben Zustand wieder öffnen. Abbruch der Bestätigung lässt alles, wie es war.
+- **Geändert durch Auftrag 55 (Regel R11, kein Dialog über Dialog):** Die Passwortbestätigung ist ein Feld im Zugangs-Dialog (`PasswordConfirmField`, `usePasswordStep`), kein eigener Dialog. Die Rückfragen zum Widerrufen und Entfernen stehen in der Zeile. Das Aus- und Einblenden des Dialogs, das hier zuerst vorgesehen war, ist entfallen. Abbruch der Bestätigung lässt alles, wie es war.
 - Schliessen, solange ein neuer Token sichtbar ist: nur über «Fertig» oder Escape mit dem bestehenden Verhalten; kein versehentliches Schliessen per Klick daneben, wenn `AppDialog` das hergibt.
 - Agent in einem Projekt, das die Person nicht sieht: erscheint nicht (bestehende Sichtbarkeit), darunter kein Hinweis auf dessen Existenz.
 - Grenze 50 Mitglieder je Projekt, Archiv, fehlendes Recht: die Meldung des Servers erscheint am Formular.
@@ -78,7 +78,7 @@ Edge Cases:
 ### 3.4 Agent anlegen
 
 - Knopf «Agent anlegen» (Seitenaktion und im leeren Abschnitt), Befehl in der Palette wie bei `users-invite`.
-- Dialog: Name, E-Mail (Hinweis: «Es wird keine Mail verschickt, ein Postfach ist nicht nötig»). Nach dem Anlegen öffnet sich direkt der Zugangs-Dialog des neuen Agenten.
+- Dialog: Name, E-Mail (Hinweis: «Es wird keine Mail verschickt, ein Postfach ist nicht nötig»). Nach dem Anlegen schliesst der Dialog und öffnet **nichts** (Auftrag 55: zwei Schritte). Die neue Zeile ist kurz hervorgehoben, «Zugang einrichten» hat den Fokus. Das Passwort wird bei Bedarf als Feld im Dialog gefragt.
 
 ### 3.5 Zeitachse: Anfasser
 

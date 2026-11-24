@@ -8,7 +8,8 @@ import { readPlanerFile, type PlanerDocument } from '~/utils/planer'
  * a dry run shows what would happen (the tree with marks, the changes, the
  * errors with their place), then "Import". Without a project id the file
  * becomes a new project. Everything the server rejects is shown with its path;
- * nothing is written before the person confirms, and a deletion is named.
+ * nothing is written before the person confirms, and a deletion is named: that
+ * question is a step of this dialog, not a second dialog (Auftrag 55, rule R11).
  */
 const props = defineProps<{
   /** The project the file goes into; without: a new project. */
@@ -33,6 +34,7 @@ const mode = ref<'FULL' | 'PARTIAL'>('FULL')
 const result = ref<Result | null>(null)
 const checking = ref(false)
 const confirmingDeletion = ref(false)
+const importing = ref(false)
 
 const { mutate } = useProjectMutation(importPlanMutation)
 
@@ -114,10 +116,25 @@ watch(mode, () => {
 })
 
 async function run(): Promise<void> {
-  const imported = await send(false)
+  if (importing.value) {
+    return
+  }
+
+  importing.value = true
+  let imported: Result | null
+
+  try {
+    imported = await send(false)
+  } catch {
+    // Reported by the api plugin; the question stays so the person can go back or try again.
+    return
+  } finally {
+    importing.value = false
+  }
 
   if (!imported?.ok) {
     result.value = imported
+    confirmingDeletion.value = false
 
     return
   }
@@ -152,7 +169,17 @@ function submit(): Promise<void> | void {
     :label="projectId ? t('planer.import.title') : t('planer.import.titleNew')"
     :description="projectId ? t('planer.import.intro') : t('planer.import.introNew')"
   >
-    <div class="wa-stack wa-gap-m">
+    <AppCallout
+      v-if="confirmingDeletion"
+      variant="warning"
+      :title="t('planer.import.confirmTitle')"
+      :description="t('planer.import.confirmDescription', deletions.length)"
+    />
+
+    <div
+      v-show="!confirmingDeletion"
+      class="wa-stack wa-gap-m"
+    >
       <div class="wa-cluster wa-gap-s">
         <wa-button
           appearance="outlined"
@@ -252,31 +279,42 @@ function submit(): Promise<void> | void {
     </div>
 
     <template #footer>
-      <wa-button
-        appearance="plain"
-        variant="neutral"
-        @click="open = false"
-      >
-        {{ t('common.cancel') }}
-      </wa-button>
-      <wa-button
-        variant="brand"
-        :disabled="!canImport || checking"
-        @click="submit"
-      >
-        {{ t('planer.import.submit') }}
-      </wa-button>
+      <template v-if="confirmingDeletion">
+        <wa-button
+          appearance="plain"
+          variant="neutral"
+          :disabled="importing"
+          @click="confirmingDeletion = false"
+        >
+          {{ t('common.back') }}
+        </wa-button>
+        <wa-button
+          variant="brand"
+          :loading="importing"
+          @click="run"
+        >
+          {{ t('planer.import.submit') }}
+        </wa-button>
+      </template>
+      <template v-else>
+        <wa-button
+          appearance="plain"
+          variant="neutral"
+          @click="open = false"
+        >
+          {{ t('common.cancel') }}
+        </wa-button>
+        <wa-button
+          variant="brand"
+          :loading="importing"
+          :disabled="!canImport || checking"
+          @click="submit"
+        >
+          {{ t('planer.import.submit') }}
+        </wa-button>
+      </template>
     </template>
   </AppDialog>
-
-  <ConfirmModal
-    :open="confirmingDeletion"
-    :title="t('planer.import.confirmTitle')"
-    :description="t('planer.import.confirmDescription', deletions.length)"
-    :confirm-label="t('planer.import.submit')"
-    :action="run"
-    @close="confirmingDeletion = false"
-  />
 </template>
 
 <style scoped>

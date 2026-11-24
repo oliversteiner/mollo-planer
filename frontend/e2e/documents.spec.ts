@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
-import { enterCode, freshTotp, login, PASSWORD, TOTP_SECRET, unexpected, watch } from './support/helpers'
+import { enterCode, expectAtMostOneDialog, freshTotp, login, PASSWORD, TOTP_SECRET, unexpected, watch } from './support/helpers'
 
 /**
  * Documents (task 17, docs/dokumentenverwaltung.md): create, edit with a table and a code block, save, reload (the
@@ -26,6 +26,7 @@ test('a document: create, edit with table and code block, save, reload, conflict
 
   // Create.
   await page.getByRole('button', { name: 'Dokument anlegen' }).first().click()
+  await expectAtMostOneDialog(page)
   await page.getByLabel('Titel').fill('E2E Aufbau')
   await page.getByRole('button', { name: 'Anlegen', exact: true }).click()
   await expect(page).toHaveURL(/\/projects\/1\/documents\/\d+/, { timeout: 30_000 })
@@ -83,6 +84,7 @@ test('a document: create, edit with table and code block, save, reload, conflict
   await page.getByRole('button', { name: 'Bearbeiten beenden' }).click()
   await page.locator('wa-button[aria-label="Aktionen"]').click()
   await page.locator('wa-dropdown-item', { hasText: 'Freigeben' }).click()
+  await expectAtMostOneDialog(page)
   await page.getByLabel('Person hinzufügen').first().click()
   await page.getByRole('option', { name: /Mia Member/ }).click()
   await page.getByRole('button', { name: 'Person hinzufügen' }).click()

@@ -103,7 +103,7 @@
     "unauthorized": "You are not allowed to do this.",
     "csrf": "Your session had expired. Please try again.",
     "network": "The server cannot be reached.",
-    "unknown": "The request failed.",
+    "unknown": "That did not work. Please try again.",
     "throttled": "Too many attempts. Try again in a minute."
   },
   "auth": {
@@ -271,7 +271,8 @@
     "save": "Save",
     "edit": "Edit",
     "delete": "Delete",
-    "actions": "Actions"
+    "actions": "Actions",
+    "back": "Back"
   },
   "project": {
     "tabs": {
@@ -426,7 +427,8 @@
     "search": "Search, for example rocket, calendar",
     "results": "{count} results (at most 120)",
     "suggestions": "Suggestions – or search above",
-    "noResults": "No icon found."
+    "noResults": "No icon found.",
+    "close": "Close"
   },
   "kanban": {
     "showIdeas": "Show ideas and planned tasks",
@@ -551,7 +553,8 @@
     "confirmPassword": {
       "title": "Confirm password",
       "description": "Please confirm your password before changing the security of your account.",
-      "submit": "Confirm"
+      "submit": "Confirm",
+      "inline": "Please confirm your password before going on."
     },
     "twoFactor": {
       "title": "Authenticator app",
@@ -639,7 +642,7 @@
       "agent": {
         "title": "Accesses",
         "name": "Name of the access",
-        "nameHint": "To recognise it, for example “{agent} server”",
+        "nameHint": "Suggested is the name of the environment variable the token goes into. You can change it.",
         "create": "Create access",
         "none": "No access yet.",
         "showOnceTitle": "Access made for {agent}",
@@ -651,7 +654,8 @@
         "revokeDescription": "{agent} can no longer use this access afterwards.",
         "revokeConfirm": "Revoke",
         "revoked": "Access revoked.",
-        "cli": "Or in a terminal on the server: app:user-token"
+        "cli": "Or in a terminal on the server: app:user-token",
+        "nameMissing": "The name is missing."
       },
       "access": {
         "title": "Access for {agent}",

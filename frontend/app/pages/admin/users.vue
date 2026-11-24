@@ -58,10 +58,31 @@ const { mutate: rejectUser } = useMutation(rejectUserMutation, options)
 const accessAgentId = ref<string | null>(null)
 const creatingAgent = ref(false)
 
-/** A new agent goes straight on to its access: the next thing it needs. */
-function onAgentCreated(id: string): void {
+/**
+ * A new agent is made in one step and the dialog closes (Auftrag 55, rule R11: no dialog opens from a dialog). The next
+ * thing it needs, «Zugang einrichten», is a button in its row: the row is marked for a moment and the button has the
+ * focus, so Enter goes on.
+ */
+const newAgentId = ref<string | null>(null)
+let highlightTimer: ReturnType<typeof setTimeout> | undefined
+
+async function onAgentCreated(id: string): Promise<void> {
   creatingAgent.value = false
-  accessAgentId.value = id
+  newAgentId.value = id
+  clearTimeout(highlightTimer)
+  highlightTimer = setTimeout(() => {
+    newAgentId.value = null
+  }, 4000)
+
+  // The list has the new row once the dialog is gone and the page has drawn it. A dialog that closes gives the focus
+  // back to the button that opened it, after its fade: wait for that, then the focus goes to the new row.
+  await nextTick()
+
+  for (let waited = 0; waited < 2000 && document.querySelector('wa-dialog[open]'); waited += 50) {
+    await new Promise(resolve => setTimeout(resolve, 50))
+  }
+  await new Promise(resolve => setTimeout(resolve, 100))
+  document.querySelector<HTMLElement>(`[data-agent-access="${id}"]`)?.focus()
 }
 const accessAgent = computed(() => allUsers.value.find(user => user.id === accessAgentId.value) ?? null)
 
@@ -294,6 +315,7 @@ function factorLabel(user: User): string {
             v-for="user in group.list"
             :key="user.id"
             class="users-row"
+            :data-new="user.id === newAgentId ? '' : undefined"
           >
             <UserAvatar
               :name="user.name"
@@ -326,6 +348,7 @@ function factorLabel(user: User): string {
               size="s"
               class="users-access"
               :data-state="accessState(user)"
+              :data-agent-access="user.id"
               @click="accessAgentId = user.id"
             >
               <wa-icon
@@ -412,6 +435,10 @@ function factorLabel(user: User): string {
   align-items: center;
   gap: var(--wa-space-s);
   padding: var(--wa-space-s) var(--wa-space-m);
+}
+
+.users-row[data-new] {
+  background-color: var(--wa-color-brand-fill-quiet);
 }
 
 .users-row + .users-row {

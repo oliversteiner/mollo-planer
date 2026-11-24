@@ -300,6 +300,7 @@ export async function resetTwoFactorInUi(adminPage: Page, email: string, name = 
   await row.locator(`wa-button[aria-label="Aktionen für ${name}"]`).click()
   await row.locator('wa-dropdown-item', { hasText: '2FA zurücksetzen' }).click()
   await expect(adminPage.getByText(`Hast du auf anderem Weg geprüft, dass die Anfrage wirklich von ${name} kommt (Anruf, persönlich)?`)).toBeVisible()
+  await expectAtMostOneDialog(adminPage)
   await adminPage.getByRole('button', { name: 'Ja, zurücksetzen' }).click()
   // The result that stays: the row of the person now says that they have no second factor (a toast is gone after seconds).
   await expect(row).toContainText('Kein zweiter Faktor')
@@ -317,6 +318,25 @@ export async function approveInUi(adminPage: Page, email: string): Promise<void>
 /** The admin rejects a person (with the question before): the row is gone. */
 export async function rejectInUi(adminPage: Page, email: string): Promise<void> {
   await adminPage.locator('li').filter({ hasText: email }).getByRole('button', { name: 'Ablehnen' }).click()
+  await expectAtMostOneDialog(adminPage)
   await adminPage.getByRole('button', { name: 'Ablehnen' }).last().click()
   await expect(adminPage.locator('li').filter({ hasText: email })).toHaveCount(0)
+}
+
+/**
+ * Rule R11 (Auftrag 55): no dialog on top of another one, anywhere. Call it after a step that opens or closes a dialog.
+ * A dialog that closes fades out for a moment and still counts as open, so this looks again for a while: two that stay
+ * are stacked and fail.
+ */
+export async function expectAtMostOneDialog(page: Page): Promise<void> {
+  await expect.poll(() => page.locator('wa-dialog[open]').count(), { message: 'two dialogs are open on top of each other', timeout: 4000 }).toBeLessThanOrEqual(1)
+}
+
+/**
+ * The login confirmed the password. This makes the confirmation old (the session is changed in the database of the
+ * tests), so the next action that needs it asks for the password again.
+ */
+export function expirePasswordConfirmation(): void {
+  // Sessions live in the database of the tests, as base64 of JSON (config/session.php: serialization json).
+  artisan('tinker', '--execute=foreach (DB::table("sessions")->get() as $s) { $d = json_decode(base64_decode($s->payload), true); if (isset($d["auth"]["password_confirmed_at"])) { $d["auth"]["password_confirmed_at"] = 0; DB::table("sessions")->where("id", $s->id)->update(["payload" => base64_encode(json_encode($d))]); } }')
 }
