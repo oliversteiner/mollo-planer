@@ -150,7 +150,7 @@
                 <span class="callout-symbol">!</span>
                 <p><strong>Never set milestone or ToDo status directly:</strong> those statuses are derived from tasks. Only set task statuses such as <code>idea</code>, <code>planned</code>, <code>open</code>, <code>in_progress</code>, <code>review</code>, or <code>done</code>.</p>
               </div>
-              <p><code>update_tasks</code> changes only supplied fields; <code>commit: null</code> and <code>assigneeEmail: null</code> clear those values. <code>partial</code> adds or updates but never deletes. A title (milestone, ToDo, task) has 2 to 160 characters; a longer one is refused. A dry run does not replace permission checks: the server validates every field and action again. Notifications to assignees are off by default; enable them only when the task requests it.</p>
+              <p><code>update_tasks</code> changes only supplied fields; <code>commit: null</code> and <code>assigneeEmail: null</code> clear those values. <code>partial</code> adds or updates but never deletes. A title (milestone, ToDo, task) has 2 to 160 characters; a longer one is refused. Unknown fields in a document are refused too, with the path and a suggestion; the form is described by <a href="/mcp/format-v2.schema.json">the JSON schema</a> (also linked in the instructions the server sends). A dry run does not replace permission checks: the server validates every field and action again. Notifications to assignees are off by default; enable them only when the task requests it.</p>
             </section>
 
             <section id="help" class="guide-section">

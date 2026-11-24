@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/mcp-schema.mjs",
     "build": "nuxt generate",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
@@ -11,6 +12,7 @@
     "typecheck": "nuxt typecheck",
     "codegen": "graphql-codegen",
     "versions": "node scripts/build-versions.mjs",
+    "mcp:schema": "node scripts/mcp-schema.mjs",
     "icons:update": "node scripts/icons-update.mjs",
     "icons:fetch": "node scripts/icons-fetch.mjs",
     "icons:check": "node scripts/check-no-pro-assets.mjs",

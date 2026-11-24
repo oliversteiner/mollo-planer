@@ -35,7 +35,7 @@ class ImportPlan extends Tool
     {
         return Schema::input([
             'project_id' => Schema::string('Target project; omit to create one.'),
-            'plan' => Schema::object(null, 'planer-v2 document.'),
+            'plan' => Schema::object(null, 'planer-v2 document. Fields per level and limits: see the instructions of the server, which also link the JSON schema. Unknown fields are refused.'),
             'mode' => Schema::string('"full" (default) or "partial".', ['full', 'partial']),
             'dry_run' => Schema::boolean('Validate only, write nothing.'),
             'notify_assignees' => Schema::boolean('Send assignment mails. Default false.'),

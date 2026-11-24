@@ -22,6 +22,8 @@ return [
     'validation' => [
         'required' => 'Pflichtfeld fehlt.',
         'unknown_field' => 'Unbekanntes Feld.',
+        'unknown_field_suggest' => '`:field` gibt es nicht, gemeint ist wohl `:suggestion`.',
+        'id_pattern' => 'Falsches Format. Erwartet: `:prefix-<Zahl>` oder `:prefix-new-<Zahl>`.',
         'type' => 'Falscher Typ, erwartet: :expected.',
         'enum' => 'Ungültiger Wert.',
         'pattern' => 'Falsches Format.',

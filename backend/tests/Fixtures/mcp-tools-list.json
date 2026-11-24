@@ -180,7 +180,7 @@
                 },
                 "plan": {
                     "type": "object",
-                    "description": "planer-v2 document."
+                    "description": "planer-v2 document. Fields per level and limits: see the instructions of the server, which also link the JSON schema. Unknown fields are refused."
                 },
                 "mode": {
                     "type": "string",

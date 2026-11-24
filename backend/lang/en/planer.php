@@ -22,6 +22,8 @@ return [
     'validation' => [
         'required' => 'Required field is missing.',
         'unknown_field' => 'Unknown field.',
+        'unknown_field_suggest' => '`:field` is not a field, probably `:suggestion` is meant.',
+        'id_pattern' => 'Wrong format. Expected: `:prefix-<number>` or `:prefix-new-<number>`.',
         'type' => 'Wrong type, expected: :expected.',
         'enum' => 'Invalid value.',
         'pattern' => 'Wrong format.',

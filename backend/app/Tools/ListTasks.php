@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Planer\RichText\TiptapToMarkdown;
 use App\Tools\Support\McpCursor;
 use App\Tools\Support\McpText;
+use App\Tools\Support\ToolArguments;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListTasks extends Tool
@@ -88,8 +89,8 @@ class ListTasks extends Tool
             ->when(($validated['status'] ?? []) !== [], fn (Builder $query) => $query->whereIn('tasks.status', $validated['status']))
             ->when($assignee === 'me', fn (Builder $query) => $query->where('tasks.assigned_user_id', $actor->getKey()))
             ->when($assignee !== null && $assignee !== 'me', fn (Builder $query) => $query->whereHas('assignee', fn (Builder $users) => $users->where('email', $assignee)))
-            ->when(($validated['milestone_ids'] ?? []) !== [], fn (Builder $query) => $query->whereHas('todo', fn (Builder $todos) => $todos->whereIn('milestone_id', array_map(fn ($id): int => (int) preg_replace('/^m-/', '', (string) $id), $validated['milestone_ids']))))
-            ->when(($validated['ids'] ?? []) !== [], fn (Builder $query) => $query->whereIn('tasks.id', array_map(fn ($id): int => (int) preg_replace('/^k-/', '', (string) $id), $validated['ids'])))
+            ->when(($validated['milestone_ids'] ?? []) !== [], fn (Builder $query) => $query->whereHas('todo', fn (Builder $todos) => $todos->whereIn('milestone_id', ToolArguments::ids($validated['milestone_ids'], 'm', 'milestone_ids'))))
+            ->when(($validated['ids'] ?? []) !== [], fn (Builder $query) => $query->whereIn('tasks.id', ToolArguments::ids($validated['ids'], 'k', 'ids')))
             ->when(isset($validated['query']) && $validated['query'] !== '', fn (Builder $query) => $query->where('tasks.title', 'like', '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string) $validated['query']).'%'))
             ->when($cursor !== null, fn (Builder $query) => $query->where('tasks.id', '>', (int) $cursor['id']))
             ->orderBy('tasks.id')

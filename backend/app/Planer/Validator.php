@@ -5,6 +5,7 @@ namespace App\Planer;
 use App\Planer\RichText\InvalidMarkdown;
 use App\Planer\RichText\MarkdownToTiptap;
 use App\Planer\RichText\Mode;
+use App\Support\ClosestName;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Validator as SchemaValidator;
@@ -120,7 +121,8 @@ final class Validator
         }
 
         foreach ($fields as $field) {
-            $issues[] = ['path' => self::join($path, (string) $field), 'severity' => 'error', 'message' => self::message($error)];
+            $message = $error->keyword() === 'additionalProperties' ? self::unknownField($error, (string) $field) : self::message($error);
+            $issues[] = ['path' => self::join($path, (string) $field), 'severity' => 'error', 'message' => $message];
         }
     }
 
@@ -137,7 +139,7 @@ final class Validator
             'type' => __('planer.validation.type', ['expected' => implode(' / ', (array) ($args['expected'] ?? []))]),
             'enum' => __('planer.validation.enum'),
             'const' => __('planer.validation.enum'),
-            'pattern' => __('planer.validation.pattern'),
+            'pattern' => self::patternMessage((string) ($args['pattern'] ?? '')),
             'minLength' => __('planer.validation.min_length', ['min' => $args['min'] ?? '', 'length' => $args['length'] ?? '']),
             'maxLength' => __('planer.validation.max_length', ['max' => $args['max'] ?? '', 'length' => $args['length'] ?? '']),
             'minItems' => __('planer.validation.min_items', ['min' => $args['min'] ?? '', 'count' => $args['count'] ?? '']),
@@ -164,6 +166,31 @@ final class Validator
         }
 
         return $path;
+    }
+
+    /**
+     * The id patterns of the schema name their prefix ("^k-(new-)?[0-9]+$"): the message says what is expected, so
+     * "k-new-47a" is not just "wrong format".
+     */
+    private static function patternMessage(string $pattern): string
+    {
+        if (preg_match('/^\^([mtk])-\(new-\)\?\[0-9\]\+\$$/', $pattern, $match) === 1) {
+            return __('planer.validation.id_pattern', ['prefix' => $match[1]]);
+        }
+
+        return __('planer.validation.pattern');
+    }
+
+    /** "assignee" is not a field; the message names the field of the schema that is meant, when there is one. */
+    private static function unknownField(ValidationError $error, string $field): string
+    {
+        $data = $error->schema()->info()->data();
+        $known = is_object($data) ? array_keys((array) ($data->properties ?? [])) : [];
+        $suggestion = ClosestName::of($field, $known);
+
+        return $suggestion === null
+            ? __('planer.validation.unknown_field')
+            : __('planer.validation.unknown_field_suggest', ['field' => $field, 'suggestion' => $suggestion]);
     }
 
     private static function join(string $path, string $key): string

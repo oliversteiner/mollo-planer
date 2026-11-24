@@ -5,6 +5,7 @@ namespace App\Tools;
 use App\Models\User;
 use App\Services\PlanTaskUpdates;
 use App\Services\PlanTaskUpdatesRefused;
+use App\Tools\Support\ToolArguments;
 
 class UpdateTasks extends Tool
 {
@@ -56,6 +57,10 @@ class UpdateTasks extends Tool
                 'tasks.*.status.in' => 'status must be idea, planned, open, in_progress, review or done.',
             ],
         );
+
+        foreach ($validated['tasks'] as $index => $task) {
+            ToolArguments::id($task['id'], 'k', "tasks[{$index}].id");
+        }
 
         try {
             return ToolResult::json(app(PlanTaskUpdates::class)->apply(

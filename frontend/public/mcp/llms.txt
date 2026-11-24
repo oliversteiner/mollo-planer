@@ -57,3 +57,4 @@ Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over P
 - Markdown in descriptions and comments: paragraphs, H2/H3, lists, quotes, bold, italic, inline code, links (http, https, mailto). No HTML, images, tables, code blocks.
 - Assignees are project members, by email. Mails only with `notify_assignees: true`.
 - Limits: 200 milestones/project, 50 todos/milestone, 50 tasks/todo, 50 members, 30 labels, titles 2 to 160 characters, descriptions 5000 characters.
+- Format schema: `/mcp/format-v2.schema.json`. Unknown fields are refused with the path and a suggestion.

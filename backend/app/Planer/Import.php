@@ -323,7 +323,7 @@ final class Import
         $project->members()->attach($this->actor->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
         Rights::clearCache();
 
-        $this->change('create', 'project', null, ['name', 'description', 'locale']);
+        $this->change('create', 'project', null, ['name', 'description', 'locale'], (string) $project->name);
 
         return $project;
     }
@@ -358,7 +358,7 @@ final class Import
         }
 
         $this->save($project->fill($values), 'project');
-        $this->change('update', 'project', null, $fields);
+        $this->change('update', 'project', null, $fields, (string) $project->name);
     }
 
     private function load(): void
@@ -417,7 +417,7 @@ final class Import
             return;
         }
 
-        $this->change('update', 'project.labels', null, ['labels']);
+        $this->change('update', 'project.labels', null, ['labels'], (string) $this->project->name);
     }
 
     /**
@@ -500,7 +500,7 @@ final class Import
 
             try {
                 $this->membership->set($this->actor, $this->project, $user, $role);
-                $this->change('update', $path, null, ['member']);
+                $this->change('update', $path, null, ['member'], (string) $this->project->name);
             } catch (AuthorizationException) {
                 $this->error($path, 'denied', __('planer.import.denied', ['what' => __('planer.import.what.members')]));
             } catch (ValidationException $error) {
@@ -525,7 +525,7 @@ final class Import
 
             try {
                 $this->membership->remove($this->actor, $this->project, $member);
-                $this->change('delete', 'project.members', null, ['member']);
+                $this->change('delete', 'project.members', null, ['member'], (string) $this->project->name);
             } catch (AuthorizationException) {
                 $this->error('project.members', 'denied', __('planer.import.denied', ['what' => __('planer.import.what.members')]));
             } catch (ValidationException $error) {
@@ -638,7 +638,7 @@ final class Import
             $this->created($model, 'm', $entry['id'], $path, ['title', ...$fields]);
         } elseif ($fields !== [] && $this->allowed('update', $model, $path, 'update')) {
             $this->save($model->fill($values), $path);
-            $this->change('update', $path, "m-{$model->getKey()}", $fields);
+            $this->change('update', $path, "m-{$model->getKey()}", $fields, $this->elementTitle($model));
         }
 
         $this->seen['milestone'][$model->getKey()] = true;
@@ -709,11 +709,11 @@ final class Import
                 $this->save($model->fill($values), $path);
 
                 if ($fields !== []) {
-                    $this->change('update', $path, "t-{$model->getKey()}", $fields);
+                    $this->change('update', $path, "t-{$model->getKey()}", $fields, $this->elementTitle($model));
                 }
 
                 if ($parentChanged) {
-                    $this->change('move', $path, "t-{$model->getKey()}", ['milestone']);
+                    $this->change('move', $path, "t-{$model->getKey()}", ['milestone'], $this->elementTitle($model));
                 }
             }
         }
@@ -894,11 +894,11 @@ final class Import
         }
 
         if ($fields !== []) {
-            $this->change('update', $path, $id, $fields);
+            $this->change('update', $path, $id, $fields, $this->elementTitle($task));
         }
 
         if ($parentChanged) {
-            $this->change('move', $path, $id, ['todo']);
+            $this->change('move', $path, $id, ['todo'], $this->elementTitle($task));
         }
 
         $this->notifyAssigned($task, $assigneeChanged && $assignee !== null, $wasIdea && $statusChanged);
@@ -1079,9 +1079,12 @@ final class Import
             return;
         }
 
+        $titles = null;
+
         foreach ($keptNow as $index => $id) {
             if ($kept[$index] !== $id && ! isset($this->moved[$id])) {
-                $this->change('move', $this->paths["{$prefix}-{$id}"] ?? "{$prefix}-{$id}", "{$prefix}-{$id}", ['position']);
+                $titles ??= DB::table($table)->whereIn('id', $keptNow)->pluck('title', 'id');
+                $this->change('move', $this->paths["{$prefix}-{$id}"] ?? "{$prefix}-{$id}", "{$prefix}-{$id}", ['position'], (string) ($titles[$id] ?? ''));
             }
         }
     }
@@ -1136,7 +1139,7 @@ final class Import
                 }
 
                 $tops[] = $model;
-                $this->change('delete', "{$prefix}-{$model->getKey()}", "{$prefix}-{$model->getKey()}", [], (string) $model->title);
+                $this->change('delete', "{$prefix}-{$model->getKey()}", "{$prefix}-{$model->getKey()}", [], $this->elementTitle($model));
             }
         }
 
@@ -1336,7 +1339,13 @@ final class Import
         }
 
         // A dry run names the id of the file: the number the app took for it is rolled back and shows nowhere.
-        $this->change('create', $path, $this->dryRun ? $fileId : $id, $fields);
+        $this->change('create', $path, $this->dryRun ? $fileId : $id, $fields, $this->elementTitle($model));
+    }
+
+    /** The title of a milestone, todo or task, for the changes the result lists. */
+    private function elementTitle(Model $element): string
+    {
+        return (string) $element->getAttribute('title');
     }
 
     /**
