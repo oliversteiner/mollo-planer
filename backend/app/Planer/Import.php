@@ -638,7 +638,7 @@ final class Import
             $this->created($model, 'm', $entry['id'], $path, ['title', ...$fields]);
         } elseif ($fields !== [] && $this->allowed('update', $model, $path, 'update')) {
             $this->save($model->fill($values), $path);
-            $this->change('update', $path, "m-{$model->getKey()}", $fields, (string) $model->title);
+            $this->change('update', $path, "m-{$model->getKey()}", $fields, $this->elementTitle($model));
         }
 
         $this->seen['milestone'][$model->getKey()] = true;
@@ -709,11 +709,11 @@ final class Import
                 $this->save($model->fill($values), $path);
 
                 if ($fields !== []) {
-                    $this->change('update', $path, "t-{$model->getKey()}", $fields, (string) $model->title);
+                    $this->change('update', $path, "t-{$model->getKey()}", $fields, $this->elementTitle($model));
                 }
 
                 if ($parentChanged) {
-                    $this->change('move', $path, "t-{$model->getKey()}", ['milestone'], (string) $model->title);
+                    $this->change('move', $path, "t-{$model->getKey()}", ['milestone'], $this->elementTitle($model));
                 }
             }
         }
@@ -894,11 +894,11 @@ final class Import
         }
 
         if ($fields !== []) {
-            $this->change('update', $path, $id, $fields, (string) $task->title);
+            $this->change('update', $path, $id, $fields, $this->elementTitle($task));
         }
 
         if ($parentChanged) {
-            $this->change('move', $path, $id, ['todo'], (string) $task->title);
+            $this->change('move', $path, $id, ['todo'], $this->elementTitle($task));
         }
 
         $this->notifyAssigned($task, $assigneeChanged && $assignee !== null, $wasIdea && $statusChanged);
@@ -1139,7 +1139,7 @@ final class Import
                 }
 
                 $tops[] = $model;
-                $this->change('delete', "{$prefix}-{$model->getKey()}", "{$prefix}-{$model->getKey()}", [], (string) $model->title);
+                $this->change('delete', "{$prefix}-{$model->getKey()}", "{$prefix}-{$model->getKey()}", [], $this->elementTitle($model));
             }
         }
 
@@ -1339,7 +1339,13 @@ final class Import
         }
 
         // A dry run names the id of the file: the number the app took for it is rolled back and shows nowhere.
-        $this->change('create', $path, $this->dryRun ? $fileId : $id, $fields, (string) $model->title);
+        $this->change('create', $path, $this->dryRun ? $fileId : $id, $fields, $this->elementTitle($model));
+    }
+
+    /** The title of a milestone, todo or task, for the changes the result lists. */
+    private function elementTitle(Model $element): string
+    {
+        return (string) $element->getAttribute('title');
     }
 
     /**
