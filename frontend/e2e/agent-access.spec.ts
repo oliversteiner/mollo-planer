@@ -1,3 +1,6 @@
+import { mkdirSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { artisan, enterCode, freshTotp, login, PASSWORD, resetThrottles, TOTP_SECRET } from './support/helpers'
@@ -7,6 +10,14 @@ import { artisan, enterCode, freshTotp, login, PASSWORD, resetThrottles, TOTP_SE
  * «Fertig», whether the password was confirmed a moment ago (no prompt) or the prompt appears; a cancelled prompt makes
  * nothing and brings the dialog back. Agents are made here with unique names: the tests share one database.
  */
+/** Screenshots for the pull request (rule R1), never into the repository. */
+const SCREENSHOT_DIR = process.env.SCREENSHOTS_DIR ?? join(tmpdir(), 'mollo-planer-agent-access')
+
+async function screenshot(page: Page, name: string): Promise<void> {
+  mkdirSync(SCREENSHOT_DIR, { recursive: true })
+  await page.screenshot({ path: join(SCREENSHOT_DIR, `${name}.png`) })
+}
+
 async function signIn(page: Page): Promise<void> {
   // Three sign-ins of the same account in a row would meet the throttle of the login.
   resetThrottles()
@@ -74,6 +85,12 @@ test.describe('Zugangs-Dialog eines Agenten', () => {
     await page.waitForTimeout(1000)
     await expect(dialog.getByText('Wird nicht mehr angezeigt.')).toBeVisible()
 
+    await dialog.locator('.access-token').scrollIntoViewIfNeeded()
+    await screenshot(page, '1-token-light')
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await screenshot(page, '2-token-dark')
+    await page.emulateMedia({ colorScheme: 'light' })
+
     const token = await dialog.locator('.access-token input').inputValue()
     expect(token).toMatch(/^\d+\|/)
     await dialog.locator('wa-button[aria-label="Zugang kopieren"]').click()
@@ -82,10 +99,12 @@ test.describe('Zugangs-Dialog eines Agenten', () => {
     await dialog.locator('.wa-stack').getByRole('button', { name: 'Fertig', exact: true }).first().click()
     await expect(dialog.getByText('Wird nicht mehr angezeigt.')).toBeHidden()
     await expect(dialog.locator('.access-name', { hasText: `${agent} Server` })).toBeVisible()
+    await screenshot(page, '3-after-done')
 
     await page.keyboard.press('Escape')
     await expect(accessDialog(page, agent)).toBeHidden()
     await expect(page.locator('.users-row', { hasText: agent }).getByRole('button', { name: 'Zugang aktiv' })).toBeVisible()
+    await screenshot(page, '4-list')
   })
 
   test('bestehender Agent mit Passwort-Dialog: nach der Bestätigung ist der Token sichtbar', async ({ page }) => {
@@ -103,6 +122,9 @@ test.describe('Zugangs-Dialog eines Agenten', () => {
     await makeAccess(page, agent, `${agent} Laptop`)
 
     await expect(passwordPrompt(page)).toBeVisible()
+    // The access dialog fades out while the prompt fades in.
+    await page.waitForTimeout(500)
+    await screenshot(page, '5-password-prompt')
     const prompt = passwordContent(page)
     await prompt.locator('wa-input input').fill(PASSWORD)
     await prompt.getByRole('button', { name: 'Bestätigen' }).click()
@@ -140,5 +162,42 @@ test.describe('Zugangs-Dialog eines Agenten', () => {
     const dialog = accessContent(page, agent)
     await expect(dialog.getByText('Noch kein Zugang.')).toBeVisible()
     await expect(dialog.getByText('Wird nicht mehr angezeigt.')).toBeHidden()
+  })
+
+  test('langsame Antwort: Doppelklick macht einen Zugang, Escape während der Erzeugung verliert ihn nicht', async ({ page }) => {
+    test.setTimeout(120_000)
+    const agent = `Agent ${Date.now().toString(36)}`
+
+    await signIn(page)
+    await createAgent(page, agent, `${agent.replace(' ', '.').toLowerCase()}@e2e.test`)
+    await expect(accessDialog(page, agent)).toBeVisible()
+
+    // The server takes its time to make the access.
+    let made = 0
+    // The GraphQL endpoint of the app is /api (plugins/api.ts).
+    await page.route(url => new URL(url).pathname === '/api', async (route) => {
+      if ((route.request().postData() ?? '').includes('CreateAgentToken')) {
+        made++
+        await new Promise(resolve => setTimeout(resolve, 2500))
+      }
+      await route.continue()
+    })
+
+    const content = accessContent(page, agent)
+    await content.locator('.access-form wa-input input').fill(`${agent} Langsam`)
+    const create = content.getByRole('button', { name: 'Zugang erzeugen' })
+    await create.dblclick()
+    await page.waitForTimeout(300)
+    await page.keyboard.press('Escape')
+
+    // The dialog stays (or comes back) and shows the token once the answer is there.
+    await expect(content.getByText('Wird nicht mehr angezeigt.')).toBeVisible({ timeout: 15_000 })
+    await expect(accessDialog(page, agent)).toBeVisible()
+    expect(await content.locator('.access-token input').inputValue()).toMatch(/^\d+\|/)
+    expect(made).toBe(1)
+    await expect(content.locator('.access-name')).toHaveCount(1)
+
+    // While the token is on screen there is no second one that could replace it: first «Fertig».
+    await expect(create).toHaveAttribute('disabled', '')
   })
 })

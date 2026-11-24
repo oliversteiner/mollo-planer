@@ -45,26 +45,38 @@ const guideUrl = computed(() => (locale.value === 'en' ? '/mcp/' : '/mcp/de/'))
 const accessName = ref('')
 const created = ref<string | null>(null)
 const revoking = ref<{ tokenId: string, name: string } | null>(null)
-const { errors, pending, run } = useGraphqlForm()
+const { errors, run } = useGraphqlForm()
 
 const state = computed(() => agentAccessState(props.agent?.apiTokens))
+
+/**
+ * One access at a time, from the click to the answer (password prompt included): a second click must not make a second
+ * token that nobody sees. A token on screen is not replaced either: first «Fertig», then the next one (Auftrag 52).
+ */
+const busy = ref(false)
 
 async function createAccess(): Promise<void> {
   const agent = props.agent
 
-  if (!agent) {
+  if (!agent || busy.value || created.value !== null) {
     return
   }
 
-  if (!await ensurePasswordConfirmed()) {
-    return
-  }
-  const result = await run(() => createAgentToken({ userId: agent.id, name: accessName.value.trim() }))
-  const token = result?.data?.createAgentToken
+  busy.value = true
 
-  if (token) {
-    created.value = token.plainTextToken
-    accessName.value = ''
+  try {
+    if (!await ensurePasswordConfirmed()) {
+      return
+    }
+    const result = await run(() => createAgentToken({ userId: agent.id, name: accessName.value.trim() }))
+    const token = result?.data?.createAgentToken
+
+    if (token) {
+      created.value = token.plainTextToken
+      accessName.value = ''
+    }
+  } finally {
+    busy.value = false
   }
 }
 
@@ -170,7 +182,7 @@ const visible = computed(() => props.agent !== null && !stepsAside.value)
  * (its token would be lost). `created` is cleared only here or by «Fertig».
  */
 function onOpenChange(open: boolean): void {
-  if (!open && props.agent && !stepsAside.value && !pending.value) {
+  if (!open && props.agent && !stepsAside.value && !busy.value) {
     created.value = null
     emit('close')
   }
@@ -338,7 +350,8 @@ function onOpenChange(open: boolean): void {
             <wa-button
               type="submit"
               variant="brand"
-              :loading="pending"
+              :loading="busy"
+              :disabled="created !== null"
             >
               <wa-icon
                 slot="start"

@@ -19,7 +19,7 @@ const toast = useToast()
 const { ensurePasswordConfirmed } = useSecurity()
 /** The prompt for the password is a dialog of its own: this one steps aside only while it is really shown. */
 const { open: promptOpen } = usePasswordPrompt()
-const { errors, pending, run } = useGraphqlForm()
+const { errors, run } = useGraphqlForm()
 const { mutate: createAgent } = useMutation(createAgentMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
 
 const state = reactive({ name: '', email: '' })
@@ -33,12 +33,29 @@ watch(() => props.open, (open) => {
 
 /** Closing counts only as the person's wish: not while the prompt is shown, not while the agent is being made. */
 function onOpenChange(open: boolean): void {
-  if (!open && !promptOpen.value && !pending.value) {
+  if (!open && !promptOpen.value && !busy.value) {
     emit('close')
   }
 }
 
+/** One agent per click, from the click to the answer (password prompt included). */
+const busy = ref(false)
+
 async function submit(): Promise<void> {
+  if (busy.value) {
+    return
+  }
+
+  busy.value = true
+
+  try {
+    await create()
+  } finally {
+    busy.value = false
+  }
+}
+
+async function create(): Promise<void> {
   if (!await ensurePasswordConfirmed()) {
     return
   }
@@ -98,7 +115,7 @@ async function submit(): Promise<void> {
         type="submit"
         form="agent-form"
         variant="brand"
-        :loading="pending"
+        :loading="busy"
       >
         {{ t('admin.users.newAgent.submit') }}
       </wa-button>
