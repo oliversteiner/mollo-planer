@@ -44,6 +44,51 @@
         "color": "red"
       },
       {
+        "key": "refactor",
+        "names": {
+          "de": "Umbau",
+          "en": "Refactor"
+        },
+        "category": "type",
+        "color": "orange"
+      },
+      {
+        "key": "chore",
+        "names": {
+          "de": "Pflege",
+          "en": "Chore"
+        },
+        "category": "type",
+        "color": "gray"
+      },
+      {
+        "key": "docs",
+        "names": {
+          "de": "Doku",
+          "en": "Docs"
+        },
+        "category": "type",
+        "color": "cyan"
+      },
+      {
+        "key": "test",
+        "names": {
+          "de": "Tests",
+          "en": "Tests"
+        },
+        "category": "type",
+        "color": "purple"
+      },
+      {
+        "key": "security",
+        "names": {
+          "de": "Sicherheit",
+          "en": "Security"
+        },
+        "category": "type",
+        "color": "red"
+      },
+      {
         "key": "planning",
         "names": {
           "de": "Planung",

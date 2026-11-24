@@ -37,8 +37,8 @@ class ProjectFromTemplateTest extends GraphQLTestCase
             ->json('data.createProject');
 
         $this->assertSame('Software development', $project['template']['name'] ?? null, 'where it came from (the tests answer in English)');
-        $this->assertSame(['research', 'design', 'feature', 'bug', 'planning', 'blocked'], array_column($project['labels'], 'key'));
-        $this->assertSame([0, 1, 2, 3, 4, 5], array_column($project['labels'], 'position'));
+        $this->assertSame(['research', 'design', 'feature', 'bug', 'refactor', 'chore', 'docs', 'test', 'security', 'planning', 'blocked'], array_column($project['labels'], 'key'));
+        $this->assertSame(range(0, 10), array_column($project['labels'], 'position'));
         $this->assertSame([['locale' => 'DE', 'name' => 'Fehler'], ['locale' => 'EN', 'name' => 'Bug']], $project['labels'][3]['names']);
 
         $this->assertSame(['Konzept', 'Erste Version'], array_column($project['milestones'], 'title'));
