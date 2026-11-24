@@ -21,15 +21,7 @@ watch(() => props.step.waiting, async (waiting) => {
   }
 
   await nextTick()
-  const input = root.value?.querySelector<HTMLElement & { updateComplete?: Promise<unknown> }>('wa-input')
-
-  try {
-    // A web component that was just inserted draws itself first; its inner field takes the focus only after that.
-    await input?.updateComplete
-    input?.focus()
-  } catch {
-    // No focus is better than an error: the person clicks into the field.
-  }
+  await focusWhenReady(root.value?.querySelector<HTMLElement>('wa-input'))
 })
 </script>
 

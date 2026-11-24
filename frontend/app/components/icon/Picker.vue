@@ -67,7 +67,7 @@ function close(): void {
   query.value = ''
   flush()
   // The focus goes back to the button that opened the panel.
-  void nextTick(() => opener.value?.focus())
+  void nextTick(() => focusWhenReady(opener.value as HTMLElement | null))
 }
 
 function choose(name: string | null): void {
@@ -79,7 +79,7 @@ function choose(name: string | null): void {
 watch(open, async (isOpen) => {
   if (isOpen) {
     await nextTick()
-    panel.value?.querySelector<HTMLElement>('wa-input')?.focus()
+    await focusWhenReady(panel.value?.querySelector<HTMLElement>('wa-input'))
   }
 })
 

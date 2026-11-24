@@ -437,7 +437,7 @@ function onOpenChange(open: boolean): void {
           </p>
 
           <form
-            class="access-form"
+            class="access-form access-form-name"
             @submit.prevent="createAccess"
           >
             <FormInput
@@ -705,5 +705,10 @@ function onOpenChange(open: boolean): void {
 .access-form-input {
   flex: 1;
   min-inline-size: 12rem;
+}
+
+/* The suggested name is long (MOLLOPLANER_<AGENT>_TOKEN): the field has the whole width, the button goes below it. */
+.access-form-name .access-form-input {
+  flex-basis: 100%;
 }
 </style>
