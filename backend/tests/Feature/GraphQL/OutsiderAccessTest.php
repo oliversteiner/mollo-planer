@@ -112,6 +112,7 @@ class OutsiderAccessTest extends GraphQLTestCase
             'createProject' => ['owner', 'mutation { createProject(input: {name: "Eigenes"}) { id } }', fn (self $test) => []],
             'createUser' => ['owner', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
             'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {role: "admin"}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
+            'createAgent' => ['owner', 'mutation { createAgent(input: {name: "Claude", email: "claude.neu@example.com"}) { id } }', fn (self $test) => []],
             'createAgentToken' => ['owner', 'mutation ($id: ID!) { createAgentToken(userId: $id, name: "Claude") { plainTextToken } }', $member],
             'revokeAgentToken' => ['owner', 'mutation ($id: ID!) { revokeAgentToken(userId: $id, tokenId: 1) { id } }', $member],
             'createOAuthClient' => ['owner', 'mutation { createOAuthClient(name: "Club DB", redirectUris: ["https://clubdb.example/cb"], confidential: true) { secret } }', fn (self $test) => []],

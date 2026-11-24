@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\GraphQL;
 
+use App\Core\Accounts\AgentAccountCreated;
 use App\Models\User;
 use App\Notifications\AgentAccessChange;
 use App\Support\McpTokens;
@@ -20,6 +21,8 @@ class AgentAccessTest extends GraphQLTestCase
     private const CREATE = 'mutation ($id: ID!, $name: String!) { createAgentToken(userId: $id, name: $name) { plainTextToken token { id name } } }';
 
     private const REVOKE = 'mutation ($id: ID!, $token: ID!) { revokeAgentToken(userId: $id, tokenId: $token) { id name } }';
+
+    private const CREATE_AGENT = 'mutation ($name: String!, $email: String!) { createAgent(input: {name: $name, email: $email}) { id name email isAgent approved emailVerified role { key } } }';
 
     private User $agent;
 
@@ -220,5 +223,76 @@ class AgentAccessTest extends GraphQLTestCase
     public function test_tokens_count_is_unchanged_for_persons_after_all_refusals(): void
     {
         $this->assertSame(0, PersonalAccessToken::query()->count());
+    }
+
+    public function test_an_admin_creates_an_agent_account_logged_and_told_to_the_admins(): void
+    {
+        Notification::fake();
+        Log::spy();
+        $second = User::factory()->admin()->create(['locale' => 'en']);
+
+        $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => ' Claude Club DB ', 'email' => 'claude.club@example.com'])
+            ->assertJsonPath('data.createAgent.name', 'Claude Club DB')
+            ->assertJsonPath('data.createAgent.isAgent', true)
+            ->assertJsonPath('data.createAgent.approved', true)
+            ->assertJsonPath('data.createAgent.emailVerified', true)
+            ->assertJsonPath('data.createAgent.role.key', 'mitglied');
+
+        $agent = User::query()->where('email', 'claude.club@example.com')->sole();
+        $this->assertTrue($agent->isAgent());
+        $this->assertSame(0, $agent->tokens()->count());
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(fn (string $message, array $context): bool => $message === 'Agent account created.'
+            && $context['admin_id'] === $this->users['admin']->id
+            && $context['agent_id'] === $agent->id
+            && ! str_contains(json_encode($context), 'claude.club@example.com'));
+        Notification::assertSentTo([$this->users['admin'], $second], AgentAccountCreated::class);
+        Notification::assertSentTo($second, AgentAccountCreated::class, fn ($mail, $channels, $notification) => $notification->locale === 'en');
+        Notification::assertNotSentTo($this->users['owner'], AgentAccountCreated::class);
+        Notification::assertNothingSentTo($agent);
+    }
+
+    public function test_creating_an_agent_needs_the_right(): void
+    {
+        foreach (['owner', 'manager', 'member', 'koordination'] as $name) {
+            $this->as($name)->withSession([StrongAuthentication::SESSION_KEY => (string) $this->users[$name]->id, 'auth.password_confirmed_at' => time()])
+                ->gql(self::CREATE_AGENT, ['name' => 'Claude', 'email' => "claude.{$name}@example.com"])
+                ->assertJsonPath('data.createAgent', null)
+                ->assertGraphQLErrorMessage('You are not allowed to do this.');
+        }
+
+        $this->assertSame(1, User::query()->where('is_agent', true)->count(), 'only the agent of setUp');
+    }
+
+    public function test_creating_an_agent_needs_a_recent_password_confirmation(): void
+    {
+        $this->as('admin')->gql(self::CREATE_AGENT, ['name' => 'Claude', 'email' => 'claude.neu@example.com'])
+            ->assertJsonPath('errors.0.extensions.validation.password.0', __('graphql.password_confirmation_required'));
+
+        $this->assertFalse(User::query()->where('email', 'claude.neu@example.com')->exists());
+    }
+
+    public function test_creating_an_agent_needs_a_strong_session(): void
+    {
+        $this->actingAs($this->users['admin'])
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withHeader('Referer', 'http://localhost');
+        $this->gql(self::CREATE_AGENT, ['name' => 'Claude', 'email' => 'claude.neu@example.com'])->assertForbidden();
+
+        $this->assertFalse(User::query()->where('email', 'claude.neu@example.com')->exists());
+    }
+
+    public function test_creating_an_agent_refuses_a_known_address_and_a_short_name(): void
+    {
+        Notification::fake();
+
+        $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => 'Claude', 'email' => $this->users['member']->email])
+            ->assertJsonPath('data.createAgent', null)
+            ->assertJsonStructure(['errors' => [['extensions' => ['validation' => ['input.email']]]]]);
+        $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => 'C', 'email' => 'claude.neu@example.com'])
+            ->assertJsonPath('data.createAgent', null);
+
+        $this->assertSame(1, User::query()->where('is_agent', true)->count());
+        Notification::assertNothingSent();
     }
 }

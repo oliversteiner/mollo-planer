@@ -99,6 +99,12 @@ return [
         'ignore' => 'Wenn du dich nicht registriert hast, klick nicht auf den Link und tu nichts.',
         'approval' => 'Danach richtest du deinen zweiten Faktor ein, und ein Admin gibt dein Konto frei.',
     ],
+    'agent_account' => [
+        'created' => [
+            'subject' => '[:app] Agent-Konto :agent angelegt',
+            'line' => ':admin hat das Agent-Konto :agent angelegt. Es meldet sich nicht im Browser an; Zugänge und Projekte stehen in der Benutzerverwaltung.',
+        ],
+    ],
     'agent_access' => [
         'created' => [
             'subject' => '[:app] Zugang für :agent erzeugt',

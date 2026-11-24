@@ -10,6 +10,12 @@ input CreateUserInput {
   activity: UserActivity
 }
 
+"Ein neues Agent-Konto. Ein Postfach ist nicht nötig, es geht keine Mail an die Adresse."
+input CreateAgentInput {
+  name: String! @rules(apply: ["min:2", "max:120"])
+  email: String! @rules(apply: ["email", "unique:users,email"])
+}
+
 input UpdateUserInput {
   name: String @rules(apply: ["min:2", "max:120"])
   email: String @rules(apply: ["email"])
