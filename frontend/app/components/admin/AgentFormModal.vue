@@ -17,11 +17,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const toast = useToast()
 const { ensurePasswordConfirmed } = useSecurity()
+/** The prompt for the password is a dialog of its own: this one steps aside only while it is really shown. */
+const { open: promptOpen } = usePasswordPrompt()
 const { errors, pending, run } = useGraphqlForm()
 const { mutate: createAgent } = useMutation(createAgentMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
 
 const state = reactive({ name: '', email: '' })
-const suspended = ref(false)
 
 watch(() => props.open, (open) => {
   if (open) {
@@ -30,19 +31,15 @@ watch(() => props.open, (open) => {
   }
 })
 
+/** Closing counts only as the person's wish: not while the prompt is shown, not while the agent is being made. */
 function onOpenChange(open: boolean): void {
-  if (!open && !suspended.value) {
+  if (!open && !promptOpen.value && !pending.value) {
     emit('close')
   }
 }
 
 async function submit(): Promise<void> {
-  suspended.value = true
-  const confirmed = await ensurePasswordConfirmed().finally(() => {
-    suspended.value = false
-  })
-
-  if (!confirmed) {
+  if (!await ensurePasswordConfirmed()) {
     return
   }
   const name = state.name.trim()
@@ -58,7 +55,7 @@ async function submit(): Promise<void> {
 
 <template>
   <AppDialog
-    :open="open && !suspended"
+    :open="open && !promptOpen"
     :label="t('admin.users.newAgent.title')"
     :description="t('admin.users.newAgent.hint')"
     @update:open="onOpenChange"
