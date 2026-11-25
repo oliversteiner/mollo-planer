@@ -24,9 +24,9 @@
             <p class="hero-intro">Diese Anleitung zeigt Agenten, wie sie einen sicheren Zugang zum Planer erhalten und Projekte lesen oder bearbeiten. Der MCP-Server handelt immer mit den Rechten des zugehörigen Kontos. <strong>Für Agenten: <a href="/mcp/llms.txt">/mcp/llms.txt</a></strong>, dasselbe als reines Markdown (englisch).</p>
           </div>
           <aside class="endpoint-card" aria-label="MCP-Endpunkt">
-            <span class="card-label">TEST ENDPOINT</span>
-            <code>https://api.planer.mollo.dev/mcp</code>
-            <span class="card-footnote">Testumgebung. Produktion: <code>https://api.planer.mollo.ch/mcp</code>. Der MCP-Server nimmt JSON-RPC-Anfragen per POST entgegen.</span>
+            <span class="card-label">ENDPOINT</span>
+            <code>https://api.planer.example.com/mcp</code>
+            <span class="card-footnote">Der MCP-Server dieser Installation. Er nimmt JSON-RPC-Anfragen per POST entgegen.</span>
           </aside>
         </section>
 
@@ -63,7 +63,7 @@
   "mcpServers": {
     "mollo-planer": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://api.planer.mollo.dev/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
+      "args": ["-y", "mcp-remote", "https://api.planer.example.com/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
       "env": { "AUTH_TOKEN": "Bearer &lt;dein-agent-token&gt;" }
     }
   }
@@ -75,21 +75,21 @@
   "mcpServers": {
     "mollo-planer": {
       "type": "http",
-      "url": "https://api.planer.mollo.dev/mcp",
+      "url": "https://api.planer.example.com/mcp",
       "headers": { "Authorization": "Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}" }
     }
   }
 }</code></pre>
-              <p>Claude Code liest <code>${…}</code> in <code>url</code> und <code>headers</code> beim Start, das Token bleibt also in deiner Umgebung (nicht in einer Datei unter Versionskontrolle). Setze die Variable und starte Claude Code neu; prüfen mit <code>claude mcp list</code>. Nenne die Variable nicht wie die Zugangsdaten eines anderen Werkzeugs (<code>ANTHROPIC_API_KEY</code>, <code>NPM_TOKEN</code> …): Claude Code liest solche Namen in <code>headers</code> als leer. Ist ein <code>Authorization</code>-Header gesetzt, fällt Claude Code für diesen Server nicht auf OAuth zurück. Alternativ auf der Kommandozeile: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}'</code> (die einfachen Anführungszeichen stehen lassen).</p>
+              <p>Claude Code liest <code>${…}</code> in <code>url</code> und <code>headers</code> beim Start, das Token bleibt also in deiner Umgebung (nicht in einer Datei unter Versionskontrolle). Setze die Variable und starte Claude Code neu; prüfen mit <code>claude mcp list</code>. Nenne die Variable nicht wie die Zugangsdaten eines anderen Werkzeugs (<code>ANTHROPIC_API_KEY</code>, <code>NPM_TOKEN</code> …): Claude Code liest solche Namen in <code>headers</code> als leer. Ist ein <code>Authorization</code>-Header gesetzt, fällt Claude Code für diesen Server nicht auf OAuth zurück. Alternativ auf der Kommandozeile: <code>claude mcp add --transport http mollo-planer https://api.planer.example.com/mcp --header 'Authorization: Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}'</code> (die einfachen Anführungszeichen stehen lassen).</p>
               <h3>Custom Connector mit OAuth (Personen)</h3>
-              <p>Personen können Claude (Desktop oder claude.ai) ohne Token und ohne Node.js verbinden: Einstellungen → Connectors → einen <strong>Custom Connector</strong> mit der Adresse <code>https://api.planer.mollo.dev/mcp</code> hinzufügen. Claude findet die Anmeldung selbst, du bestätigst sie einmal, und Claude arbeitet danach mit <strong>deinen</strong> Rechten. Das gilt für die Konten von Personen. Ein Agent-Konto kann sich im Web nicht anmelden und nimmt das Token wie oben beschrieben.</p>
+              <p>Personen können Claude (Desktop oder claude.ai) ohne Token und ohne Node.js verbinden: Einstellungen → Connectors → einen <strong>Custom Connector</strong> mit der Adresse <code>https://api.planer.example.com/mcp</code> hinzufügen. Claude findet die Anmeldung selbst, du bestätigst sie einmal, und Claude arbeitet danach mit <strong>deinen</strong> Rechten. Das gilt für die Konten von Personen. Ein Agent-Konto kann sich im Web nicht anmelden und nimmt das Token wie oben beschrieben.</p>
               <h3>JetBrains AI Assistant</h3>
               <p>Öffne Settings → Tools → AI Assistant → Model Context Protocol (MCP), wähle Add → As JSON und füge diese Konfiguration ein. Sie nutzt wie bei Claude Desktop <code>mcp-remote</code>; ersetze den Platzhalter lokal durch deinen Token. Unter Windows startet <code>npx</code> über <code>cmd /c</code>.</p>
               <pre><code>{
   "mcpServers": {
     "mollo-planer": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://api.planer.mollo.dev/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
+      "args": ["-y", "mcp-remote", "https://api.planer.example.com/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
       "env": { "AUTH_TOKEN": "Bearer &lt;dein-agent-token&gt;" }
     }
   }
@@ -100,7 +100,7 @@
               <pre><code>{
   "mcpServers": {
     "mollo-planer": {
-      "url": "https://api.planer.mollo.dev/mcp",
+      "url": "https://api.planer.example.com/mcp",
       "headers": { "Authorization": "Bearer &lt;dein-agent-token&gt;" }
     }
   }

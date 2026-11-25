@@ -7,7 +7,7 @@
     "locale": "de",
     "members": [
       {
-        "email": "oliver@mollo.ch",
+        "email": "person@example.com",
         "role": "owner"
       }
     ],
@@ -73,7 +73,7 @@
               "description": "Die Sperre liegt auf dem **Projekt**, nicht auf dem Milestone. Das ist ein Muster aus `KanbanOrdering`.",
               "dueDate": "2026-10-18",
               "status": "done",
-              "assigneeEmail": "oliver@mollo.ch",
+              "assigneeEmail": "person@example.com",
               "labels": [
                 "backend",
                 "feature"
@@ -132,7 +132,7 @@
               "description": "Ziel ist eine Klasse `Ordering` mit den Methoden `nextPosition`, `openSlot`, `move` und `close`.\n\nDabei gelten diese Punkte:\n\n1. Das Projekt wird vor jeder Änderung gesperrt.\n2. Der Lückenschluss läuft nach jedem Löschen.\n3. Die Tests laufen gegen MariaDB.\n\n### Hinweis\n\nDie Methode `close` ist neu und muss in die Tests für Papierkorb (A5) aufgenommen werden.",
               "dueDate": "2026-12-03",
               "status": "in_progress",
-              "assigneeEmail": "oliver@mollo.ch",
+              "assigneeEmail": "person@example.com",
               "labels": [
                 "backend",
                 "feature"
@@ -162,9 +162,9 @@
             {
               "id": "k-006",
               "title": "Plan-Entwurf für bestehende Projekte prüfen",
-              "description": "Details im Plan: [A4 im Schema-Review](https://planer.mollo.dev/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.",
+              "description": "Details im Plan: [A4 im Schema-Review](https://planer-test.example.com/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.",
               "status": "review",
-              "assigneeEmail": "oliver@mollo.ch",
+              "assigneeEmail": "person@example.com",
               "labels": [
                 "backend",
                 "feature"

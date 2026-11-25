@@ -45,7 +45,7 @@ return [
     */
 
     'guidelines' => [
-        // Hosting is Hostpoint, not Laravel Cloud.
+        // Hosting is a web host with PHP, not Laravel Cloud.
         'exclude' => ['deployments'],
     ],
 

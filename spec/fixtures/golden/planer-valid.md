@@ -8,7 +8,7 @@ Projektverwaltung mit Milestones, ToDos und Kanban.
 
 ## Mitglieder
 
-- oliver@mollo.ch | owner
+- person@example.com | owner
 - anna@example.org | member
 
 ---
