@@ -15,6 +15,7 @@ An agent is an account of its own for Claude or an assistant. It does not sign i
 - The access is a secret. It belongs in a password manager or an environment variable, never in a file under version control or in a chat.
 - If you lost the access, revoke it in the same dialog and create a new one.
 - Without a project the agent sees nothing. What it may do in the project depends on its role there.
+- An agent has the role «Agent» in every project, no other. Its identifier, shown in the same dialog, is what you assign tasks to (planer file, MCP).
 - The address of the MCP server and a guide for the connector are in the same dialog.
 
 ## Example prompts

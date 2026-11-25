@@ -117,21 +117,21 @@
                 },
                 {
                   "type": "text",
-                  "text": " einen Namen und im Feld ",
+                  "text": " einen Namen ein. Der Planer macht daraus die Kennung des Agenten, zum Beispiel ",
                   "marks": []
                 },
                 {
                   "type": "text",
-                  "text": "E-Mail",
+                  "text": "claude-club-db@agent.invalid",
                   "marks": [
                     {
-                      "type": "bold"
+                      "type": "code"
                     }
                   ]
                 },
                 {
                   "type": "text",
-                  "text": " eine Adresse ein. Ein Postfach ist nicht nötig, es wird keine Mail verschickt.",
+                  "text": ". An einen Agenten geht nie eine Mail.",
                   "marks": []
                 }
               ]
@@ -264,7 +264,21 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Wähle die Taste mit dem Kopier-Symbol rechts neben dem Feld mit dem Zugang und lege den Zugang sofort in deinem Passwortmanager ab. Er wird nur einmal angezeigt.",
+                  "text": "Wähle die Taste mit dem Kopier-Symbol rechts neben dem Feld mit dem Zugang und lege den Zugang sofort in deinem Passwortmanager ab. Er wird nur einmal angezeigt. Wähle danach ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Abgelegt",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
                   "marks": []
                 }
               ]
@@ -306,7 +320,7 @@
                 },
                 {
                   "type": "text",
-                  "text": "Projekt zuweisen",
+                  "text": "Projekt zuweisen (Rolle Agent)",
                   "marks": [
                     {
                       "type": "bold"
@@ -315,39 +329,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " das Projekt aus. Die Rolle bleibt «Agent».",
-                  "marks": []
-                }
-              ]
-            }
-          ]
-        },
-        "images": []
-      },
-      {
-        "doc": {
-          "type": "doc",
-          "content": [
-            {
-              "type": "paragraph",
-              "content": [
-                {
-                  "type": "text",
-                  "text": "Wähle ",
-                  "marks": []
-                },
-                {
-                  "type": "text",
-                  "text": "Zuweisen",
-                  "marks": [
-                    {
-                      "type": "bold"
-                    }
-                  ]
-                },
-                {
-                  "type": "text",
-                  "text": ". Das Projekt erscheint in der Liste der Projekte des Agenten.",
+                  "text": " das Projekt aus. Der Agent ist sofort im Projekt, mit der Rolle «Agent»; das Projekt erscheint in seiner Liste.",
                   "marks": []
                 }
               ]
@@ -448,7 +430,22 @@
                   "content": [
                     {
                       "type": "text",
-                      "text": "Die Adresse des MCP-Servers und eine Anleitung für den Connector stehen im selben Dialog.",
+                      "text": "Die Adresse des MCP-Servers und eine Anleitung für den Connector stehen im selben Dialog, dazu die Kennung des Agenten. Mit ihr weist du ihm Tasks zu (Planer-Datei, MCP).",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Ein Agent hat in jedem Projekt die Rolle «Agent», keine andere.",
                       "marks": []
                     }
                   ]

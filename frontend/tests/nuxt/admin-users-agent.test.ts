@@ -174,7 +174,9 @@ describe('admin users: dialog of an agent', () => {
     await vi.waitFor(() => expect(dialog.text()).toContain('Wird nicht mehr angezeigt.'))
     expect(dialog.findAll('wa-dialog')).toHaveLength(1)
 
-    await dialog.findAll('wa-button').find(button => button.text() === 'Fertig' && button.element.closest('.wa-stack'))?.trigger('click')
+    // The button under the token says what was done (Auftrag 58, Laura M1): one «Fertig» per dialog, the one that closes it.
+    expect(dialog.findAll('wa-button').filter(button => button.text() === 'Fertig')).toHaveLength(1)
+    await dialog.findAll('wa-button').find(button => button.text() === 'Abgelegt')?.trigger('click')
     await vi.waitFor(() => expect(vm.created).toBeNull())
   })
 
@@ -286,19 +288,28 @@ describe('admin users: dialog of an agent', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0]!.text()).toContain('Agent')
 
-    const offered = dialog.findAllComponents({ name: 'FormSelect' }).find(select => select.props('label') === 'Projekt zuweisen')!
+    const offered = dialog.findAllComponents({ name: 'FormSelect' }).find(select => select.props('label') === 'Projekt zuweisen (Rolle Agent)')!
 
     expect((offered.props('items') as { label: string }[]).map(item => item.label)).toEqual(['Beta'])
   })
 
-  it('assigns a project with the role agent as a default, through the existing mutation', async () => {
-    const { vm } = await open()
+  it('assigns a project with the fixed role agent as soon as it is chosen: nothing waits for a second button (Auftrag 58, H1)', async () => {
+    const { dialog } = await open()
+    const offered = dialog.findAllComponents({ name: 'FormSelect' }).find(select => select.props('label') === 'Projekt zuweisen (Rolle Agent)')!
 
-    vm.newProjectId = '2'
-    await vi.waitFor(() => expect(vm.newRole).toBe('agent'))
-    await vm.assign()
+    expect(dialog.findAllComponents({ name: 'FormSelect' }).some(select => select.props('label') === 'Projektrolle')).toBe(false)
+    offered.vm.$emit('update:modelValue', '2')
 
-    expect(setMember).toHaveBeenCalledWith({ projectId: '2', userId: '3', role: 'agent' })
+    await vi.waitFor(() => expect(setMember).toHaveBeenCalledWith({ projectId: '2', userId: '3', role: 'agent' }))
+    expect(dialog.findAll('wa-button').some(button => button.text() === 'Zuweisen')).toBe(false)
+  })
+
+  it('shows the identifier of the agent with a button to copy it', async () => {
+    const { dialog } = await open()
+
+    expect(dialog.text()).toContain('Kennung')
+    expect(dialog.findAllComponents({ name: 'FormInput' }).some(input => input.props('modelValue') === 'claude@example.ch')).toBe(true)
+    expect(dialog.find('wa-button[aria-label="Kennung kopieren"]').exists()).toBe(true)
   })
 
   it('removes the agent from a project through the existing mutation after asking in the row', async () => {
@@ -363,11 +374,13 @@ describe('admin users: create an agent', () => {
   it('creates the agent and reports its id, without a prompt when the password was confirmed a moment ago', async () => {
     const form = await mountSuspended(AgentFormModal, { props: { open: true } })
 
-    Object.assign((form.vm as unknown as { state: { name: string, email: string } }).state, { name: ' Claude Neu ', email: ' neu@example.ch ' })
+    // No address field: the planer makes the identifier from the name (Auftrag 58 E).
+    expect(form.find('input[type="email"], [name="email"]').exists()).toBe(false)
+    Object.assign((form.vm as unknown as { state: { name: string } }).state, { name: ' Claude Neu ' })
     await form.find('form').trigger('submit')
 
     await vi.waitFor(() => expect(form.emitted('created')).toEqual([['9']]))
-    expect(createAgent).toHaveBeenCalledWith({ input: { name: 'Claude Neu', email: 'neu@example.ch' } })
+    expect(createAgent).toHaveBeenCalledWith({ input: { name: 'Claude Neu' } })
   })
 
   it('asks for the password in a field of its own dialog, and creates nothing when it is cancelled', async () => {

@@ -6,7 +6,6 @@ import { removeProjectMemberMutation, setProjectMemberMutation } from '~/graphql
 import { classifyApolloError } from '~/utils/api'
 import { agentAccessState, defaultAccessName } from '~/utils/agent-access'
 import { formatDateTime } from '~/utils/dates'
-import { assignableRoles } from '~/utils/role-rights'
 
 /**
  * Access and projects of an agent account (docs/verwaltung-agenten-anfasser.md §3.3): what an agent is, the steps to
@@ -144,7 +143,6 @@ async function confirmRevoke(): Promise<void> {
 // ─── Projects (loaded when the dialog opens) ─────────────────────
 
 const { result: projectsResult } = useQuery(agentProjectsQuery, null, () => ({ enabled: props.agent !== null, fetchPolicy: 'cache-and-network' }))
-const { roles, defaultKey } = useRoles('PROJECT')
 
 type ProjectEntry = NonNullable<typeof projectsResult.value>['projects'][number]
 
@@ -164,35 +162,28 @@ const assignable = computed(() => (projectsResult.value?.projects ?? [])
   .sort((a, b) => a.name.localeCompare(b.name)))
 
 const newProjectId = ref<string | null>(null)
-const newRole = ref('')
 const assignment = useGraphqlForm()
 const removing = ref<{ projectId: string, name: string } | null>(null)
 
-const selectedProject = computed(() => assignable.value.find(project => project.id === newProjectId.value) ?? null)
-const roleItems = computed(() => assignableRoles(roles.value, selectedProject.value?.viewerRights ?? [])
-  .map(role => ({ label: roleName(role), value: role.key })))
-
-// The agent role is the natural one for an agent; otherwise the default role of the project roles.
-const preferredRole = computed(() => roles.value.find(role => role.key === 'agent')?.key ?? defaultKey.value)
-
-watch([newProjectId, preferredRole], () => {
-  if (!newRole.value || !roleItems.value.some(item => item.value === newRole.value)) {
-    newRole.value = roleItems.value.some(item => item.value === preferredRole.value) ? preferredRole.value : ''
-  }
-}, { immediate: true })
-
 const assignError = computed(() => Object.values(assignment.errors.value)[0])
 
-async function assign(): Promise<void> {
+/**
+ * An agent has the role Agent in every project (Auftrag 58): nothing else to choose, so choosing the project assigns it
+ * at once. There is no separate «Zuweisen» that «Fertig» could skip, and no choice is lost without a word (Auftrag 63, H1).
+ */
+async function assign(projectId: string | null): Promise<void> {
   const agent = props.agent
+  const project = assignable.value.find(entry => entry.id === projectId)
 
-  if (!agent || !newProjectId.value || !newRole.value) {
+  if (!agent || !project || assignment.pending.value) {
     return
   }
-  const result = await assignment.run(() => setMember({ projectId: newProjectId.value!, userId: agent.id, role: newRole.value }))
+  newProjectId.value = projectId
+  const result = await assignment.run(() => setMember({ projectId: project.id, userId: agent.id, role: 'agent' }))
 
+  // On a refusal the choice stays, next to its message; after success the field is free for the next project.
   if (result) {
-    toast.add({ title: t('settings.members.added'), color: 'success' })
+    toast.add({ title: t('admin.users.access.assigned', { agent: agent.name, project: project.name }), color: 'success' })
     newProjectId.value = null
   }
 }
@@ -296,6 +287,32 @@ function onOpenChange(open: boolean): void {
 
         <section class="wa-stack wa-gap-xs">
           <h3 class="wa-heading-s">
+            {{ t('admin.users.access.identifier') }}
+          </h3>
+          <div class="access-copy">
+            <FormInput
+              :model-value="agent?.email ?? ''"
+              :label="t('admin.users.access.identifier')"
+              hide-label
+              readonly
+              class="access-copy-field"
+            />
+            <wa-button
+              appearance="outlined"
+              variant="neutral"
+              :aria-label="t('admin.users.access.copyIdentifier')"
+              @click="copy(agent?.email ?? '')"
+            >
+              <wa-icon name="copy"></wa-icon>
+            </wa-button>
+          </div>
+          <p class="access-sub">
+            {{ t('admin.users.access.identifierHint') }}
+          </p>
+        </section>
+
+        <section class="wa-stack wa-gap-xs">
+          <h3 class="wa-heading-s">
             {{ t('admin.users.access.address') }}
           </h3>
           <div class="access-copy">
@@ -358,7 +375,7 @@ function onOpenChange(open: boolean): void {
                 variant="brand"
                 @click="created = null"
               >
-                {{ t('security.done') }}
+                {{ t('admin.users.agent.tokenStored') }}
               </wa-button>
             </div>
           </div>
@@ -542,38 +559,16 @@ function onOpenChange(open: boolean): void {
             {{ t('admin.users.access.noProjects') }}
           </p>
 
-          <form
+          <FormSelect
             v-if="assignable.length"
-            class="access-form"
-            @submit.prevent="assign"
-          >
-            <FormSelect
-              v-model="newProjectId"
-              :items="assignable.map(project => ({ label: project.name, value: project.id }))"
-              :label="t('admin.users.access.assign')"
-              :error="assignError"
-              class="access-form-input"
-            />
-            <FormSelect
-              v-model="newRole"
-              :items="roleItems"
-              :label="t('settings.members.role')"
-              :disabled="!newProjectId"
-              class="access-form-input"
-            />
-            <wa-button
-              type="submit"
-              variant="brand"
-              :disabled="!newProjectId || !newRole"
-              :loading="assignment.pending.value"
-            >
-              <wa-icon
-                slot="start"
-                name="user-plus"
-              ></wa-icon>
-              {{ t('admin.users.access.assignConfirm') }}
-            </wa-button>
-          </form>
+            :model-value="newProjectId"
+            :items="assignable.map(project => ({ label: project.name, value: project.id }))"
+            :label="t('admin.users.access.assign')"
+            :error="assignError"
+            :disabled="assignment.pending.value"
+            class="access-assign"
+            @update:model-value="value => assign(value ? String(value) : null)"
+          />
         </section>
       </div>
       <template #footer>
@@ -700,6 +695,10 @@ function onOpenChange(open: boolean): void {
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--wa-space-s);
+}
+
+.access-assign {
+  max-inline-size: 24rem;
 }
 
 .access-form-input {
