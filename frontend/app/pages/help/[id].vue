@@ -192,9 +192,13 @@ async function copy(prompt: string): Promise<void> {
 }
 
 .help-image {
+  box-sizing: border-box;
   max-inline-size: 100%;
-  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  padding: var(--wa-space-2xs);
+  background: var(--wa-color-surface-default);
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-neutral-border-normal);
   border-radius: var(--wa-border-radius-m);
+  box-shadow: var(--wa-shadow-s);
 }
 
 .help-prompts {
