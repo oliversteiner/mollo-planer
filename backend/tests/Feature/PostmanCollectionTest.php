@@ -6,9 +6,9 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\StrongAuthentication;
 use Database\Seeders\DemoSeeder;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Notification;
 use Symfony\Component\Yaml\Yaml;
+use Tests\Concerns\CommittedData;
 use Tests\TestCase;
 
 /**
@@ -16,13 +16,15 @@ use Tests\TestCase;
  * without errors against fresh demo data, so the collection stays in step
  * with the schema and the demo IDs.
  *
- * DatabaseMigrations instead of RefreshDatabase: the collection expects the
+ * CommittedData instead of RefreshDatabase: the collection expects the
  * IDs of a freshly migrated database (1, 2, ...). MariaDB keeps
- * auto-increment counters across rolled-back test transactions.
+ * auto-increment counters across rolled-back test transactions; the
+ * tables are emptied (TRUNCATE) after every such test, and the schema is
+ * built once per run (Auftrag 57).
  */
 class PostmanCollectionTest extends TestCase
 {
-    use DatabaseMigrations;
+    use CommittedData;
 
     private const COLLECTION = __DIR__.'/../../../docs/postman/Mollo Planer';
 

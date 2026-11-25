@@ -116,7 +116,8 @@ class AccountReferencesTest extends TestCase
     private function appTables(): array
     {
         return array_values(array_filter(
-            array_column(Schema::getTables(), 'name'),
+            // Only this database: a MariaDB server lists the tables of all its databases (Auftrag 57).
+            array_column(Schema::getTables(Schema::getCurrentSchemaListing()), 'name'),
             fn (string $table): bool => $table !== 'users' && $table !== 'migrations',
         ));
     }

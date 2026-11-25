@@ -240,9 +240,29 @@ class LocalAccountsTest extends TestCase
 
         $keep->starting($this->event(CommandStarting::class, 'db:wipe'));
         $this->wipeAccounts();
-        Schema::rename('users', 'users_away');
+        // After the wipe there is no table users, after the next migrate there is one. Said by the schema instead of
+        // renaming the table: on MariaDB a rename is DDL, commits the transaction of the test, and the next test had to
+        // build the whole schema again (Auftrag 57).
+        $schema = Schema::getFacadeRoot();
+        Schema::swap(new class($schema)
+        {
+            /** @var list<bool> what hasTable('users') answers, one after the other */
+            private array $answers = [false, true];
+
+            public function __construct(private readonly object $schema) {}
+
+            public function hasTable(string $table): bool
+            {
+                return $table === 'users' && $this->answers !== [] ? array_shift($this->answers) : $this->schema->hasTable($table);
+            }
+
+            /** @param  array<int, mixed>  $arguments */
+            public function __call(string $method, array $arguments): mixed
+            {
+                return $this->schema->{$method}(...$arguments);
+            }
+        });
         $keep->finished($this->event(CommandFinished::class, 'db:wipe'));
-        Schema::rename('users_away', 'users');
 
         $this->assertFileExists($this->dir.'/.restore-pending');
         $this->assertSame(0, User::query()->count());
@@ -251,6 +271,7 @@ class LocalAccountsTest extends TestCase
 
         $this->assertSame(1, User::query()->count());
         $this->assertFileDoesNotExist($this->dir.'/.restore-pending');
+        Schema::swap($schema);
     }
 
     public function test_nothing_happens_in_testing_when_switched_off_or_for_other_commands(): void

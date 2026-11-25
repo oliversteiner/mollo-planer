@@ -17,7 +17,8 @@ class AccountTablesTest extends TestCase
 
     public function test_every_table_is_sorted_in_as_account_data_or_not(): void
     {
-        $tables = Schema::getTableListing(schemaQualified: false);
+        // Only this database: a MariaDB server lists the tables of all its databases (Auftrag 57).
+        $tables = Schema::getTableListing(schema: Schema::getCurrentSchemaListing(), schemaQualified: false);
         $sorted = [...array_keys(AccountTables::ACCOUNT), ...array_keys(AccountTables::NOT_ACCOUNT)];
 
         $missing = array_values(array_diff($tables, $sorted));
