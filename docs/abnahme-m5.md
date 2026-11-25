@@ -47,7 +47,7 @@ Personen: Ben (Owner Website-Relaunch), Chiara (Manager), David (Mitglied). Je P
 ## 4. Queue und Betrieb
 
 - [x] ✅ Scheduler-Eintrag `queue:work --stop-when-empty`, Abschnitt „Cron“ in `deploy-template.md`.
-- [ ] ⏸ Cron-Eintrag `schedule:run` im Hostpoint-Panel.
+- [ ] ⏸ Cron-Eintrag `schedule:run` im Panel des Webhosters.
 
 ## Nachprüfung F8 (2026-11-18, Planung, `dev` bis `15cbce7`)
 
@@ -60,4 +60,4 @@ Personen: Ben (Owner Website-Relaunch), Chiara (Manager), David (Mitglied). Je P
 
 ---
 
-Ergebnis: **Abgenommen am 2026-11-18 durch Oliver.** Offen als Betriebsschritte nach dem Deployment: GitHub-Webhook und Action im Test-Repository (kompletter Kreislauf gegen den Server), Cron-Eintrag `schedule:run` auf Hostpoint.
+Ergebnis: **Abgenommen am 2026-11-18 durch Oliver.** Offen als Betriebsschritte nach dem Deployment: GitHub-Webhook und Action im Test-Repository (kompletter Kreislauf gegen den Server), Cron-Eintrag `schedule:run` beim Webhoster.

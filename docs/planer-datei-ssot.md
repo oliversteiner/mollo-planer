@@ -76,7 +76,7 @@ Das Werkzeug ist `mollo-version` (Node-CLI, keine Abhängigkeiten, Repository `~
     "name": "Mollo Planer",
     "description": "Projektverwaltung mit Milestones, ToDos und Kanban.",
     "locale": "DE",
-    "members": [{ "email": "oliver@mollo.ch", "role": "<ProjectRole>" }]
+    "members": [{ "email": "person@example.com", "role": "<ProjectRole>" }]
   },
   "milestones": [
     {
@@ -91,7 +91,7 @@ Das Werkzeug ist `mollo-version` (Node-CLI, keine Abhängigkeiten, Repository `~
           "title": "Ordering-Service ausbauen",
           "tasks": [
             { "id": "k-001", "title": "Sperre für Milestones ergänzen", "status": "done", "labelNames": ["backend"], "commit": null },
-            { "id": "k-002", "title": "Lückenschluss nach Löschen", "status": "open", "assigneeEmail": "oliver@mollo.ch", "labelNames": ["backend"] }
+            { "id": "k-002", "title": "Lückenschluss nach Löschen", "status": "open", "assigneeEmail": "person@example.com", "labelNames": ["backend"] }
           ]
         }
       ]

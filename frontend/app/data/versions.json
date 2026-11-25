@@ -472,7 +472,7 @@
       "minor": 9,
       "number": "0.9",
       "title": "Automatisches Deployment",
-      "description": "Automatischer Deploy von main auf den Hostpoint-Server: Tests, Freigabe, Datenbank-Backup, Migrationen, Frontend. Anleitung in der README, Vorlage für weitere Projekte in docs/deploy-template.md.",
+      "description": "Automatischer Deploy von main auf den Server des Webhosters: Tests, Freigabe, Datenbank-Backup, Migrationen, Frontend. Anleitung in der README, Vorlage für weitere Projekte in docs/deploy-template.md.",
       "status": "veröffentlicht",
       "releasedOn": "2026-11-12",
       "changes": [

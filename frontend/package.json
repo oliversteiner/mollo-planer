@@ -5,6 +5,7 @@
   "scripts": {
     "prebuild": "node scripts/mcp-schema.mjs",
     "build": "nuxt generate",
+    "postbuild": "node scripts/mcp-address.mjs",
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -16,6 +17,7 @@
     "icons:update": "node scripts/icons-update.mjs",
     "icons:fetch": "node scripts/icons-fetch.mjs",
     "icons:check": "node scripts/check-no-pro-assets.mjs",
+    "terms:check": "node scripts/check-no-private-terms.mjs",
     "knip": "knip",
     "test": "vitest run",
     "test:e2e": "playwright test"

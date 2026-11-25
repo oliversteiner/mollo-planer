@@ -12,7 +12,7 @@ Mollo Planer ist eine Web-App zur Projektverwaltung:
 - Tasks erscheinen im **Kanban** und in der **Zeitachse**. Task-Status: `idea`, `planned`, `open`, `in_progress`, `review`, `done` (`idea`/`planned` in Umsetzung, M1).
 - Status von ToDo und Milestone werden berechnet (Observer), nie eingegeben.
 - Milestones können eine **Version** tragen (`release`: Nummer `M.m`, `planned`/`released`), Tasks einen **Commit** und eine **User-Story**.
-- Startseite: Dashboard. Oberfläche Deutsch und Englisch, Standard Deutsch. Produktiv: `planer.mollo.dev`, API `api.planer.mollo.dev`.
+- Startseite: Dashboard. Oberfläche Deutsch und Englisch, Standard Deutsch. Produktiv: `planer-test.example.com`, API `api.planer-test.example.com`.
 
 **Planer v2:** Ein Plan lässt sich als Datei `<projekt>.planer.json` (Format `planer-v2`) exportieren und importieren. Das Werkzeug `mollo-planer` (Node, ohne Abhängigkeiten) liegt in `tools/planer/`, Format und Schema in `spec/`. Die App-Datenbank ist der Live-Speicher, die Datei ein versionierter Export (Revision zählt die App). Details: `docs/planer-abgleich.md`, `spec/format-v2.md`.
 
@@ -21,7 +21,7 @@ Mollo Planer ist eine Web-App zur Projektverwaltung:
 - **Backend** (`backend/`): Laravel 13 headless, PHP 8.5, Lighthouse (GraphQL, einzige API außer Fortify-REST und `POST /mcp`), Sanctum, Fortify (Login, Reset, 2FA, Passkeys, Einladung, Selbstregistrierung mit Freigabe), `anthropic-ai/sdk` (KI-Assistent), `laravel/mcp` (Connector), `intervention/image`, MariaDB (Tests auch SQLite).
 - **Frontend** (`frontend/`): Nuxt 4 als SPA, Web Awesome Pro (`wa-*`, Theme „Matter“), Font Awesome Pro „Duotone Light“, Apollo, GraphQL Code Generator, TipTap 3, `vue-draggable-plus`, Vitest, npm.
 - **Werkzeug** (`tools/planer/`): Node ≥ 20, `npm test`.
-- **Hosting:** Hostpoint (nur PHP und MariaDB, Queue per Cron, kein Node auf dem Server).
+- **Hosting:** ein Webhoster (nur PHP und MariaDB, Queue per Cron, kein Node auf dem Server).
 
 ## Befehle
 

@@ -145,7 +145,7 @@
             {
               "id": "k-new-6",
               "title": "Plan-Entwurf für bestehende Projekte prüfen",
-              "description": "Details im Plan: [A4 im Schema-Review](https://planer.mollo.dev/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.",
+              "description": "Details im Plan: [A4 im Schema-Review](https://planer-test.example.com/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.",
               "status": "planned",
               "labels": [
                 "backend",

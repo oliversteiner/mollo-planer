@@ -45,7 +45,7 @@ Die App speichert alle drei. Die Datenbank bleibt der einzige Live-Speicher, der
 
 ### Ausgangslage
 
-- Die App läuft auf dem Server (Hostpoint). Sie kann nicht in ein Git-Repository auf einem Entwicklerrechner schreiben.
+- Die App läuft auf dem Server (Webhoster). Sie kann nicht in ein Git-Repository auf einem Entwicklerrechner schreiben.
 - Die Datei liegt im Repository des jeweiligen Projekts (z. B. FCAarau DB). Dorthin muss jemand sie holen und committen.
 - Darum: **Die App liefert, das Werkzeug holt.** Die App bietet den Export an, `mollo-version` holt ihn und schreibt die Datei. Das „automatisch“ entsteht dadurch, wer das Werkzeug wann startet.
 
@@ -55,7 +55,7 @@ Die App speichert alle drei. Die Datenbank bleibt der einzige Live-Speicher, der
 
 1. **Export und Import als MCP-Werkzeuge:** `export_plan(project_id)` liefert das kanonische `planer/2`-Dokument, `import_plan(project_id, plan)` trägt es ein (Semantik: Problem 2). Gleiche Rechte und Token wie die anderen MCP-Werkzeuge (persönlicher Zugang mit Fähigkeit `mcp`, 90 Tage). Kein neuer REST-Endpunkt, die Regel „GraphQL ist die einzige API, dazu `/mcp`“ bleibt.
 2. **Revision zählt die App:** Jede Änderung an Projekt, Milestone, ToDo, Task (inkl. Status, Reihenfolge, Papierkorb) erhöht `projects.planer_revision` um 1. Umsetzung zentral über die Observer bzw. `Ordering`, `Deletion`, `ItemStatusSync`. Kommentare zählen nicht (nicht im Format).
-3. **Optional: Benachrichtigung nach außen.** Projekteinstellung „Export-Webhook“ (URL und Geheimnis). Nach einer Änderung schickt ein Queue-Job, gebündelt (z. B. höchstens einmal pro 5 Minuten je Projekt), einen POST mit Projekt-ID und Revision. Gedacht für GitHub (`repository_dispatch`), das dann eine Action startet. Läuft über die Queue per Cron, passt zu Hostpoint.
+3. **Optional: Benachrichtigung nach außen.** Projekteinstellung „Export-Webhook“ (URL und Geheimnis). Nach einer Änderung schickt ein Queue-Job, gebündelt (z. B. höchstens einmal pro 5 Minuten je Projekt), einen POST mit Projekt-ID und Revision. Gedacht für GitHub (`repository_dispatch`), das dann eine Action startet. Läuft über die Queue per Cron, passt zu Webhoster.
 
 **In `mollo-version` (Spur A):**
 
@@ -389,7 +389,7 @@ Grund: Ein Format, ein Schema, ein Importer ohne Sonderfall (Grundregel „eine 
 | `ueberdosis/tiptap-php` | TipTap-JSON ↔ **HTML**, Bereinigen | offizielles Paket, sehr verbreitet, aber **kein Markdown** |
 | `league/html-to-markdown` | HTML → Markdown | verbreitet, letzte Version 2023 |
 | `hyvor/phrosemirror`, `nadar/prosemirror-json-parser` | ProseMirror-JSON lesen, nach HTML | kein Markdown |
-| `@tiptap/markdown` (JavaScript) | Markdown ↔ TipTap-JSON, auch serverseitig | nur Node, Hostpoint hat kein Node |
+| `@tiptap/markdown` (JavaScript) | Markdown ↔ TipTap-JSON, auch serverseitig | nur Node, der Webhoster hat kein Node |
 | TipTap Convert (Cloud-API) | Markdown ↔ TipTap-JSON | kostenpflichtig, externer Dienst, Inhalte verlassen den Server: **nicht geeignet** |
 
 **Ein fertiges PHP-Paket für Markdown ↔ TipTap-JSON gibt es nicht.** Möglich wäre eine Kette über HTML (`commonmark` → HTML → `tiptap-php` → JSON und zurück `tiptap-php` → HTML → `html-to-markdown`). Nachteile: zwei zusätzliche Pakete, HTML als Zwischenschritt, die Markdown-Ausgabe von `html-to-markdown` müsste nachträglich auf die kanonische Form gebracht werden (Listenzeichen, Zeilenumbrüche, Einrückung), sonst ist der Roundtrip nicht byte-gleich.
@@ -595,7 +595,7 @@ Neu berechnen unter der Annahme, dass `mollo-version` eine Abhängigkeit der App
 | Helfer, `pull`/`push`/`sync`, `template`, `convert` | CLI, Agenten, GitHub Action | JavaScript |
 | v1 (`version-*.md`), Tabelle `app_versions`, Vue-Versionsseite | andere Apps mit Versionsseite | JavaScript, PHP, Vue |
 
-Hostpoint hat kein Node. Was die App auf dem Server braucht, muss es in PHP geben.
+Der Webhoster hat kein Node. Was die App auf dem Server braucht, muss es in PHP geben.
 
 ### 4.3 Vergleich
 
@@ -682,7 +682,7 @@ Wenn `planer/2` stabil ist (Import, Export, Vorlagen, Assistent laufen, Roundtri
 
 **Neuladen über `planerRevision` (S3f), ersetzt C1:**
 - Mutationen liefern die neue `planerRevision`. +1 = eigene Änderung, nur Projektbaum und Fortschritt neu laden. Mehr als +1 = jemand anderes hat geändert, alles neu laden und Hinweis zeigen.
-- Zeitachse und Kanban fragen alle 30 Sekunden nur `planerRevision` ab (nicht bei verborgenem Tab). Keine WebSockets nötig (Hostpoint).
+- Zeitachse und Kanban fragen alle 30 Sekunden nur `planerRevision` ab (nicht bei verborgenem Tab). Keine WebSockets nötig (Webhoster).
 - C1 (Payloads mit Elternteilen) entfällt.
 
 ---

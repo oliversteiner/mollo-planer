@@ -142,7 +142,9 @@ Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Je Pers
 
 ## Deployment (zwei Umgebungen)
 
-Es gibt zwei Umgebungen auf demselben Hostpoint-Konto: **TEST** (`https://planer.mollo.dev`, API `https://api.planer.mollo.dev`, Branch `dev`, ohne Freigabe) und **PROD** (`https://planer.mollo.ch`, API `https://api.planer.mollo.ch`, Branch `main`, mit Freigabe). Tabelle, Pflichtwerte in `backend/.env`, Schlüssel, Cron, GitHub-Umgebungen sowie die Schrittlisten «Umzug TEST» und «Ersteinrichtung PROD» stehen in `docs/deploy-template.md`, Abschnitt 15. Die Beschreibung unten gilt für beide; wo ein Pfad oder eine Adresse steht, ist die von PROD gemeint, TEST hat `~/dev/…` und `.dev` statt `~/ch/…` und `.ch`.
+Die Angaben der eigenen Installation stehen nicht im Repo. Adressen, Server und Pfade unten sind Platzhalter (`planer.example.com` für PROD, `planer-test.example.com` für TEST).
+
+Es gibt zwei Umgebungen auf demselben Konto beim Webhoster: **TEST** (`https://planer-test.example.com`, API `https://api.planer-test.example.com`, Branch `dev`, ohne Freigabe) und **PROD** (`https://planer.example.com`, API `https://api.planer.example.com`, Branch `main`, mit Freigabe). Tabelle, Pflichtwerte in `backend/.env`, Schlüssel, Cron, GitHub-Umgebungen sowie die Schrittlisten «Umzug TEST» und «Ersteinrichtung PROD» stehen in `docs/deploy-template.md`, Abschnitt 15. Die Beschreibung unten gilt für beide; wo ein Pfad oder eine Adresse steht, ist die von PROD gemeint; TEST hat eigene Ordner und Adressen.
 
 ### Ablauf
 
@@ -170,7 +172,7 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
   command="/home/username/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer
   ```
 - **GitHub-Variablen** unter *Settings → Secrets and variables → Actions → Variables* (keine Secrets, aber auch nicht im Repo):
-  - `DEPLOY_HOST`: Hostname des Hostpoint-Servers
+  - `DEPLOY_HOST`: Hostname des Servers beim Webhoster
   - `DEPLOY_USER`: SSH-Benutzer auf dem Server
 - **GitHub-Secrets** unter *Settings → Secrets and variables → Actions → Secrets*:
   - `DEPLOY_SSH_KEY`: Inhalt der privaten Datei `~/.ssh/mollo-planer-deploy`
@@ -178,7 +180,7 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
   - `WEBAWESOME_NPM_AUTH_TOKEN` und `PRO_ASSETS_TOKEN` (wie bei der Frontend-CI; Font Awesome braucht kein npm-Token mehr)
 - **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
 - **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
-- **Docroots:** `~/www/planer.mollo.dev` ist das Frontend. `~/www/api.planer.mollo.dev` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Hostpoint-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.
+- **Docroots:** `~/www/planer-test.example.com` ist das Frontend. `~/www/api.planer-test.example.com` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Webhoster-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.
 - **PHP:** Die Standard-`php` des Servers ist 8.5, das Skript nutzt sie. `composer.json` verlangt PHP 8.5; ist `php` älter, bricht das Skript ab, bevor es etwas ändert.
 
 ### Fehlersuche
@@ -188,7 +190,7 @@ Für eine Neuinstallation oder bei einem Schlüsselwechsel:
   ```bash
   cd ~/apps/mollo-planer/backend && php artisan up
   ```
-- **Stand prüfen:** `ssh mollo.ch` (persönlicher Schlüssel), dann `cd ~/apps/mollo-planer && git log --oneline -1`.
+- **Stand prüfen:** `ssh example.com` (persönlicher Schlüssel), dann `cd ~/apps/mollo-planer && git log --oneline -1`.
 
 ### Zurückrollen
 
@@ -203,4 +205,4 @@ Jedes Deploy sichert die Datenbank vorher nach `~/backups/planer/planer-<Zeit>-<
 ### Bekannte Punkte
 
 - Die CI-Workflows (`backend.yml`, `deploy.yml`) testen das Backend mit PHP 8.5, passend zum Server.
-- Das Skript kopiert das Frontend per `rsync --delete`. Eigene Dateien im Docroot `~/www/planer.mollo.dev` gehen dabei verloren.
+- Das Skript kopiert das Frontend per `rsync --delete`. Eigene Dateien im Docroot `~/www/planer-test.example.com` gehen dabei verloren.

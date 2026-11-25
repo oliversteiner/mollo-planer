@@ -89,11 +89,11 @@ test('add milestone: Version mit Standard-Status planned, ID m-new-1', () => {
 });
 
 test('add task: Labels, Zuständiger und Commit aus Flags', () => {
-  const result = run(['add', 'task', '--todo', 't-003', '--title', 'Mit Feldern', '--assignee', 'oliver@mollo.ch', '--label', 'backend', '--label', 'bug', '--due', '2026-12-20', '--status', 'review']);
+  const result = run(['add', 'task', '--todo', 't-003', '--title', 'Mit Feldern', '--assignee', 'person@example.com', '--label', 'backend', '--label', 'bug', '--due', '2026-12-20', '--status', 'review']);
   assert.equal(result.status, 0, result.stderr);
   const task = plan().milestones[1].todos[0].tasks.at(-1);
   assert.deepEqual(task.labels, ['backend', 'bug']);
-  assert.equal(task.assigneeEmail, 'oliver@mollo.ch');
+  assert.equal(task.assigneeEmail, 'person@example.com');
   assert.equal(task.dueDate, '2026-12-20');
   assert.equal(task.status, 'review');
 });
