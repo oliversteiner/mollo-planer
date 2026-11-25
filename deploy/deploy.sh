@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deployment for one environment on the Hostpoint server (TEST: branch dev, PROD: branch main).
+# Deployment for one environment on the server of the web host (TEST: branch dev, PROD: branch main).
 #
 # Runs only through the restricted SSH key of GitHub Actions (see
 # .github/workflows/deploy.yml and ~/.ssh/authorized_keys on the server). Every environment has its own

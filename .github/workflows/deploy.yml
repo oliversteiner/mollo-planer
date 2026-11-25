@@ -1,8 +1,9 @@
 name: deploy
 
-# Two environments on the same Hostpoint account (docs/deploy-template.md):
-#   push to dev  -> GitHub environment "test"        (planer.mollo.dev, no approval)
-#   push to main -> GitHub environment "production"  (planer.mollo.ch, needs the approval of the reviewer)
+# Two environments on the same account of the web host (docs/deploy-template.md):
+#   push to dev  -> GitHub environment "test"        (the TEST installation, no approval)
+#   push to main -> GitHub environment "production"  (the PROD installation, needs the approval of the reviewer)
+# No domain or server is written here: they come from the variables and secrets of GitHub (below).
 # Anything else does not deploy. The tests run first in both cases.
 #
 # What differs per environment comes from the GitHub ENVIRONMENT, not from the repo: the secret DEPLOY_SSH_KEY

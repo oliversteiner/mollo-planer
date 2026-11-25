@@ -63,13 +63,13 @@ class ServerInstructionsTest extends McpTestCase
 
     public function test_the_limits_include_the_title_and_the_links_point_to_the_frontend(): void
     {
-        config(['app.frontend_url' => 'https://planer.mollo.dev/']);
+        config(['app.frontend_url' => 'https://planer-test.example.com/']);
         $text = ServerInstructions::for($this->member);
 
         $this->assertStringContainsString('titles 2-160 characters', $text);
         $this->assertStringContainsString('Unknown fields are refused', $text);
-        $this->assertStringContainsString('https://planer.mollo.dev/mcp/llms.txt', $text);
-        $this->assertStringContainsString('https://planer.mollo.dev/mcp/format-v2.schema.json', $text);
+        $this->assertStringContainsString('https://planer-test.example.com/mcp/llms.txt', $text);
+        $this->assertStringContainsString('https://planer-test.example.com/mcp/format-v2.schema.json', $text);
     }
 
     public function test_import_plan_names_the_fields_and_the_schema_in_its_parameter(): void
@@ -85,10 +85,10 @@ class ServerInstructionsTest extends McpTestCase
 
     public function test_the_guide_on_the_api_host_moves_permanently_to_the_frontend(): void
     {
-        config(['app.frontend_url' => 'https://planer.mollo.dev']);
+        config(['app.frontend_url' => 'https://planer-test.example.com']);
 
         foreach (['/mcp/llms.txt', '/llms.txt'] as $path) {
-            $this->get($path)->assertStatus(301)->assertRedirect('https://planer.mollo.dev/mcp/llms.txt');
+            $this->get($path)->assertStatus(301)->assertRedirect('https://planer-test.example.com/mcp/llms.txt');
         }
     }
 }

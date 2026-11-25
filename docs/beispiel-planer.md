@@ -9,7 +9,7 @@ Projekt für Planung und Umsetzung. Alle Milestones, ToDos und Tasks stehen in d
 
 ## Mitglieder
 
-- oliver@mollo.ch | OWNER <!-- Rolle ist ein Platzhalter: Werte aus ProjectRole -->
+- person@example.com | OWNER <!-- Rolle ist ein Platzhalter: Werte aus ProjectRole -->
 
 ---
 
@@ -31,7 +31,7 @@ Erste Version des Ordering-Service. Alle Tasks sind erledigt, deshalb ist die Ve
   *Als Owner möchte ich, dass gleichzeitiges Anlegen keine doppelten Positionen erzeugt, damit die Zeitachse stimmt.*
 
   - Fällig: 2026-10-18
-  - Zuständig: oliver@mollo.ch
+  - Zuständig: person@example.com
   - Labels: backend, feature
   - Commit: abc1234
 
@@ -69,7 +69,7 @@ Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist gep
   *Als Entwickler möchte ich eine einzige Reihenfolge-Logik, damit neue Sortierungen nicht an drei Stellen gepflegt werden.*
 
   - Fällig: 2026-12-03
-  - Zuständig: oliver@mollo.ch
+  - Zuständig: person@example.com
   - Labels: backend, feature
 
   Ziel ist eine Klasse `Ordering` mit den Methoden `nextPosition`, `openSlot`, `move` und `close`.
@@ -97,10 +97,10 @@ Vorbereitung der Umsetzung aus dem Schema-Review. Der Status der Version ist gep
 
   *Als Assistent möchte ich Milestones und ToDos per ID anhängen, damit ich keine Duplikate erzeuge.*
 
-  - Zuständig: oliver@mollo.ch
+  - Zuständig: person@example.com
   - Labels: backend, feature
 
-  Details im Plan: [A4 im Schema-Review](https://planer.mollo.dev/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.
+  Details im Plan: [A4 im Schema-Review](https://planer-test.example.com/docs/schema-review). Nur **http**, **https** und **mailto** sind als Link erlaubt.
 
 - [ ] Ältere Plan-Felder entfernen <!-- id: k-007 -->
 

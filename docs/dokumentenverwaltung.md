@@ -18,7 +18,7 @@ Grundlage: `docs/rollen-funktionen-rechte.md`, `docs/schema-review.md` (A5 Papie
 | Arten | **feste Liste** im Code |
 | Bilder und Anhänge | **später**, nicht in M7 |
 | PDF | **PHP im Backend**, synchron. Bibliothek und Transport wie beim Rechnungs-PDF, falls dort festgelegt, sonst Entscheidung nach D0 (§7.2) |
-| Echtzeit | erwünscht, als Stufe 2 (M8). Weg **C: Abgleich über HTTP auf Hostpoint**, kein zweiter Server |
+| Echtzeit | erwünscht, als Stufe 2 (M8). Weg **C: Abgleich über HTTP beim Webhoster**, kein zweiter Server |
 | Nachweis | **je Änderung**. In M7 als Versionsverlauf, in M8 zusätzlich jede einzelne Änderung |
 | Einordnung | nach M6: M7 Dokumente, M8 Echtzeit (2026-11-16) |
 | **Umwandlung Markdown ↔ TipTap im Backend** | **2026-11-18**: Der Server wandelt um (§5.2), nicht der Browser. Der Editor arbeitet mit TipTap-JSON |
@@ -198,9 +198,9 @@ Ablauf: Markdown → HTML (über `league/commonmark` bzw. den Umwandler, HTML im
 
 - Synchron, nicht über die Queue (läuft per Cron, ein Download muss sofort antworten).
 - Kein Nachladen fremder Inhalte beim Rendern.
-- Zu prüfen in D0: Tabelle über zwei Seiten, Codeblock, Umlaute, Seitenzahlen, Lauf auf Hostpoint (PHP-Erweiterungen, Speicher, Laufzeit).
+- Zu prüfen in D0: Tabelle über zwei Seiten, Codeblock, Umlaute, Seitenzahlen, Lauf beim Webhoster (PHP-Erweiterungen, Speicher, Laufzeit).
 
-**Verworfen:** TipTap „Conversion“ (kostenpflichtig, Inhalt geht an TipTap), Browsershot/Chromium (kein Node auf Hostpoint), Drucken im Browser (uneinheitlich).
+**Verworfen:** TipTap „Conversion“ (kostenpflichtig, Inhalt geht an TipTap), Browsershot/Chromium (kein Node beim Webhoster), Drucken im Browser (uneinheitlich).
 
 ### 7.3 Transport
 
@@ -304,10 +304,10 @@ Kein WebSocket, kein Node, kein zweiter Server. Die Verzögerung entspricht dem 
 
 | Punkt | Stand |
 |---|---|
-| Hosting | Hostpoint reicht (PHP, MariaDB) |
+| Hosting | Webhoster reicht (PHP, MariaDB) |
 | Frontend | `yjs`, `@tiptap/extension-collaboration`, eigener Provider für den HTTP-Abgleich (klein, aber Eigenbau) |
 | Begrenzung | GraphQL erlaubt 120 Anfragen pro Minute und Person. Takt 2 s = 30 pro Minute je offenem Dokument. Bei Untätigkeit und verstecktem Tab auf 10 s strecken. **Prüfen:** eigene Grenze für die Abgleich-Mutation |
-| Last | jeder offene Editor erzeugt Dauerabfragen. Für kleine Teams unkritisch, in E0 messen (Antwortzeit, PHP-Prozesse auf Hostpoint) |
+| Last | jeder offene Editor erzeugt Dauerabfragen. Für kleine Teams unkritisch, in E0 messen (Antwortzeit, PHP-Prozesse beim Webhoster) |
 | Daten | Binärdaten als Base64 in GraphQL |
 
 **Grenze des Wegs:** Mit mehr als etwa einem Dutzend gleichzeitig Schreibender in einem Dokument oder mit dem Wunsch nach Cursorn ohne Verzögerung wäre ein WebSocket-Dienst (Hocuspocus auf eigenem Server) der bessere Weg. Die Tabellen aus §9.3 bleiben dann gleich, nur der Transport wechselt.
@@ -419,7 +419,7 @@ Reihenfolge wie nummeriert. Ein Schritt, ein Commit, Tests grün. Voraussetzung 
 **D0 Versuch (ohne Produktivcode, Ergebnis als Notiz `docs/dokumente-versuch.md`)**
 - PHP-Konverter: das Profil „Dokument“ (§5.2) in `MarkdownToTiptap` und `TiptapToMarkdown` als Versuch ergänzen. Rundlauf JSON → Markdown → JSON für jedes Element, besonders Tabellen, Aufgabenlisten, verschachtelte Listen, Codeblöcke (mit Sprache), Überschriften 1 bis 4.
 - TipTap-Erweiterungen im Frontend für das Profil (Tabelle, Aufgabenliste, Codeblock, Trennlinie, durchgestrichen): Paketnamen und Version, wie sich ihr JSON zum Knotenformat des PHP-Konverters verhält (Knotennamen, Attribute).
-- PDF: `dompdf` gegen `mPDF` mit einem Beispieldokument (Tabelle über zwei Seiten, Codeblock, Umlaute, Seitenzahlen), Lauf auf Hostpoint prüfen.
+- PDF: `dompdf` gegen `mPDF` mit einem Beispieldokument (Tabelle über zwei Seiten, Codeblock, Umlaute, Seitenzahlen), Lauf beim Webhoster prüfen.
 - Abnahme: Empfehlung je Punkt, Liste der Elemente, die nicht stabil sind (werden aus dem Profil genommen). **Danach anhalten**, Stuart und Oliver bestätigen Profil und PDF-Bibliothek.
 
 **D1 Datenbank und Models**
@@ -474,7 +474,7 @@ Reihenfolge wie nummeriert. Ein Schritt, ein Commit, Tests grün. Voraussetzung 
 ### M8 Echtzeit
 
 **E0 Versuch**
-- Zwei Browser, Yjs mit TipTap, Abgleich über eine Test-Mutation. Messen: Verzögerung, Paketgröße, Anfragen pro Minute, Verhalten auf Hostpoint.
+- Zwei Browser, Yjs mit TipTap, Abgleich über eine Test-Mutation. Messen: Verzögerung, Paketgröße, Anfragen pro Minute, Verhalten beim Webhoster.
 - Stand Yjs 14 und Anzeige der Zuordnung in `y-prosemirror` prüfen.
 - Abnahme: Empfehlung für Takt und Grenzen, Entscheidung „weiter mit Weg C“ oder zurück zu Oliver.
 

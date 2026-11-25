@@ -14,7 +14,7 @@ Der Code gehört zur Basis (Modul Identität, `docs/starter-kit.md`): Backend un
 |---|---|
 | Protokoll | OAuth 2.1: Authorization Code mit PKCE (S256), Refresh-Token mit Rotation. Kein Implicit, kein Password-Grant. |
 | Identität | OpenID Connect: `id_token` (RS256), Discovery, JWKS, `userinfo`. |
-| Aussteller (`issuer`) | `APP_URL` der Umgebung (TEST: `https://api.planer.mollo.dev`, PROD: `https://api.planer.mollo.ch`), nie im Code. |
+| Aussteller (`issuer`) | `APP_URL` der Umgebung (TEST: `https://api.planer-test.example.com`, PROD: `https://api.planer.example.com`), nie im Code. |
 | Lebensdauer | Access-Token 1 Stunde, Refresh-Token 90 Tage, Autorisierungscode 10 Minuten. |
 
 ## Endpunkte (alle auf der API-Domain)

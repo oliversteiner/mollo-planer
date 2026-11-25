@@ -22,7 +22,7 @@ Stand: 2026-11-07. Ergänzt `graphql-kontext.md`. Wo beide sich widersprechen, g
 15. **Sprache der API:** Header `Accept-Language` (de oder en), sonst `APP_LOCALE` (in `.env.example` jetzt `de`). Mails zu einem Projekt nutzen weiterhin die Projektsprache.
 16. **Weitere Absicherung:** Selbstregistrierung ist ab 2026-11-12 vorgesehen, mit E-Mail-Bestätigung und Freigabe durch einen Admin (`docs/registrierung-plan.md`; ersetzt „keine Selbstregistrierung“). Keine REST-Route `/api/user` (sie hätte die Sperre umgangen), CORS nur für `FRONTEND_URL` mit Cookies, GraphQL höchstens 120 Anfragen pro Minute und Person.
 
-Nicht Teil dieses Plans: alles zum Produktiv-Hosting bei Hostpoint (Domains, PHP-Version per SSH, SMTP-Zugangsdaten, Cron, Deployment). Das kommt später.
+Nicht Teil dieses Plans: alles zum Produktiv-Hosting beim Webhoster (Domains, PHP-Version per SSH, SMTP-Zugangsdaten, Cron, Deployment). Das kommt später.
 
 ## Anmeldung mit Passkeys und 2FA
 - Login, Passkeys und 2FA laufen über Fortify (REST), nicht über GraphQL.
