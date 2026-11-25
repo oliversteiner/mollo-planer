@@ -62,7 +62,7 @@ function onSelect(event: CustomEvent<{ item: { value: string } }>): void {
       variant="neutral"
       :size="size"
       :disabled="disabled"
-      :with-caret="!!text"
+      :with-caret="text ? true : undefined"
       :aria-label="label"
     >
       <template v-if="text">

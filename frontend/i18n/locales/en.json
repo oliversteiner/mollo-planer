@@ -297,14 +297,22 @@
     "taskCount": "{done}/{total} tasks",
     "timeline": {
       "label": "Milestones",
-      "expandAll": "Expand all",
-      "collapseAll": "Collapse all",
+      "expandAllMilestones": "Expand all",
+      "collapseAllMilestones": "Collapse all",
       "noDate": "No date",
       "toggleTodo": "Expand or collapse todo “{title}”",
+      "toggleMilestone": "Expand or collapse milestone “{title}”",
+      "toggleMilestoneHint": "Hold Option to include all to-dos",
+      "openTasks": "{count} open",
+      "ideasOnly": "{count} idea | {count} ideas",
+      "allTasksDone": "All tasks done.",
+      "loadError": "The milestones could not be loaded.",
+      "retry": "Try again",
+      "priceSum": "Prices: {total} · billed {billed} · in draft {draft}",
+      "price": "CHF {amount}",
+      "noPrice": "No price",
       "unassigned": "Unassigned",
       "noTasks": "No tasks yet.",
-      "milestonesOnly": "Show milestones only",
-      "showAll": "Show everything",
       "createTodo": "New todo in milestone “{title}”",
       "createTask": "New task in todo “{title}”",
       "milestoneActions": "Actions for milestone “{title}”",
@@ -2262,9 +2270,6 @@
     "announceOff": "Normal view.",
     "showIdeas": "Show ideas",
     "hideIdeas": "Hide ideas",
-    "milestonesOnly": "Toggle milestones only",
-    "expandMilestone": "Expand",
-    "collapseMilestone": "Collapse",
     "focus": "Focus",
     "focusTask": "Open task in focus",
     "focusTodo": "Open to-do in focus",
@@ -2630,8 +2635,8 @@
       "price": "Price (CHF)",
       "priceHint": "Fixed price without VAT. Empty: not billable.",
       "priceInvalid": "Please an amount in CHF, for example 1500 or 1,500.50.",
-      "billed": "Billed · {number}",
-      "billedDraft": "In a draft"
+      "billed": "Billed {number}",
+      "billedDraft": "Invoice in draft"
     }
   }
 }

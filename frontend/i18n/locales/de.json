@@ -297,14 +297,22 @@
     "taskCount": "{done}/{total} Tasks",
     "timeline": {
       "label": "Milestones",
-      "expandAll": "Alle ToDos zeigen",
-      "collapseAll": "Alle ToDos zuklappen",
+      "expandAllMilestones": "Alle aufklappen",
+      "collapseAllMilestones": "Alle zuklappen",
       "noDate": "Ohne Datum",
       "toggleTodo": "ToDo «{title}» auf- oder zuklappen",
+      "toggleMilestone": "Milestone «{title}» auf- oder zuklappen",
+      "toggleMilestoneHint": "Mit gedrückter Wahltaste auch alle ToDos",
+      "openTasks": "{count} offen",
+      "ideasOnly": "{count} Idee | {count} Ideen",
+      "allTasksDone": "Alle Tasks erledigt.",
+      "loadError": "Die Milestones konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "priceSum": "Preise: {total} · verrechnet {billed} · im Entwurf {draft}",
+      "price": "CHF {amount}",
+      "noPrice": "Ohne Preis",
       "unassigned": "Nicht zugewiesen",
       "noTasks": "Noch keine Tasks.",
-      "milestonesOnly": "Nur Milestones anzeigen",
-      "showAll": "Alles anzeigen",
       "createTodo": "Neues ToDo im Milestone «{title}» anlegen",
       "createTask": "Neuen Task im ToDo «{title}» anlegen",
       "milestoneActions": "Aktionen für Milestone «{title}»",
@@ -2262,9 +2270,6 @@
     "announceOff": "Normale Ansicht.",
     "showIdeas": "Ideen anzeigen",
     "hideIdeas": "Ideen ausblenden",
-    "milestonesOnly": "Nur Milestones anzeigen umschalten",
-    "expandMilestone": "Aufklappen",
-    "collapseMilestone": "Zuklappen",
     "focus": "Fokus",
     "focusTask": "Task im Fokus öffnen",
     "focusTodo": "ToDo im Fokus öffnen",
@@ -2630,8 +2635,8 @@
       "price": "Preis (CHF)",
       "priceHint": "Fixpreis ohne MWST. Leer: nicht verrechenbar.",
       "priceInvalid": "Bitte einen Betrag in CHF, zum Beispiel 1500 oder 1’500.50.",
-      "billed": "Verrechnet · {number}",
-      "billedDraft": "Im Entwurf"
+      "billed": "Verrechnet {number}",
+      "billedDraft": "Rechnung im Entwurf"
     }
   }
 }

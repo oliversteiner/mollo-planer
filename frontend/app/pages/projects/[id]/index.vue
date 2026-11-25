@@ -20,14 +20,6 @@ const router = useRouter()
 const { projectId, project, can } = useProject()
 const { can: canSystem } = useViewer()
 
-/** Only the milestones (?milestones=only). */
-const milestonesOnly = computed({
-  get: () => route.query.milestones === 'only',
-  set: (value: boolean) => {
-    router.replace({ query: { ...route.query, milestones: value ? 'only' : undefined } })
-  }
-})
-
 /** Todos for the task dialog, members for it and the task details. */
 const taskFormEnabled = computed(() => can('TASK_CREATE') || can('TASK_UPDATE') || can('TASK_UPDATE_OWN'))
 const { result: todosResult } = useQuery(projectTodosQuery, () => ({ projectId: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
@@ -108,15 +100,6 @@ useCommands(() => [
     visible: () => can('MILESTONE_CREATE'),
     run: () => {
       editing.value = { kind: 'milestone', parentId: projectId.value }
-    }
-  },
-  {
-    id: 'milestones-only',
-    label: t('zen.milestonesOnly'),
-    icon: 'flag',
-    group: 'action',
-    run: () => {
-      milestonesOnly.value = !milestonesOnly.value
     }
   }
 ])
@@ -208,7 +191,6 @@ function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace)
     />
 
     <ProjectTimeline
-      v-model:milestones-only="milestonesOnly"
       :data-zen="focusTodoId ? 'hide' : undefined"
       :project-id="projectId"
       :actions="actions"
