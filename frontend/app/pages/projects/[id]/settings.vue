@@ -12,6 +12,8 @@ const { t } = useI18n()
 const { resolveClient } = useApolloClient()
 const toast = useToast()
 const { projectId, project: header, can } = useProject()
+// Billing is a system right, independent of the role in the project (Auftrag 39).
+const { can: canSystem } = useViewer()
 
 const { result } = useQuery(projectSettingsQuery, () => ({ id: projectId.value }), { fetchPolicy: 'cache-and-network' })
 const project = computed(() => result.value?.project ?? null)
@@ -65,6 +67,11 @@ async function bringBack(): Promise<void> {
     <ProjectLabelsCard
       v-if="can('PROJECT_UPDATE')"
       :project-id="project.id"
+    />
+    <ProjectBillingCard
+      v-if="canSystem('BILLING_MANAGE')"
+      :project-id="project.id"
+      :customer="project.customer ?? null"
     />
     <PlanerFileCard
       v-if="can('PLANER_EXPORT') || can('PLANER_IMPORT')"

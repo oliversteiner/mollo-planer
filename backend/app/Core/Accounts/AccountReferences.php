@@ -58,6 +58,9 @@ final class AccountReferences
             'deleted_by' => self::FOREIGN,
             'user_id' => self::FOREIGN,
         ],
+        'customers' => [
+            'created_by' => self::FOREIGN,
+        ],
         'document_shares' => [
             'user_id' => self::FOREIGN,
         ],
@@ -76,6 +79,10 @@ final class AccountReferences
         'milestones' => [
             'created_by' => self::FOREIGN,
             'deleted_by' => self::FOREIGN,
+        ],
+        'invoices' => [
+            'created_by' => self::FOREIGN,
+            'issued_by' => self::FOREIGN,
         ],
         'mcp_tool_calls' => [
             'user_id' => self::PLAIN,

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Planer\PlanerRevision;
+use App\Services\Billing\InvoicePdf;
+use App\Services\Billing\InvoicePdfRenderer;
 use App\Services\DocumentAccessService;
 use App\Services\TaskNotifier;
 use App\Support\DeploymentEnvironment;
@@ -28,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // The PDF of an issued invoice (Auftrag 39 C).
+        $this->app->bind(InvoicePdfRenderer::class, InvoicePdf::class);
+
         // One instance per request, so withoutAssignmentMails() reaches the
         // notifier the GraphQL mutations use.
         $this->app->scoped(TaskNotifier::class);

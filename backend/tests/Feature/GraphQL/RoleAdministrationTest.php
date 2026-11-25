@@ -164,7 +164,7 @@ class RoleAdministrationTest extends GraphQLTestCase
         ]]));
 
         $this->assertSame(10, Role::query()->count());
-        $this->assertSame(15, RoleFunction::query()->count());
+        $this->assertSame(16, RoleFunction::query()->count());
     }
 
     public function test_duplicate_copies_functions_and_cap_as_a_role_of_ones_own(): void
@@ -310,7 +310,7 @@ class RoleAdministrationTest extends GraphQLTestCase
 
         $this->assertValidation('rights', $response);
         $this->assertTrue(Rights::allows($this->users['admin'], Right::ROLES_MANAGE));
-        $this->assertCount(9, Role::resolveOrFail(Role::SCOPE_SYSTEM, UserRole::ADMIN)->functions()->get());
+        $this->assertCount(10, Role::resolveOrFail(Role::SCOPE_SYSTEM, UserRole::ADMIN)->functions()->get());
 
         $this->assertValidation('rights', $this->as('admin')->gql(self::UPDATE_FUNCTION, ['id' => $this->functionId('system', 'users-and-roles'), 'input' => ['rights' => ['USERS_MANAGE']]]));
         $this->assertTrue(Rights::allows($this->users['admin'], Right::ROLES_MANAGE));

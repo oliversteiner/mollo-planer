@@ -329,6 +329,20 @@ function toggleAll() {
               {{ item.milestone.release.version }} · {{ t(`release.${item.milestone.release.status.toLowerCase()}`) }}{{ item.milestone.release.date ? ` · ${formatDate(item.milestone.release.date, language, true)}` : '' }}
             </span>
             <StatusBadge :status="item.milestone.status" />
+            <!-- Billing (Auftrag 39): only with billing.manage the API names the invoice; otherwise billing is null. -->
+            <NuxtLink
+              v-if="item.milestone.billing"
+              :to="`/billing/invoices/${item.milestone.billing.invoice.id}`"
+              class="timeline-billed"
+              data-zen="hide"
+            >
+              <wa-badge
+                variant="neutral"
+                appearance="outlined"
+              >
+                {{ item.milestone.billing.invoice.number ? t('billing.milestone.billed', { number: item.milestone.billing.invoice.number }) : t('billing.milestone.billedDraft') }}
+              </wa-badge>
+            </NuxtLink>
             <ActionMenu
               v-if="menu('milestone', item.milestone).length"
               data-zen="hide"
@@ -674,5 +688,9 @@ function toggleAll() {
   align-items: center;
   padding-inline: var(--wa-space-s);
   pointer-events: none;
+}
+.timeline-billed {
+  display: inline-flex;
+  text-decoration: none;
 }
 </style>

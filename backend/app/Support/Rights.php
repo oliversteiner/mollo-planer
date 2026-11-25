@@ -55,7 +55,7 @@ final class Rights
         }
 
         if ($right->isSystem()) {
-            return in_array($right->value, self::grantOf($user->role_id)['rights'], true);
+            return ! self::neverForAgents($user, $right) && in_array($right->value, self::grantOf($user->role_id)['rights'], true);
         }
 
         if ($project === null || ! self::withinArchive($project, $right)) {
@@ -79,7 +79,7 @@ final class Rights
     public static function rightsOf(User $user, ?Project $project = null): array
     {
         if ($project === null) {
-            return self::rightsOfRole($user->role);
+            return array_values(array_filter(self::rightsOfRole($user->role), fn (Right $right): bool => ! self::neverForAgents($user, $right)));
         }
 
         $rights = self::allows($user, Right::PROJECTS_MANAGE_ANY)
@@ -87,6 +87,15 @@ final class Rights
             : array_filter(self::rightsOfRole($project->roleOf($user)), fn (Right $right): bool => self::withinCap($user, $right));
 
         return array_values(array_filter($rights, fn (Right $right): bool => self::withinArchive($project, $right)));
+    }
+
+    /**
+     * Rights an agent account never has, whatever its role (Auftrag 39: prices, customers and invoices never reach an
+     * agent or the connector). Checked here, so a role that carries the right cannot hand it to an agent either.
+     */
+    public static function neverForAgents(User $user, Right $right): bool
+    {
+        return $right === Right::BILLING_MANAGE && $user->isAgent();
     }
 
     /**

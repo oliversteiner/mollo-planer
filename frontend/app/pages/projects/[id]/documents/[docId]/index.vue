@@ -287,6 +287,7 @@ useCommands(() => {
     { id: 'document-history', label: t('documents.history'), icon: 'clock-rotate-left', group: 'action' as const, visible: () => doc.value !== null, run: go(`/projects/${projectId.value}/documents/${documentId.value}/history`) },
     { id: 'document-export-markdown', label: `${t('documents.export')}: ${t('documents.exportMarkdown')}`, icon: 'file-lines', group: 'action' as const, visible: () => doc.value !== null, run: exporter.markdown },
     { id: 'document-export-pdf', label: `${t('documents.export')}: ${t('documents.exportPdf')}`, icon: 'file-pdf', group: 'action' as const, visible: () => doc.value !== null && !exporter.making.value, run: () => { void exporter.pdf() } },
+    { id: 'document-export-pdf-letterhead', label: `${t('documents.export')}: ${t('documents.exportPdfLetterhead')}`, icon: 'file-pdf', group: 'action' as const, visible: () => doc.value !== null && !exporter.making.value && exporter.letterheadAvailable.value, run: () => { void exporter.pdf(true) } },
     { id: 'document-share', label: t('documents.share'), icon: 'share-nodes', group: 'action' as const, visible: () => canManage.value, run: () => { sharing.value = true } },
     { id: 'document-transfer', label: t('documents.transfer'), icon: 'user-gear', group: 'action' as const, visible: () => canManage.value, run: () => { transferring.value = true } }
   ]

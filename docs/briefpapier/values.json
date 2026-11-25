@@ -1,0 +1,12 @@
+{
+  "comment": "Vorgaben des Satzspiegels in mm. Gleich wie App\\Core\\Pdf\\PageLayout::DEFAULTS (Test PageLayoutDefaultsTest) und wie die Anleitung (briefpapier-anleitung.py liest diese Datei).",
+  "topFirst": 100,
+  "topFollowing": 35,
+  "bottom": 25,
+  "left": 20,
+  "right": 20,
+  "addressLeft": 20,
+  "addressTop": 50,
+  "addressWidth": 75,
+  "addressHeight": 30
+}

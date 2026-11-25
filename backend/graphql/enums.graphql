@@ -59,6 +59,8 @@ enum Right {
   SETTINGS_MANAGE @enum(value: "settings.manage")
   SYSTEM_VIEW @enum(value: "system.view")
   DATABASE_VIEW @enum(value: "database.view")
+  "Abrechnung: Kunden, Preise der Meilensteine, Rechnungen, Absender und Briefpapier. Nie für Agent-Konten."
+  BILLING_MANAGE @enum(value: "billing.manage")
 }
 
 "Bereich einer Rolle: System (ganze App) oder Projekt (eine Mitgliedschaft)"

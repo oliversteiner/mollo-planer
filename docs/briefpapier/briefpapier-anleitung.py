@@ -55,9 +55,13 @@ def table(rows, widths, head=True):
 
 
 # ---------- values (one place) ----------
+# The values the planer offers as defaults are in values.json next to this script (the backend test
+# PageLayoutDefaultsTest compares them with App\Core\Pdf\PageLayout::DEFAULTS), so they cannot drift apart.
+import json
+P = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'values.json'), encoding='utf-8'))
 V = dict(
-    head_s1=30, text_top_s1=100, head_f=25, text_top_f=35, bottom=25, foot=20,
-    left=20, right=20, safe=5, fold=148.5,
+    head_s1=30, text_top_s1=P['topFirst'], head_f=25, text_top_f=P['topFollowing'], bottom=P['bottom'], foot=20,
+    left=P['left'], right=P['right'], safe=5, fold=148.5,
     winL=(15, 33, 99, 62), winL_vis=(15, 47, 80, 34),  # x, y(from top), w, h
 )
 V['winR'] = (W / mm - V['winL'][0] - V['winL'][2], 33, 99, 62)
@@ -349,8 +353,8 @@ s += [P('Werte für den Planer notieren', h2),
           ['Rand unten', f'{V["bottom"]} mm', ''],
           ['Rand links / rechts', f'{V["left"]} / {V["right"]} mm', ''],
           ['Adressfeld: Fenster', 'links oder rechts', ''],
-          ['Adressfeld: von links / von oben', '20 / 50 mm (links)', ''],
-          ['Adressfeld: Breite / Höhe', '75 / 30 mm', ''],
+          ['Adressfeld: von links / von oben', f'{P["addressLeft"]} / {P["addressTop"]} mm (links)', ''],
+          ['Adressfeld: Breite / Höhe', f'{P["addressWidth"]} / {P["addressHeight"]} mm', ''],
           ['Schrift', 'Auswahl im Planer', ''],
       ], [60 * mm, 50 * mm, 60 * mm])]
 
