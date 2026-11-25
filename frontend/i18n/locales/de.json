@@ -1194,6 +1194,10 @@
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
         },
+        "customer_id": {
+          "label": "Kunde",
+          "description": "Kunde der Abrechnung, dem das Projekt verrechnet wird (Auftrag 39). Nur mit dem Recht «Abrechnung» sichtbar; leer: kein Kunde, nicht verrechenbar."
+        },
         "created_at": {
           "label": "Angelegt am",
           "description": "Zeitpunkt der Anlage, von Laravel gesetzt."
@@ -1317,6 +1321,10 @@
         "release_date": {
           "label": "Datum der Veröffentlichung",
           "description": "Wann die Version veröffentlicht wurde. Immer optional; nur bei einer veröffentlichten Version, beim Zurück auf «geplant» wird es geleert."
+        },
+        "price_cents": {
+          "label": "Preis (Rappen)",
+          "description": "Fixpreis des Milestones in ganzen Rappen (Auftrag 39). Nur mit dem Recht «Abrechnung» sichtbar; leer: kein Preis, nicht verrechenbar."
         }
       },
       "todos": {

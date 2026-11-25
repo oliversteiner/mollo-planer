@@ -1194,6 +1194,10 @@
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
         },
+        "customer_id": {
+          "label": "Customer",
+          "description": "Customer of the billing the project is billed to (Auftrag 39). Only visible with the right «Billing»; empty: no customer, not billable."
+        },
         "created_at": {
           "label": "Created at",
           "description": "When the record was created, set by Laravel."
@@ -1317,6 +1321,10 @@
         "release_date": {
           "label": "Release date",
           "description": "When the version was released. Always optional; only for a released version, going back to planned clears it."
+        },
+        "price_cents": {
+          "label": "Price (Rappen)",
+          "description": "Fixed price of the milestone in whole Rappen (Auftrag 39). Only visible with the right «Billing»; empty: no price, not billable."
         }
       },
       "todos": {
