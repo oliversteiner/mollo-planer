@@ -1,11 +1,11 @@
 # Mollo Planer
 
 Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu ein Dashboard als Startseite.
-Testserver: `planer.mollo.dev` (API `api.planer.mollo.dev`). Produktion: `planer.mollo.ch` (API `api.planer.mollo.ch`). Frontend und API laufen als getrennte Subdomains.
+Zwei Umgebungen, TEST und PROD; Frontend und API laufen als getrennte Subdomains. Die Adressen und Angaben zum Server stehen nicht im Repo, sondern in `~/www/agents/AGENTS.md` und `~/www/agents/mollo-planer/betrieb.md`.
 
 Allgemeine Regeln für alle Projekte: `~/www/agents/AGENTS.md`. Zuerst lesen, falls sie nicht schon geladen ist.
 
-**Planung:** im Mollo Planer auf `planer.mollo.dev`, Projekt **2 · Mollo Planer**. Agent dieses Repos ist **Bob** (Konto `bob.agent@mollo.dev`, Token `MOLLOPLANER_BOB_TOKEN`, eingetragen in `.mcp.json`). Aufträge liegen lokal in `next-work/` (nicht im Git), die Reihenfolge in `next-work/README.md`; jede Auftragsdatei nennt ihr ToDo, der Stand steht im Planer. Ablauf: Abschnitt «Zusammenarbeit: next-work und Planer» in `~/www/agents/AGENTS.md`. TEST enthält echte Daten: kein Dump, kein `migrate:fresh`, keine Seeder auf `planer.mollo.dev`.
+**Planung:** im Mollo Planer auf TEST, Projekt **2 · Mollo Planer**. Agent dieses Repos ist **Bob** (eigenes Konto, Token `MOLLOPLANER_BOB_TOKEN`, eingetragen in `.mcp.json`; die Adresse des Servers kommt aus `MOLLOPLANER_MCP_URL`). Aufträge liegen lokal in `next-work/` (nicht im Git), die Reihenfolge in `next-work/README.md`; jede Auftragsdatei nennt ihr ToDo, der Stand steht im Planer. Ablauf: Abschnitt «Zusammenarbeit: next-work und Planer» in `~/www/agents/AGENTS.md`. TEST enthält echte Daten: kein Dump, kein `migrate:fresh`, keine Seeder auf TEST.
 
 ## Bevor du etwas baust, lies
 - `docs/README.md`: Einstieg, **Vorrang der Dokumente** und welche historisch sind. Zuerst lesen.
@@ -23,7 +23,7 @@ Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuers
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
 - **Frontend:** Nuxt 4 (Vue 3) mit **Web Awesome Pro** (Web Components `wa-*`, Theme „Matter“; nicht Nuxt UI, kein Tailwind) in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente, über `wa-icon`; die Pro-SVGs liegen **nicht** im Repo, sondern in einem privaten Repo und kommen mit `npm run icons:fetch` nach `frontend/vendor/`; ohne sie nutzt der Build Font Awesome Free)
-- **Hosting:** Hostpoint (Schweiz), nur PHP und MySQL/MariaDB, Queue per Cron. Hosting-Themen erst später, nicht jetzt bearbeiten.
+- **Hosting:** Webhoster mit SSH, nur PHP und MySQL/MariaDB, Queue per Cron (Angaben in `~/www/agents/mollo-planer/betrieb.md`). Hosting-Themen erst später, nicht jetzt bearbeiten.
 - **Entwicklung:** macOS (Mac mini, Apple Silicon) mit Homebrew (PHP, Composer, MariaDB, Mailpit), Node 24 über nvm, PhpStorm, GitHub
 
 ## Befehle
@@ -44,6 +44,7 @@ Werkzeug für `planer-v2` im Ordner `tools/planer/` (Node 20 oder neuer, keine A
 Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - `npm run dev` (http://localhost:3000, im WLAN erreichbar; die Backend-Adresse steht in `frontend/.env` als `NUXT_PUBLIC_API_BASE`)
 - `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)
+- `npm run icons:check` (keine Pro-Dateien) und `npm run terms:check` (keine Domains, Adressen, Anbieter oder Angaben zum Server der eigenen Installation; die Liste kommt aus der Umgebungsvariable `PRIVATE_TERMS`, sie steht nicht im Repo; ohne sie nur eine Warnung). Beide laufen auch in der CI und gehören vor jeden Push.
 - `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
 - `npm run build` (statische Dateien in `.output/public`)
 
@@ -68,7 +69,7 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - Icons: Font-Awesome-Pro-Namen ohne Stil-Präfix.
 - Die 2FA- und Passkey-Middleware in Produktion nicht lockern.
 - Änderungen nur über einen eigenen Branch und einen PR nach `dev`, nie direkt auf `dev`, nie mergen ohne Oliver (gilt für alle Agenten, auch Junie).
-- **MCP-Konfigurationen** (`.mcp.json`, `.junie/mcp/mcp.json` und gleichartige Dateien im Repo) enthalten nur Server ohne Geheimnis (`laravel-boost`) und sonst höchstens `${VARIABLE}`. **Nie ein Token und nie eine Adresse mit Zugangsdaten** in diese Dateien. Der Planer-Server steht nur in der `.mcp.json` des Repos, mit `${MOLLOPLANER_<NAME>_TOKEN}` für das eigene Agentenkonto, und verbindet nur mit TEST (`https://api.planer.mollo.dev/mcp`). Planer-Server nie mit `--scope user` eintragen, weil sie sonst in jedem Projekt mit demselben Konto auftauchen. Olivers persönliche Server nur mit `--scope local`.
+- **MCP-Konfigurationen** (`.mcp.json`, `.junie/mcp/mcp.json` und gleichartige Dateien im Repo) enthalten nur Server ohne Geheimnis (`laravel-boost`) und sonst höchstens `${VARIABLE}`. **Nie ein Token und nie eine Adresse mit Zugangsdaten** in diese Dateien. Der Planer-Server steht nur in der `.mcp.json` des Repos, mit `${MOLLOPLANER_<NAME>_TOKEN}` für das eigene Agentenkonto und `${MOLLOPLANER_MCP_URL}` für die Adresse (global gesetzt, zeigt auf TEST), und verbindet nur mit TEST. Planer-Server nie mit `--scope user` eintragen, weil sie sonst in jedem Projekt mit demselben Konto auftauchen. Olivers persönliche Server nur mit `--scope local`.
 - «cpm»: Vor dem Merge Branch und Ziel-Branch nennen, wenn unklar. Commits von Junie mit Co-Author-Trailer.
 - Zu jeder neuen Policy, Mutation oder Regel gehören Tests (siehe Punkt 12 im Backend-Plan).
 - Nach einem abgeschlossenen Schritt aus der Bau-Reihenfolge den Abschnitt „Stand“ unten aktualisieren.
