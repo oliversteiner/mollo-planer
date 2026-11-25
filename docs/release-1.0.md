@@ -1,6 +1,6 @@
 # Release 1.0 – Plan
 
-Stand 2026-11-18 · Stuart. Bringt M1–M6 und den Zen-Modus von `dev` nach `main` und damit auf den Hostpoint-Server.
+Stand 2026-11-18 · Stuart. Bringt M1–M6 und den Zen-Modus von `dev` nach `main` und damit auf den Server des Webhosters.
 
 ## Entscheidungen (Oliver, 2026-11-18)
 
@@ -47,7 +47,7 @@ Stand 2026-11-18 · Stuart. Bringt M1–M6 und den Zen-Modus von `dev` nach `mai
 4. **Pull Request `dev` → `main`** (Bob bereitet vor, Oliver merged). Titel „Release 1.0“, Beschreibung = Release-Notizen + Brüche.
 5. **Deploy freigeben** im Environment „production“. Log verfolgen; bei Fehler in `migrate` bleibt die Seite im Wartungsmodus → Rückweg.
 6. **Tag `v1.0.0`** auf den Merge-Commit setzen und pushen (das Release-Datum in der Versionsseite kommt aus dem Tag; danach `npm run versions` auf `dev` und committen).
-7. **Cron-Eintrag** im Hostpoint-Panel, jede Minute (Vorlage in `docs/deploy-template.md`):
+7. **Cron-Eintrag** im Panel des Webhosters, jede Minute (Vorlage in `docs/deploy-template.md`):
    `* * * * * cd <api-pfad> && <php-pfad> artisan schedule:run >> /dev/null 2>&1`
 8. **Nachkontrolle** (Stuart im Browser, Oliver per SSH): siehe unten.
 

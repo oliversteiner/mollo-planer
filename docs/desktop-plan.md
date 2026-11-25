@@ -9,7 +9,7 @@ Die Projektverwaltung läuft auch als eigenständige Desktop-App auf dem Mac (sp
 ## Ausgangslage
 
 - **Frontend:** Nuxt 4 als reine SPA (`ssr: false`), `npm run build` erzeugt statische Dateien in `frontend/.output/public`. Genau das lädt Tauri in die Webview.
-- **Backend:** Laravel mit GraphQL unter `/api`. Die App spricht es über die Adresse aus `NUXT_PUBLIC_API_BASE` an (lokal `http://localhost:8000`, produktiv später der API-Server bei Hostpoint).
+- **Backend:** Laravel mit GraphQL unter `/api`. Die App spricht es über die Adresse aus `NUXT_PUBLIC_API_BASE` an (lokal `http://localhost:8000`, produktiv später der API-Server beim Webhoster).
 - **Anmeldung:** Sanctum-Cookie-Session, Sitzungen in der Datenbank, plus Pflicht zur 2FA oder zum Passkey (`StrongAuthentication`).
 - **Werkzeuge auf dem Mac:** Rust und Cargo fehlen. Vorhanden sind nur die Xcode-Kommandozeilenwerkzeuge (`xcode-select` zeigt auf `CommandLineTools`). Für Signierung und Notarisierung braucht es ein Apple-Developer-Konto.
 
@@ -43,7 +43,7 @@ Die App läuft in einer Webview mit dem Ursprung `tauri://localhost`. Die API li
 
 - **Anmeldung in der Webview** (siehe oben). Der Spike entscheidet frühzeitig.
 - **Signierung:** ohne Konto und Notarisierung meldet macOS die App als nicht vertrauenswürdig. Für die Verteilung an andere ist das ein Muss.
-- **Hostpoint:** nur PHP und MariaDB. Für Updates reichen statische Dateien, eine Tauri-Build-Pipeline läuft auf GitHub.
+- **Webhoster:** nur PHP und MariaDB. Für Updates reichen statische Dateien, eine Tauri-Build-Pipeline läuft auf GitHub.
 - **Doppelte Pflege:** Änderungen an der Anmeldung betreffen Browser und App gleichermaßen. Tests für beide Wege.
 
 ## Entscheidungen

@@ -4,10 +4,10 @@ Für Stuart und Oliver. Grundlage: `docs/onboarding-leitfaden.md` §6.4 (acht Pu
 
 | | TEST | PROD |
 |---|---|---|
-| Adresse | https://planer.mollo.dev | https://planer.mollo.ch |
-| API | https://api.planer.mollo.dev | https://api.planer.mollo.ch |
+| Adresse | https://planer-test.example.com | https://planer.example.com |
+| API | https://api.planer-test.example.com | https://api.planer.example.com |
 | Band «Testumgebung» oben links | **ja** | **nein** |
-| Passkey-RP-ID | `planer.mollo.dev` | `planer.mollo.ch` |
+| Passkey-RP-ID | `planer-test.example.com` | `planer.example.com` |
 | Daten | eigene, getrennte Datenbank | eigene, getrennte Datenbank |
 
 ## A. Unterscheidung der Umgebungen
@@ -32,8 +32,8 @@ Für Stuart und Oliver. Grundlage: `docs/onboarding-leitfaden.md` §6.4 (acht Pu
 1. **Rauchtest** der API ohne Sitzung (lokal im Terminal):
    ```bash
    # LOKAL (auf deinem Mac, im Terminal)
-   curl -s -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"query":"{ viewerRights }"}' https://api.planer.mollo.dev/api | head -c 200
-   curl -s -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"query":"{ viewerRights }"}' https://api.planer.mollo.ch/api | head -c 200
+   curl -s -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"query":"{ viewerRights }"}' https://api.planer-test.example.com/api | head -c 200
+   curl -s -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"query":"{ viewerRights }"}' https://api.planer.example.com/api | head -c 200
    ```
    Beide antworten `Unauthenticated.`, nicht mit einem Serverfehler.
 2. **Deploy-Log** (GitHub → Actions → `deploy` → Lauf → Job «Deploy (test)» bzw. «Deploy (production)» → Schritt «Upload frontend and run deployment»): «Umgebung: APP_ENV=staging, Branch dev» bzw. «production, main», `Backup: …`, «Rauchtest GraphQL: ok», **keine** Zeile `WARNUNG`.

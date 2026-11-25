@@ -19,7 +19,7 @@ Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md`
     "name": "Mollo Planer",
     "description": "Projektverwaltung mit Milestones, ToDos und Kanban.",
     "locale": "de",
-    "members": [{ "email": "oliver@mollo.ch", "role": "owner" }],
+    "members": [{ "email": "person@example.com", "role": "owner" }],
     "labels": [{ "key": "backend", "names": { "de": "Backend", "en": "Backend" }, "category": "area", "color": "cyan" }]
   },
   "milestones": [
@@ -34,7 +34,7 @@ Für Versionen nach Spezifikation v1 (`version-<name>.md`) gilt `spec/format.md`
           "title": "Ordering-Service ausbauen",
           "tasks": [
             { "id": "k-1", "title": "Sperre für Milestones ergänzen", "status": "done", "labels": ["backend"], "commit": null },
-            { "id": "k-002", "title": "Lückenschluss nach Löschen", "status": "open", "assigneeEmail": "oliver@mollo.ch", "labels": ["backend"] }
+            { "id": "k-002", "title": "Lückenschluss nach Löschen", "status": "open", "assigneeEmail": "person@example.com", "labels": ["backend"] }
           ]
         }
       ]

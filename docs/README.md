@@ -26,7 +26,7 @@ Bei Widerspruch gilt das weiter oben genannte Dokument. Widersprüche nicht stil
 - `frontend-webawesome-plan.md`, `frontend-plan.md`: Oberfläche (Web Awesome, Seiten)
 - `registrierung-plan.md`: Selbstregistrierung und Freigabe
 - `system-plan.md`: Status und Datenbank-Doku
-- `deploy-template.md`: Deployment bei Hostpoint
+- `deploy-template.md`: Deployment beim Webhoster
 - `lokale-konten.md`: lokale Konten bleiben bei jedem Neuaufbau der Datenbank, Dump von TEST lokal einspielen
 - `desktop-plan.md`: geplante Desktop-App (Tauri)
 - `claude-connector.md`: heutiger Connector (bis I3)

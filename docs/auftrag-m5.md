@@ -22,7 +22,7 @@ Ziel: Eine Planer-Datei in einem beliebigen Repository bleibt mit der App im Gle
    - **Allgemein:** URL und Geheimnis, Body mit HMAC-SHA256 signiert.
    - Token bzw. Geheimnis verschlüsselt gespeichert, nach dem Speichern nie wieder angezeigt, nur ersetzbar.
 2. **Das Repository `mollo-planer` ist öffentlich.** Die Action holt das Werkzeug mit `actions/checkout` ohne Token. Kein npm-Paket jetzt (Auslagerung bleibt bei §4.5).
-3. **Queue auf Hostpoint:** Der Scheduler startet jede Minute `queue:work --stop-when-empty`. Der Cron-Eintrag für `schedule:run` kommt in `docs/deploy-template.md`; Oliver trägt ihn im Hostpoint-Panel ein.
+3. **Queue beim Webhoster:** Der Scheduler startet jede Minute `queue:work --stop-when-empty`. Der Cron-Eintrag für `schedule:run` kommt in `docs/deploy-template.md`; Oliver trägt ihn im Panel des Webhosters ein.
 
 ## 2. T2 `pull`, `push`, `sync`, `pull --watch` (in `tools/planer/cli`)
 
@@ -96,7 +96,7 @@ Ziel: Eine Planer-Datei in einem beliebigen Repository bleibt mit der App im Gle
 - **Allgemein:** `POST <url>`, Body `{ "event": "planer.revision", "project_id", "revision", "sent_at" }`, Header `X-Mollo-Event: planer.revision`, `X-Mollo-Signature: sha256=<HMAC-SHA256 des rohen Bodys mit dem Geheimnis>`. Erfolg = 2xx.
 - Zeitlimit 10 s. Fehler: drei weitere Versuche nach 1, 5 und 15 Minuten (`tries`, `backoff`). Danach `last_failed_at`, `last_error` (z. B. „HTTP 401“, „Zeitüberschreitung“). Erfolg setzt `last_sent_*` und löscht `last_failed_at`/`last_error`. Keine Mail. Token/Geheimnis nie loggen.
 
-### 4.4 Queue auf Hostpoint
+### 4.4 Queue beim Webhoster
 
 - `routes/console.php`: `Schedule::command('queue:work --stop-when-empty --max-time=55')->everyMinute()->withoutOverlapping()`.
 - `docs/deploy-template.md`: Abschnitt „Cron“ mit dem Eintrag `* * * * * cd <api-pfad> && <php-pfad> artisan schedule:run >> /dev/null 2>&1`, Hinweis: ohne ihn gehen weder Mails noch Webhooks raus. In `umsetzung.md` als offenen Schritt für Oliver vermerken.
@@ -130,4 +130,4 @@ Rückfragen an die Planung in `docs/umsetzung.md` unter „Rückfrage an die Pla
 
 - CLI gegen die lokale App: Fälle aus §2.3 von Hand, Texte und Exit-Codes.
 - Webhook „Allgemein“ gegen einen lokalen Empfänger (Signatur prüfen), Bündelung, Fehlerstatus in der Oberfläche.
-- ⏸ Oliver: Webhook „GitHub“ und Action in einem Test-Repository, Cron auf Hostpoint.
+- ⏸ Oliver: Webhook „GitHub“ und Action in einem Test-Repository, Cron beim Webhoster.

@@ -451,7 +451,7 @@ Desktop-App für macOS und Windows mit Anmeldung per Token und Auto-Update. Plan
 ## v0.9 Automatisches Deployment
 Status: veröffentlicht
 
-Automatischer Deploy von main auf den Hostpoint-Server: Tests, Freigabe, Datenbank-Backup, Migrationen, Frontend. Anleitung in der README, Vorlage für weitere Projekte in docs/deploy-template.md.
+Automatischer Deploy von main auf den Server des Webhosters: Tests, Freigabe, Datenbank-Backup, Migrationen, Frontend. Anleitung in der README, Vorlage für weitere Projekte in docs/deploy-template.md.
 
 ### Workflow und Server
 

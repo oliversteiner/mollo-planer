@@ -8,7 +8,7 @@ Dieser Text erklärt, wie Claude auf Mollo Planer zugreift, wie du den Zugang ei
 
 ## Überblick
 
-Claude spricht per JSON-RPC `POST` mit dem Backend über das **Model Context Protocol (MCP)**. Die TEST-API ist `https://api.planer.mollo.dev/mcp`, die PROD-API `https://api.planer.mollo.ch/mcp` (lokal `http://localhost:8000/mcp`). Verwende immer die zur Umgebung passende Adresse.
+Claude spricht per JSON-RPC `POST` mit dem Backend über das **Model Context Protocol (MCP)**. Die TEST-API ist `https://api.planer-test.example.com/mcp`, die PROD-API `https://api.planer.example.com/mcp` (lokal `http://localhost:8000/mcp`). Verwende immer die zur Umgebung passende Adresse.
 
 Der Zugang funktioniert so:
 
@@ -52,7 +52,7 @@ Seit Auftrag 41 kann Claude sich **ohne Token und ohne Node.js** verbinden. Der 
 (`docs/oauth-sso.md`). Das gilt für die Konten von Personen; ein Agent-Konto hat keinen Web-Zugang und bleibt beim Zugang unten.
 
 1. In Claude (Desktop oder claude.ai) unter *Einstellungen → Connectors* einen **Custom Connector** hinzufügen mit der Adresse
-   `https://api.planer.mollo.dev/mcp` (TEST) bzw. `https://api.planer.mollo.ch/mcp` (PROD).
+   `https://api.planer-test.example.com/mcp` (TEST) bzw. `https://api.planer.example.com/mcp` (PROD).
 2. Claude findet die Anmeldung selbst (`/.well-known/oauth-protected-resource/mcp`) und **registriert sich als öffentlicher Client**
    (nur zu den Adressen von Claude und `localhost`, mit PKCE). Danach erscheint der Client unter **System → Anmeldedienst**
    und lässt sich dort widerrufen.
@@ -85,7 +85,7 @@ Voraussetzung: **Node.js** auf dem Rechner (für `npx`).
      "mcpServers": {
        "mollo-planer": {
          "command": "npx",
-         "args": ["-y", "mcp-remote", "https://api.planer.mollo.dev/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
+         "args": ["-y", "mcp-remote", "https://api.planer-test.example.com/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
          "env": { "AUTH_TOKEN": "Bearer <dein Zugang>" }
        }
      }
@@ -98,19 +98,19 @@ Voraussetzung: **Node.js** auf dem Rechner (für `npx`).
 
 Danach erscheint „mollo-planer“ unter den verfügbaren Werkzeugen.
 
-Das Beispiel zeigt TEST (`.dev`). Für PROD ersetze die URL durch `https://api.planer.mollo.ch/mcp`.
+Das Beispiel zeigt TEST (`.dev`). Für PROD ersetze die URL durch `https://api.planer.example.com/mcp`.
 
 ### Schritt 2b: Claude Code
 
 Im Terminal den Befehl aus dem Profil ausführen. Er sieht so aus:
 
 ```bash
-claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header "Authorization: Bearer <dein Zugang>"
+claude mcp add --transport http mollo-planer https://api.planer-test.example.com/mcp --header "Authorization: Bearer <dein Zugang>"
 ```
 
 Danach kennt Claude Code den Server „mollo-planer“.
 
-Der Befehl zeigt TEST (`.dev`). Für PROD verwende `https://api.planer.mollo.ch/mcp`.
+Der Befehl zeigt TEST (`.dev`). Für PROD verwende `https://api.planer.example.com/mcp`.
 
 Für dieses Repository liegt außerdem eine `.mcp.json` bei. Sie nutzt die Umgebungsvariable `MOLLOPLANER_TOKEN`:
 
@@ -256,10 +256,10 @@ Claude exportiert den Plan, hängt im ToDo zwei Tasks mit den IDs `k-new-1` und 
   "plan": {
     "format": "planer-v2",
     "revision": 41,
-    "project": { "name": "Podcast", "locale": "de", "members": [ { "email": "oliver@mollo.ch", "role": "owner" } ] },
+    "project": { "name": "Podcast", "locale": "de", "members": [ { "email": "person@example.com", "role": "owner" } ] },
     "milestones": [ { "id": "m-31", "title": "Konzept", "todos": [ { "id": "t-77", "title": "Technik", "tasks": [
-      { "id": "k-new-1", "title": "Mikrofone vergleichen", "status": "open", "assigneeEmail": "oliver@mollo.ch" },
-      { "id": "k-new-2", "title": "Aufnahmesoftware testen", "status": "open", "assigneeEmail": "oliver@mollo.ch" }
+      { "id": "k-new-1", "title": "Mikrofone vergleichen", "status": "open", "assigneeEmail": "person@example.com" },
+      { "id": "k-new-2", "title": "Aufnahmesoftware testen", "status": "open", "assigneeEmail": "person@example.com" }
     ] } ] } ]
   }
 }

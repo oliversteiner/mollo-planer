@@ -54,7 +54,7 @@ Die Funktionen in `config/permissions.php` (`aufgaben-bewegen`, `aufgaben-eigene
 
 ### 3.5 Statischer Cache in `Rights` (klein)
 
-`Rights::$grants` ist statisch und wird einmal geladen. In Anfragen ist das richtig. Ein Queue-Worker (Hostpoint: `schedule:run` per Cron, Jobs laufen im selben Prozess nacheinander) behält den Cache über mehrere Jobs. Ändert jemand in `/admin/roles` die Rechte, sehen danach laufende Jobs (z. B. Mails mit Sichtbarkeitsprüfung) kurz den alten Stand.
+`Rights::$grants` ist statisch und wird einmal geladen. In Anfragen ist das richtig. Ein Queue-Worker (Webhoster: `schedule:run` per Cron, Jobs laufen im selben Prozess nacheinander) behält den Cache über mehrere Jobs. Ändert jemand in `/admin/roles` die Rechte, sehen danach laufende Jobs (z. B. Mails mit Sichtbarkeitsprüfung) kurz den alten Stand.
 
 **Empfehlung:** `Rights::clearCache()` am Anfang jedes Jobs (Listener auf `JobProcessing`) und nach jeder Änderung an Rollen/Funktionen. Ein Test dafür.
 
