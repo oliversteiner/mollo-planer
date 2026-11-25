@@ -61,6 +61,8 @@ class CreateProject
             $project->save();
 
             if ($creator instanceof User) {
+                // An agent account has no other role than Agent, not even as the creator (Auftrag 58 A).
+                ProjectMembership::assertRoleFits($creator, AppSettings::projectCreatorRole());
                 $project->members()->attach($creator->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
                 $this->addMembers($project, $creator, $args['members'] ?? []);
             }

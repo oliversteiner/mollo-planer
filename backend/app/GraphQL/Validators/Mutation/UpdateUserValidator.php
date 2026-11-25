@@ -4,6 +4,7 @@ namespace App\GraphQL\Validators\Mutation;
 
 use App\Models\User;
 use App\Rules\KeepsProjectHolders;
+use App\Rules\NoAgentIdentifier;
 use App\Rules\NoBillingForAgents;
 use Illuminate\Validation\Rule;
 use Nuwave\Lighthouse\Validation\Validator;
@@ -21,7 +22,7 @@ class UpdateUserValidator extends Validator
     public function rules(): array
     {
         return [
-            'input.email' => [Rule::unique('users', 'email')->ignore($this->arg('id'))],
+            'input.email' => [Rule::unique('users', 'email')->ignore($this->arg('id')), new NoAgentIdentifier(User::find($this->arg('id')))],
             'input.role' => [new KeepsProjectHolders(User::find($this->arg('id'))), new NoBillingForAgents(User::find($this->arg('id')))],
         ];
     }

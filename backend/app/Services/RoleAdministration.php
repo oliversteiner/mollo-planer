@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Models\Role;
 use App\Models\RoleFunction;
@@ -139,6 +140,11 @@ final class RoleAdministration
     {
         return $this->changeRole($actor, function () use ($id): Role {
             $role = Role::query()->lockForUpdate()->findOrFail($id);
+
+            // A person never gets the role Agent (Auftrag 58 A), so it cannot be the role of new members.
+            if ($role->scope === Role::SCOPE_PROJECT && $role->key === ProjectRole::AGENT->value) {
+                throw ValidationException::withMessages(['id' => __('projects.membership_refusal.creator_agent')]);
+            }
 
             Role::query()->where('scope', $role->scope)->whereKeyNot($role->id)->update(['is_default' => false]);
             $role->is_default = true;

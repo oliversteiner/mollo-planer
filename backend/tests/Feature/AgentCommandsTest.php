@@ -31,6 +31,15 @@ class AgentCommandsTest extends TestCase
         Log::shouldHaveReceived('warning')->once();
     }
 
+    public function test_create_agent_without_an_address_makes_the_identifier_from_the_name(): void
+    {
+        $this->artisan('app:create-agent', ['name' => 'Claude Club DB'])
+            ->expectsConfirmation(__('console.create_agent.confirm', ['name' => 'Claude Club DB', 'email' => 'claude-club-db@agent.invalid']), 'yes')
+            ->assertSuccessful();
+
+        $this->assertTrue(User::query()->where('email', 'claude-club-db@agent.invalid')->sole()->isAgent());
+    }
+
     public function test_create_agent_refuses_a_known_address_and_writes_nothing_without_a_terminal(): void
     {
         User::factory()->create(['email' => 'claude@example.com']);

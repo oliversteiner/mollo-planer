@@ -9,6 +9,7 @@ return [
     'account_not_ready_approval' => 'Please wait until an admin approves your account.',
     'creator_role_needs_delete' => 'This role may not delete a project. Choose a role with the right “Own project”.',
     'two_factor_not_switchable' => 'Two-factor authentication cannot be switched off in production.',
+    'agent_identifier_reserved' => 'Addresses at @agent.invalid are identifiers of agents. Enter a real email address.',
     'agent_access' => [
         'not_an_agent' => 'The account of :name is not an agent account. Accesses exist for agents only; people make their own access in the profile.',
     ],
