@@ -31,6 +31,7 @@ Bei Widerspruch gilt das weiter oben genannte Dokument. Widersprüche nicht stil
 - `ux-projektseite.md`: UX-Review und Spezifikation der Projektseite: Milestones auf- und zuklappen, Preise am Milestone (Auftrag 61, entschieden 25.11.)
 - `lokale-konten.md`: lokale Konten bleiben bei jedem Neuaufbau der Datenbank, Dump von TEST lokal einspielen
 - `tests-lokal.md`: Tests schnell laufen lassen (parallel, Gruppe `mariadb`), Recht und Einstellungen der lokalen MariaDB nur für Tests
+- `handbuch.md`: Handbuch aus einer Quelle (Hilfe in der App, Prompts, Ausgabe für Agenten); Leitfaden für Kapitel in `handbuch/README.md`
 - `desktop-plan.md`: geplante Desktop-App (Tauri)
 - `claude-connector.md`: heutiger Connector (bis I3)
 - `beispiel-planer.md`: Beispiel der Markdown-Ansicht von Planer v2

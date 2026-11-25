@@ -41,3 +41,6 @@ vendor/
 # install them locally, see README.md
 .claude/skills/webawesome/
 .claude/skills/webawesome-design/
+
+# Pictures of the help in the app: copies made by npm run manual from handbuch/bilder/ (Auftrag 54).
+/public/help-images/

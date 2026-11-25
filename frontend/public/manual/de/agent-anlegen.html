@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent anlegen und Zugang einrichten</title>
+<link rel="alternate" type="text/markdown" href="llms.txt">
+</head>
+<body>
+<main>
+<h1 id="agent-anlegen">Agent anlegen und Zugang einrichten</h1>
+<ul><li>Recht: <code>users.manage</code></li><li>Werkzeuge: –</li><li>Seiten der App: <code>/admin/users</code></li></ul>
+<p>Diese Aufgabe erledigen Menschen in der App. Die Schritte stehen in der Hilfe der App (Hilfe).</p>
+<h2>Wozu</h2>
+<p>Ein Agent ist ein eigenes Konto für Claude oder eine Assistenz. Er meldet sich nicht im Browser an, sondern arbeitet über den Connector (MCP) mit einem Zugang und darf genau das, was seine Rolle im Projekt erlaubt.</p>
+<h2>Gut zu wissen</h2>
+<ul><li><p>Der Zugang ist ein Geheimnis. Er gehört in den Passwortmanager oder in eine Umgebungsvariable, nie in eine Datei im Repository oder in einen Chat.</p></li><li><p>Hast du den Zugang verloren, widerrufe ihn im selben Dialog und erzeuge einen neuen.</p></li><li><p>Ohne Projekt sieht der Agent nichts. Was er im Projekt darf, bestimmt seine Rolle dort.</p></li><li><p>Die Adresse des MCP-Servers und eine Anleitung für den Connector stehen im selben Dialog.</p></li></ul>
+<h2>Beispielprompts</h2>
+<ul><li><p>Verbinde dich mit dem MCP-Server des Mollo Planers über die Variable [VARIABLE] und zeige mir die Projekte, die du siehst.</p></li><li><p>Prüfe mit <code>list_projects</code>, welche Rolle du im Projekt [Projekt] hast und was du dort ändern darfst.</p></li></ul>
+</main>
+</body>
+</html>

@@ -12,6 +12,14 @@
   <ElseIf "%{REQUEST_URI} =~ m#^/icons/#">
     Header set Cache-Control "public, max-age=2592000"
   </ElseIf>
+  # Pictures of the help: the content hash is in the name (Auftrag 54).
+  <ElseIf "%{REQUEST_URI} =~ m#^/help-images/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </ElseIf>
+  # The manual for agents (HTML, Markdown, llms.txt) changes under the same names.
+  <ElseIf "%{REQUEST_URI} =~ m#^/manual/#">
+    Header set Cache-Control "no-cache"
+  </ElseIf>
 
   # A page is checked on every visit, so a deployment takes effect at once (the answer is a short "not modified").
   <ElseIf "%{REQUEST_URI} =~ m#(/|\.html)$#">

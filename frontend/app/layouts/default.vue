@@ -78,6 +78,8 @@ const adminItems = computed<NavItem[]>(() => [
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   if (event.detail.item.value === 'profile') {
     void navigateTo('/profile')
+  } else if (event.detail.item.value === 'help') {
+    void navigateTo('/help')
   } else if (event.detail.item.value === 'logout') {
     void logout()
   }
@@ -242,6 +244,13 @@ function skipToContent(): void {
             name="user-gear"
           ></wa-icon>
           {{ t('profile.title') }}
+        </wa-dropdown-item>
+        <wa-dropdown-item value="help">
+          <wa-icon
+            slot="icon"
+            name="circle-question"
+          ></wa-icon>
+          {{ t('help.title') }}
         </wa-dropdown-item>
         <wa-dropdown-item value="logout">
           <wa-icon

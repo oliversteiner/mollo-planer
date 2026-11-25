@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks über MCP ändern</title>
+<link rel="alternate" type="text/markdown" href="llms.txt">
+</head>
+<body>
+<main>
+<h1 id="tasks-ueber-mcp">Tasks über MCP ändern</h1>
+<ul><li>Recht: <code>task.update</code></li><li>Werkzeuge: <code>list_projects</code>, <code>list_tasks</code>, <code>update_tasks</code>, <code>export_plan</code>, <code>import_plan</code>, <code>add_comment</code></li><li>Seiten der App: –</li></ul>
+<h2>Wozu</h2>
+<p>Ein Agent liest und ändert Tasks über den MCP-Server, ohne den ganzen Plan zu laden. So bleibt jede Änderung klein, und der Stand im Planer stimmt mit der Arbeit überein.</p>
+<h2>Gut zu wissen</h2>
+<ul><li><p>Der Agent handelt als sein eigenes Konto, mit genau dessen Rechten. Was er im Projekt nicht darf, verweigert der Server.</p></li><li><p>Status von ToDo und Milestone leitet der Planer aus den Tasks ab. Ein Agent setzt sie nie selbst.</p></li><li><p>Welche Status ein Agent setzen darf, bestimmt seine Rolle im Projekt. Eine Person im Projekt kann zusätzlich festlegen, wer einen Task als erledigt markiert.</p></li></ul>
+<h2>Für Agenten</h2>
+<ul><li><p>Einstieg: <code>list_projects</code> liefert die Projekte, deine Rolle und die Revision des Plans.</p></li><li><p>Finden: <code>list_tasks</code> mit Filtern (<code>assignee: &quot;me&quot;</code>, <code>status</code>, Text), klein halten mit <code>limit</code>.</p></li><li><p>Status, Commit, Zuweisung: <code>update_tasks</code> direkt, ohne Export und ohne Trockenlauf. <code>base_revision</code> nur, wenn nichts dazwischen geändert sein darf.</p></li><li><p>Neue Tasks oder Titel ändern: <code>export_plan</code> gefiltert auf einen Milestone, ändern, <code>import_plan</code> mit <code>mode: &quot;partial&quot;</code>, zuerst mit <code>dry_run: true</code>.</p></li><li><p>Berichte und Fragen: <code>add_comment</code> am Task.</p></li><li><p>Nicht über MCP: Tasks endgültig löschen, Rechte oder Rollen ändern.</p></li></ul>
+<h2>Beispielprompts</h2>
+<ul><li><p>Zeige mir mit <code>list_tasks</code> meine Tasks im Projekt [Projekt], die «In Arbeit» oder «Review» sind.</p></li><li><p>Setze mit <code>update_tasks</code> den Task [k-123] auf «Review» und trage den Commit [Hash] ein. Schreibe danach mit <code>add_comment</code> einen kurzen Bericht an den Task.</p></li><li><p>Lege im Milestone [Milestone] des Projekts [Projekt] einen Task «[Titel]» an: exportiere nur diesen Milestone, ergänze den Task und importiere mit <code>mode: &quot;partial&quot;</code>, zuerst als Trockenlauf.</p></li></ul>
+</main>
+</body>
+</html>

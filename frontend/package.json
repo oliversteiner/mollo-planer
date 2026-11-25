@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "node scripts/mcp-schema.mjs",
+    "prebuild": "node scripts/mcp-schema.mjs && node scripts/manual.mjs",
+    "predev": "node scripts/manual.mjs",
     "build": "nuxt generate",
     "postbuild": "node scripts/mcp-address.mjs",
     "dev": "nuxt dev",
@@ -14,6 +15,8 @@
     "codegen": "graphql-codegen",
     "versions": "node scripts/build-versions.mjs",
     "mcp:schema": "node scripts/mcp-schema.mjs",
+    "manual": "node scripts/manual.mjs",
+    "manual:shots": "playwright test --config playwright.manual.config.ts && node scripts/manual.mjs",
     "icons:update": "node scripts/icons-update.mjs",
     "icons:fetch": "node scripts/icons-fetch.mjs",
     "icons:check": "node scripts/check-no-pro-assets.mjs",

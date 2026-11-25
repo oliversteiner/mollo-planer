@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create an agent and set up its access</title>
+<link rel="alternate" type="text/markdown" href="llms.txt">
+</head>
+<body>
+<main>
+<h1 id="agent-anlegen">Create an agent and set up its access</h1>
+<ul><li>Right: <code>users.manage</code></li><li>Tools: –</li><li>Pages of the app: <code>/admin/users</code></li></ul>
+<p>This task is done by people in the app. The steps are in the help of the app (Help).</p>
+<h2>Purpose</h2>
+<p>An agent is an account of its own for Claude or an assistant. It does not sign in in the browser but works through the connector (MCP) with an access, and it may do exactly what its role in the project allows.</p>
+<h2>Good to know</h2>
+<ul><li><p>The access is a secret. It belongs in a password manager or an environment variable, never in a file under version control or in a chat.</p></li><li><p>If you lost the access, revoke it in the same dialog and create a new one.</p></li><li><p>Without a project the agent sees nothing. What it may do in the project depends on its role there.</p></li><li><p>The address of the MCP server and a guide for the connector are in the same dialog.</p></li></ul>
+<h2>Example prompts</h2>
+<ul><li><p>Connect to the MCP server of Mollo Planer with the variable [VARIABLE] and show me the projects you see.</p></li><li><p>Check with <code>list_projects</code> which role you have in the project [project] and what you may change there.</p></li></ul>
+</main>
+</body>
+</html>

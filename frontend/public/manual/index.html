@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mollo Planer manual for agents</title>
+<link rel="alternate" type="text/markdown" href="llms.txt">
+</head>
+<body>
+<main>
+<h1>Mollo Planer manual for agents</h1>
+<p>What each function does, its limits, the tools of the MCP server and prompts to hand it over. Without the steps for people (those are in the help of the app).</p>
+<ul><li><a href="task-anlegen.html">Create and edit a task</a> (<a href="task-anlegen.md">Markdown</a>)</li><li><a href="tasks-ueber-mcp.html">Change tasks over MCP</a> (<a href="tasks-ueber-mcp.md">Markdown</a>)</li><li><a href="agent-anlegen.html">Create an agent and set up its access</a> (<a href="agent-anlegen.md">Markdown</a>)</li></ul>
+<h2 id="task-anlegen">Create and edit a task</h2>
+<ul><li>Right: <code>task.create</code></li><li>Tools: <code>list_tasks</code>, <code>update_tasks</code>, <code>import_plan</code></li><li>Pages of the app: <code>/projects/[id]/kanban</code></li></ul>
+<h3>Purpose</h3>
+<p>A task is a single step of work in a todo. On the board you see what is open, what is running and what is done.</p>
+<h3>Good to know</h3>
+<ul><li><p>There is no task without a todo. If <strong>New task</strong> is missing or grey, create a todo first.</p></li><li><p>In an archived project you cannot create tasks.</p></li><li><p>Whether you may create or change tasks depends on your role in the project.</p></li><li><p>In the calm view, <strong>New task</strong> is in the command palette.</p></li></ul>
+<h3>For agents</h3>
+<p>An agent creates new tasks with <code>import_plan</code> (an excerpt of the plan with <code>mode: &quot;partial&quot;</code>, <code>dry_run: true</code> first). It changes status, commit and assignee directly with <code>update_tasks</code>. With <code>list_tasks</code> it finds tasks by status, assignee or text. See the chapter «Change tasks over MCP».</p>
+<h3>Example prompts</h3>
+<ul><li><p>In the project [project], in the todo [todo], create a task «[title]» and assign it to [person]. Check the result with a dry run first.</p></li><li><p>Show me all my open tasks in the project [project], sorted by due date.</p></li><li><p>Set the task [k-123] to «In progress».</p></li></ul>
+<h2 id="tasks-ueber-mcp">Change tasks over MCP</h2>
+<ul><li>Right: <code>task.update</code></li><li>Tools: <code>list_projects</code>, <code>list_tasks</code>, <code>update_tasks</code>, <code>export_plan</code>, <code>import_plan</code>, <code>add_comment</code></li><li>Pages of the app: –</li></ul>
+<h3>Purpose</h3>
+<p>An agent reads and changes tasks through the MCP server without loading the whole plan. Each change stays small, and the state in the planer matches the work.</p>
+<h3>Good to know</h3>
+<ul><li><p>The agent acts as its own account, with exactly its rights. What it may not do in the project, the server refuses.</p></li><li><p>The planer derives the status of todo and milestone from the tasks. An agent never sets them.</p></li><li><p>Which statuses an agent may set depends on its role in the project. A person in the project can also decide who marks a task as done.</p></li></ul>
+<h3>For agents</h3>
+<ul><li><p>Start: <code>list_projects</code> gives the projects, your role and the revision of the plan.</p></li><li><p>Find: <code>list_tasks</code> with filters (<code>assignee: &quot;me&quot;</code>, <code>status</code>, text), small with <code>limit</code>.</p></li><li><p>Status, commit, assignee: <code>update_tasks</code> directly, without an export and without a dry run. <code>base_revision</code> only when nothing may have changed in between.</p></li><li><p>New tasks or changed titles: <code>export_plan</code> filtered to one milestone, change it, <code>import_plan</code> with <code>mode: &quot;partial&quot;</code>, with <code>dry_run: true</code> first.</p></li><li><p>Reports and questions: <code>add_comment</code> on the task.</p></li><li><p>Not over MCP: deleting tasks for good, changing rights or roles.</p></li></ul>
+<h3>Example prompts</h3>
+<ul><li><p>With <code>list_tasks</code>, show me my tasks in the project [project] that are «In progress» or «Review».</p></li><li><p>With <code>update_tasks</code>, set the task [k-123] to «Review» and enter the commit [hash]. Then write a short report on the task with <code>add_comment</code>.</p></li><li><p>In the milestone [milestone] of the project [project], create a task «[title]»: export only this milestone, add the task and import with <code>mode: &quot;partial&quot;</code>, as a dry run first.</p></li></ul>
+<h2 id="agent-anlegen">Create an agent and set up its access</h2>
+<ul><li>Right: <code>users.manage</code></li><li>Tools: –</li><li>Pages of the app: <code>/admin/users</code></li></ul>
+<p>This task is done by people in the app. The steps are in the help of the app (Help).</p>
+<h3>Purpose</h3>
+<p>An agent is an account of its own for Claude or an assistant. It does not sign in in the browser but works through the connector (MCP) with an access, and it may do exactly what its role in the project allows.</p>
+<h3>Good to know</h3>
+<ul><li><p>The access is a secret. It belongs in a password manager or an environment variable, never in a file under version control or in a chat.</p></li><li><p>If you lost the access, revoke it in the same dialog and create a new one.</p></li><li><p>Without a project the agent sees nothing. What it may do in the project depends on its role there.</p></li><li><p>The address of the MCP server and a guide for the connector are in the same dialog.</p></li></ul>
+<h3>Example prompts</h3>
+<ul><li><p>Connect to the MCP server of Mollo Planer with the variable [VARIABLE] and show me the projects you see.</p></li><li><p>Check with <code>list_projects</code> which role you have in the project [project] and what you may change there.</p></li></ul>
+</main>
+</body>
+</html>

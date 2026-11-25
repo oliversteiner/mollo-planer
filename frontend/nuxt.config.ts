@@ -27,7 +27,8 @@ export default defineNuxtConfig({
   ssr: false,
 
   devtools: {
-    enabled: true
+    // Off for the pictures of the manual (playwright.manual.config.ts), so its bar is not in them.
+    enabled: process.env.NUXT_DEVTOOLS !== 'off'
   },
 
   app: {
