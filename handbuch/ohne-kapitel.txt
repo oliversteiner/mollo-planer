@@ -8,6 +8,13 @@ page /admin/oauth-clients
 page /admin/roles
 page /admin/settings
 page /assistant
+page /billing
+page /billing/billable
+page /billing/customers
+page /billing/customers/[id]
+page /billing/invoices
+page /billing/invoices/[id]
+page /billing/settings
 page /forgot-password
 page /help
 page /help/[id]
@@ -44,6 +51,7 @@ page /trash
 page /verify-email
 right aiContext.update
 right assistant.use
+right billing.manage
 right comment.create
 right comment.moderate
 right database.view
@@ -83,6 +91,7 @@ right trash.restore
 command document-edit
 command document-export-markdown
 command document-export-pdf
+command document-export-pdf-letterhead
 command document-focus
 command document-history
 command document-save
