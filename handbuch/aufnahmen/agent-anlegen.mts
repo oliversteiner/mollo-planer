@@ -1,4 +1,5 @@
 import { PASSWORD } from '../../frontend/e2e/support/helpers'
+import { relabel } from '../../frontend/e2e-manual/recording'
 import type { Recording } from '../../frontend/e2e-manual/recording'
 
 /**
@@ -23,14 +24,21 @@ const recording: Recording = {
         // The row of the new agent, by its e-mail (the highlight fades after a while).
         await page.locator('.users-row', { hasText: email }).locator('[data-agent-access]').waitFor()
         await page.evaluate(address => sessionStorage.setItem('manual-agent', address), email)
+        await page.locator('.users-row', { hasText: email }).scrollIntoViewIfNeeded()
+        await relabel(page, { [email]: 'claude@example.com' })
 
-        return null
+        // After the rename the row is found by the neutral address (the last one: the newest agent).
+        return page.locator('.users-row', { hasText: 'claude@example.com' }).last()
       },
     },
     {
       name: 'zugang',
       take: async (page, { t }) => {
         const email = await page.evaluate(() => sessionStorage.getItem('manual-agent') ?? '')
+        // The first picture renamed the e-mail on the page: load the list again.
+        // A taller window, so the dialog is not scrolled halfway.
+        await page.setViewportSize({ width: 1280, height: 1300 })
+        await page.goto('/admin/users')
         await page.locator('.users-row', { hasText: email }).locator('[data-agent-access]').click()
         const create = page.getByRole('button', { name: t('admin.users.agent.create') })
         await create.click()
@@ -50,12 +58,11 @@ const recording: Recording = {
 
             if (element.value.includes('|')) {
               element.value = '1|•••••••••••••••••••••••••'
-              element.scrollIntoView({ block: 'center' })
             }
           }
         })
 
-        return null
+        return page.locator('wa-dialog[open] [part~="dialog"]').first()
       },
     },
   ],

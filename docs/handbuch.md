@@ -40,7 +40,7 @@ Die drei Varianten werden nicht dreimal geschrieben. Jede Funktion ist **ein Kap
 | Bilder (in «So geht's») | nach dem Schritt, den sie zeigen; mit Alternativtext; nie eine Information, die nicht im Text steht | Mensch |
 | Beispielprompts | zwei bis vier Prompts zum Kopieren, mit den nötigen Werkzeugen | Prompts |
 
-Bezeichnungen der Oberfläche (Knöpfe, Menüpunkte) werden nicht abgetippt, sondern über ihren Sprachschlüssel eingesetzt (Platzhalter auf `i18n/locales/{de,en}.json`). Eine Umbenennung in der App zieht das Handbuch von selbst nach.
+Bezeichnungen der Oberfläche (Tasten, Menüpunkte) werden nicht abgetippt, sondern über ihren Sprachschlüssel eingesetzt (Platzhalter auf `i18n/locales/{de,en}.json`). Eine Umbenennung in der App zieht das Handbuch von selbst nach.
 
 ## Sprachregeln (für Menschen)
 
@@ -51,7 +51,7 @@ Kurze Sätze, aktiv, eine Aussage je Satz. Ein Handgriff je Schritt, in der Reih
 | Ausgabe | Form | Ort |
 |---|---|---|
 | Menschen | Bereich «Hilfe» in der App: Kapitel nach Bereich, Suche, Glossar, Schalter «Bilder anzeigen»; «?» im Seitenkopf führt zum Kapitel der aktuellen Seite | `/help` (nur angemeldet), Sprache der App |
-| Prompts | Sammlung nach Bereich, jeder Prompt mit Kopier-Knopf und den nötigen Werkzeugen | in der Hilfe der App; zusätzlich in der Agenten-Ausgabe |
+| Prompts | Sammlung nach Bereich, jeder Prompt mit Kopier-Taste und den nötigen Werkzeugen | in der Hilfe der App; zusätzlich in der Agenten-Ausgabe |
 | Agenten | reines HTML ohne Skripte und ohne Navigation drumherum, je Kapitel eine Seite und alles auf einer Seite; dazu dieselben Kapitel als Markdown und ein Verzeichnis `llms.txt` | statisch und öffentlich, neben `/mcp`: `/manual/` (englisch) und `/manual/de/` |
 
 Die Markdown-Fassung und `llms.txt` sind ein Zusatz zum verlangten HTML: Agenten lesen sie günstiger, und das Muster gibt es bei `/mcp` schon.

@@ -9,14 +9,14 @@
 <body>
 <main>
 <h1>Mollo Planer: Handbuch für Agenten</h1>
-<p>Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Klick-Schritte für Menschen (die stehen in der Hilfe der App).</p>
+<p>Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Schritte für Menschen (die stehen in der Hilfe der App).</p>
 <ul><li><a href="task-anlegen.html">Task anlegen und bearbeiten</a> (<a href="task-anlegen.md">Markdown</a>)</li><li><a href="tasks-ueber-mcp.html">Tasks über MCP ändern</a> (<a href="tasks-ueber-mcp.md">Markdown</a>)</li><li><a href="agent-anlegen.html">Agent anlegen und Zugang einrichten</a> (<a href="agent-anlegen.md">Markdown</a>)</li></ul>
 <h2 id="task-anlegen">Task anlegen und bearbeiten</h2>
-<ul><li>Recht: <code>task.create</code></li><li>Werkzeuge: <code>list_tasks</code>, <code>update_tasks</code></li><li>Seiten der App: <code>/projects/[id]/kanban</code></li></ul>
+<ul><li>Recht: <code>task.create</code></li><li>Werkzeuge: <code>list_tasks</code>, <code>update_tasks</code>, <code>import_plan</code></li><li>Seiten der App: <code>/projects/[id]/kanban</code></li></ul>
 <h3>Wozu</h3>
 <p>Ein Task ist ein einzelner Arbeitsschritt in einem ToDo. Auf dem Board siehst du, was offen ist, was läuft und was erledigt ist.</p>
 <h3>Gut zu wissen</h3>
-<ul><li><p>Ohne ToDo gibt es keinen Task. Fehlt der Knopf <strong>Task anlegen</strong> oder ist er grau, lege zuerst ein ToDo an.</p></li><li><p>In einem archivierten Projekt kannst du keine Tasks anlegen.</p></li><li><p>Ob du Tasks anlegen oder ändern darfst, hängt von deiner Rolle im Projekt ab.</p></li><li><p>In der ruhigen Ansicht findest du <strong>Task anlegen</strong> in der Befehlspalette.</p></li></ul>
+<ul><li><p>Ohne ToDo gibt es keinen Task. Fehlt <strong>Task anlegen</strong> oder ist er grau, lege zuerst ein ToDo an.</p></li><li><p>In einem archivierten Projekt kannst du keine Tasks anlegen.</p></li><li><p>Ob du Tasks anlegen oder ändern darfst, hängt von deiner Rolle im Projekt ab.</p></li><li><p>In der ruhigen Ansicht findest du <strong>Task anlegen</strong> in der Befehlspalette.</p></li></ul>
 <h3>Für Agenten</h3>
 <p>Neue Tasks legt ein Agent mit <code>import_plan</code> an (Ausschnitt des Plans mit <code>mode: &quot;partial&quot;</code>, zuerst <code>dry_run: true</code>). Status, Commit und Zuweisung ändert er direkt mit <code>update_tasks</code>. Mit <code>list_tasks</code> findet er Tasks nach Status, Zuweisung oder Text. Siehe das Kapitel «Tasks über MCP ändern».</p>
 <h3>Beispielprompts</h3>
@@ -26,13 +26,14 @@
 <h3>Wozu</h3>
 <p>Ein Agent liest und ändert Tasks über den MCP-Server, ohne den ganzen Plan zu laden. So bleibt jede Änderung klein, und der Stand im Planer stimmt mit der Arbeit überein.</p>
 <h3>Gut zu wissen</h3>
-<ul><li><p>Der Agent handelt als sein eigenes Konto, mit genau dessen Rechten. Was er im Projekt nicht darf, verweigert der Server.</p></li><li><p>Status von ToDo und Milestone leitet der Planer aus den Tasks ab. Ein Agent setzt sie nie selbst.</p></li><li><p>«Erledigt» setzt im Ablauf mit Stuard nur Stuard nach dem Merge. Ein Coding-Agent setzt «In Arbeit» und «Review».</p></li></ul>
+<ul><li><p>Der Agent handelt als sein eigenes Konto, mit genau dessen Rechten. Was er im Projekt nicht darf, verweigert der Server.</p></li><li><p>Status von ToDo und Milestone leitet der Planer aus den Tasks ab. Ein Agent setzt sie nie selbst.</p></li><li><p>Welche Status ein Agent setzen darf, bestimmt seine Rolle im Projekt. Eine Person im Projekt kann zusätzlich festlegen, wer einen Task als erledigt markiert.</p></li></ul>
 <h3>Für Agenten</h3>
 <ul><li><p>Einstieg: <code>list_projects</code> liefert die Projekte, deine Rolle und die Revision des Plans.</p></li><li><p>Finden: <code>list_tasks</code> mit Filtern (<code>assignee: &quot;me&quot;</code>, <code>status</code>, Text), klein halten mit <code>limit</code>.</p></li><li><p>Status, Commit, Zuweisung: <code>update_tasks</code> direkt, ohne Export und ohne Trockenlauf. <code>base_revision</code> nur, wenn nichts dazwischen geändert sein darf.</p></li><li><p>Neue Tasks oder Titel ändern: <code>export_plan</code> gefiltert auf einen Milestone, ändern, <code>import_plan</code> mit <code>mode: &quot;partial&quot;</code>, zuerst mit <code>dry_run: true</code>.</p></li><li><p>Berichte und Fragen: <code>add_comment</code> am Task.</p></li><li><p>Nicht über MCP: Tasks endgültig löschen, Rechte oder Rollen ändern.</p></li></ul>
 <h3>Beispielprompts</h3>
 <ul><li><p>Zeige mir mit <code>list_tasks</code> meine Tasks im Projekt [Projekt], die «In Arbeit» oder «Review» sind.</p></li><li><p>Setze mit <code>update_tasks</code> den Task [k-123] auf «Review» und trage den Commit [Hash] ein. Schreibe danach mit <code>add_comment</code> einen kurzen Bericht an den Task.</p></li><li><p>Lege im Milestone [Milestone] des Projekts [Projekt] einen Task «[Titel]» an: exportiere nur diesen Milestone, ergänze den Task und importiere mit <code>mode: &quot;partial&quot;</code>, zuerst als Trockenlauf.</p></li></ul>
 <h2 id="agent-anlegen">Agent anlegen und Zugang einrichten</h2>
 <ul><li>Recht: <code>users.manage</code></li><li>Werkzeuge: –</li><li>Seiten der App: <code>/admin/users</code></li></ul>
+<p>Diese Aufgabe erledigen Menschen in der App. Die Schritte stehen in der Hilfe der App (Hilfe).</p>
 <h3>Wozu</h3>
 <p>Ein Agent ist ein eigenes Konto für Claude oder eine Assistenz. Er meldet sich nicht im Browser an, sondern arbeitet über den Connector (MCP) mit einem Zugang und darf genau das, was seine Rolle im Projekt erlaubt.</p>
 <h3>Gut zu wissen</h3>

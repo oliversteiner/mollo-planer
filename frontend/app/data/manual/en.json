@@ -103,7 +103,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Enter a ",
+                  "text": "In the field ",
                   "marks": []
                 },
                 {
@@ -117,7 +117,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " and an ",
+                  "text": ", enter a name, and in the field ",
                   "marks": []
                 },
                 {
@@ -131,7 +131,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ". No mailbox is needed, no mail is sent.",
+                  "text": ", an address. No mailbox is needed, no mail is sent.",
                   "marks": []
                 }
               ]
@@ -172,8 +172,8 @@
         },
         "images": [
           {
-            "src": "/help-images/agent-anlegen/neue-zeile.en.e3b3dda2d8.webp",
-            "alt": "The list of agents with the new agent and the button «Set up access»"
+            "src": "/help-images/agent-anlegen/neue-zeile.en.6795a63f09.webp",
+            "alt": "The row of the new agent with the button «Set up access»"
           }
         ]
       },
@@ -218,7 +218,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Keep the suggested ",
+                  "text": "In the field ",
                   "marks": []
                 },
                 {
@@ -232,7 +232,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " or change it. Choose ",
+                  "text": ", keep the suggested name or change it. Choose ",
                   "marks": []
                 },
                 {
@@ -264,21 +264,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Choose ",
-                  "marks": []
-                },
-                {
-                  "type": "text",
-                  "text": "Copy access",
-                  "marks": [
-                    {
-                      "type": "bold"
-                    }
-                  ]
-                },
-                {
-                  "type": "text",
-                  "text": " and keep the access in your password manager at once. It is shown only once.",
+                  "text": "Choose the button with the copy symbol to the right of the field with the access, and keep the access in your password manager at once. It is shown only once.",
                   "marks": []
                 }
               ]
@@ -287,7 +273,7 @@
         },
         "images": [
           {
-            "src": "/help-images/agent-anlegen/zugang.en.a6716cd27d.webp",
+            "src": "/help-images/agent-anlegen/zugang.en.dc18073106.webp",
             "alt": "The dialog with the new access and the button to copy it"
           }
         ]
@@ -315,7 +301,53 @@
                 },
                 {
                   "type": "text",
-                  "text": ", assign a project to the agent.",
+                  "text": ", in the field ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Assign project",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ", select the project. The role stays «Agent».",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Assign",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". The project appears in the agent's list of projects.",
                   "marks": []
                 }
               ]
@@ -347,7 +379,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ".",
+                  "text": " at the bottom right.",
                   "marks": []
                 }
               ]
@@ -439,7 +471,8 @@
     ],
     "tools": [
       "list_tasks",
-      "update_tasks"
+      "update_tasks",
+      "import_plan"
     ],
     "commands": [
       "kanban-task-create"
@@ -497,7 +530,7 @@
         },
         "images": [
           {
-            "src": "/help-images/task-anlegen/board.en.5b152e9b26.webp",
+            "src": "/help-images/task-anlegen/board.en.03ba4e0da3.webp",
             "alt": "The board of a project with a column for each status"
           }
         ]
@@ -525,7 +558,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " at the top right.",
+                  "text": " at the top right. A form opens.",
                   "marks": []
                 }
               ]
@@ -557,7 +590,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ", choose the todo the task belongs to.",
+                  "text": ", select the todo the task belongs to.",
                   "marks": []
                 }
               ]
@@ -575,7 +608,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Enter a ",
+                  "text": "In the field ",
                   "marks": []
                 },
                 {
@@ -589,7 +622,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ".",
+                  "text": ", enter a title.",
                   "marks": []
                 }
               ]
@@ -598,7 +631,7 @@
         },
         "images": [
           {
-            "src": "/help-images/task-anlegen/formular.en.a0e519e75a.webp",
+            "src": "/help-images/task-anlegen/formular.en.61ea7e380c.webp",
             "alt": "The form for a new task with todo and title"
           }
         ]
@@ -672,7 +705,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ". The task is now in the column ",
+                  "text": ". The form closes, and the task is in the column ",
                   "marks": []
                 },
                 {
@@ -704,7 +737,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "To change the task, open its menu on the card and choose ",
+                  "text": "To change the task, choose the button «…» on its card, then ",
                   "marks": []
                 },
                 {
@@ -736,7 +769,21 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "To change the status, drag the card into another column.",
+                  "text": "To change the status, choose the button «…» on the card, then the entry ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Move to",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " with the column you want. Alternatively, hold the mouse button and drag the card into another column.",
                   "marks": []
                 }
               ]
@@ -927,7 +974,7 @@
                   "content": [
                     {
                       "type": "text",
-                      "text": "In the workflow with Stuard, only Stuard sets «Done», after the merge. A coding agent sets «In progress» and «Review».",
+                      "text": "Which statuses an agent may set depends on its role in the project. A person in the project can also decide who marks a task as done.",
                       "marks": []
                     }
                   ]

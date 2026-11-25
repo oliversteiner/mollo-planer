@@ -3,7 +3,7 @@
 Das Handbuch hat **eine Quelle**: ein Kapitel je Funktion als Markdown, deutsch in `handbuch/de/`, englisch in `handbuch/en/`, mit gleichem Dateinamen. Der Build (`npm run manual` im Ordner `frontend/`) macht daraus:
 
 - die **Hilfe in der App** (`/help`, nur angemeldet, mit Bildern),
-- die **Ausgabe für Agenten** (`/manual/` englisch, `/manual/de/`: HTML ohne Skript, Markdown, `llms.txt`, ohne Bilder und ohne die Klick-Schritte),
+- die **Ausgabe für Agenten** (`/manual/` englisch, `/manual/de/`: HTML ohne Skript, Markdown, `llms.txt`, ohne Bilder und ohne die Schritte für Menschen; ein Kapitel ohne «Für Agenten» bekommt dort einen Satz, der auf die Hilfe der App verweist),
 - die **Beispielprompts** (in beiden).
 
 Konzept und Entscheide: `docs/handbuch.md`. Wer ein Kapitel schreibt (Mensch oder Agent), hält sich an diesen Leitfaden; die Musterkapitel leben ihn vor.
@@ -88,18 +88,37 @@ Absätze, `###` Zwischentitel, Listen, Zitate, **fett**, *kursiv*, `Code`, Links
 
 ### Bezeichnungen der Oberfläche
 
-Knöpfe, Menüpunkte und Felder werden nicht abgetippt, sondern über ihren Schlüssel in `frontend/i18n/locales/de.json` und `en.json` eingesetzt:
+Tasten, Menüpunkte und Felder werden nicht abgetippt, sondern über ihren Schlüssel in `frontend/i18n/locales/de.json` und `en.json` eingesetzt:
 
 ```markdown
 Wähle **{{ui:admin.users.newAgent.title}}**.
 ```
 
-Der Build setzt den Text der jeweiligen Sprache ein. Wird der Knopf in der App umbenannt, steht nach dem nächsten Build der neue Name im Kapitel. Nur Schlüssel mit reinem Text (ohne `{…}` und ohne Mehrzahlformen) gehen; ein Test prüft, dass jeder Schlüssel in beiden Sprachen existiert.
+Der Build setzt den Text der jeweiligen Sprache ein. Wird die Taste in der App umbenannt, steht nach dem nächsten Build der neue Name im Kapitel. Nur Schlüssel mit reinem Text (ohne `{…}` und ohne Mehrzahlformen) gehen; ein Test prüft, dass jeder Schlüssel in beiden Sprachen existiert.
+
+## Bedienung beschreiben
+
+Geräteneutral, ein Verb je Absicht (Regel aus `~/www/agents/AGENTS.md`, Abschnitt «Sprache»):
+
+| Absicht | deutsch | englisch |
+|---|---|---|
+| etwas auslösen (Taste, Link, Menüpunkt) | **wählen**: «Wähle **Speichern**.» | choose |
+| aus mehreren Möglichkeiten nehmen (Liste, Auswahlfeld) | **auswählen**: «Wähle unter **ToDo** das ToDo aus.» | select |
+| Schalter, Kontrollkästchen | **einschalten / ausschalten** | turn on / turn off |
+| Text | **eingeben**: «Gib im Feld **Titel** einen Titel ein.» | enter |
+| Taste der Tastatur | **drücken**, als zusammengesetztes Wort: «Eingabetaste», «Wahltaste» | press |
+| Ziehen, gedrückt halten | Geste nennen **und** einen Weg ohne Geste | drag / hold, and a way without |
+
+- **Nie:** klicken, Klick, Doppelklick, tippen, tabben, und «drücken» für Elemente auf dem Bildschirm.
+- Den Typ eines Bedienelements meist weglassen («Wähle **Speichern**»). Wo ein Typ nötig ist: **«Taste»**, nie «Knopf» oder «Schaltfläche». Bezeichnungen der Oberfläche nie beugen: «Gib im Feld **Name** einen Namen ein», «Wähle die Taste **Speichern**».
+- Tasten ohne Text oder mehrfach vorhanden nach Ort benennen: «die Taste rechts neben dem Feld …», «**Fertig** unten rechts».
 
 ## Sprachregeln (für Menschen)
 
 - Kurze Sätze, aktiv, eine Aussage je Satz. Per Du.
-- Ein Handgriff je Schritt, in der Reihenfolge, in der man ihn macht.
+- Ein Handgriff je Schritt, in der Reihenfolge, in der man ihn macht. Jeder Schritt reicht bis zum sichtbaren Ergebnis (Dialog öffnet sich, Eintrag erscheint).
+- **Keine Namen, Personen und Abläufe der eigenen Installation:** das Handbuch ist öffentlich. Beschreibe, was die Software kann, nicht wie ein bestimmtes Team sie einsetzt.
+- **Wörterliste:** Milestone, ToDo, Task, Zugang (Token), Taste (nicht Knopf). Gleiche Sache, gleiches Wort.
 - Zuerst wo, dann was: «Öffne **Verwaltung → Benutzer**. Wähle …».
 - Keine Abkürzungen ohne Erklärung. Fachwörter sparsam; ein Glossar folgt später.
 - Schweizer Schreibweise (ss statt ß), «» als Anführungszeichen.
@@ -116,6 +135,8 @@ Ein Bild ist ein **Platzhalter auf einer eigenen Zeile**, eingerückt unter dem 
    {{bild:neuer-task|Das Formular «Neuer Task» mit Titel und Status}}
 ```
 
+- **Ausschnitt statt ganzer Bildschirm:** die Aufnahme zeigt den Dialog, das Formular oder den Kopf mit den Reitern (`locator.screenshot()`), ohne Mauszeiger, bei der Breite der Hilfe lesbar, nie halb gescrollt.
+- **Sprache der Aufnahme:** Gebietsschema und Zeitzone der Sprache (`de-CH`, `en-GB`), Daten im deutschen Bild deutsch. Testdaten neutral und sprechend («Entwurf prüfen», nicht «E2E …», kein Platzhalter-Latein).
 - Name: klein, mit Bindestrichen, gleich in beiden Sprachen. Nach dem `|` der Alternativtext in der Sprache der Datei.
 - Ein Bild zeigt nichts, was der Text nicht sagt: Ohne Bilder bleibt das Kapitel vollständig.
 - **Automatische Bilder:** je Kapitel eine Aufnahme-Datei `handbuch/aufnahmen/<kapitel>.mts`; `npm run manual:shots` (im Ordner `frontend/`) nimmt jedes Bild in Deutsch und Englisch auf, gegen die Wegwerf-Datenbank der Browser-Tests (nie TEST oder PROD), nur mit Testdaten. Ergebnis: `handbuch/bilder/auto/<sprache>/<kapitel>/<name>.webp`.

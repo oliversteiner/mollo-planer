@@ -1,6 +1,6 @@
 # Mollo Planer: Handbuch für Agenten
 
-Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Klick-Schritte für Menschen (die stehen in der Hilfe der App).
+Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Schritte für Menschen (die stehen in der Hilfe der App).
 
 - Alle Kapitel auf einer Seite: index.html
 - [Task anlegen und bearbeiten](task-anlegen.md): task-anlegen.html

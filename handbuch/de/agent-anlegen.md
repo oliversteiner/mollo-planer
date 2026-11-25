@@ -18,19 +18,20 @@ Ein Agent ist ein eigenes Konto für Claude oder eine Assistenz. Er meldet sich 
 
 1. Öffne **{{ui:nav.admin}} → {{ui:nav.users}}**.
 2. Wähle oben rechts **{{ui:admin.users.newAgent.title}}**.
-3. Gib einen **{{ui:projects.fields.name}}** und eine **{{ui:auth.email}}** ein. Ein Postfach ist nicht nötig, es wird keine Mail verschickt.
+3. Gib im Feld **{{ui:admin.users.newAgent.name}}** einen Namen und im Feld **{{ui:auth.email}}** eine Adresse ein. Ein Postfach ist nicht nötig, es wird keine Mail verschickt.
 4. Wähle **{{ui:admin.users.newAgent.submit}}**. Der Dialog schliesst sich, und die Zeile des neuen Agenten ist hervorgehoben.
 
-   {{bild:neue-zeile|Die Liste der Agenten mit dem neuen Agenten und dem Knopf «Zugang einrichten»}}
+   {{bild:neue-zeile|Die Zeile des neuen Agenten mit der Taste «Zugang einrichten»}}
 
 5. Wähle in seiner Zeile **{{ui:admin.users.access.state.none}}**.
-6. Lass den vorgeschlagenen **{{ui:admin.users.agent.name}}** stehen oder ändere ihn. Wähle **{{ui:admin.users.agent.create}}**. Fragt der Dialog nach deinem Passwort, gib es im selben Dialog ein.
-7. Wähle **{{ui:admin.users.agent.copyToken}}** und lege den Zugang sofort in deinem Passwortmanager ab. Er wird nur einmal angezeigt.
+6. Lass im Feld **{{ui:admin.users.agent.name}}** den vorgeschlagenen Namen stehen oder ändere ihn. Wähle **{{ui:admin.users.agent.create}}**. Fragt der Dialog nach deinem Passwort, gib es im selben Dialog ein.
+7. Wähle die Taste mit dem Kopier-Symbol rechts neben dem Feld mit dem Zugang und lege den Zugang sofort in deinem Passwortmanager ab. Er wird nur einmal angezeigt.
 
-   {{bild:zugang|Der Dialog mit dem neuen Zugang und dem Knopf zum Kopieren}}
+   {{bild:zugang|Der Dialog mit dem neuen Zugang und der Kopier-Taste}}
 
-8. Weise dem Agenten unter **{{ui:admin.users.access.projects}}** ein Projekt zu.
-9. Wähle **{{ui:security.done}}**.
+8. Wähle unter **{{ui:admin.users.access.projects}}** im Feld **{{ui:admin.users.access.assign}}** das Projekt aus. Die Rolle bleibt «Agent».
+9. Wähle **{{ui:admin.users.access.assignConfirm}}**. Das Projekt erscheint in der Liste der Projekte des Agenten.
+10. Wähle unten rechts **{{ui:security.done}}**.
 
 ## Gut zu wissen
 

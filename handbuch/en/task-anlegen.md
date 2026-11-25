@@ -5,7 +5,7 @@ area: plan
 scope: app
 right: task.create
 pages: /projects/[id]/kanban
-tools: list_tasks, update_tasks
+tools: list_tasks, update_tasks, import_plan
 commands: kanban-task-create
 since: 1.6
 ---
@@ -20,16 +20,16 @@ A task is a single step of work in a todo. On the board you see what is open, wh
 
    {{bild:board|The board of a project with a column for each status}}
 
-2. Choose **{{ui:task.create}}** at the top right.
-3. Under **{{ui:task.todo}}**, choose the todo the task belongs to.
-4. Enter a **{{ui:item.fields.title}}**.
+2. Choose **{{ui:task.create}}** at the top right. A form opens.
+3. Under **{{ui:task.todo}}**, select the todo the task belongs to.
+4. In the field **{{ui:item.fields.title}}**, enter a title.
 
    {{bild:formular|The form for a new task with todo and title}}
 
 5. Fill in more fields if you need them, for example **{{ui:task.assignee}}** or **{{ui:item.fields.dueDate}}**.
-6. Choose **{{ui:common.save}}**. The task is now in the column **{{ui:status.OPEN}}**.
-7. To change the task, open its menu on the card and choose **{{ui:common.edit}}**.
-8. To change the status, drag the card into another column.
+6. Choose **{{ui:common.save}}**. The form closes, and the task is in the column **{{ui:status.OPEN}}**.
+7. To change the task, choose the button «…» on its card, then **{{ui:common.edit}}**.
+8. To change the status, choose the button «…» on the card, then the entry **Move to** with the column you want. Alternatively, hold the mouse button and drag the card into another column.
 
 ## Good to know
 

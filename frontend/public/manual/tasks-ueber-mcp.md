@@ -12,7 +12,7 @@ An agent reads and changes tasks through the MCP server without loading the whol
 
 - The agent acts as its own account, with exactly its rights. What it may not do in the project, the server refuses.
 - The planer derives the status of todo and milestone from the tasks. An agent never sets them.
-- In the workflow with Stuard, only Stuard sets «Done», after the merge. A coding agent sets «In progress» and «Review».
+- Which statuses an agent may set depends on its role in the project. A person in the project can also decide who marks a task as done.
 
 ## For agents
 

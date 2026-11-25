@@ -1,7 +1,7 @@
 # Create and edit a task
 
 - Right: task.create
-- Tools: list_tasks, update_tasks
+- Tools: list_tasks, update_tasks, import_plan
 - Pages of the app: /projects/[id]/kanban
 
 ## Purpose

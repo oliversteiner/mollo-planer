@@ -18,19 +18,20 @@ An agent is an account of its own for Claude or an assistant. It does not sign i
 
 1. Open **{{ui:nav.admin}} → {{ui:nav.users}}**.
 2. Choose **{{ui:admin.users.newAgent.title}}** at the top right.
-3. Enter a **{{ui:projects.fields.name}}** and an **{{ui:auth.email}}**. No mailbox is needed, no mail is sent.
+3. In the field **{{ui:admin.users.newAgent.name}}**, enter a name, and in the field **{{ui:auth.email}}**, an address. No mailbox is needed, no mail is sent.
 4. Choose **{{ui:admin.users.newAgent.submit}}**. The dialog closes, and the row of the new agent is highlighted.
 
-   {{bild:neue-zeile|The list of agents with the new agent and the button «Set up access»}}
+   {{bild:neue-zeile|The row of the new agent with the button «Set up access»}}
 
 5. In its row, choose **{{ui:admin.users.access.state.none}}**.
-6. Keep the suggested **{{ui:admin.users.agent.name}}** or change it. Choose **{{ui:admin.users.agent.create}}**. If the dialog asks for your password, enter it in the same dialog.
-7. Choose **{{ui:admin.users.agent.copyToken}}** and keep the access in your password manager at once. It is shown only once.
+6. In the field **{{ui:admin.users.agent.name}}**, keep the suggested name or change it. Choose **{{ui:admin.users.agent.create}}**. If the dialog asks for your password, enter it in the same dialog.
+7. Choose the button with the copy symbol to the right of the field with the access, and keep the access in your password manager at once. It is shown only once.
 
    {{bild:zugang|The dialog with the new access and the button to copy it}}
 
-8. Under **{{ui:admin.users.access.projects}}**, assign a project to the agent.
-9. Choose **{{ui:security.done}}**.
+8. Under **{{ui:admin.users.access.projects}}**, in the field **{{ui:admin.users.access.assign}}**, select the project. The role stays «Agent».
+9. Choose **{{ui:admin.users.access.assignConfirm}}**. The project appears in the agent's list of projects.
+10. Choose **{{ui:security.done}}** at the bottom right.
 
 ## Good to know
 

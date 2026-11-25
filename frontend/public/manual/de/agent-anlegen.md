@@ -4,6 +4,8 @@
 - Werkzeuge: –
 - Seiten der App: /admin/users
 
+Diese Aufgabe erledigen Menschen in der App. Die Schritte stehen in der Hilfe der App (Hilfe).
+
 ## Wozu
 
 Ein Agent ist ein eigenes Konto für Claude oder eine Assistenz. Er meldet sich nicht im Browser an, sondern arbeitet über den Connector (MCP) mit einem Zugang und darf genau das, was seine Rolle im Projekt erlaubt.

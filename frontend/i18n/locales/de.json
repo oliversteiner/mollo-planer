@@ -698,6 +698,7 @@
         "noMatches": "Keine Treffer."
       },
       "newAgent": {
+        "name": "Name",
         "title": "Agent anlegen",
         "hint": "Ein Agent-Konto für Claude oder eine Assistenz. Es meldet sich nicht im Browser an, sondern arbeitet über den Connector mit einem Zugang, den du gleich danach erzeugst.",
         "nameHint": "Wird in der App angezeigt, zum Beispiel «Claude Club DB».",

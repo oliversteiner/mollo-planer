@@ -157,7 +157,7 @@ describe('output for agents', () => {
     }
   })
 
-  it('leaves out the click steps for people', () => {
+  it('leaves out the steps for people', () => {
     const html = built.files.get('frontend/public/manual/de/task-anlegen.html')!
     expect(html).not.toContain('So geht')
     expect(html).toContain('Für Agenten')

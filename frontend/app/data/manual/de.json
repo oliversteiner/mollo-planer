@@ -103,7 +103,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Gib einen ",
+                  "text": "Gib im Feld ",
                   "marks": []
                 },
                 {
@@ -117,7 +117,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " und eine ",
+                  "text": " einen Namen und im Feld ",
                   "marks": []
                 },
                 {
@@ -131,7 +131,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " ein. Ein Postfach ist nicht nötig, es wird keine Mail verschickt.",
+                  "text": " eine Adresse ein. Ein Postfach ist nicht nötig, es wird keine Mail verschickt.",
                   "marks": []
                 }
               ]
@@ -172,8 +172,8 @@
         },
         "images": [
           {
-            "src": "/help-images/agent-anlegen/neue-zeile.de.2e2b591169.webp",
-            "alt": "Die Liste der Agenten mit dem neuen Agenten und dem Knopf «Zugang einrichten»"
+            "src": "/help-images/agent-anlegen/neue-zeile.de.cce5069c40.webp",
+            "alt": "Die Zeile des neuen Agenten mit der Taste «Zugang einrichten»"
           }
         ]
       },
@@ -218,7 +218,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Lass den vorgeschlagenen ",
+                  "text": "Lass im Feld ",
                   "marks": []
                 },
                 {
@@ -232,7 +232,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " stehen oder ändere ihn. Wähle ",
+                  "text": " den vorgeschlagenen Namen stehen oder ändere ihn. Wähle ",
                   "marks": []
                 },
                 {
@@ -264,21 +264,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Wähle ",
-                  "marks": []
-                },
-                {
-                  "type": "text",
-                  "text": "Zugang kopieren",
-                  "marks": [
-                    {
-                      "type": "bold"
-                    }
-                  ]
-                },
-                {
-                  "type": "text",
-                  "text": " und lege den Zugang sofort in deinem Passwortmanager ab. Er wird nur einmal angezeigt.",
+                  "text": "Wähle die Taste mit dem Kopier-Symbol rechts neben dem Feld mit dem Zugang und lege den Zugang sofort in deinem Passwortmanager ab. Er wird nur einmal angezeigt.",
                   "marks": []
                 }
               ]
@@ -287,8 +273,8 @@
         },
         "images": [
           {
-            "src": "/help-images/agent-anlegen/zugang.de.c753540b52.webp",
-            "alt": "Der Dialog mit dem neuen Zugang und dem Knopf zum Kopieren"
+            "src": "/help-images/agent-anlegen/zugang.de.f7ed44e9f2.webp",
+            "alt": "Der Dialog mit dem neuen Zugang und der Kopier-Taste"
           }
         ]
       },
@@ -301,7 +287,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Weise dem Agenten unter ",
+                  "text": "Wähle unter ",
                   "marks": []
                 },
                 {
@@ -315,7 +301,21 @@
                 },
                 {
                   "type": "text",
-                  "text": " ein Projekt zu.",
+                  "text": " im Feld ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Projekt zuweisen",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " das Projekt aus. Die Rolle bleibt «Agent».",
                   "marks": []
                 }
               ]
@@ -334,6 +334,38 @@
                 {
                   "type": "text",
                   "text": "Wähle ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Zuweisen",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". Das Projekt erscheint in der Liste der Projekte des Agenten.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle unten rechts ",
                   "marks": []
                 },
                 {
@@ -439,7 +471,8 @@
     ],
     "tools": [
       "list_tasks",
-      "update_tasks"
+      "update_tasks",
+      "import_plan"
     ],
     "commands": [
       "kanban-task-create"
@@ -497,7 +530,7 @@
         },
         "images": [
           {
-            "src": "/help-images/task-anlegen/board.de.ca5c882d55.webp",
+            "src": "/help-images/task-anlegen/board.de.bbc23385ae.webp",
             "alt": "Das Board eines Projekts mit Spalten für jeden Status"
           }
         ]
@@ -525,7 +558,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ".",
+                  "text": ". Es öffnet sich ein Formular.",
                   "marks": []
                 }
               ]
@@ -557,7 +590,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " das ToDo, zu dem der Task gehört.",
+                  "text": " das ToDo aus, zu dem der Task gehört.",
                   "marks": []
                 }
               ]
@@ -575,7 +608,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Gib einen ",
+                  "text": "Gib im Feld ",
                   "marks": []
                 },
                 {
@@ -589,7 +622,7 @@
                 },
                 {
                   "type": "text",
-                  "text": " ein.",
+                  "text": " einen Titel ein.",
                   "marks": []
                 }
               ]
@@ -598,7 +631,7 @@
         },
         "images": [
           {
-            "src": "/help-images/task-anlegen/formular.de.fe29174a9b.webp",
+            "src": "/help-images/task-anlegen/formular.de.74bdf30961.webp",
             "alt": "Das Formular für einen neuen Task mit ToDo und Titel"
           }
         ]
@@ -672,7 +705,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ". Der Task steht jetzt in der Spalte ",
+                  "text": ". Das Formular schliesst sich, und der Task steht in der Spalte ",
                   "marks": []
                 },
                 {
@@ -704,7 +737,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Um den Task zu ändern, öffne sein Menü auf der Karte und wähle ",
+                  "text": "Um den Task zu ändern, wähle auf seiner Karte die Taste «…» und dann ",
                   "marks": []
                 },
                 {
@@ -736,7 +769,21 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Um den Status zu ändern, zieh die Karte in eine andere Spalte.",
+                  "text": "Um den Status zu ändern, wähle auf der Karte die Taste «…» und dann den Eintrag ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Verschieben nach",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " mit der gewünschten Spalte. Alternativ ziehst du die Karte mit gedrückter Maustaste in eine andere Spalte.",
                   "marks": []
                 }
               ]
@@ -760,7 +807,7 @@
                   "content": [
                     {
                       "type": "text",
-                      "text": "Ohne ToDo gibt es keinen Task. Fehlt der Knopf ",
+                      "text": "Ohne ToDo gibt es keinen Task. Fehlt ",
                       "marks": []
                     },
                     {
@@ -927,7 +974,7 @@
                   "content": [
                     {
                       "type": "text",
-                      "text": "«Erledigt» setzt im Ablauf mit Stuard nur Stuard nach dem Merge. Ein Coding-Agent setzt «In Arbeit» und «Review».",
+                      "text": "Welche Status ein Agent setzen darf, bestimmt seine Rolle im Projekt. Eine Person im Projekt kann zusätzlich festlegen, wer einen Task als erledigt markiert.",
                       "marks": []
                     }
                   ]

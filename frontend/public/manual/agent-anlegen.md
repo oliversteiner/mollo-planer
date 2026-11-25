@@ -4,6 +4,8 @@
 - Tools: –
 - Pages of the app: /admin/users
 
+This task is done by people in the app. The steps are in the help of the app (Help).
+
 ## Purpose
 
 An agent is an account of its own for Claude or an assistant. It does not sign in in the browser but works through the connector (MCP) with an access, and it may do exactly what its role in the project allows.

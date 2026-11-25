@@ -88,7 +88,7 @@ async function submit(): Promise<void> {
       <FormInput
         v-model="state.name"
         name="name"
-        :label="t('projects.fields.name')"
+        :label="t('admin.users.newAgent.name')"
         :hint="t('admin.users.newAgent.nameHint')"
         :error="errors.name"
         maxlength="120"

@@ -59,7 +59,7 @@ async function context(browser: Browser, lang: 'de' | 'en'): Promise<BrowserCont
   }
 
   // The language of the app comes from the cookie «locale» (nuxt.config.ts, i18n).
-  const context = await browser.newContext({ ...options, locale: lang === 'de' ? 'de-CH' : 'en-GB', storageState: sessions.get('admin') })
+  const context = await browser.newContext({ ...options, locale: lang === 'de' ? 'de-CH' : 'en-GB', timezoneId: lang === 'de' ? 'Europe/Zurich' : 'Europe/London', storageState: sessions.get('admin') })
   await context.addCookies([{ name: 'locale', value: lang, domain: 'localhost', path: '/' }])
 
   return context
@@ -138,7 +138,22 @@ for (const file of recordings) {
               doubts.push(`- ${where}: a loading indicator is still visible (${loading.join(', ')})`)
             }
 
-            const png = part ? await part.screenshot() : await page.screenshot()
+            // A part is taken by its box (the host elements of Web Awesome have no box of their own, and the stability
+            // check of an element picture waits for animations): a little air around it, inside the window.
+            const box = part ? await part.boundingBox() : null
+            const png = box
+              ? await page.screenshot({
+                  clip: {
+                    x: Math.max(0, box.x - 12),
+                    y: Math.max(0, box.y - 12),
+                    width: Math.min((page.viewportSize()?.width ?? 1280) - Math.max(0, box.x - 12), box.width + 24),
+                    height: Math.min((page.viewportSize()?.height ?? 800) - Math.max(0, box.y - 12), box.height + 24)
+                  }
+                })
+              : await page.screenshot()
+            if (part && !box) {
+              doubts.push(`- ${where}: the part has no box, the whole window was taken`)
+            }
             const webp = await toWebp(page, png)
             const target = join(AUTO, lang, recording.chapter, `${shot.name}.webp`)
             mkdirSync(dirname(target), { recursive: true })
@@ -148,7 +163,7 @@ for (const file of recordings) {
               doubts.push(`- ${where}: larger than 300 KB (${Math.round(webp.length / 1024)} KB)`)
             }
 
-            if (webp.length < 4 * 1024) {
+            if (webp.length < 2 * 1024) {
               doubts.push(`- ${where}: almost empty (${webp.length} bytes)`)
             }
           } catch (error) {

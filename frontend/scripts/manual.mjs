@@ -320,8 +320,8 @@ function blocksHtml(nodes, headingOffset = 2) {
 }
 
 const TEXTS = {
-  en: { title: 'Mollo Planer manual for agents', intro: 'What each function does, its limits, the tools of the MCP server and prompts to hand it over. Without the click steps for people (those are in the help of the app).', right: 'Right', tools: 'Tools', pages: 'Pages of the app', all: 'All chapters on one page', none: '–', markdown: 'Markdown' },
-  de: { title: 'Mollo Planer: Handbuch für Agenten', intro: 'Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Klick-Schritte für Menschen (die stehen in der Hilfe der App).', right: 'Recht', tools: 'Werkzeuge', pages: 'Seiten der App', all: 'Alle Kapitel auf einer Seite', none: '–', markdown: 'Markdown' }
+  en: { title: 'Mollo Planer manual for agents', intro: 'What each function does, its limits, the tools of the MCP server and prompts to hand it over. Without the steps for people (those are in the help of the app).', right: 'Right', tools: 'Tools', pages: 'Pages of the app', all: 'All chapters on one page', none: '–', markdown: 'Markdown', humanOnly: 'This task is done by people in the app. The steps are in the help of the app (Help).' },
+  de: { title: 'Mollo Planer: Handbuch für Agenten', intro: 'Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Schritte für Menschen (die stehen in der Hilfe der App).', right: 'Recht', tools: 'Werkzeuge', pages: 'Seiten der App', all: 'Alle Kapitel auf einer Seite', none: '–', markdown: 'Markdown', humanOnly: 'Diese Aufgabe erledigen Menschen in der App. Die Schritte stehen in der Hilfe der App (Hilfe).' }
 }
 
 function agentSections(chapter) {
@@ -337,7 +337,10 @@ function chapterHtmlBody(chapter, level) {
   ].join('')
   const parts = agentSections(chapter).map(section => `<h${level + 1}>${escapeHtml(section[chapter.lang])}</h${level + 1}>\n${blocksHtml(withoutPictures(chapter.sections[section.key]).content, level + 2)}`)
 
-  return `<h${level} id="${escapeHtml(chapter.fields.id)}">${escapeHtml(chapter.fields.title)}</h${level}>\n<ul>${facts}</ul>\n${parts.join('\n')}`
+  // A chapter without «For agents» is a task for people: one sentence points to the help of the app.
+  const humanOnly = chapter.sections.agents ? '' : `<p>${escapeHtml(t.humanOnly)}</p>\n`
+
+  return `<h${level} id="${escapeHtml(chapter.fields.id)}">${escapeHtml(chapter.fields.title)}</h${level}>\n<ul>${facts}</ul>\n${humanOnly}${parts.join('\n')}`
 }
 
 function page(lang, title, body) {
@@ -347,6 +350,10 @@ function page(lang, title, body) {
 function chapterMarkdown(chapter) {
   const t = TEXTS[chapter.lang]
   const lines = [`# ${chapter.fields.title}`, '', `- ${t.right}: ${chapter.fields.right || t.none}`, `- ${t.tools}: ${chapter.fields.tools.join(', ') || t.none}`, `- ${t.pages}: ${chapter.fields.pages.join(', ') || t.none}`]
+
+  if (!chapter.sections.agents) {
+    lines.push('', t.humanOnly)
+  }
 
   for (const section of agentSections(chapter)) {
     lines.push('', `## ${section[chapter.lang]}`, '', canonicalMarkdown(withoutPictures(chapter.sections[section.key])))

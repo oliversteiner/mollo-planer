@@ -12,7 +12,7 @@ Ein Agent liest und ändert Tasks über den MCP-Server, ohne den ganzen Plan zu 
 
 - Der Agent handelt als sein eigenes Konto, mit genau dessen Rechten. Was er im Projekt nicht darf, verweigert der Server.
 - Status von ToDo und Milestone leitet der Planer aus den Tasks ab. Ein Agent setzt sie nie selbst.
-- «Erledigt» setzt im Ablauf mit Stuard nur Stuard nach dem Merge. Ein Coding-Agent setzt «In Arbeit» und «Review».
+- Welche Status ein Agent setzen darf, bestimmt seine Rolle im Projekt. Eine Person im Projekt kann zusätzlich festlegen, wer einen Task als erledigt markiert.
 
 ## Für Agenten
 
