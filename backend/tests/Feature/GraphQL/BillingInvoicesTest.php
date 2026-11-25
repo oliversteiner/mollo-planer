@@ -401,4 +401,22 @@ class BillingInvoicesTest extends GraphQLTestCase
             DB::purge('second');
         }
     }
+
+    public function test_a_milestone_names_the_invoice_that_holds_it_only_with_billing(): void
+    {
+        $milestone = $this->done($this->project, 'Version 1.0');
+        $id = $this->draft([$milestone])->json('data.createInvoiceDraft.id');
+        $query = 'query ($id: ID!) { project(id: $id) { milestones { id billing { invoice { id number status } } } } }';
+
+        $this->as('admin')->gql($query, ['id' => $this->project->id])
+            ->assertJsonMissingPath('errors')
+            ->assertJsonPath('data.project.milestones.1.billing.invoice', ['id' => $id, 'number' => null, 'status' => 'DRAFT']);
+        $this->as('owner')->gql($query, ['id' => $this->project->id])
+            ->assertJsonPath('data.project.milestones.1.billing', null);
+
+        $this->issue($id);
+        $this->as('admin')->gql('mutation ($id: ID!) { cancelInvoice(id: $id, reason: "Falsch") { id } }', ['id' => $id]);
+        $this->as('admin')->gql($query, ['id' => $this->project->id])
+            ->assertJsonPath('data.project.milestones.1.billing', null);
+    }
 }

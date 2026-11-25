@@ -33,6 +33,10 @@ export default defineNuxtPlugin({
         case 'network':
           toast.add({ title: t('apiError.network'), color: 'error' })
           break
+        case 'refusal':
+          // The backend wrote this sentence for people (extensions.refusal): it says what is missing (Auftrag 39).
+          toast.add({ title: error.message ?? t('apiError.unknown'), color: 'error' })
+          break
         case 'unknown':
           // Never the wording of the server: what is not a message for people (a malformed request, an unknown variable,
           // null for a required field) is no text for the screen. It goes to the console for whoever looks (Auftrag 55 D).

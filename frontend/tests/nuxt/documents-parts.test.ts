@@ -8,7 +8,9 @@ import ShareDialog from '~/components/document/ShareDialog.vue'
 import TransferDialog from '~/components/document/TransferDialog.vue'
 import { installElementInternals } from './support/element-internals'
 
-const { mutations, files } = vi.hoisted(() => ({
+const { mutations, files, letterhead } = vi.hoisted(() => ({
+  /** Whether a letterhead is uploaded (query LetterheadAvailable, Auftrag 39 F). */
+  letterhead: { available: false },
   mutations: { SetDocumentSharing: vi.fn(), TransferDocument: vi.fn(), ExportDocumentPdf: vi.fn() } as Record<string, ReturnType<typeof vi.fn>>,
   files: { text: vi.fn(), blob: vi.fn() }
 }))
@@ -19,7 +21,7 @@ vi.mock('@vue/apollo-composable', () => ({
       { role: { key: 'owner' }, user: { id: '2', name: 'Ben Müller', avatarUrl: null, isAgent: false } },
       { role: { key: 'member' }, user: { id: '3', name: 'Anna Keller', avatarUrl: null, isAgent: false } },
       { role: { key: 'agent' }, user: { id: '4', name: 'Kevin', avatarUrl: null, isAgent: true } }
-    ] } }),
+    ] }, letterheadAvailable: letterhead.available }),
     loading: ref(false)
   }),
   useMutation: (document: { definitions?: { name?: { value: string } }[] }) => ({ mutate: mutations[document?.definitions?.[0]?.name?.value ?? ''] ?? vi.fn() }),
@@ -192,10 +194,29 @@ describe('document export (task 17 D8)', () => {
     items(menu)[1]!.onSelect?.()
     await flushPromises()
 
-    expect(mutations.ExportDocumentPdf).toHaveBeenCalledWith({ id: '5' })
+    expect(mutations.ExportDocumentPdf).toHaveBeenCalledWith({ id: '5', withLetterhead: false })
     expect(files.blob).toHaveBeenCalledOnce()
     expect(files.blob.mock.calls[0]![0]).toBe('aufbau.pdf')
     expect((files.blob.mock.calls[0]![1] as Blob).type).toBe('application/pdf')
+  })
+
+  it('offers the PDF with the letterhead only when one is uploaded (Auftrag 39 F)', async () => {
+    mutations.ExportDocumentPdf!.mockResolvedValue({ data: { exportDocumentPdf: { fileName: 'aufbau.pdf', mimeType: 'application/pdf', contentBase64: btoa('%PDF-1.4') } } })
+
+    letterhead.available = false
+    expect(items(await mountSuspended(ExportMenu, { props: { document } }))).toHaveLength(2)
+
+    letterhead.available = true
+    const menu = await mountSuspended(ExportMenu, { props: { document } })
+    letterhead.available = false
+
+    expect(items(menu)).toHaveLength(3)
+    expect(items(menu)[2]!.label).toBe('PDF mit Briefpapier')
+    items(menu)[2]!.onSelect?.()
+    await flushPromises()
+
+    expect(mutations.ExportDocumentPdf).toHaveBeenCalledWith({ id: '5', withLetterhead: true })
+    expect(files.blob).toHaveBeenCalledOnce()
   })
 
   it('says so when the PDF could not be made', async () => {

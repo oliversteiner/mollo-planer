@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -86,6 +87,16 @@ class Milestone extends Model implements BelongsToProject
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * The item of the invoice that holds this milestone (draft, issued or paid; Auftrag 39), if any.
+     *
+     * @return HasOne<InvoiceItem, $this>
+     */
+    public function billingItem(): HasOne
+    {
+        return $this->hasOne(InvoiceItem::class, 'billing_milestone_id');
     }
 
     /**

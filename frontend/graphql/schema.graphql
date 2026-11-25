@@ -474,6 +474,7 @@ type InvoiceItem {
  "Klartext, im Entwurf änderbar"
  description: String
  id: ID!
+ invoice: Invoice!
  "null, wenn der Meilenstein inzwischen endgültig gelöscht ist"
  milestoneId: ID
  position: Int!
@@ -612,6 +613,8 @@ type MemberCandidate {
 }
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
+ "Die Position der Rechnung, die den Meilenstein hält (Entwurf, ausgestellt oder bezahlt). Nur mit billing.manage, sonst null."
+ billing: InvoiceItem
  createdAt: DateTime!
  createdBy: User
  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."

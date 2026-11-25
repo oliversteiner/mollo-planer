@@ -39,6 +39,13 @@ describe('classifyApiError', () => {
     expect(error.message).toBe('Validation failed for the field [createMilestone].')
   })
 
+  it('keeps a refusal with its sentence, its code and its details, and nothing else counts as one (Auftrag 39)', () => {
+    const refusal = classifyApiError(200, [{ message: 'Dem Projekt fehlt der Kunde: Club DB.', extensions: { code: 'CUSTOMER_MISSING', refusal: true, projects: ['Club DB'] } }])
+
+    expect(refusal).toEqual({ kind: 'refusal', message: 'Dem Projekt fehlt der Kunde: Club DB.', fields: {}, email: null, code: 'CUSTOMER_MISSING', details: { projects: ['Club DB'] } })
+    expect(classifyApiError(200, [{ message: 'Internal server error', extensions: { code: 'X' } }]).kind).toBe('unknown')
+  })
+
   it('treats 419 as an expired CSRF token and status 0 as a network failure', () => {
     expect(classifyApiError(419).kind).toBe('csrf')
     expect(classifyApiError(0).kind).toBe('network')
@@ -49,7 +56,7 @@ describe('classifyApiError', () => {
 describe('classifyRestError', () => {
   it('reads Fortify validation errors and the lock code of account routes', () => {
     expect(classifyRestError(422, { message: 'Ungültig.', errors: { email: ['Diese Zugangsdaten sind ungültig.'] } }))
-      .toEqual({ kind: 'validation', message: 'Ungültig.', fields: { email: ['Diese Zugangsdaten sind ungültig.'] }, email: null })
+      .toEqual({ kind: 'validation', message: 'Ungültig.', fields: { email: ['Diese Zugangsdaten sind ungültig.'] }, email: null, code: null, details: {} })
     expect(classifyRestError(403, { message: 'Bitte melde dich erneut an.', code: STRONG_AUTH_REQUIRED }).kind).toBe('reauth-required')
   })
 

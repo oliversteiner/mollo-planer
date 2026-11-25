@@ -14,6 +14,10 @@ const props = defineProps<{
   action: () => Promise<unknown>
   /** The action needs a recent confirmation of the password: it is asked for here, in the dialog. */
   requiresPassword?: boolean
+  /** Colour of the button: danger (default) for deleting, brand for a final step that destroys nothing (issuing an invoice). */
+  confirmVariant?: 'danger' | 'brand'
+  /** The button is off, for example while a field of the default slot is empty. */
+  confirmDisabled?: boolean
 }>()
 
 const emit = defineEmits<{ close: [] }>()
@@ -66,6 +70,8 @@ async function confirm(): Promise<void> {
     :label="title"
     :description="description"
   >
+    <!-- A field the question needs (for example the reason of a cancellation), in this same dialog (R11). -->
+    <slot />
     <PasswordConfirmField
       v-if="requiresPassword"
       :step="step"
@@ -79,9 +85,9 @@ async function confirm(): Promise<void> {
         {{ t('common.cancel') }}
       </wa-button>
       <wa-button
-        variant="danger"
+        :variant="confirmVariant ?? 'danger'"
         :loading="pending"
-        :disabled="step.waiting"
+        :disabled="step.waiting || confirmDisabled"
         @click="confirm"
       >
         {{ confirmLabel }}

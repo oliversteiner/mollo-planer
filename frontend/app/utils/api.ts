@@ -46,6 +46,8 @@ export type ApiErrorKind
     | 'awaiting-approval'
   /** Backend not reachable. */
     | 'network'
+  /** A step the backend refuses with a sentence written for people and a code (extensions.refusal, Auftrag 39). */
+    | 'refusal'
     | 'unknown'
 
 export interface ApiError {
@@ -56,6 +58,10 @@ export interface ApiError {
   fields: Record<string, string[]>
   /** The address of the account whose mail is not confirmed (ACCOUNT_NOT_READY, reason email), otherwise null. */
   email: string | null
+  /** extensions.code of a refusal (for example SENDER_INCOMPLETE), otherwise null. */
+  code: string | null
+  /** The details of a refusal (extensions without code and refusal), for example missingFields. */
+  details: Record<string, unknown>
 }
 
 interface GraphQLErrorLike {
@@ -66,6 +72,8 @@ interface GraphQLErrorLike {
     email?: string
     category?: string
     validation?: Record<string, string[]>
+    refusal?: boolean
+    [detail: string]: unknown
   }
 }
 
@@ -106,6 +114,7 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
   const reason = errors.map(error => error.extensions?.reason).find(Boolean)
   const email = errors.map(error => error.extensions?.email).find(Boolean) ?? null
   const categories = errors.map(error => error.extensions?.category)
+  const refusal = errors.find(error => error.extensions?.refusal === true)
 
   const kind: ApiErrorKind = (() => {
     if (code === SETUP_REQUIRED) {
@@ -135,11 +144,16 @@ export function classifyApiError(status: number | null, errors: GraphQLErrorLike
     if (status === 0) {
       return 'network'
     }
+    if (refusal) {
+      return 'refusal'
+    }
 
     return 'unknown'
   })()
 
-  return { kind, message, fields, email }
+  const { code: refusalCode, refusal: _flag, ...details } = refusal?.extensions ?? {}
+
+  return { kind, message: refusal?.message ?? message, fields, email, code: refusal ? (refusalCode ?? null) : null, details: refusal ? details : {} }
 }
 
 interface RestErrorBody {

@@ -6,6 +6,8 @@ import {
   updateTodoMutation
 } from '~/graphql/project'
 import { isEmptyDocument } from '~/utils/rich-text'
+import { setMilestonePriceMutation } from '~/graphql/billing'
+import { MAX_CENTS, formatMoney, parseMoney } from '~/utils/money'
 
 export interface ItemFormTarget {
   kind: 'milestone' | 'todo'
@@ -18,12 +20,17 @@ export interface ItemFormTarget {
     description?: Record<string, unknown> | null
     /** Release of a milestone (version and status), null without a version. */
     release?: { version: string, status: string } | null
+    /** Fixed price in Rappen (Auftrag 39); null without one or without billing.manage. */
+    priceCents?: number | null
   }
   /** Project (new milestone) or milestone (new todo) the item belongs to. */
   parentId?: string
 }
 
-/** Create or change a milestone or todo: title, description, icon, due date. */
+/**
+ * Create or change a milestone or todo: title, description, icon, due date. With billing.manage a milestone also has
+ * its fixed price in CHF (Auftrag 39), saved by its own mutation after the milestone.
+ */
 const props = defineProps<{
   target: ItemFormTarget | null
   /** Choice of milestone for a new todo without parentId. */
@@ -32,8 +39,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{ close: [] }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
+const { can } = useViewer()
 const { errors, pending, run } = useGraphqlForm()
 
 const open = computed({
@@ -55,7 +63,8 @@ const state = reactive<{
   description: Record<string, unknown> | null
   releaseVersion: string
   releaseStatus: ReleaseStatusInput | ''
-}>({ title: '', dueDate: '', milestoneId: '', icon: null, description: null, releaseVersion: '', releaseStatus: '' })
+  price: string
+}>({ title: '', dueDate: '', milestoneId: '', icon: null, description: null, releaseVersion: '', releaseStatus: '', price: '' })
 
 watch(() => props.target, (target) => {
   errors.value = {}
@@ -66,6 +75,7 @@ watch(() => props.target, (target) => {
   state.milestoneId = target?.parentId ?? props.milestones?.[0]?.id ?? ''
   state.releaseVersion = target?.item?.release?.version ?? ''
   state.releaseStatus = (target?.item?.release?.status?.toUpperCase() as ReleaseStatusInput | undefined) ?? ''
+  state.price = target?.item?.priceCents != null ? formatMoney(target.item.priceCents, locale.value) : ''
 }, { immediate: true })
 
 const isNew = computed(() => !props.target?.item)
@@ -82,12 +92,24 @@ const milestoneItems = computed(() => (props.milestones ?? []).map(milestone => 
 const { mutate: createMilestone } = useProjectMutation(createMilestoneMutation)
 const { mutate: updateMilestone } = useProjectMutation(updateMilestoneMutation)
 const { mutate: createTodo } = useProjectMutation(createTodoMutation)
+const { mutate: setPrice } = useProjectMutation(setMilestonePriceMutation)
+
+/** The price field: only for milestones and only with the right of the billing. */
+const withPrice = computed(() => kind.value === 'milestone' && can('BILLING_MANAGE'))
 const { mutate: updateTodo } = useProjectMutation(updateTodoMutation)
 
 async function submit(): Promise<void> {
   const target = props.target
 
   if (!target) {
+    return
+  }
+
+  const price = withPrice.value ? parseMoney(state.price) : null
+
+  if (price !== null && (Number.isNaN(price) || price > MAX_CENTS)) {
+    errors.value = { price: t('billing.milestone.priceInvalid') }
+
     return
   }
 
@@ -112,6 +134,15 @@ async function submit(): Promise<void> {
       ? createMilestone({ input: { ...fields, projectId: target.parentId ?? '' } })
       : createTodo({ input: { ...fields, milestoneId: target.parentId ?? state.milestoneId } })
   })
+
+  const milestoneId = target.kind === 'milestone'
+    ? (target.item?.id ?? (result as { data?: { createMilestone?: { id: string } } } | null)?.data?.createMilestone?.id)
+    : undefined
+  const priceChanged = withPrice.value && price !== (target.item?.priceCents ?? null)
+
+  if (result && milestoneId && priceChanged && !await run(() => setPrice({ milestoneId, priceCents: price }))) {
+    return
+  }
 
   if (result) {
     toast.add({ title: t(`item.${target.kind}.saved`), color: 'success' })
@@ -190,6 +221,17 @@ async function submit(): Promise<void> {
         />
       </div>
 
+      <FormInput
+        v-if="withPrice"
+        v-model="state.price"
+        name="price"
+        inputmode="decimal"
+        :label="t('billing.milestone.price')"
+        :hint="t('billing.milestone.priceHint')"
+        :error="errors.price || errors.priceCents"
+        class="item-price"
+      />
+
       <FormField
         :label="t('item.fields.description')"
         :error="errors.description"
@@ -224,5 +266,9 @@ async function submit(): Promise<void> {
 <style scoped>
 .item-dialog {
   --width: 42rem;
+}
+
+.item-price {
+  max-inline-size: 14rem;
 }
 </style>

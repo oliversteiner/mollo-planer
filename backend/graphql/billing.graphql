@@ -130,6 +130,7 @@ type InvoiceItem {
   "Klartext, im Entwurf änderbar"
   description: String
   amountCents: Int! @rename(attribute: "amount_cents")
+  invoice: Invoice! @belongsTo
 }
 
 type Invoice {
@@ -292,6 +293,10 @@ extend type Milestone {
   priceCents: Int
     @canModel(ability: "manage", model: "App\\Models\\BillingSetting", action: RETURN_VALUE, returnValue: null)
     @rename(attribute: "price_cents")
+  "Die Position der Rechnung, die den Meilenstein hält (Entwurf, ausgestellt oder bezahlt). Nur mit billing.manage, sonst null."
+  billing: InvoiceItem
+    @canModel(ability: "manage", model: "App\\Models\\BillingSetting", action: RETURN_VALUE, returnValue: null)
+    @hasOne(relation: "billingItem")
 }
 
 extend type Query @guard {
