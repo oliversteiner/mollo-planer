@@ -190,7 +190,7 @@ purgeActivity(year: Int): ActivityStorage!
 ```
 
 - Neues Systemrecht **`activity.purge`** (Standard: nur Admin), getrennt von `activity.viewAny`.
-- **Ganzes Protokoll:** `TRUNCATE`. **Ein Jahr:** in Portionen (z. B. 5000 Zeilen) als Auftrag in der Warteschlange, weil Hostpoint Anfragen nach 60 Sekunden abbricht; danach die Tabelle neu ordnen (`OPTIMIZE TABLE`), sonst gibt die Datenbank den Platz nicht frei und die Anzeige sinkt nicht. Während der Auftrag läuft: `purging: true`, kein zweiter Start.
+- **Ganzes Protokoll:** `TRUNCATE`. **Ein Jahr:** in Portionen (z. B. 5000 Zeilen) als Auftrag in der Warteschlange, weil der Webhoster Anfragen nach 60 Sekunden abbricht; danach die Tabelle neu ordnen (`OPTIMIZE TABLE`), sonst gibt die Datenbank den Platz nicht frei und die Anzeige sinkt nicht. Während der Auftrag läuft: `purging: true`, kein zweiter Start.
 - Das laufende Jahr darf gelöscht werden, der Dialog sagt es ausdrücklich.
 - **Das Löschen selbst wird protokolliert:** danach steht genau ein Eintrag «Protokoll gelöscht» (wer, wann, Jahr oder alles, Anzahl). Zusätzlich eine Zeile in der Logdatei und eine Mail an die Admins, wie bei den übrigen Sicherheitsereignissen.
 - **Dialog:** Auswahl «Jahr» (mit Anzahl Einträge) oder «Alles», Knopf «Zuerst herunterladen», Bestätigung durch Eintippen des Jahres bzw. des Wortes «alles», dann Passwortbestätigung. Muster der bestehenden Rückfragen, kein Dialog über Dialog (Erkenntnis aus Auftrag 52).
