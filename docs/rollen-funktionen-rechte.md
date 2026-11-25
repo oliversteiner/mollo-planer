@@ -50,7 +50,7 @@ Vollständige Liste, inklusive der bisher geplanten neuen Rechte. Namen wie heut
 `project.update`, `project.delete`, `project.archive`, `members.manage`, `owner.manage` (Rolle mit `project.delete` vergeben oder entziehen, heute „nur Owner“), `milestone.create`, `milestone.update`, `milestone.delete`, `todo.create`, `todo.update`, `todo.delete`, `task.create`, `task.update`, `task.updateOwn`, `task.assign`, `task.assignSelf`, `task.move`, `task.delete`, `comment.create`, `comment.moderate`, `trash.restore`, `trash.purge`, `planer.export`, `planer.import`, `aiContext.update`, `document.create`, `document.update`, `document.manageAny` (Dokumente, siehe `docs/dokumentenverwaltung.md` §4).
 
 **System:**
-`projects.create`, `projects.viewAll`, `projects.manageAny`, `users.manage`, `roles.manage` (diese Einstellungen), `templates.manage`, `templates.manageAny`, `assistant.use`, `ideas.create`, `ideas.viewAny`, `settings.manage` (App-Einstellungen, 2FA-Schalter), `system.view` (Status-Seite), `database.view` (Datenbank-Doku).
+`projects.create`, `projects.viewAll`, `projects.manageAny`, `users.manage`, `roles.manage` (diese Einstellungen), `templates.manage`, `templates.manageAny`, `assistant.use`, `ideas.create`, `ideas.viewAny`, `settings.manage` (App-Einstellungen, 2FA-Schalter), `system.view` (Status-Seite), `database.view` (Datenbank-Doku), `billing.manage` (Abrechnung: Kunden, Preise, Rechnungen; unabhängig von den Rollen im Projekt, nie für Agent-Konten, Auftrag 39).
 
 Jedes Recht hat im Code einen kurzen Text (DE/EN) für die Einstellungsseite. Ein Test prüft: jedes Recht wird in mindestens einer Policy oder Prüfung verwendet, und jede Prüfung nutzt ein Recht aus der Liste.
 
@@ -91,6 +91,7 @@ Die Standardbelegung bildet **genau das heutige Verhalten plus die bereits entsc
 | Alle Ideen | `ideas.viewAny` |
 | Betrieb | `settings.manage`, `database.view` |
 | Status | `system.view` |
+| Abrechnung | `billing.manage` |
 
 **Systemrollen:**
 

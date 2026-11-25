@@ -21,9 +21,11 @@ final class AccountTables
     /** Not part of an account: content, settings of the app, framework tables, or credentials of one session. */
     public const NOT_ACCOUNT = [
         'app_settings' => 'settings of the app',
+        'billing_settings' => 'settings of the billing (sender)',
         'cache' => 'framework',
         'cache_locks' => 'framework',
         'comments' => 'content',
+        'customers' => 'content (billing)',
         'document_shares' => 'content (sharing of a document)',
         'document_versions' => 'content',
         'documents' => 'content',
@@ -31,6 +33,9 @@ final class AccountTables
         'function_rights' => 'roles and rights (config/permissions.php)',
         'functions' => 'roles and rights (config/permissions.php)',
         'ideas' => 'content',
+        'invoice_items' => 'content (billing)',
+        'invoice_number_sequences' => 'number ranges of the billing',
+        'invoices' => 'content (billing)',
         'job_batches' => 'framework',
         'jobs' => 'framework',
         'label_sets' => 'content',

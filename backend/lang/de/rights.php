@@ -45,4 +45,5 @@ return [
     'settings.manage' => 'App-Einstellungen ändern',
     'system.view' => 'Status-Seite sehen',
     'database.view' => 'Datenbank-Doku sehen',
+    'billing.manage' => 'Abrechnung: Kunden, Preise und Rechnungen',
 ];

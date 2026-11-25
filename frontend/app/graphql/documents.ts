@@ -89,8 +89,15 @@ export const transferDocumentMutation = graphql(`
 `)
 
 export const exportDocumentPdfMutation = graphql(`
-  mutation ExportDocumentPdf($id: ID!) {
-    exportDocumentPdf(id: $id) { fileName mimeType contentBase64 }
+  mutation ExportDocumentPdf($id: ID!, $withLetterhead: Boolean) {
+    exportDocumentPdf(id: $id, withLetterhead: $withLetterhead) { fileName mimeType contentBase64 }
+  }
+`)
+
+/** Is a letterhead uploaded (Auftrag 39 F)? Then the export offers the PDF with it. */
+export const letterheadAvailableQuery = graphql(`
+  query LetterheadAvailable {
+    letterheadAvailable
   }
 `)
 

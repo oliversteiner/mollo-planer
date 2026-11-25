@@ -8,6 +8,7 @@ export const projectSettingsQuery = graphql(`
       description
       icon
       locale
+      customer { id company name }
       members {
         role { key names { de en } }
         user { id name email avatarUrl isAgent }

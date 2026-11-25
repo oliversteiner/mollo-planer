@@ -39,6 +39,8 @@ export const projectTimelineQuery = graphql(`
         icon
         dueDate
         release { version status date }
+        priceCents
+        billing { invoice { id number status } }
         status
         progress { done total percent }
         todos {

@@ -1,0 +1,36 @@
+<?php
+
+return [
+    'agent_role' => 'Agent accounts never get a role with the right «Billing». The role «:role» has it.',
+    'iban_country' => 'The IBAN must be from Switzerland or Liechtenstein (CH or LI, 21 characters).',
+    'iban_checksum' => 'The IBAN is not correct (check digits). Please copy it again.',
+    'iban_qr' => 'This is a QR-IBAN. The invoices need the normal IBAN of the account.',
+    'postal_code' => 'The postal code does not fit the country :country.',
+    'number_format' => 'The format needs exactly one running number {NNNN} and may contain the year {YYYY}.',
+    'customer_archived' => 'The customer is archived. Bring them back first.',
+    'refusal' => [
+        'MILESTONE_NOT_BILLABLE' => 'Not billable: :titles. A milestone must be done, have a price and be in no other invoice.',
+        'OTHER_CUSTOMER' => 'These milestones belong to another customer: :titles. An invoice goes to one customer.',
+        'CUSTOMER_MISSING' => 'The project has no customer: :projects. Choose one in the project settings.',
+        'SENDER_INCOMPLETE' => 'The billing settings still lack: :missingFields.',
+        'INVOICE_WRONG_STATUS' => 'This is no longer possible for this invoice (status :status).',
+        'INVOICE_EMPTY' => 'An invoice needs at least one item.',
+        'INVOICE_NUMBER_TOO_LONG' => 'The invoice number :number is too long for the reference (at most 21 letters and digits). Shorten the format.',
+        'INVOICE_TOTAL_TOO_HIGH' => 'The total is above CHF 9 999 999.99, the limit of the QR bill. Split the milestones over two invoices.',
+    ],
+    'pdf' => [
+        'title' => 'Invoice',
+        'title_number' => 'Invoice :number',
+        'draft' => 'DRAFT',
+        'page' => 'Page :current of :total',
+        'issue_date' => 'Date',
+        'due_date' => 'Payable by',
+        'reference' => 'Reference',
+        'uid' => 'UID',
+        'item' => 'Service',
+        'amount' => 'Amount CHF',
+        'total' => 'Total',
+        'terms' => 'Payable within :days days, by :date.',
+        'no_vat' => 'Without VAT.',
+    ],
+];

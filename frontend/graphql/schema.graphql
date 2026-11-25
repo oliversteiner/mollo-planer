@@ -22,6 +22,77 @@ type AppSettings {
  "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
  twoFactorSwitchable: Boolean!
 }
+"Verrechenbares eines Kunden, nach Projekt"
+type BillableGroup {
+ customer: Customer!
+ projects: [BillableProject!]!
+ totalCents: Int!
+}
+"Ein verrechenbarer Meilenstein"
+type BillableMilestone {
+ dueDate: Date
+ id: ID!
+ priceCents: Int!
+ releaseVersion: String
+ title: String!
+}
+type BillableProject {
+ milestones: [BillableMilestone!]!
+ projectId: ID!
+ projectName: String!
+ totalCents: Int!
+}
+"Hinweis: erledigt, aber nicht verrechenbar, weil dem Projekt der Kunde oder dem Meilenstein der Preis fehlt"
+type BillingHint {
+ milestoneId: ID!
+ milestoneTitle: String!
+ projectId: ID!
+ projectName: String!
+}
+type BillingOverview {
+ groups: [BillableGroup!]!
+ "Erledigte, unverrechnete Meilensteine in Projekten ohne Kunde"
+ withoutCustomer: [BillingHint!]!
+ "Erledigte, unverrechnete Meilensteine ohne Preis (Projekt mit Kunde)"
+ withoutPrice: [BillingHint!]!
+}
+"Absender der Rechnungen und Bedingungen. Pflicht für eine Rechnung: Name, Strasse, PLZ, Ort, Land, IBAN."
+type BillingSettings {
+ city: String
+ country: String!
+ email: String
+ houseNumber: String
+ "IBAN der Schweiz oder Liechtensteins (keine QR-IBAN)"
+ iban: String
+ "Pflichtfelder, die noch leer sind (Feldnamen wie hier, zum Beispiel iban). Leer: bereit für Rechnungen."
+ missingFields: [String!]!
+ name: String
+ "Format der Rechnungsnummer, Platzhalter {YYYY} (Jahr) und {NNNN} (laufende Nummer, Anzahl N = Stellen)"
+ numberFormat: String!
+ "Zahlungsfrist in Tagen ab Ausstelldatum"
+ paymentTermsDays: Int!
+ phone: String
+ postalCode: String
+ street: String
+ "UID, leer erlaubt (ohne MWST)"
+ uid: String
+ website: String
+}
+input BillingSettingsInput {
+ city: String
+ country: String!
+ email: String
+ houseNumber: String
+ iban: String
+ name: String
+ numberFormat: String!
+ paymentTermsDays: Int!
+ phone: String
+ postalCode: String
+ street: String
+ uid: String
+ website: String
+}
 "Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
 type Comment {
  "null, wenn die Person inzwischen gelöscht wurde"
@@ -130,6 +201,41 @@ input CreateUserInput {
  name: String!
  "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
  role: String
+}
+"Kunde der Abrechnung. Strukturierte Adresse, wie sie die QR-Rechnung verlangt."
+type Customer {
+ archived: Boolean!
+ archivedAt: DateTime
+ city: String!
+ "Firma, optional"
+ company: String
+ "Land als ISO-Code mit zwei Buchstaben, zum Beispiel CH"
+ country: String!
+ createdAt: DateTime!
+ email: String
+ houseNumber: String
+ id: ID!
+ "Sprache der Rechnungen an diesen Kunden"
+ locale: Locale!
+ name: String!
+ "Interne Notiz, erscheint nie auf einer Rechnung"
+ notes: String
+ postalCode: String!
+ "Projekte des Kunden, auch archivierte"
+ projects: [Project!]!
+ street: String!
+}
+input CustomerInput {
+ city: String!
+ company: String
+ country: String!
+ email: String
+ houseNumber: String
+ locale: Locale!
+ name: String!
+ notes: String
+ postalCode: String!
+ street: String!
 }
 "Alles für die Startseite in einem Aufruf"
 type Dashboard {
@@ -319,6 +425,99 @@ type ImportWarning {
  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]"
  path: String!
 }
+type Invoice {
+ cancelReason: String
+ cancelledAt: DateTime
+ createdAt: DateTime!
+ createdBy: User
+ currency: String!
+ customer: Customer!
+ dueDate: Date
+ "Die gespeicherte PDF ist da (nur bei ausgestellten Rechnungen)"
+ hasPdf: Boolean!
+ id: ID!
+ issueDate: Date
+ issuedAt: DateTime
+ issuedBy: User
+ items: [InvoiceItem!]!
+ "Sprache der Rechnung (Sprache des Kunden)"
+ locale: Locale!
+ "Text auf der Rechnung"
+ notes: String
+ "Rechnungsnummer, leer im Entwurf"
+ number: String
+ "Ausgestellt und die Fälligkeit ist vorbei"
+ overdue: Boolean!
+ paidAt: Date
+ "Empfänger beim Ausstellen, null im Entwurf (dann gilt die Adresse des Kunden)"
+ recipient: InvoiceAddress
+ "Creditor Reference (RF…), aus der Nummer"
+ reference: String
+ "Absender beim Ausstellen, null im Entwurf"
+ sender: InvoiceSender
+ status: InvoiceStatus!
+ totalCents: Int!
+}
+"Adresse, wie sie beim Ausstellen auf der Rechnung eingefroren wurde"
+type InvoiceAddress {
+ city: String!
+ company: String
+ country: String!
+ houseNumber: String
+ name: String!
+ postalCode: String!
+ street: String!
+}
+"Eine Position: ein Meilenstein zum Fixpreis. Projektname, Titel, Text und Betrag sind Kopien."
+type InvoiceItem {
+ amountCents: Int!
+ "Klartext, im Entwurf änderbar"
+ description: String
+ id: ID!
+ invoice: Invoice!
+ "null, wenn der Meilenstein inzwischen endgültig gelöscht ist"
+ milestoneId: ID
+ position: Int!
+ "null, wenn das Projekt inzwischen endgültig gelöscht ist"
+ projectId: ID
+ projectName: String!
+ title: String!
+}
+input InvoiceItemInput {
+ description: String
+ id: ID!
+}
+"Absender, wie er beim Ausstellen auf der Rechnung eingefroren wurde"
+type InvoiceSender {
+ city: String!
+ country: String!
+ email: String
+ houseNumber: String
+ iban: String!
+ name: String!
+ phone: String
+ postalCode: String!
+ street: String!
+ uid: String
+ website: String
+}
+"Stand einer Rechnung. Überfällig ist kein Status, sondern abgeleitet (Invoice.overdue)."
+enum InvoiceStatus {
+ "Storniert: Nummer bleibt belegt, die Meilensteine sind wieder verrechenbar"
+ CANCELLED
+ "Entwurf: änderbar, ohne Nummer, darf gelöscht werden"
+ DRAFT
+ "Ausgestellt: Nummer vergeben, eingefroren, PDF gespeichert"
+ ISSUED
+ PAID
+}
+"Summen über alle ausgestellten, nicht bezahlten Rechnungen"
+type InvoiceTotals {
+ openCents: Int!
+ openCount: Int!
+ overdueCents: Int!
+ overdueCount: Int!
+}
 "Status von Milestone und ToDo (wird automatisch berechnet)"
 enum ItemStatus {
  DONE
@@ -380,6 +579,13 @@ input LabelNameInput {
  locale: Locale!
  name: String!
 }
+"Hochgeladenes Briefpapier"
+type Letterhead {
+ fileName: String!
+ "1: nur Seite 1; 2: Seite 1 und Folgeseiten"
+ pages: Int!
+ uploadedAt: DateTime!
+}
 "Sprache eines Projekts. Bestimmt die Sprache der Mails."
 enum Locale {
  DE
@@ -407,6 +613,8 @@ type MemberCandidate {
 }
 "Ein Meilenstein mit Zieldatum. Er enthält ToDos."
 type Milestone {
+ "Die Position der Rechnung, die den Meilenstein hält (Entwurf, ausgestellt oder bezahlt). Nur mit billing.manage, sonst null."
+ billing: InvoiceItem
  createdAt: DateTime!
  createdBy: User
  "Vorgang im Papierkorb (nach dem Löschen gesetzt, sonst null). „Rückgängig“ gibt ihn an restoreFromTrash."
@@ -418,6 +626,8 @@ type Milestone {
  id: ID!
  "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
  position: Int!
+ "Fixpreis in Rappen. null: kein Preis, nicht verrechenbar. Nur mit billing.manage, sonst null."
+ priceCents: Int
  progress: Progress!
  project: Project!
  "Version und Freigabe, null wenn der Milestone keine Version hat"
@@ -447,10 +657,14 @@ type Mutation {
  applyTemplateLabels(mode: TemplateLabelMode!, projectId: ID!, templateId: ID!): Project!
  "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
  approveUser(id: ID!): User!
+ "Archiviert einen Kunden oder holt ihn zurück. Kunden werden nicht gelöscht."
+ archiveCustomer(archived: Boolean!, id: ID!): Customer!
  "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
  archiveProject(id: ID!): Project!
  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
  assignTask(assigneeId: ID, id: ID!): Task!
+ "Storniert eine ausgestellte Rechnung mit Grund. Die Nummer bleibt belegt, die Meilensteine werden wieder verrechenbar."
+ cancelInvoice(id: ID!, reason: String!): Invoice!
  "Löscht den ganzen KI-Kontext"
  clearProjectAiContext(projectId: ID!): Project!
  "Legt ein Agent-Konto an (kein Login im Browser, Systemrolle Mitglied, keine Mail an das Konto). Nur mit dem Recht users.manage und frischer Passwortbestätigung; Protokolleintrag und Mail an die Admins. Dieselbe Aktion wie app:create-agent."
@@ -459,10 +673,13 @@ type Mutation {
  createAgentToken(name: String!, userId: ID!): NewApiToken!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
+ createCustomer(input: CustomerInput!): Customer!
  "Legt ein Dokument an (document.create im Projekt). Der Owner bist du."
  createDocument(input: CreateDocumentInput!): Document!
  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
  createIdea(input: CreateIdeaInput!): Idea!
+ "Neuer Entwurf aus verrechenbaren Meilensteinen eines Kunden (auch aus mehreren Projekten). Fehlercodes in extensions.code: MILESTONE_NOT_BILLABLE, OTHER_CUSTOMER, CUSTOMER_MISSING, INVOICE_EMPTY, INVOICE_TOTAL_TOO_HIGH."
+ createInvoiceDraft(customerId: ID!, milestoneIds: [ID!]!, notes: String): Invoice!
  createMilestone(input: CreateMilestoneInput!): Milestone!
  "Legt einen Client an. Redirect-Adressen exakt: https, http nur für localhost, ein eigenes URL-Schema nur für öffentliche Clients (Apps). Recht settings.manage und frische Passwortbestätigung; das Geheimnis gibt es nur in der Antwort."
  createOAuthClient(confidential: Boolean!, name: String!, redirectUris: [String!]!): NewOAuthClient!
@@ -488,6 +705,8 @@ type Mutation {
  deleteDocument(id: ID!): Document!
  "Löscht eine eigene Idee in den Papierkorb"
  deleteIdea(id: ID!): Idea!
+ "Löscht einen Entwurf. Ausgestellte Rechnungen werden nie gelöscht."
+ deleteInvoiceDraft(id: ID!): ID!
  deleteMilestone(id: ID!): Milestone!
  deleteProject(id: ID!): Project!
  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
@@ -523,8 +742,14 @@ type Mutation {
  duplicateTemplate(id: ID!): Template!
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
- "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
- exportDocumentPdf(id: ID!): DocumentFile!
+ "Das Dokument als PDF, auf Wunsch mit Briefpapier (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+ exportDocumentPdf(
+ id: ID!
+ "Mit dem Briefpapier der Basis (nur wenn eines hochgeladen ist, sonst ohne). Vorgabe: ohne."
+ withLetterhead: Boolean = false
+ ): DocumentFile!
+ "Die gespeicherte PDF einer ausgestellten Rechnung (auch bezahlt oder storniert). Nie neu erzeugt. Nicht für Entwürfe (INVOICE_WRONG_STATUS)."
+ exportInvoicePdf(id: ID!): DocumentFile!
  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
  importPlan(
  "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
@@ -541,6 +766,10 @@ type Mutation {
  "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
  templateId: ID
  ): ImportResult!
+ "Stellt aus: Nummer, Einfrieren, PDF speichern. Endgültig. Ohne issueDate gilt heute. Fehlercodes: SENDER_INCOMPLETE (missingFields), MILESTONE_NOT_BILLABLE, INVOICE_WRONG_STATUS."
+ issueInvoice(id: ID!, issueDate: Date): Invoice!
+ "Ausgestellte Rechnung als bezahlt markieren"
+ markInvoicePaid(id: ID!, paidAt: Date!): Invoice!
  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
  moveMilestone(id: ID!, position: Int!): Milestone!
  "Verschiebt einen Task im Kanban"
@@ -550,10 +779,14 @@ type Mutation {
  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
  moveTaskToTodo(id: ID!, todoId: ID!): Task!
  moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
+ "Vorschau eines Entwurfs als PDF mit dem Wasserzeichen ENTWURF, ohne Nummer und ohne Speichern. Fehlercode SENDER_INCOMPLETE (missingFields)."
+ previewInvoicePdf(id: ID!): DocumentFile!
  "Löscht einen Vorgang endgültig."
  purgeFromTrash(deletionId: ID!): Boolean!
  "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
  rejectUser(id: ID!): User!
+ "Entfernt das Briefpapier. Frische Passwortbestätigung."
+ removeLetterhead: PdfFrame!
  "Entfernt die Datei aus dem KI-Kontext, der Text bleibt"
  removeProjectAiContextFile(projectId: ID!): Project!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
@@ -573,16 +806,22 @@ type Mutation {
  revokeAgentToken(tokenId: ID!, userId: ID!): ApiToken
  "Widerruft einen Client und alle seine Tokens. Gleiche Voraussetzungen wie createOAuthClient. null, wenn es den Client nicht gibt."
  revokeOAuthClient(id: ID!): OAuthClient
+ "Musterrechnung mit Testdaten, mit Briefpapier, Satzspiegel und Schrift von jetzt"
+ sampleInvoicePdf(locale: Locale): DocumentFile!
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
  "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
  setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
  "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
  setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
+ "Fixpreis des Meilensteins in Rappen setzen oder (null) entfernen. 0 bis 999 999 999 (Grenze der QR-Rechnung)."
+ setMilestonePrice(milestoneId: ID!, priceCents: Int): Milestone!
  "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
  setProjectAiContext(input: ProjectAiContextInput!, projectId: ID!): Project!
  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
  setProjectCreatorRole(roleKey: String!): AppSettings!
+ "Kunde des Projekts setzen oder (null) entfernen. Nur aktive Kunden."
+ setProjectCustomer(customerId: ID, projectId: ID!): Project!
  "Fügt eine Person hinzu oder ändert ihre Rolle"
  setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
  "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
@@ -597,16 +836,24 @@ type Mutation {
  unarchiveProject(id: ID!): Project!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
+ "Absender und Bedingungen ändern. Braucht eine frische Passwortbestätigung."
+ updateBillingSettings(input: BillingSettingsInput!): BillingSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ "Ersetzt alle Angaben des Kunden. Ausgestellte Rechnungen behalten ihre Adresse."
+ updateCustomer(id: ID!, input: CustomerInput!): Customer!
  "Ändert Titel, Art und Inhalt (Stufe EDIT und document.update). revision ist die geladene; weicht sie ab, kommt DOCUMENT_CONFLICT und nichts wird gesichert. Ohne Änderung entsteht keine neue Fassung."
  updateDocument(id: ID!, input: UpdateDocumentInput!, revision: Int!): Document!
  "Ändert eine eigene Idee"
  updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
+ "Ändert einen Entwurf. notes: Text auf der Rechnung. items: die Positionen, die bleiben, in dieser Reihenfolge, mit ihrem Text; fehlende werden entfernt."
+ updateInvoiceDraft(id: ID!, items: [InvoiceItemInput!], notes: String): Invoice!
  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
  updateMyAvatar(avatar: Upload!): User!
  "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
  updateMyNotifications(notifyByEmail: Boolean!): User!
+ "Satzspiegel, Schrift und Fenster des Couverts. Frische Passwortbestätigung."
+ updatePdfFrame(input: PdfFrameInput!): PdfFrame!
  updateProject(id: ID!, input: UpdateProjectInput!): Project!
  "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
  updateProjectLabels(labels: [LabelInput!]!, projectId: ID!): Project!
@@ -620,6 +867,8 @@ type Mutation {
  updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
  "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
  updateUser(id: ID!, input: UpdateUserInput!): User!
+ "Lädt das Briefpapier hoch (PDF, A4 hochkant, 1 oder 2 Seiten, höchstens 5 MB, von FPDI lesbar) und ersetzt das bisherige. Frische Passwortbestätigung. Fehlercodes: LETTERHEAD_NOT_PDF, LETTERHEAD_TOO_LARGE, LETTERHEAD_NOT_READABLE, LETTERHEAD_NOT_A4, LETTERHEAD_PAGES."
+ uploadLetterhead(file: Upload!): PdfFrame!
  "Lädt eine Datei (.txt oder .md, UTF-8, höchstens 100 KB) in den KI-Kontext und ersetzt eine vorhandene. Gespeichert wird nur ihr Text."
  uploadProjectAiContextFile(file: Upload!, projectId: ID!): Project!
 }
@@ -698,6 +947,55 @@ type Passkey {
  lastUsedAt: DateTime
  name: String!
 }
+type PdfFont {
+ key: String!
+ name: String!
+}
+"Briefpapier, Satzspiegel und Schrift für PDFs (Rechnungen; Dokumente auf Wunsch)"
+type PdfFrame {
+ "Fenster des Couverts: left oder right"
+ addressWindow: String!
+ "Vorgaben des Satzspiegels (Anleitung docs/briefpapier/)"
+ defaults: PdfLayout!
+ "Schrift des Texts (Schlüssel aus fonts)"
+ font: String!
+ fonts: [PdfFont!]!
+ layout: PdfLayout!
+ letterhead: Letterhead
+}
+input PdfFrameInput {
+ addressWindow: String!
+ font: String!
+ layout: PdfLayoutInput!
+}
+"Satzspiegel eines Briefs in mm (Basis, Auftrag 39 F)"
+type PdfLayout {
+ addressHeight: Float!
+ "Adressfeld: Abstand von links"
+ addressLeft: Float!
+ "Adressfeld: Abstand von oben"
+ addressTop: Float!
+ addressWidth: Float!
+ "Textende, vom unteren Rand"
+ bottom: Float!
+ left: Float!
+ right: Float!
+ "Textbeginn Seite 1, von oben"
+ topFirst: Float!
+ "Textbeginn der Folgeseiten, von oben"
+ topFollowing: Float!
+}
+input PdfLayoutInput {
+ addressHeight: Float!
+ addressLeft: Float!
+ addressTop: Float!
+ addressWidth: Float!
+ bottom: Float!
+ left: Float!
+ right: Float!
+ topFirst: Float!
+ topFollowing: Float!
+}
 "Berechnete Übersicht Rolle × Recht: Systemrechte und Projektrechte, je mit den Rollen, die sie haben."
 type PermissionMatrix {
  project: [ProjectRightRow!]!
@@ -774,6 +1072,8 @@ type Project {
  "Anzahl Milestones, ToDos und Tasks (alle Status, Ideen eingeschlossen; Papierkorb nicht), für die Karte in der Projektliste. Alle Projekte einer Liste werden zusammen gezählt."
  counts: ProjectCounts!
  createdAt: DateTime!
+ "Kunde, dem das Projekt verrechnet wird. Nur mit billing.manage, sonst null."
+ customer: Customer
  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
  deletionId: ID
  "Formatierter Text, gleiche Regeln wie bei Milestones"
@@ -890,6 +1190,13 @@ input ProjectWebhookInput {
 type Query {
  "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
  appSettings: AppSettings!
+ "Verrechenbare Meilensteine nach Kunde und Projekt, mit Summen und Hinweisen. Mit customerId nur dieser Kunde."
+ billingOverview(customerId: ID): BillingOverview!
+ "Absender und Bedingungen der Abrechnung"
+ billingSettings: BillingSettings!
+ customer(id: ID!): Customer
+ "Kunden, nach Name. Ohne archived nur die aktiven, mit archived: true nur die archivierten."
+ customers(archived: Boolean = false): [Customer!]!
  "Startseite"
  dashboard: Dashboard!
  "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
@@ -922,8 +1229,14 @@ type Query {
  projectId: ID
  status: IdeaStatus
  ): IdeaPaginator!
+ invoice(id: ID!): Invoice
+ invoiceTotals: InvoiceTotals!
+ "Rechnungen, neueste zuerst (Entwürfe vorne). year filtert nach Ausstelldatum (Entwürfe fallen dann weg)."
+ invoices(customerId: ID, status: InvoiceStatus, year: Int): [Invoice!]!
  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
  kanban(projectId: ID!): [KanbanColumn!]!
+ "Ist ein Briefpapier hochgeladen? Für die Option beim PDF-Export der Dokumente, ohne Recht der Abrechnung."
+ letterheadAvailable: Boolean!
  "Der angemeldete Benutzer"
  me: User!
  "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
@@ -935,6 +1248,8 @@ type Query {
  myTasks(status: TaskStatus): [Task!]!
  "Alle Clients des Anmeldedienstes, auch widerrufene. Nur Admins."
  oauthClients: [OAuthClient!]!
+ "Briefpapier, Satzspiegel und Schrift (Abrechnung, Einstellungen)"
+ pdfFrame: PdfFrame!
  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
  permissionMatrix: PermissionMatrix!
  project(id: ID!): Project
@@ -989,6 +1304,8 @@ scalar RichText
 enum Right {
  AI_CONTEXT_UPDATE
  ASSISTANT_USE
+ "Abrechnung: Kunden, Preise der Meilensteine, Rechnungen, Absender und Briefpapier. Nie für Agent-Konten."
+ BILLING_MANAGE
  COMMENT_CREATE
  COMMENT_MODERATE
  DATABASE_VIEW

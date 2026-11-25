@@ -24,7 +24,12 @@
     "trash": "Trash",
     "templates": "Templates",
     "ideas": "Ideas",
-    "oauthClients": "Login service"
+    "oauthClients": "Login service",
+    "billing": "Billing",
+    "invoices": "Invoices",
+    "billable": "Billable",
+    "customers": "Customers",
+    "billingSettings": "Settings"
   },
   "settings": {
     "language": "Language",
@@ -1194,6 +1199,10 @@
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
         },
+        "customer_id": {
+          "label": "Customer",
+          "description": "Customer of the billing the project is billed to (Auftrag 39). Only visible with the right «Billing»; empty: no customer, not billable."
+        },
         "created_at": {
           "label": "Created at",
           "description": "When the record was created, set by Laravel."
@@ -1317,6 +1326,10 @@
         "release_date": {
           "label": "Release date",
           "description": "When the version was released. Always optional; only for a released version, going back to planned clears it."
+        },
+        "price_cents": {
+          "label": "Price (Rappen)",
+          "description": "Fixed price of the milestone in whole Rappen (Auftrag 39). Only visible with the right «Billing»; empty: no price, not billable."
         }
       },
       "todos": {
@@ -1896,7 +1909,8 @@
       "IDEAS_VIEW_ANY": "See all ideas",
       "SETTINGS_MANAGE": "Change app settings",
       "SYSTEM_VIEW": "See the status page",
-      "DATABASE_VIEW": "See the database documentation"
+      "DATABASE_VIEW": "See the database documentation",
+      "BILLING_MANAGE": "Billing: customers, prices and invoices"
     }
   },
   "roleSettings": {
@@ -2392,7 +2406,8 @@
     "saveFailed": "Saving did not work.",
     "allSaved": "Saved",
     "focusBack": "Back",
-    "fileFallback": "document"
+    "fileFallback": "document",
+    "exportPdfLetterhead": "PDF with letterhead"
   },
   "oauth": {
     "authorize": {
@@ -2416,6 +2431,207 @@
         "other": "No application can be allowed with this account."
       },
       "selfRegistered": "This application registered itself and has not been checked by Mollo. After you allow it, you continue to {host}."
+    }
+  },
+  "billing": {
+    "status": {
+      "DRAFT": "Draft",
+      "ISSUED": "Open",
+      "PAID": "Paid",
+      "CANCELLED": "Cancelled",
+      "OVERDUE": "Overdue"
+    },
+    "address": {
+      "street": "Street",
+      "houseNumber": "No.",
+      "postalCode": "Postal code",
+      "city": "Town",
+      "country": "Country",
+      "countryHint": "Two-letter ISO code, for example CH, LI, DE."
+    },
+    "invoices": {
+      "title": "Invoices",
+      "create": "Create invoice",
+      "open": "Open",
+      "overdue": "Overdue",
+      "count": "no invoice | 1 invoice | {count} invoices",
+      "status": "Status",
+      "customer": "Customer",
+      "year": "Year",
+      "allStatuses": "All",
+      "allCustomers": "All customers",
+      "allYears": "All years",
+      "number": "Number",
+      "issueDate": "Date",
+      "dueDate": "Due",
+      "total": "Total",
+      "draft": "Draft",
+      "none": "No invoices yet.",
+      "noneHint": "Under «Billable» you choose done milestones and make a draft of them.",
+      "noneFiltered": "No invoice matches the filter."
+    },
+    "invoice": {
+      "titleNumber": "Invoice {number}",
+      "titleDraft": "Draft of an invoice",
+      "notFound": "This invoice does not exist.",
+      "facts": "Details",
+      "address": "Address",
+      "reference": "Reference",
+      "language": "Language",
+      "paidAt": "Paid on",
+      "cancelReason": "Reason",
+      "draftHint": "Draft: number, date and due date come with issuing. Until then the address of the customer as of today counts.",
+      "items": "Items",
+      "description": "Text on the invoice",
+      "descriptionHint": "From the description of the milestone, shortened. You can change it.",
+      "notes": "Note on the invoice",
+      "notesHint": "Shown below the items, for example a thank-you.",
+      "saved": "Draft saved.",
+      "removeItem": "Remove {title}",
+      "removeTitle": "Take «{title}» off the invoice?",
+      "removeDescription": "The milestone becomes billable again.",
+      "removeConfirm": "Remove",
+      "removed": "«{title}» removed.",
+      "delete": "Delete draft",
+      "deleteTitle": "Delete the draft?",
+      "deleteDescription": "The milestones become billable again.",
+      "deleted": "Draft deleted.",
+      "preview": "Preview (PDF)",
+      "issue": "Issue",
+      "issueTitle": "Issue the invoice?",
+      "issueDescription": "This cannot be undone: the invoice gets its number, addresses and items are frozen, the PDF is kept. Afterwards only «paid» or «cancel» remain.",
+      "issueConfirm": "Issue for good",
+      "issued": "Invoice {number} issued.",
+      "download": "Download PDF",
+      "markPaid": "Mark as paid",
+      "markPaidTitle": "Mark as paid",
+      "markPaidDescription": "When did the money arrive?",
+      "paidDone": "Marked as paid.",
+      "cancel": "Cancel",
+      "cancelTitle": "Cancel invoice {number}?",
+      "cancelDescription": "The number stays taken, the milestones become billable again. The invoice and its PDF are kept.",
+      "cancelConfirm": "Cancel invoice",
+      "cancelReasonHint": "At least three characters, for example «wrong amount».",
+      "cancelled": "Invoice cancelled."
+    },
+    "billable": {
+      "title": "Billable",
+      "intro": "Done milestones with a price in projects with a customer that are in no invoice yet. Choose and make a draft; an invoice goes to one customer.",
+      "none": "Nothing to bill.",
+      "noneHint": "A milestone becomes billable when it is done, has a price and its project has a customer.",
+      "chosen": "{count} chosen · CHF {amount}",
+      "create": "Create invoice",
+      "created": "Draft created.",
+      "withoutPrice": "One done milestone has no price | {count} done milestones have no price",
+      "withoutCustomer": "One done milestone is in a project without a customer | {count} done milestones are in projects without a customer"
+    },
+    "customers": {
+      "title": "Customers",
+      "create": "Add customer",
+      "edit": "Edit customer",
+      "formHint": "The address is printed like this on the invoice and in the QR payment part. Issued invoices keep their address.",
+      "company": "Company",
+      "name": "Name",
+      "email": "E-mail",
+      "locale": "Language of the invoices",
+      "localeHint": "Invoice and payment part in this language.",
+      "notes": "Note",
+      "notesHint": "Internal only, never on an invoice.",
+      "saved": "{name} saved.",
+      "showArchived": "Show archived",
+      "archivedBadge": "Archived",
+      "none": "No customers yet.",
+      "noneHint": "Add a customer and choose it in the settings of the project.",
+      "noneArchived": "No archived customers.",
+      "projectCount": "no project | 1 project | {count} projects",
+      "actions": "Actions for {name}",
+      "archive": "Archive",
+      "bringBack": "Bring back",
+      "archivedDone": "{name} archived.",
+      "backDone": "{name} brought back.",
+      "notFound": "This customer does not exist.",
+      "address": "Address",
+      "projects": "Projects",
+      "noProjects": "No project yet."
+    },
+    "settings": {
+      "title": "Billing settings"
+    },
+    "sender": {
+      "title": "Sender and terms",
+      "saved": "Sender saved.",
+      "missing": "An invoice still needs: {fields}.",
+      "fields": {
+        "name": "Name or company",
+        "street": "Street",
+        "postalCode": "Postal code",
+        "city": "Town",
+        "country": "Country",
+        "iban": "IBAN",
+        "email": "E-mail",
+        "phone": "Phone",
+        "website": "Website",
+        "uid": "UID"
+      },
+      "ibanHint": "IBAN of Switzerland or Liechtenstein, no QR-IBAN.",
+      "uidHint": "Leave empty without VAT.",
+      "paymentTermsDays": "Payment terms in days",
+      "numberFormat": "Format of the invoice number",
+      "numberFormatHint": "{'{'}YYYY{'}'} is the year, {'{'}NNNN{'}'} the running number (number of N = digits). Example: {'{'}YYYY{'}'}-{'{'}NNNN{'}'} gives 2026-0001."
+    },
+    "letterhead": {
+      "title": "Letterhead and layout",
+      "guideTitle": "Guide and measure sheets (PDF)",
+      "guideText": "Measures, export settings and 1:1 templates for your design program.",
+      "guide": "Download the guide",
+      "file": "Letterhead",
+      "current": "{name}, uploaded on {date}.",
+      "pages": "Page 1 only. | Page 1 and the following pages.",
+      "none": "No letterhead yet: invoices come on white paper.",
+      "fileHint": "PDF, A4 portrait, at most 5 MB. One page: for page 1 only. Two pages: page 1, then the following pages. The payment part never has a letterhead. A new letterhead counts for new PDFs only.",
+      "choose": "Choose PDF",
+      "replace": "Replace",
+      "remove": "Remove",
+      "uploaded": "Letterhead saved.",
+      "removed": "Letterhead removed.",
+      "removeTitle": "Remove the letterhead?",
+      "removeDescription": "New PDFs then come without a letterhead. Issued invoices stay as they are.",
+      "layout": "Layout in mm",
+      "layoutHint": "Where the text stands on the page and where the address field lies in the window of the envelope. The defaults are the values of the guide.",
+      "fields": {
+        "topFirst": "Text start page 1",
+        "topFollowing": "Text start following pages",
+        "bottom": "Bottom margin",
+        "left": "Left margin",
+        "right": "Right margin",
+        "addressLeft": "Address field from the left",
+        "addressTop": "Address field from the top",
+        "addressWidth": "Address field width",
+        "addressHeight": "Address field height"
+      },
+      "window": "Window of the envelope",
+      "windowHint": "Moves the address field to the default of that side; enter the exact values after measuring.",
+      "windowLeft": "Left",
+      "windowRight": "Right",
+      "font": "Font",
+      "defaults": "Use the defaults",
+      "layoutSaved": "Layout saved.",
+      "sample": "Sample invoice (PDF)"
+    },
+    "project": {
+      "title": "Billing",
+      "customer": "Customer",
+      "noCustomer": "No customer",
+      "customerHint": "Done milestones with a price are billed to this customer.",
+      "saved": "Customer saved.",
+      "manage": "Manage customers"
+    },
+    "milestone": {
+      "price": "Price (CHF)",
+      "priceHint": "Fixed price without VAT. Empty: not billable.",
+      "priceInvalid": "Please an amount in CHF, for example 1500 or 1,500.50.",
+      "billed": "Billed · {number}",
+      "billedDraft": "In a draft"
     }
   }
 }

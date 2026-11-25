@@ -16,10 +16,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Status is computed by the status observer, never set from input.
+ *
+ * @property array<string, mixed>|null $description
+ * @property ItemStatus $status
+ * @property int|null $price_cents fixed price in Rappen (Auftrag 39), only through setMilestonePrice
  */
 #[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position', 'release_version', 'release_status', 'release_date'])]
 #[ObservedBy(MilestoneObserver::class)]
@@ -64,6 +69,7 @@ class Milestone extends Model implements BelongsToProject
             'due_date' => 'date',
             'release_status' => ReleaseStatus::class,
             'release_date' => 'date',
+            'price_cents' => 'integer',
         ];
     }
 
@@ -81,6 +87,16 @@ class Milestone extends Model implements BelongsToProject
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * The item of the invoice that holds this milestone (draft, issued or paid; Auftrag 39), if any.
+     *
+     * @return HasOne<InvoiceItem, $this>
+     */
+    public function billingItem(): HasOne
+    {
+        return $this->hasOne(InvoiceItem::class, 'billing_milestone_id');
     }
 
     /**
