@@ -1,0 +1,947 @@
+[
+  {
+    "right": "users.manage",
+    "pages": [
+      "/admin/users"
+    ],
+    "tools": [],
+    "commands": [
+      "page-users",
+      "users-create-agent"
+    ],
+    "id": "agent-anlegen",
+    "title": "Agent anlegen und Zugang einrichten",
+    "area": "admin",
+    "scope": "core",
+    "since": "1.6",
+    "purpose": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Ein Agent ist ein eigenes Konto für Claude oder eine Assistenz. Er meldet sich nicht im Browser an, sondern arbeitet über den Connector (MCP) mit einem Zugang und darf genau das, was seine Rolle im Projekt erlaubt.",
+              "marks": []
+            }
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Öffne ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Verwaltung → Benutzer",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle oben rechts ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Agent anlegen",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Gib einen ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Name",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " und eine ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "E-Mail",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " ein. Ein Postfach ist nicht nötig, es wird keine Mail verschickt.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Anlegen",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". Der Dialog schliesst sich, und die Zeile des neuen Agenten ist hervorgehoben.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/agent-anlegen/neue-zeile.de.2e2b591169.webp",
+            "alt": "Die Liste der Agenten mit dem neuen Agenten und dem Knopf «Zugang einrichten»"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle in seiner Zeile ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Zugang einrichten",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Lass den vorgeschlagenen ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Name des Zugangs",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " stehen oder ändere ihn. Wähle ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Zugang erzeugen",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". Fragt der Dialog nach deinem Passwort, gib es im selben Dialog ein.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Zugang kopieren",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " und lege den Zugang sofort in deinem Passwortmanager ab. Er wird nur einmal angezeigt.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/agent-anlegen/zugang.de.c753540b52.webp",
+            "alt": "Der Dialog mit dem neuen Zugang und dem Knopf zum Kopieren"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Weise dem Agenten unter ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Projekte",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " ein Projekt zu.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Fertig",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      }
+    ],
+    "notes": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Der Zugang ist ein Geheimnis. Er gehört in den Passwortmanager oder in eine Umgebungsvariable, nie in eine Datei im Repository oder in einen Chat.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Hast du den Zugang verloren, widerrufe ihn im selben Dialog und erzeuge einen neuen.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Ohne Projekt sieht der Agent nichts. Was er im Projekt darf, bestimmt seine Rolle dort.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Die Adresse des MCP-Servers und eine Anleitung für den Connector stehen im selben Dialog.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      "Verbinde dich mit dem MCP-Server des Mollo Planers über die Variable [VARIABLE] und zeige mir die Projekte, die du siehst.",
+      "Prüfe mit list_projects, welche Rolle du im Projekt [Projekt] hast und was du dort ändern darfst."
+    ]
+  },
+  {
+    "right": "task.create",
+    "pages": [
+      "/projects/[id]/kanban"
+    ],
+    "tools": [
+      "list_tasks",
+      "update_tasks"
+    ],
+    "commands": [
+      "kanban-task-create"
+    ],
+    "id": "task-anlegen",
+    "title": "Task anlegen und bearbeiten",
+    "area": "plan",
+    "scope": "app",
+    "since": "1.6",
+    "purpose": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Ein Task ist ein einzelner Arbeitsschritt in einem ToDo. Auf dem Board siehst du, was offen ist, was läuft und was erledigt ist.",
+              "marks": []
+            }
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Öffne das Projekt und wähle den Reiter ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Tasks",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/task-anlegen/board.de.ca5c882d55.webp",
+            "alt": "Das Board eines Projekts mit Spalten für jeden Status"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle oben rechts ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Task anlegen",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle unter ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "ToDo",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " das ToDo, zu dem der Task gehört.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Gib einen ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Titel",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " ein.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/task-anlegen/formular.de.fe29174a9b.webp",
+            "alt": "Das Formular für einen neuen Task mit ToDo und Titel"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Fülle bei Bedarf weitere Felder aus, zum Beispiel ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Zugewiesen an",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " oder ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Fällig am",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Wähle ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Speichern",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". Der Task steht jetzt in der Spalte ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Offen",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Um den Task zu ändern, öffne sein Menü auf der Karte und wähle ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Ändern",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Um den Status zu ändern, zieh die Karte in eine andere Spalte.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      }
+    ],
+    "notes": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Ohne ToDo gibt es keinen Task. Fehlt der Knopf ",
+                      "marks": []
+                    },
+                    {
+                      "type": "text",
+                      "text": "Task anlegen",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": " oder ist er grau, lege zuerst ein ToDo an.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "In einem archivierten Projekt kannst du keine Tasks anlegen.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Ob du Tasks anlegen oder ändern darfst, hängt von deiner Rolle im Projekt ab.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "In der ruhigen Ansicht findest du ",
+                      "marks": []
+                    },
+                    {
+                      "type": "text",
+                      "text": "Task anlegen",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": " in der Befehlspalette.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      "Lege im Projekt [Projekt] im ToDo [ToDo] einen Task «[Titel]» an und weise ihn [Person] zu. Prüfe das Ergebnis zuerst mit einem Trockenlauf.",
+      "Zeige mir alle meine offenen Tasks im Projekt [Projekt], sortiert nach Fälligkeit.",
+      "Setze den Task [k-123] auf «In Arbeit»."
+    ]
+  },
+  {
+    "right": "task.update",
+    "pages": [],
+    "tools": [
+      "list_projects",
+      "list_tasks",
+      "update_tasks",
+      "export_plan",
+      "import_plan",
+      "add_comment"
+    ],
+    "commands": [],
+    "id": "tasks-ueber-mcp",
+    "title": "Tasks über MCP ändern",
+    "area": "agents",
+    "scope": "app",
+    "since": "1.6",
+    "purpose": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Ein Agent liest und ändert Tasks über den MCP-Server, ohne den ganzen Plan zu laden. So bleibt jede Änderung klein, und der Stand im Planer stimmt mit der Arbeit überein.",
+              "marks": []
+            }
+          ]
+        }
+      ]
+    },
+    "steps": [],
+    "notes": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Der Agent handelt als sein eigenes Konto, mit genau dessen Rechten. Was er im Projekt nicht darf, verweigert der Server.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Status von ToDo und Milestone leitet der Planer aus den Tasks ab. Ein Agent setzt sie nie selbst.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "«Erledigt» setzt im Ablauf mit Stuard nur Stuard nach dem Merge. Ein Coding-Agent setzt «In Arbeit» und «Review».",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      "Zeige mir mit list_tasks meine Tasks im Projekt [Projekt], die «In Arbeit» oder «Review» sind.",
+      "Setze mit update_tasks den Task [k-123] auf «Review» und trage den Commit [Hash] ein. Schreibe danach mit add_comment einen kurzen Bericht an den Task.",
+      "Lege im Milestone [Milestone] des Projekts [Projekt] einen Task «[Titel]» an: exportiere nur diesen Milestone, ergänze den Task und importiere mit mode: \"partial\", zuerst als Trockenlauf."
+    ]
+  }
+]

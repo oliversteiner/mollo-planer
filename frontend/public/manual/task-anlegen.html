@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create and edit a task</title>
+<link rel="alternate" type="text/markdown" href="llms.txt">
+</head>
+<body>
+<main>
+<h1 id="task-anlegen">Create and edit a task</h1>
+<ul><li>Right: <code>task.create</code></li><li>Tools: <code>list_tasks</code>, <code>update_tasks</code></li><li>Pages of the app: <code>/projects/[id]/kanban</code></li></ul>
+<h2>Purpose</h2>
+<p>A task is a single step of work in a todo. On the board you see what is open, what is running and what is done.</p>
+<h2>Good to know</h2>
+<ul><li><p>There is no task without a todo. If <strong>New task</strong> is missing or grey, create a todo first.</p></li><li><p>In an archived project you cannot create tasks.</p></li><li><p>Whether you may create or change tasks depends on your role in the project.</p></li><li><p>In the calm view, <strong>New task</strong> is in the command palette.</p></li></ul>
+<h2>For agents</h2>
+<p>An agent creates new tasks with <code>import_plan</code> (an excerpt of the plan with <code>mode: &quot;partial&quot;</code>, <code>dry_run: true</code> first). It changes status, commit and assignee directly with <code>update_tasks</code>. With <code>list_tasks</code> it finds tasks by status, assignee or text. See the chapter «Change tasks over MCP».</p>
+<h2>Example prompts</h2>
+<ul><li><p>In the project [project], in the todo [todo], create a task «[title]» and assign it to [person]. Check the result with a dry run first.</p></li><li><p>Show me all my open tasks in the project [project], sorted by due date.</p></li><li><p>Set the task [k-123] to «In progress».</p></li></ul>
+</main>
+</body>
+</html>
