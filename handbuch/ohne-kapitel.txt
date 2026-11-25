@@ -103,7 +103,8 @@ command ideas-new
 command kanban-ideas
 command logout
 command milestone-create
-command milestones-only
+command milestones-collapse
+command milestones-expand
 command mood
 command my-tasks-ideas
 command page-assistant
