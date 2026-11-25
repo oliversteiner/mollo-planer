@@ -15,7 +15,8 @@
     .items th.amount, .items td.amount { text-align: right; width: 32mm; white-space: nowrap; }
     .items td { padding: 1.8mm 0; vertical-align: top; border-bottom: 0.3pt solid #ddd; }
     .items tr.project td { font-weight: bold; padding-top: 4mm; border-bottom: 0.5pt solid #999; }
-    .items .description { color: #444; font-size: 9pt; margin-top: 0.8mm; }
+    div.item-title { font-weight: bold; }
+    div.item-description { color: #444; font-size: 8pt; font-style: italic; margin-top: 0.8mm; }
     .items tr.total td { font-weight: bold; font-size: 11pt; border-top: 1pt solid #1a1a1a; border-bottom: 0; padding-top: 2.5mm; }
     .terms { margin-top: 8mm; font-size: 9.5pt; }
     .notes { margin-top: 4mm; font-size: 9.5pt; }
@@ -54,9 +55,9 @@
             @foreach ($group['items'] as $item)
                 <tr>
                     <td>
-                        <div>{{ $item['title'] }}</div>
+                        <div class="item-title">{{ $item['title'] }}</div>
                         @if (filled($item['description']))
-                            <div class="description">{{ $item['description'] }}</div>
+                            <div class="item-description">{{ $item['description'] }}</div>
                         @endif
                     </td>
                     <td class="amount">{{ $money($item['amountCents']) }}</td>

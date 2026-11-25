@@ -95,6 +95,32 @@ class BillingPdfTest extends GraphQLTestCase
         $this->assertContains('Rechnung 2026-0001', $lines);
     }
 
+    /** The PDF of the draft as bytes (the preview). */
+    private function previewBytes(string $id): string
+    {
+        return base64_decode($this->as('admin')->gql('mutation ($id: ID!) { previewInvoicePdf(id: $id) { contentBase64 } }', ['id' => $id])
+            ->assertJsonMissingPath('errors')->json('data.previewInvoicePdf.contentBase64'));
+    }
+
+    public function test_the_description_of_an_item_is_set_in_italic_and_the_title_in_bold(): void
+    {
+        $plain = $this->draft();
+        $described = $this->draft();
+        Invoice::query()->findOrFail($described)->items()->update(['description' => 'Was in dieser Version gebaut wurde']);
+
+        // The italic face is in the PDF only where an item has a description; the embedded font brings it (no slanting by calculation).
+        $this->assertStringNotContainsString('DejaVuSans-Oblique', $this->previewBytes($plain));
+        $this->assertStringContainsString('DejaVuSans-Oblique', $this->previewBytes($described));
+        $this->assertStringContainsString('DejaVuSans-Bold', $this->previewBytes($described));
+
+        // mPDF does not apply a rule with two class names (`.items .description`): the rules name the element and one class.
+        $template = (string) file_get_contents(resource_path('views/invoices/pdf.blade.php'));
+        $this->assertStringContainsString('<div class="item-title">{{ $item[\'title\'] }}</div>', $template);
+        $this->assertStringContainsString('<div class="item-description">', $template);
+        $this->assertMatchesRegularExpression('/div\.item-title \{ font-weight: bold; \}/', $template);
+        $this->assertMatchesRegularExpression('/div\.item-description \{[^}]*font-size: 8pt;[^}]*font-style: italic;/', $template);
+    }
+
     public function test_a_draft_has_a_preview_but_no_export(): void
     {
         $id = $this->draft();
