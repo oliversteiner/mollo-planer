@@ -60,7 +60,8 @@ final class BillingRefusal extends RuntimeException implements ClientAware, Prov
      */
     public function getExtensions(): array
     {
-        return ['code' => $this->reason, ...$this->details];
+        // refusal: the message is written for people (the frontend shows it as it is).
+        return ['code' => $this->reason, 'refusal' => true, ...$this->details];
     }
 
     /**

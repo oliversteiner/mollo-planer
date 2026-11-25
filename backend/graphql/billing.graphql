@@ -218,6 +218,68 @@ input InvoiceItemInput {
   description: String @rules(apply: ["nullable", "max:2000"])
 }
 
+"Satzspiegel eines Briefs in mm (Basis, Auftrag 39 F)"
+type PdfLayout {
+  "Textbeginn Seite 1, von oben"
+  topFirst: Float!
+  "Textbeginn der Folgeseiten, von oben"
+  topFollowing: Float!
+  "Textende, vom unteren Rand"
+  bottom: Float!
+  left: Float!
+  right: Float!
+  "Adressfeld: Abstand von links"
+  addressLeft: Float!
+  "Adressfeld: Abstand von oben"
+  addressTop: Float!
+  addressWidth: Float!
+  addressHeight: Float!
+}
+
+"Hochgeladenes Briefpapier"
+type Letterhead {
+  fileName: String!
+  "1: nur Seite 1; 2: Seite 1 und Folgeseiten"
+  pages: Int!
+  uploadedAt: DateTime!
+}
+
+type PdfFont {
+  key: String!
+  name: String!
+}
+
+"Briefpapier, Satzspiegel und Schrift für PDFs (Rechnungen; Dokumente auf Wunsch)"
+type PdfFrame {
+  letterhead: Letterhead
+  layout: PdfLayout!
+  "Schrift des Texts (Schlüssel aus fonts)"
+  font: String!
+  fonts: [PdfFont!]!
+  "Fenster des Couverts: left oder right"
+  addressWindow: String!
+  "Vorgaben des Satzspiegels (Anleitung docs/briefpapier/)"
+  defaults: PdfLayout!
+}
+
+input PdfLayoutInput {
+  topFirst: Float!
+  topFollowing: Float!
+  bottom: Float!
+  left: Float!
+  right: Float!
+  addressLeft: Float!
+  addressTop: Float!
+  addressWidth: Float!
+  addressHeight: Float!
+}
+
+input PdfFrameInput @validator {
+  layout: PdfLayoutInput!
+  font: String!
+  addressWindow: String!
+}
+
 extend type Project {
   "Kunde, dem das Projekt verrechnet wird. Nur mit billing.manage, sonst null."
   customer: Customer
@@ -255,6 +317,13 @@ extend type Query @guard {
   invoice(id: ID! @whereKey): Invoice
     @can(ability: "viewAny", model: "App\\Models\\Invoice")
     @find
+  "Briefpapier, Satzspiegel und Schrift (Abrechnung, Einstellungen)"
+  pdfFrame: PdfFrame!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\PdfFrameMutations@current")
+  "Ist ein Briefpapier hochgeladen? Für die Option beim PDF-Export der Dokumente, ohne Recht der Abrechnung."
+  letterheadAvailable: Boolean!
+    @field(resolver: "App\\GraphQL\\Billing\\PdfFrameMutations@available")
   invoiceTotals: InvoiceTotals!
     @can(ability: "viewAny", model: "App\\Models\\Invoice")
     @field(resolver: "App\\GraphQL\\Billing\\InvoiceQueries@totals")
@@ -316,4 +385,20 @@ extend type Mutation @guard {
   previewInvoicePdf(id: ID!): DocumentFile!
     @can(ability: "viewAny", model: "App\\Models\\Invoice")
     @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@previewPdf")
+  "Lädt das Briefpapier hoch (PDF, A4 hochkant, 1 oder 2 Seiten, höchstens 5 MB, von FPDI lesbar) und ersetzt das bisherige. Frische Passwortbestätigung. Fehlercodes: LETTERHEAD_NOT_PDF, LETTERHEAD_TOO_LARGE, LETTERHEAD_NOT_READABLE, LETTERHEAD_NOT_A4, LETTERHEAD_PAGES."
+  uploadLetterhead(file: Upload!): PdfFrame!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\PdfFrameMutations@upload")
+  "Entfernt das Briefpapier. Frische Passwortbestätigung."
+  removeLetterhead: PdfFrame!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\PdfFrameMutations@remove")
+  "Satzspiegel, Schrift und Fenster des Couverts. Frische Passwortbestätigung."
+  updatePdfFrame(input: PdfFrameInput!): PdfFrame!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\PdfFrameMutations@update")
+  "Musterrechnung mit Testdaten, mit Briefpapier, Satzspiegel und Schrift von jetzt"
+  sampleInvoicePdf(locale: Locale): DocumentFile!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\PdfFrameMutations@sample")
 }

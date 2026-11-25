@@ -2,6 +2,7 @@
 <style>
     @page { margin-top: {{ $layout->topFollowing }}mm; }
     @page :first { margin-top: {{ $layout->topFirst }}mm; }
+    body { font-family: {{ $font }}; }
     body { font-size: 10pt; line-height: 1.4; color: #1a1a1a; }
     .address { position: absolute; left: {{ $layout->addressLeft }}mm; top: {{ $layout->addressTop }}mm; width: {{ $layout->addressWidth }}mm; height: {{ $layout->addressHeight }}mm; overflow: hidden; font-size: 10pt; line-height: 1.3; }
     .sender-line { font-size: 7pt; color: #555; border-bottom: 0.3pt solid #999; padding-bottom: 1pt; margin-bottom: 2mm; }

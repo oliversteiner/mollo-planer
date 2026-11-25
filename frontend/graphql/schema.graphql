@@ -578,6 +578,13 @@ input LabelNameInput {
  locale: Locale!
  name: String!
 }
+"Hochgeladenes Briefpapier"
+type Letterhead {
+ fileName: String!
+ "1: nur Seite 1; 2: Seite 1 und Folgeseiten"
+ pages: Int!
+ uploadedAt: DateTime!
+}
 "Sprache eines Projekts. Bestimmt die Sprache der Mails."
 enum Locale {
  DE
@@ -732,8 +739,12 @@ type Mutation {
  duplicateTemplate(id: ID!): Template!
  "Löscht alle Vorgänge im Papierkorb eines Projekts endgültig. Gibt ihre Anzahl zurück."
  emptyProjectTrash(projectId: ID!): Int!
- "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
- exportDocumentPdf(id: ID!): DocumentFile!
+ "Das Dokument als PDF, auf Wunsch mit Briefpapier (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+ exportDocumentPdf(
+ id: ID!
+ "Mit dem Briefpapier der Basis (nur wenn eines hochgeladen ist, sonst ohne). Vorgabe: ohne."
+ withLetterhead: Boolean = false
+ ): DocumentFile!
  "Die gespeicherte PDF einer ausgestellten Rechnung (auch bezahlt oder storniert). Nie neu erzeugt. Nicht für Entwürfe (INVOICE_WRONG_STATUS)."
  exportInvoicePdf(id: ID!): DocumentFile!
  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
@@ -771,6 +782,8 @@ type Mutation {
  purgeFromTrash(deletionId: ID!): Boolean!
  "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."
  rejectUser(id: ID!): User!
+ "Entfernt das Briefpapier. Frische Passwortbestätigung."
+ removeLetterhead: PdfFrame!
  "Entfernt die Datei aus dem KI-Kontext, der Text bleibt"
  removeProjectAiContextFile(projectId: ID!): Project!
  removeProjectMember(projectId: ID!, userId: ID!): Project!
@@ -790,6 +803,8 @@ type Mutation {
  revokeAgentToken(tokenId: ID!, userId: ID!): ApiToken
  "Widerruft einen Client und alle seine Tokens. Gleiche Voraussetzungen wie createOAuthClient. null, wenn es den Client nicht gibt."
  revokeOAuthClient(id: ID!): OAuthClient
+ "Musterrechnung mit Testdaten, mit Briefpapier, Satzspiegel und Schrift von jetzt"
+ sampleInvoicePdf(locale: Locale): DocumentFile!
  "Macht die Rolle zur Standardrolle ihres Bereichs: für neue Personen (System) bzw. neue Mitglieder (Projekt)."
  setDefaultRole(id: ID!): Role!
  "Stufe für alle Mitglieder und Freigaben je Person (Stufe MANAGE). Nur Projektmitglieder. Die Revision ändert sich nicht."
@@ -834,6 +849,8 @@ type Mutation {
  updateMyAvatar(avatar: Upload!): User!
  "Schaltet die E-Mail-Benachrichtigungen für dich selbst an oder aus"
  updateMyNotifications(notifyByEmail: Boolean!): User!
+ "Satzspiegel, Schrift und Fenster des Couverts. Frische Passwortbestätigung."
+ updatePdfFrame(input: PdfFrameInput!): PdfFrame!
  updateProject(id: ID!, input: UpdateProjectInput!): Project!
  "Setzt die Labels eines Projekts in einem Zug (project.update). Labels mit Schlüssel bleiben und behalten ihre Tasks, ohne Schlüssel kommen neu dazu, fehlende werden gelöscht, auch an den Tasks. Zählt als eine Änderung der Planer-Datei."
  updateProjectLabels(labels: [LabelInput!]!, projectId: ID!): Project!
@@ -847,6 +864,8 @@ type Mutation {
  updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
  "Ein Admin kann sich die Admin-Rolle nicht selbst entziehen. Eine geänderte E-Mail darf noch nicht vergeben sein."
  updateUser(id: ID!, input: UpdateUserInput!): User!
+ "Lädt das Briefpapier hoch (PDF, A4 hochkant, 1 oder 2 Seiten, höchstens 5 MB, von FPDI lesbar) und ersetzt das bisherige. Frische Passwortbestätigung. Fehlercodes: LETTERHEAD_NOT_PDF, LETTERHEAD_TOO_LARGE, LETTERHEAD_NOT_READABLE, LETTERHEAD_NOT_A4, LETTERHEAD_PAGES."
+ uploadLetterhead(file: Upload!): PdfFrame!
  "Lädt eine Datei (.txt oder .md, UTF-8, höchstens 100 KB) in den KI-Kontext und ersetzt eine vorhandene. Gespeichert wird nur ihr Text."
  uploadProjectAiContextFile(file: Upload!, projectId: ID!): Project!
 }
@@ -924,6 +943,55 @@ type Passkey {
  "null, solange der Passkey noch nie benutzt wurde"
  lastUsedAt: DateTime
  name: String!
+}
+type PdfFont {
+ key: String!
+ name: String!
+}
+"Briefpapier, Satzspiegel und Schrift für PDFs (Rechnungen; Dokumente auf Wunsch)"
+type PdfFrame {
+ "Fenster des Couverts: left oder right"
+ addressWindow: String!
+ "Vorgaben des Satzspiegels (Anleitung docs/briefpapier/)"
+ defaults: PdfLayout!
+ "Schrift des Texts (Schlüssel aus fonts)"
+ font: String!
+ fonts: [PdfFont!]!
+ layout: PdfLayout!
+ letterhead: Letterhead
+}
+input PdfFrameInput {
+ addressWindow: String!
+ font: String!
+ layout: PdfLayoutInput!
+}
+"Satzspiegel eines Briefs in mm (Basis, Auftrag 39 F)"
+type PdfLayout {
+ addressHeight: Float!
+ "Adressfeld: Abstand von links"
+ addressLeft: Float!
+ "Adressfeld: Abstand von oben"
+ addressTop: Float!
+ addressWidth: Float!
+ "Textende, vom unteren Rand"
+ bottom: Float!
+ left: Float!
+ right: Float!
+ "Textbeginn Seite 1, von oben"
+ topFirst: Float!
+ "Textbeginn der Folgeseiten, von oben"
+ topFollowing: Float!
+}
+input PdfLayoutInput {
+ addressHeight: Float!
+ addressLeft: Float!
+ addressTop: Float!
+ addressWidth: Float!
+ bottom: Float!
+ left: Float!
+ right: Float!
+ topFirst: Float!
+ topFollowing: Float!
 }
 "Berechnete Übersicht Rolle × Recht: Systemrechte und Projektrechte, je mit den Rollen, die sie haben."
 type PermissionMatrix {
@@ -1164,6 +1232,8 @@ type Query {
  invoices(customerId: ID, status: InvoiceStatus, year: Int): [Invoice!]!
  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
  kanban(projectId: ID!): [KanbanColumn!]!
+ "Ist ein Briefpapier hochgeladen? Für die Option beim PDF-Export der Dokumente, ohne Recht der Abrechnung."
+ letterheadAvailable: Boolean!
  "Der angemeldete Benutzer"
  me: User!
  "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
@@ -1175,6 +1245,8 @@ type Query {
  myTasks(status: TaskStatus): [Task!]!
  "Alle Clients des Anmeldedienstes, auch widerrufene. Nur Admins."
  oauthClients: [OAuthClient!]!
+ "Briefpapier, Satzspiegel und Schrift (Abrechnung, Einstellungen)"
+ pdfFrame: PdfFrame!
  "Die Rechte-Übersicht: welche Rolle welches Recht hat. Nur für Benutzerverwaltung (Admin). Gelesen aus den Tabellen der Rechte, also genau die Regeln, die die App anwendet."
  permissionMatrix: PermissionMatrix!
  project(id: ID!): Project

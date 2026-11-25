@@ -2,8 +2,8 @@
 
 namespace App\Services\Billing;
 
-use App\Core\Pdf\PageLayout;
 use App\Core\Pdf\PdfFrame;
+use App\Core\Pdf\PdfFrameSettings;
 use App\GraphQL\Errors\BillingRefusal;
 use App\Models\Invoice;
 use App\Support\Billing\CreditorReference;
@@ -39,20 +39,14 @@ final class InvoicePdf implements InvoicePdfRenderer
     /**
      * @throws BillingRefusal when the sender lacks what the QR bill needs
      */
-    public function renderSheet(InvoiceSheet $sheet, ?PageLayout $layout = null): string
+    public function renderSheet(InvoiceSheet $sheet, ?PdfFrameSettings $frame = null): string
     {
-        $layout ??= new PageLayout;
+        $frame ??= PdfFrameSettings::load();
+        $layout = $frame->layout;
         $locale = in_array($sheet->locale, ['de', 'en'], true) ? $sheet->locale : 'de';
         $texts = fn (string $key, array $replace = []): string => (string) __('billing.pdf.'.$key, $replace, $locale);
 
-        $mpdf = $this->frame->make([
-            'top' => $layout->topFollowing,
-            'bottom' => $layout->bottom,
-            'left' => $layout->left,
-            'right' => $layout->right,
-            'header' => 10,
-            'footer' => 10,
-        ]);
+        $mpdf = $this->frame->make(PdfFrame::marginsOf($layout), $frame->font, $frame->usableLetterhead());
         $mpdf->SetTitle($sheet->number !== null ? $texts('title_number', ['number' => $sheet->number]) : $texts('title'));
 
         if ($sheet->draft) {
@@ -65,6 +59,7 @@ final class InvoicePdf implements InvoicePdfRenderer
         $mpdf->WriteHTML(View::make('invoices.pdf', [
             'sheet' => $sheet,
             'layout' => $layout,
+            'font' => $frame->font,
             'locale' => $locale,
             'texts' => $texts,
             'money' => fn (int $cents): string => self::money($cents, $locale),
@@ -75,6 +70,7 @@ final class InvoicePdf implements InvoicePdfRenderer
 
         // The payment part: a page of its own, without header, footer, margins or letterhead; the page made by the
         // library is placed on it unchanged.
+        PdfFrame::withoutLetterhead($mpdf);
         $mpdf->AddPageByArray([
             'margin-left' => 0, 'margin-right' => 0, 'margin-top' => 0, 'margin-bottom' => 0, 'margin-header' => 0, 'margin-footer' => 0,
             'odd-header-value' => -1, 'even-header-value' => -1, 'odd-footer-value' => -1, 'even-footer-value' => -1,

@@ -351,8 +351,8 @@ type Mutation @guard {
   updateDocument(id: ID!, revision: Int!, input: UpdateDocumentInput!): Document!
     @can(ability: "update", find: "id", model: "App\\Models\\Document")
     @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@update")
-  "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
-  exportDocumentPdf(id: ID!): DocumentFile!
+  "Das Dokument als PDF, auf Wunsch mit Briefpapier (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+  exportDocumentPdf(id: ID!, "Mit dem Briefpapier der Basis (nur wenn eines hochgeladen ist, sonst ohne). Vorgabe: ohne." withLetterhead: Boolean = false): DocumentFile!
     @can(ability: "view", find: "id", model: "App\\Models\\Document")
     @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@exportPdf")
   "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."

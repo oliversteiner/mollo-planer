@@ -15,9 +15,9 @@ class MutationCoverageTest extends TestCase
     /**
      * Mutations that cannot be sent as a plain query: the avatar upload is a
      * multipart request, tested with its own helper in AvatarTest; the same for
-     * the file of the AI context (AiContextTest, with its rights and the archive).
+     * the file of the AI context (AiContextTest, with its rights and the archive) and the letterhead (BillingLetterheadTest).
      */
-    private const EXEMPT = ['updateMyAvatar', 'uploadProjectAiContextFile', 'draftPlan'];
+    private const EXEMPT = ['updateMyAvatar', 'uploadProjectAiContextFile', 'draftPlan', 'uploadLetterhead'];
 
     public function test_every_schema_mutation_is_covered_by_an_access_test(): void
     {

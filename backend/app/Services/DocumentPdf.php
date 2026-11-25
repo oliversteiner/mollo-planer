@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Core\Pdf\PdfFrame;
+use App\Core\Pdf\PdfFrameSettings;
 use App\Models\Document;
 use App\Models\Project;
 use Illuminate\Support\Facades\View;
@@ -24,16 +25,34 @@ final class DocumentPdf
     public function __construct(private readonly PdfFrame $frame) {}
 
     /**
-     * The PDF as bytes.
+     * The PDF as bytes. With the letterhead (Auftrag 39 F, only if one is uploaded): the layout of letters, no own
+     * header and footer (the letterhead has them).
      */
-    public function render(Document $document): string
+    public function render(Document $document, bool $withLetterhead = false): string
     {
+        $frame = PdfFrameSettings::load();
+        $letterhead = $withLetterhead ? $frame->usableLetterhead() : null;
+
         $project = $document->project;
         $locale = $this->localeOf($project);
         $texts = fn (string $key, array $replace = []): string => (string) __('documents.pdf.'.$key, $replace, $locale);
 
-        $mpdf = $this->frame->make();
+        $mpdf = $letterhead !== null ? $this->frame->make(PdfFrame::marginsOf($frame->layout), $frame->font, $letterhead) : $this->frame->make();
         $mpdf->SetTitle($document->title);
+
+        if ($letterhead !== null) {
+            $mpdf->WriteHTML(PdfFrame::firstPageCss($frame->layout));
+            $mpdf->WriteHTML(View::make('documents.pdf', [
+                'locale' => $locale,
+                'title' => $document->title,
+                'meta' => $this->meta($document, $project, $texts),
+                'body' => $this->html($document->content),
+                'font' => $frame->font,
+            ])->render());
+
+            return $mpdf->OutputBinaryData();
+        }
+
         $mpdf->SetHTMLHeader(View::make('documents.pdf-header', ['project' => $project->name, 'title' => $document->title])->render());
         $mpdf->SetHTMLFooter(View::make('documents.pdf-footer', [
             'line' => $texts('footer', [
