@@ -272,6 +272,8 @@ export type ReleaseStatus =
 export type Right =
   | 'AI_CONTEXT_UPDATE'
   | 'ASSISTANT_USE'
+  /** Abrechnung: Kunden, Preise der Meilensteine, Rechnungen, Absender und Briefpapier. Nie für Agent-Konten. */
+  | 'BILLING_MANAGE'
   | 'COMMENT_CREATE'
   | 'COMMENT_MODERATE'
   | 'DATABASE_VIEW'

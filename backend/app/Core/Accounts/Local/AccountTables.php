@@ -21,9 +21,11 @@ final class AccountTables
     /** Not part of an account: content, settings of the app, framework tables, or credentials of one session. */
     public const NOT_ACCOUNT = [
         'app_settings' => 'settings of the app',
+        'billing_settings' => 'settings of the billing (sender)',
         'cache' => 'framework',
         'cache_locks' => 'framework',
         'comments' => 'content',
+        'customers' => 'content (billing)',
         'document_shares' => 'content (sharing of a document)',
         'document_versions' => 'content',
         'documents' => 'content',

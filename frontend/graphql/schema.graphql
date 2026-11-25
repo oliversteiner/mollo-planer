@@ -22,6 +22,43 @@ type AppSettings {
  "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
  twoFactorSwitchable: Boolean!
 }
+"Absender der Rechnungen und Bedingungen. Pflicht für eine Rechnung: Name, Strasse, PLZ, Ort, Land, IBAN."
+type BillingSettings {
+ city: String
+ country: String!
+ email: String
+ houseNumber: String
+ "IBAN der Schweiz oder Liechtensteins (keine QR-IBAN)"
+ iban: String
+ "Pflichtfelder, die noch leer sind (Feldnamen wie hier, zum Beispiel iban). Leer: bereit für Rechnungen."
+ missingFields: [String!]!
+ name: String
+ "Format der Rechnungsnummer, Platzhalter {YYYY} (Jahr) und {NNNN} (laufende Nummer, Anzahl N = Stellen)"
+ numberFormat: String!
+ "Zahlungsfrist in Tagen ab Ausstelldatum"
+ paymentTermsDays: Int!
+ phone: String
+ postalCode: String
+ street: String
+ "UID, leer erlaubt (ohne MWST)"
+ uid: String
+ website: String
+}
+input BillingSettingsInput {
+ city: String
+ country: String!
+ email: String
+ houseNumber: String
+ iban: String
+ name: String
+ numberFormat: String!
+ paymentTermsDays: Int!
+ phone: String
+ postalCode: String
+ street: String
+ uid: String
+ website: String
+}
 "Ein Kommentar zu einem Task. Er wird mit dem Task gelöscht."
 type Comment {
  "null, wenn die Person inzwischen gelöscht wurde"
@@ -130,6 +167,41 @@ input CreateUserInput {
  name: String!
  "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
  role: String
+}
+"Kunde der Abrechnung. Strukturierte Adresse, wie sie die QR-Rechnung verlangt."
+type Customer {
+ archived: Boolean!
+ archivedAt: DateTime
+ city: String!
+ "Firma, optional"
+ company: String
+ "Land als ISO-Code mit zwei Buchstaben, zum Beispiel CH"
+ country: String!
+ createdAt: DateTime!
+ email: String
+ houseNumber: String
+ id: ID!
+ "Sprache der Rechnungen an diesen Kunden"
+ locale: Locale!
+ name: String!
+ "Interne Notiz, erscheint nie auf einer Rechnung"
+ notes: String
+ postalCode: String!
+ "Projekte des Kunden, auch archivierte"
+ projects: [Project!]!
+ street: String!
+}
+input CustomerInput {
+ city: String!
+ company: String
+ country: String!
+ email: String
+ houseNumber: String
+ locale: Locale!
+ name: String!
+ notes: String
+ postalCode: String!
+ street: String!
 }
 "Alles für die Startseite in einem Aufruf"
 type Dashboard {
@@ -418,6 +490,8 @@ type Milestone {
  id: ID!
  "Reihenfolge im Projekt, von 0 an. Die Milestones kommen in dieser Reihenfolge."
  position: Int!
+ "Fixpreis in Rappen. null: kein Preis, nicht verrechenbar. Nur mit billing.manage, sonst null."
+ priceCents: Int
  progress: Progress!
  project: Project!
  "Version und Freigabe, null wenn der Milestone keine Version hat"
@@ -447,6 +521,8 @@ type Mutation {
  applyTemplateLabels(mode: TemplateLabelMode!, projectId: ID!, templateId: ID!): Project!
  "Gibt ein selbst registriertes Konto frei, nachdem die E-Mail bestätigt ist. Nur Admins."
  approveUser(id: ID!): User!
+ "Archiviert einen Kunden oder holt ihn zurück. Kunden werden nicht gelöscht."
+ archiveCustomer(archived: Boolean!, id: ID!): Customer!
  "Archiviert ein Projekt: danach nur lesbar, außer Zurückholen und Wiederherstellen aus dem Papierkorb. Fehlt in Dashboard, Seitenleiste und „Meine Tasks“."
  archiveProject(id: ID!): Project!
  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
@@ -459,6 +535,7 @@ type Mutation {
  createAgentToken(name: String!, userId: ID!): NewApiToken!
  "Erzeugt einen Zugang für Claude (MCP), 90 Tage gültig. Den Klartext gibt es nur in der Antwort."
  createApiToken(name: String!): NewApiToken!
+ createCustomer(input: CustomerInput!): Customer!
  "Legt ein Dokument an (document.create im Projekt). Der Owner bist du."
  createDocument(input: CreateDocumentInput!): Document!
  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
@@ -579,10 +656,14 @@ type Mutation {
  setDocumentSharing(id: ID!, input: DocumentSharingInput!): Document!
  "Setzt den Status einer eigenen Idee (verwerfen, wieder öffnen)"
  setIdeaStatus(id: ID!, status: IdeaStatus!): Idea!
+ "Fixpreis des Meilensteins in Rappen setzen oder (null) entfernen. 0 bis 999 999 999 (Grenze der QR-Rechnung)."
+ setMilestonePrice(milestoneId: ID!, priceCents: Int): Milestone!
  "Setzt Text und Freigabe des KI-Kontexts (aiContext.update). Text und Datei zusammen höchstens 20 000 Zeichen. Zählt nicht als Änderung am Plan."
  setProjectAiContext(input: ProjectAiContextInput!, projectId: ID!): Project!
  "Legt fest, welche Projektrolle die Person bekommt, die ein Projekt anlegt. Die Rolle muss project.delete haben, sonst bleibt das Projekt ohne Löschrecht."
  setProjectCreatorRole(roleKey: String!): AppSettings!
+ "Kunde des Projekts setzen oder (null) entfernen. Nur aktive Kunden."
+ setProjectCustomer(customerId: ID, projectId: ID!): Project!
  "Fügt eine Person hinzu oder ändert ihre Rolle"
  setProjectMember(projectId: ID!, role: String!, userId: ID!): Project!
  "Richtet die Benachrichtigung bei Änderungen der Planer-Datei ein oder ändert sie (project.update). Zählt nicht als Änderung am Plan, die Revision bleibt."
@@ -597,7 +678,11 @@ type Mutation {
  unarchiveProject(id: ID!): Project!
  "Schaltet die 2FA für alle an oder aus (aus: Passwort genügt, kein Code). Nur ausserhalb Produktion, sonst ein Validierungsfehler."
  updateAppSettings(twoFactorEnabled: Boolean!): AppSettings!
+ "Absender und Bedingungen ändern. Braucht eine frische Passwortbestätigung."
+ updateBillingSettings(input: BillingSettingsInput!): BillingSettings!
  updateComment(id: ID!, input: UpdateCommentInput!): Comment!
+ "Ersetzt alle Angaben des Kunden. Ausgestellte Rechnungen behalten ihre Adresse."
+ updateCustomer(id: ID!, input: CustomerInput!): Customer!
  "Ändert Titel, Art und Inhalt (Stufe EDIT und document.update). revision ist die geladene; weicht sie ab, kommt DOCUMENT_CONFLICT und nichts wird gesichert. Ohne Änderung entsteht keine neue Fassung."
  updateDocument(id: ID!, input: UpdateDocumentInput!, revision: Int!): Document!
  "Ändert eine eigene Idee"
@@ -774,6 +859,8 @@ type Project {
  "Anzahl Milestones, ToDos und Tasks (alle Status, Ideen eingeschlossen; Papierkorb nicht), für die Karte in der Projektliste. Alle Projekte einer Liste werden zusammen gezählt."
  counts: ProjectCounts!
  createdAt: DateTime!
+ "Kunde, dem das Projekt verrechnet wird. Nur mit billing.manage, sonst null."
+ customer: Customer
  "Vorgang im Papierkorb (nach deleteProject gesetzt, sonst null)"
  deletionId: ID
  "Formatierter Text, gleiche Regeln wie bei Milestones"
@@ -890,6 +977,11 @@ input ProjectWebhookInput {
 type Query {
  "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
  appSettings: AppSettings!
+ "Absender und Bedingungen der Abrechnung"
+ billingSettings: BillingSettings!
+ customer(id: ID!): Customer
+ "Kunden, nach Name. Ohne archived nur die aktiven, mit archived: true nur die archivierten."
+ customers(archived: Boolean = false): [Customer!]!
  "Startseite"
  dashboard: Dashboard!
  "Ein Dokument, oder null, wenn es das nicht gibt oder du es nicht lesen darfst"
@@ -989,6 +1081,8 @@ scalar RichText
 enum Right {
  AI_CONTEXT_UPDATE
  ASSISTANT_USE
+ "Abrechnung: Kunden, Preise der Meilensteine, Rechnungen, Absender und Briefpapier. Nie für Agent-Konten."
+ BILLING_MANAGE
  COMMENT_CREATE
  COMMENT_MODERATE
  DATABASE_VIEW

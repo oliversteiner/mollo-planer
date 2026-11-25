@@ -1896,7 +1896,8 @@
       "IDEAS_VIEW_ANY": "See all ideas",
       "SETTINGS_MANAGE": "Change app settings",
       "SYSTEM_VIEW": "See the status page",
-      "DATABASE_VIEW": "See the database documentation"
+      "DATABASE_VIEW": "See the database documentation",
+      "BILLING_MANAGE": "Billing: customers, prices and invoices"
     }
   },
   "roleSettings": {

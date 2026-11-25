@@ -64,6 +64,7 @@ class Milestone extends Model implements BelongsToProject
             'due_date' => 'date',
             'release_status' => ReleaseStatus::class,
             'release_date' => 'date',
+            'price_cents' => 'integer',
         ];
     }
 

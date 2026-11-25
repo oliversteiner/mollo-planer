@@ -58,6 +58,9 @@ final class AccountReferences
             'deleted_by' => self::FOREIGN,
             'user_id' => self::FOREIGN,
         ],
+        'customers' => [
+            'created_by' => self::FOREIGN,
+        ],
         'document_shares' => [
             'user_id' => self::FOREIGN,
         ],

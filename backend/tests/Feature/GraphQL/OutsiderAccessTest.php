@@ -3,6 +3,7 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
+use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Idea;
 use App\Models\Task;
@@ -116,6 +117,12 @@ class OutsiderAccessTest extends GraphQLTestCase
             'createAgentToken' => ['owner', 'mutation ($id: ID!) { createAgentToken(userId: $id, name: "Claude") { plainTextToken } }', $member],
             'revokeAgentToken' => ['owner', 'mutation ($id: ID!) { revokeAgentToken(userId: $id, tokenId: 1) { id } }', $member],
             'createOAuthClient' => ['owner', 'mutation { createOAuthClient(name: "Club DB", redirectUris: ["https://clubdb.example/cb"], confidential: true) { secret } }', fn (self $test) => []],
+            'createCustomer (owner without billing)' => ['owner', 'mutation { createCustomer(input: {name: "Kunde", street: "Weg", postalCode: "3000", city: "Bern", country: "CH", locale: DE}) { id } }', fn (self $test) => []],
+            'updateCustomer (owner without billing)' => ['owner', 'mutation ($id: ID!) { updateCustomer(id: $id, input: {name: "Kunde", street: "Weg", postalCode: "3000", city: "Bern", country: "CH", locale: DE}) { id } }', fn (self $test) => ['id' => Customer::factory()->create()->id]],
+            'archiveCustomer (owner without billing)' => ['owner', 'mutation ($id: ID!) { archiveCustomer(id: $id, archived: true) { id } }', fn (self $test) => ['id' => Customer::factory()->create()->id]],
+            'setProjectCustomer (owner without billing)' => ['owner', 'mutation ($p: ID!, $c: ID) { setProjectCustomer(projectId: $p, customerId: $c) { id } }', fn (self $test) => ['p' => $test->project->id, 'c' => Customer::factory()->create()->id]],
+            'setMilestonePrice (owner without billing)' => ['owner', 'mutation ($id: ID!) { setMilestonePrice(milestoneId: $id, priceCents: 100) { id } }', $milestone],
+            'updateBillingSettings (owner without billing)' => ['owner', 'mutation { updateBillingSettings(input: {country: "CH", paymentTermsDays: 30, numberFormat: "{YYYY}-{NNNN}"}) { iban } }', fn (self $test) => []],
             'revokeOAuthClient' => ['owner', 'mutation { revokeOAuthClient(id: "x") { id } }', fn (self $test) => []],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],

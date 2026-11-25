@@ -21,7 +21,7 @@ class RightsDataTest extends TestCase
 
     public function test_standard_rows_are_written_from_the_config(): void
     {
-        $this->assertSame(9, DB::table('functions')->where('scope', 'system')->count());
+        $this->assertSame(10, DB::table('functions')->where('scope', 'system')->count());
         $this->assertSame(6, DB::table('functions')->where('scope', 'project')->count());
         $this->assertSame(5, DB::table('roles')->where('scope', 'system')->count());
         $this->assertSame(5, DB::table('roles')->where('scope', 'project')->count());

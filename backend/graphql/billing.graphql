@@ -1,0 +1,135 @@
+# ─── Abrechnung (Auftrag 39): Kunden, Absender, Preise, Rechnungen ───
+#
+# Alles nur mit dem Systemrecht billing.manage, unabhängig von den Rollen im
+# Projekt. Ohne das Recht sind Project.customer und Milestone.priceCents null.
+# Agent-Konten haben das Recht nie. Beträge immer in ganzen Rappen.
+
+"Kunde der Abrechnung. Strukturierte Adresse, wie sie die QR-Rechnung verlangt."
+type Customer {
+  id: ID!
+  "Firma, optional"
+  company: String
+  name: String!
+  street: String!
+  houseNumber: String @rename(attribute: "house_number")
+  postalCode: String! @rename(attribute: "postal_code")
+  city: String!
+  "Land als ISO-Code mit zwei Buchstaben, zum Beispiel CH"
+  country: String!
+  email: String
+  "Sprache der Rechnungen an diesen Kunden"
+  locale: Locale!
+  "Interne Notiz, erscheint nie auf einer Rechnung"
+  notes: String
+  archived: Boolean! @method(name: "isArchived")
+  archivedAt: DateTime @rename(attribute: "archived_at")
+  "Projekte des Kunden, auch archivierte"
+  projects: [Project!]! @hasMany
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Absender der Rechnungen und Bedingungen. Pflicht für eine Rechnung: Name, Strasse, PLZ, Ort, Land, IBAN."
+type BillingSettings {
+  name: String
+  street: String
+  houseNumber: String @rename(attribute: "house_number")
+  postalCode: String @rename(attribute: "postal_code")
+  city: String
+  country: String!
+  email: String
+  phone: String
+  website: String
+  "IBAN der Schweiz oder Liechtensteins (keine QR-IBAN)"
+  iban: String
+  "UID, leer erlaubt (ohne MWST)"
+  uid: String
+  "Zahlungsfrist in Tagen ab Ausstelldatum"
+  paymentTermsDays: Int! @rename(attribute: "payment_terms_days")
+  "Format der Rechnungsnummer, Platzhalter {YYYY} (Jahr) und {NNNN} (laufende Nummer, Anzahl N = Stellen)"
+  numberFormat: String! @rename(attribute: "number_format")
+  "Pflichtfelder, die noch leer sind (Feldnamen wie hier, zum Beispiel iban). Leer: bereit für Rechnungen."
+  missingFields: [String!]! @method(name: "missingFields")
+}
+
+input CustomerInput @validator {
+  company: String
+  name: String!
+  street: String!
+  houseNumber: String @rename(attribute: "house_number")
+  postalCode: String! @rename(attribute: "postal_code")
+  city: String!
+  country: String!
+  email: String
+  locale: Locale!
+  notes: String
+}
+
+input BillingSettingsInput @validator {
+  name: String
+  street: String
+  houseNumber: String @rename(attribute: "house_number")
+  postalCode: String @rename(attribute: "postal_code")
+  city: String
+  country: String!
+  email: String
+  phone: String
+  website: String
+  iban: String
+  uid: String
+  paymentTermsDays: Int! @rename(attribute: "payment_terms_days")
+  numberFormat: String! @rename(attribute: "number_format")
+}
+
+extend type Project {
+  "Kunde, dem das Projekt verrechnet wird. Nur mit billing.manage, sonst null."
+  customer: Customer
+    @canModel(ability: "manage", model: "App\\Models\\BillingSetting", action: RETURN_VALUE, returnValue: null)
+    @belongsTo
+}
+
+extend type Milestone {
+  "Fixpreis in Rappen. null: kein Preis, nicht verrechenbar. Nur mit billing.manage, sonst null."
+  priceCents: Int
+    @canModel(ability: "manage", model: "App\\Models\\BillingSetting", action: RETURN_VALUE, returnValue: null)
+    @rename(attribute: "price_cents")
+}
+
+extend type Query @guard {
+  "Kunden, nach Name. Ohne archived nur die aktiven, mit archived: true nur die archivierten."
+  customers(archived: Boolean = false): [Customer!]!
+    @can(ability: "viewAny", model: "App\\Models\\Customer")
+    @field(resolver: "App\\GraphQL\\Billing\\CustomerQueries@customers")
+  customer(id: ID! @whereKey): Customer
+    @can(ability: "viewAny", model: "App\\Models\\Customer")
+    @find
+  "Absender und Bedingungen der Abrechnung"
+  billingSettings: BillingSettings!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\BillingSettingsMutations@current")
+}
+
+extend type Mutation @guard {
+  createCustomer(input: CustomerInput!): Customer!
+    @can(ability: "create", model: "App\\Models\\Customer")
+    @field(resolver: "App\\GraphQL\\Billing\\CustomerMutations@create")
+  "Ersetzt alle Angaben des Kunden. Ausgestellte Rechnungen behalten ihre Adresse."
+  updateCustomer(id: ID!, input: CustomerInput!): Customer!
+    @can(ability: "update", model: "App\\Models\\Customer")
+    @field(resolver: "App\\GraphQL\\Billing\\CustomerMutations@update")
+  "Archiviert einen Kunden oder holt ihn zurück. Kunden werden nicht gelöscht."
+  archiveCustomer(id: ID!, archived: Boolean!): Customer!
+    @can(ability: "update", model: "App\\Models\\Customer")
+    @field(resolver: "App\\GraphQL\\Billing\\CustomerMutations@archive")
+  "Kunde des Projekts setzen oder (null) entfernen. Nur aktive Kunden."
+  setProjectCustomer(projectId: ID!, customerId: ID): Project!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\CustomerMutations@setProjectCustomer")
+  "Fixpreis des Meilensteins in Rappen setzen oder (null) entfernen. 0 bis 999 999 999 (Grenze der QR-Rechnung)."
+  setMilestonePrice(milestoneId: ID!, priceCents: Int @rules(apply: ["nullable", "integer", "min:0", "max:999999999"])): Milestone!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\CustomerMutations@setMilestonePrice")
+  "Absender und Bedingungen ändern. Braucht eine frische Passwortbestätigung."
+  updateBillingSettings(input: BillingSettingsInput!): BillingSettings!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\BillingSettingsMutations@update")
+}

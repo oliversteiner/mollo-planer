@@ -1896,7 +1896,8 @@
       "IDEAS_VIEW_ANY": "Alle Ideen sehen",
       "SETTINGS_MANAGE": "App-Einstellungen ändern",
       "SYSTEM_VIEW": "Status-Seite sehen",
-      "DATABASE_VIEW": "Datenbank-Doku sehen"
+      "DATABASE_VIEW": "Datenbank-Doku sehen",
+      "BILLING_MANAGE": "Abrechnung: Kunden, Preise und Rechnungen"
     }
   },
   "roleSettings": {
