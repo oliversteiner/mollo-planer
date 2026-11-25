@@ -719,7 +719,7 @@
         "nameHint": "Shown in the app, for example “Claude Club DB”.",
         "submit": "Create",
         "created": "Agent {name} created.",
-        "identifierHint": "The planer gives the agent an identifier made from the name, for example claude-club-db{'@'}agent.invalid. You assign tasks to it with this identifier. No mail is ever sent to an agent."
+        "identifierHint": "Mollo Planer gives the agent an identifier made from the name, for example claude-club-db{'@'}agent.invalid. You assign tasks to it with this identifier. No mail is ever sent to an agent."
       }
     },
     "settings": {

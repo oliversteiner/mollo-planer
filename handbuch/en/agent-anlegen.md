@@ -18,7 +18,7 @@ An agent is an account of its own for Claude or an assistant. It does not sign i
 
 1. Open **{{ui:nav.admin}} → {{ui:nav.users}}**.
 2. Choose **{{ui:admin.users.newAgent.title}}** at the top right.
-3. In the field **{{ui:admin.users.newAgent.name}}**, enter a name. The planer makes the agent's identifier from it, for example `claude-club-db@agent.invalid`. No mail is ever sent to an agent.
+3. In the field **{{ui:admin.users.newAgent.name}}**, enter a name. Mollo Planer makes the agent's identifier from it, for example `claude-club-db@agent.invalid`. No mail is ever sent to an agent.
 4. Choose **{{ui:admin.users.newAgent.submit}}**. The dialog closes, and the row of the new agent is highlighted.
 
    {{bild:neue-zeile|The row of the new agent with the button «Set up access»}}
