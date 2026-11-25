@@ -8,13 +8,9 @@ on:
       - 'backend/app/Mcp/**'
       - 'backend/app/Planer/**'
       - '.github/workflows/tools.yml'
+  # Pull requests: every job runs for every pull request, without a path filter (Auftrag 69 B), so a required check never
+  # stays «missing». Pushes (deploy) keep the filter.
   pull_request:
-    paths:
-      - 'tools/planer/**'
-      - 'spec/**'
-      - 'backend/app/Mcp/**'
-      - 'backend/app/Planer/**'
-      - '.github/workflows/tools.yml'
 
 defaults:
   run:
@@ -22,6 +18,7 @@ defaults:
 
 jobs:
   ci:
+    name: 'Tools: Planer-Werkzeug'
     runs-on: ubuntu-latest
 
     steps:
@@ -37,6 +34,7 @@ jobs:
         run: npm test
 
   remote:
+    name: 'Tools: MCP-Fernzugriff'
     runs-on: ubuntu-latest
 
     steps:

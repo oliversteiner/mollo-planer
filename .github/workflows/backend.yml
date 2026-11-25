@@ -5,10 +5,9 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
+  # Pull requests: every job runs for every pull request, without a path filter (Auftrag 69 B), so a required check never
+  # stays «missing». Pushes (deploy) keep the filter.
   pull_request:
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
 
 defaults:
   run:
@@ -16,7 +15,7 @@ defaults:
 
 jobs:
   style:
-    name: Code style
+    name: 'Backend: Code style und Analyse'
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +46,7 @@ jobs:
         run: composer analyse
 
   tests-sqlite:
-    name: Tests (SQLite)
+    name: 'Backend: Tests (SQLite)'
     runs-on: ubuntu-latest
 
     steps:
@@ -80,7 +79,7 @@ jobs:
         run: composer test
 
   tests-mariadb:
-    name: Tests (MariaDB)
+    name: 'Backend: Tests (MariaDB)'
     runs-on: ubuntu-latest
 
     services:
