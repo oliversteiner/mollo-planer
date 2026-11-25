@@ -3,8 +3,10 @@
 namespace Tests\Concerns;
 
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -35,6 +37,8 @@ trait CommittedData
             return;
         }
 
+        $this->useTheDatabaseOfThisProcess();
+
         if (! RefreshDatabaseState::$migrated) {
             $this->artisan('migrate:fresh', ['--no-interaction' => true]);
             $this->app[Kernel::class]->setArtisan(null);
@@ -48,6 +52,45 @@ trait CommittedData
         // MariaDB). After: the next test finds the state the migrations left.
         $this->restoreTheMigratedState(self::$migratedRows[$connection]);
         $this->beforeApplicationDestroyed(fn () => $this->restoreTheMigratedState(self::$migratedRows[$connection]));
+    }
+
+    /**
+     * In a parallel run (ParaTest) every process has a database of its own, «<name>_test_<token>». Laravel switches to it
+     * only for its own database traits, not for this one: without this the test would write into the database of the
+     * run instead of the one of its process. Made here the way Laravel makes it, if this is the first test of the process.
+     */
+    private function useTheDatabaseOfThisProcess(): void
+    {
+        $token = ParallelTesting::token();
+
+        if ($token === false) {
+            return;
+        }
+
+        $default = (string) config('database.default');
+        $database = (string) config("database.connections.{$default}.database");
+
+        if (str_ends_with($database, "_test_{$token}")) {
+            return;
+        }
+
+        $ownDatabase = "{$database}_test_{$token}";
+
+        try {
+            $this->switchDatabase($default, $ownDatabase);
+            Schema::hasTable('migrations');
+        } catch (QueryException) {
+            $this->switchDatabase($default, $database);
+            Schema::createDatabase($ownDatabase);
+            $this->switchDatabase($default, $ownDatabase);
+            RefreshDatabaseState::$migrated = false;
+        }
+    }
+
+    private function switchDatabase(string $connection, string $database): void
+    {
+        config(["database.connections.{$connection}.database" => $database]);
+        DB::purge($connection);
     }
 
     private function usesInMemoryDatabase(): bool
