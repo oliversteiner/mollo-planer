@@ -20,6 +20,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Status is computed by the status observer, never set from input.
+ *
+ * @property array<string, mixed>|null $description
+ * @property ItemStatus $status
+ * @property int|null $price_cents fixed price in Rappen (Auftrag 39), only through setMilestonePrice
  */
 #[Fillable(['project_id', 'title', 'description', 'icon', 'due_date', 'position', 'release_version', 'release_status', 'release_date'])]
 #[ObservedBy(MilestoneObserver::class)]

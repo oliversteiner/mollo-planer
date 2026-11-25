@@ -2,12 +2,10 @@
 
 namespace App\GraphQL\Billing;
 
-use App\GraphQL\Concerns\ResolvesViewer;
 use App\Models\Customer;
 use App\Models\Milestone;
 use App\Models\Project;
 use Illuminate\Validation\ValidationException;
-use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
  * Customers, the customer of a project and the price of a milestone (Auftrag 39 A). billing.manage is checked by
@@ -16,17 +14,12 @@ use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
  */
 class CustomerMutations
 {
-    use ResolvesViewer;
-
     /**
      * @param  array{input: array<string, mixed>}  $args
      */
-    public function create(mixed $root, array $args, GraphQLContext $context): Customer
+    public function create(mixed $root, array $args): Customer
     {
-        $customer = new Customer(self::attributes($args['input']));
-        $customer->forceFill(['created_by' => $this->viewer($context)->getKey()])->save();
-
-        return $customer;
+        return Customer::query()->create(self::attributes($args['input']));
     }
 
     /**

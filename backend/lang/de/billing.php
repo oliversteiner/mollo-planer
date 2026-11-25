@@ -8,4 +8,14 @@ return [
     'postal_code' => 'Die PLZ passt nicht zum Land :country.',
     'number_format' => 'Das Format braucht genau eine laufende Nummer {NNNN} und darf das Jahr {YYYY} enthalten.',
     'customer_archived' => 'Der Kunde ist archiviert. Hole ihn zuerst zurück.',
+    'refusal' => [
+        'MILESTONE_NOT_BILLABLE' => 'Nicht verrechenbar: :titles. Ein Meilenstein muss erledigt sein, einen Preis haben und darf in keiner anderen Rechnung stehen.',
+        'OTHER_CUSTOMER' => 'Diese Meilensteine gehören zu einem anderen Kunden: :titles. Eine Rechnung geht an einen Kunden.',
+        'CUSTOMER_MISSING' => 'Dem Projekt fehlt der Kunde: :projects. Wähle ihn in den Projekteinstellungen.',
+        'SENDER_INCOMPLETE' => 'In den Einstellungen der Abrechnung fehlt noch: :missingFields.',
+        'INVOICE_WRONG_STATUS' => 'Das geht bei dieser Rechnung nicht mehr (Status :status).',
+        'INVOICE_EMPTY' => 'Eine Rechnung braucht mindestens eine Position.',
+        'INVOICE_NUMBER_TOO_LONG' => 'Die Rechnungsnummer :number ist zu lang für die Referenz (höchstens 21 Buchstaben und Ziffern). Kürze das Format.',
+        'INVOICE_TOTAL_TOO_HIGH' => 'Das Total ist höher als CHF 9 999 999.99, die Grenze der QR-Rechnung. Teile die Meilensteine auf zwei Rechnungen auf.',
+    ],
 ];

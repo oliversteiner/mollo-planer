@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Idea;
+use App\Models\Invoice;
 use App\Models\Task;
 use App\Models\Template;
 use App\Services\Deletion;
@@ -59,6 +60,15 @@ class OutsiderAccessTest extends GraphQLTestCase
      *
      * @return array<string, array{string, string, \Closure(self): array<string, mixed>}>
      */
+    /** A draft of a new customer, for the billing cases. */
+    private static function invoice(): int
+    {
+        $invoice = new Invoice;
+        $invoice->forceFill(['customer_id' => Customer::factory()->create()->id])->save();
+
+        return $invoice->id;
+    }
+
     public static function refusedMutations(): array
     {
         $project = fn (self $test) => ['id' => $test->project->id];
@@ -123,6 +133,12 @@ class OutsiderAccessTest extends GraphQLTestCase
             'setProjectCustomer (owner without billing)' => ['owner', 'mutation ($p: ID!, $c: ID) { setProjectCustomer(projectId: $p, customerId: $c) { id } }', fn (self $test) => ['p' => $test->project->id, 'c' => Customer::factory()->create()->id]],
             'setMilestonePrice (owner without billing)' => ['owner', 'mutation ($id: ID!) { setMilestonePrice(milestoneId: $id, priceCents: 100) { id } }', $milestone],
             'updateBillingSettings (owner without billing)' => ['owner', 'mutation { updateBillingSettings(input: {country: "CH", paymentTermsDays: 30, numberFormat: "{YYYY}-{NNNN}"}) { iban } }', fn (self $test) => []],
+            'createInvoiceDraft (owner without billing)' => ['owner', 'mutation ($c: ID!, $m: ID!) { createInvoiceDraft(customerId: $c, milestoneIds: [$m]) { id } }', fn (self $test) => ['c' => Customer::factory()->create()->id, 'm' => $test->milestone->id]],
+            'updateInvoiceDraft (owner without billing)' => ['owner', 'mutation ($id: ID!) { updateInvoiceDraft(id: $id, notes: "x") { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'deleteInvoiceDraft (owner without billing)' => ['owner', 'mutation ($id: ID!) { deleteInvoiceDraft(id: $id) }', fn (self $test) => ['id' => self::invoice()]],
+            'issueInvoice (owner without billing)' => ['owner', 'mutation ($id: ID!) { issueInvoice(id: $id) { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'markInvoicePaid (owner without billing)' => ['owner', 'mutation ($id: ID!) { markInvoicePaid(id: $id, paidAt: "2026-01-01") { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'cancelInvoice (owner without billing)' => ['owner', 'mutation ($id: ID!) { cancelInvoice(id: $id, reason: "Grund") { id } }', fn (self $test) => ['id' => self::invoice()]],
             'revokeOAuthClient' => ['owner', 'mutation { revokeOAuthClient(id: "x") { id } }', fn (self $test) => []],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],

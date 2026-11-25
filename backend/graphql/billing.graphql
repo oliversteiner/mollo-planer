@@ -80,6 +80,144 @@ input BillingSettingsInput @validator {
   numberFormat: String! @rename(attribute: "number_format")
 }
 
+"Stand einer Rechnung. Überfällig ist kein Status, sondern abgeleitet (Invoice.overdue)."
+enum InvoiceStatus {
+  "Entwurf: änderbar, ohne Nummer, darf gelöscht werden"
+  DRAFT @enum(value: "draft")
+  "Ausgestellt: Nummer vergeben, eingefroren, PDF gespeichert"
+  ISSUED @enum(value: "issued")
+  PAID @enum(value: "paid")
+  "Storniert: Nummer bleibt belegt, die Meilensteine sind wieder verrechenbar"
+  CANCELLED @enum(value: "cancelled")
+}
+
+"Adresse, wie sie beim Ausstellen auf der Rechnung eingefroren wurde"
+type InvoiceAddress {
+  company: String
+  name: String!
+  street: String!
+  houseNumber: String
+  postalCode: String!
+  city: String!
+  country: String!
+}
+
+"Absender, wie er beim Ausstellen auf der Rechnung eingefroren wurde"
+type InvoiceSender {
+  name: String!
+  street: String!
+  houseNumber: String
+  postalCode: String!
+  city: String!
+  country: String!
+  email: String
+  phone: String
+  website: String
+  iban: String!
+  uid: String
+}
+
+"Eine Position: ein Meilenstein zum Fixpreis. Projektname, Titel, Text und Betrag sind Kopien."
+type InvoiceItem {
+  id: ID!
+  "null, wenn das Projekt inzwischen endgültig gelöscht ist"
+  projectId: ID @rename(attribute: "project_id")
+  projectName: String! @rename(attribute: "project_name")
+  "null, wenn der Meilenstein inzwischen endgültig gelöscht ist"
+  milestoneId: ID @rename(attribute: "milestone_id")
+  position: Int!
+  title: String!
+  "Klartext, im Entwurf änderbar"
+  description: String
+  amountCents: Int! @rename(attribute: "amount_cents")
+}
+
+type Invoice {
+  id: ID!
+  "Rechnungsnummer, leer im Entwurf"
+  number: String
+  status: InvoiceStatus!
+  "Ausgestellt und die Fälligkeit ist vorbei"
+  overdue: Boolean! @method(name: "isOverdue")
+  customer: Customer! @belongsTo
+  issueDate: Date @rename(attribute: "issue_date")
+  dueDate: Date @rename(attribute: "due_date")
+  currency: String!
+  totalCents: Int! @rename(attribute: "total_cents")
+  "Empfänger beim Ausstellen, null im Entwurf (dann gilt die Adresse des Kunden)"
+  recipient: InvoiceAddress
+  "Absender beim Ausstellen, null im Entwurf"
+  sender: InvoiceSender
+  "Creditor Reference (RF…), aus der Nummer"
+  reference: String
+  "Sprache der Rechnung (Sprache des Kunden)"
+  locale: Locale!
+  "Text auf der Rechnung"
+  notes: String
+  items: [InvoiceItem!]! @hasMany
+  "Die gespeicherte PDF ist da (nur bei ausgestellten Rechnungen)"
+  hasPdf: Boolean! @field(resolver: "App\\GraphQL\\Billing\\InvoiceQueries@hasPdf")
+  createdBy: User @belongsTo
+  issuedBy: User @belongsTo
+  issuedAt: DateTime @rename(attribute: "issued_at")
+  paidAt: Date @rename(attribute: "paid_at")
+  cancelledAt: DateTime @rename(attribute: "cancelled_at")
+  cancelReason: String @rename(attribute: "cancel_reason")
+  createdAt: DateTime! @rename(attribute: "created_at")
+}
+
+"Summen über alle ausgestellten, nicht bezahlten Rechnungen"
+type InvoiceTotals {
+  openCount: Int!
+  openCents: Int!
+  overdueCount: Int!
+  overdueCents: Int!
+}
+
+"Ein verrechenbarer Meilenstein"
+type BillableMilestone {
+  id: ID!
+  title: String!
+  priceCents: Int!
+  dueDate: Date
+  releaseVersion: String
+}
+
+type BillableProject {
+  projectId: ID!
+  projectName: String!
+  totalCents: Int!
+  milestones: [BillableMilestone!]!
+}
+
+"Verrechenbares eines Kunden, nach Projekt"
+type BillableGroup {
+  customer: Customer!
+  totalCents: Int!
+  projects: [BillableProject!]!
+}
+
+"Hinweis: erledigt, aber nicht verrechenbar, weil dem Projekt der Kunde oder dem Meilenstein der Preis fehlt"
+type BillingHint {
+  projectId: ID!
+  projectName: String!
+  milestoneId: ID!
+  milestoneTitle: String!
+}
+
+type BillingOverview {
+  groups: [BillableGroup!]!
+  "Erledigte, unverrechnete Meilensteine in Projekten ohne Kunde"
+  withoutCustomer: [BillingHint!]!
+  "Erledigte, unverrechnete Meilensteine ohne Preis (Projekt mit Kunde)"
+  withoutPrice: [BillingHint!]!
+}
+
+input InvoiceItemInput {
+  id: ID!
+  description: String @rules(apply: ["nullable", "max:2000"])
+}
+
 extend type Project {
   "Kunde, dem das Projekt verrechnet wird. Nur mit billing.manage, sonst null."
   customer: Customer
@@ -106,6 +244,20 @@ extend type Query @guard {
   billingSettings: BillingSettings!
     @can(ability: "manage", model: "App\\Models\\BillingSetting")
     @field(resolver: "App\\GraphQL\\Billing\\BillingSettingsMutations@current")
+  "Verrechenbare Meilensteine nach Kunde und Projekt, mit Summen und Hinweisen. Mit customerId nur dieser Kunde."
+  billingOverview(customerId: ID): BillingOverview!
+    @can(ability: "manage", model: "App\\Models\\BillingSetting")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceQueries@overview")
+  "Rechnungen, neueste zuerst (Entwürfe vorne). year filtert nach Ausstelldatum (Entwürfe fallen dann weg)."
+  invoices(status: InvoiceStatus, customerId: ID, year: Int): [Invoice!]!
+    @can(ability: "viewAny", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceQueries@invoices")
+  invoice(id: ID! @whereKey): Invoice
+    @can(ability: "viewAny", model: "App\\Models\\Invoice")
+    @find
+  invoiceTotals: InvoiceTotals!
+    @can(ability: "viewAny", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceQueries@totals")
 }
 
 extend type Mutation @guard {
@@ -132,4 +284,28 @@ extend type Mutation @guard {
   updateBillingSettings(input: BillingSettingsInput!): BillingSettings!
     @can(ability: "manage", model: "App\\Models\\BillingSetting")
     @field(resolver: "App\\GraphQL\\Billing\\BillingSettingsMutations@update")
+  "Neuer Entwurf aus verrechenbaren Meilensteinen eines Kunden (auch aus mehreren Projekten). Fehlercodes in extensions.code: MILESTONE_NOT_BILLABLE, OTHER_CUSTOMER, CUSTOMER_MISSING, INVOICE_EMPTY, INVOICE_TOTAL_TOO_HIGH."
+  createInvoiceDraft(customerId: ID!, milestoneIds: [ID!]!, notes: String @rules(apply: ["nullable", "max:2000"])): Invoice!
+    @can(ability: "create", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@createDraft")
+  "Ändert einen Entwurf. notes: Text auf der Rechnung. items: die Positionen, die bleiben, in dieser Reihenfolge, mit ihrem Text; fehlende werden entfernt."
+  updateInvoiceDraft(id: ID!, notes: String @rules(apply: ["nullable", "max:2000"]), items: [InvoiceItemInput!]): Invoice!
+    @can(ability: "update", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@updateDraft")
+  "Löscht einen Entwurf. Ausgestellte Rechnungen werden nie gelöscht."
+  deleteInvoiceDraft(id: ID!): ID!
+    @can(ability: "update", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@deleteDraft")
+  "Stellt aus: Nummer, Einfrieren, PDF speichern. Endgültig. Ohne issueDate gilt heute. Fehlercodes: SENDER_INCOMPLETE (missingFields), MILESTONE_NOT_BILLABLE, INVOICE_WRONG_STATUS."
+  issueInvoice(id: ID!, issueDate: Date): Invoice!
+    @can(ability: "update", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@issue")
+  "Ausgestellte Rechnung als bezahlt markieren"
+  markInvoicePaid(id: ID!, paidAt: Date!): Invoice!
+    @can(ability: "update", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@markPaid")
+  "Storniert eine ausgestellte Rechnung mit Grund. Die Nummer bleibt belegt, die Meilensteine werden wieder verrechenbar."
+  cancelInvoice(id: ID!, reason: String! @rules(apply: ["required", "min:3", "max:500"])): Invoice!
+    @can(ability: "update", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@cancel")
 }

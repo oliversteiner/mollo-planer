@@ -80,6 +80,10 @@ final class AccountReferences
             'created_by' => self::FOREIGN,
             'deleted_by' => self::FOREIGN,
         ],
+        'invoices' => [
+            'created_by' => self::FOREIGN,
+            'issued_by' => self::FOREIGN,
+        ],
         'mcp_tool_calls' => [
             'user_id' => self::PLAIN,
         ],

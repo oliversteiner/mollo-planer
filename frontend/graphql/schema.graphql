@@ -22,6 +22,40 @@ type AppSettings {
  "Darf twoFactorEnabled hier geändert werden? In Produktion nie, dort ist die 2FA immer Pflicht."
  twoFactorSwitchable: Boolean!
 }
+"Verrechenbares eines Kunden, nach Projekt"
+type BillableGroup {
+ customer: Customer!
+ projects: [BillableProject!]!
+ totalCents: Int!
+}
+"Ein verrechenbarer Meilenstein"
+type BillableMilestone {
+ dueDate: Date
+ id: ID!
+ priceCents: Int!
+ releaseVersion: String
+ title: String!
+}
+type BillableProject {
+ milestones: [BillableMilestone!]!
+ projectId: ID!
+ projectName: String!
+ totalCents: Int!
+}
+"Hinweis: erledigt, aber nicht verrechenbar, weil dem Projekt der Kunde oder dem Meilenstein der Preis fehlt"
+type BillingHint {
+ milestoneId: ID!
+ milestoneTitle: String!
+ projectId: ID!
+ projectName: String!
+}
+type BillingOverview {
+ groups: [BillableGroup!]!
+ "Erledigte, unverrechnete Meilensteine in Projekten ohne Kunde"
+ withoutCustomer: [BillingHint!]!
+ "Erledigte, unverrechnete Meilensteine ohne Preis (Projekt mit Kunde)"
+ withoutPrice: [BillingHint!]!
+}
 "Absender der Rechnungen und Bedingungen. Pflicht für eine Rechnung: Name, Strasse, PLZ, Ort, Land, IBAN."
 type BillingSettings {
  city: String
@@ -391,6 +425,98 @@ type ImportWarning {
  "Stelle in der Datei, zum Beispiel milestones[0].todos[1].tasks[2]"
  path: String!
 }
+type Invoice {
+ cancelReason: String
+ cancelledAt: DateTime
+ createdAt: DateTime!
+ createdBy: User
+ currency: String!
+ customer: Customer!
+ dueDate: Date
+ "Die gespeicherte PDF ist da (nur bei ausgestellten Rechnungen)"
+ hasPdf: Boolean!
+ id: ID!
+ issueDate: Date
+ issuedAt: DateTime
+ issuedBy: User
+ items: [InvoiceItem!]!
+ "Sprache der Rechnung (Sprache des Kunden)"
+ locale: Locale!
+ "Text auf der Rechnung"
+ notes: String
+ "Rechnungsnummer, leer im Entwurf"
+ number: String
+ "Ausgestellt und die Fälligkeit ist vorbei"
+ overdue: Boolean!
+ paidAt: Date
+ "Empfänger beim Ausstellen, null im Entwurf (dann gilt die Adresse des Kunden)"
+ recipient: InvoiceAddress
+ "Creditor Reference (RF…), aus der Nummer"
+ reference: String
+ "Absender beim Ausstellen, null im Entwurf"
+ sender: InvoiceSender
+ status: InvoiceStatus!
+ totalCents: Int!
+}
+"Adresse, wie sie beim Ausstellen auf der Rechnung eingefroren wurde"
+type InvoiceAddress {
+ city: String!
+ company: String
+ country: String!
+ houseNumber: String
+ name: String!
+ postalCode: String!
+ street: String!
+}
+"Eine Position: ein Meilenstein zum Fixpreis. Projektname, Titel, Text und Betrag sind Kopien."
+type InvoiceItem {
+ amountCents: Int!
+ "Klartext, im Entwurf änderbar"
+ description: String
+ id: ID!
+ "null, wenn der Meilenstein inzwischen endgültig gelöscht ist"
+ milestoneId: ID
+ position: Int!
+ "null, wenn das Projekt inzwischen endgültig gelöscht ist"
+ projectId: ID
+ projectName: String!
+ title: String!
+}
+input InvoiceItemInput {
+ description: String
+ id: ID!
+}
+"Absender, wie er beim Ausstellen auf der Rechnung eingefroren wurde"
+type InvoiceSender {
+ city: String!
+ country: String!
+ email: String
+ houseNumber: String
+ iban: String!
+ name: String!
+ phone: String
+ postalCode: String!
+ street: String!
+ uid: String
+ website: String
+}
+"Stand einer Rechnung. Überfällig ist kein Status, sondern abgeleitet (Invoice.overdue)."
+enum InvoiceStatus {
+ "Storniert: Nummer bleibt belegt, die Meilensteine sind wieder verrechenbar"
+ CANCELLED
+ "Entwurf: änderbar, ohne Nummer, darf gelöscht werden"
+ DRAFT
+ "Ausgestellt: Nummer vergeben, eingefroren, PDF gespeichert"
+ ISSUED
+ PAID
+}
+"Summen über alle ausgestellten, nicht bezahlten Rechnungen"
+type InvoiceTotals {
+ openCents: Int!
+ openCount: Int!
+ overdueCents: Int!
+ overdueCount: Int!
+}
 "Status von Milestone und ToDo (wird automatisch berechnet)"
 enum ItemStatus {
  DONE
@@ -527,6 +653,8 @@ type Mutation {
  archiveProject(id: ID!): Project!
  "Weist einen Task zu. Ohne assigneeId wird die Zuweisung aufgehoben."
  assignTask(assigneeId: ID, id: ID!): Task!
+ "Storniert eine ausgestellte Rechnung mit Grund. Die Nummer bleibt belegt, die Meilensteine werden wieder verrechenbar."
+ cancelInvoice(id: ID!, reason: String!): Invoice!
  "Löscht den ganzen KI-Kontext"
  clearProjectAiContext(projectId: ID!): Project!
  "Legt ein Agent-Konto an (kein Login im Browser, Systemrolle Mitglied, keine Mail an das Konto). Nur mit dem Recht users.manage und frischer Passwortbestätigung; Protokolleintrag und Mail an die Admins. Dieselbe Aktion wie app:create-agent."
@@ -540,6 +668,8 @@ type Mutation {
  createDocument(input: CreateDocumentInput!): Document!
  "Legt eine private Idee an (ideas.create). Zählt nicht als Änderung eines Plans."
  createIdea(input: CreateIdeaInput!): Idea!
+ "Neuer Entwurf aus verrechenbaren Meilensteinen eines Kunden (auch aus mehreren Projekten). Fehlercodes in extensions.code: MILESTONE_NOT_BILLABLE, OTHER_CUSTOMER, CUSTOMER_MISSING, INVOICE_EMPTY, INVOICE_TOTAL_TOO_HIGH."
+ createInvoiceDraft(customerId: ID!, milestoneIds: [ID!]!, notes: String): Invoice!
  createMilestone(input: CreateMilestoneInput!): Milestone!
  "Legt einen Client an. Redirect-Adressen exakt: https, http nur für localhost, ein eigenes URL-Schema nur für öffentliche Clients (Apps). Recht settings.manage und frische Passwortbestätigung; das Geheimnis gibt es nur in der Antwort."
  createOAuthClient(confidential: Boolean!, name: String!, redirectUris: [String!]!): NewOAuthClient!
@@ -565,6 +695,8 @@ type Mutation {
  deleteDocument(id: ID!): Document!
  "Löscht eine eigene Idee in den Papierkorb"
  deleteIdea(id: ID!): Idea!
+ "Löscht einen Entwurf. Ausgestellte Rechnungen werden nie gelöscht."
+ deleteInvoiceDraft(id: ID!): ID!
  deleteMilestone(id: ID!): Milestone!
  deleteProject(id: ID!): Project!
  "Löscht eine eigene Rolle, die niemand hat und die weder Standardrolle noch Ersteller-Rolle ist."
@@ -618,6 +750,10 @@ type Mutation {
  "Die Vorlage eines neuen Projekts (nur ohne projectId): setzt nur die Herkunft, Gerüst und Labels stehen schon im Dokument"
  templateId: ID
  ): ImportResult!
+ "Stellt aus: Nummer, Einfrieren, PDF speichern. Endgültig. Ohne issueDate gilt heute. Fehlercodes: SENDER_INCOMPLETE (missingFields), MILESTONE_NOT_BILLABLE, INVOICE_WRONG_STATUS."
+ issueInvoice(id: ID!, issueDate: Date): Invoice!
+ "Ausgestellte Rechnung als bezahlt markieren"
+ markInvoicePaid(id: ID!, paidAt: Date!): Invoice!
  "Verschiebt einen Milestone an eine andere Stelle im Projekt. Die übrigen rücken nach; ihre Titel und Inhalte bleiben."
  moveMilestone(id: ID!, position: Int!): Milestone!
  "Verschiebt einen Task im Kanban"
@@ -687,6 +823,8 @@ type Mutation {
  updateDocument(id: ID!, input: UpdateDocumentInput!, revision: Int!): Document!
  "Ändert eine eigene Idee"
  updateIdea(id: ID!, input: UpdateIdeaInput!): Idea!
+ "Ändert einen Entwurf. notes: Text auf der Rechnung. items: die Positionen, die bleiben, in dieser Reihenfolge, mit ihrem Text; fehlende werden entfernt."
+ updateInvoiceDraft(id: ID!, items: [InvoiceItemInput!], notes: String): Invoice!
  updateMilestone(id: ID!, input: UpdateMilestoneInput!): Milestone!
  "Setzt dein Avatarbild: JPG oder PNG, höchstens 5 MB. Es wird quadratisch auf 500 x 500 Pixel zugeschnitten."
  updateMyAvatar(avatar: Upload!): User!
@@ -977,6 +1115,8 @@ input ProjectWebhookInput {
 type Query {
  "Einstellungen der App, zum Beispiel ob die 2FA verlangt wird"
  appSettings: AppSettings!
+ "Verrechenbare Meilensteine nach Kunde und Projekt, mit Summen und Hinweisen. Mit customerId nur dieser Kunde."
+ billingOverview(customerId: ID): BillingOverview!
  "Absender und Bedingungen der Abrechnung"
  billingSettings: BillingSettings!
  customer(id: ID!): Customer
@@ -1014,6 +1154,10 @@ type Query {
  projectId: ID
  status: IdeaStatus
  ): IdeaPaginator!
+ invoice(id: ID!): Invoice
+ invoiceTotals: InvoiceTotals!
+ "Rechnungen, neueste zuerst (Entwürfe vorne). year filtert nach Ausstelldatum (Entwürfe fallen dann weg)."
+ invoices(customerId: ID, status: InvoiceStatus, year: Int): [Invoice!]!
  "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
  kanban(projectId: ID!): [KanbanColumn!]!
  "Der angemeldete Benutzer"
