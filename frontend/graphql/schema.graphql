@@ -734,6 +734,8 @@ type Mutation {
  emptyProjectTrash(projectId: ID!): Int!
  "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
  exportDocumentPdf(id: ID!): DocumentFile!
+ "Die gespeicherte PDF einer ausgestellten Rechnung (auch bezahlt oder storniert). Nie neu erzeugt. Nicht für Entwürfe (INVOICE_WRONG_STATUS)."
+ exportInvoicePdf(id: ID!): DocumentFile!
  "Trägt eine Planer-Datei (planer-v2, als JSON-Text) in ein Projekt ein, oder ohne projectId in ein neues Projekt (Recht projects.create). Recht planer.import im Projekt, jede einzelne Änderung prüft dazu ihr eigenes Recht. FULL: die Datei ist der ganze Plan, Fehlendes kommt als ein Vorgang in den Papierkorb, die Revision muss stimmen. PARTIAL: ergänzt und ändert, löscht nie. Mit dryRun wird nichts geschrieben, das Ergebnis zeigt, was geschähe. Alles oder nichts: bei Fehlern wird nichts geschrieben und errors nennt die Stellen."
  importPlan(
  "Nur ergänzen: jede Änderung an Vorhandenem ist ein Fehler (der Assistent)"
@@ -763,6 +765,8 @@ type Mutation {
  "Verschiebt einen Task in ein anderes ToDo desselben Projekts (Zeitstrahl). Status von ToDos und Milestones rechnet der Observer nach."
  moveTaskToTodo(id: ID!, todoId: ID!): Task!
  moveTodo(id: ID!, milestoneId: ID!, position: Int!): Todo!
+ "Vorschau eines Entwurfs als PDF mit dem Wasserzeichen ENTWURF, ohne Nummer und ohne Speichern. Fehlercode SENDER_INCOMPLETE (missingFields)."
+ previewInvoicePdf(id: ID!): DocumentFile!
  "Löscht einen Vorgang endgültig."
  purgeFromTrash(deletionId: ID!): Boolean!
  "Lehnt ein wartendes Konto ab und löscht es. Gibt wie deleteUser die Person zurück (vor dem Löschen gelesen). Freigegebene Konten löscht deleteUser."

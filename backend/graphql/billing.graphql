@@ -308,4 +308,12 @@ extend type Mutation @guard {
   cancelInvoice(id: ID!, reason: String! @rules(apply: ["required", "min:3", "max:500"])): Invoice!
     @can(ability: "update", model: "App\\Models\\Invoice")
     @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@cancel")
+  "Die gespeicherte PDF einer ausgestellten Rechnung (auch bezahlt oder storniert). Nie neu erzeugt. Nicht für Entwürfe (INVOICE_WRONG_STATUS)."
+  exportInvoicePdf(id: ID!): DocumentFile!
+    @can(ability: "viewAny", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@exportPdf")
+  "Vorschau eines Entwurfs als PDF mit dem Wasserzeichen ENTWURF, ohne Nummer und ohne Speichern. Fehlercode SENDER_INCOMPLETE (missingFields)."
+  previewInvoicePdf(id: ID!): DocumentFile!
+    @can(ability: "viewAny", model: "App\\Models\\Invoice")
+    @field(resolver: "App\\GraphQL\\Billing\\InvoiceMutations@previewPdf")
 }

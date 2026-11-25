@@ -139,6 +139,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'issueInvoice (owner without billing)' => ['owner', 'mutation ($id: ID!) { issueInvoice(id: $id) { id } }', fn (self $test) => ['id' => self::invoice()]],
             'markInvoicePaid (owner without billing)' => ['owner', 'mutation ($id: ID!) { markInvoicePaid(id: $id, paidAt: "2026-01-01") { id } }', fn (self $test) => ['id' => self::invoice()]],
             'cancelInvoice (owner without billing)' => ['owner', 'mutation ($id: ID!) { cancelInvoice(id: $id, reason: "Grund") { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'exportInvoicePdf (owner without billing)' => ['owner', 'mutation ($id: ID!) { exportInvoicePdf(id: $id) { fileName } }', fn (self $test) => ['id' => self::invoice()]],
+            'previewInvoicePdf (owner without billing)' => ['owner', 'mutation ($id: ID!) { previewInvoicePdf(id: $id) { fileName } }', fn (self $test) => ['id' => self::invoice()]],
             'revokeOAuthClient' => ['owner', 'mutation { revokeOAuthClient(id: "x") { id } }', fn (self $test) => []],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],

@@ -57,7 +57,7 @@ class DocumentPdfTest extends GraphQLTestCase
     public function test_html_in_the_content_is_text_in_the_html_and_unsafe_links_are_off(): void
     {
         $html = new \ReflectionMethod(DocumentPdf::class, 'html');
-        $result = $html->invoke(new DocumentPdf, "<script>alert(1)</script> <b>fett</b>\n\n[x](javascript:alert(1)) und [ok](https://example.ch)\n\n<img src=\"http://example.com/a.png\">");
+        $result = $html->invoke(app(DocumentPdf::class), "<script>alert(1)</script> <b>fett</b>\n\n[x](javascript:alert(1)) und [ok](https://example.ch)\n\n<img src=\"http://example.com/a.png\">");
 
         $this->assertStringNotContainsString('<script', $result);
         $this->assertStringNotContainsString('<b>', $result);

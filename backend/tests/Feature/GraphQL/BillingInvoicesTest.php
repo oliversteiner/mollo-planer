@@ -19,6 +19,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 
 /**
@@ -35,6 +36,7 @@ class BillingInvoicesTest extends GraphQLTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Storage::fake('local');
 
         $this->customer = Customer::factory()->create(['company' => 'Muster AG', 'name' => 'Hans Muster', 'city' => 'Zürich', 'locale' => 'de']);
         $this->project->forceFill(['customer_id' => $this->customer->id])->save();

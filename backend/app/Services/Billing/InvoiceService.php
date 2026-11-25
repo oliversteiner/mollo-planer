@@ -20,6 +20,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -42,7 +43,7 @@ final class InvoiceService
     /** Highest amount of a QR bill, in Rappen (CHF 9 999 999.99). */
     public const MAX_TOTAL_CENTS = 999_999_999;
 
-    public function __construct(private readonly ?InvoicePdfRenderer $pdf = null) {}
+    public function __construct(private readonly InvoicePdfRenderer $pdf) {}
 
     /**
      * Milestones that can go on an invoice, with project and customer loaded, ordered by customer, project and
@@ -232,12 +233,14 @@ final class InvoiceService
                 ]);
                 $this->recalculate($invoice);
 
-                if ($this->pdf !== null) {
-                    $path = 'invoices/'.$date->year.'/'.preg_replace('/[^A-Za-z0-9_-]/', '_', $number).'.pdf';
-                    Storage::disk('local')->put($path, $this->pdf->render($invoice->fresh(['items']) ?? $invoice));
-                    $written = $path;
-                    $invoice->forceFill(['pdf_path' => $path])->save();
+                $path = 'invoices/'.$date->year.'/'.preg_replace('/[^A-Za-z0-9_-]/', '_', $number).'.pdf';
+
+                if (! Storage::disk('local')->put($path, $this->pdf->render($invoice))) {
+                    throw new RuntimeException('The PDF of invoice '.$number.' could not be stored.');
                 }
+
+                $written = $path;
+                $invoice->forceFill(['pdf_path' => $path])->save();
 
                 return $invoice;
             });

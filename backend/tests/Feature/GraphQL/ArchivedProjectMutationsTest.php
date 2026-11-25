@@ -43,6 +43,8 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
         'issueInvoice' => 'billing, belongs to no project',
         'markInvoicePaid' => 'billing, belongs to no project',
         'cancelInvoice' => 'billing, belongs to no project',
+        'exportInvoicePdf' => 'billing, reads a stored file',
+        'previewInvoicePdf' => 'billing, reads a draft',
         'setProjectCustomer' => 'billing (billing.manage, not a project right): a finished, archived project is still billed',
         'setMilestonePrice' => 'billing (billing.manage, not a project right): a finished, archived project is still billed',
         'revokeOAuthClient' => 'login service, belongs to no project',
