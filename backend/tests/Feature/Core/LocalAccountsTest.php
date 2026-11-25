@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Fortify\Fortify;
+use PHPUnit\Framework\Attributes\Group;
 use PragmaRX\Google2FA\Google2FA;
 use RuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -24,6 +25,7 @@ use Tests\TestCase;
  * Local accounts survive a rebuild of the database (Auftrag 45 A, B, D): saved to a file outside the repository,
  * matched by e-mail, the system role by its key; automatic around migrate:fresh and friends; only local.
  */
+#[Group('mariadb')]
 class LocalAccountsTest extends TestCase
 {
     use RefreshDatabase;

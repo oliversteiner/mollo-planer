@@ -81,6 +81,12 @@
             "@putenv DB_DATABASE=molloplaner_test",
             "@php artisan test --parallel"
         ],
+        "test:mariadb:quick": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@putenv DB_CONNECTION=mariadb",
+            "@putenv DB_DATABASE=molloplaner_test",
+            "@php artisan test --group=mariadb"
+        ],
         "test:mariadb:serial": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@putenv DB_CONNECTION=mariadb",

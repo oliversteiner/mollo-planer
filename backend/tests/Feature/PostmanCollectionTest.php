@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\StrongAuthentication;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\Yaml\Yaml;
 use Tests\Concerns\CommittedData;
 use Tests\TestCase;
@@ -22,6 +23,7 @@ use Tests\TestCase;
  * tables are emptied (TRUNCATE) after every such test, and the schema is
  * built once per run (Auftrag 57).
  */
+#[Group('mariadb')]
 class PostmanCollectionTest extends TestCase
 {
     use CommittedData;

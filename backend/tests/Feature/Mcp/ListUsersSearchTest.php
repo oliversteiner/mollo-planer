@@ -4,12 +4,14 @@ namespace Tests\Feature\Mcp;
 
 use App\Mcp\Servers\MolloPlanerServer;
 use App\Models\User;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\Feature\GraphQL\GraphQLTestCase;
 use Tests\McpTools;
 
 /**
  * % and _ in the search of list_users mean themselves (Auftrag 42 E), in the list of accounts and in the members of a project.
  */
+#[Group('mariadb')]
 class ListUsersSearchTest extends GraphQLTestCase
 {
     protected function setUp(): void

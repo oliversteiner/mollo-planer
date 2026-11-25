@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Document;
 use App\Models\Project;
 use App\Support\DocumentSearch;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\Concerns\CommittedData;
 use Tests\TestCase;
 
@@ -13,6 +14,7 @@ use Tests\TestCase;
  * a row only after the commit, so this class does not run in the transaction of RefreshDatabase: its rows are
  * committed (CommittedData, which empties the tables afterwards; the schema is built once per run, Auftrag 57).
  */
+#[Group('mariadb')]
 class DocumentSearchTest extends TestCase
 {
     use CommittedData;
