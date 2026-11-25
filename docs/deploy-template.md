@@ -386,6 +386,26 @@ Zusätzlich zur Sicherung vor Deploys läuft einmal täglich `deploy/db-backup.s
 
 **Probe:** Das Zurückspielen wird einmal auf TEST mit Oliver geprobt, bevor man sich im Ernstfall darauf verlässt (Auftrag 37 C). Der Ablauf ist mit Stand-ins für `mysql`, `mysqldump` und `php` getestet (`DeployRestoreTest`), nicht gegen eine echte Datenbank.
 
+#### Hochgeladene Dateien sichern (Auftrag 64)
+
+Die Datenbank allein genügt nicht: Dokumente, Briefpapier und **ausgestellte Rechnungs-PDFs** liegen als Dateien in `backend/storage/app/` (`private/` und `public/`). Eine ausgestellte Rechnung wird nie neu erzeugt und ist eine Geschäftsunterlage mit Aufbewahrungspflicht. Darum sichert `deploy/files-backup.sh` diesen Ordner wie die Datenbank.
+
+- **Ein Skript mehr, derselbe Cron-Eintrag:** `deploy/db-backup.sh daily` ruft am Ende `deploy/files-backup.sh daily` auf. Der Cron-Eintrag bleibt also unverändert. Schlägt die Sicherung der Dateien fehl, bleibt der Dump erhalten, und das Skript endet mit Exit 1 (die Meldung steht auf der Fehlerausgabe, Cron schickt eine Mail). `db-backup.sh deploy <commit>` sichert die Dateien **nicht**: eine Migration berührt sie nicht, und ein Fehler beim Packen soll kein Deployment aufhalten.
+- **Wo:** `DEPLOY_BACKUP_DIR/files/daily/planer-files-<Datum>-<Uhrzeit>.tar.gz`, aufbewahrt die **letzten 14**; die erste tägliche Sicherung jedes Monats als `files/monthly/planer-files-<JahrMonat>.tar.gz`, die **letzten 6**. Ordner `700`, Dateien `600`.
+- **Nur bei Änderung:** Die Dateien ändern sich selten. Ist seit der letzten täglichen Sicherung keine Datei neuer, packt das Skript nichts, meldet «Keine Änderung» und endet mit Exit 0. Die 14 Sicherungen reichen dann länger zurück. Nicht erkannt wird, wenn nur eine Datei gelöscht wurde; die nächste Änderung holt es nach.
+- **Was drin ist:** nur der Ordner `backend/storage/app`. `storage/framework`, `storage/logs`, Caches und die OAuth-Schlüssel (`storage/oauth-*.key`, getrennt im Passwortmanager) liegen ausserhalb und kommen nicht in die Sicherung.
+- **Sorgfalt wie beim Dump:** Das Archiv entsteht als `.part`, wird mit `tar -tzf` geprüft und erst dann umbenannt. Bei einem Fehler wird die halbe Datei gelöscht.
+- **Platzbedarf:** höchstens 14 + 6 Archive je Umgebung, jedes so gross wie `storage/app`. **Auf dem Server** ablesen: `du -sh ~/test/backups/planer/files` (PROD: `~/prod/...`) und `du -sh <App-Ordner>/backend/storage/app`.
+
+**Zurückspielen:** `deploy/files-restore.sh <Datei>` ersetzt den **ganzen** Ordner `backend/storage/app` durch eine Sicherung, mit denselben Schutzmassnahmen wie `db-restore.sh`: Es prüft die Datei (gültiges Archiv, nur der Ordner `app`), zeigt Umgebung, Datei, Datum und Grösse und verlangt den Namen der Umgebung (`APP_ENV`) als Bestätigung. Danach sichert es den jetzigen Stand (`files/planer-files-<Datum>-<Uhrzeit>-vor-restore.tar.gz`; schlägt das fehl, wird nichts zurückgespielt), entpackt neben den Ordner, schaltet den Wartungsmodus ein, tauscht die Ordner aus und schaltet ihn wieder aus. Geht der Austausch schief, kommt der alte Ordner zurück.
+
+```bash
+# AUF DEM SERVER
+~/test/apps/mollo-planer/deploy/files-restore.sh ~/test/backups/planer/files/daily/planer-files-20261125-031700.tar.gz
+```
+
+**Probe:** Nach dem ersten Merge löst Oliver die tägliche Sicherung auf TEST einmal von Hand aus (`~/test/apps/mollo-planer/deploy/db-backup.sh daily`, **auf dem Server**); die Dateien liegen dann neben dem Dump. Getestet ist alles mit einem Wegwerf-Ordner (`DeployFilesBackupTest`, `DeployFilesRestoreTest`).
+
 #### Schutz gegen Überschreiben (Auftrag 37 D)
 
 Auf TEST (`APP_ENV=staging`) und PROD (`APP_ENV=production`) verweigern `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `migrate:rollback`, `db:wipe` und `db:seed` den Dienst, auch mit `--force` (`App\Providers\AppServiceProvider`, Test `DestructiveCommandsProhibitedTest`). Der Schutz greift nur, wenn `APP_ENV` stimmt: **TEST muss auf `APP_ENV=staging` stehen** (offener Punkt aus Auftrag 28, Task «TEST auf APP_ENV=staging umstellen»). `migrate --force` im Deployment ist nicht betroffen.

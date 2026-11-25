@@ -2,7 +2,9 @@
 # Database backup for one environment on the server of the web host (TEST holds the real planning data, PROD the same rule).
 #
 #   db-backup.sh deploy <commit>   before a migration, called by deploy.sh (keeps the last 20)
-#   db-backup.sh daily             for the daily cron job (keeps 14 daily ones, plus the first one of each month for 6 months)
+#   db-backup.sh daily             for the daily cron job (keeps 14 daily ones, plus the first one of each month for 6 months);
+#                                  afterwards it calls files-backup.sh daily for the uploaded files (Auftrag 64), so the cron
+#                                  entry stays the same. If the files fail, the dump stays and the exit is non-zero.
 #
 # The app folder is the folder above deploy/, everything else comes from backend/.env of that folder (DB_*, DEPLOY_BACKUP_DIR).
 # The credentials never appear on a command line or in the output: they go into a temporary option file (rights 600, in the
@@ -117,3 +119,9 @@ if [ ! -f "$month_file" ]; then
     echo "Monatssicherung: $month_file"
 fi
 keep_newest "$monthly/planer-*.sql.gz" "$KEEP_MONTHLY"
+
+# The uploaded files (invoice PDFs, documents) go along with the daily dump.
+bash "$APP/deploy/files-backup.sh" daily || {
+    echo "Die tägliche Sicherung der Dateien ist fehlgeschlagen (die Datenbanksicherung ist fertig)." >&2
+    exit 1
+}
