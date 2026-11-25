@@ -9,7 +9,7 @@
         },
         "mollo-planer": {
             "type": "http",
-            "url": "https://api.planer.mollo.dev/mcp",
+            "url": "${MOLLOPLANER_MCP_URL}",
             "headers": {
                 "Authorization": "Bearer ${MOLLOPLANER_BOB_TOKEN}"
             }

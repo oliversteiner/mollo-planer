@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+// @ts-expect-error a plain script without types
+import { PLACEHOLDER, withAddress } from '../../scripts/mcp-address.mjs'
 
 const pages = {
   de: readFileSync(fileURLToPath(new URL('../../public/mcp/de/index.html', import.meta.url)), 'utf8'),
@@ -20,8 +22,9 @@ describe('static MCP guide', () => {
     expect(pages.en).toContain('dry_run: true')
     expect(pages.de).toContain('mode: "partial"')
     expect(pages.en).toContain('mode: "partial"')
-    expect(pages.de).toContain('https://api.planer.mollo.dev/mcp')
-    expect(pages.en).toContain('https://api.planer.mollo.ch/mcp')
+    // The address of the installation goes in when the build runs (scripts/mcp-address.mjs): only the placeholder here.
+    expect(pages.de).toContain(`${PLACEHOLDER}/mcp`)
+    expect(pages.en).toContain(`${PLACEHOLDER}/mcp`)
     expect(pages.de).toContain('next_cursor')
     expect(pages.en).toContain('next_cursor')
     expect(pages.de).toContain('base_revision')
@@ -121,8 +124,7 @@ describe('MCP documentation for agents', () => {
   it('has a short Markdown file for agents that the pages point to', () => {
     expect(llms.length).toBeLessThanOrEqual(4000)
     expect(llms.startsWith('# Mollo Planer MCP')).toBe(true)
-    expect(llms).toContain('https://api.planer.mollo.dev/mcp')
-    expect(llms).toContain('https://api.planer.mollo.ch/mcp')
+    expect(llms).toContain(`${PLACEHOLDER}/mcp`)
     expect(llms).toMatch(/## Work cheaply/)
     expect(llms).toMatch(/## Recipes/)
     expect(llms).toMatch(/## Do not/)
@@ -154,5 +156,16 @@ describe('format schema for agents', () => {
     expect(llms).toContain('/mcp/format-v2.schema.json')
     expect(pages.de).toContain('/mcp/format-v2.schema.json')
     expect(pages.en).toContain('/mcp/format-v2.schema.json')
+  })
+})
+
+describe('address of the installation in the built guide (Auftrag 56)', () => {
+  it('replaces every placeholder with the API of the build and leaves nothing of the placeholder', () => {
+    for (const text of [pages.de, pages.en, llms]) {
+      const built = withAddress(text, 'https://api.planer-test.example.org/') as string
+
+      expect(built).toContain('https://api.planer-test.example.org/mcp')
+      expect(built).not.toContain(PLACEHOLDER)
+    }
   })
 })

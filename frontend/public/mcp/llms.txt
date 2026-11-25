@@ -2,8 +2,7 @@
 
 Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over POST. You act as the person or agent account of your token, with its exact permissions.
 
-- TEST: https://api.planer.mollo.dev/mcp
-- PROD: https://api.planer.mollo.ch/mcp
+- Server: https://api.planer.example.com/mcp (the address of this installation)
 - Agents: `Authorization: Bearer <token>` of their own agent account (the administrator makes it). The token is a secret: never in prompts, files under version control, logs.
 - People: Custom Connector with OAuth (Claude: Settings > Connectors; no token, your rights). Not for agent accounts.
 - Claude Code: project `.mcp.json`, `{"mcpServers":{"mollo-planer":{"type":"http","url":"<address>","headers":{"Authorization":"Bearer ${MOLLOPLANER_<NAME>_TOKEN}"}}}}`, one variable per account (`MOLLOPLANER_BOB_TOKEN`) in the environment, never in the file.

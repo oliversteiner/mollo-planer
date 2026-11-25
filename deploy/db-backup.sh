@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Database backup for one environment on the Hostpoint server (TEST holds the real planning data, PROD the same rule).
+# Database backup for one environment on the server of the web host (TEST holds the real planning data, PROD the same rule).
 #
 #   db-backup.sh deploy <commit>   before a migration, called by deploy.sh (keeps the last 20)
 #   db-backup.sh daily             for the daily cron job (keeps 14 daily ones, plus the first one of each month for 6 months)

@@ -102,13 +102,13 @@ class RichTextDocumentTest extends TestCase
 
         $editorLink = self::paragraph(['type' => 'text', 'text' => 'FCA', 'marks' => [
             ['type' => 'bold', 'attrs' => []],
-            ['type' => 'link', 'attrs' => ['href' => 'https://mollo.ch', 'target' => '_blank', 'rel' => 'noopener', 'class' => null]],
+            ['type' => 'link', 'attrs' => ['href' => 'https://example.com', 'target' => '_blank', 'rel' => 'noopener', 'class' => null]],
         ]]);
 
         $this->assertSame(
             self::paragraph(['type' => 'text', 'text' => 'FCA', 'marks' => [
                 ['type' => 'bold'],
-                ['type' => 'link', 'attrs' => ['href' => 'https://mollo.ch']],
+                ['type' => 'link', 'attrs' => ['href' => 'https://example.com']],
             ]]),
             RichTextDocument::normalize($editorLink),
         );
@@ -131,7 +131,7 @@ class RichTextDocumentTest extends TestCase
                 $text('fett', [['type' => 'bold']]),
                 ['type' => 'hardBreak'],
                 $text('kursiv', [['type' => 'italic']]),
-                $text('Web', [['type' => 'link', 'attrs' => ['href' => 'https://mollo.ch', 'target' => '_blank', 'rel' => 'noopener noreferrer nofollow', 'class' => null]]]),
+                $text('Web', [['type' => 'link', 'attrs' => ['href' => 'https://example.com', 'target' => '_blank', 'rel' => 'noopener noreferrer nofollow', 'class' => null]]]),
                 $text('Mail', [['type' => 'link', 'attrs' => ['href' => 'mailto:info@example.com']]]),
             ]],
             ['type' => 'bulletList', 'content' => [$item('eins'), $item('zwei')]],

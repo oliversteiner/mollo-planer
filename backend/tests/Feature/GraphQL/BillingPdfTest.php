@@ -158,7 +158,7 @@ class BillingPdfTest extends GraphQLTestCase
         $seconds = microtime(true) - $start;
 
         $this->assertStringStartsWith('%PDF-', $pdf);
-        $this->assertLessThan(10, $seconds, 'Hostpoint allows 60 s.');
-        $this->assertLessThan(200 * 1024 * 1024, memory_get_peak_usage(true), 'Hostpoint allows 256 MB.');
+        $this->assertLessThan(10, $seconds, 'The web host allows 60 s.');
+        $this->assertLessThan(200 * 1024 * 1024, memory_get_peak_usage(true), 'The web host allows 256 MB.');
     }
 }

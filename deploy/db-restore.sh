@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restores a database dump for one environment on the Hostpoint server (Auftrag 37 C).
+# Restores a database dump for one environment on the server of the web host (Auftrag 37 C).
 #
 #   db-restore.sh <file>    <file> is a dump made by db-backup.sh (planer-*.sql.gz)
 #

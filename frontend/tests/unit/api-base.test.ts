@@ -5,7 +5,7 @@ describe('API base', () => {
   const page = { protocol: 'http:', hostname: '10.0.1.122' }
 
   it('a configured address wins, without a trailing slash', () => {
-    expect(resolveApiBase('https://api.planer.mollo.dev/', true, page)).toBe('https://api.planer.mollo.dev')
+    expect(resolveApiBase('https://api.planer-test.example.com/', true, page)).toBe('https://api.planer-test.example.com')
     expect(resolveApiBase('http://localhost:8000', false)).toBe('http://localhost:8000')
   })
 

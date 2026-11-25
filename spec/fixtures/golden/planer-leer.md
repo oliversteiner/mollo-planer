@@ -6,4 +6,4 @@
 
 ## Mitglieder
 
-- oliver@mollo.ch | owner
+- person@example.com | owner

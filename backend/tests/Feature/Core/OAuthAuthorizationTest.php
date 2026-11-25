@@ -94,7 +94,9 @@ class OAuthAuthorizationTest extends TestCase
 
         $this->assertNotEmpty($tokens->json('access_token'));
         $this->assertNotEmpty($tokens->json('refresh_token'));
-        $this->assertSame(3600, $tokens->json('expires_in'));
+        // One hour. The OAuth library counts with time() of PHP (not Carbon, so it cannot be frozen): when a second
+        // passes between issuing and answering, it says 3599 (Auftrag 57, the test failed now and then).
+        $this->assertContains($tokens->json('expires_in'), [3599, 3600]);
     }
 
     public function test_a_refresh_token_works_once_and_a_reused_one_locks_the_person_out(): void

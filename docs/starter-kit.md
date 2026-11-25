@@ -58,8 +58,8 @@ Der Planer nutzt heute **Web Awesome Pro** (`@web.awesome.me/webawesome-pro`) un
 
 ## Folgen von «öffentlich»
 
-- **Nichts Mollo-Spezifisches im Kit:** Name, Logo, Farben, Domains, Hostpoint-Pfade und Mail-Absender kommen aus der Konfiguration. Mollo ist eine Installation davon.
-- **Deploy:** Das Skript ist allgemein, Hostpoint ist ein Beispiel. Pfade und PHP-Binary kommen aus `.env`, wie heute schon (`DEPLOY_*`).
+- **Nichts Mollo-Spezifisches im Kit:** Name, Logo, Farben, Domains, Webhoster-Pfade und Mail-Absender kommen aus der Konfiguration. Mollo ist eine Installation davon.
+- **Deploy:** Das Skript ist allgemein, ein Webhoster mit SSH und PHP ist das Beispiel. Pfade und PHP-Binary kommen aus `.env`, wie heute schon (`DEPLOY_*`).
 - **Lizenz** wählen (Vorschlag MIT), dazu `SECURITY.md` (Meldeweg für Lücken), `CONTRIBUTING.md`, Changelog, SemVer.
 - **Geheimnisse:** Vor dem ersten öffentlichen Push die ganze Git-Historie prüfen (z. B. gitleaks). Die Pakete entstehen deshalb **in neuen Repos ohne die Historie des Planers**.
 - **Doku für Fremde:** Installation, Konfiguration, Erweitern (eigene Menüeinträge, eigene Rechte, eigene Werkzeuge für MCP).
@@ -68,5 +68,5 @@ Der Planer nutzt heute **Web Awesome Pro** (`@web.awesome.me/webawesome-pro`) un
 ## Offen
 
 - Paketnamen und Organisation auf GitHub.
-- Ob der Anmeldedienst später eine eigene Installation wird (`konto.mollo.ch`).
+- Ob der Anmeldedienst später eine eigene Installation wird (`example.com`).
 - Zeitpunkt: nach 41 (OAuth), nach der Abnahme von 17 und 34 sowie nach dem iOS-Login.

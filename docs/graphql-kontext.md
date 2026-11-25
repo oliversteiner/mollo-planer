@@ -48,7 +48,7 @@ Stand: 2026-11-07 (nach Task-Kommentaren, Mail-Benachrichtigungen, Projektsprach
 - Die handelnde Person bekommt nie eine Mail. Wer das Projekt nicht mehr sehen darf, auch nicht. Gleiche Person nochmal zuweisen löst nichts aus.
 - Jede Person kann Mails für sich abschalten: `User.notifyByEmail` (Standard ja), setzen mit `updateMyNotifications(emailEnabled)`. Nur für sich selbst.
 - **Sprache der Mails = Sprache des Projekts.** Feld `Project.locale` (Enum `Locale`: DE, EN; Standard DE). Setzen bei `createProject` und `updateProject` (Recht „Projekt ändern“). Kein `users.locale` nötig.
-- Umsetzung im Backend: Laravel-Notifications mit `ShouldQueue`, Versand nach dem Speichern (`afterCommit`), nie im Request. In der Notification `locale()` auf `project->locale` setzen. Auf Hostpoint läuft die Queue per Cron (`queue:work --stop-when-empty`), Mails kommen also mit bis zu einer Minute Verzögerung. SMTP-Zugangsdaten in `.env`. Mailtexte in `lang/de` und `lang/en`.
+- Umsetzung im Backend: Laravel-Notifications mit `ShouldQueue`, Versand nach dem Speichern (`afterCommit`), nie im Request. In der Notification `locale()` auf `project->locale` setzen. Beim Webhoster läuft die Queue per Cron (`queue:work --stop-when-empty`), Mails kommen also mit bis zu einer Minute Verzögerung. SMTP-Zugangsdaten in `.env`. Mailtexte in `lang/de` und `lang/en`.
 - Nicht enthalten: Mails bei anderen Ereignissen (Statuswechsel, Fälligkeit), Sammelmails (Digest), @-Erwähnungen, Anhänge.
 
 ## Rechte-Tabelle (bestätigt)

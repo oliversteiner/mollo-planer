@@ -24,9 +24,9 @@
             <p class="hero-intro">This guide explains how agents can get secure access to Planer and read or update projects. The MCP server always acts with the permissions of its account. <strong>For agents: <a href="/mcp/llms.txt">/mcp/llms.txt</a></strong>, the same in plain Markdown.</p>
           </div>
           <aside class="endpoint-card" aria-label="MCP endpoint">
-            <span class="card-label">TEST ENDPOINT</span>
-            <code>https://api.planer.mollo.dev/mcp</code>
-            <span class="card-footnote">Test environment. Production: <code>https://api.planer.mollo.ch/mcp</code>. The MCP server accepts JSON-RPC requests over POST.</span>
+            <span class="card-label">ENDPOINT</span>
+            <code>https://api.planer.example.com/mcp</code>
+            <span class="card-footnote">The MCP server of this installation. It accepts JSON-RPC requests over POST.</span>
           </aside>
         </section>
 
@@ -63,7 +63,7 @@
   "mcpServers": {
     "mollo-planer": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://api.planer.mollo.dev/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
+      "args": ["-y", "mcp-remote", "https://api.planer.example.com/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
       "env": { "AUTH_TOKEN": "Bearer &lt;your-agent-token&gt;" }
     }
   }
@@ -75,21 +75,21 @@
   "mcpServers": {
     "mollo-planer": {
       "type": "http",
-      "url": "https://api.planer.mollo.dev/mcp",
+      "url": "https://api.planer.example.com/mcp",
       "headers": { "Authorization": "Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}" }
     }
   }
 }</code></pre>
-              <p>Claude Code reads <code>${…}</code> in <code>url</code> and <code>headers</code> when it starts, so the token stays in your environment (not in a file under version control). Set the variable and start Claude Code again; check with <code>claude mcp list</code>. Do not name the variable like a credential of another tool (<code>ANTHROPIC_API_KEY</code>, <code>NPM_TOKEN</code> …): Claude Code reads those as empty in <code>headers</code>. With an <code>Authorization</code> header set, Claude Code does not fall back to OAuth for this server. Alternatively, on the command line: <code>claude mcp add --transport http mollo-planer https://api.planer.mollo.dev/mcp --header 'Authorization: Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}'</code> (keep the single quotes).</p>
+              <p>Claude Code reads <code>${…}</code> in <code>url</code> and <code>headers</code> when it starts, so the token stays in your environment (not in a file under version control). Set the variable and start Claude Code again; check with <code>claude mcp list</code>. Do not name the variable like a credential of another tool (<code>ANTHROPIC_API_KEY</code>, <code>NPM_TOKEN</code> …): Claude Code reads those as empty in <code>headers</code>. With an <code>Authorization</code> header set, Claude Code does not fall back to OAuth for this server. Alternatively, on the command line: <code>claude mcp add --transport http mollo-planer https://api.planer.example.com/mcp --header 'Authorization: Bearer ${MOLLOPLANER_&lt;NAME&gt;_TOKEN}'</code> (keep the single quotes).</p>
               <h3>Custom Connector with OAuth (people)</h3>
-              <p>People can connect Claude (Desktop or claude.ai) without a token and without Node.js: Settings → Connectors → add a <strong>Custom Connector</strong> with the address <code>https://api.planer.mollo.dev/mcp</code>. Claude finds the sign-in itself, you approve it once, and Claude then works with <strong>your</strong> rights. This is for the accounts of people. An agent account cannot sign in on the web and uses the token as described above.</p>
+              <p>People can connect Claude (Desktop or claude.ai) without a token and without Node.js: Settings → Connectors → add a <strong>Custom Connector</strong> with the address <code>https://api.planer.example.com/mcp</code>. Claude finds the sign-in itself, you approve it once, and Claude then works with <strong>your</strong> rights. This is for the accounts of people. An agent account cannot sign in on the web and uses the token as described above.</p>
               <h3>JetBrains AI Assistant</h3>
               <p>Open Settings → Tools → AI Assistant → Model Context Protocol (MCP), choose Add → As JSON and paste this configuration. Like Claude Desktop, it uses <code>mcp-remote</code>; replace the placeholder locally with your token. On Windows, <code>npx</code> starts through <code>cmd /c</code>.</p>
               <pre><code>{
   "mcpServers": {
     "mollo-planer": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://api.planer.mollo.dev/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
+      "args": ["-y", "mcp-remote", "https://api.planer.example.com/mcp", "--header", "Authorization:${AUTH_TOKEN}"],
       "env": { "AUTH_TOKEN": "Bearer &lt;your-agent-token&gt;" }
     }
   }
@@ -100,7 +100,7 @@
               <pre><code>{
   "mcpServers": {
     "mollo-planer": {
-      "url": "https://api.planer.mollo.dev/mcp",
+      "url": "https://api.planer.example.com/mcp",
       "headers": { "Authorization": "Bearer &lt;your-agent-token&gt;" }
     }
   }
