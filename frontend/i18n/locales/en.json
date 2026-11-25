@@ -2417,5 +2417,43 @@
       },
       "selfRegistered": "This application registered itself and has not been checked by Mollo. After you allow it, you continue to {host}."
     }
+  },
+  "help": {
+    "title": "Help",
+    "intro": "How the functions of the planer work, step by step, with prompts for agents.",
+    "none": "No chapters yet.",
+    "notFound": "This chapter does not exist.",
+    "showImages": "Show pictures",
+    "needsRight": "This needs the right «{right}».",
+    "needsProjectRight": "This needs the right «{right}» in the project; it depends on your role there.",
+    "copied": "Prompt copied.",
+    "copyFailed": "Copying did not work. Select the text and copy it by hand.",
+    "copy": "Copy",
+    "copyPrompt": "Copy prompt {number}",
+    "tools": "Tools: {tools}",
+    "sections": {
+      "purpose": "Purpose",
+      "steps": "How to",
+      "notes": "Good to know",
+      "prompts": "Example prompts"
+    },
+    "areas": {
+      "first-steps": "First steps",
+      "projects": "Projects",
+      "plan": "Milestones, todos and tasks",
+      "kanban": "Kanban",
+      "my-tasks": "My tasks",
+      "comments": "Comments",
+      "documents": "Documents",
+      "ideas": "Ideas",
+      "assistant": "Assistant",
+      "templates": "Templates and labels",
+      "trash": "Trash and archive",
+      "statistics": "Statistics",
+      "calm": "Calm view and command palette",
+      "planer-file": "Planer file",
+      "agents": "Working with agents",
+      "admin": "Administration"
+    }
   }
 }

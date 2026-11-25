@@ -47,6 +47,7 @@ export function pageCommands(t: (key: string) => string, go: (to: string) => voi
     { id: 'page-projects', to: '/projects', label: t('nav.projects'), icon: 'folder' },
     { id: 'page-trash', to: '/trash', label: t('nav.trash'), icon: 'trash-can' },
     { id: 'page-profile', to: '/profile', label: t('profile.title'), icon: 'user-gear' },
+    { id: 'page-help', to: '/help', label: t('help.title'), icon: 'circle-question' },
     { id: 'page-templates', to: '/templates', label: t('nav.templates'), icon: 'copy' },
     { id: 'page-database', to: '/system/db', label: t('nav.database'), icon: 'database' },
     { id: 'page-status', to: '/system/status', label: t('nav.status'), icon: 'heart-pulse' },

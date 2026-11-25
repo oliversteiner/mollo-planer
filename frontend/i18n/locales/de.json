@@ -2417,5 +2417,43 @@
       },
       "selfRegistered": "Diese Anwendung hat sich selbst registriert und wurde nicht von Mollo geprüft. Nach dem Zulassen geht es weiter zu {host}."
     }
+  },
+  "help": {
+    "title": "Hilfe",
+    "intro": "Wie die Funktionen des Planers gehen, Schritt für Schritt, mit Prompts für Agenten.",
+    "none": "Noch keine Kapitel.",
+    "notFound": "Dieses Kapitel gibt es nicht.",
+    "showImages": "Bilder anzeigen",
+    "needsRight": "Dafür brauchst du das Recht «{right}».",
+    "needsProjectRight": "Dafür brauchst du im Projekt das Recht «{right}»; es hängt von deiner Rolle dort ab.",
+    "copied": "Prompt kopiert.",
+    "copyFailed": "Kopieren hat nicht geklappt. Markiere den Text und kopiere ihn von Hand.",
+    "copy": "Kopieren",
+    "copyPrompt": "Prompt {number} kopieren",
+    "tools": "Werkzeuge: {tools}",
+    "sections": {
+      "purpose": "Wozu",
+      "steps": "So geht's",
+      "notes": "Gut zu wissen",
+      "prompts": "Beispielprompts"
+    },
+    "areas": {
+      "first-steps": "Erste Schritte",
+      "projects": "Projekte",
+      "plan": "Meilensteine, ToDos und Tasks",
+      "kanban": "Kanban",
+      "my-tasks": "Meine Tasks",
+      "comments": "Kommentare",
+      "documents": "Dokumente",
+      "ideas": "Ideen",
+      "assistant": "Assistent",
+      "templates": "Vorlagen und Labels",
+      "trash": "Papierkorb und Archiv",
+      "statistics": "Statistik",
+      "calm": "Ruhige Ansicht und Befehlspalette",
+      "planer-file": "Planer-Datei",
+      "agents": "Mit Agenten arbeiten",
+      "admin": "Verwaltung"
+    }
   }
 }
