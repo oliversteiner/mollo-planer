@@ -5,12 +5,14 @@ namespace Tests\Feature\GraphQL;
 use App\Models\Task;
 use App\Models\Todo;
 use App\Services\Deletion;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * The order of the tasks of a todo (docs/auftrag-m4.md §2.3), apart from the
  * Kanban column: new tasks go to the end, deleting closes the gap, coming back
  * from the trash goes to the end, moveTaskInTodo and moveTaskToTodo renumber.
  */
+#[Group('mariadb')]
 class TaskOrderTest extends GraphQLTestCase
 {
     private const MOVE = 'mutation ($id: ID!, $p: Int!) { moveTaskInTodo(id: $id, position: $p) { id position boardPosition status } }';

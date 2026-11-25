@@ -9,12 +9,14 @@ use App\Models\Milestone;
 use App\Models\Task;
 use App\Models\Todo;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\Feature\GraphQL\GraphQLTestCase;
 use Tests\McpTools;
 
 /**
  * Reading in stages (Auftrag 43 A): the plan from a distance (view outline), without descriptions, and list_tasks.
  */
+#[Group('mariadb')]
 class ReadInStagesTest extends GraphQLTestCase
 {
     private Milestone $second;

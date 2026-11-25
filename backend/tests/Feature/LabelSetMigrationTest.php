@@ -10,6 +10,7 @@ use App\Models\Todo;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
@@ -20,6 +21,7 @@ use Tests\TestCase;
  * Builds the database as it was before the migration, runs it, and builds the
  * current database again at the end.
  */
+#[Group('mariadb')]
 class LabelSetMigrationTest extends TestCase
 {
     private const MIGRATION = '2026_11_17_120000_replace_label_sets_by_templates_and_project_labels';

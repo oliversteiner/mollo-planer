@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Core\Accounts\AccountReferences;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
@@ -12,6 +13,7 @@ use Tests\TestCase;
  * column that looks like a reference to one, does not pass until App\Core\Accounts\AccountReferences lists it: whoever moves
  * or exports accounts later then does not miss a table.
  */
+#[Group('mariadb')]
 class AccountReferencesTest extends TestCase
 {
     use RefreshDatabase;
@@ -116,7 +118,8 @@ class AccountReferencesTest extends TestCase
     private function appTables(): array
     {
         return array_values(array_filter(
-            array_column(Schema::getTables(), 'name'),
+            // Only this database: a MariaDB server lists the tables of all its databases (Auftrag 57).
+            array_column(Schema::getTables(Schema::getCurrentSchemaListing()), 'name'),
             fn (string $table): bool => $table !== 'users' && $table !== 'migrations',
         ));
     }

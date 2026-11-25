@@ -28,8 +28,9 @@ Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuers
 
 ## Befehle
 Alle Befehle im Terminal im Ordner `backend/` ausführen:
-- `php artisan test` (Tests)
-- `composer test:mariadb` (dieselben Tests gegen MariaDB, Datenbank `molloplaner_test`; vor Commits, die Abfragen, Sperren oder Migrationen ändern)
+- `composer test` (alle Tests, parallel mit ParaTest; nacheinander: `composer test:serial`, einzelne Dateien: `php artisan test <Pfad>`)
+- `composer test:mariadb:quick` (nur die Gruppe `mariadb` gegen MariaDB, Datenbank `molloplaner_test`: Sperren, Migrationen und Schema, MariaDB-eigene Abfragen; vor jedem Push). Ein neuer Test, der MariaDB wirklich braucht, bekommt `#[Group('mariadb')]`.
+- `composer test:mariadb` (alle Tests gegen MariaDB, parallel; läuft in der CI. Lokal braucht der parallele Lauf das Recht, die Testdatenbanken `molloplaner_test_test_N` anzulegen, siehe `docs/tests-lokal.md`; ohne es `composer test:mariadb:serial`)
 - `php artisan migrate`
 - `php artisan lighthouse:validate-schema` (Schema prüfen)
 - `php artisan migrate:fresh --seed --seeder=DemoSeeder` (Demo-Daten wie in der GraphQL-Demo, nur lokal; **löscht alle Daten**. In eine leere Datenbank: `php artisan db:seed --class=DemoSeeder`)

@@ -20,6 +20,7 @@
         "opis/json-schema": "^2.6"
     },
     "require-dev": {
+        "brianium/paratest": "^7.20",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.10",
@@ -62,6 +63,10 @@
         ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --parallel"
+        ],
+        "test:serial": [
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
         "schema:frontend": [
@@ -71,6 +76,18 @@
             "cd ../tools/planer && npm run test:remote"
         ],
         "test:mariadb": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@putenv DB_CONNECTION=mariadb",
+            "@putenv DB_DATABASE=molloplaner_test",
+            "@php artisan test --parallel"
+        ],
+        "test:mariadb:quick": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@putenv DB_CONNECTION=mariadb",
+            "@putenv DB_DATABASE=molloplaner_test",
+            "@php artisan test --group=mariadb"
+        ],
+        "test:mariadb:serial": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@putenv DB_CONNECTION=mariadb",
             "@putenv DB_DATABASE=molloplaner_test",
