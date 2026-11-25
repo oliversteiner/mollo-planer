@@ -57,6 +57,18 @@ async function signIn(page: Page): Promise<string> {
   return projectId(page)
 }
 
+/**
+ * Opens the form behind a create button. Right after the page loaded, the click can reach the button before the page
+ * reacts to it (the dialog then never opens and the test waited minutes for a button inside it): so the click is repeated
+ * until a dialog is open.
+ */
+async function openForm(page: Page, label: string): Promise<void> {
+  await expect(async () => {
+    await page.locator('wa-button', { hasText: label }).click({ timeout: 3000 })
+    await expect(page.locator('wa-dialog[open]')).toHaveCount(1, { timeout: 3000 })
+  }).toPass({ timeout: 60_000 })
+}
+
 const PLACES: { place: string, open: (page: Page, id: string) => Promise<void> }[] = [
   {
     place: 'Projekt',
@@ -68,21 +80,21 @@ const PLACES: { place: string, open: (page: Page, id: string) => Promise<void> }
     place: 'Milestone',
     open: async (page, id) => {
       await page.goto(`/projects/${id}`)
-      await page.locator('wa-button', { hasText: 'Milestone anlegen' }).click()
+      await openForm(page, 'Milestone anlegen')
     }
   },
   {
     place: 'ToDo',
     open: async (page, id) => {
       await page.goto(`/projects/${id}/todos`)
-      await page.locator('wa-button', { hasText: 'ToDo anlegen' }).click()
+      await openForm(page, 'ToDo anlegen')
     }
   },
   {
     place: 'Task',
     open: async (page, id) => {
       await page.goto(`/projects/${id}/kanban`)
-      await page.locator('wa-button', { hasText: 'Task anlegen' }).click()
+      await openForm(page, 'Task anlegen')
     }
   }
 ]
