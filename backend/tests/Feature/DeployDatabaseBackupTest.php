@@ -24,8 +24,12 @@ class DeployDatabaseBackupTest extends TestCase
         mkdir($this->root.'/bin', 0777, true);
         mkdir($this->root.'/app/deploy', 0777, true);
         mkdir($this->root.'/app/backend', 0777, true);
-        copy(base_path('../deploy/db-backup.sh'), $this->root.'/app/deploy/db-backup.sh');
-        chmod($this->root.'/app/deploy/db-backup.sh', 0755);
+        foreach (['db-backup.sh', 'files-backup.sh'] as $script) {
+            copy(base_path('../deploy/'.$script), $this->root.'/app/deploy/'.$script);
+            chmod($this->root.'/app/deploy/'.$script, 0755);
+        }
+        mkdir($this->root.'/app/backend/storage/app/private', 0777, true);
+        file_put_contents($this->root.'/app/backend/storage/app/private/invoice.pdf', 'pdf');
         file_put_contents($this->root.'/app/backend/.env', 'DEPLOY_BACKUP_DIR='.$this->root."/backups\nAPP_ENV=staging\nDB_HOST=db.example\nDB_PORT=3307\nDB_DATABASE=planer_test\nDB_USERNAME=planer\nDB_PASSWORD=\"se\"cr\\et\$x\"\n");
     }
 
