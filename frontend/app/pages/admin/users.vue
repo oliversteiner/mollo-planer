@@ -65,6 +65,12 @@ const creatingAgent = ref(false)
  */
 const newAgentId = ref<string | null>(null)
 let highlightTimer: ReturnType<typeof setTimeout> | undefined
+let leftPage = false
+
+onBeforeUnmount(() => {
+  leftPage = true
+  clearTimeout(highlightTimer)
+})
 
 async function onAgentCreated(id: string): Promise<void> {
   creatingAgent.value = false
@@ -78,10 +84,16 @@ async function onAgentCreated(id: string): Promise<void> {
   // back to the button that opened it, after its fade: wait for that, then the focus goes to the new row.
   await nextTick()
 
-  for (let waited = 0; waited < 2000 && document.querySelector('wa-dialog[open]'); waited += 50) {
+  // Each step checks that the page is still there: after leaving it (or at the end of a test) nothing is left to focus.
+  for (let waited = 0; !leftPage && waited < 2000 && document.querySelector('wa-dialog[open]'); waited += 50) {
     await new Promise(resolve => setTimeout(resolve, 50))
   }
   await new Promise(resolve => setTimeout(resolve, 100))
+
+  if (leftPage) {
+    return
+  }
+
   document.querySelector<HTMLElement>(`[data-agent-access="${id}"]`)?.focus()
 }
 const accessAgent = computed(() => allUsers.value.find(user => user.id === accessAgentId.value) ?? null)

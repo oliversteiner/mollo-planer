@@ -339,6 +339,25 @@ describe('admin users: create an agent', () => {
     expect(page.findComponent(AgentAccessDialog).exists()).toBe(false)
     expect(page.findAll('.users-row').find(row => row.attributes('data-new') !== undefined)?.text()).toContain('Neu Agent')
     expect(page.find('[data-agent-access="4"]').text()).toBe('Zugang einrichten')
+
+    // The page still moves the focus to the new row a moment later; leave it so that step does not run into the next test.
+    page.unmount()
+  })
+
+  it('does nothing more after the page is left: no focus on a row that is gone, no step in a finished test', async () => {
+    const page = await mountSuspended(AdminUsersPage)
+    const form = page.findComponent(AgentFormModal)
+
+    await page.findAll('wa-button').find(candidate => candidate.text() === 'Agent anlegen')!.trigger('click')
+    form.vm.$emit('created', '4')
+    await nextTick()
+    page.unmount()
+
+    const query = vi.spyOn(document, 'querySelector')
+    await new Promise(resolve => setTimeout(resolve, 400))
+
+    expect(query.mock.calls.filter(([selector]) => String(selector).includes('data-agent-access'))).toEqual([])
+    query.mockRestore()
   })
 
   it('creates the agent and reports its id, without a prompt when the password was confirmed a moment ago', async () => {
