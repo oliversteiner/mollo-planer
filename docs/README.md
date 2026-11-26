@@ -26,6 +26,10 @@ Bei Widerspruch gilt das weiter oben genannte Dokument. Widersprüche nicht stil
 - `frontend-webawesome-plan.md`, `frontend-plan.md`: Oberfläche (Web Awesome, Seiten)
 - `registrierung-plan.md`: Selbstregistrierung und Freigabe
 - `system-plan.md`: Status und Datenbank-Doku
+- `installation.md`: Anforderungen an den Server (Shared Hosting), erste Einrichtung, erster Admin, KI-Assistent
+- `lokal.md`: lokal arbeiten: Demo-Daten, Postman, Anmelden per API, Claude lokal anbinden
+- `deployment.md`: automatisches Deployment mit zwei Umgebungen (TEST, PROD), Fehlersuche, Zurückrollen
+- `betrieb.md`: auf dem laufenden Server: Nutzer, E-Mail, Rolle, Freigabe, zweiter Faktor
 - `deploy-template.md`: Deployment beim Webhoster
 - `abrechnung.md`: Abrechnung (Auftrag 39), warum zwei PDF-Bibliotheken (mPDF, FPDF für den Zahlteil)
 - `ux-projektseite.md`: UX-Review und Spezifikation der Projektseite: Milestones auf- und zuklappen, Preise am Milestone (Auftrag 61, entschieden 25.11.)
