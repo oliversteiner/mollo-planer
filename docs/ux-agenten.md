@@ -490,7 +490,7 @@ Die Vorschläge aus den Nachträgen sind alle angenommen und im Entwurf als Ents
 7. Beschreibung der Vorlagen bis **300 Zeichen** (8.1, 8.2).
 8. Dropdown «Bob (Coder)»: Vorlage, sonst Rolle; bei gleichem Text hängt die Kennung an (10.3).
 9. Vorlagen-Karten zeigen die Beschreibung **ganz** und sind je Reihe gleich hoch; Taste an der Karte **«Agent anlegen»** (8.1). «Weniger tippen.» heisst **«Kürzerer Befehl.»** (10.2). Leerer Zustand mit Symbol `robot` statt Emoji (6.5). Die Tasten der Seite eines Agenten heissen **«Persona speichern»** und **«Projekte speichern»** (7.2, 7.3). «Wer / Wozu / Wirkung» bleibt (10.2).
-10. **Avatar von Agenten:** Varianten und Empfehlung in Abschnitt 21; **Oliver wählt noch**.
+10. **Avatar von Agenten:** **Variante C** (Entscheid Oliver 26.11.), Begründung und Stellen in Abschnitt 21. Die Kennungsvorschau im Dialog «Agent anlegen» ist wie in der Kürzung gewollt weg (Entscheid Oliver 26.11.).
 
 ### 13b. Durchgang durch Olivers UX-Regeln (`~/www/agents/ux-regeln.md`, 26.11.)
 
@@ -498,7 +498,7 @@ Jede Regel gegen den ganzen Entwurf, auch gegen Teil D (Ideen). Geändert wurde:
 
 | UX | Befund | Änderung |
 |---|---|---|
-| 1 Kennungen nicht in Listen | Dialog «Agent anlegen» zeigte eine Kennungsvorschau und beim gleichen Namen die Kennung `bob-2@agent.invalid`; Meldung bei ungültigem Entwurf nannte `lea@agent.invalid` | Vorschau entfällt, Warnung ohne Kennung (11); Meldungen nennen Namen (14.4). **Bewusste Abweichung von der ersten Fassung**; Oliver kann die Vorschau zurückholen, wenn er sie im Dialog vermisst |
+| 1 Kennungen nicht in Listen | Dialog «Agent anlegen» zeigte eine Kennungsvorschau und beim gleichen Namen die Kennung `bob-2@agent.invalid`; Meldung bei ungültigem Entwurf nannte `lea@agent.invalid` | Vorschau entfällt, Warnung ohne Kennung (11); Meldungen nennen Namen (14.4). **Bewusste Abweichung von der ersten Fassung, von Oliver bestätigt am 26.11.** («Kennungsvorschau so lassen», also weglassen) |
 | 1 | Projekte in der Zeile «bis zu zwei Namen, dann +n» | alle Namen, umbrechen (6.2); siehe UX 15 |
 | 2 Keine Emojis | Skizze: 🤖, 🪄, ⧉ | durch Font-Awesome-Symbole ersetzt (Skizze); im Entwurf Symbolnamen ohne Emoji |
 | 3 Erst anzeigen, wenn es etwas bewirkt | Feld «Werkzeug» gesperrt mit einer einzigen Auswahl | entfällt, bis es ein zweites Werkzeug gibt (7.2) |
@@ -866,7 +866,7 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 
 ## 21. Avatar von Agenten (Wunsch Oliver, `k-2154`)
 
-Wunsch: im Avatar eines Agenten ein **kleines Roboter-Symbol** zusätzlich zu den Anfangsbuchstaben. Bild: `next-work/abnahme/77/f-de-avatar-varianten.png` (hell und dunkel, alle fünf Grössen, je mit einem Menschen daneben); klickbar in der Skizze unter «Avatar». **Oliver wählt**, meine Empfehlung ist C.
+Wunsch: im Avatar eines Agenten ein **kleines Roboter-Symbol** zusätzlich zu den Anfangsbuchstaben. Bild: `next-work/abnahme/77/f-de-avatar-varianten.png` (hell und dunkel, alle fünf Grössen, je mit einem Menschen daneben); klickbar in der Skizze unter «Avatar». **Entschieden am 26.11.2026: Variante C** (Oliver), siehe 21.1.
 
 **Ausgangslage.** `UserAvatar` (`frontend/app/components/UserAvatar.vue`) nutzt `wa-avatar`, das Bild **oder** Initialen **oder** Symbol zeigt, nicht Initialen und Symbol zusammen. Grössen: `2xs` 1.25 rem (20 px), `xs` 1.5 rem (24 px), `sm` 2 rem (32 px), `md` 2.5 rem (40 px), `3xl` 4 rem (64 px). Symbol und Marke brauchen also eigenen Inhalt im Avatar (Slot oder eigene Marke); Font Awesome Free `robot` (der Name existiert in der freien Ausgabe).
 
@@ -878,7 +878,7 @@ Wunsch: im Avatar eines Agenten ein **kleines Roboter-Symbol** zusätzlich zu de
 | **B** | Initiale wie heute, dazu eine kleine runde Roboter-Marke unten rechts (Durchmesser 48 % des Avatars, Rand in der Farbe der Fläche) | ab 2 rem gut. Bei 1.5 rem und 1.25 rem ist die Marke etwa 10 bzw. 9 px gross, das Symbol darin nicht mehr zu erkennen; sie verdeckt zudem die Initiale |
 | **C** | wie B ab 2 rem; **unter 2 rem nur das Roboter-Symbol** statt der Initiale (Regel für die kleinsten Grössen) | durchgehend lesbar. Unter 2 rem fehlt die Initiale; dort steht der Name immer daneben (Task-Karte, Kommentar), und die Farbe bleibt die der übrigen Avatare |
 
-**Empfehlung: C.** Begründung: Die Initiale bleibt, wo sie lesbar ist (ab 2 rem), und das Symbol steht in jeder Grösse sichtbar da. A scheitert an den zwei kleinsten Grössen, die in Task-Karten, Kommentaren und Mitgliederlisten am häufigsten vorkommen. B allein wird dort zum Fleck. Die Marke von C ist ein Zusatz zum bestehenden Avatar, nicht ein anderer Avatar; Menschen und Agenten bleiben auf einen Blick verwandt und unterscheidbar.
+**Entscheid: C** (Oliver, 26.11.). Begründung: Die Initiale bleibt, wo sie lesbar ist (ab 2 rem), und das Symbol steht in jeder Grösse sichtbar da. A scheitert an den zwei kleinsten Grössen, die in Task-Karten, Kommentaren und Mitgliederlisten am häufigsten vorkommen. B allein wird dort zum Fleck. Die Marke von C ist ein Zusatz zum bestehenden Avatar, nicht ein anderer Avatar; Menschen und Agenten bleiben auf einen Blick verwandt und unterscheidbar.
 
 ### 21.2 Farbe, Kontrast, Screenreader
 
