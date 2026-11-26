@@ -62,7 +62,6 @@ return [
     ],
     'create_agent' => [
         'name' => 'Name des Agenten (wird in der App angezeigt)',
-        'email' => 'E-Mail-Adresse des Kontos (es geht keine Mail dorthin)',
         'confirm' => 'Agent-Konto :name (:email) anlegen? Es hat keinen Zugang zur Oberfläche, nur über ein Token des Connectors.',
         'created' => 'Agent :name angelegt. Als Nächstes in der App ins Projekt aufnehmen (Projektrolle Agent) und das Token machen: php artisan app:user-token <E-Mail>.',
     ],

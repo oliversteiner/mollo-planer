@@ -25,9 +25,8 @@ export type BillingSettingsInput = {
   website?: string | null | undefined;
 };
 
-/** Ein neues Agent-Konto. Ein Postfach ist nicht nötig, es geht keine Mail an die Adresse. */
+/** Ein neues Agent-Konto. Die Kennung (Feld email) macht der Planer aus dem Namen: <name>@agent.invalid; es geht nie eine Mail an ein Agent-Konto. */
 export type CreateAgentInput = {
-  email: string;
   name: string;
 };
 

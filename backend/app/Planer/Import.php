@@ -5,6 +5,7 @@ namespace App\Planer;
 use App\Enums\IdeaState;
 use App\Enums\ReleaseStatus;
 use App\Enums\TaskStatus;
+use App\GraphQL\Errors\MembershipRefusal;
 use App\Models\Idea;
 use App\Models\Label;
 use App\Models\Milestone;
@@ -360,6 +361,16 @@ final class Import
         if ($this->errors !== []) {
             return null;
         }
+        $creatorRole = AppSettings::projectCreatorRole();
+
+        // The creator gets the creator role; an agent account has no other role than Agent (Auftrag 58 A).
+        try {
+            ProjectMembership::assertRoleFits($this->actor, $creatorRole);
+        } catch (MembershipRefusal $refusal) {
+            $this->error('project', 'rule', $refusal->getMessage());
+
+            return null;
+        }
         $project = new Project([
             'name' => $data['name'],
             'description' => $this->description($data['description'] ?? null, 'project.description')[1],
@@ -367,7 +378,7 @@ final class Import
         ]);
         $project->template_id = $this->templateId;
         $project->save();
-        $project->members()->attach($this->actor->getKey(), ['role_id' => AppSettings::projectCreatorRole()->id]);
+        $project->members()->attach($this->actor->getKey(), ['role_id' => $creatorRole->id]);
         Rights::clearCache();
 
         $this->change('create', 'project', null, ['name', 'description', 'locale'], (string) $project->name);
@@ -552,6 +563,8 @@ final class Import
                 $this->error($path, 'denied', __('planer.import.denied', ['what' => __('planer.import.what.members')]));
             } catch (ValidationException $error) {
                 $this->validation($path, $error);
+            } catch (MembershipRefusal $refusal) {
+                $this->error("{$path}.role", 'rule', $refusal->getMessage());
             }
         }
 

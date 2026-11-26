@@ -62,7 +62,6 @@ return [
     ],
     'create_agent' => [
         'name' => 'Name of the agent (shown in the app)',
-        'email' => 'E-mail address of the account (no mail is sent to it)',
         'confirm' => 'Create the agent account :name (:email)? It has no access to the interface, only through a token for the connector.',
         'created' => 'Agent :name created. Next: add it to a project in the app (project role Agent) and make the token: php artisan app:user-token <e-mail>.',
     ],

@@ -8,7 +8,7 @@ import { enterCode, expectAtMostOneDialog, expirePasswordConfirmation, freshTotp
 /**
  * Agents and their accesses (Auftrag 55, rule R11: no dialog on top of another one). Oliver's flow: create an agent
  * (the dialog closes and opens nothing), «Zugang einrichten» in its row, the name of the access is suggested, the token
- * stays visible until «Fertig». The password is asked for in a field of the dialog that needs it, never in a dialog of
+ * stays visible until «Abgelegt» (Auftrag 58, it was «Fertig»). The password is asked for in a field of the dialog that needs it, never in a dialog of
  * its own. The questions of revoking and removing are in the row. After every step at most one dialog is open.
  * Agents are made here with unique names: the tests share one database.
  */
@@ -54,7 +54,6 @@ async function createAgent(page: Page, name: string): Promise<void> {
   await page.goto('/admin/users')
   await page.getByRole('button', { name: 'Agent anlegen' }).first().click()
   await page.locator('#agent-form wa-input').nth(0).locator('input').fill(name)
-  await page.locator('#agent-form wa-input').nth(1).locator('input').fill(`${name.replace(' ', '.').toLowerCase()}@e2e.test`)
   await page.getByRole('button', { name: 'Anlegen', exact: true }).click()
   await expect(page.locator('wa-dialog[open]')).toHaveCount(0)
 }
@@ -128,7 +127,7 @@ test.describe('Agent anlegen und Zugang einrichten', () => {
     await content.locator('wa-button[aria-label="Zugang kopieren"]').click()
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(token)
 
-    await content.locator('.wa-stack').getByRole('button', { name: 'Fertig', exact: true }).first().click()
+    await content.locator('.wa-stack').getByRole('button', { name: 'Abgelegt', exact: true }).click()
     await expect(content.getByText('Wird nicht mehr angezeigt.')).toBeHidden()
     await expect(content.locator('.access-name', { hasText: suggestedName(agent) })).toBeVisible()
     // The next access already has its suggestion: the name is taken.
@@ -245,7 +244,7 @@ test.describe('Agent anlegen und Zugang einrichten', () => {
     await createAgent(page, agent)
     await openAccessDialog(page, agent)
     await makeAccess(page, agent)
-    await accessContent(page, agent).locator('.wa-stack').getByRole('button', { name: 'Fertig', exact: true }).first().click()
+    await accessContent(page, agent).locator('.wa-stack').getByRole('button', { name: 'Abgelegt', exact: true }).click()
 
     const content = accessContent(page, agent)
     const row = content.locator('.access-row', { hasText: suggestedName(agent) })
@@ -306,7 +305,7 @@ test.describe('Agent anlegen und Zugang einrichten', () => {
     expect(made).toBe(1)
     await expect(content.locator('.access-name')).toHaveCount(1)
 
-    // While the token is on screen there is no second one that could replace it: first «Fertig».
+    // While the token is on screen there is no second one that could replace it: first «Abgelegt».
     await expect(create).toHaveAttribute('disabled', '')
   })
 })

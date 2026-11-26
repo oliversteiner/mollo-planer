@@ -18,13 +18,13 @@ class CreateAgent
     use ResolvesViewer;
 
     /**
-     * @param  array{input: array{name: string, email: string}}  $args
+     * @param  array{input: array{name: string}}  $args
      */
     public function __invoke(mixed $root, array $args, GraphQLContext $context): User
     {
         $admin = $this->viewer($context);
         $this->requireRecentPasswordConfirmation();
 
-        return app(AgentAccounts::class)->create($args['input']['name'], $args['input']['email'], $admin);
+        return app(AgentAccounts::class)->create($args['input']['name'], null, $admin);
     }
 }

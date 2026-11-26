@@ -349,6 +349,8 @@ final class Deletion
         }
 
         $role = AppSettings::projectCreatorRole();
+        // An agent account cannot become the holder (Auftrag 58 A): the restore is refused.
+        ProjectMembership::assertRoleFits($actor, $role);
 
         if ($project->roleIdOf($actor) === null) {
             $project->members()->attach($actor->getKey(), ['role_id' => $role->id]);

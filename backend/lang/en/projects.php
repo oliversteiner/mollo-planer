@@ -6,6 +6,11 @@ return [
     'list_and' => ' and ',
     'last_owner' => 'The project needs at least one owner. Make someone else an owner first.',
     'assignee_not_member' => 'Tasks can only be assigned to members of the project.',
+    'membership_refusal' => [
+        'AGENT_ROLE_ONLY' => ':name is an agent and has the role Agent in every project, no other.',
+        'AGENT_ROLE_RESERVED' => 'The role Agent is for agent accounts only. Choose another role for :name.',
+        'agent_not_default' => 'The role Agent is for agent accounts only and cannot be the default role for new members.',
+    ],
     'todo_other_project' => 'A task can only be moved to a todo of the same project.',
     'milestone_other_project' => 'A todo can only be moved to a milestone of the same project.',
     'plan' => [
