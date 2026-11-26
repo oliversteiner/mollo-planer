@@ -1,6 +1,5 @@
 {
   "name": "mollo-planer-frontend",
-  "license": "AGPL-3.0-or-later",
   "private": true,
   "type": "module",
   "scripts": {
