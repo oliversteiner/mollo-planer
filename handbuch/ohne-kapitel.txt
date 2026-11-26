@@ -105,6 +105,7 @@ command logout
 command milestone-create
 command milestones-collapse
 command milestones-expand
+command milestones-order-by-version
 command mood
 command my-tasks-ideas
 command page-assistant
@@ -139,3 +140,4 @@ tool list_comments
 tool list_ideas
 tool list_templates
 tool list_users
+tool reorder

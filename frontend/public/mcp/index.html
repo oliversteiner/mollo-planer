@@ -111,7 +111,7 @@
             <section id="tools" class="guide-section">
               <p class="section-index">03 <span>CAPABILITIES</span></p>
               <h2>Choose the right tool.</h2>
-              <p>When connected, the server provides its instructions and thirteen tools. Start with <code>list_projects</code> to check project IDs, roles, and revisions; add <code>include_rights: true</code> or <code>include_members: true</code> when needed. Read only the information needed for the task.</p>
+              <p>When connected, the server provides its instructions and fourteen tools. Start with <code>list_projects</code> to check project IDs, roles, and revisions; add <code>include_rights: true</code> or <code>include_members: true</code> when needed. Read only the information needed for the task.</p>
               <div class="tool-list">
                 <div><code>list_projects</code><span>Projects you can see and their permissions</span></div>
                 <div><code>list_templates</code><span>Available project templates</span></div>
@@ -121,6 +121,7 @@
                 <div><code>get_project_statistics</code><span>The numbers of a project without reading the plan</span></div>
                 <div><code>import_plan</code><span>Apply plan changes after permission checks</span></div>
                 <div><code>update_tasks</code><span>Update status, commit, or assignment</span></div>
+                <div><code>reorder</code><span>Order siblings, or milestones by version</span></div>
                 <div><code>add_comment</code> <code>list_comments</code><span>Write and read comments</span></div>
                 <div><code>create_idea</code> <code>list_ideas</code><span>Create and view private ideas</span></div>
                 <div><code>get_project_ai_context</code><span>Read project knowledge shared for AI tools</span></div>
@@ -133,6 +134,7 @@
                 <li><span>2</span><p><strong>Find work.</strong> <code>list_tasks</code> with <code>assignee: "me"</code> and <code>status: ["open", "in_progress"]</code>. One task with everything: <code>list_tasks</code> with <code>ids</code> and <code>include: ["description", "comments"]</code>.</p></li>
                 <li><span>3</span><p><strong>Report progress.</strong> <code>update_tasks</code> directly: no export, no dry run first. <code>base_revision</code> is optional.</p></li>
                 <li><span>4</span><p><strong>Change structure.</strong> <code>export_plan</code> for one milestone, edit it, <code>import_plan</code> with <code>mode: "partial"</code>. The whole export only to rebuild the whole plan.</p></li>
+                <li><span>5</span><p><strong>Order.</strong> <code>partial</code> does not reorder across the project. <code>reorder</code> orders siblings (all IDs of one parent: milestones, the todos of a milestone, the tasks of a todo); <code>reorder</code> with <code>by: "version"</code> orders the milestones by version (use <code>dry_run: true</code> first). Moving an item to another todo or milestone stays with <code>import_plan</code>.</p></li>
               </ol>
               <p>The same recipes in plain Markdown: <a href="/mcp/llms.txt">/mcp/llms.txt</a>.</p>
             </section>

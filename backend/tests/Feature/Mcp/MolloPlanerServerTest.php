@@ -110,7 +110,7 @@ class MolloPlanerServerTest extends McpTestCase
 
         $names = collect($this->postJson('/mcp', $list, [...$headers, 'Authorization' => "Bearer {$token}"])->json('result.tools'))->pluck('name')->sort()->values()->all();
 
-        $this->assertSame(['add_comment', 'create_idea', 'export_plan', 'get_project_ai_context', 'get_project_statistics', 'import_plan', 'list_comments', 'list_ideas', 'list_projects', 'list_tasks', 'list_templates', 'list_users', 'update_tasks'], $names);
+        $this->assertSame(['add_comment', 'create_idea', 'export_plan', 'get_project_ai_context', 'get_project_statistics', 'import_plan', 'list_comments', 'list_ideas', 'list_projects', 'list_tasks', 'list_templates', 'list_users', 'reorder', 'update_tasks'], $names);
     }
 
     public function test_http_endpoint_needs_a_token_made_for_claude(): void

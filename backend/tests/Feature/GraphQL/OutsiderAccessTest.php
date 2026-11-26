@@ -152,6 +152,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'approveUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { approveUser(id: $id) { id } }', fn (self $test) => ['id' => $test->users['stranger']->id]],
             'rejectUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { rejectUser(id: $id) { id } }', fn (self $test) => ['id' => $test->users['stranger']->id]],
             'moveTodo' => ['stranger', 'mutation ($id: ID!, $m: ID!) { moveTodo(id: $id, milestoneId: $m, position: 0) { id } }', fn (self $test) => ['id' => $test->todo->id, 'm' => $test->milestone->id]],
+            'sortMilestones' => ['stranger', 'mutation ($id: ID!) { sortMilestones(projectId: $id) { revision } }', $project],
+            'reorderSiblings' => ['stranger', 'mutation ($id: ID!) { reorderSiblings(projectId: $id, level: MILESTONES, ids: []) { revision } }', $project],
             'moveMilestone' => ['stranger', 'mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
             'updateProjectLabels (member)' => ['member', 'mutation ($p: ID!) { updateProjectLabels(projectId: $p, labels: []) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'applyTemplateLabels (member)' => ['member', 'mutation ($p: ID!, $t: ID!) { applyTemplateLabels(projectId: $p, templateId: $t, mode: APPEND) { id } }', fn (self $test) => ['p' => $test->project->id, 't' => Template::factory()->create()->id]],

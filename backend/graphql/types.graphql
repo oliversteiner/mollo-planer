@@ -677,3 +677,53 @@ type DocumentFile {
   "Der Inhalt der Datei, Base64"
   contentBase64: String!
 }
+
+"Welche Geschwister neu geordnet werden"
+enum OrderLevel {
+  MILESTONES
+  TODOS
+  TASKS
+}
+
+"Nach einer Änderung der Reihenfolge"
+type OrderResult {
+  "Die Revision des Plans danach"
+  revision: Int!
+  "Wie viele Elemente den Platz wechselten"
+  moveCount: Int!
+  "Die neue Reihenfolge (Ids)"
+  order: [ID!]!
+  "Die Reihenfolge davor (Ids), für «Rückgängig»"
+  before: [ID!]!
+}
+
+"Die Vorschau für «Nach Version ordnen». Alle Bedingungen entscheidet das Backend, die Oberfläche zeigt nur."
+type MilestoneVersionOrderPlan {
+  revision: Int!
+  "Die Taste ist frei: alle Bedingungen sind erfüllt"
+  canApply: Boolean!
+  "Die erste nicht erfüllte Bedingung: no_right, archived, too_few_versions, invalid_version, duplicate_version, already_ordered"
+  condition: String
+  "Bei invalid_version und duplicate_version: die betroffenen Milestones"
+  conditionMilestones: [OrderMilestone!]!
+  "Die neue Reihenfolge mit alter und neuer Stelle"
+  order: [OrderPlanRow!]!
+  moveCount: Int!
+}
+
+type OrderMilestone {
+  id: ID!
+  title: String!
+  version: String
+}
+
+type OrderPlanRow {
+  id: ID!
+  title: String!
+  version: String
+  "Stelle heute (ab 0)"
+  from: Int!
+  "Stelle nach dem Ordnen (ab 0)"
+  to: Int!
+  moved: Boolean!
+}

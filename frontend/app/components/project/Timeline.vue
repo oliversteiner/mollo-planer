@@ -4,7 +4,7 @@ import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TimelineEntry } from '~/components/StepTimeline.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
-import { projectTimelineQuery } from '~/graphql/project'
+import { milestoneVersionOrderQuery, projectTimelineQuery, reorderMilestonesMutation, sortMilestonesMutation } from '~/graphql/project'
 import { deleteTaskMutation, moveTaskInTodoMutation, moveTaskToTodoMutation } from '~/graphql/task'
 import type { ProjectTimelineQuery } from '~/graphql/generated/graphql'
 import { formatMoney } from '~/utils/money'
@@ -20,8 +20,11 @@ import { isEmptyDocument } from '~/utils/rich-text'
  * moved to another todo here, by drag and drop.
  */
 export interface MilestonePlace {
+  /** Place in the stored order (position), from 0. */
   index: number
   count: number
+  /** The page shows the newest first: «Nach oben» is then the next place in the stored order. */
+  reversed: boolean
 }
 
 const props = defineProps<{
@@ -75,10 +78,18 @@ const milestones = computed(() => result.value?.project?.milestones ?? [])
 /** The first milestone not done is the current one; all done: the last. */
 const current = computed(() => (milestones.value.find(milestone => milestone.status !== 'DONE') ?? milestones.value.at(-1))?.id)
 
+/**
+ * The order of the display (Auftrag 47 F): newest on top by default, remembered in this browser. It only turns the
+ * display; the stored order, the numbers (M1, M2 …), «Nach oben»/«Nach unten» and dragging work on the stored order.
+ */
+const newestFirst = useStoredSwitch('mollo.timeline.newestFirst', true)
+/** «Preise anzeigen» (Auftrag 47 G): off for a shared screen; remembered like «Bilder anzeigen» in the help. */
+const showPrices = useStoredSwitch('mollo.timeline.prices', true)
+
 const timeline = computed<MilestoneItem[]>(() => {
   const currentIndex = milestones.value.findIndex(milestone => milestone.id === current.value)
 
-  return milestones.value.map((milestone, index) => ({
+  const items = milestones.value.map((milestone, index) => ({
     value: milestone.id,
     title: milestone.title,
     // Milestones before the current one are reached.
@@ -87,6 +98,8 @@ const timeline = computed<MilestoneItem[]>(() => {
     milestone,
     number: index + 1
   }))
+
+  return newestFirst.value ? items.reverse() : items
 })
 
 /** Open todos by id. */
@@ -340,17 +353,102 @@ const { can: canSystem } = useViewer()
 const canBill = computed(() => canSystem('BILLING_MANAGE'))
 
 /** The sums of the prices (E3): only with billing.manage the API gives any price. */
-const sums = computed(() => priceSums(milestones.value))
+const sums = computed(() => (showPrices.value ? priceSums(milestones.value) : null))
 const money = (cents: number) => formatMoney(cents, language.value)
+
+/**
+ * «Nach Version ordnen» (Auftrag 47 C). The conditions are the backend's (milestoneVersionOrder): the button is only
+ * there with the right to edit milestones, off with the first condition that is not met as its tooltip, and for invalid
+ * or doubled versions the milestones are listed with a link each.
+ */
+const { result: orderResult, refetch: refetchOrder } = useQuery(milestoneVersionOrderQuery, () => ({ projectId: props.projectId }), { fetchPolicy: 'cache-and-network' })
+const orderPlan = computed(() => orderResult.value?.milestoneVersionOrder ?? null)
+const showOrderButton = computed(() => orderPlan.value !== null && orderPlan.value.condition !== 'no_right')
+const orderDialog = ref(false)
+const ordering = ref(false)
+const toast = useToast()
+const { mutate: sortMilestones } = useProjectMutation(sortMilestonesMutation)
+const { mutate: reorderMilestones } = useProjectMutation(reorderMilestonesMutation)
+
+const orderCondition = computed(() => (orderPlan.value?.condition ? t(`project.timeline.order.conditions.${orderPlan.value.condition}`) : null))
+const orderListed = computed(() => (['invalid_version', 'duplicate_version'].includes(orderPlan.value?.condition ?? '') ? orderPlan.value?.conditionMilestones ?? [] : []))
+
+function numberOf(id: string): number {
+  return milestones.value.findIndex(milestone => milestone.id === id) + 1
+}
+
+function graphqlCode(error: unknown): string | undefined {
+  const errors = (error as { graphQLErrors?: { extensions?: { code?: string } }[] } | null)?.graphQLErrors
+
+  return errors?.[0]?.extensions?.code
+}
+
+/** The message goes to the page, not into the dialog that is still closing (see useToast): wait until no overlay is open. */
+async function afterOverlaysClosed(): Promise<void> {
+  for (let waited = 0; waited < 1000 && openOverlays().length > 0; waited += 50) {
+    await new Promise(resolve => setTimeout(resolve, 50))
+  }
+}
+
+async function applyOrder(): Promise<void> {
+  const plan = orderPlan.value
+
+  if (!plan?.canApply || ordering.value) {
+    return
+  }
+
+  ordering.value = true
+
+  try {
+    const result = await sortMilestones({ projectId: props.projectId, expectedRevision: plan.revision })
+    const done = result?.data?.sortMilestones
+
+    orderDialog.value = false
+    await Promise.all([refetch(), refetchOrder()])
+
+    if (done) {
+      await afterOverlaysClosed()
+      toast.add({
+        title: t('project.timeline.order.done'),
+        description: t('project.timeline.order.doneDetail', { count: done.moveCount }, done.moveCount),
+        color: 'success',
+        duration: UNDO_DURATION,
+        action: { label: t('project.timeline.order.undo'), run: () => void undoOrder(done.before) }
+      })
+    }
+  } catch (error) {
+    if (graphqlCode(error) === 'ORDER_REVISION') {
+      // Somebody changed the plan: the preview is loaded again, nothing was written.
+      await Promise.all([refetch(), refetchOrder()])
+      await afterOverlaysClosed()
+      toast.add({ title: t('project.timeline.order.conflict'), color: 'warning' })
+    } else {
+      toast.add({ title: t('project.timeline.order.failed'), color: 'error' })
+    }
+  } finally {
+    ordering.value = false
+  }
+}
+
+async function undoOrder(before: string[]): Promise<void> {
+  try {
+    await reorderMilestones({ projectId: props.projectId, ids: before })
+    await Promise.all([refetch(), refetchOrder()])
+    toast.add({ title: t('project.timeline.order.undone'), color: 'success' })
+  } catch {
+    toast.add({ title: t('project.timeline.order.failed'), color: 'error' })
+  }
+}
 
 useCommands(() => [
   { id: 'milestones-expand', label: t('project.timeline.expandAllMilestones'), icon: 'chevrons-down', group: 'action', visible: () => !allMilestonesOpen.value, run: expandAll },
-  { id: 'milestones-collapse', label: t('project.timeline.collapseAllMilestones'), icon: 'chevrons-up', group: 'action', visible: () => !allMilestonesClosed.value, run: collapseAll }
+  { id: 'milestones-collapse', label: t('project.timeline.collapseAllMilestones'), icon: 'chevrons-up', group: 'action', visible: () => !allMilestonesClosed.value, run: collapseAll },
+  { id: 'milestones-order-by-version', label: t('project.timeline.orderByVersion'), icon: 'arrow-down-1-9', group: 'action', visible: () => orderPlan.value?.canApply === true, run: () => { orderDialog.value = true } }
 ])
 
 function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>): ActionMenuItem[] {
   const place = kind === 'milestone'
-    ? { index: milestones.value.findIndex(milestone => milestone.id === item.id), count: milestones.value.length }
+    ? { index: milestones.value.findIndex(milestone => milestone.id === item.id), count: milestones.value.length, reversed: newestFirst.value }
     : undefined
 
   return props.actions?.(kind, item, place) ?? []
@@ -463,8 +561,82 @@ function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item
           <wa-tooltip for="timeline-collapse-all">
             {{ t('project.timeline.collapseAllMilestones') }}
           </wa-tooltip>
+          <wa-button
+            id="timeline-direction"
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            :aria-pressed="newestFirst"
+            :aria-label="t(newestFirst ? 'project.timeline.newestFirst' : 'project.timeline.oldestFirst')"
+            @click="newestFirst = !newestFirst"
+          >
+            <wa-icon
+              slot="start"
+              :name="newestFirst ? 'arrow-down-wide-short' : 'arrow-up-short-wide'"
+            ></wa-icon>
+            <span class="timeline-toolbar-label">{{ t(newestFirst ? 'project.timeline.newestFirst' : 'project.timeline.oldestFirst') }}</span>
+          </wa-button>
+          <wa-tooltip for="timeline-direction">
+            {{ t(newestFirst ? 'project.timeline.sortNewestHint' : 'project.timeline.sortOldestHint') }}
+          </wa-tooltip>
+          <!-- A disabled button gets no pointer events, so the tooltip hangs on the wrapper. -->
+          <span
+            v-if="showOrderButton"
+            id="timeline-order-wrap"
+            class="timeline-order-wrap"
+          >
+            <wa-button
+              id="timeline-order"
+              appearance="plain"
+              variant="neutral"
+              size="s"
+              :disabled="!orderPlan?.canApply"
+              :aria-label="t('project.timeline.orderByVersion')"
+              @click="orderDialog = true"
+            >
+              <wa-icon
+                slot="start"
+                name="arrow-down-1-9"
+              ></wa-icon>
+              <span class="timeline-toolbar-label">{{ t('project.timeline.orderByVersion') }}</span>
+            </wa-button>
+          </span>
+          <wa-tooltip
+            v-if="showOrderButton"
+            for="timeline-order-wrap"
+          >
+            {{ orderCondition ?? t('project.timeline.orderByVersion') }}
+          </wa-tooltip>
+          <wa-switch
+            v-if="canBill"
+            id="timeline-prices"
+            size="s"
+            :checked="showPrices"
+            @change="showPrices = ($event.target as HTMLInputElement).checked"
+          >
+            {{ t('project.timeline.showPrices') }}
+          </wa-switch>
         </div>
       </div>
+
+      <p
+        v-if="orderListed.length"
+        class="timeline-order-hint wa-caption-m"
+        data-zen="hide"
+      >
+        {{ orderCondition }}
+        <template
+          v-for="(entry, index) in orderListed"
+          :key="entry.id"
+        >
+          <a
+            :href="`#milestone-${entry.id}`"
+            @click="reveal([entry.id])"
+          >M{{ numberOf(entry.id) }} {{ entry.title }} ({{ entry.version }})</a><template v-if="index < orderListed.length - 1">
+            ,
+          </template>
+        </template>
+      </p>
 
       <StepTimeline
         :items="timeline"
@@ -491,6 +663,7 @@ function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item
               :open="isOpen(item.milestone.id)"
               :menu="menu('milestone', item.milestone)"
               :can-bill="canBill"
+              :hide-prices="!showPrices"
               @toggle="toggleMilestone(item.milestone, $event)"
               @set="milestoneState.set(item.milestone.id, $event)"
             />
@@ -654,10 +827,27 @@ function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item
         </template>
       </StepTimeline>
     </template>
+
+    <ProjectVersionOrderDialog
+      v-if="orderPlan"
+      v-model:open="orderDialog"
+      :plan="orderPlan"
+      :busy="ordering"
+      @apply="applyOrder"
+    />
   </div>
 </template>
 
 <style scoped>
+.timeline-order-wrap {
+  display: inline-flex;
+}
+
+.timeline-order-hint {
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+}
+
 .timeline-skeletons {
   display: flex;
   flex-direction: column;

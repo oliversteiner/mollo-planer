@@ -47,6 +47,10 @@ type Query @guard {
     @can(ability: "export", find: "projectId", model: "App\\Models\\Project")
     @field(resolver: "App\\GraphQL\\Queries\\ExportPlan")
 
+  "Vorschau für «Nach Version ordnen»: die neue Reihenfolge der Milestones, die Verschiebungen und die erste nicht erfüllte Bedingung. Schreibt nichts."
+  milestoneVersionOrder(projectId: ID!): MilestoneVersionOrderPlan!
+    @field(resolver: "App\\GraphQL\\Queries\\MilestoneVersionOrderPlan")
+
   "Das Board eines Projekts, Tasks je Spalte nach position sortiert (Seite Kanban)"
   kanban(projectId: ID!): [KanbanColumn!]! @field(resolver: "App\\GraphQL\\Queries\\Kanban")
 
