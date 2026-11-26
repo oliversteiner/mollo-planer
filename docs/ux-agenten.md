@@ -1,10 +1,10 @@
 # UX-Entwurf: Seite «Agenten» und Vorschläge von Agenten (Ideen)
 
-Auftrag 77 · ToDo `t-552` (Tasks `k-2106` Bestand, `k-2107` Entwurf, `k-2108` Skizzen und Fragen, `k-2110` Ideen) · Milestone 1.9 «Agenten» · Laura, 26.11.2026 · Stand: **Entwurf**, wartet auf die Entscheide in Abschnitt 13.
+Auftrag 77 · ToDo `t-552` (Tasks `k-2106` Bestand, `k-2107` Entwurf, `k-2108` Skizzen und Fragen, `k-2110` Ideen) · Milestone 1.9 «Agenten» · Laura, 26.11.2026 · Stand: **Entwurf**, wartet auf die Entscheide in Abschnitt 13. Nachträge aus der Abnahme von Oliver (26.11., `k-2152`) sind eingearbeitet; die offenen Punkte dazu stehen in Abschnitt 13a.
 
 Grundlage: Konzept `next-work/76-agenten-konzept.md` (Stuard P, Entscheide Oliver in Abschnitt 0, 8 und 10). Wo dieser Entwurf davon abweicht, steht es in Abschnitt 12 mit Grund. Skizzen (nicht im Repo): `next-work/abnahme/77/`.
 
-Begriffe in der Oberfläche: **Agent**, **Kennung** (nicht «E-Mail»), **Zugang** (der Token), **Vorlage**, **Persona** (Rolle und Anweisungen eines Agenten), **Gemeinsame Regeln**, **Startbefehl**, **Administration**, **Admin**, **Taste**. Bedienung: wählen, auswählen, eingeben, einschalten.
+Begriffe in der Oberfläche: **Agent**, **Kennung** (nicht «E-Mail»), **Zugang** (der Token), **Vorlage**, **Persona** (Rolle und Anweisungen eines Agenten), **Gemeinsame Regeln**, **Startbefehl** (nur wo der Befehl selbst gemeint ist; die Seite dazu heisst «Agent einsetzen»), **Administration**, **Admin**, **Taste**. Bedienung: wählen, auswählen, eingeben, einschalten.
 
 ---
 
@@ -36,7 +36,7 @@ Lokal durchgespielt mit der Wegwerf-Datenbank der Browser-Tests (eigener Port, S
 | Agent-Konto, Kennung (58), Rolle «Agent» fest | Liste der Agenten mit Zugangsstand (`agentAccessState`) | Abschnitt «Agenten» auf der Benutzerseite (wird ein Verweis, 6.7) |
 | Zugänge erzeugen, einmal anzeigen, widerrufen (Verhalten, Texte, Passwort als Feld) | Inhalt von `AgentAccessDialog` → Abschnitte «Zugänge» und «Projekte» der Agentenseite (7) | der Dialog «Zugang für …» als Dialog |
 | Agent auf der Mitgliederseite eines Projekts hinzufügen | «Agent anlegen» (Dialog, erweitert um Vorlage, Projekte, Modell) | Taste «Agent anlegen» auf der Benutzerseite und Befehl `users-create-agent` |
-| `app:create-agent`, `app:user-token` (CLI) | Schritte «Token ablegen», «Connector eintragen» → Reiter «Startbefehl» (10) | Schritt «Token als Umgebungsvariable ablegen» (der Schlüsselbund ersetzt ihn) |
+| `app:create-agent`, `app:user-token` (CLI) | Schritte «Token ablegen», «Connector eintragen» → Reiter «Agent einsetzen» (10) | Schritt «Token als Umgebungsvariable ablegen» (der Schlüsselbund ersetzt ihn) |
 
 ---
 
@@ -46,6 +46,13 @@ Lokal durchgespielt mit der Wegwerf-Datenbank der Browser-Tests (eigener Port, S
 2. **Gleiche Muster wie die Benutzerseite.** Zeilen, Abzeichen, Kopieren der Kennung, Zugangsstand und `ActionMenu` sehen aus wie heute. Wer die Benutzerseite kennt, kennt die Agentenliste.
 3. **Langer Text auf einer Seite, nicht im Dialog.** Persona, Vorlagen und Gemeinsame Regeln werden auf eigenen Seiten mit dem bestehenden Editor bearbeitet.
 4. **Kein Token im Browser, wenn es nicht sein muss.** Der Normalweg ist der Startbefehl: Er erzeugt den Zugang und legt ihn im Schlüsselbund ab. Ein Zugang im Browser bleibt möglich (Connector ohne CLI, z. B. Claude Desktop).
+
+**Regeln für die ganze Seite** (Abnahme Oliver 26.11.; sie gelten für alle Bereiche dieses Entwurfs, bei der Umsetzung auch für die übrigen Seiten, die Stuard dafür bestimmt):
+
+5. **«+» nur bei «anlegen» und «hinzufügen».** Tasten wie «Zugang einrichten», «Zuweisen» oder «Speichern» tragen kein «+». Gemeint sind Tasten und Symbole; «+2» als Zahlzusatz («und zwei weitere Projekte») ist keine Taste und bleibt.
+6. **Zahlen an Reitern als Pille.** Die Anzahl steht nicht in Klammern im Titel, sondern als `wa-badge pill` (neutral) hinter dem Reitertitel; Zahl 0 zeigt keine Pille. Gilt für jeden Reiter mit Zahl.
+7. **Suche erst ab 7 Einträgen.** Darunter steht kein Suchfeld (es würde nichts bringen). Gilt für die Liste der Agenten und für jede Projektliste in diesem Entwurf.
+8. **Eine Aktion, ein Ort.** Oben in der Kopfzeile steht, was auf dem gerade gewählten Reiter angelegt wird (4); an einer Karte steht, was mit dieser Karte geschieht, mit dem vollen Satz.
 
 ---
 
@@ -61,20 +68,30 @@ Lokal durchgespielt mit der Wegwerf-Datenbank der Browser-Tests (eigener Port, S
 
 ## 4. Aufbau der Seite `/admin/agents`
 
-`PageFrame` «Agenten», Beschreibung (eine Zeile): «Agenten arbeiten über den Connector in deinen Projekten. Hier legst du sie an, gibst ihnen eine Persona und richtest den Startbefehl ein.»
+`PageFrame` «Agenten», Beschreibung (eine Zeile): «Agenten arbeiten über den Connector in deinen Projekten. Hier legst du sie an, gibst ihnen eine Persona und setzt sie auf deinem Rechner ein.»
 
-Aktionen in der Kopfzeile: **«Agent anlegen»** (brand, `robot`).
+**Aktion in der Kopfzeile: hängt vom Reiter ab** (Regel 8). Eine Taste, immer am gleichen Platz, immer das, was auf diesem Reiter angelegt wird:
 
-Darunter vier Reiter (`wa-tab-group`, wie `pages/admin/roles.vue`), Zustand im Query-Parameter `?tab=` (ohne: `agents`), damit Links und Zurück funktionieren:
+| Reiter | Taste in der Kopfzeile |
+|---|---|
+| Agenten | **«+ Agent anlegen»** (brand, `plus`) |
+| Vorlagen | **«+ Vorlage anlegen»** (brand, `plus`) |
+| Gemeinsame Regeln, Agent einsetzen | keine |
 
-| Reiter | `tab` | Inhalt |
+Warum: «Agent anlegen» auf dem Reiter «Vorlagen» liess offen, ob man eine Vorlage oder einen Agenten anlegt (Abnahme Oliver). Den Agenten aus einer Vorlage legt man an der Karte an (8.1).
+
+Darunter vier Reiter (`wa-tab-group`, wie `pages/admin/roles.vue`), Zustand im Query-Parameter `?tab=` (ohne: `agents`), damit Links und Zurück funktionieren. Zahlen stehen als Pille am Titel (Regel 6):
+
+| Reiter (Titel · Pille) | `tab` | Inhalt |
 |---|---|---|
-| Agenten (Anzahl aktive) | `agents` | Liste (6) |
-| Vorlagen | `templates` | Karten (8) |
+| Agenten · Zahl der **aktiven** Agenten | `agents` | Liste (6) |
+| Vorlagen · Zahl der Vorlagen | `templates` | Karten (8) |
 | Gemeinsame Regeln | `rules` | Editor (9) |
-| Startbefehl | `launch` | Anleitung (10) |
+| Agent einsetzen | `launch` | Anleitung (10) |
 
-Warum Reiter und nicht eine lange Seite: Die vier Teile haben verschiedene Aufgaben und Häufigkeiten (Agenten täglich, Startbefehl einmal je Rechner). Untereinander würde der Startbefehl unter einer langen Liste verschwinden. Warum nicht vier Menüeinträge: Es ist ein Thema; die Administration hat schon acht Einträge.
+Die Kennung `launch` bleibt trotz Umbenennung (technischer Schlüssel, der Befehl heisst weiter Startbefehl).
+
+Warum Reiter und nicht eine lange Seite: Die vier Teile haben verschiedene Aufgaben und Häufigkeiten (Agenten täglich, «Agent einsetzen» einmal je Rechner). Untereinander würde die Anleitung unter einer langen Liste verschwinden. Warum nicht vier Menüeinträge: Es ist ein Thema; die Administration hat schon acht Einträge.
 
 ---
 
@@ -88,26 +105,34 @@ Aus `agents` (Konzept 4): Name, Kennung, Avatar, `roleLabel`, `defaultModel`, `t
 
 ### 6.1 Werkzeugleiste
 
-* Suche (`FormInput type="search"`, wie Benutzerseite), filtert Name, Kennung, Rolle und Projektnamen. Erst ab **6 Agenten** sichtbar; darunter hilft sie nicht.
+* Suche (`FormInput type="search"`, wie Benutzerseite), filtert Name, Kennung, Rolle und Projektnamen. Erst ab **7 Agenten** sichtbar (Regel 7; gezählt werden aktive und deaktivierte); darunter gibt es kein Suchfeld, auch kein ausgegrautes.
 * Keine Sortierwahl. Reihenfolge fest: aktive nach Name, darunter der Abschnitt «Deaktiviert (n)», zugeklappt (Disclosure-Muster wie die Milestones, `docs/ux-projektseite.md` 4.3), nur wenn es deaktivierte gibt.
 
 ### 6.2 Zeile eines Agenten
 
 ```
-[Avatar] Bob  Coder · Opus                                    [● Zugang aktiv]  [···]
-         bob@agent.invalid [⧉]   Kundenportal · Website · +1    zuletzt aktiv vor 2 Std.
+[Avatar] Bob  Coder · Opus                               [key Zugang aktiv] [···]
+         [ID]  Kundenportal · Website · +1                 zuletzt aktiv vor 2 Std.
 ```
 
 | Teil | Inhalt | Komponente |
 |---|---|---|
 | Avatar | wie heute | `UserAvatar` |
 | Zeile 1 | **Name** als Link auf `/admin/agents/:id` (erste Fokusstelle der Zeile); Rolle (`roleLabel`) und Modell leise, mit «·» getrennt; ohne Persona statt dessen Abzeichen «Ohne Persona» (`warning`, `appearance="outlined"`) | `NuxtLink`, `span.wa-caption-m`, `wa-badge` |
-| Zeile 2 | Kennung mit Kopieren (wie heute); Projekte als Text, höchstens zwei Namen, dann «+n» (ganze Liste im `title` und auf der Agentenseite); ohne Projekt «Noch in keinem Projekt» leise | bestehend |
-| Rechts oben | Zugangsstand wie heute (`agentAccessState`: aktiv, läuft ab, abgelaufen, keiner), als Taste: führt auf `/admin/agents/:id#zugaenge` | `wa-button size="s"` |
+| Zeile 2 | **Pille «ID»** (siehe unten); Projekte als Text, höchstens zwei Namen, dann «+n» (ganze Liste im `title` und auf der Agentenseite); ohne Projekt «Noch in keinem Projekt» leise | `wa-badge pill`, bestehend |
+| Rechts oben | Zugangsstand wie heute (`agentAccessState`: aktiv, läuft ab, abgelaufen, keiner), als Taste: führt auf `/admin/agents/:id#zugaenge`. Symbol `key` (Font Awesome **Free**, Stil solid; der Name existiert in der freien Ausgabe), Farbe nach Zustand. Ist noch kein Zugang da, heisst die Taste **«Zugang einrichten»**, ohne «+» (Regel 5) | `wa-button size="s"`, `wa-icon` |
 | Rechts unten | «zuletzt aktiv {relativ}» oder «noch nie aktiv» | `wa-caption-s` |
 | Menü | Bearbeiten · Startbefehl kopieren · Deaktivieren (bzw. Reaktivieren) | `ActionMenu` |
 
 Abzeichen «Agent» entfällt in dieser Liste (alle sind Agenten). Das Abzeichen «Vorlage» steht nicht in der Zeile, nur auf der Seite des Agenten (7.1).
+
+**Pille «ID» (statt der ausgeschriebenen Kennung).** Die Kennung (`bob@agent.invalid`) ist eine Pseudo-Adresse und in der Liste nur Rauschen. Die Zeile zeigt eine kleine neutrale Pille mit dem Text «ID» (`wa-badge pill`, `appearance="outlined"`, als Taste bedienbar):
+
+* **Tooltip** (`wa-tooltip`) und **`aria-label`** nennen die Kennung: «Kennung: bob@agent.invalid». Der sichtbare Text bleibt «ID», das `aria-label` ersetzt ihn für Screenreader, damit die Kennung dort nicht fehlt.
+* **Wählen kopiert die Kennung** in die Zwischenablage, Meldung «Kennung kopiert.» (Toast, wie bisher beim Kopieren).
+* Die Kennung im Klartext steht nur noch auf der Seite des Agenten (7.1).
+
+**Unten an der Liste** steht nach der letzten aktiven Zeile eine zurückhaltende Taste **«+ Agent anlegen»** (`appearance="plain"`, `size="s"`, Symbol `plus`), linksbündig mit dem Namen der Zeilen. Sie öffnet denselben Dialog wie die Taste in der Kopfzeile (11). Warum: Bei einer langen Liste muss man nicht nach oben scrollen. Sie steht über dem Abschnitt «Deaktiviert (n)», nicht darunter, und fehlt im leeren Zustand (dort gibt es die Karten, 6.5).
 
 **Startbefehl kopieren** legt `mollo-planer agent <slug>` in die Zwischenablage (`<slug>` = Teil der Kennung vor `@`, z. B. `bob-2`) und meldet «Befehl kopiert.».
 
@@ -134,13 +159,23 @@ Nach dem Anlegen: Zeile hervorgehoben wie heute (`data-new`, 3 s), Fokus auf den
      Noch keine Agenten
  Ein Agent arbeitet über den Connector in deinen Projekten,
  zum Beispiel als Coder oder für die Planung.
- Wähle eine Vorlage, um den ersten anzulegen.
+ Wähle eine Vorlage, um den ersten anzulegen.          ← Einführungstext, unverändert
 
- [Planer]  [Coder]  [UX/UI]  [Doku]        ← Vorlagenkarten wie in 8, mit Taste «Anlegen»
- Leer anlegen                               ← Link-Taste, öffnet den Dialog ohne Vorlage
+ ┌──────────────────────────────┐
+ │ Eigenen Agenten anlegen      │                       ← Karte, Taste «+ Agent anlegen» (ohne Vorlage)
+ │ Du gibst Name, Rolle und …   │
+ └──────────────────────────────┘
+
+ Oder aus einer Vorlage einen Agenten erstellen        ← Untertitel (h2)
+ [Planer]  [Coder]  [UX/UI]  [Doku]                    ← Vorlagenkarten wie in 8
 ```
 
-`EmptyState` (Symbol `robot`), darunter die Vorlagen-Karten (Komponente aus 8, Variante kompakt: Name, eine Zeile Beschreibung, Taste «Anlegen»).
+Reihenfolge (Abnahme Oliver): Einführungstext → Karte **«Eigenen Agenten anlegen»** → Untertitel **«Oder aus einer Vorlage einen Agenten erstellen»** → Vorlagenkarten. Der Link «Leer anlegen» entfällt; die Karte ersetzt ihn.
+
+* `EmptyState` (Symbol `robot`, Titel, Einführungstext) wie bisher.
+* **Karte «Eigenen Agenten anlegen»**: dieselbe Karte wie die Vorlagenkarten (`AgentTemplateCard`, Variante «eigen»), aber ohne Abzeichen und ohne Menü. Text: «Du gibst Name, Rolle und Anweisungen selbst an.» Taste **«+ Agent anlegen»** (brand) öffnet den Dialog (11) mit «Ohne Vorlage». Damit ist die Karte die auffälligste Aktion; die Vorlagen darunter sind der zweite Weg.
+* Untertitel als `h2`, darunter die Vorlagenkarten (Komponente aus 8). **Aktion an der Karte:** «Agent aus dieser Vorlage anlegen» (outlined), Beschreibung bis drei Zeilen wie in 8.1; die Zahl der Agenten und das Menü fehlen in dieser Variante (kompakt).
+* In der Kopfzeile steht weiter «+ Agent anlegen» (4).
 
 ### 6.6 Hinweis auf dem Dashboard
 
@@ -164,8 +199,20 @@ Eigene Seite statt Dialog: Die Persona ist ein langer Text, dazu Projekte, Zugä
 
 ### 7.1 Kopf
 
-`PageFrame` mit Titel = Name, davor Avatar. Darunter eine Zeile (leise): Kennung mit Kopieren · «Aus Vorlage {Vorlage}» (oder «Ohne Vorlage») · Abzeichen «Deaktiviert» falls zutreffend.
-Aktionen: «Startbefehl kopieren» (neutral, outlined).
+`PageFrame` mit Titel = Name, davor Avatar. Keine Aktionstasten in der Kopfzeile (die Taste «Startbefehl kopieren» entfällt, Abnahme Oliver). Darunter zwei Zeilen:
+
+```
+Administration › Agenten › Bob
+[Avatar] Bob
+Kennung: bob@agent.invalid [⧉] · Aus Vorlage Coder · [Deaktiviert]       ← leise
+Starte Bob mit:  mollo-planer agent bob  [⧉]                              ← Befehlszeile
+── Persona ──
+```
+
+1. **Zeile «Kennung»** (leise): Kennung im Klartext mit Kopieren · «Aus Vorlage {Vorlage}» (oder «Ohne Vorlage») · Abzeichen «Deaktiviert» falls zutreffend.
+2. **Befehlszeile** vor dem Abschnitt «Persona»: «Starte {Name} mit:» und der Befehl `mollo-planer agent {slug}` als Code (`--wa-font-family-code`, Feld wie in 10, schreibgeschützt) mit Taste `copy` (`aria-label` «Befehl kopieren»); Meldung «Befehl kopiert.». `{slug}` = Teil der Kennung vor `@` (`bob-2` bei gleichem Namen). Der Befehl umbricht nicht, sondern scrollt waagrecht. Bei einem **deaktivierten** Agenten entfällt die Zeile (er lässt sich nicht starten); statt dessen steht dort leise «Deaktiviert. Reaktiviere ihn, um ihn zu starten.».
+
+Der Befehl bleibt über die Befehlspalette (`agent-copy-launch`, 15) und das Menü der Liste (6.2) erreichbar.
 
 Herkunft aus einer Vorlage: nur dieser Hinweis, **kein** Abgleich. Tooltip am Hinweis: «Kopie der Vorlage vom {Datum}. Änderungen an der Vorlage wirken nicht auf diesen Agenten.» So sieht man die Herkunft und die Unabhängigkeit an einer Stelle.
 
@@ -175,10 +222,12 @@ Herkunft aus einer Vorlage: nur dieser Hinweis, **kein** Abgleich. Tooltip am Hi
 |---|---|---|---|---|
 | Name | `FormInput`, max. 120 | ja | – | «Ändert die Kennung nicht.» |
 | Rolle | `FormInput`, max. 60 | nein | aus der Vorlage (`role_label`) | «Kurz, z. B. Coder. Steht in der Liste und im Namen der Sitzung.» |
-| Modell | `FormSelect` aus der Liste der Konfiguration (`sonnet`, `opus`, `haiku`, …) | ja | aus der Vorlage | «Beim Start mit `--model` änderbar.» |
+| **Standardmodell** (vorher «Modell») | `FormSelect` aus der Liste der Konfiguration (`sonnet`, `opus`, `haiku`, …) | ja | aus der Vorlage | «Mit diesem Modell startet der Agent. Umschalten ist jederzeit möglich, beim Start mit `--model`.» |
 | Werkzeug | `FormSelect`, heute nur «Claude Code», darum **gesperrt** mit Hinweis «Weitere Werkzeuge folgen.» | ja | `claude_code` | |
-| Anweisungen | `RichTextEditor` (wie Dokumente), höchstens 20’000 Zeichen | nein | Text der Vorlage | «Wird beim Start nach den Gemeinsamen Regeln mitgegeben.» Abweichung A2 |
+| Anweisungen | `RichTextEditor` (wie Dokumente), höchstens 20’000 Zeichen | nein | Text der Vorlage | «Hier stehen nur Anweisungen für diesen Agenten. Was für alle Agenten gilt, steht unter **Gemeinsame Regeln**. Beim Start erhält er zuerst jene, dann diese.» «Gemeinsame Regeln» ist ein **Link** auf `/admin/agents?tab=rules` (springt auf den Reiter; bei ungespeicherten Änderungen gilt die Rückfrage unten). Abweichung A2 |
 | Startsatz | `FormTextarea`, 3 Zeilen, max. 500 | nein | leer = Vorgabe der Gemeinsamen Regeln (als Platzhalter sichtbar) | «Der erste Satz, den der Agent beim Start erhält.» |
+
+Das Feld «Standardmodell» und der Hinweis zu den Anweisungen gelten auch im Formular einer Vorlage (8.2); dort heisst der Satz «Hier stehen nur Anweisungen für Agenten aus dieser Vorlage. Was für alle Agenten gilt, steht unter **Gemeinsame Regeln**.»
 
 Taste «Speichern» (brand) unten am Abschnitt; deaktiviert, solange nichts geändert ist. Ungespeicherte Änderungen: beim Verlassen der Seite die Rückfrage des Browsers (`beforeunload`) und beim Wechsel innerhalb der App `ConfirmModal` «Änderungen verwerfen?» (bestehendes Muster der Dokumente, falls vorhanden; sonst neu).
 
@@ -186,15 +235,35 @@ Taste «Speichern» (brand) unten am Abschnitt; deaktiviert, solange nichts geä
 
 ### 7.3 Abschnitt «Projekte»
 
-Aus `AgentAccessDialog` übernommen: Liste «Projekt · Rolle Agent · Entfernen» (Rückfrage in der Zeile, wie heute), darunter Auswahl «Projekt zuweisen» und Taste «Zuweisen». Verhalten, Grenzen und Meldungen unverändert (`verwaltung-agenten-anfasser.md` 3.3, Punkt 4).
+**Liste mit Kontrollkästchen** (Abnahme Oliver) statt Liste mit «Entfernen» und Auswahl «Projekt zuweisen». Dieselbe Komponente (`AgentProjectList`) steht im Dialog «Agent anlegen» (11).
+
+```
+Projekte
+ [🔍 Projekte filtern]                 ← erst ab 7 Projekten (Regel 7)
+ ☑ Kundenportal
+ ☑ Website
+ ☐ Archiv
+ Aufgeführt sind nur Projekte, in denen du Mitglieder verwalten darfst.
+ Mitgliedschaften in anderen Projekten bleiben unverändert.
+ Hinzu: Archiv. Entfernt: Website (Tasks bleiben bei Bob).      ← erscheint, sobald etwas geändert ist
+ [Speichern]
+```
+
+* **Eine Zeile je Projekt:** `wa-checkbox` mit dem Projektnamen als Beschriftung. Angehakt = der Agent ist Mitglied (Rolle fest «Agent», 58). Reihenfolge fest alphabetisch, angehakte springen nicht nach oben. Liste höchstens 16rem hoch, scrollt.
+* **Welche Projekte:** nicht archivierte, in denen die Person Mitglieder verwalten darf (wie im heutigen Dialog). Hilfstext darunter: «Aufgeführt sind nur Projekte, in denen du Mitglieder verwalten darfst. Mitgliedschaften in anderen Projekten bleiben unverändert.» (Oliver schrieb «auf die du selbst Zugriff hast»; das stimmt nicht ganz, weil Zugriff allein zum Ändern nicht reicht. Frage in 13a.)
+* **Festlegung (Stuard bat darum): erst mit «Speichern», nicht sofort.** Begründung: (1) Das Entfernen aus einem Projekt ist folgenreich; erst mit «Speichern» steht vorher da, was geschieht. (2) Alle anderen Abschnitte der Seite speichern ebenso; eine Regel für die Seite. (3) Der alte Zugang-Dialog verlor stillschweigend Änderungen (Auftrag 58, H1); ein Kästchen, das sofort wirkt und still scheitern könnte, wäre dasselbe in anderer Form.
+* **Rückmeldung vor dem Speichern:** unter der Liste eine Zusammenfassung («Hinzu: …», «Entfernt: …»), `aria-live="polite"`; beim Entfernen der Zusatz «Tasks und Kommentare bleiben bei {Name}.». «Speichern» ist deaktiviert, solange nichts geändert ist. Ungespeicherte Änderungen: dieselbe Rückfrage beim Verlassen wie bei der Persona (7.2).
+* **Speichern:** je Änderung ein Aufruf nacheinander (Zuweisen bzw. Entfernen wie heute). Meldung «Projekte gespeichert.». Schlägt eine Änderung fehl, bleibt **genau diese Zeile** in ihrem gewünschten Zustand mit Fehlertext unter dem Projektnamen, die übrigen sind gespeichert; nichts geht still verloren.
+* **Viele Projekte:** Filterfeld ab 7 Projekten (nicht erst ab 8 wie bisher); Filtern blendet Zeilen aus, die Zusammenfassung zählt weiter alle Änderungen. Keine Seitenaufteilung.
+* **Keine Projekte zur Auswahl:** «Du kannst in keinem Projekt Mitglieder verwalten.»
 
 ### 7.4 Abschnitt «Zugänge» (`id="zugaenge"`)
 
 Aus `AgentAccessDialog` übernommen: Liste (Name, zuletzt benutzt, Ablauf, Widerrufen), «Zugang erzeugen» mit Passwort als Feld, einmalige Anzeige im Abschnitt mit «Abgelegt». Neu darüber ein Satz:
 
-> «Normalerweise richtet der Startbefehl den Zugang ein und legt ihn im Schlüsselbund ab (Reiter **Startbefehl**). Einen Zugang hier erzeugst du nur für einen Connector ohne Startbefehl, zum Beispiel in Claude Desktop.»
+> «Normalerweise richtet der Startbefehl den Zugang ein und legt ihn im Schlüsselbund ab (Reiter **Agent einsetzen**). Einen Zugang hier erzeugst du nur für einen Connector ohne Startbefehl, zum Beispiel in Claude Desktop.»
 
-Darunter klein: Adresse des MCP-Servers mit Kopieren und Link «Anleitung für den Connector» (aus dem heutigen Dialog). Die vier Schritte des heutigen Dialogs entfallen (Reiter «Startbefehl» ersetzt sie).
+Darunter klein: Adresse des MCP-Servers mit Kopieren und Link «Anleitung für den Connector» (aus dem heutigen Dialog). Die vier Schritte des heutigen Dialogs entfallen (Reiter «Agent einsetzen» ersetzt sie). Die Taste «Zugang erzeugen» heisst so ohne «+» (Regel 5).
 
 ### 7.5 Abschnitt «Deaktivieren»
 
@@ -212,29 +281,49 @@ Am Schluss, abgesetzt (`wa-divider`), Überschrift «Agent deaktivieren».
 
 ## 8. Reiter «Vorlagen»
 
+### 8.0 Beschreibung der Seite
+
+Über den Karten steht ein Beschreibungstext (`wa-callout variant="neutral"` ist zu laut; schlichter Absatz, leise Farbe), der erklärt, was eine Vorlage ist:
+
+> «Eine Vorlage ist ein fertiger Entwurf für einen Agenten: Rolle, Standardmodell und Anweisungen. Legst du aus einer Vorlage einen Agenten an, bekommt er eine **Kopie**. Danach sind beide unabhängig: Änderungen an der Vorlage wirken nicht auf bestehende Agenten, und was du am Agenten änderst, ändert die Vorlage nicht. Mitgelieferte Vorlagen kannst du anpassen und auf die Auslieferung zurücksetzen; eigene kannst du anlegen und löschen.»
+
+Der Reiter trägt die Zahl der Vorlagen als Pille (4).
+
 ### 8.1 Karten
 
 Raster (`wa-grid`, min. 16rem), je Vorlage eine `wa-card`:
 
 ```
-┌──────────────────────────────┐
-│ Coder              Mitgeliefert│
-│ Setzt Aufträge in Code um,    │
-│ mit Tests und Pull Request.   │
-│ Opus · 2 Agenten              │
-│ [Anlegen]          [···]      │
-└──────────────────────────────┘
+┌────────────────────────────────┐
+│ Coder                Mitgeliefert│
+│ Setzt Aufträge in Code um,      │
+│ schreibt Tests und öffnet den   │
+│ Pull Request. Hält sich an …    │
+│ Opus · 2 Agenten                │
+│ [Agent aus dieser Vorlage anlegen] [···] │
+└────────────────────────────────┘
 ```
 
 * Kopf: Name (`h3`), rechts Abzeichen **«Mitgeliefert»** (neutral) oder **«Eigene»** (brand); bei mitgelieferter mit geändertem Text zusätzlich «Geändert» (warning, outlined).
-* Beschreibung (eine Zeile, `description`), Modell, «{n} Agenten» (Zahl der Agenten mit dieser Herkunft; 0: nichts).
-* Taste «Anlegen» (öffnet 11 mit dieser Vorlage). Menü: Bearbeiten · Duplizieren · Auf Auslieferung zurücksetzen (nur mitgeliefert und geändert) · Löschen (nur eigene).
-* Am Ende eine leere Karte «Eigene Vorlage» mit `plus`, öffnet die Bearbeitung einer neuen Vorlage.
+* **Beschreibung: eine bis drei Zeilen** (`description`, höchstens 300 Zeichen). Darunter Standardmodell, «{n} Agenten» (Zahl der Agenten mit dieser Herkunft; 0: nichts).
+* **Aktion an der Karte:** Taste **«Agent aus dieser Vorlage anlegen»** (outlined, kein «+»), öffnet 11 mit dieser Vorlage. Auf schmalen Karten darf die Beschriftung umbrechen. Menü (`···`): Bearbeiten · Duplizieren · Auf Auslieferung zurücksetzen (nur mitgeliefert und geändert) · Löschen (nur eigene).
+* **Keine leere Karte «Eigene Vorlage» mehr** am Ende; dafür steht oben in der Kopfzeile **«+ Vorlage anlegen»** (4). Grund (Regel 8): eine Aktion, ein Ort; die Kopfzeile ist bei jeder Anzahl Karten gleich erreichbar. Öffnet die Bearbeitung einer neuen Vorlage (8.2). Vorschlag, Oliver entscheidet (13a).
 * Reihenfolge: `sort`, mitgelieferte zuerst.
+
+**Beschreibungen der mitgelieferten Vorlagen.** Planer und UX/UI sind Olivers Wortlaut (nur Schreibweise geglättet). Coder und Doku sind mein Vorschlag im selben Ton; **Oliver gibt sie frei** (13a). Die Texte stehen als Sprachschlüssel (`agents.templates.shipped.<schluessel>.description`, 18) und werden beim Anlegen der Auslieferung in `description` gespeichert, in der Sprache der Installation; die Anweisungen der Vorlagen schreibt weiter Clara (80).
+
+| Vorlage | Deutsch | Englisch |
+|---|---|---|
+| Planer | Plant mit dir zusammen das Projekt, macht Vorschläge, denkt an Vergessenes und fragt nach, wenn etwas unklar ist. Er führt den Stand, gibt Aufträge an die Agenten, prüft und beurteilt. Dein eigener Projektmanager. | Plans the project with you, makes suggestions, thinks of what you might have forgotten and asks when something is unclear. Keeps track of progress, hands out assignments to the agents, reviews and assesses their work. Your own project manager. |
+| Coder *(Vorschlag)* | Setzt Aufträge in Code um, schreibt Tests und öffnet den Pull Request. Hält sich an dein Vorgehen und meldet sich, wenn etwas unklar oder schwerer ist als gedacht. | Turns assignments into code, writes tests and opens the pull request. Follows your way of working and speaks up when something is unclear or harder than expected. |
+| UX/UI | Entwirft Abläufe, gestaltet Seiten und Oberflächen, schreibt Texte und stellt die Barrierefreiheit sicher. | Designs flows, lays out pages and interfaces, writes the texts and makes sure everything is accessible. |
+| Doku *(Vorschlag)* | Schreibt und pflegt Handbuch, README und Anleitungen in klarer Sprache. Prüft, ob die Texte zur Oberfläche passen, und hält Begriffe und Schreibweise einheitlich. | Writes and maintains the manual, README and guides in plain language. Checks that the texts match the interface and keeps terms and spelling consistent. |
+
+Die längste Beschreibung (Planer, 215 Zeichen) braucht auf einer Karte von 16rem etwa fünf Zeilen. Darum auf der Karte auf **drei Zeilen kürzen** (`-webkit-line-clamp: 3`) und den vollen Text im `title` und im Bearbeitungsformular zeigen. Die Grenze der Beschreibung ist deshalb **300 Zeichen** (nicht 160 wie zuerst vorgeschlagen; Olivers Text für den Planer hat 215).
 
 ### 8.2 Vorlage bearbeiten `/admin/agents/templates/:id` (neu: `/admin/agents/templates/new`)
 
-Gleiche Felder wie 7.2 (Name, Rolle, Modell, Werkzeug, Anweisungen), dazu **Beschreibung** (eine Zeile, max. 160, Pflicht). Dieselbe Komponente wie die Persona (`AgentPersonaForm`), damit beide gleich aussehen.
+Gleiche Felder wie 7.2 (Name, Rolle, Standardmodell, Werkzeug, Anweisungen), dazu **Beschreibung** (`FormTextarea`, 3 Zeilen, max. 300, Pflicht; steht auf der Karte). Dieselbe Komponente wie die Persona (`AgentPersonaForm`), damit beide gleich aussehen.
 
 * Hinweis oben: «Änderungen wirken nur auf Agenten, die du danach anlegst.»
 * **Zurücksetzen** (mitgeliefert): Taste im Kopf, Rückfrage in der Seite wie 7.5: «Text, Rolle und Modell der Auslieferung übernehmen? Deine Änderungen gehen verloren.»
@@ -252,42 +341,85 @@ Gleiche Felder wie 7.2 (Name, Rolle, Modell, Werkzeug, Anweisungen), dazu **Besc
 
 ---
 
-## 10. Reiter «Startbefehl»
+## 10. Reiter «Agent einsetzen»
 
-Anleitung als nummerierte Schritte (Muster der Schritte im heutigen Zugangsdialog: Nummer im Kreis, Text, darunter das Feld). Jeder Befehl in einem schreibgeschützten Feld mit Schrift `--wa-font-family-code` und Taste mit Symbol `copy` (`aria-label` «Befehl kopieren»), wie Kennung und Adresse heute.
+Der Reiter hiess «Startbefehl». Er heisst jetzt **«Agent einsetzen»** (Abnahme Oliver): Er zeigt nicht nur einen Befehl, sondern den ganzen Weg vom angelegten Agenten bis zur laufenden Sitzung. Das Wort «Startbefehl» bleibt dort im Text, wo der Befehl selbst gemeint ist (Schritt 4, Zugänge in 7.4, Dashboard-Hinweis 6.6, Befehlspalette «Startbefehl kopieren»).
 
-1. **Installieren** – «Einmal je Rechner. Braucht Node 20 oder neuer.»
-   `npm i -g {cliUrl}` (`{cliUrl}` = `<Adresse des Planers>/cli/mollo-planer.tgz` aus der Laufzeit-Konfiguration, nie fest)
-2. **Anmelden** – «Mit deinem persönlichen Zugang (Profil → Zugang für Claude). Er landet im Schlüsselbund.»
-   `mollo-planer login {planerUrl}`
-3. **Agent einrichten** – Auswahl «Agent» (`FormSelect`, aktive Agenten, Vorgabe: der erste) über dem Feld. «Erzeugt einen Zugang für den Agenten, legt ihn im Schlüsselbund ab und fragt nach dem Arbeitsordner.»
-   `mollo-planer agent setup {slug}` (Abweichung A5)
-4. **Starten** – «Ohne Namen erscheint ein Menü: Agent, Ordner, Modell.»
-   `mollo-planer agent {slug}` und darunter `mollo-planer agent`
-5. **Optional: Kurzbefehl** – «Danach genügt `agent`.» `mollo-planer agent --alias`
+Umbenannt sind: Reiter, Überschrift der Seite, Befehl der Palette (15), Verweise in 6.5, 7.4, 11, 16 und 19, Sprachschlüssel (18). Technischer Schlüssel `?tab=launch` bleibt.
+
+### 10.1 Beschreibungstext und «Mehr erfahren»
+
+Oben auf dem Reiter steht zuerst ein **kurzer Einführungstext** (zwei Sätze: wozu die Seite da ist, was man danach kann). Darunter ein zugeklapptes **«Mehr erfahren»** (`wa-details`, standardmässig zu; Zustand wird nicht gemerkt) mit der ausführlichen Erklärung. Erst danach die Schritte.
+
+*Einführungstext:* «Hier siehst du, wie du einen Agenten auf deinem Rechner startest. Danach arbeitet er in deinen Projekten, mit seiner Persona und den Gemeinsamen Regeln.»
+
+*«Mehr erfahren», drei kurze Absätze mit fetter Einleitung:*
+
+* **Was auf deinem Rechner passiert.** Ein Agent ist eine Claude-Sitzung auf deinem eigenen Rechner. Das Programm `mollo-planer` holt Persona und Gemeinsame Regeln vom Planer und startet damit Claude Code in dem Arbeitsordner, den du wählst. Alles Weitere, die Arbeit im Ordner und das Gespräch mit dem Agenten, bleibt auf deinem Rechner.
+* **Wo die Zugänge liegen.** Beim Einrichten erzeugt der Planer einen eigenen Zugang für den Agenten. Er wird im Schlüsselbund deines Rechners abgelegt, nicht in einer Datei und nicht im Browser. Jeder Agent hat seinen eigenen Zugang; du kannst ihn jederzeit widerrufen (Seite des Agenten, Abschnitt Zugänge) oder den Agenten deaktivieren.
+* **Was der Planer nie zu sehen bekommt.** Weder deinen Arbeitsordner noch deinen Code noch das Gespräch mit dem Agenten. Der Planer sieht nur, was der Agent über den Connector tut: Tasks lesen und ändern, Kommentare schreiben, und nur in den Projekten, denen du ihn zugewiesen hast.
+
+### 10.2 Schritte
+
+Nummerierte Schritte (Muster der Schritte im heutigen Zugangsdialog: Nummer im Kreis, Titel, darunter Text und Feld). Jeder Befehl in einem schreibgeschützten Feld mit Schrift `--wa-font-family-code` und Taste mit Symbol `copy` (`aria-label` «Befehl kopieren»).
+
+**Die Titel bleiben.** Neu steht **unter jedem Titel** eine kurze Erklärung in drei Zeilen mit leiser Beschriftung: **Wer** macht das, **Wozu**, **Wirkung**. Die Beschriftungen stehen als feste Wörter links (schmal: über dem Text). Danach das Feld mit dem Befehl.
+
+1. **Installieren**
+   * Wer: Du, am eigenen Rechner, einmal je Rechner.
+   * Wozu: Das Programm `mollo-planer` verbindet deinen Rechner mit dem Planer. Ohne es kann kein Agent starten.
+   * Wirkung: Installiert den Befehl `mollo-planer`. Braucht Node 20 oder neuer. Im Planer ändert sich nichts.
+   * `npm i -g {cliUrl}` (`{cliUrl}` = `<Adresse des Planers>/cli/mollo-planer.tgz` aus der Laufzeit-Konfiguration, nie fest)
+2. **Anmelden**
+   * Wer: Du, am eigenen Rechner, einmal je Rechner und Planer.
+   * Wozu: Das Programm muss wissen, in wessen Namen es Agenten einrichten darf. Dafür dient dein persönlicher Zugang (Profil → Zugang für Claude).
+   * Wirkung: Legt deinen Zugang im Schlüsselbund ab. Es entsteht keine Datei mit Zugangsdaten.
+   * `mollo-planer login {planerUrl}`
+3. **Agent einrichten**
+   * Wer: Du, am eigenen Rechner, mit dem Recht «Agenten verwalten». Der Agent muss vorher im Planer angelegt sein (Admin).
+   * Wozu: Jeder Agent bekommt einen eigenen Zugang. So kann er nur, was seine Projekte erlauben, und du kannst ihn einzeln widerrufen.
+   * Wirkung: Erzeugt im Planer einen Zugang für diesen Agenten, legt ihn im Schlüsselbund ab und fragt nach dem Arbeitsordner.
+   * Auswahl «Agent» (`FormSelect`, aktive Agenten, Vorgabe: der erste) über dem Feld; Beschriftung der Einträge siehe 10.3. `mollo-planer agent setup {slug}` (Abweichung A5)
+4. **Starten**
+   * Wer: Du, am eigenen Rechner, jedes Mal, wenn der Agent arbeiten soll.
+   * Wozu: Startet die Sitzung, in der der Agent arbeitet.
+   * Wirkung: Startet Claude Code im Arbeitsordner mit der Persona, den Gemeinsamen Regeln und dem Startsatz; der Agent sieht im Planer seine Tasks. Ohne Namen erscheint ein Menü: Agent, Ordner, Modell.
+   * `mollo-planer agent {slug}` und darunter `mollo-planer agent`
+5. **Optional: Kurzbefehl**
+   * Wer: Du, am eigenen Rechner, einmal, wenn du magst.
+   * Wozu: Weniger tippen.
+   * Wirkung: Richtet in deiner Shell den Kurzbefehl `agent` ein, der `mollo-planer agent` aufruft.
+   * `mollo-planer agent --alias`
 
 Unter den Schritten: `AppCallout variant="neutral"`: «Läuft auf macOS (Schlüsselbund) und Linux (Secret Service). Windows folgt.» und Link «Handbuch: Agenten einrichten» (`/help/agenten`, Kapitel von Clara, Auftrag 80; bis es da ist, ohne Link).
 
-**Ohne Agent:** Schritte 1 und 2 wie oben; statt 3 und 4 der Satz «Lege zuerst einen Agenten an.» mit Taste «Agent anlegen».
+**Ohne Agent:** Einführungstext, «Mehr erfahren» und Schritte 1 und 2 wie oben; statt 3 und 4 der Satz «Lege zuerst einen Agenten an.» mit Taste «+ Agent anlegen».
 
 Die Seite zeigt **keinen** Token und erzeugt keinen.
 
----
+### 10.3 Auswahl des Agenten in Schritt 3
+
+Im Auswahlfeld steht **nicht die Kennung**, sondern **Name und Vorlage bzw. Rolle**: «Bob (Coder)».
+
+* Klammer: der Name der Vorlage, aus der der Agent stammt (`template.name`); hat er keine Vorlage, die Rollenbezeichnung des Profils (`roleLabel`); fehlt auch die, nur der Name («Kim»).
+* Gibt es zwei Einträge mit gleichem Text (gleiche Namen sind erlaubt), hängt die Kennung ohne Domain an: «Bob (Coder) · bob-2». Der Befehl darunter nennt den Agenten ohnehin über `{slug}`.
+* Deaktivierte Agenten stehen nicht in der Auswahl.
 
 ## 11. Dialog «Agent anlegen»
 
-Ein Dialog mit **einem Formular**, nicht mit Schritten (Abweichung A3). Öffnet über «Agent anlegen» (Kopfzeile, Befehlspalette), über «Anlegen» an einer Vorlage, aus der Mitgliederseite (6.8).
+Ein Dialog mit **einem Formular**, nicht mit Schritten (Abweichung A3). Öffnet über «Agent anlegen» (Kopfzeile, Befehlspalette), über **«Agent aus dieser Vorlage anlegen»** an einer Vorlage (8.1), über die Karte «Eigenen Agenten anlegen» (6.5), die Taste unten an der Liste (6.2), aus der Mitgliederseite (6.8).
 
 ```
 Agent anlegen
   Vorlage      [Coder ▾]                 ← nur, wenn nicht von einer Vorlagenkarte geöffnet; dort als Text «Vorlage: Coder · Ändern»
   Name         [Bob            ]
                Kennung: bob@agent.invalid
-  Projekte     [🔍 Projekte filtern]
+  Projekte     [🔍 Projekte filtern]       ← erst ab 7 Projekten
                ☑ Kundenportal
                ☐ Website
                ☐ Archiv
-  Modell       [Opus ▾]                  ← Vorgabe aus der Vorlage
+               Aufgeführt sind nur Projekte, in denen du Mitglieder verwalten darfst.
+  Standardmodell [Opus ▾]                ← Vorgabe aus der Vorlage
   ◻ Zugang gleich hier erzeugen           ← Schalter, aus
     Normalerweise richtet der Startbefehl den Zugang ein.
   [Passwort]                              ← nur wenn nötig (PasswordConfirmField)
@@ -298,8 +430,8 @@ Agent anlegen
 |---|---|---|---|
 | Vorlage | nein | die gewählte; aus der Kopfzeile «Ohne Vorlage» | Auswahl: Vorlagen + «Ohne Vorlage» |
 | Name | ja | leer, Fokus hier | max. 120; Kennung live darunter (Vorschau, Server bestimmt endgültig) |
-| Projekte | nein | aus `?project=`, sonst keins | Liste mit Kontrollkästchen, nur nicht archivierte Projekte, in denen die Person Mitglieder verwalten darf; Filterfeld ab 8 Projekten; Liste höchstens 12rem hoch, scrollt |
-| Modell | ja | aus der Vorlage, sonst erstes der Liste | |
+| Projekte | nein | aus `?project=`, sonst keins | Dieselbe Liste mit Kontrollkästchen wie 7.3 (`AgentProjectList`), nur nicht archivierte Projekte, in denen die Person Mitglieder verwalten darf, mit demselben Hilfstext; Filterfeld ab 7 Projekten (Regel 7); Liste höchstens 12rem hoch, scrollt. Im Dialog wirken die Kästchen erst mit «Anlegen» |
+| Standardmodell | ja | aus der Vorlage, sonst erstes der Liste | Hinweis wie 7.2 |
 | Zugang gleich hier erzeugen | nein | aus | an: nach dem Anlegen wechselt der Dialog in den Zustand «Token einmal anzeigen» (Muster heute, «Abgelegt» schliesst) |
 
 * **Gleicher Name:** erlaubt (wie heute). Gibt es schon einen Agenten mit diesem Namen, steht unter dem Feld (warning, kein Fehler): «Es gibt schon einen Agenten «Bob». Der neue bekommt die Kennung bob-2@agent.invalid.» Grund: Die Kennung unterscheidet sie, und der Startbefehl spricht Agenten über sie an.
@@ -334,6 +466,21 @@ Am Task `k-2108` als Kommentar. Je mit Empfehlung zuerst.
 * **F3 · Anlegen:** (a) ein Formular im Dialog *(Empfehlung)*; (b) Schritte wie im Konzept.
 * **F4 · Benutzerseite:** (a) Agenten-Zeilen weg, eine Zeile mit Link *(Empfehlung)*; (b) Zeilen lesend behalten.
 * **F5 · Zugang beim Anlegen:** (a) Schalter, Standard aus *(Empfehlung)*; (b) Standard an; (c) ganz weg, nur Startbefehl und Seite des Agenten.
+
+### 13a. Offene Punkte aus den Nachträgen (`k-2152`)
+
+Am Task `k-2152` als Kommentar. Wo ich Stuards Auslegung nicht oder nur teilweise folge, steht es hier.
+
+* **N1 · Texte «Coder» und «Doku»:** Vorschlag in 8.1 (de und en). Oliver gibt frei oder ändert. Olivers Texte für «Planer» und «UX/UI» sind unverändert übernommen, nur ins Englische übertragen.
+* **N2 · Projekte auf der Seite des Agenten (4.4):** Festlegung **«Speichern»** statt sofortiger Wirkung, mit Zusammenfassung vor dem Speichern und Fehler je Zeile (7.3). Suche erst ab 7 Projekten, im Dialog ebenso (vorher 8).
+* **N3 · Englischer Name für «Agent einsetzen»:** Vorschlag **«Use an agent»**; Alternativen «Put an agent to work» (länger, genauer) und «Deploy agent» (klingt nach Software-Auslieferung, nicht empfohlen).
+* **N4 · Taste auf dem Reiter «Vorlagen» (3.3):** oben **«+ Vorlage anlegen»**, an der Karte **«Agent aus dieser Vorlage anlegen»**. Dafür entfällt die gestrichelte Karte «Eigene Vorlage» am Ende des Rasters (zwei Wege zur gleichen Aktion). Wenn Oliver die Karte behalten will, bleibt die Taste oben trotzdem.
+* **N5 · Dropdown in «Agent einsetzen» (5.4):** Klammer ist zuerst der Name der **Vorlage**, ohne Vorlage die **Rolle**; bei gleichem Text hängt die Kennung an («Bob (Coder) · bob-2»). Wenn die Rolle eines Agenten von der Vorlage abweicht (z. B. «Backend-Coder»), zeigt die Liste «Coder (Rolle)» und das Dropdown «Coder (Vorlage)»; ich halte das für vertretbar, die Alternative wäre immer die Rolle.
+* **N6 · Hilfstext der Projektliste (4.4):** Olivers «auf die du selbst Zugriff hast» ist zu weit gefasst (Zugriff genügt nicht, um Mitglieder zu verwalten). Vorschlag: «… in denen du Mitglieder verwalten darfst.»
+* **N7 · Leerer Zustand (2):** Der Einführungstext bleibt **wörtlich**. Sein letzter Satz («Wähle eine Vorlage, um den ersten anzulegen.») passt nun weniger, weil die Karte «Eigenen Agenten anlegen» davor steht. Vorschlag: «Lege den ersten an, von Grund auf oder aus einer Vorlage.» Entscheid bei Oliver.
+* **N8 · Regel «+» (1.5):** Ich lese sie als «kein «+» an Tasten ausser bei anlegen/hinzufügen». «+2» als Zahlzusatz bei Projekten in der Zeile bleibt (6.2).
+* **N9 · Beschreibung der Vorlagen:** Obergrenze **300 Zeichen** statt 160 (Olivers Planer-Text hat 215); auf der Karte drei Zeilen, der volle Text im `title`.
+* **N10 · Zahl in Reitern (1.6):** Die Regel gilt hier für alle Reiter dieser Seite. Andere Reiter der App mit Zahl in Klammern sind nicht Teil dieses PR; Stuard entscheidet, ob ein kleiner Auftrag sie umstellt.
 
 ---
 
@@ -409,9 +556,9 @@ Auf `/admin/agents` (`useCommands`, Gruppe `action`):
 | id | Text | Wirkung |
 |---|---|---|
 | `agents-create` | Agent anlegen | Dialog 11 |
-| `agents-template-create` | Vorlage anlegen | `templates/new` |
+| `agents-template-create` | Vorlage anlegen | `templates/new` (ersetzt die Taste «+ Vorlage anlegen» der Kopfzeile, 4) |
 | `agents-rules` | Gemeinsame Regeln bearbeiten | Reiter `rules` |
-| `agents-launch` | Startbefehl einrichten | Reiter `launch` |
+| `agents-launch` | Agent einsetzen | Reiter `launch` |
 
 Auf der Seite eines Agenten: `agent-copy-launch` «Startbefehl kopieren», `agent-create-token` «Zugang erzeugen» (springt zu `#zugaenge`). Auf `/ideas`: `ideas-for-me` «Vorschläge für mich zeigen».
 
@@ -431,10 +578,12 @@ Auf der Seite eines Agenten: `agent-copy-launch` «Startbefehl kopieren», `agen
 ## 17. Schmal (unter 40em), Tastatur, Fokus, dunkles Thema
 
 **Schmal (390 px):**
-* Zeile eines Agenten in drei Zeilen: (1) Avatar, Name, Menü; (2) Rolle · Modell; (3) Kennung mit Kopieren. Projekte und «zuletzt aktiv» ausgeblendet; Zugangsstand als Taste **nur mit Symbol** (`key`, Farbe nach Zustand), `aria-label` und `wa-tooltip` mit dem Text (behebt F1).
-* Reiter scrollen waagrecht (Verhalten von `wa-tab-group`).
+* Zeile eines Agenten in drei Zeilen: (1) Avatar, Name, Menü; (2) Rolle · Modell; (3) Pille «ID» (Tooltip und Kopieren wie in 6.2). Projekte und «zuletzt aktiv» ausgeblendet; Zugangsstand als Taste **nur mit Symbol** (`key`, Farbe nach Zustand), `aria-label` und `wa-tooltip` mit dem Text (behebt F1).
+* Reiter scrollen waagrecht (Verhalten von `wa-tab-group`); die Pille bleibt am Titel.
+* Seite des Agenten: Befehlszeile «Starte Bob mit:» auf zwei Zeilen (Text, darunter Befehl mit Kopieren-Taste); Projektliste einspaltig; Wer/Wozu/Wirkung in «Agent einsetzen» untereinander mit der Beschriftung über dem Text.
+* Leerer Zustand: Karte «Eigenen Agenten anlegen» und Vorlagenkarten einspaltig, Reihenfolge wie breit.
 * Vorlagenkarten einspaltig.
-* Befehle im Reiter «Startbefehl»: Feld bricht nicht um, scrollt waagrecht; Kopieren-Taste rechts bleibt sichtbar.
+* Befehle im Reiter «Agent einsetzen»: Feld bricht nicht um, scrollt waagrecht; Kopieren-Taste rechts bleibt sichtbar.
 * Dialoge wie `AppDialog` heute; die Projektliste im Anlegen-Dialog höchstens 40vh.
 * Trefferflächen mindestens 44 × 44 px.
 
@@ -457,12 +606,14 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 |---|---|---|
 | `nav.agents` | Agenten | Agents |
 | `agents.title` | Agenten | Agents |
-| `agents.intro` | Agenten arbeiten über den Connector in deinen Projekten. Hier legst du sie an, gibst ihnen eine Persona und richtest den Startbefehl ein. | Agents work in your projects through the connector. Create them here, give them a persona and set up the launch command. |
-| `agents.tabs.agents` | Agenten ({count}) | Agents ({count}) |
+| `agents.intro` | Agenten arbeiten über den Connector in deinen Projekten. Hier legst du sie an, gibst ihnen eine Persona und setzt sie auf deinem Rechner ein. | Agents work in your projects through the connector. Create them here, give them a persona and put them to work on your computer. |
+| `agents.tabs.agents` | Agenten | Agents |
 | `agents.tabs.templates` | Vorlagen | Templates |
 | `agents.tabs.rules` | Gemeinsame Regeln | Shared rules |
-| `agents.tabs.launch` | Startbefehl | Launch command |
+| `agents.tabs.launch` | Agent einsetzen | Use an agent |
+| `agents.tabs.countLabel` | {tab}, {count} (nur `aria-label`; sichtbar ist die Pille, Regel 6) | {tab}, {count} (`aria-label` only; the pill is what you see, rule 6) |
 | `agents.create` | Agent anlegen | Create agent |
+| `agents.templates.createNew` | Vorlage anlegen | Create template |
 | `agents.search` | Agenten suchen | Search agents |
 | `agents.deactivatedSection` | Deaktiviert ({count}) | Deactivated ({count}) |
 | `agents.noProfile` | Ohne Persona | No persona |
@@ -470,12 +621,19 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 | `agents.moreProjects` | +{count} | +{count} |
 | `agents.lastActive` | zuletzt aktiv {time} | last active {time} |
 | `agents.neverActive` | noch nie aktiv | never active |
+| `agents.id.label` | ID | ID |
+| `agents.id.tooltip` | Kennung: {identifier} | Identifier: {identifier} |
+| `agents.id.copied` | Kennung kopiert. | Identifier copied. |
+| `agents.launchWith` | Starte {name} mit: | Start {name} with: |
+| `agents.launchDeactivated` | Deaktiviert. Reaktiviere ihn, um ihn zu starten. | Deactivated. Reactivate it to start it. |
 | `agents.copyLaunch` | Startbefehl kopieren | Copy launch command |
 | `agents.launchCopied` | Befehl kopiert. | Command copied. |
 | `agents.loadError` | Die Agenten konnten nicht geladen werden. | The agents could not be loaded. |
 | `agents.empty.title` | Noch keine Agenten | No agents yet |
 | `agents.empty.description` | Ein Agent arbeitet über den Connector in deinen Projekten, zum Beispiel als Coder oder für die Planung. Wähle eine Vorlage, um den ersten anzulegen. | An agent works in your projects through the connector, for example as a coder or for planning. Choose a template to create the first one. |
-| `agents.empty.blank` | Leer anlegen | Create blank |
+| `agents.empty.own.title` | Eigenen Agenten anlegen | Create your own agent |
+| `agents.empty.own.text` | Du gibst Name, Rolle und Anweisungen selbst an. | You enter name, role and instructions yourself. |
+| `agents.empty.fromTemplate` | Oder aus einer Vorlage einen Agenten erstellen | Or create an agent from a template |
 | `agents.hint.dashboard` | Mit Agenten arbeiten: Lege einen Agenten an und starte ihn mit dem Startbefehl auf deinem Rechner. | Work with agents: create an agent and start it with the launch command on your computer. |
 | `agents.hint.open` | Agenten ansehen | View agents |
 | `agents.hint.dismiss` | Ausblenden | Dismiss |
@@ -485,25 +643,36 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 | `agents.origin.template` | Aus Vorlage {template} | From template {template} |
 | `agents.origin.none` | Ohne Vorlage | No template |
 | `agents.origin.tooltip` | Kopie der Vorlage vom {date}. Änderungen an der Vorlage wirken nicht auf diesen Agenten. | Copied from the template on {date}. Changes to the template do not affect this agent. |
+| `agents.origin.identifier` | Kennung: {identifier} | Identifier: {identifier} |
 | `agents.persona.title` | Persona | Persona |
 | `agents.persona.name` | Name | Name |
 | `agents.persona.nameHint` | Ändert die Kennung nicht. | Does not change the identifier. |
 | `agents.persona.role` | Rolle | Role |
 | `agents.persona.roleHint` | Kurz, z. B. Coder. Steht in der Liste und im Namen der Sitzung. | Short, e.g. Coder. Shown in the list and in the session name. |
-| `agents.persona.model` | Modell | Model |
-| `agents.persona.modelHint` | Beim Start mit --model änderbar. | Can be changed at launch with --model. |
+| `agents.persona.model` | Standardmodell | Default model |
+| `agents.persona.modelHint` | Mit diesem Modell startet der Agent. Umschalten ist jederzeit möglich, beim Start mit --model. | The agent starts with this model. You can switch at any time, at launch with --model. |
 | `agents.persona.tool` | Werkzeug | Tool |
 | `agents.persona.toolHint` | Weitere Werkzeuge folgen. | More tools will follow. |
 | `agents.persona.instructions` | Anweisungen | Instructions |
-| `agents.persona.instructionsHint` | Wird beim Start nach den Gemeinsamen Regeln mitgegeben. | Given at launch after the shared rules. |
+| `agents.persona.instructionsHint` | Hier stehen nur Anweisungen für diesen Agenten. Was für alle Agenten gilt, steht unter {link}. Beim Start erhält er zuerst jene, dann diese. (`{link}` = «Gemeinsame Regeln», Link auf `?tab=rules`) | These are instructions for this agent only. What applies to all agents is under {link}. At launch it receives those first, then these. (`{link}` = “Shared rules”, link to `?tab=rules`) |
+| `agents.persona.instructionsHintTemplate` | Hier stehen nur Anweisungen für Agenten aus dieser Vorlage. Was für alle Agenten gilt, steht unter {link}. | These are instructions for agents from this template only. What applies to all agents is under {link}. |
 | `agents.persona.startPrompt` | Startsatz | Opening line |
 | `agents.persona.startPromptHint` | Der erste Satz, den der Agent beim Start erhält. Leer: Vorgabe der Gemeinsamen Regeln. | The first line the agent receives at launch. Empty: the default from the shared rules. |
 | `agents.persona.missing` | Dieser Agent hat noch keine Persona. Übernimm eine Vorlage oder schreibe die Anweisungen selbst. | This agent has no persona yet. Apply a template or write the instructions yourself. |
 | `agents.persona.apply` | Übernehmen | Apply |
 | `agents.persona.saved` | Persona gespeichert. | Persona saved. |
 | `agents.persona.discard` | Änderungen verwerfen? | Discard changes? |
+| `agents.projects.title` | Projekte | Projects |
+| `agents.projects.hint` | Aufgeführt sind nur Projekte, in denen du Mitglieder verwalten darfst. Mitgliedschaften in anderen Projekten bleiben unverändert. | Only projects in which you can manage members are listed. Memberships in other projects stay unchanged. |
+| `agents.projects.filter` | Projekte filtern | Filter projects |
+| `agents.projects.empty` | Du kannst in keinem Projekt Mitglieder verwalten. | You cannot manage members in any project. |
+| `agents.projects.added` | Hinzu: {list}. | Added: {list}. |
+| `agents.projects.removed` | Entfernt: {list}. Tasks und Kommentare bleiben bei {name}. | Removed: {list}. Tasks and comments stay with {name}. |
+| `agents.projects.save` | Speichern | Save |
+| `agents.projects.saved` | Projekte gespeichert. | Projects saved. |
+| `agents.projects.rowError` | Nicht gespeichert: {message} | Not saved: {message} |
 | `agents.access.title` | Zugänge | Access |
-| `agents.access.intro` | Normalerweise richtet der Startbefehl den Zugang ein und legt ihn im Schlüsselbund ab (Reiter Startbefehl). Einen Zugang hier erzeugst du nur für einen Connector ohne Startbefehl, zum Beispiel in Claude Desktop. | Usually the launch command sets up the access and stores it in the keychain (Launch command tab). Create an access here only for a connector without the launch command, for example in Claude Desktop. |
+| `agents.access.intro` | Normalerweise richtet der Startbefehl den Zugang ein und legt ihn im Schlüsselbund ab (Reiter Agent einsetzen). Einen Zugang hier erzeugst du nur für einen Connector ohne Startbefehl, zum Beispiel in Claude Desktop. | Usually the launch command sets up the access and stores it in the keychain (Use an agent tab). Create an access here only for a connector without the launch command, for example in Claude Desktop. |
 | `agents.deactivate.title` | Agent deaktivieren | Deactivate agent |
 | `agents.deactivate.text` | Widerruft alle Zugänge und sperrt das Konto. Der Agent bleibt Mitglied seiner Projekte; Tasks und Kommentare bleiben bei ihm. Du kannst ihn später reaktivieren. | Revokes all access and locks the account. The agent stays a member of its projects; tasks and comments stay with it. You can reactivate it later. |
 | `agents.deactivate.start` | Deaktivieren … | Deactivate … |
@@ -518,8 +687,12 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 | `agents.templates.custom` | Eigene | Custom |
 | `agents.templates.changed` | Geändert | Changed |
 | `agents.templates.usage` | {count} Agent \| {count} Agenten | {count} agent \| {count} agents |
-| `agents.templates.use` | Anlegen | Create |
-| `agents.templates.new` | Eigene Vorlage | Custom template |
+| `agents.templates.intro` | Eine Vorlage ist ein fertiger Entwurf für einen Agenten: Rolle, Standardmodell und Anweisungen. Legst du aus einer Vorlage einen Agenten an, bekommt er eine Kopie. Danach sind beide unabhängig: Änderungen an der Vorlage wirken nicht auf bestehende Agenten, und was du am Agenten änderst, ändert die Vorlage nicht. Mitgelieferte Vorlagen kannst du anpassen und auf die Auslieferung zurücksetzen; eigene kannst du anlegen und löschen. | A template is a ready-made draft for an agent: role, default model and instructions. When you create an agent from a template, it gets a copy. After that the two are independent: changes to the template do not affect existing agents, and what you change on the agent does not change the template. You can adjust built-in templates and reset them to the default; you can create and delete your own. |
+| `agents.templates.shipped.planner.description` | Plant mit dir zusammen das Projekt, macht Vorschläge, denkt an Vergessenes und fragt nach, wenn etwas unklar ist. Er führt den Stand, gibt Aufträge an die Agenten, prüft und beurteilt. Dein eigener Projektmanager. | Plans the project with you, makes suggestions, thinks of what you might have forgotten and asks when something is unclear. Keeps track of progress, hands out assignments to the agents, reviews and assesses their work. Your own project manager. |
+| `agents.templates.shipped.coder.description` | Setzt Aufträge in Code um, schreibt Tests und öffnet den Pull Request. Hält sich an dein Vorgehen und meldet sich, wenn etwas unklar oder schwerer ist als gedacht. *(Vorschlag, Oliver gibt frei)* | Turns assignments into code, writes tests and opens the pull request. Follows your way of working and speaks up when something is unclear or harder than expected. *(proposal, Oliver to approve)* |
+| `agents.templates.shipped.ux.description` | Entwirft Abläufe, gestaltet Seiten und Oberflächen, schreibt Texte und stellt die Barrierefreiheit sicher. | Designs flows, lays out pages and interfaces, writes the texts and makes sure everything is accessible. |
+| `agents.templates.shipped.docs.description` | Schreibt und pflegt Handbuch, README und Anleitungen in klarer Sprache. Prüft, ob die Texte zur Oberfläche passen, und hält Begriffe und Schreibweise einheitlich. *(Vorschlag, Oliver gibt frei)* | Writes and maintains the manual, README and guides in plain language. Checks that the texts match the interface and keeps terms and spelling consistent. *(proposal, Oliver to approve)* |
+| `agents.templates.use` | Agent aus dieser Vorlage anlegen | Create agent from this template |
 | `agents.templates.edit` | Bearbeiten | Edit |
 | `agents.templates.duplicate` | Duplizieren | Duplicate |
 | `agents.templates.copyName` | {name} (Kopie) | {name} (copy) |
@@ -533,15 +706,35 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 | `agents.rules.startPromptHint` | {name} wird durch den Namen des Agenten ersetzt. | {name} is replaced by the agent's name. |
 | `agents.rules.lastChanged` | Zuletzt geändert am {date} von {name} | Last changed on {date} by {name} |
 | `agents.launch.install` | Installieren | Install |
-| `agents.launch.installHint` | Einmal je Rechner. Braucht Node 20 oder neuer. | Once per computer. Needs Node 20 or later. |
 | `agents.launch.login` | Anmelden | Sign in |
-| `agents.launch.loginHint` | Mit deinem persönlichen Zugang (Profil → Zugang für Claude). Er landet im Schlüsselbund. | With your personal access (Profile → Access for Claude). It is stored in the keychain. |
 | `agents.launch.setup` | Agent einrichten | Set up agent |
-| `agents.launch.setupHint` | Erzeugt einen Zugang für den Agenten, legt ihn im Schlüsselbund ab und fragt nach dem Arbeitsordner. | Creates an access for the agent, stores it in the keychain and asks for the working folder. |
 | `agents.launch.start` | Starten | Start |
-| `agents.launch.startHint` | Ohne Namen erscheint ein Menü: Agent, Ordner, Modell. | Without a name a menu appears: agent, folder, model. |
 | `agents.launch.alias` | Optional: Kurzbefehl | Optional: shortcut |
-| `agents.launch.aliasHint` | Danach genügt agent. | Afterwards agent is enough. |
+| `agents.launch.intro` | Hier siehst du, wie du einen Agenten auf deinem Rechner startest. Danach arbeitet er in deinen Projekten, mit seiner Persona und den Gemeinsamen Regeln. | Here you see how to start an agent on your computer. After that it works in your projects, with its persona and the shared rules. |
+| `agents.launch.more` | Mehr erfahren | Learn more |
+| `agents.launch.more1` | **Was auf deinem Rechner passiert.** Ein Agent ist eine Claude-Sitzung auf deinem eigenen Rechner. Das Programm mollo-planer holt Persona und Gemeinsame Regeln vom Planer und startet damit Claude Code in dem Arbeitsordner, den du wählst. Alles Weitere, die Arbeit im Ordner und das Gespräch mit dem Agenten, bleibt auf deinem Rechner. | **What happens on your computer.** An agent is a Claude session on your own computer. The mollo-planer program fetches persona and shared rules from the planner and uses them to start Claude Code in the working folder you choose. Everything else, the work in the folder and the conversation with the agent, stays on your computer. |
+| `agents.launch.more2` | **Wo die Zugänge liegen.** Beim Einrichten erzeugt der Planer einen eigenen Zugang für den Agenten. Er wird im Schlüsselbund deines Rechners abgelegt, nicht in einer Datei und nicht im Browser. Jeder Agent hat seinen eigenen Zugang; du kannst ihn jederzeit widerrufen (Seite des Agenten, Abschnitt Zugänge) oder den Agenten deaktivieren. | **Where the access is stored.** When you set up an agent, the planner creates a separate access for it. It is stored in your computer's keychain, not in a file and not in the browser. Every agent has its own access; you can revoke it at any time (agent page, Access section) or deactivate the agent. |
+| `agents.launch.more3` | **Was der Planer nie zu sehen bekommt.** Weder deinen Arbeitsordner noch deinen Code noch das Gespräch mit dem Agenten. Der Planer sieht nur, was der Agent über den Connector tut: Tasks lesen und ändern, Kommentare schreiben, und nur in den Projekten, denen du ihn zugewiesen hast. | **What the planner never sees.** Neither your working folder nor your code nor the conversation with the agent. The planner only sees what the agent does through the connector: reading and changing tasks, writing comments, and only in the projects you assigned it to. |
+| `agents.launch.who` | Wer | Who |
+| `agents.launch.why` | Wozu | Why |
+| `agents.launch.effect` | Wirkung | Effect |
+| `agents.launch.installWho` | Du, am eigenen Rechner, einmal je Rechner. | You, on your own computer, once per computer. |
+| `agents.launch.installWhy` | Das Programm mollo-planer verbindet deinen Rechner mit dem Planer. Ohne es kann kein Agent starten. | The mollo-planer program connects your computer to the planner. No agent can start without it. |
+| `agents.launch.installEffect` | Installiert den Befehl mollo-planer. Braucht Node 20 oder neuer. Im Planer ändert sich nichts. | Installs the mollo-planer command. Needs Node 20 or later. Nothing changes in the planner. |
+| `agents.launch.loginWho` | Du, am eigenen Rechner, einmal je Rechner und Planer. | You, on your own computer, once per computer and planner. |
+| `agents.launch.loginWhy` | Das Programm muss wissen, in wessen Namen es Agenten einrichten darf. Dafür dient dein persönlicher Zugang (Profil → Zugang für Claude). | The program has to know on whose behalf it may set up agents. Your personal access (Profile → Access for Claude) does that. |
+| `agents.launch.loginEffect` | Legt deinen Zugang im Schlüsselbund ab. Es entsteht keine Datei mit Zugangsdaten. | Stores your access in the keychain. No file with credentials is created. |
+| `agents.launch.setupWho` | Du, am eigenen Rechner, mit dem Recht «Agenten verwalten». Der Agent muss vorher im Planer angelegt sein (Admin). | You, on your own computer, with the right “Manage agents”. The agent must be created in the planner first (admin). |
+| `agents.launch.setupWhy` | Jeder Agent bekommt einen eigenen Zugang. So kann er nur, was seine Projekte erlauben, und du kannst ihn einzeln widerrufen. | Every agent gets its own access. It can then only do what its projects allow, and you can revoke it individually. |
+| `agents.launch.setupEffect` | Erzeugt im Planer einen Zugang für diesen Agenten, legt ihn im Schlüsselbund ab und fragt nach dem Arbeitsordner. | Creates an access for this agent in the planner, stores it in the keychain and asks for the working folder. |
+| `agents.launch.startWho` | Du, am eigenen Rechner, jedes Mal, wenn der Agent arbeiten soll. | You, on your own computer, every time the agent should work. |
+| `agents.launch.startWhy` | Startet die Sitzung, in der der Agent arbeitet. | Starts the session in which the agent works. |
+| `agents.launch.startEffect` | Startet Claude Code im Arbeitsordner mit der Persona, den Gemeinsamen Regeln und dem Startsatz; der Agent sieht im Planer seine Tasks. Ohne Namen erscheint ein Menü: Agent, Ordner, Modell. | Starts Claude Code in the working folder with the persona, the shared rules and the opening line; the agent sees its tasks in the planner. Without a name a menu appears: agent, folder, model. |
+| `agents.launch.aliasWho` | Du, am eigenen Rechner, einmal, wenn du magst. | You, on your own computer, once, if you like. |
+| `agents.launch.aliasWhy` | Weniger tippen. | Less typing. |
+| `agents.launch.aliasEffect` | Richtet in deiner Shell den Kurzbefehl agent ein, der mollo-planer agent aufruft. | Sets up the shortcut agent in your shell, which calls mollo-planer agent. |
+| `agents.launch.pick` | {name} ({role}) | {name} ({role}) |
+| `agents.launch.pickDuplicate` | {name} ({role}) · {slug} | {name} ({role}) · {slug} |
 | `agents.launch.copy` | Befehl kopieren | Copy command |
 | `agents.launch.platforms` | Läuft auf macOS (Schlüsselbund) und Linux (Secret Service). Windows folgt. | Runs on macOS (Keychain) and Linux (Secret Service). Windows will follow. |
 | `agents.launch.manual` | Handbuch: Agenten einrichten | Manual: setting up agents |
@@ -551,8 +744,7 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 | `agents.new.noTemplate` | Ohne Vorlage | No template |
 | `agents.new.identifierPreview` | Kennung: {identifier} | Identifier: {identifier} |
 | `agents.new.sameName` | Es gibt schon einen Agenten «{name}». Der neue bekommt die Kennung {identifier}. | There is already an agent “{name}”. The new one gets the identifier {identifier}. |
-| `agents.new.projects` | Projekte | Projects |
-| `agents.new.filterProjects` | Projekte filtern | Filter projects |
+| `agents.new.projects` | Projekte (Liste und Hilfstext: `agents.projects.*`) | Projects (list and hint: `agents.projects.*`) |
 | `agents.new.createToken` | Zugang gleich hier erzeugen | Create access here now |
 | `agents.new.createTokenHint` | Normalerweise richtet der Startbefehl den Zugang ein. | Usually the launch command sets up the access. |
 | `agents.new.submit` | Anlegen | Create |
@@ -600,14 +792,15 @@ Neuer Bereich `agents` in `i18n/locales/{de,en}.json`. Bestehende Schlüssel unt
 ## 19. Für die Bau-Aufträge (Hinweise an Stuard)
 
 * **Backend (76):** zusätzlich zum Konzept: `agents` liefert `isActive`, `hasProfile`, `template { id name }`, `templateCopiedAt`, `lastActiveAt`; `agentTemplates` liefert `isModified` (mitgeliefert, Text weicht von der Auslieferung ab) und `agentCount`; `deactivateAgent`/`reactivateAgent`; `agentSharedRules` mit `updatedAt`, `updatedBy`. Instructions als RichText, `agentLaunchConfig` als Markdown (A2). Ideen: `viewerCanAdopt`, `addressedTo`, `kind`, `discardReason`, `adoptedProject`, `isDraftValid` + Meldungen, Zahl `openProposalsForMe` am Viewer (Menü, Dashboard).
-* **Seite (78):** Komponenten `AgentList`, `AgentRow`, `AgentPersonaForm` (Agent und Vorlage), `AgentTemplateCard`, `AgentCreateDialog`, `LaunchSteps`, `IdeaProposalCard`, `IdeaAdoptDialog`. `AgentAccessDialog` wird in zwei Abschnittskomponenten zerlegt (`AgentAccessSection`, `AgentProjectsSection`); Verhalten und Tests (`e2e/agent-access.spec.ts`) ziehen mit.
+* **Seite (78):** Komponenten `AgentList`, `AgentRow`, `AgentPersonaForm` (Agent und Vorlage), `AgentTemplateCard`, `AgentCreateDialog`, `LaunchSteps` (mit Einführung, «Mehr erfahren» und Wer/Wozu/Wirkung), `AgentProjectList` (Kontrollkästchen, Zusammenfassung, Speichern; Agentenseite und Dialog), `IdeaProposalCard`, `IdeaAdoptDialog`. `AgentAccessDialog` wird in zwei Abschnittskomponenten zerlegt (`AgentAccessSection`, `AgentProjectsSection` (nutzt `AgentProjectList`)); Verhalten und Tests (`e2e/agent-access.spec.ts`) ziehen mit.
 * **CLI (79):** `setup` statt `einrichten`, Agent per Kennungs-Teil (A5); `--alias` für den Kurzbefehl.
-* **Handbuch (80):** Kapitel-Kennung `agenten` für den Link aus 10.
-* **Tests:** Vitest für die Zustände der Liste (leer, ohne Persona, deaktiviert, Suche ab 6), Vorlagen (Abzeichen, Zurücksetzen nur bei geändert), Anlegen (gleicher Name, Vorwahl Projekt), Ideen (Filter «Für mich» vorgewählt, Zahl, vier Zustände); Playwright: Anlegen bis Startbefehl kopieren, Deaktivieren mit Rückfrage, Annehmen eines Vorschlags, 390 px, dunkles Thema; Bildschirmfotos nach R1.
+* **Handbuch (80):** Kapitel-Kennung `agenten` für den Link aus 10. Das Kapitel heisst im Handbuch ebenfalls «Agent einsetzen».
+* **Reiter mit Zahl (Regel 6):** `wa-tab-group` bekommt die Zahl als `wa-badge pill` im Titel (Komponente `TabLabel`); weitere Reiter der App mit Zahl in Klammern (`grep "({count})"`) stellt Stuard in einem eigenen kleinen Auftrag um.
+* **Tests:** Vitest für die Zustände der Liste (leer mit Karte «Eigenen Agenten anlegen» vor den Vorlagen, ohne Persona, deaktiviert, **Suche erst ab 7**, Pille «ID» mit Kennung im Tooltip und `aria-label`, Kopieren der Kennung, Taste unten an der Liste, Zahl als Pille am Reiter), Vorlagen (Abzeichen, Zurücksetzen nur bei geändert), Anlegen (gleicher Name, Vorwahl Projekt), Ideen (Filter «Für mich» vorgewählt, Zahl, vier Zustände); Playwright: Anlegen bis Startbefehl kopieren, Deaktivieren mit Rückfrage, Annehmen eines Vorschlags, 390 px, dunkles Thema; Bildschirmfotos nach R1.
 
 ## 20. Nicht Teil
 
-* Texte der Vorlagen und Gemeinsamen Regeln (Clara, 80).
+* Anweisungen der Vorlagen und Text der Gemeinsamen Regeln (Clara, 80). Die **Beschreibungen** der vier mitgelieferten Vorlagen stehen in 8.1.
 * Protokoll von Änderungen an Agenten (53).
 * Weitere Werkzeuge ausser Claude Code (Adapter offen, Auswahl gesperrt).
 * F3 (Breadcrumb «Verwaltung») und F1 als Sofort-Fix: eigener kleiner Punkt, wenn Stuard ihn vor 78 will.
