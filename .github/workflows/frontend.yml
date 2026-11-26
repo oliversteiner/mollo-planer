@@ -5,10 +5,9 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
+  # Pull requests: every job runs for every pull request, without a path filter (Auftrag 69 B), so a required check never
+  # stays «missing». Pushes (deploy) keep the filter.
   pull_request:
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
 
 defaults:
   run:
@@ -16,6 +15,7 @@ defaults:
 
 jobs:
   ci:
+    name: 'Frontend: Lint, Typen, Tests, Build'
     runs-on: ubuntu-latest
     env:
       PRO_ASSETS_TOKEN: ${{ secrets.PRO_ASSETS_TOKEN }}
