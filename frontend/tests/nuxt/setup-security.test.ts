@@ -98,7 +98,7 @@ describe('setup security page, after the first factor', () => {
   it('stays and says so for the other failures', async () => {
     load.mockResolvedValue('unknown')
     await setUp()
-    expect(add).toHaveBeenCalledWith({ title: 'Die Anfrage ist fehlgeschlagen.', color: 'error' })
+    expect(add).toHaveBeenCalledWith({ title: 'Das hat nicht geklappt. Bitte nochmals versuchen.', color: 'error' })
 
     add.mockReset()
     load.mockResolvedValue('csrf')

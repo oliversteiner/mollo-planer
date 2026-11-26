@@ -26,7 +26,16 @@ Bei Widerspruch gilt das weiter oben genannte Dokument. Widersprüche nicht stil
 - `frontend-webawesome-plan.md`, `frontend-plan.md`: Oberfläche (Web Awesome, Seiten)
 - `registrierung-plan.md`: Selbstregistrierung und Freigabe
 - `system-plan.md`: Status und Datenbank-Doku
-- `deploy-template.md`: Deployment bei Hostpoint
+- `installation.md`: Anforderungen an den Server (Shared Hosting), erste Einrichtung, erster Admin, KI-Assistent
+- `lokal.md`: lokal arbeiten: Demo-Daten, Postman, Anmelden per API, Claude lokal anbinden
+- `deployment.md`: automatisches Deployment mit zwei Umgebungen (TEST, PROD), Fehlersuche, Zurückrollen
+- `betrieb.md`: auf dem laufenden Server: Nutzer, E-Mail, Rolle, Freigabe, zweiter Faktor
+- `deploy-template.md`: Deployment beim Webhoster
+- `abrechnung.md`: Abrechnung (Auftrag 39), warum zwei PDF-Bibliotheken (mPDF, FPDF für den Zahlteil)
+- `ux-projektseite.md`: UX-Review und Spezifikation der Projektseite: Milestones auf- und zuklappen, Preise am Milestone (Auftrag 61, entschieden 25.11.)
+- `lokale-konten.md`: lokale Konten bleiben bei jedem Neuaufbau der Datenbank, Dump von TEST lokal einspielen
+- `tests-lokal.md`: Tests schnell laufen lassen (parallel, Gruppe `mariadb`), Recht und Einstellungen der lokalen MariaDB nur für Tests
+- `handbuch.md`: Handbuch aus einer Quelle (Hilfe in der App, Prompts, Ausgabe für Agenten); Leitfaden für Kapitel in `handbuch/README.md`
 - `desktop-plan.md`: geplante Desktop-App (Tauri)
 - `claude-connector.md`: heutiger Connector (bis I3)
 - `beispiel-planer.md`: Beispiel der Markdown-Ansicht von Planer v2

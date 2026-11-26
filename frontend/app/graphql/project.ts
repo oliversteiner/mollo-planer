@@ -39,6 +39,8 @@ export const projectTimelineQuery = graphql(`
         icon
         dueDate
         release { version status date }
+        priceCents
+        billing { invoice { id number status } }
         status
         progress { done total percent }
         todos {
@@ -99,6 +101,33 @@ export const updateMilestoneMutation = graphql(`
 export const moveMilestoneMutation = graphql(`
   mutation MoveMilestone($id: ID!, $position: Int!) {
     moveMilestone(id: $id, position: $position) { id }
+  }
+`)
+
+/** The preview of «Nach Version ordnen»: the conditions and the order are decided by the backend, nothing is calculated here. */
+export const milestoneVersionOrderQuery = graphql(`
+  query MilestoneVersionOrder($projectId: ID!) {
+    milestoneVersionOrder(projectId: $projectId) {
+      revision
+      canApply
+      condition
+      moveCount
+      conditionMilestones { id title version }
+      order { id title version from to moved }
+    }
+  }
+`)
+
+export const sortMilestonesMutation = graphql(`
+  mutation SortMilestones($projectId: ID!, $expectedRevision: Int) {
+    sortMilestones(projectId: $projectId, expectedRevision: $expectedRevision) { revision moveCount order before }
+  }
+`)
+
+/** Puts the milestones back in an earlier order («Rückgängig»). */
+export const reorderMilestonesMutation = graphql(`
+  mutation ReorderMilestones($projectId: ID!, $ids: [ID!]!) {
+    reorderSiblings(projectId: $projectId, level: MILESTONES, ids: $ids) { revision moveCount }
   }
 `)
 

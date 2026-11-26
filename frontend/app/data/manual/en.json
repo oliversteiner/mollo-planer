@@ -1,0 +1,991 @@
+[
+  {
+    "right": "users.manage",
+    "pages": [
+      "/admin/users"
+    ],
+    "tools": [],
+    "commands": [
+      "page-users",
+      "users-create-agent"
+    ],
+    "id": "agent-anlegen",
+    "title": "Create an agent and set up its access",
+    "area": "admin",
+    "scope": "core",
+    "since": "1.6",
+    "purpose": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "An agent is an account of its own for Claude or an assistant. It does not sign in in the browser but works through the connector (MCP) with an access, and it may do exactly what its role in the project allows.",
+              "marks": []
+            }
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Open ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Administration → Users",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Create agent",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " at the top right.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the field ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Name",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ", enter a name. Mollo Planer makes the agent's identifier from it, for example ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "claude-club-db@agent.invalid",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". No mail is ever sent to an agent.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Create",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". The dialog closes, and the row of the new agent is highlighted.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/agent-anlegen/neue-zeile.en.6795a63f09.webp",
+            "alt": "The row of the new agent with the button «Set up access»"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In its row, choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Set up access",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the field ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Name of the access",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ", keep the suggested name or change it. Choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Create access",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". If the dialog asks for your password, enter it in the same dialog.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Choose the button with the copy symbol to the right of the field with the access, and keep the access in your password manager at once. It is shown only once. Then choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Stored",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/agent-anlegen/zugang.en.dc18073106.webp",
+            "alt": "The dialog with the new access and the button to copy it"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Under ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Projects",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ", in the field ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Assign project (role Agent)",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ", select the project. The agent is in the project at once, with the role «Agent»; the project appears in its list.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Done",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " at the bottom right.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      }
+    ],
+    "notes": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "The access is a secret. It belongs in a password manager or an environment variable, never in a file under version control or in a chat.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "If you lost the access, revoke it in the same dialog and create a new one.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Without a project the agent sees nothing. What it may do in the project depends on its role there.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "An agent has the role «Agent» in every project, no other. Its identifier, shown in the same dialog, is what you assign tasks to (planer file, MCP).",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "The address of the MCP server and a guide for the connector are in the same dialog.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      "Connect to the MCP server of Mollo Planer with the variable [VARIABLE] and show me the projects you see.",
+      "Check with list_projects which role you have in the project [project] and what you may change there."
+    ]
+  },
+  {
+    "right": "task.create",
+    "pages": [
+      "/projects/[id]/kanban"
+    ],
+    "tools": [
+      "list_tasks",
+      "update_tasks",
+      "import_plan"
+    ],
+    "commands": [
+      "kanban-task-create"
+    ],
+    "id": "task-anlegen",
+    "title": "Create and edit a task",
+    "area": "plan",
+    "scope": "app",
+    "since": "1.6",
+    "purpose": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "A task is a single step of work in a todo. On the board you see what is open, what is running and what is done.",
+              "marks": []
+            }
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Open the project and choose the tab ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Tasks",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/task-anlegen/board.en.03ba4e0da3.webp",
+            "alt": "The board of a project with a column for each status"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "New task",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " at the top right. A form opens.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Under ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Todo",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ", select the todo the task belongs to.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "In the field ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Title",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ", enter a title.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          {
+            "src": "/help-images/task-anlegen/formular.en.61ea7e380c.webp",
+            "alt": "The form for a new task with todo and title"
+          }
+        ]
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Fill in more fields if you need them, for example ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Assigned to",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " or ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Due on",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Save",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ". The form closes, and the task is in the column ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Open",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "To change the task, choose the button «…» on its card, then ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Edit",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      },
+      {
+        "doc": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "To change the status, choose the button «…» on the card, then the entry ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Move to",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " with the column you want. Alternatively, hold the mouse button and drag the card into another column.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        "images": []
+      }
+    ],
+    "notes": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "There is no task without a todo. If ",
+                      "marks": []
+                    },
+                    {
+                      "type": "text",
+                      "text": "New task",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": " is missing or grey, create a todo first.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "In an archived project you cannot create tasks.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Whether you may create or change tasks depends on your role in the project.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "In the calm view, ",
+                      "marks": []
+                    },
+                    {
+                      "type": "text",
+                      "text": "New task",
+                      "marks": [
+                        {
+                          "type": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "text": " is in the command palette.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      "In the project [project], in the todo [todo], create a task «[title]» and assign it to [person]. Check the result with a dry run first.",
+      "Show me all my open tasks in the project [project], sorted by due date.",
+      "Set the task [k-123] to «In progress»."
+    ]
+  },
+  {
+    "right": "task.update",
+    "pages": [],
+    "tools": [
+      "list_projects",
+      "list_tasks",
+      "update_tasks",
+      "export_plan",
+      "import_plan",
+      "add_comment"
+    ],
+    "commands": [],
+    "id": "tasks-ueber-mcp",
+    "title": "Change tasks over MCP",
+    "area": "agents",
+    "scope": "app",
+    "since": "1.6",
+    "purpose": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "An agent reads and changes tasks through the MCP server without loading the whole plan. Each change stays small, and the state in the planer matches the work.",
+              "marks": []
+            }
+          ]
+        }
+      ]
+    },
+    "steps": [],
+    "notes": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "bulletList",
+          "content": [
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "The agent acts as its own account, with exactly its rights. What it may not do in the project, the server refuses.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "The planer derives the status of todo and milestone from the tasks. An agent never sets them.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Which statuses an agent may set depends on its role in the project. A person in the project can also decide who marks a task as done.",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      "With list_tasks, show me my tasks in the project [project] that are «In progress» or «Review».",
+      "With update_tasks, set the task [k-123] to «Review» and enter the commit [hash]. Then write a short report on the task with add_comment.",
+      "In the milestone [milestone] of the project [project], create a task «[title]»: export only this milestone, add the task and import with mode: \"partial\", as a dry run first."
+    ]
+  }
+]

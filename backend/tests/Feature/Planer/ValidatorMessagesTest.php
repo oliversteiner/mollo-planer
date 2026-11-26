@@ -58,6 +58,38 @@ class ValidatorMessagesTest extends TestCase
         $this->assertSame('Unbekanntes Feld.', $this->messages($d)['project.extra']);
     }
 
+    public function test_an_unknown_field_that_looks_like_a_known_one_names_it(): void
+    {
+        app()->setLocale('de');
+        $d = $this->document();
+        $d['milestones'][0]['todos'][0]['tasks'][0]['assignee'] = 'lindita@example.ch';
+        $this->assertSame('`assignee` gibt es nicht, gemeint ist wohl `assigneeEmail`.', $this->messages($d)['milestones[0].todos[0].tasks[0].assignee']);
+
+        app()->setLocale('en');
+        $this->assertSame('`assignee` is not a field, probably `assigneeEmail` is meant.', $this->messages($d)['milestones[0].todos[0].tasks[0].assignee']);
+
+        $d = $this->document();
+        $d['milestones'][0]['todos'][0]['tasks'][0]['userstory'] = ['role' => 'a', 'goal' => 'b', 'benefit' => 'c'];
+        $this->assertSame('`userstory` is not a field, probably `userStory` is meant.', $this->messages($d)['milestones[0].todos[0].tasks[0].userstory']);
+    }
+
+    public function test_the_wrong_format_of_an_id_names_the_pattern(): void
+    {
+        app()->setLocale('de');
+        $d = $this->document();
+        $d['milestones'][0]['todos'][0]['tasks'][0]['id'] = 'k-new-47a';
+        $d['milestones'][0]['todos'][0]['id'] = 't-abc';
+        $d['milestones'][0]['id'] = 'm-x';
+        $messages = $this->messages($d);
+
+        $this->assertSame('Falsches Format. Erwartet: `k-<Zahl>` oder `k-new-<Zahl>`.', $messages['milestones[0].todos[0].tasks[0].id']);
+        $this->assertSame('Falsches Format. Erwartet: `t-<Zahl>` oder `t-new-<Zahl>`.', $messages['milestones[0].todos[0].id']);
+        $this->assertSame('Falsches Format. Erwartet: `m-<Zahl>` oder `m-new-<Zahl>`.', $messages['milestones[0].id']);
+
+        app()->setLocale('en');
+        $this->assertSame('Wrong format. Expected: `k-<number>` or `k-new-<number>`.', $this->messages($d)['milestones[0].todos[0].tasks[0].id']);
+    }
+
     public function test_the_rules_of_the_file_are_in_german_and_english(): void
     {
         $d = $this->document();

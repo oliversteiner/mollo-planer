@@ -247,7 +247,11 @@ async function save(notifyAssignees: boolean) {
     if (result?.ok && result.projectId) {
       const added = countsText(counts, (kind, count) => t(`assistant.counts.${kind}`, { count }, count))
 
-      toast.add({ title: added ? t('assistant.imported', { list: added }) : t('assistant.importedNothing'), color: 'success' })
+      toast.add({
+        title: added ? t('assistant.imported', { list: added }) : t('assistant.importedNothing'),
+        description: result.warnings.length ? t('planer.import.warningsDone', result.warnings.length) : undefined,
+        color: result.warnings.length ? 'warning' : 'success'
+      })
       reset()
       await navigateTo(`/projects/${result.projectId}`)
     } else if (result) {

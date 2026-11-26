@@ -5,6 +5,7 @@ namespace App\Tools;
 use App\Models\User;
 use App\Tools\Support\GraphQLFailed;
 use App\Tools\Support\GraphQLRunner;
+use App\Tools\Support\ToolArguments;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -56,6 +57,8 @@ abstract class Tool
     final public function call(User $actor, array $arguments): ToolResult
     {
         try {
+            ToolArguments::rejectUnknown($this, $arguments);
+
             return $this->handle($actor, $arguments);
         } catch (GraphQLFailed $failure) {
             return ToolResult::error(Str::limit($failure->getMessage(), 400));

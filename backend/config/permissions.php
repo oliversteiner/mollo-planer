@@ -49,6 +49,10 @@ return [
                 'names' => ['de' => 'Status', 'en' => 'Status'],
                 'rights' => ['system.view'],
             ],
+            'billing' => [
+                'names' => ['de' => 'Abrechnung', 'en' => 'Billing'],
+                'rights' => ['billing.manage'],
+            ],
         ],
 
         'project' => [
@@ -83,7 +87,7 @@ return [
         'system' => [
             'admin' => [
                 'names' => ['de' => 'Admin', 'en' => 'Admin'],
-                'functions' => ['create-projects', 'all-projects', 'users-and-roles', 'templates', 'all-templates', 'ai-and-ideas', 'all-ideas', 'operations', 'status'],
+                'functions' => ['create-projects', 'all-projects', 'users-and-roles', 'templates', 'all-templates', 'ai-and-ideas', 'all-ideas', 'operations', 'status', 'billing'],
                 'project_cap' => null,
             ],
             'projektleitung' => [

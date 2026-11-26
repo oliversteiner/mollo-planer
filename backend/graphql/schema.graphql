@@ -67,3 +67,4 @@
 #import queries.graphql
 #import mutations.graphql
 #import identity.graphql
+#import billing.graphql

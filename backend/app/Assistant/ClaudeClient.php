@@ -26,11 +26,12 @@ class ClaudeClient
     /**
      * @param  list<array{role: string, content: string}>  $messages
      * @param  array<string, mixed>  $schema
+     * @param  string|null  $cacheablePrefix  The start of $system that is the same for many requests (the instructions)
      * @return array<string, mixed> The decoded JSON answer
      *
      * @throws AssistantError
      */
-    public function ask(string $system, array $messages, array $schema): array
+    public function ask(string $system, array $messages, array $schema, ?string $cacheablePrefix = null): array
     {
         $key = config('services.anthropic.key');
 
@@ -52,7 +53,7 @@ class ClaudeClient
                     'effort' => 'medium',
                     'format' => ['type' => 'json_schema', 'schema' => $schema],
                 ],
-                system: $system,
+                system: self::systemBlocks($system, $cacheablePrefix),
                 thinking: ['type' => 'adaptive'],
                 betas: ['server-side-fallback-2026-07-01'],
                 requestOptions: ['timeout' => 280.0, 'maxRetries' => 1],
@@ -75,6 +76,14 @@ class ClaudeClient
             throw new AssistantError(__('assistant.unavailable'));
         }
 
+        $usage = $message->usage;
+        Log::info('Assistant: tokens', [
+            'input' => $usage->inputTokens,
+            'output' => $usage->outputTokens,
+            'cache_written' => $usage->cacheCreationInputTokens ?? 0,
+            'cache_read' => $usage->cacheReadInputTokens ?? 0,
+        ]);
+
         $stopReason = $message->stopReason instanceof BetaStopReason ? $message->stopReason->value : (string) $message->stopReason;
 
         if ($stopReason === 'refusal') {
@@ -96,5 +105,30 @@ class ClaudeClient
         }
 
         throw new AssistantError(__('assistant.unavailable'));
+    }
+
+    /**
+     * The system prompt as blocks: the part that is the same for every request (the instructions) first, with a cache
+     * breakpoint after it, then what changes per request (date, person, projects, plan). The Claude API keeps the prefix up
+     * to a breakpoint for a few minutes; a read costs a tenth of the input price. The automatic breakpoint at the end of the
+     * request stays for the repeated turns of one conversation. Without a usable prefix the prompt stays one string.
+     *
+     * @return string|list<array<string, mixed>>
+     */
+    public static function systemBlocks(string $system, ?string $cacheablePrefix): string|array
+    {
+        if ($cacheablePrefix === null || $cacheablePrefix === '' || ! str_starts_with($system, $cacheablePrefix)) {
+            return $system;
+        }
+
+        $rest = ltrim(substr($system, strlen($cacheablePrefix)));
+
+        $blocks = [['type' => 'text', 'text' => $cacheablePrefix, 'cacheControl' => ['type' => 'ephemeral']]];
+
+        if ($rest !== '') {
+            $blocks[] = ['type' => 'text', 'text' => $rest];
+        }
+
+        return $blocks;
     }
 }

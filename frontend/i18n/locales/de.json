@@ -10,7 +10,7 @@
     "main": "Hauptnavigation",
     "projects": "Projekte",
     "myTasks": "Meine Tasks",
-    "admin": "System",
+    "admin": "Verwaltung",
     "users": "Benutzer",
     "appSettings": "App-Einstellungen",
     "skipToContent": "Zum Inhalt springen",
@@ -24,7 +24,12 @@
     "trash": "Papierkorb",
     "templates": "Vorlagen",
     "ideas": "Ideen",
-    "oauthClients": "Anmeldedienst"
+    "oauthClients": "Anmeldedienst",
+    "billing": "Abrechnung",
+    "invoices": "Rechnungen",
+    "billable": "Verrechenbar",
+    "customers": "Kunden",
+    "billingSettings": "Einstellungen"
   },
   "settings": {
     "language": "Sprache",
@@ -54,7 +59,10 @@
       "removeTitle": "{name} aus dem Projekt entfernen?",
       "removeDescription": "Die Person sieht das Projekt danach nicht mehr. Ihre Tasks in diesem Projekt sind dann niemandem mehr zugewiesen.",
       "removeConfirm": "Entfernen",
-      "alreadyMember": "bereits Mitglied"
+      "alreadyMember": "bereits Mitglied",
+      "agentRoleFixed": "Agenten haben immer die Rolle Agent.",
+      "identifier": "Kennung",
+      "copyIdentifier": "Kennung von {name} kopieren"
     },
     "danger": {
       "title": "Projekt löschen",
@@ -103,7 +111,7 @@
     "unauthorized": "Dafür fehlt dir die Berechtigung.",
     "csrf": "Die Sitzung war abgelaufen. Bitte versuche es nochmals.",
     "network": "Der Server ist nicht erreichbar.",
-    "unknown": "Die Anfrage ist fehlgeschlagen.",
+    "unknown": "Das hat nicht geklappt. Bitte nochmals versuchen.",
     "throttled": "Zu viele Versuche. Versuch es in einer Minute nochmals."
   },
   "auth": {
@@ -271,7 +279,8 @@
     "save": "Speichern",
     "edit": "Ändern",
     "delete": "Löschen",
-    "actions": "Aktionen"
+    "actions": "Aktionen",
+    "back": "Zurück"
   },
   "project": {
     "tabs": {
@@ -291,20 +300,57 @@
     "taskCount": "{done}/{total} Tasks",
     "timeline": {
       "label": "Milestones",
-      "expandAll": "Alle ToDos zeigen",
-      "collapseAll": "Alle ToDos zuklappen",
+      "expandAllMilestones": "Alle aufklappen",
+      "collapseAllMilestones": "Alle zuklappen",
       "noDate": "Ohne Datum",
       "toggleTodo": "ToDo «{title}» auf- oder zuklappen",
+      "toggleMilestone": "Milestone «{title}» auf- oder zuklappen",
+      "toggleMilestoneHint": "Mit gedrückter Wahltaste auch alle ToDos",
+      "openTasks": "{count} offen",
+      "ideasOnly": "{count} Idee | {count} Ideen",
+      "allTasksDone": "Alle Tasks erledigt.",
+      "loadError": "Die Milestones konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "priceSum": "Preise: {total} · verrechnet {billed} · im Entwurf {draft}",
+      "price": "CHF {amount}",
+      "noPrice": "Ohne Preis",
       "unassigned": "Nicht zugewiesen",
       "noTasks": "Noch keine Tasks.",
-      "milestonesOnly": "Nur Milestones anzeigen",
-      "showAll": "Alles anzeigen",
       "createTodo": "Neues ToDo im Milestone «{title}» anlegen",
       "createTask": "Neuen Task im ToDo «{title}» anlegen",
       "milestoneActions": "Aktionen für Milestone «{title}»",
       "todoActions": "Aktionen für ToDo «{title}»",
       "taskActions": "Aktionen für Task «{title}»",
-      "openTask": "Task «{title}» öffnen"
+      "openTask": "Task «{title}» öffnen",
+      "moveTask": "Task verschieben",
+      "newestFirst": "Neueste oben",
+      "oldestFirst": "Älteste oben",
+      "sortNewestHint": "Zeigt die neueste Version oben. Wähle die Taste, um die älteste oben zu zeigen.",
+      "sortOldestHint": "Zeigt die älteste Version oben. Wähle die Taste, um die neueste oben zu zeigen.",
+      "showPrices": "Preise anzeigen",
+      "orderByVersion": "Nach Version ordnen",
+      "order": {
+        "title": "Milestones nach Version ordnen",
+        "description": "So ist die gespeicherte Reihenfolge danach. Verschobene Milestones sind markiert. ToDos und Tasks bleiben, wie sie sind.",
+        "summary": "{count} Milestone wird verschoben. | {count} Milestones werden verschoben.",
+        "noVersion": "Ohne Version",
+        "movedFrom": "war an Stelle {from}",
+        "apply": "Neu ordnen",
+        "loading": "Die Vorschau wird geladen …",
+        "done": "Milestones nach Version geordnet",
+        "doneDetail": "{count} Milestone verschoben. | {count} Milestones verschoben.",
+        "undo": "Rückgängig",
+        "undone": "Die frühere Reihenfolge ist wieder da.",
+        "failed": "Die Reihenfolge konnte nicht geändert werden.",
+        "conflict": "Der Plan wurde inzwischen geändert. Die Vorschau ist neu geladen, bitte prüfe sie noch einmal.",
+        "conditions": {
+          "archived": "Das Projekt ist archiviert.",
+          "too_few_versions": "Mindestens zwei Milestones brauchen eine Version.",
+          "invalid_version": "Diese Versionen sind ungültig (erlaubt sind Zahlen mit Punkten wie 1.4 oder 2.0.1):",
+          "duplicate_version": "Diese Versionen kommen doppelt vor:",
+          "already_ordered": "Bereits nach Version geordnet."
+        }
+      }
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}",
@@ -425,7 +471,8 @@
     "search": "Suchen (englische Begriffe, z. B. rocket, calendar)",
     "results": "{count} Treffer (höchstens 120)",
     "suggestions": "Vorschläge – oder oben suchen",
-    "noResults": "Kein Icon gefunden."
+    "noResults": "Kein Icon gefunden.",
+    "close": "Schliessen"
   },
   "kanban": {
     "showIdeas": "Ideen und Geplantes anzeigen",
@@ -550,7 +597,8 @@
     "confirmPassword": {
       "title": "Passwort bestätigen",
       "description": "Bitte bestätige dein Passwort, bevor du die Sicherheit deines Kontos änderst.",
-      "submit": "Bestätigen"
+      "submit": "Bestätigen",
+      "inline": "Bitte bestätige dein Passwort, bevor es weitergeht."
     },
     "twoFactor": {
       "title": "Authenticator-App",
@@ -595,7 +643,7 @@
   "admin": {
     "users": {
       "title": "Benutzer",
-      "invite": "Person einladen",
+      "invite": "Benutzer hinzufügen",
       "inviteHint": "Die Person bekommt eine E-Mail mit einem Link, um ihr Passwort zu setzen (7 Tage gültig). Danach richtet sie einen zweiten Faktor ein.",
       "edit": "Person ändern",
       "sendInvite": "Einladung schicken",
@@ -638,7 +686,7 @@
       "agent": {
         "title": "Zugänge",
         "name": "Name des Zugangs",
-        "nameHint": "Zum Wiedererkennen, zum Beispiel «{agent} Server»",
+        "nameHint": "Vorgeschlagen ist der Name der Umgebungsvariable, in die der Token kommt. Du kannst ihn ändern.",
         "create": "Zugang erzeugen",
         "none": "Noch kein Zugang.",
         "showOnceTitle": "Zugang für {agent} erzeugt",
@@ -650,7 +698,56 @@
         "revokeDescription": "{agent} kann diesen Zugang danach nicht mehr benutzen.",
         "revokeConfirm": "Widerrufen",
         "revoked": "Zugang widerrufen.",
-        "cli": "Oder per Terminal auf dem Server: app:user-token"
+        "cli": "Oder per Terminal auf dem Server: app:user-token",
+        "nameMissing": "Name fehlt.",
+        "tokenStored": "Abgelegt"
+      },
+      "access": {
+        "title": "Zugang für {agent}",
+        "intro": "Ein Agent meldet sich nicht im Browser an. Er arbeitet über den Connector (MCP) mit einem Zugang (Token) und darf genau das, was seine Rolle in den zugewiesenen Projekten erlaubt.",
+        "stepsLabel": "Schritte zur Einrichtung",
+        "steps": {
+          "create": "Zugang erzeugen.",
+          "store": "Token ablegen: als Umgebungsvariable auf dem Rechner des Agenten, nie in einer Datei im Git. Er wird nur einmal angezeigt.",
+          "connect": "Connector eintragen: die Adresse des MCP-Servers dieser Umgebung (unten).",
+          "project": "Projekt zuweisen."
+        },
+        "done": "erledigt",
+        "open": "offen",
+        "address": "Adresse des MCP-Servers",
+        "copyAddress": "Adresse kopieren",
+        "guide": "Anleitung für den Connector",
+        "projects": "Projekte",
+        "noProjects": "Noch in keinem Projekt.",
+        "removeFrom": "Aus Projekt «{project}» entfernen",
+        "assign": "Projekt zuweisen (Rolle Agent)",
+        "state": {
+          "none": "Zugang einrichten",
+          "active": "Zugang aktiv",
+          "expiring": "Zugang läuft ab",
+          "expired": "Zugang abgelaufen"
+        },
+        "menu": "Zugang und Projekte",
+        "identifier": "Kennung",
+        "identifierHint": "Mit der Kennung weist du dem Agenten Tasks zu (Planer-Datei, MCP).",
+        "copyIdentifier": "Kennung kopieren",
+        "assigned": "{agent} ist jetzt in «{project}»."
+      },
+      "sections": {
+        "users": "Benutzer",
+        "agents": "Agenten",
+        "noUsers": "Noch keine Benutzer.",
+        "noAgents": "Noch keine Agenten.",
+        "noMatches": "Keine Treffer."
+      },
+      "newAgent": {
+        "name": "Name",
+        "title": "Agent anlegen",
+        "hint": "Ein Agent-Konto für Claude oder eine Assistenz. Es meldet sich nicht im Browser an, sondern arbeitet über den Connector mit einem Zugang, den du gleich danach erzeugst.",
+        "nameHint": "Wird in der App angezeigt, zum Beispiel «Claude Club DB».",
+        "submit": "Anlegen",
+        "created": "Agent {name} angelegt.",
+        "identifierHint": "Der Planer gibt dem Agenten eine Kennung aus dem Namen, zum Beispiel claude-club-db{'@'}agent.invalid. Mit ihr weist du ihm Tasks zu. Es geht nie eine Mail an einen Agenten."
       }
     },
     "settings": {
@@ -694,7 +791,9 @@
       "secretTitle": "Geheimnis für {name}",
       "secretOnce": "Wird nicht mehr angezeigt. Trag es in die Einstellungen der Anwendung ein, nicht in ein Repository.",
       "secret": "Geheimnis (Client Secret)",
-      "copySecret": "Geheimnis kopieren"
+      "copySecret": "Geheimnis kopieren",
+      "selfRegisteredBadge": "Selbst registriert",
+      "selfRegisteredHint": "Hat sich selbst registriert (zum Beispiel Claude); kein Admin hat sie geprüft"
     }
   },
   "claude": {
@@ -785,6 +884,7 @@
       "title": "Vorschau",
       "counts": "Neu: {list}",
       "errors": "Die Vorschau meldet Fehler",
+      "warnings": "Keine Warnung | 1 Warnung, die Vorschau lässt eine Angabe weg | {count} Warnungen, die Vorschau lässt Angaben weg",
       "hints": "Hinweise",
       "notify": "Zuweisungs-Mails senden",
       "notifyHint": "Wer einen Task zugewiesen bekommt, erhält eine Mail.",
@@ -1143,6 +1243,10 @@
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
         },
+        "customer_id": {
+          "label": "Kunde",
+          "description": "Kunde der Abrechnung, dem das Projekt verrechnet wird (Auftrag 39). Nur mit dem Recht «Abrechnung» sichtbar; leer: kein Kunde, nicht verrechenbar."
+        },
         "created_at": {
           "label": "Angelegt am",
           "description": "Zeitpunkt der Anlage, von Laravel gesetzt."
@@ -1266,6 +1370,10 @@
         "release_date": {
           "label": "Datum der Veröffentlichung",
           "description": "Wann die Version veröffentlicht wurde. Immer optional; nur bei einer veröffentlichten Version, beim Zurück auf «geplant» wird es geleert."
+        },
+        "price_cents": {
+          "label": "Preis (Rappen)",
+          "description": "Fixpreis des Milestones in ganzen Rappen (Auftrag 39). Nur mit dem Recht «Abrechnung» sichtbar; leer: kein Preis, nicht verrechenbar."
         }
       },
       "todos": {
@@ -1845,7 +1953,8 @@
       "IDEAS_VIEW_ANY": "Alle Ideen sehen",
       "SETTINGS_MANAGE": "App-Einstellungen ändern",
       "SYSTEM_VIEW": "Status-Seite sehen",
-      "DATABASE_VIEW": "Datenbank-Doku sehen"
+      "DATABASE_VIEW": "Datenbank-Doku sehen",
+      "BILLING_MANAGE": "Abrechnung: Kunden, Preise und Rechnungen"
     }
   },
   "roleSettings": {
@@ -2096,6 +2205,8 @@
       "modeFullHint": "Die Datei ist der ganze Plan: was darin fehlt, kommt in den Papierkorb. Die Revision der Datei muss stimmen.",
       "modePartialHint": "Ergänzt und ändert, löscht nie. Felder, die in der Datei fehlen, bleiben.",
       "errors": "Kein Fehler | 1 Fehler, es wird nichts geschrieben | {count} Fehler, es wird nichts geschrieben",
+      "warnings": "Keine Warnung | 1 Warnung, der Import läuft weiter | {count} Warnungen, der Import läuft weiter",
+      "warningsDone": "Eine Angabe wurde nicht übernommen, zum Beispiel eine Zuweisung an eine unbekannte E-Mail-Adresse. | {count} Angaben wurden nicht übernommen, zum Beispiel Zuweisungen an unbekannte E-Mail-Adressen.",
       "nothing": "Die Datei ändert nichts am Projekt.",
       "changes": "Keine Änderung | 1 Änderung | {count} Änderungen",
       "submit": "Eintragen",
@@ -2195,9 +2306,6 @@
     "announceOff": "Normale Ansicht.",
     "showIdeas": "Ideen anzeigen",
     "hideIdeas": "Ideen ausblenden",
-    "milestonesOnly": "Nur Milestones anzeigen umschalten",
-    "expandMilestone": "Aufklappen",
-    "collapseMilestone": "Zuklappen",
     "focus": "Fokus",
     "focusTask": "Task im Fokus öffnen",
     "focusTodo": "ToDo im Fokus öffnen",
@@ -2339,7 +2447,8 @@
     "saveFailed": "Das Sichern hat nicht geklappt.",
     "allSaved": "Gesichert",
     "focusBack": "Zurück",
-    "fileFallback": "dokument"
+    "fileFallback": "dokument",
+    "exportPdfLetterhead": "PDF mit Briefpapier"
   },
   "oauth": {
     "authorize": {
@@ -2354,7 +2463,254 @@
       "allow": "Zulassen",
       "deny": "Ablehnen",
       "unavailableTitle": "Anfrage nicht mehr gültig",
-      "unavailableText": "Diese Anfrage gilt nicht mehr. Starte die Anmeldung in der Anwendung noch einmal."
+      "unavailableText": "Diese Anfrage gilt nicht mehr. Starte die Anmeldung in der Anwendung noch einmal.",
+      "refusedTitle": "Zugriff nicht möglich",
+      "errors": {
+        "email_unverified": "Bestätige zuerst deine E-Mail-Adresse. Danach kannst du Anwendungen zulassen.",
+        "agent": "Ein Agent-Konto kann keine Anwendung zulassen.",
+        "not_approved": "Dein Konto ist noch nicht von einem Admin freigegeben. Für diese Anwendung ist die Freigabe nötig.",
+        "other": "Mit diesem Konto kann keine Anwendung zugelassen werden."
+      },
+      "selfRegistered": "Diese Anwendung hat sich selbst registriert und wurde nicht von Mollo geprüft. Nach dem Zulassen geht es weiter zu {host}."
+    }
+  },
+  "help": {
+    "title": "Hilfe",
+    "intro": "Wie die Funktionen des Planers gehen, Schritt für Schritt, mit Prompts für Agenten.",
+    "none": "Noch keine Kapitel.",
+    "notFound": "Dieses Kapitel gibt es nicht.",
+    "showImages": "Bilder anzeigen",
+    "needsRight": "Dafür brauchst du das Recht «{right}».",
+    "needsProjectRight": "Dafür brauchst du im Projekt das Recht «{right}»; es hängt von deiner Rolle dort ab.",
+    "copied": "Prompt kopiert.",
+    "copyFailed": "Kopieren hat nicht geklappt. Markiere den Text und kopiere ihn von Hand.",
+    "copy": "Kopieren",
+    "copyPrompt": "Prompt {number} kopieren",
+    "tools": "Werkzeuge: {tools}",
+    "sections": {
+      "purpose": "Wozu",
+      "steps": "So geht's",
+      "notes": "Gut zu wissen",
+      "prompts": "Beispielprompts"
+    },
+    "areas": {
+      "first-steps": "Erste Schritte",
+      "projects": "Projekte",
+      "plan": "Meilensteine, ToDos und Tasks",
+      "kanban": "Kanban",
+      "my-tasks": "Meine Tasks",
+      "comments": "Kommentare",
+      "documents": "Dokumente",
+      "ideas": "Ideen",
+      "assistant": "Assistent",
+      "templates": "Vorlagen und Labels",
+      "trash": "Papierkorb und Archiv",
+      "statistics": "Statistik",
+      "calm": "Ruhige Ansicht und Befehlspalette",
+      "planer-file": "Planer-Datei",
+      "agents": "Mit Agenten arbeiten",
+      "admin": "Verwaltung"
+    }
+  },
+  "billing": {
+    "status": {
+      "DRAFT": "Entwurf",
+      "ISSUED": "Offen",
+      "PAID": "Bezahlt",
+      "CANCELLED": "Storniert",
+      "OVERDUE": "Überfällig"
+    },
+    "address": {
+      "street": "Strasse",
+      "houseNumber": "Nr.",
+      "postalCode": "PLZ",
+      "city": "Ort",
+      "country": "Land",
+      "countryHint": "ISO-Code mit zwei Buchstaben, zum Beispiel CH, LI, DE."
+    },
+    "invoices": {
+      "title": "Rechnungen",
+      "create": "Rechnung erstellen",
+      "open": "Offen",
+      "overdue": "Überfällig",
+      "count": "keine Rechnung | 1 Rechnung | {count} Rechnungen",
+      "status": "Status",
+      "customer": "Kunde",
+      "year": "Jahr",
+      "allStatuses": "Alle",
+      "allCustomers": "Alle Kunden",
+      "allYears": "Alle Jahre",
+      "number": "Nummer",
+      "issueDate": "Datum",
+      "dueDate": "Fällig am",
+      "total": "Total",
+      "draft": "Entwurf",
+      "none": "Noch keine Rechnungen.",
+      "noneHint": "Unter «Verrechenbar» wählst du erledigte Meilensteine und erstellst daraus einen Entwurf.",
+      "noneFiltered": "Keine Rechnung passt zum Filter."
+    },
+    "invoice": {
+      "titleNumber": "Rechnung {number}",
+      "titleDraft": "Entwurf einer Rechnung",
+      "notFound": "Diese Rechnung gibt es nicht.",
+      "facts": "Angaben",
+      "address": "Adresse",
+      "reference": "Referenz",
+      "language": "Sprache",
+      "paidAt": "Bezahlt am",
+      "cancelReason": "Grund",
+      "draftHint": "Entwurf: Nummer, Datum und Fälligkeit kommen beim Ausstellen. Bis dahin gilt die Adresse des Kunden von heute.",
+      "items": "Positionen",
+      "description": "Text auf der Rechnung",
+      "descriptionHint": "Aus der Beschreibung des Meilensteins, gekürzt. Du kannst ihn ändern.",
+      "notes": "Notiz auf der Rechnung",
+      "notesHint": "Erscheint unter den Positionen, zum Beispiel ein Dank.",
+      "saved": "Entwurf gespeichert.",
+      "removeItem": "{title} entfernen",
+      "removeTitle": "«{title}» aus der Rechnung nehmen?",
+      "removeDescription": "Der Meilenstein wird wieder verrechenbar.",
+      "removeConfirm": "Entfernen",
+      "removed": "«{title}» entfernt.",
+      "delete": "Entwurf löschen",
+      "deleteTitle": "Entwurf löschen?",
+      "deleteDescription": "Die Meilensteine werden wieder verrechenbar.",
+      "deleted": "Entwurf gelöscht.",
+      "preview": "Vorschau (PDF)",
+      "issue": "Ausstellen",
+      "issueTitle": "Rechnung ausstellen?",
+      "issueDescription": "Das kann nicht rückgängig gemacht werden: Die Rechnung bekommt ihre Nummer, Adressen und Positionen werden eingefroren, die PDF wird gespeichert. Danach geht nur noch «bezahlt» oder «stornieren».",
+      "issueConfirm": "Endgültig ausstellen",
+      "issued": "Rechnung {number} ausgestellt.",
+      "download": "PDF herunterladen",
+      "markPaid": "Als bezahlt markieren",
+      "markPaidTitle": "Als bezahlt markieren",
+      "markPaidDescription": "Wann ist das Geld eingegangen?",
+      "paidDone": "Als bezahlt markiert.",
+      "cancel": "Stornieren",
+      "cancelTitle": "Rechnung {number} stornieren?",
+      "cancelDescription": "Die Nummer bleibt belegt, die Meilensteine werden wieder verrechenbar. Die Rechnung und ihre PDF bleiben erhalten.",
+      "cancelConfirm": "Stornieren",
+      "cancelReasonHint": "Mindestens drei Zeichen, zum Beispiel «falscher Betrag».",
+      "cancelled": "Rechnung storniert."
+    },
+    "billable": {
+      "title": "Verrechenbar",
+      "intro": "Erledigte Meilensteine mit Preis aus Projekten mit Kunde, die noch in keiner Rechnung stehen. Wähle aus und erstelle einen Entwurf; eine Rechnung geht an einen Kunden.",
+      "none": "Nichts zu verrechnen.",
+      "noneHint": "Ein Meilenstein wird verrechenbar, wenn er erledigt ist, einen Preis hat und sein Projekt einen Kunden.",
+      "chosen": "{count} gewählt · CHF {amount}",
+      "create": "Rechnung erstellen",
+      "created": "Entwurf erstellt.",
+      "withoutPrice": "Ein erledigter Meilenstein hat keinen Preis | {count} erledigte Meilensteine haben keinen Preis",
+      "withoutCustomer": "Ein erledigter Meilenstein liegt in einem Projekt ohne Kunde | {count} erledigte Meilensteine liegen in Projekten ohne Kunde"
+    },
+    "customers": {
+      "title": "Kunden",
+      "create": "Kunde anlegen",
+      "edit": "Kunde bearbeiten",
+      "formHint": "Die Adresse steht so auf der Rechnung und im QR-Zahlteil. Ausgestellte Rechnungen behalten ihre Adresse.",
+      "company": "Firma",
+      "name": "Name",
+      "email": "E-Mail",
+      "locale": "Sprache der Rechnungen",
+      "localeHint": "Rechnung und Zahlteil in dieser Sprache.",
+      "notes": "Notiz",
+      "notesHint": "Nur intern, erscheint nie auf einer Rechnung.",
+      "saved": "{name} gespeichert.",
+      "showArchived": "Archivierte zeigen",
+      "archivedBadge": "Archiviert",
+      "none": "Noch keine Kunden.",
+      "noneHint": "Lege einen Kunden an und wähle ihn dann in den Einstellungen des Projekts.",
+      "noneArchived": "Keine archivierten Kunden.",
+      "projectCount": "kein Projekt | 1 Projekt | {count} Projekte",
+      "actions": "Aktionen für {name}",
+      "archive": "Archivieren",
+      "bringBack": "Zurückholen",
+      "archivedDone": "{name} archiviert.",
+      "backDone": "{name} zurückgeholt.",
+      "notFound": "Diesen Kunden gibt es nicht.",
+      "address": "Adresse",
+      "projects": "Projekte",
+      "noProjects": "Noch kein Projekt."
+    },
+    "settings": {
+      "title": "Einstellungen der Abrechnung"
+    },
+    "sender": {
+      "title": "Absender und Bedingungen",
+      "saved": "Absender gespeichert.",
+      "missing": "Für eine Rechnung fehlt noch: {fields}.",
+      "fields": {
+        "name": "Name oder Firma",
+        "street": "Strasse",
+        "postalCode": "PLZ",
+        "city": "Ort",
+        "country": "Land",
+        "iban": "IBAN",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "website": "Website",
+        "uid": "UID"
+      },
+      "ibanHint": "IBAN der Schweiz oder Liechtensteins, keine QR-IBAN.",
+      "uidHint": "Leer lassen ohne MWST.",
+      "paymentTermsDays": "Zahlungsfrist in Tagen",
+      "numberFormat": "Format der Rechnungsnummer",
+      "numberFormatHint": "{'{'}YYYY{'}'} ist das Jahr, {'{'}NNNN{'}'} die laufende Nummer (Anzahl N = Stellen). Beispiel: {'{'}YYYY{'}'}-{'{'}NNNN{'}'} ergibt 2026-0001."
+    },
+    "letterhead": {
+      "title": "Briefpapier und Satzspiegel",
+      "guideTitle": "Anleitung und Massblätter (PDF)",
+      "guideText": "Masse, Exporteinstellungen und Vorlagen 1:1 für dein Grafikprogramm.",
+      "guide": "Anleitung herunterladen",
+      "file": "Briefpapier",
+      "current": "{name}, hochgeladen am {date}.",
+      "pages": "Nur Seite 1. | Seite 1 und Folgeseiten.",
+      "none": "Noch kein Briefpapier: Rechnungen kommen auf weissem Papier.",
+      "fileHint": "PDF, A4 hochkant, höchstens 5 MB. Eine Seite: nur für Seite 1. Zwei Seiten: Seite 1, dann Folgeseiten. Der Zahlteil hat nie ein Briefpapier. Ein neues Briefpapier gilt nur für neue PDFs.",
+      "choose": "PDF wählen",
+      "replace": "Ersetzen",
+      "remove": "Entfernen",
+      "uploaded": "Briefpapier gespeichert.",
+      "removed": "Briefpapier entfernt.",
+      "removeTitle": "Briefpapier entfernen?",
+      "removeDescription": "Neue PDFs kommen dann ohne Briefpapier. Ausgestellte Rechnungen bleiben, wie sie sind.",
+      "layout": "Satzspiegel in mm",
+      "layoutHint": "Wo der Text auf der Seite steht und wo das Adressfeld im Fenster des Couverts liegt. Die Vorgaben sind die Werte der Anleitung.",
+      "fields": {
+        "topFirst": "Textbeginn Seite 1",
+        "topFollowing": "Textbeginn Folgeseiten",
+        "bottom": "Rand unten",
+        "left": "Rand links",
+        "right": "Rand rechts",
+        "addressLeft": "Adressfeld von links",
+        "addressTop": "Adressfeld von oben",
+        "addressWidth": "Adressfeld Breite",
+        "addressHeight": "Adressfeld Höhe"
+      },
+      "window": "Fenster des Couverts",
+      "windowHint": "Wechselt das Adressfeld auf die Vorgabe dieser Seite; die genauen Werte nach dem Nachmessen eintragen.",
+      "windowLeft": "Links",
+      "windowRight": "Rechts",
+      "font": "Schrift",
+      "defaults": "Vorgaben einsetzen",
+      "layoutSaved": "Satzspiegel gespeichert.",
+      "sample": "Musterrechnung (PDF)"
+    },
+    "project": {
+      "title": "Abrechnung",
+      "customer": "Kunde",
+      "noCustomer": "Kein Kunde",
+      "customerHint": "Erledigte Meilensteine mit Preis werden diesem Kunden verrechnet.",
+      "saved": "Kunde gespeichert.",
+      "manage": "Kunden verwalten"
+    },
+    "milestone": {
+      "price": "Preis (CHF)",
+      "priceHint": "Fixpreis ohne MWST. Leer: nicht verrechenbar.",
+      "priceInvalid": "Bitte einen Betrag in CHF, zum Beispiel 1500 oder 1’500.50.",
+      "billed": "Verrechnet {number}",
+      "billedDraft": "Rechnung im Entwurf"
     }
   }
 }

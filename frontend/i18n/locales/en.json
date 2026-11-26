@@ -10,7 +10,7 @@
     "main": "Main navigation",
     "projects": "Projects",
     "myTasks": "My tasks",
-    "admin": "System",
+    "admin": "Administration",
     "users": "Users",
     "appSettings": "App settings",
     "skipToContent": "Skip to content",
@@ -24,7 +24,12 @@
     "trash": "Trash",
     "templates": "Templates",
     "ideas": "Ideas",
-    "oauthClients": "Login service"
+    "oauthClients": "Login service",
+    "billing": "Billing",
+    "invoices": "Invoices",
+    "billable": "Billable",
+    "customers": "Customers",
+    "billingSettings": "Settings"
   },
   "settings": {
     "language": "Language",
@@ -54,7 +59,10 @@
       "removeTitle": "Remove {name} from the project?",
       "removeDescription": "They will no longer see the project. Their tasks in this project are then assigned to nobody.",
       "removeConfirm": "Remove",
-      "alreadyMember": "already a member"
+      "alreadyMember": "already a member",
+      "agentRoleFixed": "Agents always have the role Agent.",
+      "identifier": "Identifier",
+      "copyIdentifier": "Copy identifier of {name}"
     },
     "danger": {
       "title": "Delete project",
@@ -103,7 +111,7 @@
     "unauthorized": "You are not allowed to do this.",
     "csrf": "Your session had expired. Please try again.",
     "network": "The server cannot be reached.",
-    "unknown": "The request failed.",
+    "unknown": "That did not work. Please try again.",
     "throttled": "Too many attempts. Try again in a minute."
   },
   "auth": {
@@ -271,7 +279,8 @@
     "save": "Save",
     "edit": "Edit",
     "delete": "Delete",
-    "actions": "Actions"
+    "actions": "Actions",
+    "back": "Back"
   },
   "project": {
     "tabs": {
@@ -291,20 +300,57 @@
     "taskCount": "{done}/{total} tasks",
     "timeline": {
       "label": "Milestones",
-      "expandAll": "Expand all",
-      "collapseAll": "Collapse all",
+      "expandAllMilestones": "Expand all",
+      "collapseAllMilestones": "Collapse all",
       "noDate": "No date",
       "toggleTodo": "Expand or collapse todo “{title}”",
+      "toggleMilestone": "Expand or collapse milestone “{title}”",
+      "toggleMilestoneHint": "Hold Option to include all to-dos",
+      "openTasks": "{count} open",
+      "ideasOnly": "{count} idea | {count} ideas",
+      "allTasksDone": "All tasks done.",
+      "loadError": "The milestones could not be loaded.",
+      "retry": "Try again",
+      "priceSum": "Prices: {total} · billed {billed} · in draft {draft}",
+      "price": "CHF {amount}",
+      "noPrice": "No price",
       "unassigned": "Unassigned",
       "noTasks": "No tasks yet.",
-      "milestonesOnly": "Show milestones only",
-      "showAll": "Show everything",
       "createTodo": "New todo in milestone “{title}”",
       "createTask": "New task in todo “{title}”",
       "milestoneActions": "Actions for milestone “{title}”",
       "todoActions": "Actions for todo “{title}”",
       "taskActions": "Actions for task “{title}”",
-      "openTask": "Open task “{title}”"
+      "openTask": "Open task “{title}”",
+      "moveTask": "Move task",
+      "newestFirst": "Newest first",
+      "oldestFirst": "Oldest first",
+      "sortNewestHint": "Shows the newest version on top. Choose the button to show the oldest on top.",
+      "sortOldestHint": "Shows the oldest version on top. Choose the button to show the newest on top.",
+      "showPrices": "Show prices",
+      "orderByVersion": "Order by version",
+      "order": {
+        "title": "Order milestones by version",
+        "description": "This is the stored order afterwards. Moved milestones are marked. To-dos and tasks stay as they are.",
+        "summary": "{count} milestone will move. | {count} milestones will move.",
+        "noVersion": "No version",
+        "movedFrom": "was at place {from}",
+        "apply": "Reorder",
+        "loading": "Loading the preview …",
+        "done": "Milestones ordered by version",
+        "doneDetail": "{count} milestone moved. | {count} milestones moved.",
+        "undo": "Undo",
+        "undone": "The earlier order is back.",
+        "failed": "The order could not be changed.",
+        "conflict": "The plan has changed in the meantime. The preview was reloaded, please check it again.",
+        "conditions": {
+          "archived": "The project is archived.",
+          "too_few_versions": "At least two milestones need a version.",
+          "invalid_version": "These versions are invalid (only numbers with dots such as 1.4 or 2.0.1 are allowed):",
+          "duplicate_version": "These versions appear twice:",
+          "already_ordered": "Already ordered by version."
+        }
+      }
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}",
@@ -425,7 +471,8 @@
     "search": "Search, for example rocket, calendar",
     "results": "{count} results (at most 120)",
     "suggestions": "Suggestions – or search above",
-    "noResults": "No icon found."
+    "noResults": "No icon found.",
+    "close": "Close"
   },
   "kanban": {
     "showIdeas": "Show ideas and planned tasks",
@@ -550,7 +597,8 @@
     "confirmPassword": {
       "title": "Confirm password",
       "description": "Please confirm your password before changing the security of your account.",
-      "submit": "Confirm"
+      "submit": "Confirm",
+      "inline": "Please confirm your password before going on."
     },
     "twoFactor": {
       "title": "Authenticator app",
@@ -595,7 +643,7 @@
   "admin": {
     "users": {
       "title": "Users",
-      "invite": "Invite person",
+      "invite": "Add user",
       "inviteHint": "They get an email with a link to set their password (valid 7 days). Afterwards they set up a second factor.",
       "edit": "Edit person",
       "sendInvite": "Send invitation",
@@ -638,7 +686,7 @@
       "agent": {
         "title": "Accesses",
         "name": "Name of the access",
-        "nameHint": "To recognise it, for example “{agent} server”",
+        "nameHint": "Suggested is the name of the environment variable the token goes into. You can change it.",
         "create": "Create access",
         "none": "No access yet.",
         "showOnceTitle": "Access made for {agent}",
@@ -650,7 +698,56 @@
         "revokeDescription": "{agent} can no longer use this access afterwards.",
         "revokeConfirm": "Revoke",
         "revoked": "Access revoked.",
-        "cli": "Or in a terminal on the server: app:user-token"
+        "cli": "Or in a terminal on the server: app:user-token",
+        "nameMissing": "The name is missing.",
+        "tokenStored": "Stored"
+      },
+      "access": {
+        "title": "Access for {agent}",
+        "intro": "An agent does not sign in in the browser. It works through the connector (MCP) with an access (token) and may do exactly what its role allows in the projects it is assigned to.",
+        "stepsLabel": "Steps to set up",
+        "steps": {
+          "create": "Create an access.",
+          "store": "Store the token: as an environment variable on the machine of the agent, never in a file in Git. It is shown only once.",
+          "connect": "Enter the connector: the address of the MCP server of this environment (below).",
+          "project": "Assign a project."
+        },
+        "done": "done",
+        "open": "open",
+        "address": "Address of the MCP server",
+        "copyAddress": "Copy address",
+        "guide": "Guide for the connector",
+        "projects": "Projects",
+        "noProjects": "Not in any project yet.",
+        "removeFrom": "Remove from project “{project}”",
+        "assign": "Assign project (role Agent)",
+        "state": {
+          "none": "Set up access",
+          "active": "Access active",
+          "expiring": "Access expiring",
+          "expired": "Access expired"
+        },
+        "menu": "Access and projects",
+        "identifier": "Identifier",
+        "identifierHint": "You assign tasks to the agent with its identifier (planer file, MCP).",
+        "copyIdentifier": "Copy identifier",
+        "assigned": "{agent} is now in “{project}”."
+      },
+      "sections": {
+        "users": "Users",
+        "agents": "Agents",
+        "noUsers": "No users yet.",
+        "noAgents": "No agents yet.",
+        "noMatches": "No matches."
+      },
+      "newAgent": {
+        "name": "Name",
+        "title": "Create agent",
+        "hint": "An agent account for Claude or an assistant. It does not sign in in the browser but works through the connector with an access you create right after.",
+        "nameHint": "Shown in the app, for example “Claude Club DB”.",
+        "submit": "Create",
+        "created": "Agent {name} created.",
+        "identifierHint": "Mollo Planer gives the agent an identifier made from the name, for example claude-club-db{'@'}agent.invalid. You assign tasks to it with this identifier. No mail is ever sent to an agent."
       }
     },
     "settings": {
@@ -694,7 +791,9 @@
       "secretTitle": "Secret for {name}",
       "secretOnce": "It is not shown again. Enter it in the settings of the application, not in a repository.",
       "secret": "Secret (client secret)",
-      "copySecret": "Copy secret"
+      "copySecret": "Copy secret",
+      "selfRegisteredBadge": "Self-registered",
+      "selfRegisteredHint": "Registered itself (for example Claude); no admin has checked it"
     }
   },
   "claude": {
@@ -785,6 +884,7 @@
       "title": "Preview",
       "counts": "New: {list}",
       "errors": "The preview reports errors",
+      "warnings": "No warning | 1 warning, the preview leaves an entry out | {count} warnings, the preview leaves entries out",
       "hints": "Hints",
       "notify": "Send assignment e-mails",
       "notifyHint": "Whoever is assigned a task gets an e-mail.",
@@ -1143,6 +1243,10 @@
           "label": "Sprache",
           "description": "Sprache der Mails zum Projekt: de oder en."
         },
+        "customer_id": {
+          "label": "Customer",
+          "description": "Customer of the billing the project is billed to (Auftrag 39). Only visible with the right «Billing»; empty: no customer, not billable."
+        },
         "created_at": {
           "label": "Created at",
           "description": "When the record was created, set by Laravel."
@@ -1266,6 +1370,10 @@
         "release_date": {
           "label": "Release date",
           "description": "When the version was released. Always optional; only for a released version, going back to planned clears it."
+        },
+        "price_cents": {
+          "label": "Price (Rappen)",
+          "description": "Fixed price of the milestone in whole Rappen (Auftrag 39). Only visible with the right «Billing»; empty: no price, not billable."
         }
       },
       "todos": {
@@ -1845,7 +1953,8 @@
       "IDEAS_VIEW_ANY": "See all ideas",
       "SETTINGS_MANAGE": "Change app settings",
       "SYSTEM_VIEW": "See the status page",
-      "DATABASE_VIEW": "See the database documentation"
+      "DATABASE_VIEW": "See the database documentation",
+      "BILLING_MANAGE": "Billing: customers, prices and invoices"
     }
   },
   "roleSettings": {
@@ -2096,6 +2205,8 @@
       "modeFullHint": "The file is the whole plan: what it lacks goes to the trash. The revision of the file must match.",
       "modePartialHint": "Adds and changes, never deletes. Fields the file leaves out stay.",
       "errors": "No error | 1 error, nothing is written | {count} errors, nothing is written",
+      "warnings": "No warning | 1 warning, the import goes on | {count} warnings, the import goes on",
+      "warningsDone": "One entry was not taken over, for example an assignment to an unknown email address. | {count} entries were not taken over, for example assignments to unknown email addresses.",
       "nothing": "The file changes nothing in the project.",
       "changes": "No change | 1 change | {count} changes",
       "submit": "Import",
@@ -2195,9 +2306,6 @@
     "announceOff": "Normal view.",
     "showIdeas": "Show ideas",
     "hideIdeas": "Hide ideas",
-    "milestonesOnly": "Toggle milestones only",
-    "expandMilestone": "Expand",
-    "collapseMilestone": "Collapse",
     "focus": "Focus",
     "focusTask": "Open task in focus",
     "focusTodo": "Open to-do in focus",
@@ -2339,7 +2447,8 @@
     "saveFailed": "Saving did not work.",
     "allSaved": "Saved",
     "focusBack": "Back",
-    "fileFallback": "document"
+    "fileFallback": "document",
+    "exportPdfLetterhead": "PDF with letterhead"
   },
   "oauth": {
     "authorize": {
@@ -2354,7 +2463,254 @@
       "allow": "Allow",
       "deny": "Deny",
       "unavailableTitle": "Request no longer valid",
-      "unavailableText": "This request is no longer valid. Start the login in the application again."
+      "unavailableText": "This request is no longer valid. Start the login in the application again.",
+      "refusedTitle": "Access not possible",
+      "errors": {
+        "email_unverified": "Confirm your email address first. Then you can allow applications.",
+        "agent": "An agent account cannot allow an application.",
+        "not_approved": "Your account has not been approved by an admin yet. This application needs the approval.",
+        "other": "No application can be allowed with this account."
+      },
+      "selfRegistered": "This application registered itself and has not been checked by Mollo. After you allow it, you continue to {host}."
+    }
+  },
+  "help": {
+    "title": "Help",
+    "intro": "How the functions of the planer work, step by step, with prompts for agents.",
+    "none": "No chapters yet.",
+    "notFound": "This chapter does not exist.",
+    "showImages": "Show pictures",
+    "needsRight": "This needs the right «{right}».",
+    "needsProjectRight": "This needs the right «{right}» in the project; it depends on your role there.",
+    "copied": "Prompt copied.",
+    "copyFailed": "Copying did not work. Select the text and copy it by hand.",
+    "copy": "Copy",
+    "copyPrompt": "Copy prompt {number}",
+    "tools": "Tools: {tools}",
+    "sections": {
+      "purpose": "Purpose",
+      "steps": "How to",
+      "notes": "Good to know",
+      "prompts": "Example prompts"
+    },
+    "areas": {
+      "first-steps": "First steps",
+      "projects": "Projects",
+      "plan": "Milestones, todos and tasks",
+      "kanban": "Kanban",
+      "my-tasks": "My tasks",
+      "comments": "Comments",
+      "documents": "Documents",
+      "ideas": "Ideas",
+      "assistant": "Assistant",
+      "templates": "Templates and labels",
+      "trash": "Trash and archive",
+      "statistics": "Statistics",
+      "calm": "Calm view and command palette",
+      "planer-file": "Planer file",
+      "agents": "Working with agents",
+      "admin": "Administration"
+    }
+  },
+  "billing": {
+    "status": {
+      "DRAFT": "Draft",
+      "ISSUED": "Open",
+      "PAID": "Paid",
+      "CANCELLED": "Cancelled",
+      "OVERDUE": "Overdue"
+    },
+    "address": {
+      "street": "Street",
+      "houseNumber": "No.",
+      "postalCode": "Postal code",
+      "city": "Town",
+      "country": "Country",
+      "countryHint": "Two-letter ISO code, for example CH, LI, DE."
+    },
+    "invoices": {
+      "title": "Invoices",
+      "create": "Create invoice",
+      "open": "Open",
+      "overdue": "Overdue",
+      "count": "no invoice | 1 invoice | {count} invoices",
+      "status": "Status",
+      "customer": "Customer",
+      "year": "Year",
+      "allStatuses": "All",
+      "allCustomers": "All customers",
+      "allYears": "All years",
+      "number": "Number",
+      "issueDate": "Date",
+      "dueDate": "Due",
+      "total": "Total",
+      "draft": "Draft",
+      "none": "No invoices yet.",
+      "noneHint": "Under «Billable» you choose done milestones and make a draft of them.",
+      "noneFiltered": "No invoice matches the filter."
+    },
+    "invoice": {
+      "titleNumber": "Invoice {number}",
+      "titleDraft": "Draft of an invoice",
+      "notFound": "This invoice does not exist.",
+      "facts": "Details",
+      "address": "Address",
+      "reference": "Reference",
+      "language": "Language",
+      "paidAt": "Paid on",
+      "cancelReason": "Reason",
+      "draftHint": "Draft: number, date and due date come with issuing. Until then the address of the customer as of today counts.",
+      "items": "Items",
+      "description": "Text on the invoice",
+      "descriptionHint": "From the description of the milestone, shortened. You can change it.",
+      "notes": "Note on the invoice",
+      "notesHint": "Shown below the items, for example a thank-you.",
+      "saved": "Draft saved.",
+      "removeItem": "Remove {title}",
+      "removeTitle": "Take «{title}» off the invoice?",
+      "removeDescription": "The milestone becomes billable again.",
+      "removeConfirm": "Remove",
+      "removed": "«{title}» removed.",
+      "delete": "Delete draft",
+      "deleteTitle": "Delete the draft?",
+      "deleteDescription": "The milestones become billable again.",
+      "deleted": "Draft deleted.",
+      "preview": "Preview (PDF)",
+      "issue": "Issue",
+      "issueTitle": "Issue the invoice?",
+      "issueDescription": "This cannot be undone: the invoice gets its number, addresses and items are frozen, the PDF is kept. Afterwards only «paid» or «cancel» remain.",
+      "issueConfirm": "Issue for good",
+      "issued": "Invoice {number} issued.",
+      "download": "Download PDF",
+      "markPaid": "Mark as paid",
+      "markPaidTitle": "Mark as paid",
+      "markPaidDescription": "When did the money arrive?",
+      "paidDone": "Marked as paid.",
+      "cancel": "Cancel",
+      "cancelTitle": "Cancel invoice {number}?",
+      "cancelDescription": "The number stays taken, the milestones become billable again. The invoice and its PDF are kept.",
+      "cancelConfirm": "Cancel invoice",
+      "cancelReasonHint": "At least three characters, for example «wrong amount».",
+      "cancelled": "Invoice cancelled."
+    },
+    "billable": {
+      "title": "Billable",
+      "intro": "Done milestones with a price in projects with a customer that are in no invoice yet. Choose and make a draft; an invoice goes to one customer.",
+      "none": "Nothing to bill.",
+      "noneHint": "A milestone becomes billable when it is done, has a price and its project has a customer.",
+      "chosen": "{count} chosen · CHF {amount}",
+      "create": "Create invoice",
+      "created": "Draft created.",
+      "withoutPrice": "One done milestone has no price | {count} done milestones have no price",
+      "withoutCustomer": "One done milestone is in a project without a customer | {count} done milestones are in projects without a customer"
+    },
+    "customers": {
+      "title": "Customers",
+      "create": "Add customer",
+      "edit": "Edit customer",
+      "formHint": "The address is printed like this on the invoice and in the QR payment part. Issued invoices keep their address.",
+      "company": "Company",
+      "name": "Name",
+      "email": "E-mail",
+      "locale": "Language of the invoices",
+      "localeHint": "Invoice and payment part in this language.",
+      "notes": "Note",
+      "notesHint": "Internal only, never on an invoice.",
+      "saved": "{name} saved.",
+      "showArchived": "Show archived",
+      "archivedBadge": "Archived",
+      "none": "No customers yet.",
+      "noneHint": "Add a customer and choose it in the settings of the project.",
+      "noneArchived": "No archived customers.",
+      "projectCount": "no project | 1 project | {count} projects",
+      "actions": "Actions for {name}",
+      "archive": "Archive",
+      "bringBack": "Bring back",
+      "archivedDone": "{name} archived.",
+      "backDone": "{name} brought back.",
+      "notFound": "This customer does not exist.",
+      "address": "Address",
+      "projects": "Projects",
+      "noProjects": "No project yet."
+    },
+    "settings": {
+      "title": "Billing settings"
+    },
+    "sender": {
+      "title": "Sender and terms",
+      "saved": "Sender saved.",
+      "missing": "An invoice still needs: {fields}.",
+      "fields": {
+        "name": "Name or company",
+        "street": "Street",
+        "postalCode": "Postal code",
+        "city": "Town",
+        "country": "Country",
+        "iban": "IBAN",
+        "email": "E-mail",
+        "phone": "Phone",
+        "website": "Website",
+        "uid": "UID"
+      },
+      "ibanHint": "IBAN of Switzerland or Liechtenstein, no QR-IBAN.",
+      "uidHint": "Leave empty without VAT.",
+      "paymentTermsDays": "Payment terms in days",
+      "numberFormat": "Format of the invoice number",
+      "numberFormatHint": "{'{'}YYYY{'}'} is the year, {'{'}NNNN{'}'} the running number (number of N = digits). Example: {'{'}YYYY{'}'}-{'{'}NNNN{'}'} gives 2026-0001."
+    },
+    "letterhead": {
+      "title": "Letterhead and layout",
+      "guideTitle": "Guide and measure sheets (PDF)",
+      "guideText": "Measures, export settings and 1:1 templates for your design program.",
+      "guide": "Download the guide",
+      "file": "Letterhead",
+      "current": "{name}, uploaded on {date}.",
+      "pages": "Page 1 only. | Page 1 and the following pages.",
+      "none": "No letterhead yet: invoices come on white paper.",
+      "fileHint": "PDF, A4 portrait, at most 5 MB. One page: for page 1 only. Two pages: page 1, then the following pages. The payment part never has a letterhead. A new letterhead counts for new PDFs only.",
+      "choose": "Choose PDF",
+      "replace": "Replace",
+      "remove": "Remove",
+      "uploaded": "Letterhead saved.",
+      "removed": "Letterhead removed.",
+      "removeTitle": "Remove the letterhead?",
+      "removeDescription": "New PDFs then come without a letterhead. Issued invoices stay as they are.",
+      "layout": "Layout in mm",
+      "layoutHint": "Where the text stands on the page and where the address field lies in the window of the envelope. The defaults are the values of the guide.",
+      "fields": {
+        "topFirst": "Text start page 1",
+        "topFollowing": "Text start following pages",
+        "bottom": "Bottom margin",
+        "left": "Left margin",
+        "right": "Right margin",
+        "addressLeft": "Address field from the left",
+        "addressTop": "Address field from the top",
+        "addressWidth": "Address field width",
+        "addressHeight": "Address field height"
+      },
+      "window": "Window of the envelope",
+      "windowHint": "Moves the address field to the default of that side; enter the exact values after measuring.",
+      "windowLeft": "Left",
+      "windowRight": "Right",
+      "font": "Font",
+      "defaults": "Use the defaults",
+      "layoutSaved": "Layout saved.",
+      "sample": "Sample invoice (PDF)"
+    },
+    "project": {
+      "title": "Billing",
+      "customer": "Customer",
+      "noCustomer": "No customer",
+      "customerHint": "Done milestones with a price are billed to this customer.",
+      "saved": "Customer saved.",
+      "manage": "Manage customers"
+    },
+    "milestone": {
+      "price": "Price (CHF)",
+      "priceHint": "Fixed price without VAT. Empty: not billable.",
+      "priceInvalid": "Please an amount in CHF, for example 1500 or 1,500.50.",
+      "billed": "Billed {number}",
+      "billedDraft": "Invoice in draft"
     }
   }
 }

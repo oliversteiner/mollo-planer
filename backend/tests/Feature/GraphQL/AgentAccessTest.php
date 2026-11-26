@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\GraphQL;
 
+use App\Core\Accounts\AgentAccountCreated;
 use App\Models\User;
 use App\Notifications\AgentAccessChange;
 use App\Support\McpTokens;
@@ -20,6 +21,8 @@ class AgentAccessTest extends GraphQLTestCase
     private const CREATE = 'mutation ($id: ID!, $name: String!) { createAgentToken(userId: $id, name: $name) { plainTextToken token { id name } } }';
 
     private const REVOKE = 'mutation ($id: ID!, $token: ID!) { revokeAgentToken(userId: $id, tokenId: $token) { id name } }';
+
+    private const CREATE_AGENT = 'mutation ($name: String!) { createAgent(input: {name: $name}) { id name email isAgent approved emailVerified role { key } } }';
 
     private User $agent;
 
@@ -220,5 +223,101 @@ class AgentAccessTest extends GraphQLTestCase
     public function test_tokens_count_is_unchanged_for_persons_after_all_refusals(): void
     {
         $this->assertSame(0, PersonalAccessToken::query()->count());
+    }
+
+    public function test_an_admin_creates_an_agent_account_logged_and_told_to_the_admins(): void
+    {
+        Notification::fake();
+        Log::spy();
+        $second = User::factory()->admin()->create(['locale' => 'en']);
+
+        $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => ' Claude Club DB '])
+            ->assertJsonPath('data.createAgent.name', 'Claude Club DB')
+            ->assertJsonPath('data.createAgent.email', 'claude-club-db@agent.invalid')
+            ->assertJsonPath('data.createAgent.isAgent', true)
+            ->assertJsonPath('data.createAgent.approved', true)
+            ->assertJsonPath('data.createAgent.emailVerified', true)
+            ->assertJsonPath('data.createAgent.role.key', 'mitglied');
+
+        $agent = User::query()->where('email', 'claude-club-db@agent.invalid')->sole();
+        $this->assertTrue($agent->isAgent());
+        $this->assertSame(0, $agent->tokens()->count());
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(fn (string $message, array $context): bool => $message === 'Agent account created.'
+            && $context['admin_id'] === $this->users['admin']->id
+            && $context['agent_id'] === $agent->id
+            && ! str_contains(json_encode($context), 'claude-club-db@agent.invalid'));
+        Notification::assertSentTo([$this->users['admin'], $second], AgentAccountCreated::class);
+        Notification::assertSentTo($second, AgentAccountCreated::class, fn ($mail, $channels, $notification) => $notification->locale === 'en');
+        Notification::assertNotSentTo($this->users['owner'], AgentAccountCreated::class);
+        Notification::assertNothingSentTo($agent);
+    }
+
+    public function test_creating_an_agent_needs_the_right(): void
+    {
+        foreach (['owner', 'manager', 'member', 'koordination'] as $name) {
+            $this->as($name)->withSession([StrongAuthentication::SESSION_KEY => (string) $this->users[$name]->id, 'auth.password_confirmed_at' => time()])
+                ->gql(self::CREATE_AGENT, ['name' => "Claude {$name}"])
+                ->assertJsonPath('data.createAgent', null)
+                ->assertGraphQLErrorMessage('You are not allowed to do this.');
+        }
+
+        $this->assertSame(1, User::query()->where('is_agent', true)->count(), 'only the agent of setUp');
+    }
+
+    public function test_creating_an_agent_needs_a_recent_password_confirmation(): void
+    {
+        $this->as('admin')->gql(self::CREATE_AGENT, ['name' => 'Claude'])
+            ->assertJsonPath('errors.0.extensions.validation.password.0', __('graphql.password_confirmation_required'));
+
+        $this->assertFalse(User::query()->where('email', 'claude@agent.invalid')->exists());
+    }
+
+    public function test_creating_an_agent_needs_a_strong_session(): void
+    {
+        $this->actingAs($this->users['admin'])
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->withHeader('Referer', 'http://localhost');
+        $this->gql(self::CREATE_AGENT, ['name' => 'Claude'])->assertForbidden();
+
+        $this->assertFalse(User::query()->where('email', 'claude@agent.invalid')->exists());
+    }
+
+    public function test_creating_an_agent_refuses_a_short_name(): void
+    {
+        Notification::fake();
+
+        $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => 'C'])
+            ->assertJsonPath('data.createAgent', null);
+
+        $this->assertSame(1, User::query()->where('is_agent', true)->count());
+        Notification::assertNothingSent();
+    }
+
+    public function test_the_identifier_is_made_from_the_name_and_stays_unique(): void
+    {
+        Notification::fake();
+
+        $first = $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => 'Jürg Müller'])->json('data.createAgent.email');
+        $second = $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => 'JÜRG müller'])->json('data.createAgent.email');
+        $third = $this->asConfirmedAdmin()->gql(self::CREATE_AGENT, ['name' => '!!'])->json('data.createAgent.email');
+
+        $this->assertSame('juerg-mueller@agent.invalid', $first);
+        $this->assertSame('juerg-mueller-2@agent.invalid', $second);
+        $this->assertSame('agent@agent.invalid', $third);
+    }
+
+    public function test_a_person_never_gets_an_identifier_of_an_agent(): void
+    {
+        $this->as('admin')->gql('mutation { createUser(input: {name: "Mensch", email: "mensch@agent.invalid"}) { id } }')
+            ->assertJsonPath('errors.0.extensions.validation', ['input.email' => [__('graphql.agent_identifier_reserved')]]);
+        $this->as('admin')->gql('mutation ($id: ID!) { updateUser(id: $id, input: {email: "Mensch@Agent.Invalid"}) { id } }', ['id' => $this->users['member']->id])
+            ->assertJsonPath('errors.0.extensions.validation', ['input.email' => [__('graphql.agent_identifier_reserved')]]);
+
+        // An agent account may get one.
+        $this->as('admin')->gql('mutation ($id: ID!) { updateUser(id: $id, input: {email: "kevin@agent.invalid"}) { email } }', ['id' => $this->agent->id])
+            ->assertJsonPath('data.updateUser.email', 'kevin@agent.invalid');
+
+        $this->assertFalse(User::query()->where('is_agent', false)->where('email', 'like', '%@agent.invalid')->exists());
     }
 }

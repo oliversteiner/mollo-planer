@@ -41,10 +41,18 @@ class OAuthClients
         }
 
         $client = $this->clients->createAuthorizationCodeGrantClient(trim($name), $uris, $confidential);
+        // Made by an admin: the consent page does not call it "registered by itself".
+        $client->forceFill(['registered_by' => $admin->getKey()])->save();
 
         Log::warning('OAuth client made.', ['admin_id' => $admin->getKey(), 'client_id' => $client->getKey(), 'name' => $client->name, 'confidential' => $confidential]);
 
         return $client;
+    }
+
+    /** An application that registered itself (dynamic client registration) and that nobody at Mollo has looked at. */
+    public static function isSelfRegistered(Client $client): bool
+    {
+        return $client->getAttribute('registered_by') === null;
     }
 
     /** Null when there is no such client. */

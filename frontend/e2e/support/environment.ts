@@ -5,6 +5,12 @@ export const BACKEND_URL = 'http://localhost:8100'
 export const FRONTEND_URL = 'http://localhost:3100'
 export const MAILPIT_URL = process.env.MAILPIT_URL ?? 'http://localhost:8025'
 export const DATABASE = join(tmpdir(), 'mollo-planer-e2e.sqlite')
+/**
+ * The storage folder of the backend of the tests (Laravel: LARAVEL_STORAGE_PATH): invoice PDFs, letterheads, logs and
+ * compiled views go here, never into backend/storage of the development machine, where a test could overwrite the
+ * PDF of a real local invoice of the same number (Auftrag 39, R2). Made fresh by global-setup.
+ */
+export const STORAGE = join(tmpdir(), 'mollo-planer-e2e-storage')
 /** The compiled GraphQL schema of the tests, a file of its own (never bootstrap/cache of the development machine). */
 export const SCHEMA_CACHE = join(tmpdir(), 'mollo-planer-e2e-lighthouse-schema.php')
 
@@ -26,6 +32,7 @@ export const E2E_RECOVERY_CODES = ['e2e-recovery-1', 'e2e-recovery-2', 'e2e-reco
  */
 export const backendEnv: Record<string, string> = {
   APP_ENV: 'production',
+  LARAVEL_STORAGE_PATH: STORAGE,
   LIGHTHOUSE_SCHEMA_CACHE_ENABLE: 'true',
   LIGHTHOUSE_SCHEMA_CACHE_PATH: SCHEMA_CACHE,
   APP_DEBUG: 'false',
@@ -43,6 +50,9 @@ export const backendEnv: Record<string, string> = {
   MAIL_PASSWORD: '',
   MAIL_ENCRYPTION: '',
   PASSWORD_UNCOMPROMISED_CHECK: 'false',
+  // The seeding runs as "local": the accounts of this throwaway database must not go to the snapshots of the
+  // developer's own accounts (Auftrag 45).
+  LOCAL_ACCOUNTS_KEEP: 'false',
   SANCTUM_STATEFUL_DOMAINS: 'localhost:3100',
   // Frontend and API are both on "localhost" (other ports): the cookie of the session and the relying party of the
   // passkeys are "localhost". The virtual authenticator verifies the user (the app asks for it).

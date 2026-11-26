@@ -3,8 +3,10 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Models\Comment;
+use App\Models\Customer;
 use App\Models\Document;
 use App\Models\Idea;
+use App\Models\Invoice;
 use App\Models\Task;
 use App\Models\Template;
 use App\Services\Deletion;
@@ -58,6 +60,15 @@ class OutsiderAccessTest extends GraphQLTestCase
      *
      * @return array<string, array{string, string, \Closure(self): array<string, mixed>}>
      */
+    /** A draft of a new customer, for the billing cases. */
+    private static function invoice(): int
+    {
+        $invoice = new Invoice;
+        $invoice->forceFill(['customer_id' => Customer::factory()->create()->id])->save();
+
+        return $invoice->id;
+    }
+
     public static function refusedMutations(): array
     {
         $project = fn (self $test) => ['id' => $test->project->id];
@@ -112,9 +123,27 @@ class OutsiderAccessTest extends GraphQLTestCase
             'createProject' => ['owner', 'mutation { createProject(input: {name: "Eigenes"}) { id } }', fn (self $test) => []],
             'createUser' => ['owner', 'mutation { createUser(input: {name: "Fritz", email: "fritz@example.com"}) { id } }', fn (self $test) => []],
             'updateUser (make self admin)' => ['owner', 'mutation ($id: ID!) { updateUser(id: $id, input: {role: "admin"}) { id } }', fn (self $test) => ['id' => $test->users['owner']->id]],
+            'createAgent' => ['owner', 'mutation { createAgent(input: {name: "Claude"}) { id } }', fn (self $test) => []],
             'createAgentToken' => ['owner', 'mutation ($id: ID!) { createAgentToken(userId: $id, name: "Claude") { plainTextToken } }', $member],
             'revokeAgentToken' => ['owner', 'mutation ($id: ID!) { revokeAgentToken(userId: $id, tokenId: 1) { id } }', $member],
             'createOAuthClient' => ['owner', 'mutation { createOAuthClient(name: "Club DB", redirectUris: ["https://clubdb.example/cb"], confidential: true) { secret } }', fn (self $test) => []],
+            'createCustomer (owner without billing)' => ['owner', 'mutation { createCustomer(input: {name: "Kunde", street: "Weg", postalCode: "3000", city: "Bern", country: "CH", locale: DE}) { id } }', fn (self $test) => []],
+            'updateCustomer (owner without billing)' => ['owner', 'mutation ($id: ID!) { updateCustomer(id: $id, input: {name: "Kunde", street: "Weg", postalCode: "3000", city: "Bern", country: "CH", locale: DE}) { id } }', fn (self $test) => ['id' => Customer::factory()->create()->id]],
+            'archiveCustomer (owner without billing)' => ['owner', 'mutation ($id: ID!) { archiveCustomer(id: $id, archived: true) { id } }', fn (self $test) => ['id' => Customer::factory()->create()->id]],
+            'setProjectCustomer (owner without billing)' => ['owner', 'mutation ($p: ID!, $c: ID) { setProjectCustomer(projectId: $p, customerId: $c) { id } }', fn (self $test) => ['p' => $test->project->id, 'c' => Customer::factory()->create()->id]],
+            'setMilestonePrice (owner without billing)' => ['owner', 'mutation ($id: ID!) { setMilestonePrice(milestoneId: $id, priceCents: 100) { id } }', $milestone],
+            'updateBillingSettings (owner without billing)' => ['owner', 'mutation { updateBillingSettings(input: {country: "CH", paymentTermsDays: 30, numberFormat: "{YYYY}-{NNNN}"}) { iban } }', fn (self $test) => []],
+            'createInvoiceDraft (owner without billing)' => ['owner', 'mutation ($c: ID!, $m: ID!) { createInvoiceDraft(customerId: $c, milestoneIds: [$m]) { id } }', fn (self $test) => ['c' => Customer::factory()->create()->id, 'm' => $test->milestone->id]],
+            'updateInvoiceDraft (owner without billing)' => ['owner', 'mutation ($id: ID!) { updateInvoiceDraft(id: $id, notes: "x") { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'deleteInvoiceDraft (owner without billing)' => ['owner', 'mutation ($id: ID!) { deleteInvoiceDraft(id: $id) }', fn (self $test) => ['id' => self::invoice()]],
+            'issueInvoice (owner without billing)' => ['owner', 'mutation ($id: ID!) { issueInvoice(id: $id) { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'markInvoicePaid (owner without billing)' => ['owner', 'mutation ($id: ID!) { markInvoicePaid(id: $id, paidAt: "2026-01-01") { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'cancelInvoice (owner without billing)' => ['owner', 'mutation ($id: ID!) { cancelInvoice(id: $id, reason: "Grund") { id } }', fn (self $test) => ['id' => self::invoice()]],
+            'exportInvoicePdf (owner without billing)' => ['owner', 'mutation ($id: ID!) { exportInvoicePdf(id: $id) { fileName } }', fn (self $test) => ['id' => self::invoice()]],
+            'previewInvoicePdf (owner without billing)' => ['owner', 'mutation ($id: ID!) { previewInvoicePdf(id: $id) { fileName } }', fn (self $test) => ['id' => self::invoice()]],
+            'removeLetterhead (owner without billing)' => ['owner', 'mutation { removeLetterhead { font } }', fn (self $test) => []],
+            'updatePdfFrame (owner without billing)' => ['owner', 'mutation { updatePdfFrame(input: {layout: {topFirst: 100, topFollowing: 35, bottom: 25, left: 20, right: 20, addressLeft: 20, addressTop: 50, addressWidth: 75, addressHeight: 30}, font: "dejavusans", addressWindow: "left"}) { font } }', fn (self $test) => []],
+            'sampleInvoicePdf (owner without billing)' => ['owner', 'mutation { sampleInvoicePdf { fileName } }', fn (self $test) => []],
             'revokeOAuthClient' => ['owner', 'mutation { revokeOAuthClient(id: "x") { id } }', fn (self $test) => []],
             'resetUserTwoFactor' => ['owner', 'mutation ($id: ID!) { resetUserTwoFactor(id: $id) { id } }', $member],
             'deleteUser' => ['owner', 'mutation ($id: ID!) { deleteUser(id: $id) { id } }', $member],
@@ -123,6 +152,8 @@ class OutsiderAccessTest extends GraphQLTestCase
             'approveUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { approveUser(id: $id) { id } }', fn (self $test) => ['id' => $test->users['stranger']->id]],
             'rejectUser (owner is not an admin)' => ['owner', 'mutation ($id: ID!) { rejectUser(id: $id) { id } }', fn (self $test) => ['id' => $test->users['stranger']->id]],
             'moveTodo' => ['stranger', 'mutation ($id: ID!, $m: ID!) { moveTodo(id: $id, milestoneId: $m, position: 0) { id } }', fn (self $test) => ['id' => $test->todo->id, 'm' => $test->milestone->id]],
+            'sortMilestones' => ['stranger', 'mutation ($id: ID!) { sortMilestones(projectId: $id) { revision } }', $project],
+            'reorderSiblings' => ['stranger', 'mutation ($id: ID!) { reorderSiblings(projectId: $id, level: MILESTONES, ids: []) { revision } }', $project],
             'moveMilestone' => ['stranger', 'mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
             'updateProjectLabels (member)' => ['member', 'mutation ($p: ID!) { updateProjectLabels(projectId: $p, labels: []) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'applyTemplateLabels (member)' => ['member', 'mutation ($p: ID!, $t: ID!) { applyTemplateLabels(projectId: $p, templateId: $t, mode: APPEND) { id } }', fn (self $test) => ['p' => $test->project->id, 't' => Template::factory()->create()->id]],

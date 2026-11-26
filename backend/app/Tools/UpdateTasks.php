@@ -5,6 +5,7 @@ namespace App\Tools;
 use App\Models\User;
 use App\Services\PlanTaskUpdates;
 use App\Services\PlanTaskUpdatesRefused;
+use App\Tools\Support\ToolArguments;
 
 class UpdateTasks extends Tool
 {
@@ -15,22 +16,22 @@ class UpdateTasks extends Tool
 
     public function description(): string
     {
-        return 'Sets status, commit and/or assigneeEmail of tasks in one atomic step. tasks: [{ id (k-<id>), status?, commit?, assigneeEmail? }]; omitted fields stay, null clears. Use base_revision (from export_plan) against concurrent edits and dry_run: true first.';
+        return 'Sets status, commit, assigneeEmail of tasks, atomically, no export needed. Omitted fields stay, null clears. Optional base_revision: abort if the plan changed since.';
     }
 
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Project ID (from list_projects).'),
-            'base_revision' => Schema::integer('Required revision from export_plan; aborts if project changed meanwhile.'),
+            'project_id' => Schema::string('Project ID.'),
+            'base_revision' => Schema::integer('Optional: abort if the plan is newer.'),
             'tasks' => Schema::list(Schema::object([
-                'id' => Schema::string('Task ID (k-<id> or number).'),
+                'id' => Schema::string('k-<id> or number.'),
                 'status' => Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']),
-                'commit' => Schema::string('Commit hash, "none", or null to clear.'),
-                'assigneeEmail' => Schema::string('Member email, or null to unassign.'),
+                'commit' => Schema::string('Hash, "none" or null to clear.'),
+                'assigneeEmail' => Schema::string('Member email or null.'),
             ], null, ['id']), 'Tasks to update (max 500).'),
-            'dry_run' => Schema::boolean('true: preview changes without writing.'),
-        ], ['project_id', 'base_revision', 'tasks']);
+            'dry_run' => Schema::boolean('Preview only.'),
+        ], ['project_id', 'tasks']);
     }
 
     /**
@@ -42,7 +43,7 @@ class UpdateTasks extends Tool
             $arguments,
             [
                 'project_id' => ['required'],
-                'base_revision' => ['required', 'integer'],
+                'base_revision' => ['sometimes', 'nullable', 'integer'],
                 'tasks' => ['required', 'array', 'min:1', 'max:500'],
                 'tasks.*.id' => ['required'],
                 'tasks.*.status' => ['sometimes', 'in:idea,planned,open,in_progress,review,done'],
@@ -52,18 +53,21 @@ class UpdateTasks extends Tool
             ],
             [
                 'project_id.required' => 'Give project_id (from list_projects).',
-                'base_revision.required' => 'Give base_revision from export_plan.',
                 'tasks.required' => 'Give tasks: [{ id, status?, commit?, assigneeEmail? }].',
                 'tasks.*.status.in' => 'status must be idea, planned, open, in_progress, review or done.',
             ],
         );
+
+        foreach ($validated['tasks'] as $index => $task) {
+            ToolArguments::id($task['id'], 'k', "tasks[{$index}].id");
+        }
 
         try {
             return ToolResult::json(app(PlanTaskUpdates::class)->apply(
                 $actor,
                 (string) $validated['project_id'],
                 $validated['tasks'],
-                (int) $validated['base_revision'],
+                isset($validated['base_revision']) ? (int) $validated['base_revision'] : null,
                 (bool) ($validated['dry_run'] ?? false),
             ));
         } catch (PlanTaskUpdatesRefused $refused) {

@@ -22,6 +22,8 @@ return [
     'validation' => [
         'required' => 'Required field is missing.',
         'unknown_field' => 'Unknown field.',
+        'unknown_field_suggest' => '`:field` is not a field, probably `:suggestion` is meant.',
+        'id_pattern' => 'Wrong format. Expected: `:prefix-<number>` or `:prefix-new-<number>`.',
         'type' => 'Wrong type, expected: :expected.',
         'enum' => 'Invalid value.',
         'pattern' => 'Wrong format.',
@@ -53,6 +55,7 @@ return [
         'draft_invalid' => 'The draft is not valid: :message',
         'invalid' => 'The file is not valid: :message',
         'assignee_unknown_warning' => ':email is not a member of the project or does not exist. The assignment is not taken over.',
+        'label_not_in_project' => '“:key” is not a label of the project. It has: :labels.',
         'excerpt' => 'The file is an excerpt of the plan (excerpt). In mode full, everything it lacks would be deleted. Import it in mode partial, or export the whole plan.',
         'revision' => 'The file has revision :file, the project is at :project. Export it again first.',
         'unknown_id' => ':id does not belong to this project or is in the trash.',

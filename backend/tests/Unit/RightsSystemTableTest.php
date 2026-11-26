@@ -28,6 +28,7 @@ class RightsSystemTableTest extends TestCase
             'projects.create', 'projects.viewAll', 'projects.manageAny', 'users.manage', 'roles.manage',
             'templates.manage', 'templates.manageAny',
             'assistant.use', 'ideas.create', 'ideas.viewAny', 'settings.manage', 'system.view', 'database.view',
+            'billing.manage',
         ],
         'projektleitung' => ['projects.create', 'templates.manage', 'assistant.use', 'ideas.create', 'system.view'],
         'koordination' => ['projects.create', 'assistant.use', 'ideas.create', 'system.view'],

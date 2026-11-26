@@ -15,7 +15,7 @@ class CreateIdea extends Tool
 
     public function description(): string
     {
-        return 'Saves a private idea (title, Markdown description, optional project_id or planer-v2 draft).';
+        return 'Saves a private idea (optionally with a project or a planer-v2 draft).';
     }
 
     private const MUTATION = <<<'GRAPHQL'
@@ -27,10 +27,10 @@ class CreateIdea extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'title' => Schema::string('Title of the idea, 2 to 200 characters.'),
-            'description' => Schema::string('Description in Markdown.'),
-            'project_id' => Schema::string('A project of the person (from list_projects), or leave out.'),
-            'draft' => Schema::object(null, 'A planer-v2 excerpt to put into a project later, or leave out.'),
+            'title' => Schema::string('Title, 2-200 characters.'),
+            'description' => Schema::string('Markdown.'),
+            'project_id' => Schema::string('Project ID, or leave out.'),
+            'draft' => Schema::object(null, 'planer-v2 excerpt, or leave out.'),
         ], ['title']);
     }
 

@@ -95,6 +95,7 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'icon', type: 'varchar', nullable: true },
       { name: 'template_id', type: 'bigint', nullable: true, references: 'templates' },
       { name: 'locale', type: 'varchar', default: 'de' },
+      { name: 'customer_id', type: 'bigint', nullable: true, references: 'customers' },
       { name: 'planer_revision', type: 'int', default: '0' },
       { name: 'created_at', type: 'timestamp', nullable: true },
       { name: 'updated_at', type: 'timestamp', nullable: true },
@@ -141,7 +142,8 @@ const TABLES: Record<DbTableName, DbTable> = {
       { name: 'updated_at', type: 'timestamp', nullable: true },
       { name: 'deleted_at', type: 'timestamp', nullable: true },
       { name: 'deleted_by', type: 'bigint', nullable: true, references: 'users' },
-      { name: 'deletion_id', type: 'varchar', nullable: true }
+      { name: 'deletion_id', type: 'varchar', nullable: true },
+      { name: 'price_cents', type: 'bigint', nullable: true }
     ],
     indexes: [
       { kind: 'index', columns: ['deletion_id'] },

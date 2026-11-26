@@ -20,14 +20,6 @@ const router = useRouter()
 const { projectId, project, can } = useProject()
 const { can: canSystem } = useViewer()
 
-/** Only the milestones (?milestones=only). */
-const milestonesOnly = computed({
-  get: () => route.query.milestones === 'only',
-  set: (value: boolean) => {
-    router.replace({ query: { ...route.query, milestones: value ? 'only' : undefined } })
-  }
-})
-
 /** Todos for the task dialog, members for it and the task details. */
 const taskFormEnabled = computed(() => can('TASK_CREATE') || can('TASK_UPDATE') || can('TASK_UPDATE_OWN'))
 const { result: todosResult } = useQuery(projectTodosQuery, () => ({ projectId: projectId.value }), () => ({ enabled: taskFormEnabled.value }))
@@ -109,15 +101,6 @@ useCommands(() => [
     run: () => {
       editing.value = { kind: 'milestone', parentId: projectId.value }
     }
-  },
-  {
-    id: 'milestones-only',
-    label: t('zen.milestonesOnly'),
-    icon: 'flag',
-    group: 'action',
-    run: () => {
-      milestonesOnly.value = !milestonesOnly.value
-    }
   }
 ])
 
@@ -145,11 +128,17 @@ function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace)
     items.push({ label: t('common.edit'), icon: 'pen', onSelect: () => startEditing({ kind, item }) })
   }
   if (kind === 'milestone' && place && can('MILESTONE_UPDATE')) {
-    if (place.index > 0) {
-      items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => void moveMilestone({ id: item.id, position: place.index - 1 }) })
+    // «Nach oben» is up on the screen: with the newest first that is the next place in the stored order.
+    const before = place.index > 0 ? place.index - 1 : null
+    const after = place.index < place.count - 1 ? place.index + 1 : null
+    const up = place.reversed ? after : before
+    const down = place.reversed ? before : after
+
+    if (up !== null) {
+      items.push({ label: t('kanban.moveUp'), icon: 'arrow-up', onSelect: () => void moveMilestone({ id: item.id, position: up }) })
     }
-    if (place.index < place.count - 1) {
-      items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveMilestone({ id: item.id, position: place.index + 1 }) })
+    if (down !== null) {
+      items.push({ label: t('kanban.moveDown'), icon: 'arrow-down', onSelect: () => void moveMilestone({ id: item.id, position: down }) })
     }
   }
   if (kind === 'todo') {
@@ -208,7 +197,6 @@ function actions(kind: 'milestone' | 'todo', item: Item, place?: MilestonePlace)
     />
 
     <ProjectTimeline
-      v-model:milestones-only="milestonesOnly"
       :data-zen="focusTodoId ? 'hide' : undefined"
       :project-id="projectId"
       :actions="actions"

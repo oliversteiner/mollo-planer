@@ -1,11 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+// @ts-expect-error a plain script without types
+import { PLACEHOLDER, withAddress } from '../../scripts/mcp-address.mjs'
 
 const pages = {
   de: readFileSync(fileURLToPath(new URL('../../public/mcp/de/index.html', import.meta.url)), 'utf8'),
   en: readFileSync(fileURLToPath(new URL('../../public/mcp/index.html', import.meta.url)), 'utf8')
 }
+const llms = readFileSync(fileURLToPath(new URL('../../public/mcp/llms.txt', import.meta.url)), 'utf8')
 const defaultLayout = readFileSync(fileURLToPath(new URL('../../app/layouts/default.vue', import.meta.url)), 'utf8')
 const authLayout = readFileSync(fileURLToPath(new URL('../../app/layouts/auth.vue', import.meta.url)), 'utf8')
 
@@ -19,8 +22,9 @@ describe('static MCP guide', () => {
     expect(pages.en).toContain('dry_run: true')
     expect(pages.de).toContain('mode: "partial"')
     expect(pages.en).toContain('mode: "partial"')
-    expect(pages.de).toContain('https://api.planer.mollo.dev/mcp')
-    expect(pages.en).toContain('https://api.planer.mollo.ch/mcp')
+    // The address of the installation goes in when the build runs (scripts/mcp-address.mjs): only the placeholder here.
+    expect(pages.de).toContain(`${PLACEHOLDER}/mcp`)
+    expect(pages.en).toContain(`${PLACEHOLDER}/mcp`)
     expect(pages.de).toContain('next_cursor')
     expect(pages.en).toContain('next_cursor')
     expect(pages.de).toContain('base_revision')
@@ -40,12 +44,27 @@ describe('static MCP guide', () => {
       expect(page).toContain('mcp-remote')
       expect(page).toContain('headers')
       expect(page).toContain('~/.junie/mcp/mcp.json')
-      expect(page).not.toMatch(/"Bearer (?!&lt;)/)
+      expect(page).not.toMatch(/"Bearer (?!(&lt;|\$\{))/)
     }
     expect(pages.de).toContain('Bearer &lt;dein-agent-token&gt;')
     expect(pages.en).toContain('Bearer &lt;your-agent-token&gt;')
     expect(pages.de).toContain('nie in die projektweite <code>.junie/mcp/mcp.json</code>')
     expect(pages.en).toContain('never in the project-wide <code>.junie/mcp/mcp.json</code>')
+  })
+
+  it('names OAuth, the token variable per account, the project .mcp.json and the title limit', () => {
+    for (const page of Object.values(pages)) {
+      expect(page).toContain('Custom Connector')
+      expect(page).toContain('MOLLOPLANER_&lt;NAME&gt;_TOKEN')
+      expect(page).toContain('"type": "http"')
+      expect(page).toContain('.mcp.json')
+      expect(page).toContain('160')
+      expect(page).not.toMatch(/"Bearer (?!(\$\{|&lt;))/)
+    }
+    expect(llms).toContain('Custom Connector')
+    expect(llms).toContain('MOLLOPLANER_<NAME>_TOKEN')
+    expect(llms).toContain('.mcp.json')
+    expect(llms).toContain('titles 2 to 160 characters')
   })
 
   it('links the language versions and uses a shared stylesheet without external assets', () => {
@@ -68,5 +87,85 @@ describe('static MCP guide', () => {
     expect(authLayout).toContain('<a href="/mcp/">MCP</a>')
     expect(mainItems).toBeDefined()
     expect(mainItems).not.toContain('MCP')
+  })
+})
+
+// The tool list of the server is the fixture backend/tests/Fixtures/mcp-tools-list.json (a backend test keeps it equal to the
+// registry App\Tools\ToolRegistry). The three documents must name exactly these tools, so they cannot drift apart (Auftrag 43 E).
+const toolNames: string[] = (JSON.parse(readFileSync(fileURLToPath(new URL('../../../backend/tests/Fixtures/mcp-tools-list.json', import.meta.url)), 'utf8')) as { name: string }[]).map(tool => tool.name)
+
+describe('MCP documentation for agents', () => {
+  it('names every tool of the server in llms.txt and in both pages', () => {
+    expect(toolNames.length).toBeGreaterThan(10)
+
+    for (const [file, text] of Object.entries({ 'llms.txt': llms, 'en': pages.en, 'de': pages.de })) {
+      const missing = toolNames.filter(name => !text.includes(name))
+      expect(missing, `${file} lacks tools`).toEqual([])
+    }
+  })
+
+  it('names the tools in llms.txt only once each in the table, and no tool that does not exist', () => {
+    const rows = llms.split('\n').filter(line => /^\| [a-z_]+ \|/.test(line)).map(line => line.split('|')[1]!.trim())
+
+    expect(rows.sort()).toEqual([...toolNames].sort())
+  })
+
+  it('says the right number of tools', () => {
+    const words: Record<number, [string, string]> = { 12: ['twelve', 'zwölf'], 13: ['thirteen', 'dreizehn'], 14: ['fourteen', 'vierzehn'], 15: ['fifteen', 'fünfzehn'] }
+    const [en, de] = words[toolNames.length] ?? ['', '']
+
+    expect(en, 'extend the table of number words').not.toBe('')
+    expect(pages.en).toContain(`instructions and ${en} tools`)
+    expect(pages.de).toContain(`Instruktionen und ${de} Werkzeuge`)
+    expect(pages.en).not.toMatch(/\beleven tools\b/)
+    expect(pages.de).not.toMatch(/\belf Werkzeuge\b/)
+  })
+
+  it('has a short Markdown file for agents that the pages point to', () => {
+    expect(llms.length).toBeLessThanOrEqual(4000)
+    expect(llms.startsWith('# Mollo Planer MCP')).toBe(true)
+    expect(llms).toContain(`${PLACEHOLDER}/mcp`)
+    expect(llms).toMatch(/## Work cheaply/)
+    expect(llms).toMatch(/## Recipes/)
+    expect(llms).toMatch(/## Do not/)
+
+    for (const page of Object.values(pages)) {
+      expect(page).toContain('<link rel="alternate" type="text/markdown" href="/mcp/llms.txt">')
+      expect(page).toContain('<a href="/mcp/llms.txt">/mcp/llms.txt</a>')
+    }
+  })
+
+  it('has no secret in llms.txt and no dry run duty for update_tasks', () => {
+    expect(llms).not.toMatch(/Bearer [A-Za-z0-9|._-]{8,}/)
+    expect(llms).toContain('No export, no dry run')
+    expect(pages.en).not.toContain('requires <code>base_revision</code>')
+    expect(pages.en).not.toContain('This repository already defines the MCP server')
+    expect(pages.de).not.toContain('In diesem Repository ist der MCP-Server bereits')
+  })
+})
+
+describe('format schema for agents', () => {
+  it('serves the schema of the spec unchanged (made by npm run mcp:schema, never edited by hand)', () => {
+    const served = readFileSync(fileURLToPath(new URL('../../public/mcp/format-v2.schema.json', import.meta.url)), 'utf8')
+    const spec = readFileSync(fileURLToPath(new URL('../../../spec/planer-v2.schema.json', import.meta.url)), 'utf8')
+
+    expect(served).toBe(spec)
+  })
+
+  it('is named by llms.txt and by both guides', () => {
+    expect(llms).toContain('/mcp/format-v2.schema.json')
+    expect(pages.de).toContain('/mcp/format-v2.schema.json')
+    expect(pages.en).toContain('/mcp/format-v2.schema.json')
+  })
+})
+
+describe('address of the installation in the built guide (Auftrag 56)', () => {
+  it('replaces every placeholder with the API of the build and leaves nothing of the placeholder', () => {
+    for (const text of [pages.de, pages.en, llms]) {
+      const built = withAddress(text, 'https://api.planer-test.example.org/') as string
+
+      expect(built).toContain('https://api.planer-test.example.org/mcp')
+      expect(built).not.toContain(PLACEHOLDER)
+    }
   })
 })

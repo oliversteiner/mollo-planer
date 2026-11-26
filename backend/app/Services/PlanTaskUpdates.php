@@ -29,18 +29,44 @@ class PlanTaskUpdates
         GRAPHQL;
 
     /**
+     * With a base revision the call is refused when the plan has changed since (the refusal carries the current state of
+     * the tasks asked for, so no new export is needed). Without one, every task and field is changed on its own: a change
+     * by somebody else in the meantime is no reason to refuse; only if the plan changes between reading and writing the
+     * call tries again (up to three times).
+     *
      * @param  list<array<string, mixed>>  $updates  { id, status?, commit?, assigneeEmail? } per task
-     * @return array{ok: true, dry_run: bool, revision: int, changed: list<array<string, mixed>>}
+     * @return array{ok: true, dry_run?: true, revision: int, changed: list<array<string, mixed>>, unchanged?: int}
      *
      * @throws PlanTaskUpdatesRefused with the sentence or the errors (JSON) the AI client reads
      */
-    public function apply(User $actor, string $projectId, array $updates, int $baseRevision, bool $dryRun = false): array
+    public function apply(User $actor, string $projectId, array $updates, ?int $baseRevision, bool $dryRun = false): array
+    {
+        $attempts = $baseRevision === null ? 3 : 1;
+
+        for ($try = 1; ; $try++) {
+            try {
+                return $this->attempt($actor, $projectId, $updates, $baseRevision, $dryRun);
+            } catch (PlanTaskUpdatesRefused $refused) {
+                if ($refused->revisionConflict && $try < $attempts) {
+                    continue;
+                }
+
+                throw $refused;
+            }
+        }
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $updates
+     * @return array{ok: true, dry_run?: true, revision: int, changed: list<array<string, mixed>>, unchanged?: int}
+     */
+    private function attempt(User $actor, string $projectId, array $updates, ?int $baseRevision, bool $dryRun): array
     {
         $runner = app(GraphQLRunner::class);
         $document = json_decode((string) $runner->run(self::EXPORT, ['id' => $projectId], $actor)['exportPlan'], true, 512, JSON_THROW_ON_ERROR);
 
-        if ($baseRevision !== (int) $document['revision']) {
-            throw new PlanTaskUpdatesRefused(__('planer.update_tasks.revision', ['file' => $baseRevision, 'project' => $document['revision']]));
+        if ($baseRevision !== null && $baseRevision !== (int) $document['revision']) {
+            throw $this->conflict($document, $updates, $baseRevision);
         }
 
         $known = [];
@@ -88,28 +114,68 @@ class PlanTaskUpdates
             'projectId' => $projectId,
             'document' => json_encode($this->excerpt($document, $changes), JSON_THROW_ON_ERROR),
             'dryRun' => $dryRun,
-            'expectedRevision' => $baseRevision,
+            'expectedRevision' => $baseRevision ?? (int) $document['revision'],
         ], $actor)['importPlan'];
 
         if (! $result['ok']) {
-            throw $this->failure($result['errors']);
+            throw $this->failure($result['errors'], collect($result['errors'])->contains(fn (array $error): bool => $error['kind'] === 'revision'));
         }
 
         $revision = $dryRun
             ? (int) $document['revision']
             : (int) ($runner->run(self::REVISION, ['id' => $projectId], $actor)['project']['planerRevision'] ?? $document['revision']);
 
+        // Short: per changed task its id and only the fields that changed, as [old, new]; the others only as a number.
         $tasks = [];
         foreach ($after as $id => $values) {
-            $diffBefore = array_diff_assoc($before[$id], $values);
-            $diffAfter = array_diff_assoc($values, $before[$id]);
+            $fields = [];
 
-            if ($diffAfter !== []) {
-                $tasks[] = ['id' => $id, 'before' => $diffBefore, 'after' => $diffAfter];
+            foreach (array_diff_assoc($values, $before[$id]) + array_diff_assoc($before[$id], $values) as $field => $unused) {
+                $fields[$field] = [$before[$id][$field], $values[$field]];
+            }
+
+            if ($fields !== []) {
+                $tasks[] = ['id' => $id, ...$fields];
             }
         }
 
-        return ['ok' => true, 'dry_run' => $dryRun, 'revision' => $revision, 'changed' => $tasks];
+        return array_filter([
+            'ok' => true,
+            'dry_run' => $dryRun ? true : null,
+            'revision' => $revision,
+            'changed' => $tasks,
+            'unchanged' => count($after) - count($tasks) ?: null,
+        ], fn (mixed $value): bool => $value !== null);
+    }
+
+    /**
+     * The refusal for an old base revision: the current revision and the current state of the tasks asked for only.
+     *
+     * @param  array<string, mixed>  $document
+     * @param  list<array<string, mixed>>  $updates
+     */
+    private function conflict(array $document, array $updates, int $baseRevision): PlanTaskUpdatesRefused
+    {
+        $wanted = array_map(fn (array $update): string => $this->taskId($update['id']), $updates);
+        $current = [];
+
+        foreach ($document['milestones'] as $milestone) {
+            foreach ($milestone['todos'] ?? [] as $todo) {
+                foreach ($todo['tasks'] ?? [] as $task) {
+                    if (in_array($task['id'], $wanted, true)) {
+                        $current[] = array_filter(['id' => $task['id'], 'title' => $task['title'], ...$this->fieldsOf($task)], fn (mixed $value): bool => $value !== null);
+                    }
+                }
+            }
+        }
+
+        return new PlanTaskUpdatesRefused(json_encode([
+            'ok' => false,
+            'error' => 'revision',
+            'message' => __('planer.update_tasks.revision', ['file' => $baseRevision, 'project' => $document['revision']]),
+            'revision' => (int) $document['revision'],
+            'tasks' => $current,
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -156,8 +222,8 @@ class PlanTaskUpdates
     /**
      * @param  list<array<string, mixed>>  $errors
      */
-    private function failure(array $errors): PlanTaskUpdatesRefused
+    private function failure(array $errors, bool $revisionConflict = false): PlanTaskUpdatesRefused
     {
-        return new PlanTaskUpdatesRefused(json_encode(['ok' => false, 'errors' => $errors], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        return new PlanTaskUpdatesRefused(json_encode(['ok' => false, 'errors' => $errors], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $revisionConflict);
     }
 }

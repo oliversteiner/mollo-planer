@@ -13,7 +13,7 @@ Mehr dazu im [Wiki](https://example.org/wiki).
 
 ## Mitglieder
 
-- oliver@mollo.ch | owner
+- person@example.com | owner
 - anna@example.org | bar-team
 
 ---

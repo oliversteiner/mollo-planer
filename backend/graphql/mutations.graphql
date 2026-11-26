@@ -53,6 +53,10 @@ type Mutation @guard {
   createAgentToken(userId: ID!, name: String! @rules(apply: ["min:2", "max:60"])): NewApiToken!
     @can(ability: "manageAgentAccess", model: "App\\Models\\User")
     @field(resolver: "App\\GraphQL\\Mutations\\CreateAgentToken")
+  "Legt ein Agent-Konto an (kein Login im Browser, Systemrolle Mitglied, keine Mail an das Konto). Nur mit dem Recht users.manage und frischer Passwortbestätigung; Protokolleintrag und Mail an die Admins. Dieselbe Aktion wie app:create-agent."
+  createAgent(input: CreateAgentInput!): User!
+    @can(ability: "manageAgentAccess", model: "App\\Models\\User")
+    @field(resolver: "App\\Core\\Accounts\\GraphQL\\CreateAgent")
   "Widerruft einen Zugang eines Agent-Kontos. null, wenn er nicht zu diesem Agenten gehört. Gleiche Voraussetzungen wie createAgentToken."
   revokeAgentToken(userId: ID!, tokenId: ID!): ApiToken
     @can(ability: "manageAgentAccess", model: "App\\Models\\User")
@@ -270,6 +274,12 @@ type Mutation @guard {
   moveMilestone(id: ID!, position: Int! @rules(apply: ["integer", "min:0"])): Milestone!
     @can(ability: "update", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\MoveMilestone")
+  "Ordnet die Milestones eines Projekts nach ihrer Version (Zahlen, Teil für Teil; ohne Version ans Ende). Nur wenn alle Bedingungen von milestoneVersionOrder erfüllt sind; expectedRevision schützt vor Änderungen dazwischen. Mit dryRun wird nichts geschrieben. before ist die alte Reihenfolge (für «Rückgängig» mit reorderSiblings)."
+  sortMilestones(projectId: ID!, expectedRevision: Int, dryRun: Boolean = false): OrderResult!
+    @field(resolver: "App\\GraphQL\\Mutations\\SortMilestones")
+  "Ordnet die Geschwister einer Ebene neu: MILESTONES (Milestones des Projekts), TODOS (parentId = Milestone), TASKS (parentId = ToDo). ids enthält alle Geschwister genau einmal. Nichts wechselt das ToDo oder den Milestone. Rechte wie beim Verschieben."
+  reorderSiblings(projectId: ID!, level: OrderLevel!, parentId: ID, ids: [ID!]!, expectedRevision: Int, dryRun: Boolean = false): OrderResult!
+    @field(resolver: "App\\GraphQL\\Mutations\\ReorderSiblings")
   deleteMilestone(id: ID! @whereKey): Milestone!
     @can(ability: "delete", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteMilestone")
@@ -347,8 +357,8 @@ type Mutation @guard {
   updateDocument(id: ID!, revision: Int!, input: UpdateDocumentInput!): Document!
     @can(ability: "update", find: "id", model: "App\\Models\\Document")
     @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@update")
-  "Das Dokument als PDF (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
-  exportDocumentPdf(id: ID!): DocumentFile!
+  "Das Dokument als PDF, auf Wunsch mit Briefpapier (Stufe READ genügt, auch in einem archivierten Projekt). Synchron; Titel, Projekt, Owner, Fassung, Stand und Seitenzahlen in der Sprache des Projekts."
+  exportDocumentPdf(id: ID!, "Mit dem Briefpapier der Basis (nur wenn eines hochgeladen ist, sonst ohne). Vorgabe: ohne." withLetterhead: Boolean = false): DocumentFile!
     @can(ability: "view", find: "id", model: "App\\Models\\Document")
     @field(resolver: "App\\GraphQL\\Mutations\\DocumentMutations@exportPdf")
   "Holt eine Fassung zurück (Stufe EDIT und document.update): Es entsteht eine NEUE Fassung mit dem alten Inhalt, nichts wird überschrieben. Entspricht die Fassung dem jetzigen Stand, ändert sich nichts."

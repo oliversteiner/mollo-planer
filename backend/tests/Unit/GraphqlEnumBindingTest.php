@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\ItemStatus;
 use App\Enums\Locale;
 use App\Enums\Right;
@@ -25,6 +26,7 @@ class GraphqlEnumBindingTest extends TestCase
             'ItemStatus' => [ItemStatus::class],
             'TaskStatus' => [TaskStatus::class],
             'Locale' => [Locale::class],
+            'InvoiceStatus' => [InvoiceStatus::class],
         ];
     }
 

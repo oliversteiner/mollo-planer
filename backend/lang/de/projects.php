@@ -6,6 +6,11 @@ return [
     'list_and' => ' und ',
     'last_owner' => 'Das Projekt braucht mindestens einen Owner. Ernenne zuerst eine andere Person zum Owner.',
     'assignee_not_member' => 'Tasks können nur Mitgliedern des Projekts zugewiesen werden.',
+    'membership_refusal' => [
+        'AGENT_ROLE_ONLY' => ':name ist ein Agent und hat in jedem Projekt die Rolle Agent, keine andere.',
+        'AGENT_ROLE_RESERVED' => 'Die Rolle Agent ist Agent-Konten vorbehalten. Wähle für :name eine andere Rolle.',
+        'agent_not_default' => 'Die Rolle Agent ist Agent-Konten vorbehalten und kann nicht die Standardrolle für neue Mitglieder sein.',
+    ],
     'todo_other_project' => 'Ein Task kann nur in ein ToDo desselben Projekts verschoben werden.',
     'milestone_other_project' => 'Ein ToDo kann nur in einen Milestone desselben Projekts verschoben werden.',
     'plan' => [

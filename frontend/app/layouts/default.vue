@@ -52,6 +52,17 @@ const mainItems = computed<NavItem[]>(() => [
   ...(withTrash.value ? [{ label: t('nav.trash'), icon: 'trash-can', to: '/trash' }] : [])
 ].filter(allowed))
 
+/**
+ * The section "Billing" (Auftrag 39), only with billing.manage. Offers and orders come later as further entries,
+ * under /billing as well.
+ */
+const billingItems = computed<NavItem[]>(() => [
+  { label: t('nav.invoices'), icon: 'file-invoice-dollar', to: '/billing/invoices' },
+  { label: t('nav.billable'), icon: 'list-check', to: '/billing/billable' },
+  { label: t('nav.customers'), icon: 'address-book', to: '/billing/customers' },
+  { label: t('nav.billingSettings'), icon: 'sliders', to: '/billing/settings' }
+].filter(allowed))
+
 /** The section "System": the database documentation (admins), the status and the version (everyone), then administration. */
 const adminItems = computed<NavItem[]>(() => [
   { label: t('nav.database'), icon: 'database', to: '/system/db' },
@@ -67,6 +78,8 @@ const adminItems = computed<NavItem[]>(() => [
 function onUserMenu(event: CustomEvent<{ item: { value: string } }>): void {
   if (event.detail.item.value === 'profile') {
     void navigateTo('/profile')
+  } else if (event.detail.item.value === 'help') {
+    void navigateTo('/help')
   } else if (event.detail.item.value === 'logout') {
     void logout()
   }
@@ -167,6 +180,20 @@ function skipToContent(): void {
         :label="t('nav.main')"
       />
       <SidebarProjectList />
+      <wa-details
+        v-if="billingItems.length"
+        class="app-admin"
+        appearance="plain"
+      >
+        <span
+          slot="summary"
+          class="app-heading"
+        >{{ t('nav.billing') }}</span>
+        <NavList
+          :items="billingItems"
+          :label="t('nav.billing')"
+        />
+      </wa-details>
       <!-- Closed by default; the user opens it with the summary. -->
       <wa-details
         v-if="adminItems.length"
@@ -217,6 +244,13 @@ function skipToContent(): void {
             name="user-gear"
           ></wa-icon>
           {{ t('profile.title') }}
+        </wa-dropdown-item>
+        <wa-dropdown-item value="help">
+          <wa-icon
+            slot="icon"
+            name="circle-question"
+          ></wa-icon>
+          {{ t('help.title') }}
         </wa-dropdown-item>
         <wa-dropdown-item value="logout">
           <wa-icon
@@ -331,6 +365,19 @@ function skipToContent(): void {
   display: flex;
   flex-direction: column;
   gap: var(--wa-space-xl);
+}
+
+/*
+ * A short window: the navigation scrolls on its own, between the header and the user menu. No section shrinks to
+ * nothing (the projects did) and none slides under the user menu (Auftrag 39, with the section «Abrechnung»).
+ */
+.app-navigation {
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+.app-navigation > * {
+  flex-shrink: 0;
 }
 
 .app-heading {

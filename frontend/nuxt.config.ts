@@ -23,11 +23,12 @@ export default defineNuxtConfig({
   ],
 
   // Single-page app: built with "nuxt generate" to static files, because
-  // the hosting (Hostpoint) runs PHP only. All data comes from the API.
+  // the hosting (a web host) runs PHP only. All data comes from the API.
   ssr: false,
 
   devtools: {
-    enabled: true
+    // Off for the pictures of the manual (playwright.manual.config.ts), so its bar is not in them.
+    enabled: process.env.NUXT_DEVTOOLS !== 'off'
   },
 
   app: {

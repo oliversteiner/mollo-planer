@@ -50,7 +50,7 @@ Vollständige Liste, inklusive der bisher geplanten neuen Rechte. Namen wie heut
 `project.update`, `project.delete`, `project.archive`, `members.manage`, `owner.manage` (Rolle mit `project.delete` vergeben oder entziehen, heute „nur Owner“), `milestone.create`, `milestone.update`, `milestone.delete`, `todo.create`, `todo.update`, `todo.delete`, `task.create`, `task.update`, `task.updateOwn`, `task.assign`, `task.assignSelf`, `task.move`, `task.delete`, `comment.create`, `comment.moderate`, `trash.restore`, `trash.purge`, `planer.export`, `planer.import`, `aiContext.update`, `document.create`, `document.update`, `document.manageAny` (Dokumente, siehe `docs/dokumentenverwaltung.md` §4).
 
 **System:**
-`projects.create`, `projects.viewAll`, `projects.manageAny`, `users.manage`, `roles.manage` (diese Einstellungen), `templates.manage`, `templates.manageAny`, `assistant.use`, `ideas.create`, `ideas.viewAny`, `settings.manage` (App-Einstellungen, 2FA-Schalter), `system.view` (Status-Seite), `database.view` (Datenbank-Doku).
+`projects.create`, `projects.viewAll`, `projects.manageAny`, `users.manage`, `roles.manage` (diese Einstellungen), `templates.manage`, `templates.manageAny`, `assistant.use`, `ideas.create`, `ideas.viewAny`, `settings.manage` (App-Einstellungen, 2FA-Schalter), `system.view` (Status-Seite), `database.view` (Datenbank-Doku), `billing.manage` (Abrechnung: Kunden, Preise, Rechnungen; unabhängig von den Rollen im Projekt, nie für Agent-Konten, Auftrag 39).
 
 Jedes Recht hat im Code einen kurzen Text (DE/EN) für die Einstellungsseite. Ein Test prüft: jedes Recht wird in mindestens einer Policy oder Prüfung verwendet, und jede Prüfung nutzt ein Recht aus der Liste.
 
@@ -76,7 +76,7 @@ Die Standardbelegung bildet **genau das heutige Verhalten plus die bereits entsc
 | Manager | Planen, Mitarbeiten, Aufgaben verwalten, Projekt verwalten |
 | Mitglied | Planen, Mitarbeiten |
 | Gast | – (nur lesen) |
-| Agent | Planen, Mitarbeiten, Plan und Aufgaben pflegen (`planer.import`, `task.update`, `task.assign`). Für Agent-Konten (Claude), ohne Verwaltung von Mitgliedern und Projekt. Nicht `Aufgaben verwalten`: löschen und moderieren darf ein Agent nicht. |
+| Agent | Planen, Mitarbeiten, Plan und Aufgaben pflegen (`planer.import`, `task.update`, `task.assign`). Für Agent-Konten (Claude), ohne Verwaltung von Mitgliedern und Projekt. Nicht `Aufgaben verwalten`: löschen und moderieren darf ein Agent nicht. Fest gekoppelt (Auftrag 58): ein Agent-Konto hat in jedem Projekt nur diese Rolle, ein Mensch nie (`ProjectMembership::assertRoleFits`, Fehlercodes `AGENT_ROLE_ONLY`, `AGENT_ROLE_RESERVED`); sie kann nicht die Standardrolle sein. |
 
 **Systemfunktionen:**
 
@@ -91,6 +91,7 @@ Die Standardbelegung bildet **genau das heutige Verhalten plus die bereits entsc
 | Alle Ideen | `ideas.viewAny` |
 | Betrieb | `settings.manage`, `database.view` |
 | Status | `system.view` |
+| Abrechnung | `billing.manage` |
 
 **Systemrollen:**
 
@@ -146,7 +147,7 @@ Diese Regeln schützen vor Aussperren und vor Missbrauch. Sie sind keine Rechte,
 2. **„Funktion“ freimachen:** Das heutige Feld `job_function` heißt neu **„Tätigkeit“** (`users.activity`, GraphQL `User.activity`, Enum `UserActivity`) und bleibt eine reine Anzeige ohne Rechte.
 3. **Obergrenze** über die Systemrolle, „Lesend“ ohne Sonderregel im Code.
 4. **Grundregeln §7** bleiben im Code.
-5. **Projektrolle „Gast“** (nur lesen) wird mitgeliefert, ebenso die Projektrolle „Agent“ (Auftrag 31) mit der Funktion `agent-work`. Ein Bestand holt sie mit `php artisan permissions:sync-defaults`.
+5. **Projektrolle „Gast“** (nur lesen) wird mitgeliefert, ebenso die Projektrolle „Agent“ (Auftrag 31) mit der Funktion `agent-work`. Ein Bestand holt sie beim Deployment mit `php artisan permissions:sync-defaults --add-missing` (ergänzt nur Neues, überschreibt nichts, Auftrag 40 B); `permissions:sync-defaults` ohne Option setzt die Standardbelegung zurück.
 6. **Je eine Rolle:** eine Systemrolle je Person, eine Projektrolle je Mitgliedschaft.
 
 ## 10. Folgen für die laufende Umsetzung

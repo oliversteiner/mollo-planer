@@ -5,10 +5,9 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
+  # Pull requests: every job runs for every pull request, without a path filter (Auftrag 69 B), so a required check never
+  # stays «missing». Pushes (deploy) keep the filter.
   pull_request:
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend.yml'
 
 defaults:
   run:
@@ -16,6 +15,7 @@ defaults:
 
 jobs:
   ci:
+    name: 'Frontend: Lint, Typen, Tests, Build'
     runs-on: ubuntu-latest
     env:
       PRO_ASSETS_TOKEN: ${{ secrets.PRO_ASSETS_TOKEN }}
@@ -54,6 +54,11 @@ jobs:
 
       - name: No Font Awesome Pro files in git
         run: npm run icons:check
+
+      - name: No private terms in git (Auftrag 56; the list is the variable PRIVATE_TERMS, not in the repository)
+        run: npm run terms:check
+        env:
+          PRIVATE_TERMS: ${{ vars.PRIVATE_TERMS }}
 
       - name: GraphQL types up to date
         run: |

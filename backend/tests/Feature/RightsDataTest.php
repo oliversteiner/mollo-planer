@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\PermissionsSyncDefaults;
 use App\Enums\ProjectRole;
 use App\Enums\Right;
 use App\Enums\UserRole;
@@ -20,7 +21,7 @@ class RightsDataTest extends TestCase
 
     public function test_standard_rows_are_written_from_the_config(): void
     {
-        $this->assertSame(9, DB::table('functions')->where('scope', 'system')->count());
+        $this->assertSame(10, DB::table('functions')->where('scope', 'system')->count());
         $this->assertSame(6, DB::table('functions')->where('scope', 'project')->count());
         $this->assertSame(5, DB::table('roles')->where('scope', 'system')->count());
         $this->assertSame(5, DB::table('roles')->where('scope', 'project')->count());
@@ -83,7 +84,7 @@ class RightsDataTest extends TestCase
 
         $this->artisan('permissions:sync-defaults --check')
             ->expectsOutputToContain('project.role.agent')
-            ->assertFailed();
+            ->assertExitCode(PermissionsSyncDefaults::EXIT_MISSING);
         $this->assertDatabaseMissing('roles', ['scope' => 'project', 'key' => ProjectRole::AGENT->value]);
 
         $this->artisan('permissions:sync-defaults')->assertSuccessful();

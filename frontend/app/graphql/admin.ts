@@ -20,6 +20,18 @@ export const adminUsersQuery = graphql(`
   }
 `)
 
+/** Projects the viewer sees with their members: the dialog of an agent filters them (loaded when it opens). */
+export const agentProjectsQuery = graphql(`
+  query AgentProjects {
+    projects {
+      id
+      name
+      viewerRights
+      members { role { key names { de en } } user { id } }
+    }
+  }
+`)
+
 export const approveUserMutation = graphql(`
   mutation ApproveUser($id: ID!) {
     approveUser(id: $id) { id approved }
@@ -47,6 +59,12 @@ export const updateUserMutation = graphql(`
 export const resetUserTwoFactorMutation = graphql(`
   mutation ResetUserTwoFactor($id: ID!) {
     resetUserTwoFactor(id: $id) { id twoFactorConfirmed hasPasskey }
+  }
+`)
+
+export const createAgentMutation = graphql(`
+  mutation CreateAgent($input: CreateAgentInput!) {
+    createAgent(input: $input) { id name }
   }
 `)
 
@@ -91,7 +109,7 @@ export const updateAppSettingsMutation = graphql(`
 
 export const oauthClientsQuery = graphql(`
   query OAuthClients {
-    oauthClients { id name redirectUris confidential revoked createdAt }
+    oauthClients { id name redirectUris confidential revoked selfRegistered createdAt }
   }
 `)
 
@@ -99,7 +117,7 @@ export const createOAuthClientMutation = graphql(`
   mutation CreateOAuthClient($name: String!, $redirectUris: [String!]!, $confidential: Boolean!) {
     createOAuthClient(name: $name, redirectUris: $redirectUris, confidential: $confidential) {
       secret
-      client { id name redirectUris confidential revoked createdAt }
+      client { id name redirectUris confidential revoked selfRegistered createdAt }
     }
   }
 `)

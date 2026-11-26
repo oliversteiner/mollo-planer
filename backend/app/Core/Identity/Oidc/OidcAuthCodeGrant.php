@@ -5,7 +5,9 @@ namespace App\Core\Identity\Oidc;
 use DateInterval;
 use League\OAuth2\Server\Entities\AuthCodeEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
+use League\OAuth2\Server\RequestTypes\AuthorizationRequestInterface;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
@@ -16,6 +18,46 @@ use Throwable;
  */
 class OidcAuthCodeGrant extends AuthCodeGrant
 {
+    /**
+     * PKCE for every client, and only S256 (OAuth 2.1): league also accepts the method "plain" (the default when none is
+     * named) and leaves PKCE optional for a confidential client. The discovery document says S256 only; this makes it true.
+     *
+     * @throws OAuthServerException
+     */
+    public function validateAuthorizationRequest(ServerRequestInterface $request): AuthorizationRequestInterface
+    {
+        $authRequest = parent::validateAuthorizationRequest($request);
+
+        if ($authRequest->getCodeChallenge() === null) {
+            throw $this->refusal('code_challenge', 'A code challenge is required (PKCE with S256).', $authRequest);
+        }
+
+        if ($authRequest->getCodeChallengeMethod() !== 'S256') {
+            throw $this->refusal('code_challenge_method', 'Only the code challenge method S256 is supported.', $authRequest);
+        }
+
+        return $authRequest;
+    }
+
+    /** The error goes back to the application (redirect address and state of the request, already checked). */
+    private function refusal(string $parameter, string $hint, AuthorizationRequestInterface $authRequest): OAuthServerException
+    {
+        $exception = new OAuthServerException(
+            'The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed.',
+            3,
+            'invalid_request',
+            400,
+            "Check the `{$parameter}` parameter. {$hint}",
+            (string) $authRequest->getRedirectUri(),
+        );
+
+        if ($authRequest->getState() !== null) {
+            $exception->setPayload([...$exception->getPayload(), 'state' => $authRequest->getState()]);
+        }
+
+        return $exception;
+    }
+
     protected function issueAuthCode(
         DateInterval $authCodeTTL,
         ClientEntityInterface $client,

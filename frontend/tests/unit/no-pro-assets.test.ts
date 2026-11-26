@@ -30,6 +30,21 @@ describe('guard against Font Awesome Pro files in the public repository', () => 
     expect(findProAssets(root).sort()).toEqual(['frontend/public/rocket.svg', 'frontend/vendor/fontawesome/7.3.1/catalog.json'])
   })
 
+  it('finds the skills copied from the Web Awesome Pro package, by folder and by header', () => {
+    const root = repository({
+      'frontend/.claude/skills/webawesome/references/button.md': '# Button',
+      'frontend/.claude/skills/webawesome-design/SKILL.md': 'name: webawesome-design',
+      'frontend/.claude/skills/other/SKILL.md': '---\nlicense: MIT / Commercial (for Web Awesome Pro)\n---',
+      'frontend/.claude/skills/own/SKILL.md': '---\nname: own\n---'
+    })
+
+    expect(findProAssets(root).sort()).toEqual([
+      'frontend/.claude/skills/other/SKILL.md',
+      'frontend/.claude/skills/webawesome-design/SKILL.md',
+      'frontend/.claude/skills/webawesome/references/button.md'
+    ])
+  })
+
   it('finds nothing in a clean repository', () => {
     expect(findProAssets(repository({ 'frontend/public/logo.svg': '<svg></svg>' }))).toEqual([])
   })

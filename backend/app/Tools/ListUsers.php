@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Rights;
+use App\Tools\Support\LikeSearch;
 use App\Tools\Support\McpCursor;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -24,7 +25,7 @@ class ListUsers extends Tool
 
     public function description(): string
     {
-        return 'Lists users with accounts. With project_id: project members (id, name, email, role). Without it: all accounts with email if allowed, else names only.';
+        return 'Lists accounts; with project_id the members (id, name, email, role).';
     }
 
     public function readOnly(): bool
@@ -35,10 +36,10 @@ class ListUsers extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Project ID (from list_projects) to list its members with email.'),
-            'query' => Schema::string('Optional name/email filter.'),
-            'limit' => Schema::integer('Max results (1-100). Default 30.'),
-            'cursor' => Schema::string('next_cursor from the previous page.'),
+            'project_id' => Schema::string('Members of this project, with email.'),
+            'query' => Schema::string('Name or email.'),
+            'limit' => Schema::integer('1-100, default 30.'),
+            'cursor' => Schema::string('next_cursor.'),
         ]);
     }
 
@@ -66,8 +67,8 @@ class ListUsers extends Tool
 
             $members = $project->members()
                 ->when($search !== '', fn (Builder $q) => $q->where(function (Builder $sub) use ($search): void {
-                    $sub->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                    LikeSearch::where($sub, 'name', $search);
+                    LikeSearch::where($sub, 'email', $search, 'or');
                 }))
                 ->when($cursor !== null, fn (Builder $q) => $q->where(function (Builder $sub) use ($cursor): void {
                     $sub->where('name', '>', (string) $cursor['name'])
@@ -97,9 +98,9 @@ class ListUsers extends Tool
         $accounts = User::query()
             ->whereNotNull('approved_at')
             ->when($search !== '', fn (Builder $q) => $q->where(function (Builder $sub) use ($search, $canManageUsers): void {
-                $sub->where('name', 'like', "%{$search}%");
+                LikeSearch::where($sub, 'name', $search);
                 if ($canManageUsers) {
-                    $sub->orWhere('email', 'like', "%{$search}%");
+                    LikeSearch::where($sub, 'email', $search, 'or');
                 }
             }))
             ->when($cursor !== null, fn (Builder $q) => $q->where(function (Builder $sub) use ($cursor): void {

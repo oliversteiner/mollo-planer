@@ -47,7 +47,7 @@ class DocumentMutations
     /**
      * The PDF of a document (reading is enough; an archived project allows it).
      *
-     * @param  array{id: int|string}  $args
+     * @param  array{id: int|string, withLetterhead?: bool|null}  $args
      * @return array{fileName: string, mimeType: string, contentBase64: string}
      */
     public function exportPdf(mixed $root, array $args): array
@@ -57,7 +57,7 @@ class DocumentMutations
         return [
             'fileName' => $this->pdf->fileName($document),
             'mimeType' => 'application/pdf',
-            'contentBase64' => base64_encode($this->pdf->render($document)),
+            'contentBase64' => base64_encode($this->pdf->render($document, (bool) ($args['withLetterhead'] ?? false))),
         ];
     }
 

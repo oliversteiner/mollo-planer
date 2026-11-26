@@ -636,6 +636,6 @@ class ImportTest extends GraphQLTestCase
 
         $result = $this->import($this->project, $document, dryRun: true);
 
-        $this->assertSame([['kind' => 'update', 'path' => 'milestones[0].todos[0].tasks[0]', 'id' => "k-{$this->task->id}", 'fields' => ['title']]], $result->changes);
+        $this->assertSame([['kind' => 'update', 'path' => 'milestones[0].todos[0].tasks[0]', 'id' => "k-{$this->task->id}", 'fields' => ['title'], 'title' => 'Neuer Titel']], $result->changes);
     }
 }

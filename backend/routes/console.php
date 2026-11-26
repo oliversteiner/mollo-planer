@@ -15,6 +15,9 @@ Schedule::command('app:prune-unverified-users')->daily();
 // Authorization server: expired and revoked tokens and codes go after a week (Passport), the notes of the codes
 // (what the id_token needs) after a day, a code lives ten minutes.
 Schedule::command('passport:purge')->daily();
+Schedule::call(fn () => DB::table('mcp_tool_calls')->where('created_at', '<', now()->subDays(90))->delete())
+    ->name('mcp-prune-tool-calls')
+    ->daily();
 Schedule::call(fn () => DB::table('oauth_auth_code_claims')->where('created_at', '<', now()->subDay())->delete())
     ->name('oauth-prune-code-claims')
     ->daily();

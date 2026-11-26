@@ -5,12 +5,14 @@ namespace Tests\Feature\GraphQL;
 use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\Todo;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * The order of the todos of a milestone (schema-review A3): new todos go to the
  * end, a given place moves the others back, a deleted todo leaves no gap, and
  * moveTodo changes the place or the milestone inside the same project.
  */
+#[Group('mariadb')]
 class TodoOrderTest extends GraphQLTestCase
 {
     private const MOVE = 'mutation ($id: ID!, $m: ID!, $p: Int!) { moveTodo(id: $id, milestoneId: $m, position: $p) { id position milestone { id } } }';

@@ -8,11 +8,14 @@ import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 const props = defineProps<{ document: { id: string, title: string, content: string } }>()
 
 const { t } = useI18n()
-const { markdown, pdf, making } = useDocumentExport(() => props.document)
+const { markdown, pdf, making, letterheadAvailable } = useDocumentExport(() => props.document)
 
 const items = computed<ActionMenuItem[]>(() => [
   { label: t('documents.exportMarkdown'), icon: 'file-lines', onSelect: markdown },
-  { label: making.value ? t('documents.exportPdfMaking') : t('documents.exportPdf'), icon: 'file-pdf', disabled: making.value, onSelect: () => { void pdf() } }
+  { label: making.value ? t('documents.exportPdfMaking') : t('documents.exportPdf'), icon: 'file-pdf', disabled: making.value, onSelect: () => { void pdf() } },
+  ...(letterheadAvailable.value
+    ? [{ label: t('documents.exportPdfLetterhead'), icon: 'file-pdf', disabled: making.value, onSelect: () => { void pdf(true) } }]
+    : [])
 ])
 </script>
 

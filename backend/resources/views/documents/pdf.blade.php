@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <style>
-    body { font-family: dejavusans, sans-serif; font-size: 10pt; line-height: 1.45; color: #1a1a1a; }
+    body { font-family: {{ $font ?? 'dejavusans' }}, sans-serif; font-size: 10pt; line-height: 1.45; color: #1a1a1a; }
     h1 { font-size: 20pt; margin: 0 0 4pt; }
     h2 { font-size: 15pt; margin: 16pt 0 4pt; }
     h3 { font-size: 12.5pt; margin: 12pt 0 4pt; }

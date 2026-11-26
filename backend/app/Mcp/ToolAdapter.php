@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Support\McpScopes;
 use App\Tools\Tool as AgentTool;
 use App\Tools\ToolResult;
-use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool as McpTool;
@@ -29,12 +28,6 @@ final class ToolAdapter extends McpTool
         return $this->tool->name();
     }
 
-    /** As before, when the title came from the class name: "list_projects" is "List Projects Tool". */
-    public function title(): string
-    {
-        return Str::headline(Str::studly($this->tool->name()).'Tool');
-    }
-
     public function description(): string
     {
         return $this->tool->description();
@@ -55,7 +48,11 @@ final class ToolAdapter extends McpTool
      */
     public function toArray(): array
     {
-        return [...parent::toArray(), 'inputSchema' => $this->tool->schema()];
+        $array = [...parent::toArray(), 'inputSchema' => $this->tool->schema()];
+        // The title would only repeat the name ("List Projects Tool"): it costs characters in every tools/list.
+        unset($array['title']);
+
+        return $array;
     }
 
     /**
@@ -78,7 +75,14 @@ final class ToolAdapter extends McpTool
             return Response::error('Not signed in.');
         }
 
-        $result = $this->tool->call($actor, $request->all());
+        $startedAt = hrtime(true);
+        $result = null;
+
+        try {
+            $result = $this->tool->call($actor, $request->all());
+        } finally {
+            ToolUsage::record($this->tool->name(), $actor->getKey(), $result, $startedAt);
+        }
 
         return match ($result->kind) {
             ToolResult::ERROR => Response::error((string) $result->data),

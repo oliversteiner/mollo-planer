@@ -59,7 +59,7 @@ test('Verletzungen der Vorlagen-Regeln werden benannt', () => {
     ['DB-ID', (d) => { d.milestones[0].id = 'm-12'; }, 'milestones[0].id'],
     ['Task-Status', (d) => { d.milestones[0].todos[0].tasks[0].status = 'done'; }, 'milestones[0].todos[0].tasks[0].status'],
     ['Fälligkeit', (d) => { d.milestones[0].dueDate = '2027-01-01'; }, 'milestones[0].dueDate'],
-    ['Zuweisung', (d) => { d.milestones[0].todos[0].tasks[0].assigneeEmail = 'oliver@mollo.ch'; }, 'milestones[0].todos[0].tasks[0].assigneeEmail'],
+    ['Zuweisung', (d) => { d.milestones[0].todos[0].tasks[0].assigneeEmail = 'person@example.com'; }, 'milestones[0].todos[0].tasks[0].assigneeEmail'],
     ['Commit', (d) => { d.milestones[0].todos[0].tasks[0].commit = 'abc1234'; }, 'milestones[0].todos[0].tasks[0].commit'],
     ['Release', (d) => { d.milestones[0].release = { version: '1.0', status: 'released' }; }, 'milestones[0].release.status'],
     ['Labels', (d) => { delete d.project.labels; }, 'project.labels'],

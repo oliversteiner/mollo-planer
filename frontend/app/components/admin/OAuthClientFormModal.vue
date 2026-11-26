@@ -5,20 +5,22 @@ import { createOAuthClientMutation } from '~/graphql/admin'
 /**
  * Register an application that may log in through the planer (docs/oauth-sso.md): a name, the exact addresses it
  * returns to (one per line) and whether it is a server with a secret (confidential) or a browser or app client.
- * Needs a recent password confirmation; the secret of a confidential client is shown once by the page.
+ * Needs a recent password confirmation, asked for in a field of this dialog (Auftrag 55, rule R11); the secret of
+ * a confidential client is shown once by the page.
  */
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [], created: [secret: string | null, name: string] }>()
 
 const { t } = useI18n()
-const { ensurePasswordConfirmed } = useSecurity()
-const { errors, pending, run } = useGraphqlForm()
+const step = usePasswordStep()
+const { errors, run } = useGraphqlForm()
 const { mutate } = useMutation(createOAuthClientMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
 
 const state = reactive({ name: '', redirectUris: '', confidential: true })
 
 watch(() => props.open, (open) => {
   if (open) {
+    step.cancel()
     errors.value = {}
     Object.assign(state, { name: '', redirectUris: '', confidential: true })
   }
@@ -28,28 +30,36 @@ const open = computed({
   get: () => props.open,
   set: (value: boolean) => {
     if (!value) {
+      step.cancel()
       emit('close')
     }
   }
 })
 
 async function submit(): Promise<void> {
-  if (!await ensurePasswordConfirmed()) {
+  if (step.working) {
     return
   }
 
-  const name = state.name.trim()
-  const result = await run(() => mutate({
-    name,
-    redirectUris: state.redirectUris.split('\n').map(line => line.trim()).filter(Boolean),
-    confidential: state.confidential
-  }))
-  const created = result?.data?.createOAuthClient
+  await step.run(async () => {
+    const name = state.name.trim()
+    const result = await run(() => mutate({
+      name,
+      redirectUris: state.redirectUris.split('\n').map(line => line.trim()).filter(Boolean),
+      confidential: state.confidential
+    }))
 
-  if (created) {
-    emit('created', created.secret ?? null, name)
-    emit('close')
-  }
+    // The confirmation ran out meanwhile: the step asks again and keeps what is typed here.
+    if (errors.value.password) {
+      return NEEDS_PASSWORD
+    }
+    const created = result?.data?.createOAuthClient
+
+    if (created) {
+      emit('created', created.secret ?? null, name)
+      emit('close')
+    }
+  })
 }
 </script>
 
@@ -85,6 +95,10 @@ async function submit(): Promise<void> {
         :hint="t('admin.oauthClients.confidentialHint')"
       />
     </form>
+    <PasswordConfirmField
+      class="client-password"
+      :step="step"
+    />
 
     <template #footer>
       <wa-button
@@ -98,10 +112,17 @@ async function submit(): Promise<void> {
         type="submit"
         form="oauth-client-form"
         variant="brand"
-        :loading="pending"
+        :loading="step.working"
+        :disabled="step.waiting"
       >
         {{ t('admin.oauthClients.createSubmit') }}
       </wa-button>
     </template>
   </AppDialog>
 </template>
+
+<style scoped>
+.client-password {
+  margin-block-start: var(--wa-space-m);
+}
+</style>

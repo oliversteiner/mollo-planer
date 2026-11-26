@@ -5,12 +5,14 @@ namespace Tests\Feature\GraphQL;
 use App\Models\Milestone;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * The order of the milestones of a project: no gaps after a delete, and every
  * change runs under the row lock of the project, so two requests cannot
  * write the same position.
  */
+#[Group('mariadb')]
 class MilestoneOrderTest extends GraphQLTestCase
 {
     private const DELETE = 'mutation ($id: ID!) { deleteMilestone(id: $id) { id } }';

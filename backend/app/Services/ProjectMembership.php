@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\ProjectRole;
 use App\Enums\Right;
+use App\GraphQL\Errors\MembershipRefusal;
 use App\Models\Document;
 use App\Models\DocumentShare;
 use App\Models\Project;
@@ -25,6 +27,10 @@ use Illuminate\Validation\ValidationException;
  * - The project keeps at least one member who may delete it. Only someone
  *   with projects.manageAny may break this.
  * - Removing a member unassigns their tasks in this project.
+ * - An agent account has the project role Agent and no other; a person never
+ *   has it (Auftrag 58). Every way a membership is made or changed asks
+ *   assertRoleFits(); where the role is not chosen but implied (default role
+ *   of a new member), roleFor() picks the fitting one.
  *
  * Call inside a transaction: changes lock the project row, so two changes
  * to the same project (for example two owners demoting each other) run
@@ -43,6 +49,7 @@ class ProjectMembership
         $current = $project->roleOf($user);
 
         $this->authorize($actor, $project, $current, $role);
+        self::assertRoleFits($user, $role);
 
         if (Rights::holdsProject($user, $current) && ! Rights::holdsProject($user, $role)) {
             $this->guardLastHolder($project, $user, 'role');
@@ -113,13 +120,47 @@ class ProjectMembership
             return;
         }
 
-        $role = Role::defaultOf(Role::SCOPE_PROJECT);
+        $role = $user === null ? null : self::roleFor($user, Role::defaultOf(Role::SCOPE_PROJECT));
 
         if ($user === null || $user->approved_at === null || $role === null || ! Rights::allows($actor, Right::MEMBERS_MANAGE, $project)) {
             throw ValidationException::withMessages([$field => __('projects.assignee_not_member')]);
         }
 
         $this->set($actor, $project, $user, $role);
+    }
+
+    /**
+     * The project role Agent (shipped, cannot be deleted).
+     */
+    public static function agentRole(): ?Role
+    {
+        return Role::byKey(Role::SCOPE_PROJECT, ProjectRole::AGENT->value);
+    }
+
+    /**
+     * The role for a membership whose role nobody chose (the default role): Agent for an agent account.
+     */
+    public static function roleFor(User $user, ?Role $implied): ?Role
+    {
+        return $user->isAgent() ? self::agentRole() : $implied;
+    }
+
+    /**
+     * The one rule for every membership (Auftrag 58 A): an agent account only as Agent, a person never as Agent.
+     *
+     * @throws MembershipRefusal
+     */
+    public static function assertRoleFits(User $user, Role $role): void
+    {
+        $isAgentRole = $role->scope === Role::SCOPE_PROJECT && $role->key === ProjectRole::AGENT->value;
+
+        if ($user->isAgent() && ! $isAgentRole) {
+            throw new MembershipRefusal(MembershipRefusal::AGENT_ROLE_ONLY, (string) $user->name);
+        }
+
+        if (! $user->isAgent() && $isAgentRole) {
+            throw new MembershipRefusal(MembershipRefusal::AGENT_ROLE_RESERVED, (string) $user->name);
+        }
     }
 
     private function lockProject(Project $project): void

@@ -36,3 +36,11 @@ playwright-report/
 
 # Licensed icons (Font Awesome Pro), fetched by `npm run icons:fetch`. The repository is public: never commit.
 vendor/
+
+# Skills copied from the licensed package @web.awesome.me/webawesome-pro (public repository, task 42 C):
+# install them locally, see README.md
+.claude/skills/webawesome/
+.claude/skills/webawesome-design/
+
+# Pictures of the help in the app: copies made by npm run manual from handbuch/bilder/ (Auftrag 54).
+/public/help-images/

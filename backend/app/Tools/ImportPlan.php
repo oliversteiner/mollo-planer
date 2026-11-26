@@ -6,6 +6,9 @@ use App\Models\User;
 
 class ImportPlan extends Tool
 {
+    /** How many errors and how many warnings the answer lists. */
+    private const LISTED = 20;
+
     public function name(): string
     {
         return 'import_plan';
@@ -13,12 +16,12 @@ class ImportPlan extends Tool
 
     public function description(): string
     {
-        return 'Writes a planer-v2 document into a project (or creates one without project_id). Always run dry_run: true first. mode "full" (default) checks revision and trashes missing items; mode "partial" only adds/updates. Tasks whose assignee is unknown or not a project member are imported without that assignee and listed in warnings (path, email, message). New IDs: m-new-1, t-new-1, k-new-1.';
+        return 'Writes a planer-v2 document into a project (a new project without project_id). Dry-run first (dry_run: true). mode "full" (default) trashes what is missing, "partial" only adds and updates. Unknown assignees are skipped with a warning.';
     }
 
     private const MUTATION = <<<'GRAPHQL'
-        mutation ($projectId: ID, $document: String!, $mode: ImportMode!, $dryRun: Boolean!, $notify: Boolean!, $templateId: ID, $ideaId: ID, $appendOnly: Boolean!) {
-          importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notify, templateId: $templateId, ideaId: $ideaId, appendOnly: $appendOnly) {
+        mutation ($projectId: ID, $document: String!, $mode: ImportMode!, $dryRun: Boolean!, $notify: Boolean!, $templateId: ID, $ideaId: ID, $appendOnly: Boolean!, $expectedRevision: Int) {
+          importPlan(projectId: $projectId, document: $document, mode: $mode, dryRun: $dryRun, notifyAssignees: $notify, templateId: $templateId, ideaId: $ideaId, appendOnly: $appendOnly, expectedRevision: $expectedRevision) {
             ok dryRun projectId document
             changes { kind path id fields title }
             errors { path kind message }
@@ -31,15 +34,16 @@ class ImportPlan extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'project_id' => Schema::string('Target project ID; omit to create a new project.'),
-            'plan' => Schema::object(null, 'planer-v2 document.'),
+            'project_id' => Schema::string('Target project; omit to create one.'),
+            'plan' => Schema::object(null, 'planer-v2 document. Fields per level and limits: see the instructions of the server, which also link the JSON schema. Unknown fields are refused.'),
             'mode' => Schema::string('"full" (default) or "partial".', ['full', 'partial']),
-            'dry_run' => Schema::boolean('true: validate and preview without writing.'),
-            'notify_assignees' => Schema::boolean('true: send assignment emails. Default false.'),
-            'template_id' => Schema::string('Only without project_id: template origin ID.'),
-            'idea_id' => Schema::string('Idea ID to adopt after import.'),
-            'append_only' => Schema::boolean('true: error on any modification of existing items. Default false.'),
-            'include_document' => Schema::boolean('true: include exported document in response. Default false to save tokens.'),
+            'dry_run' => Schema::boolean('Validate only, write nothing.'),
+            'notify_assignees' => Schema::boolean('Send assignment mails. Default false.'),
+            'template_id' => Schema::string('New project only: template ID.'),
+            'idea_id' => Schema::string('Idea to adopt.'),
+            'append_only' => Schema::boolean('Refuse changes to existing items.'),
+            'base_revision' => Schema::integer('Optional: abort if the plan is newer.'),
+            'include_document' => Schema::boolean('Return the document too. Default false.'),
         ], ['plan']);
     }
 
@@ -56,6 +60,7 @@ class ImportPlan extends Tool
                 'template_id' => ['sometimes', 'nullable'],
                 'idea_id' => ['sometimes', 'nullable'],
                 'append_only' => ['sometimes', 'boolean'],
+                'base_revision' => ['sometimes', 'nullable', 'integer'],
                 'include_document' => ['sometimes', 'boolean'],
             ],
             [
@@ -75,6 +80,7 @@ class ImportPlan extends Tool
             'templateId' => isset($validated['template_id']) ? (string) $validated['template_id'] : null,
             'ideaId' => isset($validated['idea_id']) ? (string) $validated['idea_id'] : null,
             'appendOnly' => (bool) ($validated['append_only'] ?? false),
+            'expectedRevision' => isset($validated['base_revision']) ? (int) $validated['base_revision'] : null,
         ])['importPlan'];
 
         $payload = [
@@ -82,10 +88,17 @@ class ImportPlan extends Tool
             'dryRun' => $data['dryRun'],
             'projectId' => $data['projectId'],
             'changes' => $data['changes'],
-            'errors' => $data['errors'],
-            'warnings' => $data['warnings'],
+            'errors' => array_slice($data['errors'], 0, self::LISTED),
+            'warnings' => array_slice($data['warnings'], 0, self::LISTED),
             'idMap' => (object) array_column($data['idMap'], 'to', 'from'),
         ];
+
+        // Errors and warnings: the first ones, and how many there are in all (a long list costs tokens and says it all).
+        foreach (['errors', 'warnings'] as $kind) {
+            if (count($data[$kind]) > self::LISTED) {
+                $payload["{$kind}_total"] = count($data[$kind]);
+            }
+        }
 
         if ($includeDocument && $data['document'] !== null) {
             $payload['document'] = json_decode($data['document'], true, 512, JSON_THROW_ON_ERROR);

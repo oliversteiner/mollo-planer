@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Change tasks over MCP</title>
+<link rel="alternate" type="text/markdown" href="llms.txt">
+</head>
+<body>
+<main>
+<h1 id="tasks-ueber-mcp">Change tasks over MCP</h1>
+<ul><li>Right: <code>task.update</code></li><li>Tools: <code>list_projects</code>, <code>list_tasks</code>, <code>update_tasks</code>, <code>export_plan</code>, <code>import_plan</code>, <code>add_comment</code></li><li>Pages of the app: –</li></ul>
+<h2>Purpose</h2>
+<p>An agent reads and changes tasks through the MCP server without loading the whole plan. Each change stays small, and the state in the planer matches the work.</p>
+<h2>Good to know</h2>
+<ul><li><p>The agent acts as its own account, with exactly its rights. What it may not do in the project, the server refuses.</p></li><li><p>The planer derives the status of todo and milestone from the tasks. An agent never sets them.</p></li><li><p>Which statuses an agent may set depends on its role in the project. A person in the project can also decide who marks a task as done.</p></li></ul>
+<h2>For agents</h2>
+<ul><li><p>Start: <code>list_projects</code> gives the projects, your role and the revision of the plan.</p></li><li><p>Find: <code>list_tasks</code> with filters (<code>assignee: &quot;me&quot;</code>, <code>status</code>, text), small with <code>limit</code>.</p></li><li><p>Status, commit, assignee: <code>update_tasks</code> directly, without an export and without a dry run. <code>base_revision</code> only when nothing may have changed in between.</p></li><li><p>New tasks or changed titles: <code>export_plan</code> filtered to one milestone, change it, <code>import_plan</code> with <code>mode: &quot;partial&quot;</code>, with <code>dry_run: true</code> first.</p></li><li><p>Reports and questions: <code>add_comment</code> on the task.</p></li><li><p>Not over MCP: deleting tasks for good, changing rights or roles.</p></li></ul>
+<h2>Example prompts</h2>
+<ul><li><p>With <code>list_tasks</code>, show me my tasks in the project [project] that are «In progress» or «Review».</p></li><li><p>With <code>update_tasks</code>, set the task [k-123] to «Review» and enter the commit [hash]. Then write a short report on the task with <code>add_comment</code>.</p></li><li><p>In the milestone [milestone] of the project [project], create a task «[title]»: export only this milestone, add the task and import with <code>mode: &quot;partial&quot;</code>, as a dry run first.</p></li></ul>
+</main>
+</body>
+</html>

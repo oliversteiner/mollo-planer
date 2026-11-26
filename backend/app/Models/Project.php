@@ -127,6 +127,16 @@ class Project extends Model
     }
 
     /**
+     * The customer the project is billed to (Auftrag 39). Not fillable: only setProjectCustomer with billing.manage.
+     *
+     * @return BelongsTo<Customer, $this>
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    /**
      * @return HasMany<Milestone, $this>
      */
     public function milestones(): HasMany

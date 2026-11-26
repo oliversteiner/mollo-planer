@@ -3,37 +3,33 @@
 namespace App\Console\Commands;
 
 use App\Console\Concerns\AsksBeforeWriting;
-use App\Models\Role;
-use App\Services\UserInvitation;
+use App\Core\Accounts\AgentAccounts;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 use function Laravel\Prompts\text;
 
 /**
- * Creates an agent account (Claude, a person's assistant): system role Mitglied, never an admin, a random password
+ * Creates an agent account (Claude, a person's assistant) through AgentAccounts, like the mutation createAgent: system role Mitglied, never an admin, a random password
  * nobody knows, verified and approved at once. It has no web access (RefuseAgentLogin, EnsureNotAgent); the way in is
  * a token for the connector, made with app:user-token. Add it to a project in the app, with the project role Agent.
  */
 #[Signature('app:create-agent
     {name : Name shown in the app, for example Claude Club DB}
-    {email : Address of the account (a mailbox is not needed, no mail is sent to it)}')]
+    {email? : Identifier of the account (optional; without it: <name>@agent.invalid, no mail is sent to it)}')]
 #[Description('Create an agent account: no login in the browser, access only by a token for the connector')]
 class CreateAgent extends Command implements PromptsForMissingInput
 {
     use AsksBeforeWriting;
 
-    public function handle(UserInvitation $invitation): int
+    public function handle(AgentAccounts $accounts): int
     {
-        $input = ['name' => trim((string) $this->argument('name')), 'email' => trim((string) $this->argument('email'))];
-        $validator = Validator::make($input, [
-            'name' => ['required', 'string', 'min:2', 'max:120'],
-            'email' => ['required', 'email', 'unique:users,email'],
-        ]);
+        $name = trim((string) $this->argument('name'));
+        $email = trim((string) $this->argument('email'));
+        $validator = Validator::make(['name' => $name, 'email' => $email === '' ? null : $email], AgentAccounts::rules());
 
         if ($validator->fails()) {
             foreach ($validator->errors()->all() as $message) {
@@ -43,12 +39,15 @@ class CreateAgent extends Command implements PromptsForMissingInput
             return self::FAILURE;
         }
 
+        // Shown before writing; the identifier made from the name is checked again when the account is made.
+        $input = ['name' => $name, 'email' => $email === '' ? AgentAccounts::identifierFor($name) : $email];
+
         if (! $this->requireTerminal() || ! $this->confirmWrite(__('console.create_agent.confirm', $input))) {
             return self::FAILURE;
         }
 
-        $user = $invitation->create($input['name'], $input['email'], Role::resolveOrFail(Role::SCOPE_SYSTEM, 'mitglied'), Str::password(64));
-        $user->forceFill(['is_agent' => true])->save();
+        // The same action as the mutation createAgent; without an admin it neither logs nor mails (logged below).
+        $user = $accounts->create($name, $email === '' ? null : $email);
 
         $this->logIntervention($user, 'create-agent');
         $this->components->info(__('console.create_agent.created', ['name' => $user->name]));
@@ -63,7 +62,6 @@ class CreateAgent extends Command implements PromptsForMissingInput
     {
         return [
             'name' => fn (): string => text(label: __('console.create_agent.name'), required: true),
-            'email' => fn (): string => text(label: __('console.create_agent.email'), required: true),
         ];
     }
 }

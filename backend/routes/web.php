@@ -35,3 +35,8 @@ Route::post('/email/verification-notification/guest', [EmailVerificationControll
 Route::get('/status', StatusController::class)
     ->middleware('throttle:30,1')
     ->name('status');
+
+// Agents look for the MCP guide on the API host first: send them to the static guide of the frontend (Auftrag 49 D).
+foreach (['/mcp/llms.txt', '/llms.txt'] as $guide) {
+    Route::get($guide, fn () => redirect()->away(rtrim((string) config('app.frontend_url'), '/').'/mcp/llms.txt', 301));
+}

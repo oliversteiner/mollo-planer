@@ -13,7 +13,7 @@ class ListProjects extends Tool
 
     public function description(): string
     {
-        return 'Lists visible projects compactly (id, name, progress, role). Set include_members or include_rights only when needed. Default archived: false.';
+        return 'Lists visible projects (id, name, progress, role, revision). Archived ones only with archived: true.';
     }
 
     public function readOnly(): bool
@@ -24,9 +24,9 @@ class ListProjects extends Tool
     public function schema(): array
     {
         return Schema::input([
-            'archived' => Schema::boolean('true: only archived projects (read only). Default false.'),
-            'include_members' => Schema::boolean('true: include project members. Default false to save tokens.'),
-            'include_rights' => Schema::boolean('true: include viewerRights in project. Default false to save tokens.'),
+            'archived' => Schema::boolean('Only archived projects.'),
+            'include_members' => Schema::boolean('Add the members.'),
+            'include_rights' => Schema::boolean('Add your rights.'),
         ]);
     }
 

@@ -4,10 +4,11 @@ import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import type { ActionMenuItem } from '~/components/ActionMenu.vue'
 import type { TimelineEntry } from '~/components/StepTimeline.vue'
 import type { ItemFormTarget } from '~/components/item/FormModal.vue'
-import { projectTimelineQuery } from '~/graphql/project'
+import { milestoneVersionOrderQuery, projectTimelineQuery, reorderMilestonesMutation, sortMilestonesMutation } from '~/graphql/project'
 import { deleteTaskMutation, moveTaskInTodoMutation, moveTaskToTodoMutation } from '~/graphql/task'
 import type { ProjectTimelineQuery } from '~/graphql/generated/graphql'
-import { formatDate } from '~/utils/dates'
+import { formatMoney } from '~/utils/money'
+import { priceSums } from '~/utils/milestone-price'
 import { isEmptyDocument } from '~/utils/rich-text'
 
 /**
@@ -19,8 +20,11 @@ import { isEmptyDocument } from '~/utils/rich-text'
  * moved to another todo here, by drag and drop.
  */
 export interface MilestonePlace {
+  /** Place in the stored order (position), from 0. */
   index: number
   count: number
+  /** The page shows the newest first: «Nach oben» is then the next place in the stored order. */
+  reversed: boolean
 }
 
 const props = defineProps<{
@@ -56,7 +60,7 @@ const emit = defineEmits<{
 const { t, localeProperties } = useI18n()
 const language = computed(() => localeProperties.value.language ?? 'de-CH')
 
-const { result, loading, refetch } = useQuery(projectTimelineQuery, () => ({ id: props.projectId }), { fetchPolicy: 'cache-and-network' })
+const { result, loading, error, refetch } = useQuery(projectTimelineQuery, () => ({ id: props.projectId }), { fetchPolicy: 'cache-and-network' })
 
 type Milestone = NonNullable<ProjectTimelineQuery['project']>['milestones'][number]
 type MilestoneItem = TimelineEntry & { milestone: Milestone, number: number }
@@ -74,25 +78,32 @@ const milestones = computed(() => result.value?.project?.milestones ?? [])
 /** The first milestone not done is the current one; all done: the last. */
 const current = computed(() => (milestones.value.find(milestone => milestone.status !== 'DONE') ?? milestones.value.at(-1))?.id)
 
+/**
+ * The order of the display (Auftrag 47 F): newest on top by default, remembered in this browser. It only turns the
+ * display; the stored order, the numbers (M1, M2 …), «Nach oben»/«Nach unten» and dragging work on the stored order.
+ */
+const newestFirst = useStoredSwitch('mollo.timeline.newestFirst', true)
+/** «Preise anzeigen» (Auftrag 47 G): off for a shared screen; remembered like «Bilder anzeigen» in the help. */
+const showPrices = useStoredSwitch('mollo.timeline.prices', true)
+
 const timeline = computed<MilestoneItem[]>(() => {
   const currentIndex = milestones.value.findIndex(milestone => milestone.id === current.value)
 
-  return milestones.value.map((milestone, index) => ({
+  const items = milestones.value.map((milestone, index) => ({
     value: milestone.id,
     title: milestone.title,
-    date: milestone.dueDate ? formatDate(milestone.dueDate, language.value, true) : t('project.timeline.noDate'),
     // Milestones before the current one are reached.
     completed: index < currentIndex,
     class: 'plan-in',
     milestone,
     number: index + 1
   }))
+
+  return newestFirst.value ? items.reverse() : items
 })
 
 /** Open todos by id. */
 const openTodos = ref(new Set<string>())
-const allTodoIds = computed(() => milestones.value.flatMap(milestone => milestone.todos.map(todo => todo.id)))
-const allOpen = computed(() => allTodoIds.value.length > 0 && allTodoIds.value.every(id => openTodos.value.has(id)))
 
 function setOpen(id: string, open: boolean) {
   const next = new Set(openTodos.value)
@@ -175,92 +186,326 @@ function openWhileDragging(todoId: string) {
 }
 
 /**
- * Calm view (docs/zen-modus.md §1, §5): the current milestone shows its todos open, the other milestones stay closed
- * until "Aufklappen". This is state of the data; what is hidden is decided by zen.css.
+ * Open milestones (docs/ux-projektseite.md §4.3): one set for the full and the calm view, remembered per project in this
+ * browser. At the first visit only the current milestone is open (E1). The calm view opens the current one besides.
  */
+const route = useRoute()
+const router = useRouter()
 const { calm } = useViewMode()
-const zenOpened = ref(new Set<string>())
+const milestoneState = useOpenMilestones(() => props.projectId)
+const { isOpen, reveal } = milestoneState
+const milestoneIds = computed(() => milestones.value.map(milestone => milestone.id))
+const allMilestonesOpen = computed(() => milestoneIds.value.length > 0 && milestoneIds.value.every(isOpen))
+const allMilestonesClosed = computed(() => milestoneIds.value.every(id => !isOpen(id)))
 
-function toggleZenOpen(id: string): void {
-  const next = new Set(zenOpened.value)
+function toggleMilestone(milestone: Milestone, all: boolean): void {
+  const opening = !isOpen(milestone.id)
 
-  if (!next.delete(id)) {
-    next.add(id)
+  milestoneState.set(milestone.id, opening)
+
+  // With the Option key the todos follow (Finder).
+  if (all) {
+    const ids = milestone.todos.map(todo => todo.id)
+
+    openTodos.value = opening ? new Set([...openTodos.value, ...ids]) : new Set([...openTodos.value].filter(id => !ids.includes(id)))
   }
-
-  zenOpened.value = next
 }
 
-/** Full view: every milestone shows its todos, "Zuklappen" hides them (until "Aufklappen" again). */
-const collapsedMilestones = ref(new Set<string>())
-
-function isMilestoneOpen(id: string): boolean {
-  return calm.value ? id === current.value || zenOpened.value.has(id) : !collapsedMilestones.value.has(id)
+function expandAll(): void {
+  milestoneState.openAll(milestoneIds.value)
 }
 
-function toggleMilestone(id: string): void {
-  if (calm.value) {
-    toggleZenOpen(id)
-    return
+/** Closes every milestone and every todo; a focus inside a milestone that closes goes to its arrow. */
+function collapseAll(): void {
+  const content = document.activeElement?.closest('[id^="milestone-"][id$="-content"]')
+
+  milestoneState.closeAll()
+  openTodos.value = new Set()
+
+  if (content) {
+    const toggle = content.id.replace(/-content$/, '-toggle')
+
+    void nextTick(() => document.getElementById(toggle)?.focus())
   }
-
-  const next = new Set(collapsedMilestones.value)
-
-  if (!next.delete(id)) {
-    next.add(id)
-  }
-
-  collapsedMilestones.value = next
 }
 
-watch([calm, current, milestones], () => {
-  if (calm.value) {
-    const todos = milestones.value.find(milestone => milestone.id === current.value)?.todos ?? []
+function scrollToMilestone(id: string): void {
+  document.getElementById(`milestone-${id}`)?.scrollIntoView({ block: 'nearest' })
+}
 
-    openTodos.value = new Set([...openTodos.value, ...todos.map(todo => todo.id)])
+/** The first time the milestones are there: the remembered state; an old link ?milestones=only closes everything. */
+watch(milestones, (list) => {
+  milestoneState.start(list.map(milestone => milestone.id), current.value)
+
+  if (list.length > 0 && route.query.milestones === 'only') {
+    const { milestones: _only, ...query } = route.query
+
+    milestoneState.closeAll()
+    openTodos.value = new Set()
+    void router.replace({ query })
   }
 }, { immediate: true })
 
-/** Only the milestones: without descriptions and todos, as an outline. */
-const milestonesOnly = defineModel<boolean>('milestonesOnly', { default: false })
+/** A milestone that appears after the first load (a new one) opens and comes into view; the focus only moves if nothing has it. */
+let knownIds: Set<string> | null = null
 
-/** "Nur Milestones anzeigen" collapses all todos, so they are closed when the full view comes back. */
-function toggleMilestonesOnly() {
-  if (!milestonesOnly.value) {
-    openTodos.value = new Set()
+watch(milestones, (list) => {
+  const ids = list.map(milestone => milestone.id)
+  const fresh = knownIds && knownIds.size > 0 ? ids.filter(id => !knownIds!.has(id)) : []
+
+  knownIds = new Set(ids)
+
+  if (fresh.length) {
+    reveal(fresh)
+    void nextTick(() => {
+      const last = fresh[fresh.length - 1]!
+
+      scrollToMilestone(last)
+
+      if (document.activeElement === document.body) {
+        document.getElementById(`milestone-${last}-toggle`)?.focus()
+      }
+    })
   }
+}, { immediate: true })
 
-  milestonesOnly.value = !milestonesOnly.value
-}
-
-function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>): ActionMenuItem[] {
-  const place = kind === 'milestone'
-    ? { index: milestones.value.findIndex(milestone => milestone.id === item.id), count: milestones.value.length }
-    : undefined
-
-  return props.actions?.(kind, item, place) ?? []
-}
-
-/** "Alle ToDos zeigen" opens every todo and every milestone (also those closed in the full or calm view); the other way closes the todos. */
-function toggleAll() {
-  if (allOpen.value) {
-    openTodos.value = new Set()
+/** A link into the page opens what it points at: #milestone-<id>, ?task=<id> (the todo of the task too). */
+function revealTarget(): void {
+  if (milestones.value.length === 0) {
     return
   }
 
-  openTodos.value = new Set(allTodoIds.value)
-  collapsedMilestones.value = new Set()
-  zenOpened.value = new Set(milestones.value.map(milestone => milestone.id))
+  const taskId = typeof route.query.task === 'string' ? route.query.task : null
+
+  if (taskId) {
+    for (const milestone of milestones.value) {
+      for (const todo of milestone.todos) {
+        if (todo.tasks.some(task => task.id === taskId)) {
+          reveal([milestone.id])
+          setOpen(todo.id, true)
+
+          return
+        }
+      }
+    }
+  }
+
+  const anchor = /^#milestone-(\d+)$/.exec(route.hash)?.[1]
+
+  if (anchor && milestoneIds.value.includes(anchor)) {
+    reveal([anchor])
+    void nextTick(() => scrollToMilestone(anchor))
+  }
+}
+
+watch([() => route.query.task, () => route.hash, milestones], revealTarget, { immediate: true })
+
+watch([calm, current, milestones], () => {
+  if (calm.value) {
+    const currentMilestone = milestones.value.find(milestone => milestone.id === current.value)
+
+    if (currentMilestone) {
+      milestoneState.showInCalm(currentMilestone.id)
+      openTodos.value = new Set([...openTodos.value, ...currentMilestone.todos.map(todo => todo.id)])
+    }
+  }
+}, { immediate: true })
+
+/** Dragging a task over a closed milestone and holding it 600 ms opens the milestone (spring-loading); it stays open after the drop. */
+const springTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+function springEnter(id: string): void {
+  if (!dragging.value || isOpen(id) || springTimers.has(id)) {
+    return
+  }
+
+  springTimers.set(id, setTimeout(() => {
+    springTimers.delete(id)
+
+    if (dragging.value) {
+      reveal([id])
+    }
+  }, 600))
+}
+
+function springLeave(id: string, event: DragEvent): void {
+  if ((event.currentTarget as Node | null)?.contains(event.relatedTarget as Node | null)) {
+    return
+  }
+
+  clearTimeout(springTimers.get(id))
+  springTimers.delete(id)
+}
+
+onBeforeUnmount(() => springTimers.forEach(timer => clearTimeout(timer)))
+
+/** Ideas are not in the progress (B12): how many a milestone holds. */
+function ideaCount(milestone: Milestone): number {
+  return milestone.todos.reduce((sum, todo) => sum + todo.tasks.filter(task => task.status === 'IDEA').length, 0)
+}
+
+/** In the calm view a todo that has only done tasks says so, instead of an empty box (B9). */
+function calmAllDone(todo: Milestone['todos'][number]): boolean {
+  return calm.value && todo.tasks.length > 0 && todo.tasks.every(task => task.status === 'DONE')
+}
+
+const { can: canSystem } = useViewer()
+const canBill = computed(() => canSystem('BILLING_MANAGE'))
+
+/** The sums of the prices (E3): only with billing.manage the API gives any price. */
+const sums = computed(() => (showPrices.value ? priceSums(milestones.value) : null))
+const money = (cents: number) => formatMoney(cents, language.value)
+
+/**
+ * «Nach Version ordnen» (Auftrag 47 C). The conditions are the backend's (milestoneVersionOrder): the button is only
+ * there with the right to edit milestones, off with the first condition that is not met as its tooltip, and for invalid
+ * or doubled versions the milestones are listed with a link each.
+ */
+const { result: orderResult, refetch: refetchOrder } = useQuery(milestoneVersionOrderQuery, () => ({ projectId: props.projectId }), { fetchPolicy: 'cache-and-network' })
+const orderPlan = computed(() => orderResult.value?.milestoneVersionOrder ?? null)
+const showOrderButton = computed(() => orderPlan.value !== null && orderPlan.value.condition !== 'no_right')
+const orderDialog = ref(false)
+const ordering = ref(false)
+const toast = useToast()
+const { mutate: sortMilestones } = useProjectMutation(sortMilestonesMutation)
+const { mutate: reorderMilestones } = useProjectMutation(reorderMilestonesMutation)
+
+const orderCondition = computed(() => (orderPlan.value?.condition ? t(`project.timeline.order.conditions.${orderPlan.value.condition}`) : null))
+const orderListed = computed(() => (['invalid_version', 'duplicate_version'].includes(orderPlan.value?.condition ?? '') ? orderPlan.value?.conditionMilestones ?? [] : []))
+
+function numberOf(id: string): number {
+  return milestones.value.findIndex(milestone => milestone.id === id) + 1
+}
+
+function graphqlCode(error: unknown): string | undefined {
+  const errors = (error as { graphQLErrors?: { extensions?: { code?: string } }[] } | null)?.graphQLErrors
+
+  return errors?.[0]?.extensions?.code
+}
+
+/** The message goes to the page, not into the dialog that is still closing (see useToast): wait until no overlay is open. */
+async function afterOverlaysClosed(): Promise<void> {
+  for (let waited = 0; waited < 1000 && openOverlays().length > 0; waited += 50) {
+    await new Promise(resolve => setTimeout(resolve, 50))
+  }
+}
+
+async function applyOrder(): Promise<void> {
+  const plan = orderPlan.value
+
+  if (!plan?.canApply || ordering.value) {
+    return
+  }
+
+  ordering.value = true
+
+  try {
+    const result = await sortMilestones({ projectId: props.projectId, expectedRevision: plan.revision })
+    const done = result?.data?.sortMilestones
+
+    orderDialog.value = false
+    await Promise.all([refetch(), refetchOrder()])
+
+    if (done) {
+      await afterOverlaysClosed()
+      toast.add({
+        title: t('project.timeline.order.done'),
+        description: t('project.timeline.order.doneDetail', { count: done.moveCount }, done.moveCount),
+        color: 'success',
+        duration: UNDO_DURATION,
+        action: { label: t('project.timeline.order.undo'), run: () => void undoOrder(done.before) }
+      })
+    }
+  } catch (error) {
+    if (graphqlCode(error) === 'ORDER_REVISION') {
+      // Somebody changed the plan: the preview is loaded again, nothing was written.
+      await Promise.all([refetch(), refetchOrder()])
+      await afterOverlaysClosed()
+      toast.add({ title: t('project.timeline.order.conflict'), color: 'warning' })
+    } else {
+      toast.add({ title: t('project.timeline.order.failed'), color: 'error' })
+    }
+  } finally {
+    ordering.value = false
+  }
+}
+
+async function undoOrder(before: string[]): Promise<void> {
+  try {
+    await reorderMilestones({ projectId: props.projectId, ids: before })
+    await Promise.all([refetch(), refetchOrder()])
+    toast.add({ title: t('project.timeline.order.undone'), color: 'success' })
+  } catch {
+    toast.add({ title: t('project.timeline.order.failed'), color: 'error' })
+  }
+}
+
+useCommands(() => [
+  { id: 'milestones-expand', label: t('project.timeline.expandAllMilestones'), icon: 'chevrons-down', group: 'action', visible: () => !allMilestonesOpen.value, run: expandAll },
+  { id: 'milestones-collapse', label: t('project.timeline.collapseAllMilestones'), icon: 'chevrons-up', group: 'action', visible: () => !allMilestonesClosed.value, run: collapseAll },
+  { id: 'milestones-order-by-version', label: t('project.timeline.orderByVersion'), icon: 'arrow-down-1-9', group: 'action', visible: () => orderPlan.value?.canApply === true, run: () => { orderDialog.value = true } }
+])
+
+function menu(kind: 'milestone' | 'todo', item: NonNullable<ItemFormTarget['item']>): ActionMenuItem[] {
+  const place = kind === 'milestone'
+    ? { index: milestones.value.findIndex(milestone => milestone.id === item.id), count: milestones.value.length, reversed: newestFirst.value }
+    : undefined
+
+  return props.actions?.(kind, item, place) ?? []
 }
 </script>
 
 <template>
   <div class="wa-stack wa-gap-m">
-    <wa-skeleton
+    <!-- First load: three rows in the height of a closed milestone, not one block (docs/ux-projektseite.md §4.6). -->
+    <div
       v-if="loading && !result"
-      effect="sheen"
-      class="timeline-skeleton"
-    ></wa-skeleton>
+      class="timeline-skeletons"
+      aria-hidden="true"
+    >
+      <div
+        v-for="row in 3"
+        :key="row"
+        class="timeline-skeleton-row"
+      >
+        <wa-skeleton
+          effect="sheen"
+          class="timeline-skeleton-dot"
+        ></wa-skeleton>
+        <div class="timeline-skeleton-bars">
+          <wa-skeleton
+            effect="sheen"
+            class="timeline-skeleton-title"
+          ></wa-skeleton>
+          <wa-skeleton
+            effect="sheen"
+            class="timeline-skeleton-line"
+          ></wa-skeleton>
+        </div>
+      </div>
+    </div>
+    <!-- A failed load is not an empty project (B4). -->
+    <wa-callout
+      v-else-if="error && !result"
+      variant="danger"
+      class="timeline-error"
+    >
+      <wa-icon
+        slot="icon"
+        name="triangle-exclamation"
+      ></wa-icon>
+      <div class="timeline-error-body">
+        <span>{{ t('project.timeline.loadError') }}</span>
+        <wa-button
+          size="s"
+          variant="danger"
+          appearance="outlined"
+          @click="refetch()"
+        >
+          {{ t('project.timeline.retry') }}
+        </wa-button>
+      </div>
+    </wa-callout>
     <EmptyState
       v-else-if="!milestones.length"
       icon="flag-checkered"
@@ -270,36 +515,128 @@ function toggleAll() {
 
     <template v-else>
       <div
-        class="wa-cluster wa-gap-s wa-justify-content-end"
+        class="timeline-toolbar"
         data-zen="hide"
       >
-        <wa-button
-          appearance="plain"
-          variant="neutral"
-          size="s"
-          :aria-pressed="milestonesOnly"
-          @click="toggleMilestonesOnly"
+        <p
+          v-if="sums"
+          class="timeline-sum wa-caption-m"
         >
-          <wa-icon
-            slot="start"
-            :name="milestonesOnly ? 'list-tree' : 'flag-checkered'"
-          ></wa-icon>
-          {{ milestonesOnly ? t('project.timeline.showAll') : t('project.timeline.milestonesOnly') }}
-        </wa-button>
-        <wa-button
-          v-if="allTodoIds.length && !milestonesOnly"
-          appearance="plain"
-          variant="neutral"
-          size="s"
-          @click="toggleAll"
-        >
-          <wa-icon
-            slot="start"
-            :name="allOpen ? 'chevrons-up' : 'chevrons-down'"
-          ></wa-icon>
-          {{ allOpen ? t('project.timeline.collapseAll') : t('project.timeline.expandAll') }}
-        </wa-button>
+          {{ t('project.timeline.priceSum', { total: `CHF ${money(sums.total)}`, billed: money(sums.billed), draft: money(sums.draft) }) }}
+        </p>
+        <div class="wa-cluster wa-gap-s timeline-toolbar-actions">
+          <wa-button
+            id="timeline-expand-all"
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            :disabled="allMilestonesOpen"
+            :aria-label="t('project.timeline.expandAllMilestones')"
+            @click="expandAll"
+          >
+            <wa-icon
+              slot="start"
+              name="chevrons-down"
+            ></wa-icon>
+            <span class="timeline-toolbar-label">{{ t('project.timeline.expandAllMilestones') }}</span>
+          </wa-button>
+          <wa-tooltip for="timeline-expand-all">
+            {{ t('project.timeline.expandAllMilestones') }}
+          </wa-tooltip>
+          <wa-button
+            id="timeline-collapse-all"
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            :disabled="allMilestonesClosed"
+            :aria-label="t('project.timeline.collapseAllMilestones')"
+            @click="collapseAll"
+          >
+            <wa-icon
+              slot="start"
+              name="chevrons-up"
+            ></wa-icon>
+            <span class="timeline-toolbar-label">{{ t('project.timeline.collapseAllMilestones') }}</span>
+          </wa-button>
+          <wa-tooltip for="timeline-collapse-all">
+            {{ t('project.timeline.collapseAllMilestones') }}
+          </wa-tooltip>
+          <wa-button
+            id="timeline-direction"
+            appearance="plain"
+            variant="neutral"
+            size="s"
+            :aria-pressed="newestFirst"
+            :aria-label="t(newestFirst ? 'project.timeline.newestFirst' : 'project.timeline.oldestFirst')"
+            @click="newestFirst = !newestFirst"
+          >
+            <wa-icon
+              slot="start"
+              :name="newestFirst ? 'arrow-down-wide-short' : 'arrow-up-short-wide'"
+            ></wa-icon>
+            <span class="timeline-toolbar-label">{{ t(newestFirst ? 'project.timeline.newestFirst' : 'project.timeline.oldestFirst') }}</span>
+          </wa-button>
+          <wa-tooltip for="timeline-direction">
+            {{ t(newestFirst ? 'project.timeline.sortNewestHint' : 'project.timeline.sortOldestHint') }}
+          </wa-tooltip>
+          <!-- A disabled button gets no pointer events, so the tooltip hangs on the wrapper. -->
+          <span
+            v-if="showOrderButton"
+            id="timeline-order-wrap"
+            class="timeline-order-wrap"
+          >
+            <wa-button
+              id="timeline-order"
+              appearance="plain"
+              variant="neutral"
+              size="s"
+              :disabled="!orderPlan?.canApply"
+              :aria-label="t('project.timeline.orderByVersion')"
+              @click="orderDialog = true"
+            >
+              <wa-icon
+                slot="start"
+                name="arrow-down-1-9"
+              ></wa-icon>
+              <span class="timeline-toolbar-label">{{ t('project.timeline.orderByVersion') }}</span>
+            </wa-button>
+          </span>
+          <wa-tooltip
+            v-if="showOrderButton"
+            for="timeline-order-wrap"
+          >
+            {{ orderCondition ?? t('project.timeline.orderByVersion') }}
+          </wa-tooltip>
+          <wa-switch
+            v-if="canBill"
+            id="timeline-prices"
+            size="s"
+            :checked="showPrices"
+            @change="showPrices = ($event.target as HTMLInputElement).checked"
+          >
+            {{ t('project.timeline.showPrices') }}
+          </wa-switch>
+        </div>
       </div>
+
+      <p
+        v-if="orderListed.length"
+        class="timeline-order-hint wa-caption-m"
+        data-zen="hide"
+      >
+        {{ orderCondition }}
+        <template
+          v-for="(entry, index) in orderListed"
+          :key="entry.id"
+        >
+          <a
+            :href="`#milestone-${entry.id}`"
+            @click="reveal([entry.id])"
+          >M{{ numberOf(entry.id) }} {{ entry.title }} ({{ entry.version }})</a><template v-if="index < orderListed.length - 1">
+            ,
+          </template>
+        </template>
+      </p>
 
       <StepTimeline
         :items="timeline"
@@ -315,251 +652,301 @@ function toggleAll() {
         </template>
 
         <template #title="{ item }">
-          <span
-            :id="`milestone-${item.milestone.id}`"
-            class="timeline-title-row"
+          <div
+            class="milestone-drop"
+            @dragover="springEnter(item.milestone.id)"
+            @dragleave="springLeave(item.milestone.id, $event)"
           >
-            <MilestoneNumber :number="item.number" />
-            {{ item.title }}
-            <span
-              v-if="item.milestone.release"
-              class="timeline-release wa-caption-s"
-              data-zen="hide"
-            >
-              {{ item.milestone.release.version }} · {{ t(`release.${item.milestone.release.status.toLowerCase()}`) }}{{ item.milestone.release.date ? ` · ${formatDate(item.milestone.release.date, language, true)}` : '' }}
-            </span>
-            <StatusBadge :status="item.milestone.status" />
-            <ActionMenu
-              v-if="menu('milestone', item.milestone).length"
-              data-zen="hide"
-              :items="menu('milestone', item.milestone)"
-              :label="t('project.timeline.milestoneActions', { title: item.milestone.title })"
+            <ProjectTimelineMilestoneHead
+              :milestone="item.milestone"
+              :number="item.number"
+              :open="isOpen(item.milestone.id)"
+              :menu="menu('milestone', item.milestone)"
+              :can-bill="canBill"
+              :hide-prices="!showPrices"
+              @toggle="toggleMilestone(item.milestone, $event)"
+              @set="milestoneState.set(item.milestone.id, $event)"
             />
-          </span>
+          </div>
         </template>
 
         <template #description="{ item }">
-          <div
-            class="wa-stack wa-gap-s"
-            :class="milestonesOnly ? 'milestone-end-short' : 'milestone-end'"
+          <ProjectTimelineMilestone
+            :id="item.milestone.id"
+            :description="item.milestone.description"
+            :progress="item.milestone.progress"
+            :ideas="ideaCount(item.milestone)"
+            :open="isOpen(item.milestone.id)"
           >
-            <RichTextView
-              v-if="!milestonesOnly && !isEmptyDocument(item.milestone.description)"
-              :content="item.milestone.description"
-              class="wa-body-s"
-            />
-
-            <div class="milestone-progress">
-              <wa-progress-bar
-                :value="item.milestone.progress.percent"
-                :label="t('projects.progress', { done: item.milestone.progress.done, total: item.milestone.progress.total })"
-              ></wa-progress-bar>
-              <span class="milestone-progress-text">{{ t('projects.progress', { done: item.milestone.progress.done, total: item.milestone.progress.total }) }}</span>
-            </div>
-
-            <!--
-              Calm view: only the current milestone shows its todos; the others are closed, "Aufklappen" opens one.
-              The marking is data (is it the current one?), the hiding is zen.css.
-            -->
-            <wa-button
-              v-if="!milestonesOnly && (!calm || item.milestone.id !== current)"
-              appearance="plain"
-              variant="neutral"
-              size="s"
-              :aria-expanded="isMilestoneOpen(item.milestone.id)"
-              @click="toggleMilestone(item.milestone.id)"
+            <ul
+              v-if="item.milestone.todos.length"
+              class="todo-list wa-list-plain"
             >
-              <wa-icon
-                slot="start"
-                :name="isMilestoneOpen(item.milestone.id) ? 'chevron-up' : 'chevron-down'"
-              ></wa-icon>
-              {{ isMilestoneOpen(item.milestone.id) ? t('zen.collapseMilestone') : t('zen.expandMilestone') }}
-            </wa-button>
-            <div
-              v-if="!milestonesOnly && isMilestoneOpen(item.milestone.id)"
-              class="wa-stack wa-gap-s"
-            >
-              <ul
-                v-if="item.milestone.todos.length"
-                class="todo-list wa-list-plain"
+              <li
+                v-for="todo in item.milestone.todos"
+                :key="todo.id"
+                class="todo"
               >
-                <li
-                  v-for="todo in item.milestone.todos"
-                  :key="todo.id"
-                  class="todo"
+                <div
+                  class="todo-header"
+                  @dragover="openWhileDragging(todo.id)"
                 >
-                  <div
-                    class="todo-header"
-                    @dragover="openWhileDragging(todo.id)"
+                  <button
+                    type="button"
+                    class="todo-toggle plain-button"
+                    :aria-label="t('project.timeline.toggleTodo', { title: todo.title })"
+                    :aria-expanded="openTodos.has(todo.id)"
+                    @click="setOpen(todo.id, !openTodos.has(todo.id))"
                   >
-                    <button
-                      type="button"
-                      class="todo-toggle plain-button"
-                      :aria-label="t('project.timeline.toggleTodo', { title: todo.title })"
-                      :aria-expanded="openTodos.has(todo.id)"
-                      @click="setOpen(todo.id, !openTodos.has(todo.id))"
+                    <wa-icon
+                      :name="openTodos.has(todo.id) ? 'chevron-down' : 'chevron-right'"
+                      class="todo-chevron"
+                    ></wa-icon>
+                    <ItemIcon
+                      :name="todo.icon"
+                      fallback="list-check"
+                      class="todo-icon"
+                    />
+                    <span class="todo-title">{{ todo.title }}</span>
+                    <span
+                      class="todo-count"
+                      data-zen="hide"
+                    >{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
+                    <StatusBadge :status="todo.status" />
+                    <DueDate
+                      :date="todo.dueDate"
+                      :done="todo.status === 'DONE'"
+                      data-zen="hide"
+                    />
+                  </button>
+                  <ActionMenu
+                    v-if="menu('todo', todo).length"
+                    :items="menu('todo', todo)"
+                    :label="t('project.timeline.todoActions', { title: todo.title })"
+                  />
+                </div>
+
+                <p
+                  v-if="openTodos.has(todo.id) && calmAllDone(todo)"
+                  class="todo-all-done"
+                >
+                  {{ t('project.timeline.allTasksDone') }}
+                </p>
+                <div
+                  v-else-if="openTodos.has(todo.id)"
+                  class="todo-content wa-stack wa-gap-s"
+                >
+                  <RichTextView
+                    v-if="!isEmptyDocument(todo.description)"
+                    :content="todo.description"
+                    class="wa-body-s"
+                  />
+
+                  <div class="task-area">
+                    <VueDraggable
+                      v-model="taskLists[todo.id]!"
+                      tag="ul"
+                      group="timeline-tasks"
+                      :sort="false"
+                      handle=".task-handle"
+                      :disabled="!canMoveTask"
+                      :animation="150"
+                      ghost-class="task-ghost"
+                      :data-todo-id="todo.id"
+                      class="task-list wa-list-plain"
+                      :class="{ 'task-list-empty': !taskLists[todo.id]?.length, 'task-list-droppable': !taskLists[todo.id]?.length && canMoveTask }"
+                      @start="dragging = true"
+                      @end="onDrop"
+                    >
+                      <ProjectTimelineTask
+                        v-for="task in taskLists[todo.id]"
+                        :key="task.id"
+                        :task="task"
+                        :menu="taskMenu(task, todo.id)"
+                        :movable="canMoveTask"
+                        @open="emit('openTask', task.id)"
+                        @edit="editTask(task)"
+                      />
+                    </VueDraggable>
+                    <p
+                      v-if="!taskLists[todo.id]?.length && !dragging"
+                      class="task-none"
+                      :class="{ 'task-none-overlay': canMoveTask }"
+                    >
+                      {{ t('project.timeline.noTasks') }}
+                    </p>
+                  </div>
+
+                  <div
+                    v-if="canCreateTask"
+                    data-zen="hide"
+                  >
+                    <wa-button
+                      appearance="plain"
+                      variant="neutral"
+                      size="s"
+                      :aria-label="t('project.timeline.createTask', { title: todo.title })"
+                      @click="emit('createTask', todo.id)"
                     >
                       <wa-icon
-                        :name="openTodos.has(todo.id) ? 'chevron-down' : 'chevron-right'"
-                        class="todo-chevron"
+                        slot="start"
+                        name="plus"
                       ></wa-icon>
-                      <ItemIcon
-                        :name="todo.icon"
-                        fallback="list-check"
-                        class="todo-icon"
-                      />
-                      <span class="todo-title">{{ todo.title }}</span>
-                      <span
-                        class="todo-count"
-                        data-zen="hide"
-                      >{{ t('project.taskCount', { done: todo.progress.done, total: todo.progress.total }) }}</span>
-                      <StatusBadge :status="todo.status" />
-                      <DueDate
-                        :date="todo.dueDate"
-                        :done="todo.status === 'DONE'"
-                        data-zen="hide"
-                      />
-                    </button>
-                    <ActionMenu
-                      v-if="menu('todo', todo).length"
-                      :items="menu('todo', todo)"
-                      :label="t('project.timeline.todoActions', { title: todo.title })"
-                    />
+                      {{ t('task.create') }}
+                    </wa-button>
                   </div>
+                </div>
+              </li>
+            </ul>
+            <p
+              v-else
+              class="task-none"
+            >
+              {{ t('project.noTodos') }}
+            </p>
 
-                  <div
-                    v-if="openTodos.has(todo.id)"
-                    class="todo-content wa-stack wa-gap-s"
-                  >
-                    <RichTextView
-                      v-if="!isEmptyDocument(todo.description)"
-                      :content="todo.description"
-                      class="wa-body-s"
-                    />
-
-                    <div class="task-area">
-                      <VueDraggable
-                        v-model="taskLists[todo.id]!"
-                        tag="ul"
-                        group="timeline-tasks"
-                        :sort="false"
-                        :disabled="!canMoveTask"
-                        :animation="150"
-                        ghost-class="task-ghost"
-                        :data-todo-id="todo.id"
-                        class="task-list wa-list-plain"
-                        :class="{ 'task-list-empty': !taskLists[todo.id]?.length, 'task-list-droppable': !taskLists[todo.id]?.length && canMoveTask }"
-                        @start="dragging = true"
-                        @end="onDrop"
-                      >
-                        <ProjectTimelineTask
-                          v-for="task in taskLists[todo.id]"
-                          :key="task.id"
-                          :task="task"
-                          :menu="taskMenu(task, todo.id)"
-                          @open="emit('openTask', task.id)"
-                          @edit="editTask(task)"
-                        />
-                      </VueDraggable>
-                      <p
-                        v-if="!taskLists[todo.id]?.length && !dragging"
-                        class="task-none"
-                        :class="{ 'task-none-overlay': canMoveTask }"
-                      >
-                        {{ t('project.timeline.noTasks') }}
-                      </p>
-                    </div>
-
-                    <div
-                      v-if="canCreateTask"
-                      data-zen="hide"
-                    >
-                      <wa-button
-                        appearance="plain"
-                        variant="neutral"
-                        size="s"
-                        :aria-label="t('project.timeline.createTask', { title: todo.title })"
-                        @click="emit('createTask', todo.id)"
-                      >
-                        <wa-icon
-                          slot="start"
-                          name="plus"
-                        ></wa-icon>
-                        {{ t('task.create') }}
-                      </wa-button>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-              <p
-                v-else
-                class="task-none"
+            <div
+              v-if="canCreateTodo"
+              data-zen="hide"
+            >
+              <wa-button
+                appearance="plain"
+                variant="neutral"
+                size="s"
+                :aria-label="t('project.timeline.createTodo', { title: item.milestone.title })"
+                @click="emit('createTodo', item.milestone.id)"
               >
-                {{ t('project.noTodos') }}
-              </p>
-
-              <div
-                v-if="canCreateTodo"
-                data-zen="hide"
-              >
-                <wa-button
-                  appearance="plain"
-                  variant="neutral"
-                  size="s"
-                  :aria-label="t('project.timeline.createTodo', { title: item.milestone.title })"
-                  @click="emit('createTodo', item.milestone.id)"
-                >
-                  <wa-icon
-                    slot="start"
-                    name="plus"
-                  ></wa-icon>
-                  {{ t('item.todo.create') }}
-                </wa-button>
-              </div>
+                <wa-icon
+                  slot="start"
+                  name="plus"
+                ></wa-icon>
+                {{ t('item.todo.create') }}
+              </wa-button>
             </div>
-          </div>
+          </ProjectTimelineMilestone>
         </template>
       </StepTimeline>
     </template>
+
+    <ProjectVersionOrderDialog
+      v-if="orderPlan"
+      v-model:open="orderDialog"
+      :plan="orderPlan"
+      :busy="ordering"
+      @apply="applyOrder"
+    />
   </div>
 </template>
 
 <style scoped>
-.timeline-skeleton {
-  block-size: 10rem;
+.timeline-order-wrap {
+  display: inline-flex;
 }
 
-.timeline-title-row {
-  display: inline-flex;
-  flex-wrap: wrap;
+.timeline-order-hint {
+  margin: 0;
+  color: var(--wa-color-text-quiet);
+}
+
+.timeline-skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wa-space-l);
+}
+
+.timeline-skeleton-row {
+  display: flex;
   align-items: center;
+  gap: var(--wa-space-m);
+}
+
+.timeline-skeleton-dot {
+  flex: none;
+  inline-size: 2rem;
+  block-size: 2rem;
+  --border-radius: var(--wa-border-radius-circle);
+}
+
+.timeline-skeleton-bars {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   gap: var(--wa-space-xs);
 }
 
-.milestone-end {
-  padding-block-end: var(--wa-space-l);
+.timeline-skeleton-title {
+  inline-size: 40%;
+  block-size: 1rem;
 }
 
-.milestone-end-short {
-  padding-block-end: var(--wa-space-m);
+.timeline-skeleton-line {
+  inline-size: 60%;
+  block-size: 0.5rem;
 }
 
-.milestone-progress {
+.timeline-error-body {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--wa-space-s);
-  max-inline-size: 28rem;
 }
 
-.milestone-progress wa-progress-bar {
-  flex: 1;
-  --track-height: 0.5rem;
+.timeline-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wa-space-xs) var(--wa-space-m);
 }
 
-.milestone-progress-text {
+.timeline-sum {
+  margin: 0;
   color: var(--wa-color-text-quiet);
-  font-size: var(--wa-font-size-xs);
-  white-space: nowrap;
+}
+
+.timeline-toolbar-actions {
+  margin-inline-start: auto;
+}
+
+/* The head of a milestone uses the whole width of the label of its step. */
+.plan-timeline :deep(.timeline-heading) {
+  display: flex;
+  inline-size: 100%;
+}
+
+.plan-timeline :deep(.timeline-title) {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.milestone-drop {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.todo-all-done {
+  margin: 0;
+  padding: var(--wa-space-xs) var(--wa-space-s);
+  border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
+  color: var(--wa-color-text-quiet);
+  font-size: var(--wa-font-size-s);
+}
+
+/* Narrow window: the toolbar buttons are icons with a tooltip, the sum has a row of its own. */
+@media (max-width: 40em) {
+  .timeline-sum {
+    flex-basis: 100%;
+  }
+
+  .timeline-toolbar-label {
+    display: none;
+  }
+}
+
+@media (min-width: 40.01em) {
+  wa-tooltip {
+    display: none;
+  }
 }
 
 .todo-list {

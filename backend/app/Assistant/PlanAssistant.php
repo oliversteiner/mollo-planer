@@ -35,7 +35,7 @@ class PlanAssistant
         $this->limits->hit($request->viewer);
 
         $built = $this->prompt->build($request);
-        $answer = $this->claude->ask($built['system'], $built['messages'], AssistantSchema::answer());
+        $answer = $this->claude->ask($built['system'], $built['messages'], AssistantSchema::answer(), $built['cacheable']);
 
         return $this->processor->process($answer, $request);
     }

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Core\Pdf\PdfFrame;
+use App\Core\Pdf\PdfFrameSettings;
 use App\Models\Document;
 use App\Models\Project;
 use Illuminate\Support\Facades\View;
@@ -12,28 +14,45 @@ use League\CommonMark\Extension\Strikethrough\StrikethroughExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\TaskList\TaskListExtension;
 use League\CommonMark\MarkdownConverter;
-use Mpdf\Mpdf;
 
 /**
  * A document as PDF (docs/dokumentenverwaltung.md §7.2): Markdown to HTML (HTML in the text is escaped, unsafe
- * links are off), a Blade print template in the language of the project, then mPDF. Synchronous, nothing is loaded
- * from outside while rendering. mPDF runs within the limits of the PHP of the server (memory_limit,
- * max_execution_time); nothing here raises them.
+ * links are off), a Blade print template in the language of the project, then mPDF in the frame of the starter kit
+ * (App\Core\Pdf\PdfFrame). Synchronous, nothing is loaded from outside while rendering.
  */
 final class DocumentPdf
 {
+    public function __construct(private readonly PdfFrame $frame) {}
+
     /**
-     * The PDF as bytes.
+     * The PDF as bytes. With the letterhead (Auftrag 39 F, only if one is uploaded): the layout of letters, no own
+     * header and footer (the letterhead has them).
      */
-    public function render(Document $document): string
+    public function render(Document $document, bool $withLetterhead = false): string
     {
+        $frame = PdfFrameSettings::load();
+        $letterhead = $withLetterhead ? $frame->usableLetterhead() : null;
+
         $project = $document->project;
         $locale = $this->localeOf($project);
         $texts = fn (string $key, array $replace = []): string => (string) __('documents.pdf.'.$key, $replace, $locale);
 
-        $mpdf = $this->mpdf();
+        $mpdf = $letterhead !== null ? $this->frame->make(PdfFrame::marginsOf($frame->layout), $frame->font, $letterhead) : $this->frame->make();
         $mpdf->SetTitle($document->title);
-        $mpdf->SetCreator(config('app.name'));
+
+        if ($letterhead !== null) {
+            $mpdf->WriteHTML(PdfFrame::firstPageCss($frame->layout));
+            $mpdf->WriteHTML(View::make('documents.pdf', [
+                'locale' => $locale,
+                'title' => $document->title,
+                'meta' => $this->meta($document, $project, $texts),
+                'body' => $this->html($document->content),
+                'font' => $frame->font,
+            ])->render());
+
+            return $mpdf->OutputBinaryData();
+        }
+
         $mpdf->SetHTMLHeader(View::make('documents.pdf-header', ['project' => $project->name, 'title' => $document->title])->render());
         $mpdf->SetHTMLFooter(View::make('documents.pdf-footer', [
             'line' => $texts('footer', [
@@ -87,27 +106,5 @@ final class DocumentPdf
         $environment->addExtension(new TaskListExtension);
 
         return (new MarkdownConverter($environment))->convert($markdown)->getContent();
-    }
-
-    private function mpdf(): Mpdf
-    {
-        $temp = storage_path('framework/cache/mpdf');
-
-        if (! is_dir($temp)) {
-            mkdir($temp, 0775, true);
-        }
-
-        return new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'tempDir' => $temp,
-            'default_font' => 'dejavusans',
-            'margin_top' => 25,
-            'margin_bottom' => 22,
-            'margin_left' => 20,
-            'margin_right' => 20,
-            'margin_header' => 10,
-            'margin_footer' => 10,
-        ]);
     }
 }

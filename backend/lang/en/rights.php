@@ -45,4 +45,5 @@ return [
     'settings.manage' => 'Change app settings',
     'system.view' => 'See the status page',
     'database.view' => 'See the database documentation',
+    'billing.manage' => 'Billing: customers, prices and invoices',
 ];

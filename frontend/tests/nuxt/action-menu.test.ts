@@ -18,6 +18,15 @@ describe('ActionMenu', () => {
     expect(menu.findAll('wa-dropdown-item').map(item => (item.element as unknown as { variant: string }).variant)).toEqual(['default', 'danger'])
   })
 
+  it('shows the caret only on a button with text: the «···» button has none (B6)', async () => {
+    const plain = await mountSuspended(ActionMenu, { props: { label: 'Aktionen', items: [{ label: 'Ändern' }] } })
+    const labelled = await mountSuspended(ActionMenu, { props: { label: 'Aktionen', text: 'Mehr', items: [{ label: 'Ändern' }] } })
+
+    // A false value must not reach the element as with-caret="false": a boolean attribute counts as set once it is there.
+    expect(plain.find('wa-button').element.hasAttribute('with-caret')).toBe(false)
+    expect(labelled.find('wa-button').element.hasAttribute('with-caret')).toBe(true)
+  })
+
   it('runs the action of the chosen entry', async () => {
     const edit = vi.fn()
     const remove = vi.fn()

@@ -1,7 +1,11 @@
 # Mollo Planer
 
 Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu ein Dashboard als Startseite.
-Produktiv-Domain später: `planer.mollo.ch` (Frontend und API als getrennte Subdomains).
+Zwei Umgebungen, TEST und PROD; Frontend und API laufen als getrennte Subdomains. Die Adressen und Angaben zum Server stehen nicht im Repo, sondern in `~/www/agents/AGENTS.md` und `~/www/agents/mollo-planer/betrieb.md`.
+
+Allgemeine Regeln für alle Projekte: `~/www/agents/AGENTS.md`. Zuerst lesen, falls sie nicht schon geladen ist.
+
+**Planung:** im Mollo Planer auf TEST, Projekt **2 · Mollo Planer**. Agent dieses Repos ist **Bob** (eigenes Konto, Token `MOLLOPLANER_BOB_TOKEN`, eingetragen in `.mcp.json`; die Adresse des Servers kommt aus `MOLLOPLANER_MCP_URL`). Aufträge liegen lokal in `next-work/` (nicht im Git), die Reihenfolge in `next-work/README.md`; jede Auftragsdatei nennt ihr ToDo, der Stand steht im Planer. Ablauf: Abschnitt «Zusammenarbeit: next-work und Planer» in `~/www/agents/AGENTS.md`. TEST enthält echte Daten: kein Dump, kein `migrate:fresh`, keine Seeder auf TEST.
 
 ## Bevor du etwas baust, lies
 - `docs/README.md`: Einstieg, **Vorrang der Dokumente** und welche historisch sind. Zuerst lesen.
@@ -14,18 +18,19 @@ Produktiv-Domain später: `planer.mollo.ch` (Frontend und API als getrennte Subd
 Wo sich Dokumente widersprechen, gilt die Reihenfolge in `docs/README.md` (zuerst `umsetzung.md`). `backend-plan.md` und `graphql-kontext.md` sind historisch. Weicht der Code vom Schema oder von den Dokumenten ab, nicht stillschweigend ändern, sondern nachfragen.
 
 ## Stack
-- **Backend:** Laravel 13 headless in `backend/`, Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
+- **Backend:** Laravel 13 headless in `backend/` mit PHP 8.5 (lokal, CI, Test- und Produktionsserver; `composer.json` verlangt `^8.5`), Lighthouse (GraphQL), Sanctum (SPA-Cookie-Auth), Fortify (Login, Passwort-Reset, 2FA, Passkeys, alles REST, nicht GraphQL)
 - **KI-Assistent:** offizielles PHP-SDK `anthropic-ai/sdk` (Claude-API), Schlüssel `ANTHROPIC_API_KEY` nur in `.env`
 - **Bilder:** Bild-API von Laravel (`intervention/image`, Treiber GD) für Avatarbilder
 - **Datenbank:** MariaDB, Laravel-Connection `mariadb` (lokal und produktiv)
 - **Frontend:** Nuxt 4 (Vue 3) mit **Web Awesome Pro** (Web Components `wa-*`, Theme „Matter“; nicht Nuxt UI, kein Tailwind) in `frontend/`, reine SPA (`nuxt generate`), npm, Apollo, TipTap (`@tiptap/vue-3`), Font Awesome Pro (Stil fest „Duotone Light“, auch für Bedienelemente, über `wa-icon`; die Pro-SVGs liegen **nicht** im Repo, sondern in einem privaten Repo und kommen mit `npm run icons:fetch` nach `frontend/vendor/`; ohne sie nutzt der Build Font Awesome Free)
-- **Hosting:** Hostpoint (Schweiz), nur PHP und MySQL/MariaDB, Queue per Cron. Hosting-Themen erst später, nicht jetzt bearbeiten.
+- **Hosting:** Webhoster mit SSH, nur PHP und MySQL/MariaDB, Queue per Cron (Angaben in `~/www/agents/mollo-planer/betrieb.md`). Hosting-Themen erst später, nicht jetzt bearbeiten.
 - **Entwicklung:** macOS (Mac mini, Apple Silicon) mit Homebrew (PHP, Composer, MariaDB, Mailpit), Node 24 über nvm, PhpStorm, GitHub
 
 ## Befehle
 Alle Befehle im Terminal im Ordner `backend/` ausführen:
-- `php artisan test` (Tests)
-- `composer test:mariadb` (dieselben Tests gegen MariaDB, Datenbank `molloplaner_test`; vor Commits, die Abfragen, Sperren oder Migrationen ändern)
+- `composer test` (alle Tests, parallel mit ParaTest; nacheinander: `composer test:serial`, einzelne Dateien: `php artisan test <Pfad>`)
+- `composer test:mariadb:quick` (nur die Gruppe `mariadb` gegen MariaDB, Datenbank `molloplaner_test`: Sperren, Migrationen und Schema, MariaDB-eigene Abfragen; vor jedem Push). Ein neuer Test, der MariaDB wirklich braucht, bekommt `#[Group('mariadb')]`.
+- `composer test:mariadb` (alle Tests gegen MariaDB, parallel; läuft in der CI. Lokal braucht der parallele Lauf das Recht, die Testdatenbanken `molloplaner_test_test_N` anzulegen, siehe `docs/tests-lokal.md`; ohne es `composer test:mariadb:serial`)
 - `php artisan migrate`
 - `php artisan lighthouse:validate-schema` (Schema prüfen)
 - `php artisan migrate:fresh --seed --seeder=DemoSeeder` (Demo-Daten wie in der GraphQL-Demo, nur lokal; **löscht alle Daten**. In eine leere Datenbank: `php artisan db:seed --class=DemoSeeder`)
@@ -40,6 +45,7 @@ Werkzeug für `planer-v2` im Ordner `tools/planer/` (Node 20 oder neuer, keine A
 Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - `npm run dev` (http://localhost:3000, im WLAN erreichbar; die Backend-Adresse steht in `frontend/.env` als `NUXT_PUBLIC_API_BASE`)
 - `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)
+- `npm run icons:check` (keine Pro-Dateien) und `npm run terms:check` (keine Domains, Adressen, Anbieter oder Angaben zum Server der eigenen Installation; die Liste kommt aus der Umgebungsvariable `PRIVATE_TERMS`, sie steht nicht im Repo; ohne sie nur eine Warnung). Beide laufen auch in der CI und gehören vor jeden Push.
 - `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
 - `npm run build` (statische Dateien in `.output/public`)
 
@@ -56,29 +62,19 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - Status von ToDo und Milestone wird nur vom Observer berechnet, nie per Eingabe gesetzt.
 - RichText wird als TipTap-JSON gespeichert, **nie HTML**. Frontend zeigt es mit TipTap an, **nie mit `v-html`**.
 - Mails nur über Notifications mit `ShouldQueue` und `afterCommit`, Sprache = `project->locale`.
-- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. **Das Repo ist öffentlich: keine Pro-Dateien committen** (Font Awesome Pro, `frontend/vendor/`; ein Wächter in CI und Test schlägt an). Font Awesome braucht kein npm-Token mehr, die Symbole holt `npm run icons:fetch` aus dem privaten Repo `mollo-pro-assets` (Secret `PRO_ASSETS_TOKEN`); das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
+- Keine Passwörter, Tokens oder `.env`-Inhalte ins Repository. **Das Repo ist öffentlich: keine Pro-Dateien committen** (Font Awesome Pro, `frontend/vendor/`, die Skills von Web Awesome Pro in `frontend/.claude/skills/webawesome*`; ein Wächter in CI und Test schlägt an). Font Awesome braucht kein npm-Token mehr, die Symbole holt `npm run icons:fetch` aus dem privaten Repo `mollo-pro-assets` (Secret `PRO_ASSETS_TOKEN`); das Web-Awesome-Token kommt aus der Umgebungsvariable `WEBAWESOME_NPM_TOKEN` (GitHub-Secret `WEBAWESOME_NPM_AUTH_TOKEN`).
 - Oberfläche nur mit `wa-*`-Elementen von Web Awesome und den eigenen Bausteinen (`FormInput`, `AppDialog`, `ActionMenu` …), Layout mit den Hilfsklassen `wa-stack`/`wa-cluster`/… und `<style scoped>` mit Tokens (`--wa-*`). Kein Nuxt UI, kein Tailwind.
+- Enums im GraphQL-Schema mit `App\Enums` synchron halten (`tests/Unit/GraphqlEnumBindingTest.php`).
+- Rechte nie nur im Frontend prüfen.
+- RichText höchstens 20.000 Zeichen.
+- Icons: Font-Awesome-Pro-Namen ohne Stil-Präfix.
+- Die 2FA- und Passkey-Middleware in Produktion nicht lockern.
+- Änderungen nur über einen eigenen Branch und einen PR nach `dev`, nie direkt auf `dev`, nie mergen ohne Oliver (gilt für alle Agenten, auch Junie).
+- Vor dem Merge muss der Branch aktuell sein (`dev` hereinholen), sonst lässt GitHub nicht mergen. Bei jedem PR nach `dev` laufen alle Jobs der CI, ohne Pfad-Filter.
+- **MCP-Konfigurationen** (`.mcp.json`, `.junie/mcp/mcp.json` und gleichartige Dateien im Repo) enthalten nur Server ohne Geheimnis (`laravel-boost`) und sonst höchstens `${VARIABLE}`. **Nie ein Token und nie eine Adresse mit Zugangsdaten** in diese Dateien. Der Planer-Server steht nur in der `.mcp.json` des Repos, mit `${MOLLOPLANER_<NAME>_TOKEN}` für das eigene Agentenkonto und `${MOLLOPLANER_MCP_URL}` für die Adresse (global gesetzt, zeigt auf TEST), und verbindet nur mit TEST. Planer-Server nie mit `--scope user` eintragen, weil sie sonst in jedem Projekt mit demselben Konto auftauchen. Olivers persönliche Server nur mit `--scope local`.
+- «cpm»: Vor dem Merge Branch und Ziel-Branch nennen, wenn unklar. Commits von Junie mit Co-Author-Trailer.
 - Zu jeder neuen Policy, Mutation oder Regel gehören Tests (siehe Punkt 12 im Backend-Plan).
 - Nach einem abgeschlossenen Schritt aus der Bau-Reihenfolge den Abschnitt „Stand“ unten aktualisieren.
-
-# Mollo Planer — Agent Guidelines
-
-## 1. System & MCP-Zugang
-- **App:** Projektverwaltung mit Hierarchie `Project` -> `Milestone` -> `Todo` -> `Task` (Kanban-Status: `idea`, `planned`, `open`, `in_progress`, `review`, `done`). Status von `Todo` und `Milestone` werden automatisch aus den Tasks abgeleitet – niemals manuell setzen.
-- **MCP-Endpunkt:** `POST /mcp` (`mollo-planer`)[cite: 31]. Handelt im Namen des Token-Inhabers; jedes Recht und jede Regel wird serverseitig geprüft[cite: 31].
-- **Verfügbare Tools:** `list_projects`, `list_templates`, `list_users`, `export_plan`, `import_plan`, `update_tasks`, `add_comment`, `list_comments`, `create_idea`, `list_ideas`, `get_project_ai_context`[cite: 31].
-
-## 2. Token-sparender Arbeitsablauf
-1. **Einstieg über `list_projects`:** Projekt-ID, Rolle und Fähigkeiten prüfen[cite: 31]. Zusatzfelder (`include_members`, `include_rights`) sowie `list_users` oder `list_templates` nur bei Bedarf anfordern[cite: 28, 29, 30, 31].
-2. **Gefilterter Export (`export_plan`):** Bei größeren Projekten bevorzugt `version`, `milestone_ids`, `task_status` oder `include_released: false` nutzen (`excerpt: true` -> beim Zurückschreiben zwingend `mode: "partial"`)[cite: 23, 31].
-3. **IDs & Revisionen:** Bestehende IDs (`m-<id>`, `t-<id>`, `k-<id>`) beibehalten; neue Elemente mit `m-new-1`, `t-new-1`, `k-new-1` benennen[cite: 31]. `mode: "full"` (Standard) prüft `revision` und verschiebt fehlende Elemente in den Papierkorb; `mode: "partial"` ergänzt/ändert nur[cite: 25, 31].
-4. **Dry-Run zuerst:** `import_plan` und `update_tasks` (mit `base_revision`) immer zuerst mit `dry_run: true` ausführen, Änderungen und Fehler prüfen und erst danach scharf schalten[cite: 25, 31, 33]. Bei `import_plan` `include_document` standardmäßig auslassen (`false`)[cite: 25].
-5. **Kommentare, Ideen & Kontext begrenzen:** `list_comments`, `list_ideas`, `list_users`, `list_templates` und `get_project_ai_context` mit gezielten Filtern und kleinen Limits (`limit`, `max_chars`) nutzen; Benachrichtigungsmails (`notify_assignees`) nur auf Wunsch aktivieren[cite: 24, 25, 26, 27, 28, 29, 30, 31].
-
-## 3. Inhalts-, Sicherheits- & Qualitätsregeln
-- **Sprache & Format:** Titel und Beschreibungen in der Sprache des Nutzers verfassen[cite: 31]. Beschreibungen und Kommentare nutzen die erlaubte Markdown-/RichText-Whitelist (Absätze, H2/H3, Listen, Zitate, fett, kursiv, Inline-Code, `http`/`https`/`mailto`-Links; kein HTML, keine Bilder, Tabellen oder Codeblöcke)[cite: 21, 31].
-- **Limits:** Max. 200 Milestones/Projekt, 50 ToDos/Milestone, 50 Tasks/ToDo, 50 Mitglieder, 30 Labels, Beschreibungen bis 5.000 Zeichen[cite: 31].
-- **Sicherheit:** Niemals Klartext-Tokens, Secrets oder sensible Daten ausgeben oder protokollieren; Änderungen immer zielgerichtet und nachvollziehbar halten.
 
 ## Stand
 - [x] 1. Migrationen

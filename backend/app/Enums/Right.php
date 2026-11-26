@@ -75,6 +75,11 @@ enum Right: string
     case SYSTEM_VIEW = 'system.view';
     /** The database documentation. */
     case DATABASE_VIEW = 'database.view';
+    /**
+     * Billing (Auftrag 39): customers, prices of milestones, invoices, the sender and letterhead. Independent of the roles in
+     * a project: an owner without it sees neither prices nor customers. Never for an agent account (Rights).
+     */
+    case BILLING_MANAGE = 'billing.manage';
 
     public const SCOPE_PROJECT = 'project';
 
@@ -95,6 +100,7 @@ enum Right: string
         self::SETTINGS_MANAGE,
         self::SYSTEM_VIEW,
         self::DATABASE_VIEW,
+        self::BILLING_MANAGE,
     ];
 
     public function scope(): string

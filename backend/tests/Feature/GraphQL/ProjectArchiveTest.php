@@ -8,12 +8,14 @@ use App\Models\Comment;
 use App\Models\Project;
 use App\Services\TaskNotifier;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Archive and bring back (docs/auftrag-m2.md §1): read only within, left out
  * of the lists across projects, not counted as a change of the planer file.
  * Which mutations an archived project refuses: ArchivedProjectMutationsTest.
  */
+#[Group('mariadb')]
 class ProjectArchiveTest extends GraphQLTestCase
 {
     private const ARCHIVE = 'mutation ($id: ID!) { archiveProject(id: $id) { id archivedAt viewerRights } }';

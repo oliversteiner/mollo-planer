@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.5",
         "anthropic-ai/sdk": "^1.6",
+        "fpdf/fpdf": "^1.86",
         "intervention/image": "^4.0",
         "laravel/fortify": "^1.41",
         "laravel/framework": "^13.17",
@@ -17,9 +18,11 @@
         "laravel/tinker": "^3.0",
         "mpdf/mpdf": "^8.3",
         "nuwave/lighthouse": "^6.74",
-        "opis/json-schema": "^2.6"
+        "opis/json-schema": "^2.6",
+        "sprain/swiss-qr-bill": "^5.5"
     },
     "require-dev": {
+        "brianium/paratest": "^7.20",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.10",
@@ -62,6 +65,10 @@
         ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --parallel"
+        ],
+        "test:serial": [
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
         "schema:frontend": [
@@ -71,6 +78,18 @@
             "cd ../tools/planer && npm run test:remote"
         ],
         "test:mariadb": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@putenv DB_CONNECTION=mariadb",
+            "@putenv DB_DATABASE=molloplaner_test",
+            "@php artisan test --parallel"
+        ],
+        "test:mariadb:quick": [
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@putenv DB_CONNECTION=mariadb",
+            "@putenv DB_DATABASE=molloplaner_test",
+            "@php artisan test --group=mariadb"
+        ],
+        "test:mariadb:serial": [
             "@php artisan config:clear --ansi @no_additional_args",
             "@putenv DB_CONNECTION=mariadb",
             "@putenv DB_DATABASE=molloplaner_test",

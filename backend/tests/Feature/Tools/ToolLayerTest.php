@@ -27,7 +27,7 @@ class ToolLayerTest extends McpTestCase
 
         $this->assertSame(array_values(array_unique($names)), $names, 'a name twice in the registry');
         $this->assertSame(array_values(array_unique(ToolRegistry::TOOLS)), ToolRegistry::TOOLS, 'a class twice in the registry');
-        $this->assertCount(12, $names);
+        $this->assertCount(14, $names);
 
         // Everything under App\Tools that is a tool is in the registry: a tool written but not entered would be offered nowhere.
         $classes = collect(glob(app_path('Tools/*.php')))
@@ -40,7 +40,7 @@ class ToolLayerTest extends McpTestCase
         $this->assertSame($classes, $registered);
     }
 
-    public function test_the_mcp_tool_list_is_exactly_what_it_was_before_the_change(): void
+    public function test_the_mcp_tool_list_is_exactly_the_one_of_the_fixture(): void
     {
         $token = McpTokens::create($this->owner, 'Claude')->plainTextToken;
         $response = $this->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'], [

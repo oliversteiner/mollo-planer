@@ -22,6 +22,8 @@ return [
     'validation' => [
         'required' => 'Pflichtfeld fehlt.',
         'unknown_field' => 'Unbekanntes Feld.',
+        'unknown_field_suggest' => '`:field` gibt es nicht, gemeint ist wohl `:suggestion`.',
+        'id_pattern' => 'Falsches Format. Erwartet: `:prefix-<Zahl>` oder `:prefix-new-<Zahl>`.',
         'type' => 'Falscher Typ, erwartet: :expected.',
         'enum' => 'Ungültiger Wert.',
         'pattern' => 'Falsches Format.',
@@ -53,6 +55,7 @@ return [
         'draft_invalid' => 'Der Entwurf ist ungültig: :message',
         'invalid' => 'Die Datei ist ungültig: :message',
         'assignee_unknown_warning' => ':email ist nicht Mitglied des Projekts oder existiert nicht. Die Zuweisung wird nicht übernommen.',
+        'label_not_in_project' => '«:key» ist kein Label des Projekts. Vorhanden: :labels.',
         'excerpt' => 'Die Datei ist ein Ausschnitt des Plans (excerpt). Im Modus full würde alles, was sie nicht enthält, gelöscht. Trage sie im Modus partial ein oder exportiere den ganzen Plan.',
         'revision' => 'Die Datei hat die Revision :file, das Projekt ist bei :project. Exportiere es zuerst neu.',
         'unknown_id' => ':id gehört nicht zu diesem Projekt oder liegt im Papierkorb.',
