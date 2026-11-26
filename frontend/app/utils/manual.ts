@@ -13,6 +13,9 @@ export interface ManualStep {
 export interface ManualChapter {
   id: string
   title: string
+  /** An appendix (Auftrag 66 B) has free headings in `body` and none of the fixed sections. */
+  type: 'chapter' | 'appendix'
+  body: Record<string, unknown> | null
   area: string
   scope: 'core' | 'app'
   right: string
@@ -27,7 +30,7 @@ export interface ManualChapter {
 }
 
 /** Areas in the order of the overview (the same list as scripts/manual.mjs). */
-export const MANUAL_AREAS = ['first-steps', 'projects', 'plan', 'kanban', 'my-tasks', 'comments', 'documents', 'ideas', 'assistant', 'templates', 'trash', 'statistics', 'calm', 'planer-file', 'agents', 'admin'] as const
+export const MANUAL_AREAS = ['first-steps', 'projects', 'plan', 'kanban', 'my-tasks', 'comments', 'documents', 'ideas', 'assistant', 'templates', 'trash', 'statistics', 'calm', 'planer-file', 'agents', 'admin', 'appendix'] as const
 
 export function manualChapters(language: string): ManualChapter[] {
   return (language.startsWith('en') ? en : de) as ManualChapter[]
@@ -43,4 +46,28 @@ export const SYSTEM_RIGHT_PREFIXES = ['projects.', 'users.', 'roles.', 'template
 
 export function isSystemRight(right: string): boolean {
   return SYSTEM_RIGHT_PREFIXES.some(prefix => right.startsWith(prefix))
+}
+
+/** Rights that people with user administration hold: the next step is to ask them. */
+export function isUserRight(right: string): boolean {
+  return right.startsWith('users.') || right.startsWith('roles.')
+}
+
+export interface ManualGroup {
+  area: string
+  chapters: ManualChapter[]
+}
+
+/** The chapters by area in the order of the overview: the areas in order (the appendix last), the chapters by title. */
+export function manualGroups(language: string): ManualGroup[] {
+  const chapters = manualChapters(language)
+
+  return MANUAL_AREAS
+    .map(area => ({ area, chapters: chapters.filter(chapter => chapter.area === area).sort((a, b) => a.title.localeCompare(b.title)) }))
+    .filter(group => group.chapters.length > 0)
+}
+
+/** All chapters in reading order: the order of the overview, over the borders of the areas. A chapter without the right for it stays in. */
+export function manualOrder(language: string): ManualChapter[] {
+  return manualGroups(language).flatMap(group => group.chapters)
 }

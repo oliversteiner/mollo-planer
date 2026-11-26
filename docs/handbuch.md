@@ -74,7 +74,7 @@ Die Markdown-Fassung und `llms.txt` sind ein Zusatz zum verlangten HTML: Agenten
 
 ## Kapitel (Bereiche)
 
-Erste Schritte (Konto, Anmelden, zweiter Faktor, Profil) · Projekte · Meilensteine, ToDos und Tasks · Kanban · Meine Tasks · Kommentare · Dokumente · Ideen · Assistent · Vorlagen und Labels · Papierkorb und Archiv · Statistik · Ruhige Ansicht und Befehlspalette · Planer-Datei (Export, Import, Werkzeug) · Mit Agenten arbeiten (Connector, MCP, Zugänge) · Verwaltung (Benutzer, Agenten, Rollen, Einstellungen, Anmeldedienst). Später: Abrechnung (Auftrag 39), Protokoll (Auftrag 53).
+Erste Schritte (Konto, Anmelden, zweiter Faktor, Profil) · Projekte · Meilensteine, ToDos und Tasks · Kanban · Meine Tasks · Kommentare · Dokumente · Ideen · Assistent · Vorlagen und Labels · Papierkorb und Archiv · Statistik · Zen-Ansicht und Befehlspalette · Planer-Datei (Export, Import, Werkzeug) · Mit Agenten arbeiten (Connector, MCP, Zugänge) · Administration (Benutzer, Agenten, Rollen, Einstellungen, Anmeldedienst). Später: Abrechnung (Auftrag 39), Protokoll (Auftrag 53).
 
 ## Etappen
 
