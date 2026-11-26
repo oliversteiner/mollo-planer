@@ -26,7 +26,10 @@ const { t } = useI18n()
     class="pending-users"
   >
     <h2 class="wa-heading-s">
-      {{ t('admin.users.pending.title', { count: users.length }) }}
+      <TabLabel
+        :label="t('admin.users.pending.title')"
+        :count="users.length"
+      />
     </h2>
     <ul class="pending-list wa-list-plain">
       <li

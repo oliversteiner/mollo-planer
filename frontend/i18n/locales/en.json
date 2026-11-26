@@ -249,7 +249,7 @@
       "localeHint": "Notifications about this project are sent in this language."
     },
     "archive": {
-      "title": "Archive ({count})"
+      "title": "Archive"
     },
     "counts": "{milestones} milestones · {todos} todos · {tasks} tasks"
   },
@@ -541,7 +541,7 @@
     "hint": "Agent account: no access to the interface, only through a token for the connector"
   },
   "comments": {
-    "title": "Comments ({count})",
+    "title": "Comments",
     "none": "No comments yet.",
     "deletedAuthor": "Deleted person",
     "edited": "edited",
@@ -671,7 +671,7 @@
       "activityHint": "Display only, no rights.",
       "noFunction": "None",
       "pending": {
-        "title": "Waiting for approval ({count})",
+        "title": "Waiting for approval",
         "verified": "Email confirmed",
         "unverified": "Email not confirmed",
         "approve": "Approve",
