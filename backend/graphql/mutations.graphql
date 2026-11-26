@@ -274,6 +274,12 @@ type Mutation @guard {
   moveMilestone(id: ID!, position: Int! @rules(apply: ["integer", "min:0"])): Milestone!
     @can(ability: "update", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\MoveMilestone")
+  "Ordnet die Milestones eines Projekts nach ihrer Version (Zahlen, Teil für Teil; ohne Version ans Ende). Nur wenn alle Bedingungen von milestoneVersionOrder erfüllt sind; expectedRevision schützt vor Änderungen dazwischen. Mit dryRun wird nichts geschrieben. before ist die alte Reihenfolge (für «Rückgängig» mit reorderSiblings)."
+  sortMilestones(projectId: ID!, expectedRevision: Int, dryRun: Boolean = false): OrderResult!
+    @field(resolver: "App\\GraphQL\\Mutations\\SortMilestones")
+  "Ordnet die Geschwister einer Ebene neu: MILESTONES (Milestones des Projekts), TODOS (parentId = Milestone), TASKS (parentId = ToDo). ids enthält alle Geschwister genau einmal. Nichts wechselt das ToDo oder den Milestone. Rechte wie beim Verschieben."
+  reorderSiblings(projectId: ID!, level: OrderLevel!, parentId: ID, ids: [ID!]!, expectedRevision: Int, dryRun: Boolean = false): OrderResult!
+    @field(resolver: "App\\GraphQL\\Mutations\\ReorderSiblings")
   deleteMilestone(id: ID! @whereKey): Milestone!
     @can(ability: "delete", find: "id")
     @field(resolver: "App\\GraphQL\\Mutations\\DeleteMilestone")

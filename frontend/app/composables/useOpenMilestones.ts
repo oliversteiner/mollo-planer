@@ -1,7 +1,8 @@
 /**
  * The open milestones of the project page (docs/ux-projektseite.md §4.3): a set of ids, remembered per project in this
- * browser (`mollo.timeline.<projectId>.open`, a JSON list). As long as nothing is remembered, the first visit opens the
- * current milestone only (Entscheid E1). Without storage (private window, blocked) the state lasts for the visit.
+ * browser (`mollo.timeline.<projectId>.open`, a JSON list). The current milestone is open at every visit, also when it
+ * was closed the last time (Entscheid E1, Auftrag 47 E); the others keep their remembered state, and as long as nothing
+ * is remembered only the current one is open. Without storage (private window, blocked) the state lasts for the visit.
  * Todos are not remembered (E2).
  */
 export function openMilestonesKey(projectId: string): string {
@@ -37,7 +38,7 @@ export function useOpenMilestones(projectId: () => string) {
     }
   }
 
-  /** Once, when the milestones are known: the remembered state without unknown ids, else the current one. */
+  /** Once, when the milestones are known: the remembered state without unknown ids, and the current milestone. */
   function start(ids: string[], currentId: string | undefined): void {
     if (started.value || ids.length === 0) {
       return
@@ -46,9 +47,8 @@ export function useOpenMilestones(projectId: () => string) {
     started.value = true
     const remembered = readOpenMilestones(projectId())
 
-    open.value = remembered === null
-      ? new Set(currentId ? [currentId] : [])
-      : new Set(remembered.filter(id => ids.includes(id)))
+    // The current milestone is not saved here: opening it is not a choice of the person.
+    open.value = new Set([...(remembered ?? []).filter(id => ids.includes(id)), ...(currentId ? [currentId] : [])])
   }
 
   function change(next: Set<string>): void {

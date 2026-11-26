@@ -24,6 +24,8 @@ const props = defineProps<{
   menu?: ActionMenuItem[]
   /** The viewer has billing.manage: a done milestone without a price is a hint. */
   canBill?: boolean
+  /** «Preise anzeigen» is off (a shared screen): no price and no hint (Auftrag 47 G). */
+  hidePrices?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -36,7 +38,7 @@ const emit = defineEmits<{
 const { t, localeProperties } = useI18n()
 const language = computed(() => localeProperties.value.language ?? 'de-CH')
 const status = computed(() => props.milestone.status as ItemStatusName)
-const badge = computed(() => priceBadge(props.milestone, props.canBill))
+const badge = computed(() => (props.hidePrices ? null : priceBadge(props.milestone, props.canBill)))
 const released = computed(() => props.milestone.release?.status === 'RELEASED')
 /** A released milestone shows the date of the release, never both (B8). */
 const date = computed(() => (released.value ? props.milestone.release?.date : null) ?? props.milestone.dueDate ?? null)

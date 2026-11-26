@@ -319,7 +319,35 @@
       "todoActions": "Aktionen für ToDo «{title}»",
       "taskActions": "Aktionen für Task «{title}»",
       "openTask": "Task «{title}» öffnen",
-      "moveTask": "Task verschieben"
+      "moveTask": "Task verschieben",
+      "newestFirst": "Neueste oben",
+      "oldestFirst": "Älteste oben",
+      "sortNewestHint": "Zeigt die neueste Version oben. Wähle die Taste, um die älteste oben zu zeigen.",
+      "sortOldestHint": "Zeigt die älteste Version oben. Wähle die Taste, um die neueste oben zu zeigen.",
+      "showPrices": "Preise anzeigen",
+      "orderByVersion": "Nach Version ordnen",
+      "order": {
+        "title": "Milestones nach Version ordnen",
+        "description": "So ist die gespeicherte Reihenfolge danach. Verschobene Milestones sind markiert. ToDos und Tasks bleiben, wie sie sind.",
+        "summary": "{count} Milestone wird verschoben. | {count} Milestones werden verschoben.",
+        "noVersion": "Ohne Version",
+        "movedFrom": "war an Stelle {from}",
+        "apply": "Neu ordnen",
+        "loading": "Die Vorschau wird geladen …",
+        "done": "Milestones nach Version geordnet",
+        "doneDetail": "{count} Milestone verschoben. | {count} Milestones verschoben.",
+        "undo": "Rückgängig",
+        "undone": "Die frühere Reihenfolge ist wieder da.",
+        "failed": "Die Reihenfolge konnte nicht geändert werden.",
+        "conflict": "Der Plan wurde inzwischen geändert. Die Vorschau ist neu geladen, bitte prüfe sie noch einmal.",
+        "conditions": {
+          "archived": "Das Projekt ist archiviert.",
+          "too_few_versions": "Mindestens zwei Milestones brauchen eine Version.",
+          "invalid_version": "Diese Versionen sind ungültig (erlaubt sind Zahlen mit Punkten wie 1.4 oder 2.0.1):",
+          "duplicate_version": "Diese Versionen kommen doppelt vor:",
+          "already_ordered": "Bereits nach Version geordnet."
+        }
+      }
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}",

@@ -19,6 +19,7 @@ final class ToolRegistry
         ListTasks::class,
         ImportPlan::class,
         UpdateTasks::class,
+        Reorder::class,
         AddComment::class,
         ListComments::class,
         CreateIdea::class,
