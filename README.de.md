@@ -14,11 +14,11 @@ Beschreib ein Projekt, einen Milestone oder eine einzelne Task in eigenen Worten
 
 ### Milestones, ToDos, Tasks und Kanban
 
-Jedes Projekt ist gegliedert vom Release bis zum einzelnen Schritt: Milestones tragen eine Versionsnummer und lassen sich veröffentlichen, ToDos bündeln die Arbeit, Tasks wandern über das Kanban-Board. Die Zeitachse zeigt Fortschritt und Fälligkeit, ordnet nach Version und klappt alles auf einmal auf oder zu. Den Status von ToDos und Milestones rechnet der Planer aus ihren Tasks; niemand setzt ihn von Hand.
+Jedes Projekt ist gegliedert vom Release bis zum einzelnen Schritt: Milestones tragen eine Versionsnummer und lassen sich veröffentlichen, ToDos bündeln die Arbeit, Tasks wandern über das Kanban-Board. Die Zeitachse zeigt Fortschritt und Fälligkeit, ordnet nach Version und klappt alles auf einmal auf oder zu.
 
 ### Der Plan als Datei
 
-Ein ganzer Plan lässt sich als lesbare Datei exportieren (Format `planer-v2`, JSON oder Markdown) und wieder importieren, immer zuerst mit Trockenlauf. Ein kleines Kommandozeilen-Werkzeug hält die Datei in einem Repository aktuell (`pull`, `push`, `sync`), und ein signierter Webhook kann nach jeder Änderung eine GitHub Action starten.
+Ein ganzer Plan lässt sich als lesbare Datei exportieren (Format `planer-v2`, JSON oder Markdown) und wieder importieren. Ein kleines Kommandozeilen-Werkzeug hält die Datei in einem Repository aktuell (`pull`, `push`, `sync`), und ein Webhook kann nach jeder Änderung eine GitHub Action starten.
 
 ### Ruhig arbeiten: Zen-Ansicht und Befehlspalette
 
@@ -35,25 +35,25 @@ Kein Node, kein Docker, keine Root-Rechte und kein Prozess, der dauernd läuft. 
 - PHP 8.5 mit gängigen Erweiterungen (unter anderem `gd`, `sodium`, `bcmath`, `mbstring`, `pdo_mysql`)
 - Apache mit `mod_rewrite`
 - MariaDB
-- einen Cron-Eintrag jede Minute (er verschickt auch die Mails aus der Warteschlange)
+- einen Cron-Eintrag
 - SSH mit Git und Composer, für Einrichtung und Updates
 
 Das Frontend wird vorher gebaut und als statische Dateien hochgeladen. Details: [docs/installation.md](docs/installation.md).
 
 ### Agenten als Teammitglieder
 
-KI-Agenten bekommen ein eigenes Konto mit der Rolle «Agent», eine Kennung statt einer E-Mail-Adresse und nur die Rechte dieser Rolle. Sie übernehmen Tasks, setzen den Status, tragen den Commit an der Task ein und berichten in Kommentaren, wie alle anderen im Team. Der Planer selbst entsteht so.
+KI-Agenten bekommen ein eigenes Konto mit der Rolle «Agent» und nur die Rechte dieser Rolle. Sie übernehmen Tasks, setzen den Status, tragen den Commit an der Task ein und berichten in Kommentaren, wie alle anderen im Team. Der Planer selbst entsteht so.
 
 ### Ein MCP-Server, der Tokens spart
 
-Claude und andere Agenten verbinden sich über das Model Context Protocol, mit einem persönlichen Zugang oder per OAuth. Die vierzehn Werkzeuge lesen in Stufen statt alles auf einmal: Der Überblick über ein Projekt kostet rund 1000 Tokens, eine einzelne Task wenige hundert. Status, Commit und Zuweisung ändern Agenten direkt, ohne den Plan vorher zu exportieren. Eine Anleitung für Agenten liegt unter `/mcp/`.
+Claude und andere Agenten verbinden sich über das Model Context Protocol, mit einem persönlichen Zugang oder per OAuth. Die vierzehn Werkzeuge lesen in Stufen statt alles auf einmal: Der Überblick über ein Projekt kostet rund 1000 Tokens, eine einzelne Task wenige hundert. Eine Anleitung für Agenten liegt unter `/mcp/`.
 
 ### Ausserdem
 
 - **Dokumente** je Projekt (Protokolle, Vorgehensweisen, Analysen), für alle oder für einzelne Personen freigegeben, mit Versionsverlauf und PDF-Export
 - **Abrechnung** aus erledigten Milestones: Preise je Milestone, Kunden, Rechnungen als PDF mit Schweizer QR-Rechnung
 - **Handbuch** in der App unter «Hilfe», deutsch und englisch, mit oder ohne Bilder, und als Markdown und `llms.txt` für Agenten
-- **Deutsch und Englisch** durchgehend; Mails in der Sprache des Projekts
+- **Deutsch und Englisch** durchgehend
 - Ideen, Projektvorlagen, Label-Sets, Statistik je Projekt, Papierkorb
 
 ## Für wen
@@ -99,4 +99,4 @@ Anhänge an Tasks, ein Protokoll der Änderungen, mehrere Commits je Task, gemei
 
 ## Lizenz
 
-Der Mollo Planer ist freie Software unter der [GNU Affero General Public License v3.0 oder später](LICENSE): Wer ihn als Dienst anbietet, legt seine Änderungen offen. Web Awesome Pro und Font Awesome Pro gehören nicht zum Repository und brauchen eine eigene Lizenz.
+Lizenz in Vorbereitung: geplant ist die GNU AGPL v3.0 oder später. Bis sie im Repository steht, sind alle Rechte vorbehalten. Web Awesome Pro und Font Awesome Pro gehören nicht zum Repository und brauchen eine eigene Lizenz.

@@ -14,11 +14,11 @@ Describe a project, a milestone or a single task in your own words, typed or spo
 
 ### Milestones, to-dos, tasks and kanban
 
-Each project is structured from release down to the single step: milestones carry a version number and can be released, to-dos group the work, tasks move across the kanban board. The timeline shows progress and due dates, sorts by version and expands or collapses all at once. The status of to-dos and milestones follows from their tasks; nobody sets it by hand.
+Each project is structured from release down to the single step: milestones carry a version number and can be released, to-dos group the work, tasks move across the kanban board. The timeline shows progress and due dates, sorts by version and expands or collapses all at once.
 
 ### The plan as a file
 
-A whole plan can be exported as a readable file (format `planer-v2`, JSON or Markdown) and imported again, always with a dry run first. A small command-line tool keeps the file in a repository up to date (`pull`, `push`, `sync`), and a signed webhook can start a GitHub Action after every change.
+A whole plan can be exported as a readable file (format `planer-v2`, JSON or Markdown) and imported again. A small command-line tool keeps the file in a repository up to date (`pull`, `push`, `sync`), and a webhook can start a GitHub Action after every change.
 
 ### Calm work: Zen view and command palette
 
@@ -35,25 +35,25 @@ No Node, no Docker, no root access and no long-running process on the server. Yo
 - PHP 8.5 with common extensions (including `gd`, `sodium`, `bcmath`, `mbstring`, `pdo_mysql`)
 - Apache with `mod_rewrite`
 - MariaDB
-- one cron job every minute (it also sends the queued mails)
+- one cron job
 - SSH with Git and Composer, for setup and updates
 
 The frontend is built beforehand and uploaded as static files. Details: [docs/installation.md](docs/installation.md) (German).
 
 ### Agents as team members
 
-AI agents get their own account with the role «Agent», an identifier instead of an e-mail address, and only the rights of that role. They pick up tasks, set the status, record the commit on the task and report back in comments, like anyone else on the team. The planner itself is built this way.
+AI agents get their own account with the role «Agent» and only the rights of that role. They pick up tasks, set the status, record the commit on the task and report back in comments, like anyone else on the team. The planner itself is built this way.
 
 ### An MCP server that saves tokens
 
-Claude and other agents connect through the Model Context Protocol, with a personal access token or OAuth. The fourteen tools read in steps instead of loading everything: an overview of a project costs about 1,000 tokens, a single task a few hundred. Agents change status, commit and assignee directly, without exporting the plan first. A guide for agents is served at `/mcp/`.
+Claude and other agents connect through the Model Context Protocol, with a personal access token or OAuth. The fourteen tools read in steps instead of loading everything: an overview of a project costs about 1,000 tokens, a single task a few hundred. A guide for agents is served at `/mcp/`.
 
 ### Also included
 
 - **Documents** per project (minutes, procedures, analyses), shared with everyone or with single people, with version history and PDF export
 - **Billing** from completed milestones: prices per milestone, customers, invoices as PDF with Swiss QR bill
 - **Manual** in the app under Help, in German and English, with or without pictures, and as Markdown and `llms.txt` for agents
-- **German and English** throughout; mails in the language of the project
+- **German and English** throughout
 - Ideas, project templates, label sets, statistics per project, trash
 
 ## Who it is for
@@ -99,4 +99,4 @@ Attachments on tasks, an activity log, several commits per task, real-time editi
 
 ## Licence
 
-Mollo Planer is free software under the [GNU Affero General Public License v3.0 or later](LICENSE): whoever offers it as a service shares their changes. Web Awesome Pro and Font Awesome Pro are not part of this repository and need their own licence.
+Licence in preparation: the GNU AGPL v3.0 or later is planned. Until it is in the repository, all rights are reserved. Web Awesome Pro and Font Awesome Pro are not part of this repository and need their own licence.
