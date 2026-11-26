@@ -105,6 +105,45 @@ class DeployFilesRestoreTest extends TestCase
         $this->assertSame('changed', file_get_contents($this->uploads.'/private/invoices/R-1.pdf'));
     }
 
+    /**
+     * A tar whose listing is far larger than a pipe, so that it is still writing when a reader that stops at the first hit
+     * has gone (Auftrag 73). A real archive of this size would only show it by chance (and not with every tar); this one
+     * fails the same way every time. Everything but the listing goes to the real tar. $foreign: before «app» come
+     * entries outside of it.
+     */
+    private function tarWithALongListing(bool $foreign): void
+    {
+        $real = trim((string) shell_exec('command -v tar'));
+        $before = $foreign ? "seq 1 100000 | sed 's#^#other/file-with-a-longish-name-#'\n" : '';
+        file_put_contents($this->root.'/bin/tar', "#!/usr/bin/env bash\ncase \"\$*\" in\n*-tzf*)\n{$before}printf 'app/\\n'\nseq 1 100000 | sed 's#^#app/file-with-a-longish-name-#'\n;;\n*) exec {$real} \"\$@\";;\nesac\n");
+        chmod($this->root.'/bin/tar', 0755);
+    }
+
+    public function test_an_archive_with_a_long_listing_is_restored_every_time(): void
+    {
+        $this->tarWithALongListing(false);
+
+        for ($run = 1; $run <= 5; $run++) {
+            $result = $this->restore($this->archive, "staging\n");
+
+            $this->assertSame(0, $result['exit'], "run {$run}: ".$result['output']);
+        }
+        $this->assertSame('old invoice', file_get_contents($this->uploads.'/private/invoices/R-1.pdf'));
+    }
+
+    public function test_paths_outside_of_app_are_refused_also_when_there_are_very_many_of_them(): void
+    {
+        $this->tarWithALongListing(true);
+
+        for ($run = 1; $run <= 5; $run++) {
+            $result = $this->restore($this->archive, "staging\n");
+
+            $this->assertNotSame(0, $result['exit'], "run {$run}");
+            $this->assertStringContainsString('ausserhalb von «app»', $result['output'], "run {$run}");
+        }
+        $this->assertSame('changed', file_get_contents($this->uploads.'/private/invoices/R-1.pdf'));
+    }
+
     public function test_if_the_safety_copy_fails_nothing_is_restored(): void
     {
         $real = trim((string) shell_exec('command -v tar'));
