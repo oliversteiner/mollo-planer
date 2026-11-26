@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Console\Concerns\ManagesUserAccounts;
 use App\Models\User;
+use App\Rules\NoAgentIdentifier;
 use Carbon\CarbonInterface;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -107,6 +108,7 @@ class UserEmail extends Command implements PromptsForMissingInput
             'email',
             'max:255',
             Rule::unique('users', 'email')->ignore($user->getKey()),
+            new NoAgentIdentifier($user),
             fn (string $attribute, mixed $value, \Closure $fail) => User::query()
                 ->whereKeyNot($user->getKey())
                 ->whereRaw('LOWER(email) = ?', [mb_strtolower((string) $value)])

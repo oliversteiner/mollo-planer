@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Enums\Locale;
 use App\Models\User;
+use App\Rules\NoAgentIdentifier;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
@@ -46,7 +47,7 @@ class CreateNewUser implements CreatesNewUsers
     {
         return Validator::make($input, [
             'name' => ['required', 'string', 'min:2', 'max:120'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', new NoAgentIdentifier],
             'password' => $this->passwordRules(),
         ])->validate();
     }

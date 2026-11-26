@@ -59,7 +59,10 @@
       "removeTitle": "{name} aus dem Projekt entfernen?",
       "removeDescription": "Die Person sieht das Projekt danach nicht mehr. Ihre Tasks in diesem Projekt sind dann niemandem mehr zugewiesen.",
       "removeConfirm": "Entfernen",
-      "alreadyMember": "bereits Mitglied"
+      "alreadyMember": "bereits Mitglied",
+      "agentRoleFixed": "Agenten haben immer die Rolle Agent.",
+      "identifier": "Kennung",
+      "copyIdentifier": "Kennung von {name} kopieren"
     },
     "danger": {
       "title": "Projekt löschen",
@@ -696,7 +699,8 @@
         "revokeConfirm": "Widerrufen",
         "revoked": "Zugang widerrufen.",
         "cli": "Oder per Terminal auf dem Server: app:user-token",
-        "nameMissing": "Name fehlt."
+        "nameMissing": "Name fehlt.",
+        "tokenStored": "Abgelegt"
       },
       "access": {
         "title": "Zugang für {agent}",
@@ -716,15 +720,18 @@
         "projects": "Projekte",
         "noProjects": "Noch in keinem Projekt.",
         "removeFrom": "Aus Projekt «{project}» entfernen",
-        "assign": "Projekt zuweisen",
-        "assignConfirm": "Zuweisen",
+        "assign": "Projekt zuweisen (Rolle Agent)",
         "state": {
           "none": "Zugang einrichten",
           "active": "Zugang aktiv",
           "expiring": "Zugang läuft ab",
           "expired": "Zugang abgelaufen"
         },
-        "menu": "Zugang und Projekte"
+        "menu": "Zugang und Projekte",
+        "identifier": "Kennung",
+        "identifierHint": "Mit der Kennung weist du dem Agenten Tasks zu (Planer-Datei, MCP).",
+        "copyIdentifier": "Kennung kopieren",
+        "assigned": "{agent} ist jetzt in «{project}»."
       },
       "sections": {
         "users": "Benutzer",
@@ -738,9 +745,9 @@
         "title": "Agent anlegen",
         "hint": "Ein Agent-Konto für Claude oder eine Assistenz. Es meldet sich nicht im Browser an, sondern arbeitet über den Connector mit einem Zugang, den du gleich danach erzeugst.",
         "nameHint": "Wird in der App angezeigt, zum Beispiel «Claude Club DB».",
-        "emailHint": "Es wird keine Mail verschickt, ein Postfach ist nicht nötig.",
         "submit": "Anlegen",
-        "created": "Agent {name} angelegt."
+        "created": "Agent {name} angelegt.",
+        "identifierHint": "Der Planer gibt dem Agenten eine Kennung aus dem Namen, zum Beispiel claude-club-db{'@'}agent.invalid. Mit ihr weist du ihm Tasks zu. Es geht nie eine Mail an einen Agenten."
       }
     },
     "settings": {

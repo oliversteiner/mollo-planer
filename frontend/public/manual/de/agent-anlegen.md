@@ -15,7 +15,8 @@ Ein Agent ist ein eigenes Konto für Claude oder eine Assistenz. Er meldet sich 
 - Der Zugang ist ein Geheimnis. Er gehört in den Passwortmanager oder in eine Umgebungsvariable, nie in eine Datei im Repository oder in einen Chat.
 - Hast du den Zugang verloren, widerrufe ihn im selben Dialog und erzeuge einen neuen.
 - Ohne Projekt sieht der Agent nichts. Was er im Projekt darf, bestimmt seine Rolle dort.
-- Die Adresse des MCP-Servers und eine Anleitung für den Connector stehen im selben Dialog.
+- Die Adresse des MCP-Servers und eine Anleitung für den Connector stehen im selben Dialog, dazu die Kennung des Agenten. Mit ihr weist du ihm Tasks zu (Planer-Datei, MCP).
+- Ein Agent hat in jedem Projekt die Rolle «Agent», keine andere.
 
 ## Beispielprompts
 
