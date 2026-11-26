@@ -1,208 +1,102 @@
 # Mollo Planer
 
-Web-App zur Projektverwaltung: Milestones → ToDos → Tasks → Kanban, dazu ein Dashboard.
+**English** · [Deutsch](README.de.md)
 
-- `backend/`: Laravel mit GraphQL-API (Lighthouse), Anmeldung über Fortify
-- `frontend/`: Nuxt (folgt)
-- `docs/`: Entscheidungen und Bauplan (`backend-plan.md`, `graphql-kontext.md`)
+A project planner for small teams and the AI agents they work with: milestones, to-dos, tasks and a kanban board, an assistant that drafts whole plans from a short description, and a built-in MCP server through which agents like Claude take on tasks with their own account.
 
-## Ersten Admin anlegen
+![Kanban board of a project in Mollo Planer](handbuch/bilder/auto/en/task-anlegen/board.webp)
 
-Auf einer neuen Installation gibt es noch keinen Admin. Den ersten legt der Artisan-Befehl `app:create-admin` an. Ein Seeder dafür existiert bewusst nicht, damit nie ein Konto mit bekanntem Passwort entsteht. Im Ordner `backend/` ausführen:
+## Features
 
-```bash
-php artisan app:create-admin "<Name>" <E-Mail> --password
-```
+### Plans by chat or voice
 
-Der Befehl fragt das Passwort zweimal im Terminal ab. Es wird nie als Parameter übergeben und nirgends gespeichert.
+Describe a project, a milestone or a single task in your own words, typed or spoken. The assistant drafts the plan and shows it as a tree with milestones, to-dos, tasks, people and dates. You refine it with further messages; nothing is saved until you select **Add now**. A context file per project gives the assistant background, and loose ideas can be collected first and planned later.
 
-Ohne `--password` verschickt der Befehl stattdessen eine Einladung per Mail mit Link zum Setzen des Passworts. Dafür muss der Mail-Versand in der `.env` eingerichtet sein. Mit `MAIL_MAILER=log` landet die Mail nur im Log, deshalb lokal `--password` verwenden.
+### Milestones, to-dos, tasks and kanban
 
-## Nutzer auf dem Server verwalten
+Each project is structured from release down to the single step: milestones carry a version number and can be released, to-dos group the work, tasks move across the kanban board. The timeline shows progress and due dates, sorts by version and expands or collapses all at once. The status of to-dos and milestones follows from their tasks; nobody sets it by hand.
 
-Wenn sich niemand anmelden kann (Passwort vergessen, E-Mail-Adresse falsch oder nicht mehr erreichbar, Gerät für den zweiten Faktor verloren), gibt es drei Befehle. Sie laufen im Ordner `backend/` auf dem Server, per SSH. `<Nutzer>` ist die E-Mail-Adresse (Groß-/Kleinschreibung egal) oder die ID.
+### The plan as a file
 
-```bash
-php artisan app:user-password <Nutzer>          # neues Passwort (fragt es zweimal, versteckt)
-php artisan app:user-email <Nutzer>             # zeigt Adresse und Stand der Bestätigung
-php artisan app:user-email <Nutzer> <neue-E-Mail> [--unverified]
-php artisan app:user-email <Nutzer> --verified  # oder --unverified, ohne neue Adresse
-php artisan app:user-role <Nutzer> [<Rolle>]     # Systemrolle setzen (ohne Rolle: Auswahl; der letzte Admin bleibt Admin)
-php artisan app:user-approve <Nutzer>            # wartendes Konto freigeben (mit Mail an die Person)
-php artisan app:user-2fa <Nutzer>               # wählt die Aktion per Auswahl
-php artisan app:user-2fa <Nutzer> status        # zeigt alles, schreibt nichts
-php artisan app:user-2fa <Nutzer> reset         # Gerät verloren: alles zurücksetzen
-php artisan app:user-2fa <Nutzer> authenticator # nur die Authenticator-App samt Wiederherstellungscodes
-php artisan app:user-2fa <Nutzer> passkeys [--id=<ID>]  # alle Passkeys oder einen
-php artisan app:user-2fa <Nutzer> recovery-codes        # neue Wiederherstellungscodes (einmal angezeigt)
-```
+A whole plan can be exported as a readable file (format `planer-v2`, JSON or Markdown) and imported again, always with a dry run first. A small command-line tool keeps the file in a repository up to date (`pull`, `push`, `sync`), and a signed webhook can start a GitHub Action after every change.
 
-Was die Befehle tun und lassen:
+### Calm work: Zen view and command palette
 
-- **Passwort** nie als Parameter, nur im Terminal. Danach sind alle Zugänge des Nutzers beendet: Zugänge für Claude, „angemeldet bleiben“ und, wenn die Sitzungen in der Datenbank liegen (Produktion), die Sitzungen. Der zweite Faktor bleibt.
-- **E-Mail:** Eine geänderte Adresse gilt als bestätigt (auf dem Server handelt ein Admin); `--unverified` verlangt die Bestätigung neu. Solange die Adresse nicht bestätigt ist, bleibt die API für das Konto gesperrt, und nicht freigegebene, unbestätigte Konten löscht `app:prune-unverified-users` täglich nach 7 Tagen. Der Befehl verschickt keine Mail und beendet keine Zugänge.
-- **Zweiter Faktor:** Zweifaktor-Anmeldung ist Pflicht, es gibt keine Ausnahme je Nutzer. Wird der letzte Faktor entfernt, muss die Person beim nächsten Login einen neuen einrichten, und ihre Zugänge und Sitzungen enden. Bleibt ein Faktor, ändert sich nur der entfernte Teil.
-- Jeder Befehl, der schreibt, fragt vorher nach. Mit `--no-interaction` wird nichts geschrieben (nur `status` und die Anzeige von `app:user-email` gehen ohne Terminal).
-- Je Eingriff steht eine Zeile im Log (`storage/logs`), mit Nutzer-ID, Befehl und Aktion, ohne Passwort, Hash oder Adresse.
+Zen view hides the navigation and everything you don't need right now, in its own calm colour scheme. The command palette (`Cmd/Ctrl+K`) reaches every page, every project and many actions from the keyboard.
 
-## Demo-Daten
+### Secure from the start
 
-Zum Ausprobieren der API (zum Beispiel mit Postman) gibt es Demo-Daten wie in der GraphQL-Demo:
+A second factor is required for everyone: an authenticator app or a passkey, with recovery codes. Rights are granted per project through roles that admins can adjust. New accounts wait for approval. The planner can also be the sign-in service for other apps (OAuth 2.1 and OpenID Connect).
 
-| Person | E-Mail | Rolle |
-|---|---|---|
-| Anna Keller | anna.keller@example.ch | Admin |
-| Ben Müller | ben.mueller@example.ch | Owner „Website-Relaunch“ |
-| Chiara Rossi | chiara.rossi@example.ch | Managerin „Website-Relaunch“, Owner „Sommerfest 2027“ |
-| David Frei | david.frei@example.ch | Mitglied in beiden Projekten |
+### Runs on simple web hosting
 
-Dazu zwei Projekte mit Milestones, ToDos, Tasks und Kommentaren.
+No Node, no Docker, no root access and no long-running process on the server. You need:
 
-Die Demo-Daten laufen nur lokal, nie in Produktion. Alle Befehle im Terminal im Ordner `backend/` ausführen.
+- PHP 8.5 with common extensions (including `gd`, `sodium`, `bcmath`, `mbstring`, `pdo_mysql`)
+- Apache with `mod_rewrite`
+- MariaDB
+- one cron job every minute (it also sends the queued mails)
+- SSH with Git and Composer, for setup and updates
 
-### Einspielen (leere Datenbank)
+The frontend is built beforehand and uploaded as static files. Details: [docs/installation.md](docs/installation.md) (German).
 
-```bash
-php artisan migrate
-php artisan db:seed --class=DemoSeeder
-```
+### Agents as team members
 
-Der Befehl fragt nach einem Passwort, das für alle vier Personen gilt. Leer lassen, dann wird eines erzeugt. Ist die Datenbank nicht leer, bricht er ab und ändert nichts.
+AI agents get their own account with the role «Agent», an identifier instead of an e-mail address, and only the rights of that role. They pick up tasks, set the status, record the commit on the task and report back in comments, like anyone else on the team. The planner itself is built this way.
 
-### Zurücksetzen
+### An MCP server that saves tokens
 
-```bash
-php artisan migrate:fresh --seed --seeder=DemoSeeder
-```
+Claude and other agents connect through the Model Context Protocol, with a personal access token or OAuth. The fourteen tools read in steps instead of loading everything: an overview of a project costs about 1,000 tokens, a single task a few hundred. Agents change status, commit and assignee directly, without exporting the plan first. A guide for agents is served at `/mcp/`.
 
-**Achtung:** Das löscht alle Tabellen und damit alle Daten, auch eigene Einträge. Danach ist der Stand wieder wie nach dem ersten Einspielen, mit neuem Passwort und neuen 2FA-Secrets.
+### Also included
 
-Lokal (`APP_ENV=local`) bleiben deine eigenen Konten dabei erhalten: sie werden vor dem Befehl gesichert und danach zurückgespielt, mit Passwort, zweitem Faktor, Passkeys und Zugängen. Die Sicherungen liegen in `~/www/_backups/planer/local/` und enthalten Passwort-Hashes und 2FA-Secrets: **nie weitergeben.** Details und das Einspielen eines Dumps von TEST: `docs/lokale-konten.md`.
+- **Documents** per project (minutes, procedures, analyses), shared with everyone or with single people, with version history and PDF export
+- **Billing** from completed milestones: prices per milestone, customers, invoices as PDF with Swiss QR bill
+- **Manual** in the app under Help, in German and English, with or without pictures, and as Markdown and `llms.txt` for agents
+- **German and English** throughout; mails in the language of the project
+- Ideas, project templates, label sets, statistics per project, trash
 
-### Anmelden
+## Who it is for
 
-Am Ende zeigt der Befehl einmalig an (danach nirgends mehr gespeichert, also gleich notieren):
+Small teams and individuals who plan software or other projects, let AI agents do part of the work and want to host their planner themselves.
 
-- das Passwort für alle Demo-Personen
-- je Person das 2FA-Secret und eine `otpauth://`-Adresse, zum Eintragen in eine Authenticator-App
-- je Person 8 Wiederherstellungscodes, jeder nur einmal gültig
+## Technology
 
-**Die Demo-Daten starten mit ausgeschalteter 2FA:** Für die Anmeldung genügt das Passwort, auch in Postman.
+- **Backend:** Laravel 13 on PHP 8.5, GraphQL with Lighthouse, Fortify and Sanctum for sign-in, MariaDB
+- **Frontend:** Nuxt 4 (Vue 3) as a single-page app, Web Awesome Pro, TipTap for rich text
+- **Agents:** MCP server in the backend, Claude API for the assistant, `tools/planer/` for the plan file
 
-**2FA wieder einschalten** (zum Beispiel um den Login mit Code zu testen): als Admin (Anna Keller) in Postman „4 Admin / 2FA ein- oder ausschalten“ mit `true` ausführen. Dann braucht die Anmeldung Passwort **und** 2FA-Code (oder einen Wiederherstellungscode), mit den oben ausgegebenen 2FA-Secrets. Mit `false` wieder ausschalten. Das geht nur ausserhalb Produktion; auf dem Produktivserver ist die 2FA immer Pflicht.
+## Documentation
 
-### Postman-Collection
+- **Using the planner:** the manual, in the app under Help and in [`handbuch/`](handbuch/)
+- [docs/installation.md](docs/installation.md): requirements and first setup (German)
+- [docs/lokal.md](docs/lokal.md): working locally, demo data, Postman, connecting Claude (German)
+- [docs/deployment.md](docs/deployment.md): automatic deployment to two environments (German)
+- [docs/betrieb.md](docs/betrieb.md): managing users on the server (German)
+- [docs/claude-connector.md](docs/claude-connector.md): all MCP tools (German)
+- [docs/README.md](docs/README.md): all decisions and plans (German)
 
-Die Collection liegt im Format Postman Collection v3 (YAML, eine Datei pro Anfrage) in `docs/postman/`, dem lokalen Ordner des Postman-Workspaces (`.postman/resources.yaml`). In Postman den Workspace mit diesem Ordner verbinden (Local View), dann erscheint die Collection „Mollo Planer“. Änderungen in Postman landen direkt in den YAML-Dateien und können committet werden.
+## Try it
 
-Sie enthält die Anmeldung und Beispiel-Anfragen für alle wichtigen Abfragen und Änderungen, vorbelegt mit den IDs frisch eingespielter Demo-Daten.
-
-1. Backend starten: `php artisan serve` (Adresse `http://localhost:8000`, Variable `baseUrl`)
-2. In den Collection-Variablen `password` (und bei Bedarf `email`, Standard Ben Müller) als **Current value** eintragen, nie als Initial value
-3. Im Ordner „1 Anmelden“ nacheinander: „CSRF-Cookie holen“, „Login (Passwort)“. Nur wenn die 2FA eingeschaltet ist: den aktuellen Code aus der Authenticator-App in `totpCode` eintragen und „2FA-Code bestätigen“
-4. Danach laufen alle Anfragen in „2 Abfragen“ und „3 Änderungen“
-
-Die Collection setzt `Origin`, `Referer` und `X-XSRF-TOKEN` selbst und meldet GraphQL-Fehler als fehlgeschlagenen Test. Ein Test im Backend (`PostmanCollectionTest`) prüft, dass alle Anfragen zum aktuellen Schema passen.
-
-Ablauf von Hand (ohne Collection), Header `Origin: http://localhost:3000` bei jeder Anfrage:
-
-1. `GET /sanctum/csrf-cookie`, danach bei jeder Anfrage den Header `X-XSRF-TOKEN` mit dem Wert des Cookies `XSRF-TOKEN` mitschicken (URL-dekodiert, also `%3D` als `=`; sonst antwortet Laravel mit 419)
-2. `POST /login` mit `email` und `password`
-3. `POST /two-factor-challenge` mit `code` (aus der App) oder `recovery_code`
-4. `POST /api` mit der Abfrage, zum Beispiel `{ "query": "{ me { name } projects { name viewerRole } }" }`
-
-## Claude anbinden (Inhalte per natürlicher Sprache)
-
-Das Backend bietet einen MCP-Server unter `http://localhost:8000/mcp` (später auf dem API-Server). Claude handelt dort mit deinen Rechten: Projekte lesen, Projekte anlegen (Rollen mit `projects.create`: Admin, Projektleitung, Koordination), Mitglieder setzen und ganze Projektpläne mit Milestones, ToDos und Tasks anlegen und zuweisen. Löschen kann Claude nichts.
-
-1. In der App unter **Profil → Zugang für Claude** einen Zugang erzeugen und kopieren (wird nur einmal angezeigt, gilt 90 Tage).
-2. **Claude Code in diesem Projekt:** Den Server kennt die `.mcp.json` schon. Den Zugang als Umgebungsvariable setzen und Claude Code neu starten:
-   ```bash
-   export MOLLOPLANER_TOKEN="<Zugang>"
-   ```
-   **Woanders:** den in der App angezeigten Befehl ausführen (`claude mcp add --transport http mollo-planer http://localhost:8000/mcp --header "Authorization: Bearer <Zugang>"`).
-   **Claude Desktop:** Im selben Dialog steht die Konfiguration für `claude_desktop_config.json` (Einstellungen → Entwickler → Konfiguration bearbeiten), danach Claude Desktop neu starten. Sie startet die Brücke `mcp-remote` über `npx`, dafür braucht der Rechner Node.js. Der Zugang steht nur in dieser Konfiguration, nicht im Chat.
-3. Dann einfach schreiben, zum Beispiel: „Erstelle ein Projekt für einen Podcast mit Milestones, ToDos und Tasks; Oliver macht Technik und Schnitt, Lindita moderiert.“
-
-Die Personen müssen in der App schon ein Konto haben (Verwaltung → Benutzer). Zuweisungsmails gehen nur auf Wunsch raus.
-
-## KI-Assistent (Projekt per Chat oder Sprache anlegen)
-
-Admins finden in der Seitenleiste **KI-Assistent**: links ein Chat (auch mit Spracheingabe per Mikrofon-Knopf in Chrome und Edge), rechts die Vorschau des Plans mit Name, Beschreibung und Timeline (Milestones, aufklappbare ToDos, Tasks mit Personen und Daten). Mit weiteren Nachrichten lässt sich der Entwurf ändern. Gespeichert wird erst mit **Jetzt eintragen**.
-
-Einrichten: einen API-Schlüssel unter https://console.anthropic.com erzeugen und in `backend/.env` eintragen (nie committen), danach das Backend neu starten:
+You need PHP 8.5 with Composer, Node 24 and a licence for [Web Awesome Pro](https://webawesome.com): the frontend does not build without it (setup in [frontend/README.md](frontend/README.md)). Font Awesome Pro is optional; without it the free icons are used.
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...
-# optional, Standard claude-opus-5-5
-ANTHROPIC_MODEL=claude-opus-5-5
+git clone https://github.com/oliversteiner/mollo-planer.git && cd mollo-planer/backend
+composer install && cp .env.example .env && php artisan key:generate
+touch database/database.sqlite && php artisan migrate
+php artisan db:seed --class=DemoSeeder   # asks for a password (empty: one is made), shows it once
+php artisan serve                        # API on http://localhost:8000
+
+# second terminal, with WEBAWESOME_NPM_TOKEN and frontend/.npmrc as in frontend/README.md
+cd mollo-planer/frontend && npm ci && npm run dev   # app on http://localhost:3000
 ```
 
-Jede Chat-Nachricht ist eine kostenpflichtige Anfrage an die Claude-API. Je Person gelten Grenzen (Standard 30 Entwürfe je Stunde und 200 je Tag, einstellbar mit `ASSISTANT_LIMIT_HOUR` und `ASSISTANT_LIMIT_DAY`). `php artisan assistant:ping` schickt eine kleine echte Anfrage mit dem echten Schema und meldet OK oder den Fehler der API; vor jeder Änderung am Assistenten oder an seinem Schema laufen lassen. Bei der Spracheingabe schickt der Browser die Aufnahme zur Erkennung an seinen Anbieter (Google bzw. Microsoft).
+Sign in as `anna.keller@example.ch` (admin) with the password the seeder printed. Setting up a server: [docs/installation.md](docs/installation.md) (German).
 
-## Deployment (zwei Umgebungen)
+## In progress
 
-Die Angaben der eigenen Installation stehen nicht im Repo. Adressen, Server und Pfade unten sind Platzhalter (`planer.example.com` für PROD, `planer-test.example.com` für TEST).
+Attachments on tasks, an activity log, several commits per task, real-time editing of documents, a desktop app. No dates promised.
 
-Es gibt zwei Umgebungen auf demselben Konto beim Webhoster: **TEST** (`https://planer-test.example.com`, API `https://api.planer-test.example.com`, Branch `dev`, ohne Freigabe) und **PROD** (`https://planer.example.com`, API `https://api.planer.example.com`, Branch `main`, mit Freigabe). Tabelle, Pflichtwerte in `backend/.env`, Schlüssel, Cron, GitHub-Umgebungen sowie die Schrittlisten «Umzug TEST» und «Ersteinrichtung PROD» stehen in `docs/deploy-template.md`, Abschnitt 15. Die Beschreibung unten gilt für beide; wo ein Pfad oder eine Adresse steht, ist die von PROD gemeint; TEST hat eigene Ordner und Adressen.
+## Licence
 
-### Ablauf
-
-Die Datei `.github/workflows/deploy.yml` läuft bei jedem Push auf `dev` (TEST) und `main` (PROD) oder manuell, siehe unten (andere Branches deployen nicht):
-
-1. **Tests:** Backend (`composer test`, SQLite) und Frontend (Lint, Typecheck, Unit-Tests). Schlägt ein Test fehl, wird nichts veröffentlicht.
-2. **Freigabe:** Für `main` wartet der Job `deploy` auf eine Freigabe im Environment `production`, für `dev` läuft er sofort (Environment `test`).
-3. **Build:** Das Frontend wird mit der Variablen `API_BASE` der GitHub-Umgebung als `NUXT_PUBLIC_API_BASE` gebaut.
-4. **Übertragung:** Das Archiv `frontend/.output/public` geht per SSH an den Server. Der Schlüssel darf nur das Skript `deploy/deploy.sh` starten, keine Shell.
-5. **Server:** `deploy/deploy.sh` prüft das Archiv, setzt den Code auf `origin/<DEPLOY_BRANCH>` (aus `backend/.env`), sichert die Datenbank, schaltet den Wartungsmodus ein, führt `composer install --no-dev`, `migrate --force`, `planer:sync-templates` (die mitgelieferten Vorlagen aus `spec/templates/`) und die Caches aus, kopiert das Frontend nach `DEPLOY_WEB_ROOT` und schaltet den Wartungsmodus wieder aus.
-
-Die `.env` auf dem Server wird nie überschrieben und nie ins Repository übernommen. `CORS_ALLOWED_ORIGINS` bleibt dort leer (nur für die Entwicklung im lokalen Netz). Mails und Webhooks brauchen den Cron-Eintrag `schedule:run` jede Minute (siehe `docs/deploy-template.md`, Abschnitt „Cron“). **Kein `php artisan migrate:rollback` in Produktion:** einige Rückwärts-Migrationen verlieren Daten, der Rückweg ist die Sicherung vor dem Deploy plus der vorherige Release.
-
-### Deployment auslösen
-
-- **Automatisch:** Push oder Merge auf `main`. Im GitHub-Tab **Actions** den Lauf öffnen und unter „Review deployments“ für `production` freigeben.
-- **Manuell:** Actions → `deploy` → **Run workflow** (Branch `main`).
-
-### Einrichtung (bereits erledigt, zur Dokumentation)
-
-Für eine Neuinstallation oder bei einem Schlüsselwechsel:
-
-- **Deploy-Schlüssel** nur für CI: `ssh-keygen -t ed25519 -N '' -C 'github-actions-deploy planer' -f ~/.ssh/mollo-planer-deploy`. Den öffentlichen Teil auf dem Server in `~/.ssh/authorized_keys` mit Einschränkung eintragen (eine Zeile):
-  ```
-  command="/home/username/apps/mollo-planer/deploy/deploy.sh",restrict ssh-ed25519 AAAA… github-actions-deploy planer
-  ```
-- **GitHub-Variablen** unter *Settings → Secrets and variables → Actions → Variables* (keine Secrets, aber auch nicht im Repo):
-  - `DEPLOY_HOST`: Hostname des Servers beim Webhoster
-  - `DEPLOY_USER`: SSH-Benutzer auf dem Server
-- **GitHub-Secrets** unter *Settings → Secrets and variables → Actions → Secrets*:
-  - `DEPLOY_SSH_KEY`: Inhalt der privaten Datei `~/.ssh/mollo-planer-deploy`
-  - `DEPLOY_KNOWN_HOSTS`: Ausgabe von `ssh-keygen -F <DEPLOY_HOST> | grep -v '^#'`, damit der Server fest geprüft wird
-  - `WEBAWESOME_NPM_AUTH_TOKEN` und `PRO_ASSETS_TOKEN` (wie bei der Frontend-CI; Font Awesome braucht kein npm-Token mehr)
-- **Environment `production`** unter *Settings → Environments* mit mindestens einem Required Reviewer.
-- **Server:** `~/apps/mollo-planer` ist ein Git-Checkout von `origin/main`. Die Datei `backend/.env` mit den Produktionswerten liegt dort mit Rechten `600`.
-- **Docroots:** `~/www/planer-test.example.com` ist das Frontend. `~/www/api.planer-test.example.com` ist ein eigener Ordner mit einer `index.php`, die auf `~/apps/mollo-planer/backend` zeigt, und der Laravel-`.htaccess` unter dem Webhoster-Block. Ändert sich `backend/public/index.php` im Repo, muss die Kopie im Docroot von Hand angepasst werden.
-- **PHP:** Die Standard-`php` des Servers ist 8.5, das Skript nutzt sie. `composer.json` verlangt PHP 8.5; ist `php` älter, bricht das Skript ab, bevor es etwas ändert.
-
-### Fehlersuche
-
-- **Tests rot:** Im Log des Jobs `test-backend` oder `test-frontend` steht der Fehler. Es wurde nichts veröffentlicht.
-- **Deploy abgebrochen:** Im Log zeigt die letzte Zeile mit `==>` den Schritt. Bricht das Skript während des Wartungsmodus ab, hebt es ihn selbst wieder auf. Falls die App trotzdem hängen bleibt, auf dem Server ausführen:
-  ```bash
-  cd ~/apps/mollo-planer/backend && php artisan up
-  ```
-- **Stand prüfen:** `ssh example.com` (persönlicher Schlüssel), dann `cd ~/apps/mollo-planer && git log --oneline -1`.
-
-### Zurückrollen
-
-Jedes Deploy sichert die Datenbank vorher nach `~/backups/planer/planer-<Zeit>-<Commit>.sql.gz` (die letzten 10 bleiben erhalten).
-
-- **Code:** Auf `main` den fehlerhaften Commit mit `git revert` rückgängig machen und den Workflow neu starten. `deploy.sh` setzt immer auf `origin/main`, ein erneuter Lauf eines alten Workflows bringt also den alten Code nicht zurück.
-- **Datenbank:** Nur bei einer kaputten Migration. Ein Backup einspielen überschreibt alle Daten, die seit dem Backup entstanden sind. Die Zugangsdaten stehen in `backend/.env`:
-  ```bash
-  gunzip -c ~/backups/planer/<Datei>.sql.gz | MYSQL_PWD='<DB_PASSWORD>' mysql -h <DB_HOST> -u <DB_USERNAME> <DB_DATABASE>
-  ```
-
-### Bekannte Punkte
-
-- Die CI-Workflows (`backend.yml`, `deploy.yml`) testen das Backend mit PHP 8.5, passend zum Server.
-- Das Skript kopiert das Frontend per `rsync --delete`. Eigene Dateien im Docroot `~/www/planer-test.example.com` gehen dabei verloren.
+Mollo Planer is free software under the [GNU Affero General Public License v3.0 or later](LICENSE): whoever offers it as a service shares their changes. Web Awesome Pro and Font Awesome Pro are not part of this repository and need their own licence.
