@@ -15,7 +15,7 @@ class ExportPlan extends Tool
 
     public function description(): string
     {
-        return 'Exports a project as planer-v2 JSON (revision, m-/t-/k- IDs). On large plans use view "outline" or filters; outline and filtered results are excerpts.';
+        return 'Exports a project as planer-v2 JSON (revision, m-/t-/k- IDs). Unfiltered it is large: prefer view "outline", milestone_ids or list_tasks; those results are excerpts.';
     }
 
     public function readOnly(): bool
@@ -39,7 +39,7 @@ class ExportPlan extends Tool
     public function handle(User $actor, array $arguments): ToolResult
     {
         $validated = $this->validate(
-            $arguments,
+            ToolArguments::singleToList($arguments, ['task_status']),
             [
                 'project_id' => ['required'],
                 'version' => ['sometimes', 'nullable', 'string'],
@@ -73,6 +73,29 @@ class ExportPlan extends Tool
             $document = PlanView::withoutDescriptions($document);
         }
 
-        return ToolResult::json(['document' => $document]);
+        $result = ['document' => $document];
+
+        if (! $this->filtered($validated)) {
+            // Whoever exports everything is told what it cost and what is cheaper (Auftrag 65 C).
+            $size = strlen((string) json_encode($document, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $result['size'] = ['characters' => $size, 'tip' => 'The whole plan is large. Cheaper: view "outline", milestone_ids, or list_tasks (status, todo_ids, labels).'];
+        }
+
+        return ToolResult::json($result);
+    }
+
+    /**
+     * Did the caller narrow the export down (outline, milestones, version, statuses, no released milestones, no descriptions)?
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    private function filtered(array $validated): bool
+    {
+        return ($validated['view'] ?? 'full') === 'outline'
+            || ($validated['milestone_ids'] ?? []) !== []
+            || ($validated['task_status'] ?? []) !== []
+            || isset($validated['version'])
+            || ! ($validated['include_released'] ?? true)
+            || ! ($validated['include_descriptions'] ?? true);
     }
 }
