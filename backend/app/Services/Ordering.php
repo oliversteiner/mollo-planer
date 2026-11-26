@@ -76,6 +76,27 @@ class Ordering
     }
 
     /**
+     * Puts the whole group in the given order (ids of all its rows) and renumbers it from 0. Rows that keep their
+     * place are not saved; the others are saved, so their observers run.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $group
+     * @param  list<int|string>  $ids  every row of the group, once
+     */
+    public function arrange(Builder $group, array $ids, string $column = 'position'): void
+    {
+        $rows = (clone $group)->get()->keyBy(fn (Model $row): string => (string) $row->getKey());
+        $ordered = [];
+
+        foreach ($ids as $id) {
+            $ordered[] = $rows[(string) $id];
+        }
+
+        $this->renumber($ordered, $column);
+    }
+
+    /**
      * Renumbers the group from 0, for example after a row was deleted.
      *
      * @param  Builder<Model>  $group

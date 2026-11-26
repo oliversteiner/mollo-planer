@@ -108,6 +108,9 @@ type Documents = {
     "\n  mutation CreateMilestone($input: CreateMilestoneInput!) {\n    createMilestone(input: $input) { id }\n  }\n": typeof types.CreateMilestoneDocument,
     "\n  mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {\n    updateMilestone(id: $id, input: $input) { id title description icon dueDate release { version status date } }\n  }\n": typeof types.UpdateMilestoneDocument,
     "\n  mutation MoveMilestone($id: ID!, $position: Int!) {\n    moveMilestone(id: $id, position: $position) { id }\n  }\n": typeof types.MoveMilestoneDocument,
+    "\n  query MilestoneVersionOrder($projectId: ID!) {\n    milestoneVersionOrder(projectId: $projectId) {\n      revision\n      canApply\n      condition\n      moveCount\n      conditionMilestones { id title version }\n      order { id title version from to moved }\n    }\n  }\n": typeof types.MilestoneVersionOrderDocument,
+    "\n  mutation SortMilestones($projectId: ID!, $expectedRevision: Int) {\n    sortMilestones(projectId: $projectId, expectedRevision: $expectedRevision) { revision moveCount order before }\n  }\n": typeof types.SortMilestonesDocument,
+    "\n  mutation ReorderMilestones($projectId: ID!, $ids: [ID!]!) {\n    reorderSiblings(projectId: $projectId, level: MILESTONES, ids: $ids) { revision moveCount }\n  }\n": typeof types.ReorderMilestonesDocument,
     "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id deletionId }\n  }\n": typeof types.DeleteMilestoneDocument,
     "\n  mutation CreateTodo($input: CreateTodoInput!) {\n    createTodo(input: $input) { id }\n  }\n": typeof types.CreateTodoDocument,
     "\n  mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {\n    updateTodo(id: $id, input: $input) { id title description icon dueDate }\n  }\n": typeof types.UpdateTodoDocument,
@@ -259,6 +262,9 @@ const documents: Documents = {
     "\n  mutation CreateMilestone($input: CreateMilestoneInput!) {\n    createMilestone(input: $input) { id }\n  }\n": types.CreateMilestoneDocument,
     "\n  mutation UpdateMilestone($id: ID!, $input: UpdateMilestoneInput!) {\n    updateMilestone(id: $id, input: $input) { id title description icon dueDate release { version status date } }\n  }\n": types.UpdateMilestoneDocument,
     "\n  mutation MoveMilestone($id: ID!, $position: Int!) {\n    moveMilestone(id: $id, position: $position) { id }\n  }\n": types.MoveMilestoneDocument,
+    "\n  query MilestoneVersionOrder($projectId: ID!) {\n    milestoneVersionOrder(projectId: $projectId) {\n      revision\n      canApply\n      condition\n      moveCount\n      conditionMilestones { id title version }\n      order { id title version from to moved }\n    }\n  }\n": types.MilestoneVersionOrderDocument,
+    "\n  mutation SortMilestones($projectId: ID!, $expectedRevision: Int) {\n    sortMilestones(projectId: $projectId, expectedRevision: $expectedRevision) { revision moveCount order before }\n  }\n": types.SortMilestonesDocument,
+    "\n  mutation ReorderMilestones($projectId: ID!, $ids: [ID!]!) {\n    reorderSiblings(projectId: $projectId, level: MILESTONES, ids: $ids) { revision moveCount }\n  }\n": types.ReorderMilestonesDocument,
     "\n  mutation DeleteMilestone($id: ID!) {\n    deleteMilestone(id: $id) { id deletionId }\n  }\n": types.DeleteMilestoneDocument,
     "\n  mutation CreateTodo($input: CreateTodoInput!) {\n    createTodo(input: $input) { id }\n  }\n": types.CreateTodoDocument,
     "\n  mutation UpdateTodo($id: ID!, $input: UpdateTodoInput!) {\n    updateTodo(id: $id, input: $input) { id title description icon dueDate }\n  }\n": types.UpdateTodoDocument,
@@ -706,6 +712,18 @@ export function graphql(source: "\n  mutation UpdateMilestone($id: ID!, $input: 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation MoveMilestone($id: ID!, $position: Int!) {\n    moveMilestone(id: $id, position: $position) { id }\n  }\n"): (typeof documents)["\n  mutation MoveMilestone($id: ID!, $position: Int!) {\n    moveMilestone(id: $id, position: $position) { id }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query MilestoneVersionOrder($projectId: ID!) {\n    milestoneVersionOrder(projectId: $projectId) {\n      revision\n      canApply\n      condition\n      moveCount\n      conditionMilestones { id title version }\n      order { id title version from to moved }\n    }\n  }\n"): (typeof documents)["\n  query MilestoneVersionOrder($projectId: ID!) {\n    milestoneVersionOrder(projectId: $projectId) {\n      revision\n      canApply\n      condition\n      moveCount\n      conditionMilestones { id title version }\n      order { id title version from to moved }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SortMilestones($projectId: ID!, $expectedRevision: Int) {\n    sortMilestones(projectId: $projectId, expectedRevision: $expectedRevision) { revision moveCount order before }\n  }\n"): (typeof documents)["\n  mutation SortMilestones($projectId: ID!, $expectedRevision: Int) {\n    sortMilestones(projectId: $projectId, expectedRevision: $expectedRevision) { revision moveCount order before }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ReorderMilestones($projectId: ID!, $ids: [ID!]!) {\n    reorderSiblings(projectId: $projectId, level: MILESTONES, ids: $ids) { revision moveCount }\n  }\n"): (typeof documents)["\n  mutation ReorderMilestones($projectId: ID!, $ids: [ID!]!) {\n    reorderSiblings(projectId: $projectId, level: MILESTONES, ids: $ids) { revision moveCount }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

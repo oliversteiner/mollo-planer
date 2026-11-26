@@ -194,8 +194,8 @@ async function copy(prompt: string): Promise<void> {
 
 <style scoped>
 .help-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  align-items: flex-start;
   gap: var(--wa-space-xl);
 }
 
@@ -203,14 +203,12 @@ async function copy(prompt: string): Promise<void> {
   display: none;
 }
 
+/* A flex row and not two grid columns: where the column is gone (Zen view, data-zen), the text simply keeps the reading width. */
 @media (min-width: 64em) {
-  .help-layout {
-    grid-template-columns: 16rem minmax(0, 48rem);
-    align-items: start;
-  }
-
   .help-aside {
     display: block;
+    flex: none;
+    inline-size: 16rem;
     position: sticky;
     inset-block-start: var(--wa-space-m);
     max-block-size: calc(100dvh - 8rem);
@@ -219,6 +217,8 @@ async function copy(prompt: string): Promise<void> {
 }
 
 .help-chapter {
+  flex: 1 1 0;
+  min-inline-size: 0;
   max-inline-size: 48rem;
 }
 

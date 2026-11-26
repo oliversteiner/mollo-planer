@@ -5,6 +5,7 @@ import type { AdminUsersQuery } from '~/graphql/generated/graphql'
 import { adminUsersQuery, approveUserMutation, deleteUserMutation, rejectUserMutation, resetUserTwoFactorMutation } from '~/graphql/admin'
 import { deleteUserAvatarMutation } from '~/graphql/profile'
 import { agentAccessState, type AgentAccessState } from '~/utils/agent-access'
+import { copyToClipboard } from '~/utils/share'
 
 type User = AdminUsersQuery['users'][number]
 
@@ -229,6 +230,15 @@ function factorLabel(user: User): string {
 
   return user.hasPasskey ? t('admin.users.factorPasskey') : t('admin.users.factorNone')
 }
+
+async function copyIdentifier(value: string): Promise<void> {
+  try {
+    await copyToClipboard(value)
+    toast.add({ title: t('claude.copied'), color: 'success' })
+  } catch {
+    toast.add({ title: t('help.copyFailed'), color: 'error' })
+  }
+}
 </script>
 
 <template>
@@ -351,7 +361,26 @@ function factorLabel(user: User): string {
                   class="users-you"
                 >({{ t('settings.members.you') }})</span>
               </span>
-              <span class="users-email">{{ user.email }}</span>
+              <span
+                v-if="user.isAgent"
+                class="users-identifier"
+              >
+                <span class="users-email">{{ t('settings.members.identifier') }}: {{ user.email }}</span>
+                <wa-button
+                  appearance="plain"
+                  variant="neutral"
+                  size="s"
+                  class="users-copy"
+                  :aria-label="t('settings.members.copyIdentifier', { name: user.name })"
+                  @click="copyIdentifier(user.email)"
+                >
+                  <wa-icon name="copy"></wa-icon>
+                </wa-button>
+              </span>
+              <span
+                v-else
+                class="users-email"
+              >{{ user.email }}</span>
             </span>
             <wa-button
               v-if="user.isAgent"
@@ -481,6 +510,17 @@ function factorLabel(user: User): string {
   color: var(--wa-color-text-quiet);
   font-size: var(--wa-font-size-s);
   font-weight: var(--wa-font-weight-normal);
+}
+
+.users-identifier {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-2xs);
+  min-inline-size: 0;
+}
+
+.users-copy {
+  flex: none;
 }
 
 .users-email {

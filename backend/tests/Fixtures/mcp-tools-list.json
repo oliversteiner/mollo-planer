@@ -486,6 +486,51 @@
         }
     },
     {
+        "name": "reorder",
+        "description": "Reorders siblings: all ids under parent_id (none: milestones; m-…: its todos; t-…: its tasks), or by \"version\". Never changes parent (import_plan does).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "type": "string",
+                    "description": "Project ID."
+                },
+                "parent_id": {
+                    "type": "string",
+                    "description": "m-<id>: todos of it. t-<id>: tasks of it. Omit: milestones."
+                },
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "All siblings, new order."
+                },
+                "by": {
+                    "type": "string",
+                    "enum": [
+                        "version"
+                    ],
+                    "description": "Milestones by version number."
+                },
+                "base_revision": {
+                    "type": "integer",
+                    "description": "Optional: abort if the plan is newer."
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "Preview only."
+                }
+            },
+            "required": [
+                "project_id"
+            ]
+        },
+        "annotations": {
+            "title": "Tool Adapter"
+        }
+    },
+    {
         "name": "update_tasks",
         "description": "Sets status, commit, assigneeEmail of tasks, atomically, no export needed. Omitted fields stay, null clears. Optional base_revision: abort if the plan changed since.",
         "inputSchema": {

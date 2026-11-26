@@ -112,9 +112,8 @@ type Comment {
  "Darfst du den Text ändern? Nur die Autorin oder der Autor."
  viewerCanEdit: Boolean!
 }
-"Ein neues Agent-Konto. Ein Postfach ist nicht nötig, es geht keine Mail an die Adresse."
+"Ein neues Agent-Konto. Die Kennung (Feld email) macht der Planer aus dem Namen: <name>@agent.invalid; es geht nie eine Mail an ein Agent-Konto."
 input CreateAgentInput {
- email: String!
  name: String!
 }
 input CreateDocumentInput {
@@ -651,6 +650,19 @@ type MilestoneStatistics {
  tasks: Int!
  todos: Int!
 }
+"Die Vorschau für «Nach Version ordnen». Alle Bedingungen entscheidet das Backend, die Oberfläche zeigt nur."
+type MilestoneVersionOrderPlan {
+ "Die Taste ist frei: alle Bedingungen sind erfüllt"
+ canApply: Boolean!
+ "Die erste nicht erfüllte Bedingung: no_right, archived, too_few_versions, invalid_version, duplicate_version, already_ordered"
+ condition: String
+ "Bei invalid_version und duplicate_version: die betroffenen Milestones"
+ conditionMilestones: [OrderMilestone!]!
+ moveCount: Int!
+ "Die neue Reihenfolge mit alter und neuer Stelle"
+ order: [OrderPlanRow!]!
+ revision: Int!
+}
 type Mutation {
  addComment(input: AddCommentInput!): Comment!
  "Übernimmt die Labels einer Vorlage in ein bestehendes Projekt (project.update): ersetzen oder ergänzen. Zählt als eine Änderung der Planer-Datei."
@@ -792,6 +804,8 @@ type Mutation {
  removeProjectMember(projectId: ID!, userId: ID!): Project!
  "Entfernt die Benachrichtigung (project.update)"
  removeProjectWebhook(projectId: ID!): Project!
+ "Ordnet die Geschwister einer Ebene neu: MILESTONES (Milestones des Projekts), TODOS (parentId = Milestone), TASKS (parentId = ToDo). ids enthält alle Geschwister genau einmal. Nichts wechselt das ToDo oder den Milestone. Rechte wie beim Verschieben."
+ reorderSiblings(dryRun: Boolean = false, expectedRevision: Int, ids: [ID!]!, level: OrderLevel!, parentId: ID, projectId: ID!): OrderResult!
  "Standard wiederherstellen: Namen, Funktionen und Obergrenze einer mitgelieferten Rolle."
  resetRole(id: ID!): Role!
  "Standard wiederherstellen: Namen und Rechte einer mitgelieferten Funktion."
@@ -828,6 +842,8 @@ type Mutation {
  setProjectWebhook(input: ProjectWebhookInput!, projectId: ID!): Project!
  "Setzt die Labels eines Tasks. Neue Labels müssen aus den Labels des Projekts stammen; bisherige dürfen bleiben."
  setTaskLabels(labelIds: [ID!]!, taskId: ID!): Task!
+ "Ordnet die Milestones eines Projekts nach ihrer Version (Zahlen, Teil für Teil; ohne Version ans Ende). Nur wenn alle Bedingungen von milestoneVersionOrder erfüllt sind; expectedRevision schützt vor Änderungen dazwischen. Mit dryRun wird nichts geschrieben. before ist die alte Reihenfolge (für «Rückgängig» mit reorderSiblings)."
+ sortMilestones(dryRun: Boolean = false, expectedRevision: Int, projectId: ID!): OrderResult!
  "Schickt sofort eine Benachrichtigung (project.update) und zeigt das Ergebnis. Aktualisiert die Statusfelder."
  testProjectWebhook(projectId: ID!): WebhookTestResult!
  "Übergibt das Dokument an ein anderes Projektmitglied (Stufe MANAGE)"
@@ -919,6 +935,38 @@ enum OrderByRelationWithColumnAggregateFunction {
  MIN
  "Sum."
  SUM
+}
+"Welche Geschwister neu geordnet werden"
+enum OrderLevel {
+ MILESTONES
+ TASKS
+ TODOS
+}
+type OrderMilestone {
+ id: ID!
+ title: String!
+ version: String
+}
+type OrderPlanRow {
+ "Stelle heute (ab 0)"
+ from: Int!
+ id: ID!
+ moved: Boolean!
+ title: String!
+ "Stelle nach dem Ordnen (ab 0)"
+ to: Int!
+ version: String
+}
+"Nach einer Änderung der Reihenfolge"
+type OrderResult {
+ "Die Reihenfolge davor (Ids), für «Rückgängig»"
+ before: [ID!]!
+ "Wie viele Elemente den Platz wechselten"
+ moveCount: Int!
+ "Die neue Reihenfolge (Ids)"
+ order: [ID!]!
+ "Die Revision des Plans danach"
+ revision: Int!
 }
 "Information about pagination using a fully featured paginator."
 type PaginatorInfo {
@@ -1242,6 +1290,8 @@ type Query {
  "Personen, die in ein Projekt aufgenommen werden können (alle freigegebenen, nach Name). Mit projectId: Recht members.manage in diesem Projekt; ohne: Recht projects.create. Sonst leer."
  memberCandidates(projectId: ID): [MemberCandidate!]!
  milestone(id: ID!): Milestone
+ "Vorschau für «Nach Version ordnen»: die neue Reihenfolge der Milestones, die Verschiebungen und die erste nicht erfüllte Bedingung. Schreibt nichts."
+ milestoneVersionOrder(projectId: ID!): MilestoneVersionOrderPlan!
  "Milestones eines Projekts (Seite Milestones)"
  milestones(projectId: ID!): [Milestone!]!
  "Tasks, die dir zugewiesen sind (ohne archivierte Projekte)"

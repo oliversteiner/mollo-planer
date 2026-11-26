@@ -163,6 +163,8 @@ class ArchivedProjectMutationsTest extends GraphQLTestCase
             'purgeFromTrash' => ['mutation ($id: ID!) { purgeFromTrash(deletionId: $id) }', fn (self $test) => ['id' => $test->deletionId]],
             'deleteTodo' => ['mutation ($id: ID!) { deleteTodo(id: $id) { id } }', $todo],
             'moveMilestone' => ['mutation ($id: ID!) { moveMilestone(id: $id, position: 0) { id } }', $milestone],
+            'sortMilestones' => ['mutation ($p: ID!) { sortMilestones(projectId: $p) { revision } }', fn (self $test) => ['p' => $test->project->id]],
+            'reorderSiblings' => ['mutation ($p: ID!) { reorderSiblings(projectId: $p, level: MILESTONES, ids: []) { revision } }', fn (self $test) => ['p' => $test->project->id]],
             'moveTask' => ['mutation ($id: ID!) { moveTask(id: $id, status: DONE, position: 0) { id } }', $task],
             'setProjectWebhook' => ['mutation ($p: ID!) { setProjectWebhook(projectId: $p, input: {kind: GITHUB, target: "a/b", secret: "x"}) { id } }', fn (self $test) => ['p' => $test->project->id]],
             'removeProjectWebhook' => ['mutation ($p: ID!) { removeProjectWebhook(projectId: $p) { id } }', fn (self $test) => ['p' => $test->project->id]],

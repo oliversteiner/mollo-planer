@@ -4,12 +4,14 @@ namespace App\Console\Commands;
 
 use App\Enums\Locale;
 use App\Models\Role;
+use App\Rules\NoAgentIdentifier;
 use App\Services\UserInvitation;
 use App\Support\PasswordPolicy;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Validator;
 
 use function Laravel\Prompts\password;
@@ -72,13 +74,13 @@ class CreateAdmin extends Command implements PromptsForMissingInput
     /**
      * Same rules as CreateUserInput in the GraphQL schema.
      *
-     * @return array<string, list<string>>
+     * @return array<string, list<string|ValidationRule>>
      */
     private function rules(): array
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:120'],
-            'email' => ['required', 'email', 'unique:users,email'],
+            'email' => ['required', 'email', 'unique:users,email', new NoAgentIdentifier],
         ];
     }
 

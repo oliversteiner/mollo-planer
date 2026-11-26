@@ -19,7 +19,7 @@ use function Laravel\Prompts\text;
  */
 #[Signature('app:create-agent
     {name : Name shown in the app, for example Claude Club DB}
-    {email : Address of the account (a mailbox is not needed, no mail is sent to it)}')]
+    {email? : Identifier of the account (optional; without it: <name>@agent.invalid, no mail is sent to it)}')]
 #[Description('Create an agent account: no login in the browser, access only by a token for the connector')]
 class CreateAgent extends Command implements PromptsForMissingInput
 {
@@ -27,8 +27,9 @@ class CreateAgent extends Command implements PromptsForMissingInput
 
     public function handle(AgentAccounts $accounts): int
     {
-        $input = ['name' => trim((string) $this->argument('name')), 'email' => trim((string) $this->argument('email'))];
-        $validator = Validator::make($input, AgentAccounts::rules());
+        $name = trim((string) $this->argument('name'));
+        $email = trim((string) $this->argument('email'));
+        $validator = Validator::make(['name' => $name, 'email' => $email === '' ? null : $email], AgentAccounts::rules());
 
         if ($validator->fails()) {
             foreach ($validator->errors()->all() as $message) {
@@ -38,12 +39,15 @@ class CreateAgent extends Command implements PromptsForMissingInput
             return self::FAILURE;
         }
 
+        // Shown before writing; the identifier made from the name is checked again when the account is made.
+        $input = ['name' => $name, 'email' => $email === '' ? AgentAccounts::identifierFor($name) : $email];
+
         if (! $this->requireTerminal() || ! $this->confirmWrite(__('console.create_agent.confirm', $input))) {
             return self::FAILURE;
         }
 
         // The same action as the mutation createAgent; without an admin it neither logs nor mails (logged below).
-        $user = $accounts->create($input['name'], $input['email']);
+        $user = $accounts->create($name, $email === '' ? null : $email);
 
         $this->logIntervention($user, 'create-agent');
         $this->components->info(__('console.create_agent.created', ['name' => $user->name]));
@@ -58,7 +62,6 @@ class CreateAgent extends Command implements PromptsForMissingInput
     {
         return [
             'name' => fn (): string => text(label: __('console.create_agent.name'), required: true),
-            'email' => fn (): string => text(label: __('console.create_agent.email'), required: true),
         ];
     }
 }

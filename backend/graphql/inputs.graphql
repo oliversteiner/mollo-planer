@@ -4,16 +4,15 @@
 
 input CreateUserInput {
   name: String! @rules(apply: ["min:2", "max:120"])
-  email: String! @rules(apply: ["email", "unique:users,email"])
+  email: String! @rules(apply: ["email", "unique:users,email", "App\\Rules\\NoAgentIdentifier"])
   "Schlüssel einer Systemrolle (siehe roles). Ohne Angabe: die Standardrolle."
   role: String @rules(apply: ["max:64"])
   activity: UserActivity
 }
 
-"Ein neues Agent-Konto. Ein Postfach ist nicht nötig, es geht keine Mail an die Adresse."
+"Ein neues Agent-Konto. Die Kennung (Feld email) macht der Planer aus dem Namen: <name>@agent.invalid; es geht nie eine Mail an ein Agent-Konto."
 input CreateAgentInput {
   name: String! @rules(apply: ["min:2", "max:120"])
-  email: String! @rules(apply: ["email", "unique:users,email"])
 }
 
 input UpdateUserInput {

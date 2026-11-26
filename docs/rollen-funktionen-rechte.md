@@ -76,7 +76,7 @@ Die Standardbelegung bildet **genau das heutige Verhalten plus die bereits entsc
 | Manager | Planen, Mitarbeiten, Aufgaben verwalten, Projekt verwalten |
 | Mitglied | Planen, Mitarbeiten |
 | Gast | – (nur lesen) |
-| Agent | Planen, Mitarbeiten, Plan und Aufgaben pflegen (`planer.import`, `task.update`, `task.assign`). Für Agent-Konten (Claude), ohne Verwaltung von Mitgliedern und Projekt. Nicht `Aufgaben verwalten`: löschen und moderieren darf ein Agent nicht. |
+| Agent | Planen, Mitarbeiten, Plan und Aufgaben pflegen (`planer.import`, `task.update`, `task.assign`). Für Agent-Konten (Claude), ohne Verwaltung von Mitgliedern und Projekt. Nicht `Aufgaben verwalten`: löschen und moderieren darf ein Agent nicht. Fest gekoppelt (Auftrag 58): ein Agent-Konto hat in jedem Projekt nur diese Rolle, ein Mensch nie (`ProjectMembership::assertRoleFits`, Fehlercodes `AGENT_ROLE_ONLY`, `AGENT_ROLE_RESERVED`); sie kann nicht die Standardrolle sein. |
 
 **Systemfunktionen:**
 

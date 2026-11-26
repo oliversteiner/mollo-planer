@@ -3,11 +3,14 @@ import { useQuery } from '@vue/apollo-composable'
 import { memberCandidatesQuery, removeProjectMemberMutation, setProjectMemberMutation } from '~/graphql/settings'
 import type { NamedRole } from '~/composables/useRoles'
 import { classifyApolloError } from '~/utils/api'
+import { copyToClipboard } from '~/utils/share'
 import { assignableRoles, isOwnershipRole } from '~/utils/role-rights'
 
 /**
  * Members and their roles. Who may grant or take the owner role, and that
  * the last owner stays, is decided by the backend; its answer is shown.
+ * An agent account has the role Agent and no other, a person never has it
+ * (Auftrag 58): for an agent the role is fixed, for a person «Agent» is not offered.
  */
 const props = defineProps<{
   projectId: string
@@ -29,12 +32,19 @@ const { project, can } = useProject()
  * owner.manage (§7.4, docs/fix-m1-abnahme.md F3.9); the current role of a
  * member is always shown.
  */
-function roleItemsFor(currentKey?: string): { label: string, value: string }[] {
+function roleItemsFor(currentKey: string | undefined, isAgent: boolean): { label: string, value: string }[] {
+  if (isAgent) {
+    const agentRole = roles.value.find(role => role.key === AGENT_ROLE)
+
+    return agentRole ? [{ label: roleName(agentRole), value: agentRole.key }] : []
+  }
+
   return assignableRoles(roles.value, project.value?.viewerRights ?? [], currentKey)
+    .filter(role => role.key !== AGENT_ROLE || role.key === currentKey)
     .map(role => ({ label: roleName(role), value: role.key }))
 }
 
-const newRoleItems = computed(() => roleItemsFor())
+const AGENT_ROLE = 'agent'
 
 /** A member with an ownership role is changed only with owner.manage. */
 function mayChangeRole(roleKey: string): boolean {
@@ -50,8 +60,9 @@ const sortedMembers = computed(() => [...props.members].sort((a, b) => a.user.na
  * be chosen, so nobody wonders why a person is missing.
  */
 const { result: candidatesResult } = useQuery(memberCandidatesQuery, () => ({ projectId: props.projectId }), () => ({ enabled: props.canManage, fetchPolicy: 'cache-and-network' }))
+const candidates = computed(() => candidatesResult.value?.memberCandidates ?? [])
 const personGroups = computed(() => [{
-  people: (candidatesResult.value?.memberCandidates ?? []).map(person => ({
+  people: candidates.value.map(person => ({
     id: person.id,
     name: person.name,
     avatarUrl: person.avatarUrl,
@@ -61,9 +72,15 @@ const personGroups = computed(() => [{
 
 const newMember = reactive<{ userId: string | null, role: string }>({ userId: null, role: '' })
 
-watch(defaultRole, (key) => {
-  if (!newMember.role) {
-    newMember.role = key
+/** The chosen person is an agent: the role is Agent, and it cannot be changed. */
+const newIsAgent = computed(() => candidates.value.some(person => person.id === newMember.userId && person.isAgent))
+const newRoleItems = computed(() => roleItemsFor(undefined, newIsAgent.value))
+
+watch([defaultRole, newIsAgent], ([key, isAgent], [, wasAgent]) => {
+  if (isAgent) {
+    newMember.role = AGENT_ROLE
+  } else if (!newMember.role || wasAgent || newMember.role === AGENT_ROLE) {
+    newMember.role = key === AGENT_ROLE ? '' : key
   }
 }, { immediate: true })
 const pending = ref(false)
@@ -81,6 +98,7 @@ async function change(action: () => Promise<unknown>, success: string): Promise<
 
     return true
   } catch (error) {
+    // A refusal (extensions.refusal) is shown by the api plugin; validation messages here.
     const apiError = classifyApolloError(error)
     const message = Object.values(apiError.fields)[0]?.[0]
 
@@ -107,7 +125,16 @@ async function add(): Promise<void> {
   const added = await change(() => setMember({ projectId: props.projectId, userId, role: newMember.role }), t('settings.members.added'))
 
   if (added) {
-    Object.assign(newMember, { userId: null, role: defaultRole.value })
+    Object.assign(newMember, { userId: null, role: defaultRole.value === AGENT_ROLE ? '' : defaultRole.value })
+  }
+}
+
+async function copyIdentifier(value: string): Promise<void> {
+  try {
+    await copyToClipboard(value)
+    toast.add({ title: t('claude.copied'), color: 'success' })
+  } catch {
+    toast.add({ title: t('help.copyFailed'), color: 'error' })
   }
 }
 
@@ -153,13 +180,32 @@ async function confirmRemove(): Promise<void> {
               class="members-you"
             >({{ t('settings.members.you') }})</span>
           </span>
-          <span class="members-email">{{ member.user.email }}</span>
+          <span
+            v-if="member.user.isAgent"
+            class="members-identifier"
+          >
+            <span class="members-email">{{ t('settings.members.identifier') }}: {{ member.user.email }}</span>
+            <wa-button
+              appearance="plain"
+              variant="neutral"
+              size="s"
+              class="members-copy"
+              :aria-label="t('settings.members.copyIdentifier', { name: member.user.name })"
+              @click="copyIdentifier(member.user.email)"
+            >
+              <wa-icon name="copy"></wa-icon>
+            </wa-button>
+          </span>
+          <span
+            v-else
+            class="members-email"
+          >{{ member.user.email }}</span>
         </span>
         <FormSelect
           v-if="canManage"
           :model-value="member.role.key"
-          :items="roleItemsFor(member.role.key)"
-          :disabled="pending || !mayChangeRole(member.role.key)"
+          :items="roleItemsFor(member.role.key, !!member.user.isAgent)"
+          :disabled="pending || !!member.user.isAgent || !mayChangeRole(member.role.key)"
           :label="t('settings.members.roleOf', { name: member.user.name })"
           hide-label
           class="members-role"
@@ -203,13 +249,15 @@ async function confirmRemove(): Promise<void> {
         v-model="newMember.role"
         :items="newRoleItems"
         :label="t('settings.members.role')"
+        :disabled="newIsAgent"
+        :hint="newIsAgent ? t('settings.members.agentRoleFixed') : undefined"
         class="members-role"
       />
       <wa-button
         type="submit"
         variant="brand"
         :loading="pending"
-        :disabled="!newMember.userId"
+        :disabled="!newMember.userId || !newMember.role"
       >
         <wa-icon
           slot="start"
@@ -274,6 +322,17 @@ async function confirmRemove(): Promise<void> {
   font-size: var(--wa-font-size-s);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.members-identifier {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-2xs);
+  min-inline-size: 0;
+}
+
+.members-copy {
+  flex: none;
 }
 
 .members-role {

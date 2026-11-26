@@ -69,8 +69,12 @@ test.describe('help navigation', () => {
     await page.goto('/help/task-anlegen')
     await expect(page.getByRole('heading', { name: 'Task anlegen und bearbeiten', level: 1 })).toBeVisible()
 
+    const normalWidth = (await page.locator('.help-chapter').boundingBox())!.width
+
     await page.getByRole('button', { name: 'Zen', exact: true }).click()
     await expect(page).toHaveURL(/\/help\/task-anlegen$/)
+    // The text keeps the reading width in Zen: it does not sit in the (hidden) column of the contents.
+    await expect.poll(async () => (await page.locator('.help-chapter').boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(normalWidth, 600))
     await expect(page.locator('.help-nav')).toBeVisible()
     await expect(page.locator('#help-toc')).toBeVisible()
     await expect(page.locator('.help-aside')).toBeHidden()
@@ -95,6 +99,19 @@ test.describe('help navigation', () => {
     await expect(page.locator('.help-aside')).toBeHidden()
     await expect(page.locator('#help-next')).toHaveAttribute('aria-label', /^Nächstes Kapitel: /)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+    // Arrows, titles and «Inhalt» are all inside the bar and inside the screen; «Inhalt» is reachable.
+    const bar = (await page.locator('.help-nav').boundingBox())!
+    for (const id of ['#help-previous', '#help-toc', '#help-next']) {
+      const box = (await page.locator(id).boundingBox())!
+
+      expect(box.x, id).toBeGreaterThanOrEqual(bar.x)
+      expect(box.x + box.width, id).toBeLessThanOrEqual(bar.x + bar.width + 1)
+      expect(box.x + box.width, id).toBeLessThanOrEqual(390)
+    }
+    await page.locator('#help-toc').click()
+    await expect(page.locator('wa-drawer .help-toc-link[aria-current="page"]')).toBeVisible()
+    await page.keyboard.press('Escape')
     await shot(page, 'de-schmal-390')
   })
 

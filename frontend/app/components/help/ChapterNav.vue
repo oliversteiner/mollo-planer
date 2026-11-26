@@ -25,13 +25,18 @@ function follow(event: MouseEvent, id: string): void {
   }
 }
 
-/** The focus goes to the chapter on the page when the contents open, and back to «Inhalt» when they close. */
+/** The focus goes to the chapter on the page once the contents are shown (the event of the drawer, no timer). */
+function focusCurrent(event: Event): void {
+  if (event.target === event.currentTarget) {
+    document.querySelector<HTMLElement>('wa-drawer .help-toc-link[aria-current="page"]')?.focus()
+  }
+}
+
+/** ... and back to «Inhalt» when they close. */
 watch(tocOpen, async (open) => {
   await nextTick()
 
-  if (open) {
-    setTimeout(() => document.querySelector<HTMLElement>('wa-drawer .help-toc-link[aria-current="page"]')?.focus(), 150)
-  } else {
+  if (!open) {
     tocButton.value?.focus()
   }
 })
@@ -42,26 +47,21 @@ watch(tocOpen, async (open) => {
     class="help-nav"
     :aria-label="t('help.nav.label')"
   >
-    <wa-button
+    <a
       v-if="previous"
       id="help-previous"
-      class="help-nav-previous"
-      appearance="plain"
-      variant="neutral"
+      class="help-nav-link help-nav-previous"
       :href="`/help/${previous.id}`"
       :title="previous.title"
       :aria-label="`${t('help.nav.previous')}: ${previous.title}`"
       @click="follow($event, previous.id)"
     >
-      <wa-icon
-        slot="start"
-        name="arrow-left"
-      ></wa-icon>
+      <wa-icon name="arrow-left"></wa-icon>
       <span class="help-nav-text">
         <span class="help-nav-direction">{{ t('help.nav.previous') }}</span>
         <span class="help-nav-title">{{ previous.title }}</span>
       </span>
-    </wa-button>
+    </a>
     <span
       v-else
       class="help-nav-previous"
@@ -81,12 +81,10 @@ watch(tocOpen, async (open) => {
       {{ t('help.nav.toc') }}
     </wa-button>
 
-    <wa-button
+    <a
       v-if="next"
       id="help-next"
-      class="help-nav-next"
-      appearance="plain"
-      variant="neutral"
+      class="help-nav-link help-nav-next"
       :href="`/help/${next.id}`"
       :title="next.title"
       :aria-label="`${t('help.nav.next')}: ${next.title}`"
@@ -96,11 +94,8 @@ watch(tocOpen, async (open) => {
         <span class="help-nav-direction">{{ t('help.nav.next') }}</span>
         <span class="help-nav-title">{{ next.title }}</span>
       </span>
-      <wa-icon
-        slot="end"
-        name="arrow-right"
-      ></wa-icon>
-    </wa-button>
+      <wa-icon name="arrow-right"></wa-icon>
+    </a>
     <span
       v-else
       class="help-nav-next"
@@ -110,6 +105,7 @@ watch(tocOpen, async (open) => {
       v-model:open="tocOpen"
       :label="t('help.nav.tocTitle')"
       placement="start"
+      @wa-after-show="focusCurrent"
     >
       <HelpToc
         :current="current"
@@ -134,16 +130,33 @@ watch(tocOpen, async (open) => {
   border-block-start: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
 }
 
-.help-nav-previous {
-  justify-self: start;
+.help-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--wa-space-xs);
   min-inline-size: 0;
   max-inline-size: 100%;
+  padding: var(--wa-space-2xs) var(--wa-space-xs);
+  border-radius: var(--wa-border-radius-m);
+  color: inherit;
+  text-decoration: none;
+}
+
+.help-nav-link:hover {
+  background: var(--wa-color-neutral-fill-quiet);
+}
+
+.help-nav-link:focus-visible {
+  outline: var(--wa-focus-ring);
+  outline-offset: var(--wa-focus-ring-offset);
+}
+
+.help-nav-previous {
+  justify-self: start;
 }
 
 .help-nav-next {
   justify-self: end;
-  min-inline-size: 0;
-  max-inline-size: 100%;
 }
 
 .help-nav-text {
@@ -174,10 +187,12 @@ watch(tocOpen, async (open) => {
 @media (max-width: 40em) {
   .help-nav {
     padding-inline: var(--wa-space-xs);
+    gap: var(--wa-space-2xs);
   }
 
-  .help-nav-title {
-    max-inline-size: 7rem;
+  /* Only the direction (the arrow) and the shortened title: the whole title is in the tooltip and the label. */
+  .help-nav-direction {
+    display: none;
   }
 }
 </style>

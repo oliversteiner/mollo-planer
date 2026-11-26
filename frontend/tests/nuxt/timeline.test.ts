@@ -59,7 +59,8 @@ const project = {
   ]
 }
 
-const { moveTaskToTodo, queryError, refetch, routeState } = vi.hoisted(() => ({
+const { moveTaskToTodo, queryError, refetch, routeState, toastAdd } = vi.hoisted(() => ({
+  toastAdd: vi.fn(),
   moveTaskToTodo: vi.fn(),
   queryError: { value: null as Error | null },
   refetch: vi.fn(),
@@ -68,13 +69,24 @@ const { moveTaskToTodo, queryError, refetch, routeState } = vi.hoisted(() => ({
 }))
 
 mockNuxtImport('useRoute', () => () => routeState)
+// The real toast builds a wa-button, which happy-dom cannot upgrade (no ElementInternals).
+mockNuxtImport('useToast', () => () => ({ add: toastAdd }))
 
 /** The backend's answer; milestones in their order (position). */
 const answer = ref<{ project: unknown } | undefined>({ project })
 
+/** The answer of «Nach Version ordnen» (milestoneVersionOrder); null: not asked. */
+const orderAnswer = ref<{ milestoneVersionOrder: unknown } | undefined>(undefined)
+const sortMilestones = vi.fn()
+const reorderMilestones = vi.fn()
+
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: () => ({ result: answer, loading: ref(false), error: computed(() => queryError.value), refetch }),
-  useMutation: () => ({ mutate: moveTaskToTodo }),
+  useQuery: (document: { definitions: { name?: { value: string } }[] }) => document.definitions[0]?.name?.value === 'MilestoneVersionOrder'
+    ? { result: orderAnswer, loading: ref(false), error: ref(null), refetch }
+    : { result: answer, loading: ref(false), error: computed(() => queryError.value), refetch },
+  useMutation: (document: { definitions: { name?: { value: string } }[] }) => ({
+    mutate: { SortMilestones: sortMilestones, ReorderMilestones: reorderMilestones }[document.definitions[0]?.name?.value ?? ''] ?? moveTaskToTodo
+  }),
   // The revision of the planer file (S3f): nothing in the cache, nothing changed.
   useApolloClient: () => ({ resolveClient: () => ({ readQuery: () => null, query: async () => ({ data: null }), refetchQueries: async () => [] }) })
 }))
@@ -87,6 +99,12 @@ describe('ProjectTimeline', () => {
   // The open milestones are remembered per project in the browser: every test starts without that memory.
   beforeEach(async () => {
     localStorage.clear()
+    // Most tests read the milestones in their stored order; the turned display has its own tests below.
+    localStorage.setItem('mollo.timeline.newestFirst', '0')
+    orderAnswer.value = undefined
+    toastAdd.mockClear()
+    sortMilestones.mockReset()
+    reorderMilestones.mockReset()
     answer.value = { project }
     queryError.value = null
     refetch.mockClear()
@@ -494,8 +512,8 @@ describe('ProjectTimeline', () => {
     const actions = vi.fn(() => [{ label: 'Ändern' }])
     await mountSuspended(Timeline, { props: { projectId: '1', actions } })
 
-    expect(actions).toHaveBeenCalledWith('milestone', expect.objectContaining({ id: '1' }), { index: 0, count: 2 })
-    expect(actions).toHaveBeenCalledWith('milestone', expect.objectContaining({ id: '2' }), { index: 1, count: 2 })
+    expect(actions).toHaveBeenCalledWith('milestone', expect.objectContaining({ id: '1' }), { index: 0, count: 2, reversed: false })
+    expect(actions).toHaveBeenCalledWith('milestone', expect.objectContaining({ id: '2' }), { index: 1, count: 2, reversed: false })
     expect(actions).toHaveBeenCalledWith('todo', expect.objectContaining({ id: '11' }), undefined)
   })
 
@@ -546,5 +564,194 @@ describe('ProjectTimeline', () => {
 
     expect(moveTaskToTodo).toHaveBeenCalledTimes(1)
     expect(moveTaskToTodo).toHaveBeenCalledWith({ id: '100', todoId: '11' })
+  })
+
+  describe('the current milestone is open at every visit (Auftrag 47 E)', () => {
+    it('opens the current milestone even when it was closed the last time; the others keep their state', async () => {
+      localStorage.setItem('mollo.timeline.1.open', JSON.stringify(['1']))
+
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      expect(milestoneToggle(timeline, 'Konzept steht').attributes('aria-expanded')).toBe('true')
+      expect(milestoneToggle(timeline, 'Erste Folge online').attributes('aria-expanded')).toBe('true')
+    })
+
+    it('does not write the current milestone into the memory by itself', async () => {
+      localStorage.setItem('mollo.timeline.1.open', JSON.stringify([]))
+
+      await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      expect(localStorage.getItem('mollo.timeline.1.open')).toBe('[]')
+    })
+  })
+
+  describe('the order of the display (Auftrag 47 F)', () => {
+    const titles = (timeline: VueWrapper) => timeline.findAll('.plan-timeline > wa-step').map(step => step.find('.timeline-title').text())
+
+    it('shows the newest first by default, with the numbers of the stored order', async () => {
+      localStorage.removeItem('mollo.timeline.newestFirst')
+
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      expect(titles(timeline)).toEqual([expect.stringMatching(/^M2\s*Erste Folge online/), expect.stringMatching(/^M1\s*Konzept steht/)])
+    })
+
+    it('turns the display with the button and remembers it in the browser', async () => {
+      localStorage.removeItem('mollo.timeline.newestFirst')
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      await timeline.find('#timeline-direction').trigger('click')
+
+      expect(titles(timeline)).toEqual([expect.stringMatching(/^M1\s*Konzept steht/), expect.stringMatching(/^M2\s*Erste Folge online/)])
+      expect(localStorage.getItem('mollo.timeline.newestFirst')).toBe('0')
+      expect(timeline.find('#timeline-direction').attributes('aria-pressed')).toBe('false')
+    })
+
+    it('tells the menu that the display is turned, so «Nach oben» goes the right way', async () => {
+      localStorage.removeItem('mollo.timeline.newestFirst')
+      const actions = vi.fn(() => [{ label: 'Ändern' }])
+
+      await mountSuspended(Timeline, { props: { projectId: '1', actions } })
+
+      expect(actions).toHaveBeenCalledWith('milestone', expect.objectContaining({ id: '1' }), { index: 0, count: 2, reversed: true })
+    })
+  })
+
+  describe('«Preise anzeigen» (Auftrag 47 G)', () => {
+    const withPrice = () => {
+      answer.value = { project: { ...project, milestones: [{ ...project.milestones[0]!, priceCents: 480000 }, project.milestones[1]!] } }
+    }
+
+    it('is only there with billing.manage', async () => {
+      withPrice()
+
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      expect(timeline.find('#timeline-prices').exists()).toBe(false)
+    })
+
+    it('hides every price and the sum when it is off, and remembers that', async () => {
+      withPrice()
+      const rights = useState<string[]>('systemRights')
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      rights.value = ['BILLING_MANAGE']
+      await nextTick()
+
+      expect(timeline.find('.milestone-price').exists()).toBe(true)
+      expect(timeline.find('.timeline-sum').exists()).toBe(true)
+
+      const toggle = timeline.find('#timeline-prices')
+      ;(toggle.element as HTMLInputElement).checked = false
+      await toggle.trigger('change')
+
+      expect(timeline.find('.milestone-price').exists()).toBe(false)
+      expect(timeline.find('.timeline-sum').exists()).toBe(false)
+      expect(localStorage.getItem('mollo.timeline.prices')).toBe('0')
+
+      rights.value = []
+    })
+  })
+
+  describe('«Nach Version ordnen» (Auftrag 47 C)', () => {
+    const plan = (patch: Record<string, unknown> = {}) => ({
+      milestoneVersionOrder: {
+        revision: 12,
+        canApply: true,
+        condition: null,
+        moveCount: 2,
+        conditionMilestones: [],
+        order: [
+          { id: '2', title: 'Erste Folge online', version: '1.0', from: 1, to: 0, moved: true },
+          { id: '1', title: 'Konzept steht', version: '1.1', from: 0, to: 1, moved: true }
+        ],
+        ...patch
+      }
+    })
+
+    it('has no button without the right to edit milestones', async () => {
+      orderAnswer.value = plan({ canApply: false, condition: 'no_right' })
+
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      expect(timeline.find('#timeline-order').exists()).toBe(false)
+    })
+
+    it('is off with the first condition that is not met as its tooltip', async () => {
+      orderAnswer.value = plan({ canApply: false, condition: 'too_few_versions', moveCount: 0 })
+
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      expect(isDisabled(timeline.find('#timeline-order'))).toBe(true)
+      const tooltip = timeline.findAll('wa-tooltip').find(entry => (entry.element as HTMLElement & { for?: string }).for === 'timeline-order-wrap' || entry.attributes('for') === 'timeline-order-wrap')
+
+      expect(tooltip?.text()).toBe('Mindestens zwei Milestones brauchen eine Version.')
+    })
+
+    it('lists the milestones with invalid or doubled versions, each with a link', async () => {
+      orderAnswer.value = plan({ canApply: false, condition: 'invalid_version', conditionMilestones: [{ id: '2', title: 'Erste Folge online', version: 'v2' }] })
+
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+      const links = timeline.findAll('.timeline-order-hint a')
+
+      expect(links.map(link => link.attributes('href'))).toEqual(['#milestone-2'])
+      expect(links[0]!.text()).toBe('M2 Erste Folge online (v2)')
+    })
+
+    // Opening the real wa-dialog makes happy-dom update the buttons behind it, which it cannot (no ElementInternals): the
+    // preview is tested on its own below, here only what the Timeline hands to it and what it does with «Neu ordnen».
+    it('hands the plan to the preview and applies the order with the revision it saw, then offers «Rückgängig»', async () => {
+      orderAnswer.value = plan()
+      sortMilestones.mockResolvedValue({ data: { sortMilestones: { revision: 13, moveCount: 2, order: ['2', '1'], before: ['1', '2'] } } })
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+      const dialog = timeline.findComponent({ name: 'ProjectVersionOrderDialog' })
+
+      expect(dialog.props('plan')).toMatchObject({ revision: 12, moveCount: 2, canApply: true })
+
+      dialog.vm.$emit('apply')
+      await flushPromises()
+
+      expect(sortMilestones).toHaveBeenCalledWith({ projectId: '1', expectedRevision: 12 })
+      expect(refetch).toHaveBeenCalled()
+      expect(toastAdd).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Milestones nach Version geordnet',
+        action: expect.objectContaining({ label: 'Rückgängig' })
+      }))
+    })
+
+    it('puts the earlier order back with «Rückgängig»', async () => {
+      orderAnswer.value = plan()
+      sortMilestones.mockResolvedValue({ data: { sortMilestones: { revision: 13, moveCount: 2, order: ['2', '1'], before: ['1', '2'] } } })
+      reorderMilestones.mockResolvedValue({ data: { reorderSiblings: { revision: 14, moveCount: 2 } } })
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      timeline.findComponent({ name: 'ProjectVersionOrderDialog' }).vm.$emit('apply')
+      await flushPromises()
+      toastAdd.mock.calls[0]![0].action.run()
+      await flushPromises()
+
+      expect(reorderMilestones).toHaveBeenCalledWith({ projectId: '1', ids: ['1', '2'] })
+    })
+
+    it('reloads the preview and tells so when the plan changed in the meantime, and writes nothing', async () => {
+      orderAnswer.value = plan()
+      sortMilestones.mockRejectedValue({ graphQLErrors: [{ extensions: { code: 'ORDER_REVISION' } }] })
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      timeline.findComponent({ name: 'ProjectVersionOrderDialog' }).vm.$emit('apply')
+      await flushPromises()
+
+      expect(refetch).toHaveBeenCalled()
+      expect(toastAdd).toHaveBeenCalledWith(expect.objectContaining({ title: expect.stringContaining('Der Plan wurde inzwischen geändert.'), color: 'warning' }))
+    })
+
+    it('does not apply when a condition is not met', async () => {
+      orderAnswer.value = plan({ canApply: false, condition: 'already_ordered', moveCount: 0 })
+      const timeline = await mountSuspended(Timeline, { props: { projectId: '1' } })
+
+      await (timeline.vm as unknown as { applyOrder: () => Promise<void> }).applyOrder?.()
+
+      expect(sortMilestones).not.toHaveBeenCalled()
+    })
   })
 })

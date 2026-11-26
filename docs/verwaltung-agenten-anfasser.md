@@ -37,7 +37,7 @@ PageFrame «Benutzer»                         [Benutzer hinzufügen] [Agent anl
   Abschnitt «Benutzer» (Anzahl)
     Zeile: Avatar · Name, Rolle, (du) · E-Mail · Faktor-Badge · Menü
   Abschnitt «Agenten» (Anzahl)
-    Zeile: Avatar · Name, Agent-Badge · E-Mail · [Zugang …] · Menü
+    Zeile: Avatar · Name, Agent-Badge · Kennung (kopierbar, Auftrag 58) · [Zugang …] · Menü
 ```
 
 - Abschnittstitel als Überschrift (h2) mit Anzahl; ein leerer Abschnitt «Agenten» zeigt einen Satz und den Knopf «Agent anlegen». Trifft die Suche in einem Abschnitt nichts, steht dort «Keine Treffer».
@@ -78,7 +78,7 @@ Edge Cases:
 ### 3.4 Agent anlegen
 
 - Knopf «Agent anlegen» (Seitenaktion und im leeren Abschnitt), Befehl in der Palette wie bei `users-invite`.
-- Dialog: Name, E-Mail (Hinweis: «Es wird keine Mail verschickt, ein Postfach ist nicht nötig»). Nach dem Anlegen schliesst der Dialog und öffnet **nichts** (Auftrag 55: zwei Schritte). Die neue Zeile ist kurz hervorgehoben, «Zugang einrichten» hat den Fokus. Das Passwort wird bei Bedarf als Feld im Dialog gefragt.
+- Dialog: nur der Name (Auftrag 58 E). Die Kennung macht der Planer daraus: `<slug>@agent.invalid`, bei Kollision `<slug>-2@agent.invalid`; `.invalid` empfängt nie Mail (RFC 2606). Menschen können keine Adresse auf `agent.invalid` haben. `app:create-agent` nimmt eine Adresse nur noch als freiwilliges Argument. An Agent-Konten geht nie eine Mail (Listener `SkipMailForAgents`). Nach dem Anlegen schliesst der Dialog und öffnet **nichts** (Auftrag 55: zwei Schritte). Die neue Zeile ist kurz hervorgehoben, «Zugang einrichten» hat den Fokus. Das Passwort wird bei Bedarf als Feld im Dialog gefragt.
 
 ### 3.5 Zeitachse: Anfasser
 

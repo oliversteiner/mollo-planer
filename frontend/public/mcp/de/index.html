@@ -111,7 +111,7 @@
             <section id="werkzeuge" class="guide-section">
               <p class="section-index">03 <span>FÄHIGKEITEN</span></p>
               <h2>Nutze das passende Werkzeug.</h2>
-              <p>Beim Verbinden stellt der Server seine Instruktionen und dreizehn Werkzeuge bereit. Starte mit <code>list_projects</code>, um Projekt-ID, Rolle und Revision zu sehen; ergänze bei Bedarf <code>include_rights: true</code> oder <code>include_members: true</code>. Lies nur die Informationen, die du für den Auftrag brauchst.</p>
+              <p>Beim Verbinden stellt der Server seine Instruktionen und vierzehn Werkzeuge bereit. Starte mit <code>list_projects</code>, um Projekt-ID, Rolle und Revision zu sehen; ergänze bei Bedarf <code>include_rights: true</code> oder <code>include_members: true</code>. Lies nur die Informationen, die du für den Auftrag brauchst.</p>
               <div class="tool-list">
                 <div><code>list_projects</code><span>Sichtbare Projekte und Rechte</span></div>
                 <div><code>list_templates</code><span>Verfügbare Projektvorlagen</span></div>
@@ -121,6 +121,7 @@
                 <div><code>get_project_statistics</code><span>Die Zahlen eines Projekts, ohne den Plan zu lesen</span></div>
                 <div><code>import_plan</code><span>Planänderungen nach Rechteprüfung eintragen</span></div>
                 <div><code>update_tasks</code><span>Status, Commit oder Zuweisung pflegen</span></div>
+                <div><code>reorder</code><span>Geschwister ordnen, oder Milestones nach Version</span></div>
                 <div><code>add_comment</code> <code>list_comments</code><span>Kommentare schreiben und lesen</span></div>
                 <div><code>create_idea</code> <code>list_ideas</code><span>Private Ideen erfassen und ansehen</span></div>
                 <div><code>get_project_ai_context</code><span>Freigegebenes Projektwissen lesen</span></div>
@@ -133,6 +134,7 @@
                 <li><span>2</span><p><strong>Arbeit finden.</strong> <code>list_tasks</code> mit <code>assignee: "me"</code> und <code>status: ["open", "in_progress"]</code>. Eine Task mit allem: <code>list_tasks</code> mit <code>ids</code> und <code>include: ["description", "comments"]</code>.</p></li>
                 <li><span>3</span><p><strong>Fortschritt melden.</strong> <code>update_tasks</code> direkt: kein Export, kein Trockenlauf vorher. <code>base_revision</code> ist optional.</p></li>
                 <li><span>4</span><p><strong>Struktur ändern.</strong> <code>export_plan</code> für einen Milestone, bearbeiten, <code>import_plan</code> mit <code>mode: "partial"</code>. Den ganzen Export nur, um den ganzen Plan umzubauen.</p></li>
+                <li><span>5</span><p><strong>Ordnen.</strong> <code>partial</code> ordnet nicht im ganzen Projekt um. <code>reorder</code> ordnet Geschwister (alle IDs eines Elternteils: Milestones, die ToDos eines Milestones, die Tasks eines ToDos); <code>reorder</code> mit <code>by: "version"</code> ordnet die Milestones nach Version (zuerst <code>dry_run: true</code>). In ein anderes ToDo oder einen anderen Milestone verschieben bleibt bei <code>import_plan</code>.</p></li>
               </ol>
               <p>Dieselben Rezepte als reines Markdown: <a href="/mcp/llms.txt">/mcp/llms.txt</a>.</p>
             </section>

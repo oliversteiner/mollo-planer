@@ -64,7 +64,7 @@ describe('sections and appendix', () => {
 
     expect(page.find('.help-appendix').exists()).toBe(true)
     expect(page.find('.help-right').exists()).toBe(false)
-    expect(page.text()).toContain('Bedienung beschreiben')
+    expect(page.text()).toContain('Dieses Kapitel folgt')
     expect(page.text()).not.toContain('Beispielprompts')
   })
 

@@ -4,4 +4,8 @@ title: Writing rules
 type: appendix
 ---
 
-The English writing rules are still to be written (task 68). Until then the German chapter «Schreibregeln» holds the rules for the texts of the app and the manual.
+This chapter is to follow. It describes how the texts of the app and the manual are written.
+
+## Status
+
+The writing rules are written together with the appendix «About this manual».

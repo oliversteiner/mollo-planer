@@ -119,21 +119,21 @@
                 },
                 {
                   "type": "text",
-                  "text": ", enter a name, and in the field ",
+                  "text": ", enter a name. Mollo Planer makes the agent's identifier from it, for example ",
                   "marks": []
                 },
                 {
                   "type": "text",
-                  "text": "Email",
+                  "text": "claude-club-db@agent.invalid",
                   "marks": [
                     {
-                      "type": "bold"
+                      "type": "code"
                     }
                   ]
                 },
                 {
                   "type": "text",
-                  "text": ", an address. No mailbox is needed, no mail is sent.",
+                  "text": ". No mail is ever sent to an agent.",
                   "marks": []
                 }
               ]
@@ -266,7 +266,21 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Choose the button with the copy symbol to the right of the field with the access, and keep the access in your password manager at once. It is shown only once.",
+                  "text": "Choose the button with the copy symbol to the right of the field with the access, and keep the access in your password manager at once. It is shown only once. Then choose ",
+                  "marks": []
+                },
+                {
+                  "type": "text",
+                  "text": "Stored",
+                  "marks": [
+                    {
+                      "type": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": ".",
                   "marks": []
                 }
               ]
@@ -308,7 +322,7 @@
                 },
                 {
                   "type": "text",
-                  "text": "Assign project",
+                  "text": "Assign project (role Agent)",
                   "marks": [
                     {
                       "type": "bold"
@@ -317,39 +331,7 @@
                 },
                 {
                   "type": "text",
-                  "text": ", select the project. The role stays «Agent».",
-                  "marks": []
-                }
-              ]
-            }
-          ]
-        },
-        "images": []
-      },
-      {
-        "doc": {
-          "type": "doc",
-          "content": [
-            {
-              "type": "paragraph",
-              "content": [
-                {
-                  "type": "text",
-                  "text": "Choose ",
-                  "marks": []
-                },
-                {
-                  "type": "text",
-                  "text": "Assign",
-                  "marks": [
-                    {
-                      "type": "bold"
-                    }
-                  ]
-                },
-                {
-                  "type": "text",
-                  "text": ". The project appears in the agent's list of projects.",
+                  "text": ", select the project. The agent is in the project at once, with the role «Agent»; the project appears in its list.",
                   "marks": []
                 }
               ]
@@ -450,6 +432,21 @@
                   "content": [
                     {
                       "type": "text",
+                      "text": "An agent has the role «Agent» in every project, no other. Its identifier, shown in the same dialog, is what you assign tasks to (planer file, MCP).",
+                      "marks": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "listItem",
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {
+                      "type": "text",
                       "text": "The address of the MCP server and a guide for the connector are in the same dialog.",
                       "marks": []
                     }
@@ -485,7 +482,30 @@
           "content": [
             {
               "type": "text",
-              "text": "The English writing rules are still to be written (task 68). Until then the German chapter «Schreibregeln» holds the rules for the texts of the app and the manual.",
+              "text": "This chapter is to follow. It describes how the texts of the app and the manual are written.",
+              "marks": []
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Status",
+              "marks": []
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The writing rules are written together with the appendix «About this manual».",
               "marks": []
             }
           ]

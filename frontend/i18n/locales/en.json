@@ -59,7 +59,10 @@
       "removeTitle": "Remove {name} from the project?",
       "removeDescription": "They will no longer see the project. Their tasks in this project are then assigned to nobody.",
       "removeConfirm": "Remove",
-      "alreadyMember": "already a member"
+      "alreadyMember": "already a member",
+      "agentRoleFixed": "Agents always have the role Agent.",
+      "identifier": "Identifier",
+      "copyIdentifier": "Copy identifier of {name}"
     },
     "danger": {
       "title": "Delete project",
@@ -319,7 +322,35 @@
       "todoActions": "Actions for todo “{title}”",
       "taskActions": "Actions for task “{title}”",
       "openTask": "Open task “{title}”",
-      "moveTask": "Move task"
+      "moveTask": "Move task",
+      "newestFirst": "Newest first",
+      "oldestFirst": "Oldest first",
+      "sortNewestHint": "Shows the newest version on top. Choose the button to show the oldest on top.",
+      "sortOldestHint": "Shows the oldest version on top. Choose the button to show the newest on top.",
+      "showPrices": "Show prices",
+      "orderByVersion": "Order by version",
+      "order": {
+        "title": "Order milestones by version",
+        "description": "This is the stored order afterwards. Moved milestones are marked. To-dos and tasks stay as they are.",
+        "summary": "{count} milestone will move. | {count} milestones will move.",
+        "noVersion": "No version",
+        "movedFrom": "was at place {from}",
+        "apply": "Reorder",
+        "loading": "Loading the preview …",
+        "done": "Milestones ordered by version",
+        "doneDetail": "{count} milestone moved. | {count} milestones moved.",
+        "undo": "Undo",
+        "undone": "The earlier order is back.",
+        "failed": "The order could not be changed.",
+        "conflict": "The plan has changed in the meantime. The preview was reloaded, please check it again.",
+        "conditions": {
+          "archived": "The project is archived.",
+          "too_few_versions": "At least two milestones need a version.",
+          "invalid_version": "These versions are invalid (only numbers with dots such as 1.4 or 2.0.1 are allowed):",
+          "duplicate_version": "These versions appear twice:",
+          "already_ordered": "Already ordered by version."
+        }
+      }
     },
     "milestoneNumber": "M{number}",
     "milestoneNumberLabel": "Milestone {number}",
@@ -667,7 +698,8 @@
         "revokeConfirm": "Revoke",
         "revoked": "Access revoked.",
         "cli": "Or in a terminal on the server: app:user-token",
-        "nameMissing": "The name is missing."
+        "nameMissing": "The name is missing.",
+        "tokenStored": "Stored"
       },
       "access": {
         "title": "Access for {agent}",
@@ -687,15 +719,18 @@
         "projects": "Projects",
         "noProjects": "Not in any project yet.",
         "removeFrom": "Remove from project “{project}”",
-        "assign": "Assign project",
-        "assignConfirm": "Assign",
+        "assign": "Assign project (role Agent)",
         "state": {
           "none": "Set up access",
           "active": "Access active",
           "expiring": "Access expiring",
           "expired": "Access expired"
         },
-        "menu": "Access and projects"
+        "menu": "Access and projects",
+        "identifier": "Identifier",
+        "identifierHint": "You assign tasks to the agent with its identifier (planer file, MCP).",
+        "copyIdentifier": "Copy identifier",
+        "assigned": "{agent} is now in “{project}”."
       },
       "sections": {
         "users": "Users",
@@ -709,9 +744,9 @@
         "title": "Create agent",
         "hint": "An agent account for Claude or an assistant. It does not sign in in the browser but works through the connector with an access you create right after.",
         "nameHint": "Shown in the app, for example “Claude Club DB”.",
-        "emailHint": "No mail is sent, a mailbox is not needed.",
         "submit": "Create",
-        "created": "Agent {name} created."
+        "created": "Agent {name} created.",
+        "identifierHint": "Mollo Planer gives the agent an identifier made from the name, for example claude-club-db{'@'}agent.invalid. You assign tasks to it with this identifier. No mail is ever sent to an agent."
       }
     },
     "settings": {

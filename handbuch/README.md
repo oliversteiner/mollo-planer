@@ -59,7 +59,7 @@ Welche Werkzeuge, welche Felder, was über MCP nicht geht.
 | `id` | Name des Kapitels, gleich wie der Dateiname, gleich in beiden Sprachen |
 | `title` | Titel in der Sprache der Datei |
 | `area` | Bereich: `first-steps`, `projects`, `plan`, `kanban`, `my-tasks`, `comments`, `documents`, `ideas`, `assistant`, `templates`, `trash`, `statistics`, `calm`, `planer-file`, `agents`, `admin` |
-| `scope` | `core` (Basis: Konten, Rechte, Verwaltung) oder `app` (Planung) |
+| `scope` | `core` (Basis: Konten, Rechte, Administration) oder `app` (Planung) |
 | `right` | Schlüssel des nötigen Rechts (`task.create`, `users.manage` …) oder leer |
 | `pages` | Seiten der App, mit Komma getrennt, wie ihre Route (`/admin/users`, `/projects/[id]/kanban`) |
 | `tools` | Werkzeuge des MCP-Servers, mit Komma getrennt |
@@ -102,7 +102,36 @@ Ein Anhang ist ein Kapitel mit `type: appendix` im Kopf (Beispiel: `anhang-schre
 
 ## Sprache und Stil
 
-Alles Sprachliche (Bedienung beschreiben, Sprachregeln für Menschen, Wörterliste) steht im Kapitel «Schreibregeln»: `handbuch/de/anhang-schreibregeln.md`. Diese Datei beschreibt nur das Technische.
+Bis das Kapitel «Schreibregeln» im Anhang geschrieben ist (Auftrag 68, `handbuch/de/anhang-schreibregeln.md`), stehen die Regeln hier; dann wandern sie dorthin.
+
+## Bedienung beschreiben
+
+Geräteneutral, ein Verb je Absicht:
+
+| Absicht | deutsch | englisch |
+|---|---|---|
+| etwas auslösen (Taste, Link, Menüpunkt) | **wählen**: «Wähle **Speichern**.» | choose |
+| aus mehreren Möglichkeiten nehmen (Liste, Auswahlfeld) | **auswählen**: «Wähle unter **ToDo** das ToDo aus.» | select |
+| Schalter, Kontrollkästchen | **einschalten / ausschalten** | turn on / turn off |
+| Text | **eingeben**: «Gib im Feld **Titel** einen Titel ein.» | enter |
+| Taste der Tastatur | **drücken**, als zusammengesetztes Wort: «Eingabetaste», «Wahltaste» | press |
+| Ziehen, gedrückt halten | Geste nennen **und** einen Weg ohne Geste | drag / hold, and a way without |
+
+- **Nie:** klicken, Klick, Doppelklick, tippen, tabben, und «drücken» für Elemente auf dem Bildschirm.
+- Den Typ eines Bedienelements meist weglassen («Wähle **Speichern**»). Wo ein Typ nötig ist: **«Taste»**, nie «Knopf» oder «Schaltfläche». Bezeichnungen der Oberfläche nie beugen: «Gib im Feld **Name** einen Namen ein», «Wähle die Taste **Speichern**».
+- Tasten ohne Text oder mehrfach vorhanden nach Ort benennen: «die Taste rechts neben dem Feld …», «**Fertig** unten rechts».
+
+## Sprachregeln (für Menschen)
+
+- Kurze Sätze, aktiv, eine Aussage je Satz. Per Du.
+- Ein Handgriff je Schritt, in der Reihenfolge, in der man ihn macht. Jeder Schritt reicht bis zum sichtbaren Ergebnis (Dialog öffnet sich, Eintrag erscheint).
+- **Keine Namen, Personen und Abläufe der eigenen Installation:** das Handbuch ist öffentlich. Beschreibe, was die Software kann, nicht wie ein bestimmtes Team sie einsetzt.
+- **Wörterliste:** Milestone, ToDo, Task, Zugang (Token), Taste (nicht Knopf). Gleiche Sache, gleiches Wort.
+- Zuerst wo, dann was: «Öffne **Administration → Benutzer**. Wähle …».
+- Keine Abkürzungen ohne Erklärung. Fachwörter sparsam; ein Glossar folgt später.
+- Schweizer Schreibweise (ss statt ß), «» als Anführungszeichen.
+- «Gut zu wissen» nennt, was schiefgehen kann, und was man dann tut.
+- Prompts sind vollständig: Projekt, Ziel, Grenzen («nur Status ändern»), damit ein Agent sie ohne Rückfrage ausführen kann. Platzhalter in eckigen Klammern: `[Projekt]` (spitze Klammern hält der Parser für HTML).
 
 ## Bilder
 

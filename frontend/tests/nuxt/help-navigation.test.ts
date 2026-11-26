@@ -16,8 +16,7 @@ beforeAll(async () => {
   await useNuxtApp().$i18n.setLocale('de')
 })
 
-/** wa-button takes `href` as a property, so it may not be an attribute in the test. */
-const hrefOf = (wrapper: { element: Element }) => (wrapper.element as Element & { href?: string }).href ?? wrapper.element.getAttribute('href')
+const hrefOf = (wrapper: { element: Element }) => wrapper.element.getAttribute('href') ?? (wrapper.element as Element & { href?: string }).href
 
 const ids = () => manualOrder('de').map(chapter => chapter.id)
 
@@ -44,7 +43,7 @@ describe('bar with previous, contents and next', () => {
     const next = manualOrder('de')[2]!
 
     expect(hrefOf(bar.find('#help-previous'))).toBe(`/help/${previous.id}`)
-    expect((bar.find('#help-previous').element as HTMLElement).title).toBe(previous.title)
+    expect(bar.find('#help-previous').attributes('title')).toBe(previous.title)
     expect(bar.find('#help-previous').attributes('aria-label')).toBe(`Vorheriges Kapitel: ${previous.title}`)
     expect(hrefOf(bar.find('#help-next'))).toBe(`/help/${next.id}`)
     expect(bar.find('#help-toc').text()).toBe('Inhalt')

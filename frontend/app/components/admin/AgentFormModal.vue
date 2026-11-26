@@ -3,7 +3,8 @@ import { useMutation } from '@vue/apollo-composable'
 import { createAgentMutation } from '~/graphql/admin'
 
 /**
- * Create an agent account (docs/verwaltung-agenten-anfasser.md §3.4): name and address, no mail is sent. Needs a
+ * Create an agent account (docs/verwaltung-agenten-anfasser.md §3.4): only the name; the planer makes the identifier
+ * (<name>@agent.invalid, Auftrag 58 E), no mail is ever sent to an agent. Needs a
  * recent password confirmation, asked for in a field of this dialog (Auftrag 55, rule R11). After creating, the
  * dialog closes and opens nothing else: the new row of the list offers «Zugang einrichten».
  */
@@ -20,13 +21,13 @@ const step = usePasswordStep()
 const { errors, run } = useGraphqlForm()
 const { mutate: createAgent } = useMutation(createAgentMutation, { refetchQueries: 'active', awaitRefetchQueries: true })
 
-const state = reactive({ name: '', email: '' })
+const state = reactive({ name: '' })
 
 watch(() => props.open, (open) => {
   if (open) {
     step.cancel()
     errors.value = {}
-    Object.assign(state, { name: '', email: '' })
+    Object.assign(state, { name: '' })
   }
 })
 
@@ -56,7 +57,7 @@ async function submit(): Promise<void> {
 
   await step.run(async () => {
     const name = state.name.trim()
-    const result = await run(() => createAgent({ input: { name, email: state.email.trim() } }))
+    const result = await run(() => createAgent({ input: { name } }))
 
     // The confirmation ran out meanwhile: the step asks again and keeps what is typed here.
     if (errors.value.password) {
@@ -95,15 +96,9 @@ async function submit(): Promise<void> {
         autofocus
         required
       />
-      <FormInput
-        v-model="state.email"
-        type="email"
-        name="email"
-        :label="t('auth.email')"
-        :hint="t('admin.users.newAgent.emailHint')"
-        :error="errors.email"
-        required
-      />
+      <p class="wa-body-s wa-color-text-quiet">
+        {{ t('admin.users.newAgent.identifierHint') }}
+      </p>
     </form>
     <PasswordConfirmField
       class="agent-password"
