@@ -14,7 +14,7 @@ defineProps<{
     status: 'IDEA' | 'PLANNED' | 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE'
     dueDate?: string | null
     commentCount: number
-    assignee?: { id: string, name: string, avatarUrl?: string | null } | null
+    assignee?: { id: string, name: string, avatarUrl?: string | null, isAgent?: boolean | null } | null
     todo: { title: string }
     labels?: readonly TaskLabelItem[]
   }
@@ -109,6 +109,7 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
         v-if="task.assignee"
         :name="task.assignee.name"
         :src="task.assignee.avatarUrl"
+        :is-agent="task.assignee.isAgent"
         size="2xs"
         class="task-card-assignee"
       />

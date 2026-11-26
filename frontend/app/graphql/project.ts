@@ -61,7 +61,7 @@ export const projectTimelineQuery = graphql(`
             userStory { role goal benefit }
             commentCount
             labels { id name color position }
-            assignee { id name avatarUrl }
+            assignee { id name avatarUrl isAgent }
             viewerCanUpdate
             viewerCanDelete
           }

@@ -148,6 +148,7 @@ function share(part: number, whole: number): number {
                   <UserAvatar
                     :name="row.user.name"
                     :src="row.user.avatarUrl"
+                    :is-agent="row.user.isAgent"
                     size="xs"
                   />
                   <span class="statistics-person-name">{{ row.user.name }}</span>

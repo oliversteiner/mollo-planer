@@ -30,6 +30,49 @@ describe('UserAvatar', () => {
   })
 })
 
+describe('UserAvatar of an agent account (variant C)', () => {
+  const sizes = { '2xs': '1.25rem', 'xs': '1.5rem', 'sm': '2rem', 'md': '2.5rem', '3xl': '4rem' } as const
+
+  it.each(['sm', 'md', '3xl'] as const)('from 2 rem (%s): initials and a robot mark, name "<name>, agent" (de: Agent)', async (size) => {
+    const avatar = await mountSuspended(UserAvatar, { props: { name: 'Bob Lang', isAgent: true, size } })
+    const inner = avatar.find('wa-avatar').element as Avatar
+
+    expect(inner.initials).toBe('BL')
+    expect(inner.label).toMatch(/^Bob Lang, agent$/i)
+    expect(avatar.find('.user-avatar-agent-mark').exists()).toBe(true)
+    expect(avatar.find('.user-avatar-agent-mark').attributes('aria-hidden')).toBe('true')
+    expect(avatar.attributes('style')).toContain(`--size: ${sizes[size]}`)
+  })
+
+  it.each(['2xs', 'xs'] as const)('below 2 rem (%s): only the robot icon, no initials, no mark', async (size) => {
+    const avatar = await mountSuspended(UserAvatar, { props: { name: 'Bob Lang', isAgent: true, size } })
+    const inner = avatar.find('wa-avatar').element as Avatar
+
+    expect(inner.initials).toBeFalsy()
+    expect(inner.label).toMatch(/^Bob Lang, agent$/i)
+    const icon = avatar.find('wa-icon[slot="icon"]').element as HTMLElement & { name?: string }
+
+    expect(icon.name ?? icon.getAttribute('name')).toBe('robot')
+    expect(avatar.find('.user-avatar-agent-mark').exists()).toBe(false)
+  })
+
+  it.each(['2xs', 'xs', 'sm', 'md', '3xl'] as const)('a person (%s) has no mark and keeps the plain name', async (size) => {
+    const avatar = await mountSuspended(UserAvatar, { props: { name: 'Bob Lang', isAgent: false, size } })
+
+    expect(avatar.element.tagName).toBe('WA-AVATAR')
+    expect((avatar.element as Avatar).label).toBe('Bob Lang')
+    expect(avatar.find('.user-avatar-agent-mark').exists()).toBe(false)
+  })
+
+  it('passes isAgent on from UserLine and UserAvatarGroup', async () => {
+    const line = await mountSuspended(UserLine, { props: { name: 'Bob Lang', isAgent: true, size: 'sm' } })
+    const group = await mountSuspended(UserAvatarGroup, { props: { people: [{ id: '1', name: 'Bob Lang', isAgent: true }, { id: '2', name: 'Ada Admin' }], size: 'sm' } })
+
+    expect(line.find('.user-avatar-agent-mark').exists()).toBe(true)
+    expect(group.findAll('.user-avatar-agent-mark')).toHaveLength(1)
+  })
+})
+
 describe('UserLine', () => {
   it('shows name and description', async () => {
     const line = await mountSuspended(UserLine, { props: { name: 'Lindita Aliu', description: 'Projektleitung' } })

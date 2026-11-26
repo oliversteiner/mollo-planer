@@ -536,6 +536,9 @@
     "joined": "{name} ist jetzt Mitglied (Rolle {role}).",
     "commentsSummary": "Keine Kommentare | 1 Kommentar | {count} Kommentare"
   },
+  "agents": {
+    "avatarLabel": "{name}, Agent"
+  },
   "agent": {
     "badge": "Agent",
     "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors"
