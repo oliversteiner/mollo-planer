@@ -59,7 +59,6 @@ onBeforeUnmount(() => clearTimeout(clickTimer))
     :data-id="task.id"
     :data-status="task.status"
     data-zen-row
-    :title="editable ? t('kanban.doubleClickToEdit') : undefined"
     @dblclick="onDoubleClick"
   >
     <div class="task-card-head">

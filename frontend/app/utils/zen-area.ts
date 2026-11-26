@@ -7,6 +7,9 @@
  */
 const CONTENT = [/^\/$/, /^\/my-tasks$/, /^\/ideas$/, /^\/assistant$/, /^\/projects\/[^/]+$/, /^\/projects\/[^/]+\/(kanban|todos|documents)$/, /^\/projects\/[^/]+\/documents\/[^/]+(\/history)?$/]
 
+/** The help stays where it is in Zen (it is read, not left); it is not a work area, so it is never remembered for Zen. */
+const HELP = /^\/help(\/[^/]+)?$/
+
 export const FALLBACK_AREA = '/my-tasks'
 
 /** A path without query and trailing slash. */
@@ -28,7 +31,7 @@ export function isContentArea(path: string): boolean {
  * @param allowed  Whether the person may see a path (the right of the page, the project exists for them)
  */
 export function chooseZenArea(current: string, remembered: string | null | undefined, allowed: (path: string) => boolean): string {
-  if (isContentArea(current)) {
+  if (isContentArea(current) || HELP.test(cleanPath(current))) {
     return cleanPath(current)
   }
 
