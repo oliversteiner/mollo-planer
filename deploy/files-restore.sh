@@ -59,11 +59,16 @@ ENVIRONMENT=$(env_value APP_ENV || true)
 [ -n "$ENVIRONMENT" ] || fail "APP_ENV fehlt in backend/.env. Nichts wurde geändert."
 
 # The file must be a complete archive of the folder «app» (as files-backup.sh checks it), nothing outside of it.
-tar -tzf "$FILE" > /dev/null 2>&1 || fail "$FILE ist kein gültiges tar.gz-Archiv. Nichts wurde geändert."
-if tar -tzf "$FILE" | grep -Ev '^(\./)?app(/|$)' | grep -q .; then
+# The listing is read once into a variable and checked there: a pipe from tar into "grep -q" ends the reader at the first
+# hit while tar still writes, and under pipefail the SIGPIPE of tar fails the whole pipe (Auftrag 73). With a pipe like that
+# a valid archive was sometimes refused, and the check for paths outside of «app» sometimes did not run at all.
+listing=$(tar -tzf "$FILE" 2>/dev/null) || fail "$FILE ist kein gültiges tar.gz-Archiv. Nichts wurde geändert."
+outside=$(grep -Ev '^(\./)?app(/|$)' <<<"$listing" || true)
+if [ -n "$outside" ]; then
     fail "$FILE enthält Pfade ausserhalb von «app». Das ist keine Sicherung von files-backup.sh. Nichts wurde geändert."
 fi
-tar -tzf "$FILE" | grep -Eq '^(\./)?app/?$' || fail "$FILE enthält den Ordner «app» nicht. Nichts wurde geändert."
+app_entries=$(grep -Ec '^(\./)?app/?$' <<<"$listing" || true)
+[ "$app_entries" -gt 0 ] || fail "$FILE enthält den Ordner «app» nicht. Nichts wurde geändert."
 
 modified=$(date -r "$FILE" '+%d.%m.%Y %H:%M' 2>/dev/null || stat -f '%Sm' -t '%d.%m.%Y %H:%M' "$FILE")
 echo "Umgebung:   $ENVIRONMENT"
