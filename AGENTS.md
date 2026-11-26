@@ -70,6 +70,7 @@ Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - Icons: Font-Awesome-Pro-Namen ohne Stil-Präfix.
 - Die 2FA- und Passkey-Middleware in Produktion nicht lockern.
 - Änderungen nur über einen eigenen Branch und einen PR nach `dev`, nie direkt auf `dev`, nie mergen ohne Oliver (gilt für alle Agenten, auch Junie).
+- Vor dem Merge muss der Branch aktuell sein (`dev` hereinholen), sonst lässt GitHub nicht mergen. Bei jedem PR nach `dev` laufen alle Jobs der CI, ohne Pfad-Filter.
 - **MCP-Konfigurationen** (`.mcp.json`, `.junie/mcp/mcp.json` und gleichartige Dateien im Repo) enthalten nur Server ohne Geheimnis (`laravel-boost`) und sonst höchstens `${VARIABLE}`. **Nie ein Token und nie eine Adresse mit Zugangsdaten** in diese Dateien. Der Planer-Server steht nur in der `.mcp.json` des Repos, mit `${MOLLOPLANER_<NAME>_TOKEN}` für das eigene Agentenkonto und `${MOLLOPLANER_MCP_URL}` für die Adresse (global gesetzt, zeigt auf TEST), und verbindet nur mit TEST. Planer-Server nie mit `--scope user` eintragen, weil sie sonst in jedem Projekt mit demselben Konto auftauchen. Olivers persönliche Server nur mit `--scope local`.
 - «cpm»: Vor dem Merge Branch und Ziel-Branch nennen, wenn unklar. Commits von Junie mit Co-Author-Trailer.
 - Zu jeder neuen Policy, Mutation oder Regel gehören Tests (siehe Punkt 12 im Backend-Plan).
