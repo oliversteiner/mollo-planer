@@ -10,7 +10,7 @@
 <main>
 <h1>Mollo Planer manual for agents</h1>
 <p>What each function does, its limits, the tools of the MCP server and prompts to hand it over. Without the steps for people (those are in the help of the app).</p>
-<ul><li><a href="task-anlegen.html">Create and edit a task</a> (<a href="task-anlegen.md">Markdown</a>)</li><li><a href="tasks-ueber-mcp.html">Change tasks over MCP</a> (<a href="tasks-ueber-mcp.md">Markdown</a>)</li><li><a href="agent-anlegen.html">Create an agent and set up its access</a> (<a href="agent-anlegen.md">Markdown</a>)</li></ul>
+<ul><li><a href="task-anlegen.html">Create and edit a task</a> (<a href="task-anlegen.md">Markdown</a>)</li><li><a href="tasks-ueber-mcp.html">Change tasks over MCP</a> (<a href="tasks-ueber-mcp.md">Markdown</a>)</li><li><a href="agent-anlegen.html">Create an agent and set up its access</a> (<a href="agent-anlegen.md">Markdown</a>)</li><li><a href="anhang-schreibregeln.html">Writing rules</a> (<a href="anhang-schreibregeln.md">Markdown</a>)</li></ul>
 <h2 id="task-anlegen">Create and edit a task</h2>
 <ul><li>Right: <code>task.create</code></li><li>Tools: <code>list_tasks</code>, <code>update_tasks</code>, <code>import_plan</code></li><li>Pages of the app: <code>/projects/[id]/kanban</code></li></ul>
 <h3>Purpose</h3>
@@ -40,6 +40,8 @@
 <ul><li><p>The access is a secret. It belongs in a password manager or an environment variable, never in a file under version control or in a chat.</p></li><li><p>If you lost the access, revoke it in the same dialog and create a new one.</p></li><li><p>Without a project the agent sees nothing. What it may do in the project depends on its role there.</p></li><li><p>The address of the MCP server and a guide for the connector are in the same dialog.</p></li></ul>
 <h3>Example prompts</h3>
 <ul><li><p>Connect to the MCP server of Mollo Planer with the variable [VARIABLE] and show me the projects you see.</p></li><li><p>Check with <code>list_projects</code> which role you have in the project [project] and what you may change there.</p></li></ul>
+<h2 id="anhang-schreibregeln">Writing rules</h2>
+<p>The English writing rules are still to be written (task 68). Until then the German chapter «Schreibregeln» holds the rules for the texts of the app and the manual.</p>
 </main>
 </body>
 </html>

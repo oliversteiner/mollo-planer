@@ -14,6 +14,8 @@
     "area": "admin",
     "scope": "core",
     "since": "1.6",
+    "type": "chapter",
+    "body": null,
     "purpose": {
       "type": "doc",
       "content": [
@@ -465,6 +467,37 @@
     ]
   },
   {
+    "right": "",
+    "pages": [],
+    "tools": [],
+    "commands": [],
+    "scope": "core",
+    "since": "",
+    "area": "appendix",
+    "id": "anhang-schreibregeln",
+    "title": "Writing rules",
+    "type": "appendix",
+    "body": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "The English writing rules are still to be written (task 68). Until then the German chapter «Schreibregeln» holds the rules for the texts of the app and the manual.",
+              "marks": []
+            }
+          ]
+        }
+      ]
+    },
+    "purpose": null,
+    "steps": [],
+    "notes": null,
+    "prompts": []
+  },
+  {
     "right": "task.create",
     "pages": [
       "/projects/[id]/kanban"
@@ -482,6 +515,8 @@
     "area": "plan",
     "scope": "app",
     "since": "1.6",
+    "type": "chapter",
+    "body": null,
     "purpose": {
       "type": "doc",
       "content": [
@@ -914,6 +949,8 @@
     "area": "agents",
     "scope": "app",
     "since": "1.6",
+    "type": "chapter",
+    "body": null,
     "purpose": {
       "type": "doc",
       "content": [

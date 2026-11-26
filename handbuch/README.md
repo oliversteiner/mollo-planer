@@ -96,34 +96,13 @@ Wähle **{{ui:admin.users.newAgent.title}}**.
 
 Der Build setzt den Text der jeweiligen Sprache ein. Wird die Taste in der App umbenannt, steht nach dem nächsten Build der neue Name im Kapitel. Nur Schlüssel mit reinem Text (ohne `{…}` und ohne Mehrzahlformen) gehen; ein Test prüft, dass jeder Schlüssel in beiden Sprachen existiert.
 
-## Bedienung beschreiben
+## Anhang
 
-Geräteneutral, ein Verb je Absicht (Regel aus `~/www/agents/AGENTS.md`, Abschnitt «Sprache»):
+Ein Anhang ist ein Kapitel mit `type: appendix` im Kopf (Beispiel: `anhang-schreibregeln.md`). Er hat keine festen Abschnitte, keine Pflicht zu `area`, `scope`, `since`, `right`, `pages` und `tools`; die Überschriften (Ebene 2 und 3) wählt die Autorin oder der Autor. Beide Sprachen brauchen eine Datei mit derselben `id`; Inhalt und Abschnitte dürfen abweichen (die englischen Schreibregeln beschreiben englische Regeln und sind keine Übersetzung). Die Hilfe zeigt Anhänge in einem eigenen Bereich «Über dieses Handbuch», in `/manual/` und `llms.txt` stehen sie zuletzt.
 
-| Absicht | deutsch | englisch |
-|---|---|---|
-| etwas auslösen (Taste, Link, Menüpunkt) | **wählen**: «Wähle **Speichern**.» | choose |
-| aus mehreren Möglichkeiten nehmen (Liste, Auswahlfeld) | **auswählen**: «Wähle unter **ToDo** das ToDo aus.» | select |
-| Schalter, Kontrollkästchen | **einschalten / ausschalten** | turn on / turn off |
-| Text | **eingeben**: «Gib im Feld **Titel** einen Titel ein.» | enter |
-| Taste der Tastatur | **drücken**, als zusammengesetztes Wort: «Eingabetaste», «Wahltaste» | press |
-| Ziehen, gedrückt halten | Geste nennen **und** einen Weg ohne Geste | drag / hold, and a way without |
+## Sprache und Stil
 
-- **Nie:** klicken, Klick, Doppelklick, tippen, tabben, und «drücken» für Elemente auf dem Bildschirm.
-- Den Typ eines Bedienelements meist weglassen («Wähle **Speichern**»). Wo ein Typ nötig ist: **«Taste»**, nie «Knopf» oder «Schaltfläche». Bezeichnungen der Oberfläche nie beugen: «Gib im Feld **Name** einen Namen ein», «Wähle die Taste **Speichern**».
-- Tasten ohne Text oder mehrfach vorhanden nach Ort benennen: «die Taste rechts neben dem Feld …», «**Fertig** unten rechts».
-
-## Sprachregeln (für Menschen)
-
-- Kurze Sätze, aktiv, eine Aussage je Satz. Per Du.
-- Ein Handgriff je Schritt, in der Reihenfolge, in der man ihn macht. Jeder Schritt reicht bis zum sichtbaren Ergebnis (Dialog öffnet sich, Eintrag erscheint).
-- **Keine Namen, Personen und Abläufe der eigenen Installation:** das Handbuch ist öffentlich. Beschreibe, was die Software kann, nicht wie ein bestimmtes Team sie einsetzt.
-- **Wörterliste:** Milestone, ToDo, Task, Zugang (Token), Taste (nicht Knopf). Gleiche Sache, gleiches Wort.
-- Zuerst wo, dann was: «Öffne **Verwaltung → Benutzer**. Wähle …».
-- Keine Abkürzungen ohne Erklärung. Fachwörter sparsam; ein Glossar folgt später.
-- Schweizer Schreibweise (ss statt ß), «» als Anführungszeichen.
-- «Gut zu wissen» nennt, was schiefgehen kann, und was man dann tut.
-- Prompts sind vollständig: Projekt, Ziel, Grenzen («nur Status ändern»), damit ein Agent sie ohne Rückfrage ausführen kann. Platzhalter in eckigen Klammern: `[Projekt]` (spitze Klammern hält der Parser für HTML).
+Alles Sprachliche (Bedienung beschreiben, Sprachregeln für Menschen, Wörterliste) steht im Kapitel «Schreibregeln»: `handbuch/de/anhang-schreibregeln.md`. Diese Datei beschreibt nur das Technische.
 
 ## Bilder
 

@@ -450,8 +450,7 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "moveTo": "Move to “{column}”",
-    "comments": "comments",
-    "doubleClickToEdit": "Double-click to edit"
+    "comments": "comments"
   },
   "task": {
     "create": "New task",
@@ -2264,10 +2263,10 @@
   },
   "zen": {
     "menu": "Menu",
-    "enter": "Calm view",
-    "leave": "Leave zen",
+    "enter": "Zen view",
+    "leave": "Leave zen view",
     "leaveFocus": "Back",
-    "announceOn": "Calm view on.",
+    "announceOn": "Zen view on.",
     "announceOff": "Normal view.",
     "showIdeas": "Show ideas",
     "hideIdeas": "Hide ideas",
@@ -2445,8 +2444,8 @@
     "none": "No chapters yet.",
     "notFound": "This chapter does not exist.",
     "showImages": "Show pictures",
-    "needsRight": "This needs the right «{right}».",
-    "needsProjectRight": "This needs the right «{right}» in the project; it depends on your role there.",
+    "needsRight": "This needs the right «{right}». {next}",
+    "needsProjectRight": "In the project this needs the right «{right}», depending on your role there.",
     "copied": "Prompt copied.",
     "copyFailed": "Copying did not work. Select the text and copy it by hand.",
     "copy": "Copy",
@@ -2471,10 +2470,20 @@
       "templates": "Templates and labels",
       "trash": "Trash and archive",
       "statistics": "Statistics",
-      "calm": "Calm view and command palette",
+      "calm": "Zen view and command palette",
       "planer-file": "Planer file",
       "agents": "Working with agents",
-      "admin": "Administration"
+      "admin": "Administration",
+      "appendix": "About this manual"
+    },
+    "askUsers": "Ask a person who can manage users.",
+    "askAdmin": "Ask an admin.",
+    "nav": {
+      "label": "Chapters of the help",
+      "previous": "Previous chapter",
+      "next": "Next chapter",
+      "toc": "Contents",
+      "tocTitle": "Contents of the help"
     }
   },
   "billing": {
