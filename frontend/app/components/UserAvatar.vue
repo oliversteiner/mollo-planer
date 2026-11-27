@@ -5,8 +5,8 @@ import { initials } from '~/utils/names'
  * Avatar of a person: the picture, otherwise the initials, otherwise a
  * person icon. The name is the accessible name.
  *
- * Agent accounts (`isAgent`, variant C of docs/ux-agenten.md 21): from 2 rem the initials as usual with a small robot
- * mark at the bottom right; below 2 rem only the robot icon (initials and mark are unreadable there). Symbol and mark
+ * Agent accounts (`isAgent`, variant C of docs/ux-agenten.md 21): from 2 rem one initial (the first letter of the name;
+ * the mark would cover a second one) with a small robot mark at the bottom right; below 2 rem only the robot icon (initials and mark are unreadable there). Symbol and mark
  * are decorative; the accessible name is "<name>, Agent".
  */
 const props = withDefaults(defineProps<{
@@ -29,6 +29,8 @@ const sizes = { '2xs': '1.25rem', 'xs': '1.5rem', 'sm': '2rem', 'md': '2.5rem', 
 
 /** Below 2 rem the mark would be a smudge: there the robot icon replaces the initials. */
 const small = computed(() => props.size === '2xs' || props.size === 'xs')
+/** Agents show one letter: the mark sits where a second initial would be. */
+const agentInitial = computed(() => Array.from(initials(props.name))[0] ?? '')
 const label = computed(() => (props.isAgent && props.name ? t('agents.avatarLabel', { name: props.name }) : props.name ?? undefined))
 </script>
 
@@ -40,7 +42,7 @@ const label = computed(() => (props.isAgent && props.name ? t('agents.avatarLabe
   >
     <wa-avatar
       :image="small ? undefined : src || undefined"
-      :initials="small ? undefined : initials(name) || undefined"
+      :initials="small ? undefined : agentInitial || undefined"
       :label="label"
       :style="{ '--size': sizes[size] }"
     >

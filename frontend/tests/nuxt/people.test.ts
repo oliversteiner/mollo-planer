@@ -33,11 +33,11 @@ describe('UserAvatar', () => {
 describe('UserAvatar of an agent account (variant C)', () => {
   const sizes = { '2xs': '1.25rem', 'xs': '1.5rem', 'sm': '2rem', 'md': '2.5rem', '3xl': '4rem' } as const
 
-  it.each(['sm', 'md', '3xl'] as const)('from 2 rem (%s): initials and a robot mark, name "<name>, agent" (de: Agent)', async (size) => {
+  it.each(['sm', 'md', '3xl'] as const)('from 2 rem (%s): one initial and a robot mark, name "<name>, agent" (de: Agent)', async (size) => {
     const avatar = await mountSuspended(UserAvatar, { props: { name: 'Bob Lang', isAgent: true, size } })
     const inner = avatar.find('wa-avatar').element as Avatar
 
-    expect(inner.initials).toBe('BL')
+    expect(inner.initials).toBe('B')
     expect(inner.label).toMatch(/^Bob Lang, agent$/i)
     expect(avatar.find('.user-avatar-agent-mark').exists()).toBe(true)
     expect(avatar.find('.user-avatar-agent-mark').attributes('aria-hidden')).toBe('true')
@@ -56,11 +56,12 @@ describe('UserAvatar of an agent account (variant C)', () => {
     expect(avatar.find('.user-avatar-agent-mark').exists()).toBe(false)
   })
 
-  it.each(['2xs', 'xs', 'sm', 'md', '3xl'] as const)('a person (%s) has no mark and keeps the plain name', async (size) => {
+  it.each(['2xs', 'xs', 'sm', 'md', '3xl'] as const)('a person (%s) has no mark and keeps the plain name and two initials', async (size) => {
     const avatar = await mountSuspended(UserAvatar, { props: { name: 'Bob Lang', isAgent: false, size } })
 
     expect(avatar.element.tagName).toBe('WA-AVATAR')
     expect((avatar.element as Avatar).label).toBe('Bob Lang')
+    expect((avatar.element as Avatar).initials).toBe('BL')
     expect(avatar.find('.user-avatar-agent-mark').exists()).toBe(false)
   })
 
