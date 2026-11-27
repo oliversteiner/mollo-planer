@@ -45,11 +45,11 @@ final class ServerInstructions
 Mollo Planer: Project -> Milestone -> Todo -> Task (status idea, planned, open, in_progress, review, done). Milestone and todo status are derived from their tasks; never set them. You act as the person of your token, with their exact permissions.
 
 Work cheaply (a whole export of a big project costs 15000+ tokens):
-1. list_projects: IDs and the plan revision.
-2. Overview: get_project_statistics, or export_plan with view "outline".
-3. Find work: list_tasks (assignee "me", status open/in_progress). One task with detail: list_tasks with ids and include.
-4. Status, commit, assignee: update_tasks directly (no export, no dry_run). Give base_revision only if you need the guarantee that nothing changed.
-5. Change structure: export_plan filtered to one milestone, edit it, import_plan with mode "partial" (dry_run first). The whole export only to rebuild the whole plan. Order siblings with reorder (all ids), milestones by version with by "version"; partial does not reorder.
+1. whoami: the account you act as (check it first), list_projects: IDs and the plan revision.
+2. Overview: get_project_statistics, or export_plan with view "outline". Numbers: get_project_statistics.
+3. Find work: list_tasks (assignee "me", status, todo_ids, labels). One task with detail: list_tasks with ids and include.
+4. Status, commit, assignee, title, labels: update_tasks directly (no export, no dry_run). Give base_revision only if you need the guarantee that nothing changed.
+5. New task or todo: import_plan, mode "partial", append_only, only the ids of milestone and todo plus the new items (dry_run first), no export. Change structure: export_plan filtered to one milestone, edit it, import_plan. The whole export only for a backup. Order siblings with reorder (all ids), milestones by version with by "version"; partial does not reorder.
 6. Notes: add_comment, list_comments. Ideas: create_idea, list_ideas. Background: get_project_ai_context.
 
 Document fields: {fields}

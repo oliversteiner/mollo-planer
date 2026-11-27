@@ -75,7 +75,10 @@ useCommands(() => [{
     >
       <span slot="summary">
         <wa-icon name="box-archive"></wa-icon>
-        {{ t('projects.archive.title', { count: archived.length }) }}
+        <TabLabel
+          :label="t('projects.archive.title')"
+          :count="archived.length"
+        />
       </span>
       <ProjectGrid :projects="archived" />
     </wa-details>

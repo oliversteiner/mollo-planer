@@ -111,8 +111,9 @@
             <section id="werkzeuge" class="guide-section">
               <p class="section-index">03 <span>FÄHIGKEITEN</span></p>
               <h2>Nutze das passende Werkzeug.</h2>
-              <p>Beim Verbinden stellt der Server seine Instruktionen und vierzehn Werkzeuge bereit. Starte mit <code>list_projects</code>, um Projekt-ID, Rolle und Revision zu sehen; ergänze bei Bedarf <code>include_rights: true</code> oder <code>include_members: true</code>. Lies nur die Informationen, die du für den Auftrag brauchst.</p>
+              <p>Beim Verbinden stellt der Server seine Instruktionen und fünfzehn Werkzeuge bereit. Starte mit <code>list_projects</code>, um Projekt-ID, Rolle und Revision zu sehen; ergänze bei Bedarf <code>include_rights: true</code> oder <code>include_members: true</code>. Lies nur die Informationen, die du für den Auftrag brauchst.</p>
               <div class="tool-list">
+                <div><code>whoami</code><span>Das Konto, als das du arbeitest (zuerst prüfen)</span></div>
                 <div><code>list_projects</code><span>Sichtbare Projekte und Rechte</span></div>
                 <div><code>list_templates</code><span>Verfügbare Projektvorlagen</span></div>
                 <div><code>list_users</code><span>Personen, soweit dein Recht es erlaubt</span></div>
@@ -130,10 +131,10 @@
               <h3>Günstig arbeiten</h3>
               <p>Ein ganzer Export eines grossen Projekts kostet rund 20 000 Tokens, und die meisten Tasks darin sind meist erledigt. Lies in Stufen:</p>
               <ol class="workflow">
-                <li><span>1</span><p><strong>Überblick.</strong> <code>list_projects</code> (IDs, Revision), dann <code>get_project_statistics</code> oder <code>export_plan</code> mit <code>view: "outline"</code> (rund 1 000 Tokens).</p></li>
-                <li><span>2</span><p><strong>Arbeit finden.</strong> <code>list_tasks</code> mit <code>assignee: "me"</code> und <code>status: ["open", "in_progress"]</code>. Eine Task mit allem: <code>list_tasks</code> mit <code>ids</code> und <code>include: ["description", "comments"]</code>.</p></li>
-                <li><span>3</span><p><strong>Fortschritt melden.</strong> <code>update_tasks</code> direkt: kein Export, kein Trockenlauf vorher. <code>base_revision</code> ist optional.</p></li>
-                <li><span>4</span><p><strong>Struktur ändern.</strong> <code>export_plan</code> für einen Milestone, bearbeiten, <code>import_plan</code> mit <code>mode: "partial"</code>. Den ganzen Export nur, um den ganzen Plan umzubauen.</p></li>
+                <li><span>1</span><p><strong>Überblick.</strong> <code>whoami</code> (welches Konto), <code>list_projects</code> (IDs, Revision), dann <code>get_project_statistics</code> oder <code>export_plan</code> mit <code>view: "outline"</code> (rund 1 000 Tokens).</p></li>
+                <li><span>2</span><p><strong>Arbeit finden.</strong> <code>list_tasks</code> mit <code>assignee: "me"</code> und <code>status: ["open", "in_progress"]</code>; eingrenzen mit <code>todo_ids</code> oder <code>labels</code>. Eine Task mit allem: <code>list_tasks</code> mit <code>ids</code> und <code>include: ["description", "comments"]</code>.</p></li>
+                <li><span>3</span><p><strong>Fortschritt melden.</strong> <code>update_tasks</code> direkt (Status, Commit, Zuweisung, Titel, Labels): kein Export, kein Trockenlauf vorher. <code>base_revision</code> ist optional.</p></li>
+                <li><span>4</span><p><strong>Task oder ToDo anlegen.</strong> <code>import_plan</code> mit <code>mode: "partial"</code> und <code>append_only: true</code>: nur die IDs von Milestone und ToDo plus die neuen Einträge, kein Export, zuerst <code>dry_run</code>. <strong>Struktur ändern.</strong> <code>export_plan</code> für einen Milestone, bearbeiten, <code>import_plan</code> mit <code>mode: "partial"</code>. Den ganzen Export nur, um den ganzen Plan umzubauen.</p></li>
                 <li><span>5</span><p><strong>Ordnen.</strong> <code>partial</code> ordnet nicht im ganzen Projekt um. <code>reorder</code> ordnet Geschwister (alle IDs eines Elternteils: Milestones, die ToDos eines Milestones, die Tasks eines ToDos); <code>reorder</code> mit <code>by: "version"</code> ordnet die Milestones nach Version (zuerst <code>dry_run: true</code>). In ein anderes ToDo oder einen anderen Milestone verschieben bleibt bei <code>import_plan</code>.</p></li>
               </ol>
               <p>Dieselben Rezepte als reines Markdown: <a href="/mcp/llms.txt">/mcp/llms.txt</a>.</p>

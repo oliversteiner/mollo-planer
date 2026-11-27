@@ -16,7 +16,7 @@ class UpdateTasks extends Tool
 
     public function description(): string
     {
-        return 'Sets status, commit, assigneeEmail of tasks, atomically, no export needed. Omitted fields stay, null clears. Optional base_revision: abort if the plan changed since.';
+        return 'Sets status, commit, assigneeEmail, title, labels of tasks, atomically, no export needed. Omitted fields stay, null clears. Optional base_revision: abort if the plan changed since.';
     }
 
     public function schema(): array
@@ -29,6 +29,8 @@ class UpdateTasks extends Tool
                 'status' => Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']),
                 'commit' => Schema::string('Hash, "none" or null to clear.'),
                 'assigneeEmail' => Schema::string('Member email or null.'),
+                'title' => Schema::string('2-160 characters.'),
+                'labels' => Schema::list(Schema::string(), 'All label keys of the task (existing labels only).'),
             ], null, ['id']), 'Tasks to update (max 500).'),
             'dry_run' => Schema::boolean('Preview only.'),
         ], ['project_id', 'tasks']);
@@ -49,11 +51,14 @@ class UpdateTasks extends Tool
                 'tasks.*.status' => ['sometimes', 'in:idea,planned,open,in_progress,review,done'],
                 'tasks.*.commit' => ['sometimes', 'nullable', 'string'],
                 'tasks.*.assigneeEmail' => ['sometimes', 'nullable', 'string'],
+                'tasks.*.title' => ['sometimes', 'string'],
+                'tasks.*.labels' => ['sometimes', 'array'],
+                'tasks.*.labels.*' => ['string'],
                 'dry_run' => ['sometimes', 'boolean'],
             ],
             [
                 'project_id.required' => 'Give project_id (from list_projects).',
-                'tasks.required' => 'Give tasks: [{ id, status?, commit?, assigneeEmail? }].',
+                'tasks.required' => 'Give tasks: [{ id, status?, commit?, assigneeEmail?, title?, labels? }].',
                 'tasks.*.status.in' => 'status must be idea, planned, open, in_progress, review or done.',
             ],
         );

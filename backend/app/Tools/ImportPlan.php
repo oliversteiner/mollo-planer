@@ -36,6 +36,7 @@ class ImportPlan extends Tool
         return Schema::input([
             'project_id' => Schema::string('Target project; omit to create one.'),
             'plan' => Schema::object(null, 'planer-v2 document. Fields per level and limits: see the instructions of the server, which also link the JSON schema. Unknown fields are refused.'),
+            'document' => Schema::object(null, 'Alias of plan (an export_plan document goes back as it is). Not both.'),
             'mode' => Schema::string('"full" (default) or "partial".', ['full', 'partial']),
             'dry_run' => Schema::boolean('Validate only, write nothing.'),
             'notify_assignees' => Schema::boolean('Send assignment mails. Default false.'),
@@ -44,7 +45,7 @@ class ImportPlan extends Tool
             'append_only' => Schema::boolean('Refuse changes to existing items.'),
             'base_revision' => Schema::integer('Optional: abort if the plan is newer.'),
             'include_document' => Schema::boolean('Return the document too. Default false.'),
-        ], ['plan']);
+        ]);
     }
 
     public function handle(User $actor, array $arguments): ToolResult
@@ -53,7 +54,8 @@ class ImportPlan extends Tool
             $arguments,
             [
                 'project_id' => ['sometimes', 'nullable'],
-                'plan' => ['required'],
+                'plan' => ['required_without:document'],
+                'document' => ['sometimes', 'prohibits:plan'],
                 'mode' => ['sometimes', 'in:full,partial'],
                 'dry_run' => ['sometimes', 'boolean'],
                 'notify_assignees' => ['sometimes', 'boolean'],
@@ -64,11 +66,12 @@ class ImportPlan extends Tool
                 'include_document' => ['sometimes', 'boolean'],
             ],
             [
-                'plan.required' => 'Give plan (planer-v2 document).',
+                'plan.required_without' => 'Give plan (planer-v2 document), or document.',
+                'document.prohibits' => 'Give plan or document, not both.',
                 'mode.in' => 'mode must be "full" or "partial".',
             ],
         );
-        $plan = $validated['plan'];
+        $plan = $validated['plan'] ?? $validated['document'];
         $includeDocument = (bool) ($validated['include_document'] ?? false);
 
         $data = $this->graphql($actor, self::MUTATION, [
