@@ -3,16 +3,18 @@
 namespace Tests\Feature\GraphQL;
 
 use App\Core\Pdf\LetterheadRejected;
+use App\Core\Pdf\PdfFonts;
 use App\Core\Pdf\PdfFrameSettings;
 use App\Models\BillingSetting;
 use App\Models\Document;
 use App\Services\Billing\InvoicePdf;
 use App\Services\Billing\InvoiceSheet;
 use App\Services\DocumentPdf;
+use Fpdf\Fpdf;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
-use Mpdf\Mpdf;
 
 /**
  * Billing, part F (Auftrag 39): the letterhead of the PDF frame, its checks, where it lies, the layout and the option
@@ -41,21 +43,21 @@ class BillingLetterheadTest extends GraphQLTestCase
     }
 
     /**
-     * A letterhead made with mPDF: each page a square in its own colour.
+     * A letterhead made with FPDF: each page a square in its own colour.
      *
      * @param  list<array{int, int, int}>  $marks  one per page
      */
     private function letterhead(array $marks = [self::MARK_FIRST], string $format = 'A4', string $name = 'briefpapier.pdf'): UploadedFile
     {
-        $mpdf = new Mpdf(['tempDir' => storage_path('framework/cache/mpdf'), 'format' => $format]);
+        $pdf = new Fpdf('P', 'mm', $format);
 
         foreach ($marks as $mark) {
-            $mpdf->AddPage();
-            $mpdf->SetFillColor(...$mark);
-            $mpdf->Rect(10, 10, 20, 20, 'F');
+            $pdf->AddPage();
+            $pdf->SetFillColor(...$mark);
+            $pdf->Rect(10, 10, 20, 20, 'F');
         }
 
-        return UploadedFile::fake()->createWithContent($name, $mpdf->OutputBinaryData());
+        return UploadedFile::fake()->createWithContent($name, $pdf->Output('S'));
     }
 
     /** A PDF 1.5 whose cross-reference is a stream: the free FPDI cannot read it. */
@@ -97,8 +99,9 @@ class BillingLetterheadTest extends GraphQLTestCase
     }
 
     /**
-     * For each page of a PDF made by mPDF: the last fill colour of every template (imported page) it draws. A page of
-     * the letterhead shows as its mark, the payment part as black, a page without a template as an empty list.
+     * For each page of a PDF of the frame: the last fill colour of every template (imported page) it draws. A page of
+     * the letterhead shows as its mark, the payment part as black; every letter page is a template of its own too (the
+     * page laid out by dompdf), the watermark another one.
      *
      * @return list<list<string>>
      */
@@ -130,7 +133,20 @@ class BillingLetterheadTest extends GraphQLTestCase
         }, $pages[1]);
     }
 
-    /** A mark as mPDF writes the fill colour. */
+    /**
+     * Only the marks of the letterhead on a page, in the order drawn.
+     *
+     * @param  list<string>  $page
+     * @return list<string>
+     */
+    private static function marks(array $page): array
+    {
+        $marks = array_map(self::colour(...), [self::MARK_FIRST, self::MARK_FOLLOWING, self::MARK_THIRD]);
+
+        return array_values(array_filter($page, fn (string $colour): bool => in_array($colour, $marks, true)));
+    }
+
+    /** A mark as FPDF writes the fill colour. */
     private static function colour(array $mark): string
     {
         return implode(' ', array_map(fn (int $value): string => sprintf('%.3F', $value / 255), $mark));
@@ -197,10 +213,11 @@ class BillingLetterheadTest extends GraphQLTestCase
         $payment = array_pop($pages);
 
         $this->assertGreaterThanOrEqual(2, count($pages), 'The sample with 30 items has more than one letter page.');
-        $this->assertSame([self::colour(self::MARK_FIRST)], $pages[0]);
+        $this->assertSame([self::colour(self::MARK_FIRST)], self::marks($pages[0]));
+        $this->assertCount(2, $pages[0], 'Letterhead under, the letter page on top.');
 
         foreach (array_slice($pages, 1) as $page) {
-            $this->assertSame([self::colour(self::MARK_FOLLOWING)], $page);
+            $this->assertSame([self::colour(self::MARK_FOLLOWING)], self::marks($page));
         }
 
         $this->assertNotContains(self::colour(self::MARK_FIRST), $payment);
@@ -214,8 +231,27 @@ class BillingLetterheadTest extends GraphQLTestCase
 
         $pages = self::templatesPerPage(app(InvoicePdf::class)->renderSheet(InvoiceSheet::sample('de', 30, 3)));
 
-        $this->assertSame([self::colour(self::MARK_FIRST)], $pages[0]);
-        $this->assertSame([], $pages[1], 'Following pages stay plain.');
+        $this->assertSame([self::colour(self::MARK_FIRST)], self::marks($pages[0]));
+        $this->assertSame([], self::marks($pages[1]), 'Following pages stay plain.');
+        $this->assertCount(1, $pages[1], 'Only the letter page itself.');
+    }
+
+    public function test_a_draft_carries_the_watermark_on_every_page_also_on_the_payment_part(): void
+    {
+        $this->upload($this->letterhead([self::MARK_FIRST, self::MARK_FOLLOWING]));
+        $issued = InvoiceSheet::sample('de', 30, 3);
+        $draft = new InvoiceSheet(...array_merge(get_object_vars($issued), ['draft' => true]));
+
+        $plain = self::templatesPerPage(app(InvoicePdf::class)->renderSheet($issued));
+        $marked = self::templatesPerPage(app(InvoicePdf::class)->renderSheet($draft));
+
+        $this->assertSame(count($plain), count($marked));
+
+        foreach ($marked as $index => $page) {
+            $this->assertCount(count($plain[$index]) + 1, $page, 'Page '.($index + 1).' has the watermark on top.');
+        }
+
+        $this->assertCount(2, end($marked), 'A draft must not be paid: the watermark lies over the payment part too (decision Oliver 27.11.).');
     }
 
     public function test_documents_take_the_letterhead_only_when_asked(): void
@@ -226,12 +262,25 @@ class BillingLetterheadTest extends GraphQLTestCase
         $without = self::templatesPerPage(app(DocumentPdf::class)->render($document->fresh()));
         $with = self::templatesPerPage(app(DocumentPdf::class)->render($document->fresh(), withLetterhead: true));
 
-        $this->assertSame([[]], $without);
-        $this->assertSame([[self::colour(self::MARK_FIRST)]], $with);
+        $this->assertSame([[]], array_map(self::marks(...), $without));
+        $this->assertSame([[self::colour(self::MARK_FIRST)]], array_map(self::marks(...), $with));
 
         // Through the API, as a member without billing.manage.
         $this->as('member')->gql('mutation ($id: ID!) { exportDocumentPdf(id: $id, withLetterhead: true) { mimeType } }', ['id' => $document->id])
             ->assertJsonMissingPath('errors');
+    }
+
+    public function test_a_font_of_the_time_with_mpdf_falls_back_to_dejavu_sans(): void
+    {
+        foreach (['freesans', 'freeserif', 'dejavusanscondensed'] as $old) {
+            (new PdfFrameSettings(font: 'dejavuserif'))->save();
+            DB::table('app_settings')->where('key', PdfFrameSettings::KEY)
+                ->update(['value' => json_encode(['font' => $old])]);
+
+            $this->assertSame('dejavusans', PdfFrameSettings::load()->font, $old.' is no longer offered (Auftrag 81 B).');
+        }
+
+        $this->assertSame(['dejavusans', 'dejavuserif', 'dejavusansmono'], array_keys(PdfFonts::ALL));
     }
 
     public function test_the_layout_is_kept_and_checked(): void

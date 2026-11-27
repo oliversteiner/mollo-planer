@@ -5,12 +5,12 @@ namespace App\Core\Pdf;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Mpdf\Mpdf;
+use setasign\Fpdi\Fpdi;
 use Throwable;
 
 /**
  * Checks and keeps an uploaded letterhead (Auftrag 39 F): a PDF of at most 5 MB, one or two pages, A4 portrait, and
- * readable by FPDI, the way mPDF will read it. Nothing is converted on the server. The file goes to the private disk;
+ * readable by FPDI, the way the PDF frame will read it. Nothing is converted on the server. The file goes to the private disk;
  * the one it replaces is removed (PDFs made before keep their own copy of the look).
  */
 final class LetterheadUpload
@@ -71,12 +71,12 @@ final class LetterheadUpload
     public static function check(string $path): int
     {
         try {
-            $mpdf = new Mpdf(['tempDir' => storage_path('framework/cache/mpdf')]);
-            $pages = $mpdf->setSourceFile($path);
+            $fpdi = new Fpdi;
+            $pages = $fpdi->setSourceFile($path);
             $sizes = [];
 
             for ($page = 1; $page <= min($pages, 2); $page++) {
-                $sizes[] = $mpdf->getTemplateSize($mpdf->importPage($page));
+                $sizes[] = $fpdi->getTemplateSize($fpdi->importPage($page));
             }
         } catch (Throwable) {
             throw new LetterheadRejected(LetterheadRejected::NOT_READABLE);
