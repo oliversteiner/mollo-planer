@@ -345,6 +345,7 @@ async function copyIdentifier(value: string): Promise<void> {
             <UserAvatar
               :name="user.name"
               :src="user.avatarUrl"
+              :is-agent="user.isAgent"
               size="md"
             />
             <span class="users-text">

@@ -90,6 +90,7 @@ async function saveEdit(): Promise<void> {
         <UserAvatar
           :name="comment.author?.name ?? t('comments.deletedAuthor')"
           :src="comment.author?.avatarUrl"
+          :is-agent="comment.author?.isAgent"
           size="sm"
         />
         <div class="comment-main">
