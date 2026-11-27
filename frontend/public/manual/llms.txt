@@ -6,3 +6,4 @@ What each function does, its limits, the tools of the MCP server and prompts to 
 - [Create and edit a task](task-anlegen.md): task-anlegen.html
 - [Change tasks over MCP](tasks-ueber-mcp.md): tasks-ueber-mcp.html
 - [Create an agent and set up its access](agent-anlegen.md): agent-anlegen.html
+- [Writing rules](anhang-schreibregeln.md): anhang-schreibregeln.html

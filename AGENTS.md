@@ -45,6 +45,7 @@ Werkzeug für `planer-v2` im Ordner `tools/planer/` (Node 20 oder neuer, keine A
 Frontend im Ordner `frontend/` (Node 24 aus nvm, siehe `frontend/.nvmrc`):
 - `npm run dev` (http://localhost:3000, im WLAN erreichbar; die Backend-Adresse steht in `frontend/.env` als `NUXT_PUBLIC_API_BASE`)
 - `npm run lint`, `npm run typecheck`, `npm test` (Vitest: `tests/unit` ohne Nuxt, `tests/nuxt` für Komponenten und Middleware)
+- `npm run pro:check` (keine **neue** Nutzung von Web Awesome Pro oder Font Awesome Pro; erlaubt ist die freie Ausgabe plus die feste, nur kürzer werdende Ausnahmeliste in `scripts/check-no-new-pro.mjs`; Liste der freien Ausgabe: `scripts/webawesome-free.json`) – läuft auch in der CI.
 - `npm run icons:check` (keine Pro-Dateien) und `npm run terms:check` (keine Domains, Adressen, Anbieter oder Angaben zum Server der eigenen Installation; die Liste kommt aus der Umgebungsvariable `PRIVATE_TERMS`, sie steht nicht im Repo; ohne sie nur eine Warnung). Beide laufen auch in der CI und gehören vor jeden Push.
 - `npm run codegen` (Typen aus `graphql/schema.graphql` und den `graphql(...)`-Abfragen)
 - `npm run build` (statische Dateien in `.output/public`)

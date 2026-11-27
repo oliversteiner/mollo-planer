@@ -7,6 +7,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.5",
+        "ext-bcmath": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-pdo_mysql": "*",
+        "ext-sodium": "*",
         "anthropic-ai/sdk": "^1.6",
         "fpdf/fpdf": "^1.86",
         "intervention/image": "^4.0",
@@ -22,6 +29,7 @@
         "sprain/swiss-qr-bill": "^5.5"
     },
     "require-dev": {
+        "ext-pdo_sqlite": "*",
         "brianium/paratest": "^7.20",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",

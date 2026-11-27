@@ -90,17 +90,21 @@ const all = computed(() => visibleCommands(
   }), ...projects.value],
   can
 ))
-/** Zen entries first: for "zen" and its relatives, and in Zen with an empty input (leave and mood at the top). */
+/** Zen entries first: for "zen" and its relatives, and in Zen always (leave and mood stand in a row of their own). */
 const zenIds = computed(() => (mode.value !== 'full' ? ['zen-leave', 'mood'] : ['zen-start', 'mood']))
+const inZen = computed(() => mode.value !== 'full')
 const shown = computed(() => {
   const found = filterCommands(all.value, query.value)
-  const first = isZenQuery(query.value) || (mode.value !== 'full' && query.value.trim() === '')
+  const first = isZenQuery(query.value) || inZen.value
 
   return withFirst(found, first ? zenIds.value : []).slice(0, 50)
 })
 
+/** In Zen «Zen-Ansicht verlassen» and «Stimmung» are a row above the actions, side by side (Auftrag 66 D); they are first in `shown`, so the arrow keys reach them first. */
+const zenRow = computed(() => (inZen.value ? shown.value.filter(command => zenIds.value.includes(command.id)) : []))
+
 const groups = computed(() => (['action', 'page', 'project'] as const)
-  .map(group => ({ group, items: shown.value.filter(command => command.group === group) }))
+  .map(group => ({ group, items: shown.value.filter(command => command.group === group && !zenRow.value.includes(command)) }))
   .filter(entry => entry.items.length > 0))
 
 watch(shown, () => {
@@ -179,6 +183,24 @@ watch(active, async () => {
         >
           {{ t('command.none') }}
         </p>
+        <div
+          v-if="zenRow.length"
+          class="command-zen-row"
+        >
+          <div
+            v-for="command in zenRow"
+            :id="`command-${command.id}`"
+            :key="command.id"
+            class="command-item command-zen-item"
+            role="option"
+            :aria-selected="indexOf(command) === active"
+            @click="run(command)"
+            @mousemove="active = indexOf(command)"
+          >
+            <wa-icon :name="command.icon ?? 'angle-right'"></wa-icon>
+            <span>{{ command.label }}</span>
+          </div>
+        </div>
         <template
           v-for="entry in groups"
           :key="entry.group"
@@ -227,6 +249,17 @@ watch(active, async () => {
   padding: var(--wa-space-xs) var(--wa-space-s);
   border-radius: var(--wa-border-radius-m);
   cursor: pointer;
+}
+
+.command-zen-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wa-space-xs);
+  margin-block-start: var(--wa-space-xs);
+}
+
+.command-zen-item {
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-neutral-border-normal);
 }
 
 .command-item[aria-selected='true'] {

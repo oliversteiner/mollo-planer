@@ -26,10 +26,8 @@ export default defineNuxtConfig({
   // the hosting (a web host) runs PHP only. All data comes from the API.
   ssr: false,
 
-  devtools: {
-    // Off for the pictures of the manual (playwright.manual.config.ts), so its bar is not in them.
-    enabled: process.env.NUXT_DEVTOOLS !== 'off'
-  },
+  // Off for good (Entscheid Oliver, 26.11.2026): nobody uses it, and its bar covers the middle of the pictures.
+  devtools: { enabled: false },
 
   app: {
     head: {
