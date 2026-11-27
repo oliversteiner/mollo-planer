@@ -56,7 +56,7 @@
     },
     {
         "name": "export_plan",
-        "description": "Exports a project as planer-v2 JSON (revision, m-/t-/k- IDs). On large plans use view \"outline\" or filters; outline and filtered results are excerpts.",
+        "description": "Exports a project as planer-v2 JSON (revision, m-/t-/k- IDs). Unfiltered it is large: prefer view \"outline\", milestone_ids or list_tasks; those results are excerpts.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -182,6 +182,10 @@
                     "type": "object",
                     "description": "planer-v2 document. Fields per level and limits: see the instructions of the server, which also link the JSON schema. Unknown fields are refused."
                 },
+                "document": {
+                    "type": "object",
+                    "description": "Alias of plan (an export_plan document goes back as it is). Not both."
+                },
                 "mode": {
                     "type": "string",
                     "enum": [
@@ -218,10 +222,7 @@
                     "type": "boolean",
                     "description": "Return the document too. Default false."
                 }
-            },
-            "required": [
-                "plan"
-            ]
+            }
         },
         "annotations": {
             "title": "Tool Adapter"
@@ -363,7 +364,7 @@
     },
     {
         "name": "list_tasks",
-        "description": "Lists tasks flat and short, with the plan revision. Filter by status, assignee, milestone, title or ids; include adds detail (use with ids).",
+        "description": "Lists tasks flat and short, with the plan revision. Filter by status, assignee, milestone, todo, label, title or ids; include adds detail (use with ids).",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -396,6 +397,20 @@
                         "type": "string"
                     },
                     "description": "m-<id> or number."
+                },
+                "todo_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "t-<id> or number."
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Label keys; tasks with at least one of them."
                 },
                 "query": {
                     "type": "string",
@@ -532,7 +547,7 @@
     },
     {
         "name": "update_tasks",
-        "description": "Sets status, commit, assigneeEmail of tasks, atomically, no export needed. Omitted fields stay, null clears. Optional base_revision: abort if the plan changed since.",
+        "description": "Sets status, commit, assigneeEmail, title, labels of tasks, atomically, no export needed. Omitted fields stay, null clears. Optional base_revision: abort if the plan changed since.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -571,6 +586,17 @@
                             "assigneeEmail": {
                                 "type": "string",
                                 "description": "Member email or null."
+                            },
+                            "title": {
+                                "type": "string",
+                                "description": "2-160 characters."
+                            },
+                            "labels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "All label keys of the task (existing labels only)."
                             }
                         },
                         "required": [
@@ -591,6 +617,18 @@
         },
         "annotations": {
             "title": "Tool Adapter"
+        }
+    },
+    {
+        "name": "whoami",
+        "description": "The account you act as: id, name, email, is_agent.",
+        "inputSchema": {
+            "type": "object",
+            "properties": []
+        },
+        "annotations": {
+            "title": "Tool Adapter",
+            "readOnlyHint": true
         }
     }
 ]

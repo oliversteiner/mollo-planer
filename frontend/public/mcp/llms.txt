@@ -8,22 +8,25 @@ Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over P
 - Claude Code: project `.mcp.json`, `{"mcpServers":{"mollo-planer":{"type":"http","url":"<address>","headers":{"Authorization":"Bearer ${MOLLOPLANER_<NAME>_TOKEN}"}}}}`; the variable lives in the environment, never in the file.
 - Human guide: /mcp/ (English), /mcp/de/ (German)
 
-## Work cheaply (a whole export of a big plan is 15-25k tokens; most tasks are done)
+## Work cheaply (a whole plan is 15-25k tokens; most tasks are done)
 
-1. `list_projects`: IDs and plan revision (~0.3k).
-2. Overview: `get_project_statistics` or `export_plan` with `view: "outline"` (~1k).
-3. Find work: `list_tasks` with `assignee: "me"`, `status: ["open","in_progress"]` (30 rows ~2k).
-4. One task with detail: `list_tasks` with `ids: ["k-123"]`, `include: ["description","comments"]`.
-5. Status, commit, assignee: `update_tasks` directly. No export, no dry run. `base_revision` is optional.
-6. Change structure: `import_plan` with `mode: "partial"`, `dry_run: true` first. Existing items need only `id` + changed fields; labels, assignees from the project; `base_revision` guards.
-7. Order: `partial` never reorders across the project. `reorder` orders siblings (all ids of one parent); milestones by version: `reorder {project_id, by: "version"}` (`dry_run` first). Moving to another parent: `import_plan`.
+| Want | Call | Cost |
+|---|---|---|
+| who you are | `whoami` (check first) | ~0.1k |
+| projects, revision | `list_projects` | ~0.3k |
+| get an overview | `export_plan` `view: "outline"`, or `get_project_statistics` (numbers) | ~1k |
+| open work | `list_tasks` `assignee: "me"`, `status`, `todo_ids`, `labels` | ~2k |
+| one task | `list_tasks` `ids`, `include: ["description","comments"]` | small |
+| status, commit, title, labels | `update_tasks {tasks: [{id: "k-123", status: "done", commit: "abc1234"}]}`. No export, no dry run | small |
+| new task or todo | `import_plan` `mode: "partial"`, `append_only`, only the ids of milestone and todo plus `k-new-1`, `dry_run` first | ~0.2k |
+| other changes | `export_plan` for one milestone, edit, `import_plan` partial; `base_revision` guards | 2k |
+| re-order | `reorder` (all sibling ids, or `by: "version"`); to another parent: `import_plan` | small |
+| whole plan | `export_plan` unfiltered: a backup only | 15-25k |
 
 ## Recipes
 
-- Task done: `update_tasks {project_id, tasks: [{id: "k-123", status: "done", commit: "abc1234"}]}` (commit: hash, or "none")
-- New todo: `import_plan {project_id, mode: "partial", dry_run: true, plan: {format: "planer-v2", milestones: [{id: "m-12", todos: [{id: "t-new-1", title: "…"}]}]}}`, then without dry_run.
 - New project from a template: `list_templates`, then `import_plan` without project_id, with `template_id`; `dry_run` first.
-- Comment: `add_comment {task_id: "k-123", text: "..."}`
+- Comment: `add_comment {task_id: "k-123", text: "..."}`.
 
 ## Do not
 
@@ -36,6 +39,7 @@ Project planning (Project > Milestone > Todo > Task) for agents. JSON-RPC over P
 
 | Tool | Does | |
 |---|---|---|
+| whoami | the account you act as | read |
 | list_projects | projects, role, revision | read |
 | list_templates | project templates | read |
 | list_users | accounts, or project members | read |

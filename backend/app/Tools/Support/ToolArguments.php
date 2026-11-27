@@ -18,14 +18,31 @@ final class ToolArguments
     /** Parameters people try that a tool does not have, and what to do instead. */
     private const HINTS = [
         'export_plan' => [
-            'todo_ids' => 'export_plan filters by milestone_ids, version, task_status or include_released; for single tasks use list_tasks.',
+            'todo_ids' => 'export_plan filters by milestone_ids, version, task_status or include_released; for the tasks of one todo use list_tasks with todo_ids.',
             'task_ids' => 'export_plan filters by milestone_ids, version, task_status or include_released; for single tasks use list_tasks with ids.',
         ],
         'list_tasks' => [
-            'todo_ids' => 'list_tasks filters by status, assignee, milestone_ids, query or ids; for the tasks of one todo use export_plan with milestone_ids.',
             'assignee_email' => 'Use assignee: "me" or an email.',
         ],
     ];
+
+    /**
+     * A single value where a list is meant ("review" for ["review"]): the same call that would have failed works.
+     *
+     * @param  array<string, mixed>  $arguments
+     * @param  list<string>  $keys
+     * @return array<string, mixed>
+     */
+    public static function singleToList(array $arguments, array $keys): array
+    {
+        foreach ($keys as $key) {
+            if (isset($arguments[$key]) && is_string($arguments[$key])) {
+                $arguments[$key] = [$arguments[$key]];
+            }
+        }
+
+        return $arguments;
+    }
 
     /**
      * @param  array<string, mixed>  $arguments
