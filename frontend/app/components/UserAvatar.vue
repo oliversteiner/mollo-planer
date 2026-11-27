@@ -77,10 +77,14 @@ const label = computed(() => (props.isAgent && props.name ? t('agents.avatarLabe
 </template>
 
 <style scoped>
+/* Exactly the size of the avatar: in a stretching row (comments) the mark would otherwise slide down. */
 .user-avatar-agent {
   position: relative;
   display: inline-flex;
   flex: none;
+  align-self: flex-start;
+  inline-size: var(--size);
+  block-size: var(--size);
 }
 
 /* Mark: 48 % of the avatar, brand colour with the symbol in the colour of the surface, a rim in the colour behind. */
