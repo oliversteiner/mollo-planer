@@ -249,7 +249,7 @@
       "localeHint": "Benachrichtigungen zu diesem Projekt kommen in dieser Sprache."
     },
     "archive": {
-      "title": "Archiv ({count})"
+      "title": "Archiv"
     },
     "counts": "{milestones} Milestones · {todos} ToDo · {tasks} Tasks"
   },
@@ -540,7 +540,7 @@
     "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors"
   },
   "comments": {
-    "title": "Kommentare ({count})",
+    "title": "Kommentare",
     "none": "Noch keine Kommentare.",
     "deletedAuthor": "Gelöschte Person",
     "edited": "bearbeitet",
@@ -670,7 +670,7 @@
       "activityHint": "Nur zur Anzeige, ohne Rechte.",
       "noFunction": "Keine",
       "pending": {
-        "title": "Wartet auf Freigabe ({count})",
+        "title": "Wartet auf Freigabe",
         "verified": "E-Mail bestätigt",
         "unverified": "E-Mail unbestätigt",
         "approve": "Freigeben",

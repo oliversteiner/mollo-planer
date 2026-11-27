@@ -36,7 +36,9 @@ describe('TaskComments', () => {
       props: { taskId: '2', canComment: false, comments: [comment('1', null), comment('2', null, true)] }
     })
 
-    expect(view.findAll('wa-badge')).toHaveLength(1)
-    expect(view.find('wa-badge').text()).toBe('Agent')
+    // The first badge is the count pill of the title (UX rule 6); the mark of the agent is the second.
+    const badges = view.findAll('wa-badge').map(badge => badge.text())
+
+    expect(badges).toEqual(['2', 'Agent'])
   })
 })
