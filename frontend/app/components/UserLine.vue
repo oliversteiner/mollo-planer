@@ -3,6 +3,7 @@
 withDefaults(defineProps<{
   name: string
   src?: string | null
+  isAgent?: boolean | null
   /** Second line under the name. */
   description?: string
   /** Third line, for example the system role under the e-mail address. */
@@ -10,6 +11,7 @@ withDefaults(defineProps<{
   size?: '2xs' | 'xs' | 'sm' | 'md'
 }>(), {
   src: null,
+  isAgent: false,
   description: undefined,
   detail: undefined,
   size: 'sm'
@@ -21,6 +23,7 @@ withDefaults(defineProps<{
     <UserAvatar
       :name="name"
       :src="src"
+      :is-agent="isAgent"
       :size="size"
     />
     <span class="user-line-text">

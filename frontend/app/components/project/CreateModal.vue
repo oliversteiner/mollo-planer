@@ -33,6 +33,7 @@ interface NewMember {
   userId: string
   name: string
   avatarUrl?: string | null
+  isAgent?: boolean | null
   role: string
 }
 
@@ -69,6 +70,7 @@ const personGroups = computed(() => {
       id: candidate.id,
       name: candidate.name,
       avatarUrl: candidate.avatarUrl,
+      isAgent: candidate.isAgent,
       disabledReason: taken.has(candidate.id) ? t('projects.create.inList') : null
     }))
   }]
@@ -85,7 +87,7 @@ function addMember(): void {
   const candidate = candidatesResult.value?.memberCandidates.find(entry => entry.id === person.value)
 
   if (candidate) {
-    members.value = [...members.value, { userId: candidate.id, name: candidate.name, avatarUrl: candidate.avatarUrl, role: personRole.value || defaultRole.value }]
+    members.value = [...members.value, { userId: candidate.id, name: candidate.name, avatarUrl: candidate.avatarUrl, isAgent: candidate.isAgent, role: personRole.value || defaultRole.value }]
     person.value = null
   }
 }
@@ -250,6 +252,7 @@ watch(open, (isOpen) => {
               <UserAvatar
                 :name="member.name"
                 :src="member.avatarUrl"
+                :is-agent="member.isAgent"
                 size="xs"
               />
               <span class="create-member-name">{{ member.name }}</span>

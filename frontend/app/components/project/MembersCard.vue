@@ -169,6 +169,7 @@ async function confirmRemove(): Promise<void> {
         <UserAvatar
           :name="member.user.name"
           :src="member.user.avatarUrl"
+          :is-agent="member.user.isAgent"
           size="sm"
         />
         <span class="members-text">

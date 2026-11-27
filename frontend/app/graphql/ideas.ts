@@ -13,7 +13,7 @@ export const ideasQuery = graphql(`
         adoptedAt
         viewerCanUpdate
         project { id name }
-        author { id name }
+        author { id name isAgent }
         todos { id title project { id } }
       }
     }

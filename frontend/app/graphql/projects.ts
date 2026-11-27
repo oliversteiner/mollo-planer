@@ -11,7 +11,7 @@ export const projectsQuery = graphql(`
       counts { milestones todos tasks }
       members {
         role { key names { de en } }
-        user { id name avatarUrl }
+        user { id name avatarUrl isAgent }
       }
     }
   }
