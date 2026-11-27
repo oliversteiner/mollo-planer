@@ -206,6 +206,8 @@ final class PdfFrame
         $options->setDefaultFont('DejaVu Sans');
         $options->setDefaultPaperSize('a4');
         $options->setDefaultMediaType('print');
+        // Lines as tight as with mPDF before (81 B: the sample invoice keeps its number of pages); 1.1 is the default.
+        $options->setFontHeightRatio(1.0);
         $options->setTempDir($dir);
         $options->setFontCache($dir);
         $options->setChroot([$dir]);

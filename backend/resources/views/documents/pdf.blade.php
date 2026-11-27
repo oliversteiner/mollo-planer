@@ -14,6 +14,8 @@
     table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; }
     th, td { border: 0.5pt solid #999; padding: 3pt 5pt; text-align: left; vertical-align: top; }
     th { background-color: #eee; }
+    {{-- Tables as tight as with mPDF before (81 B). --}}
+    th, td { line-height: 1.2; }
     th[align="right"], td[align="right"] { text-align: right; }
     th[align="center"], td[align="center"] { text-align: center; }
     pre { background-color: #f3f3f3; padding: 6pt; font-size: 8.5pt; margin: 6pt 0 10pt; }

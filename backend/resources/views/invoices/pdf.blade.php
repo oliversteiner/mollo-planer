@@ -12,6 +12,8 @@
     .items th { text-align: left; font-size: 9pt; color: #555; border-bottom: 0.5pt solid #999; padding: 1.5mm 0; }
     .items th.amount, .items td.amount { text-align: right; width: 32mm; white-space: nowrap; }
     .items td { padding: 1.8mm 0; vertical-align: top; border-bottom: 0.3pt solid #ddd; }
+    {{-- Tables as tight as with mPDF before (81 B; with the font height ratio 1.0 of the PDF frame). --}}
+    .facts td, .items th, .items td, div.item-title, div.item-description { line-height: 1.2; }
     .items tr.project td { font-weight: bold; padding-top: 4mm; border-bottom: 0.5pt solid #999; }
     div.item-title { font-weight: bold; }
     div.item-description { color: #444; font-size: 8pt; font-style: italic; margin-top: 0.8mm; }
