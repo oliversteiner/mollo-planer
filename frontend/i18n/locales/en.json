@@ -249,7 +249,7 @@
       "localeHint": "Notifications about this project are sent in this language."
     },
     "archive": {
-      "title": "Archive ({count})"
+      "title": "Archive"
     },
     "counts": "{milestones} milestones · {todos} todos · {tasks} tasks"
   },
@@ -481,8 +481,7 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "moveTo": "Move to “{column}”",
-    "comments": "comments",
-    "doubleClickToEdit": "Double-click to edit"
+    "comments": "comments"
   },
   "task": {
     "create": "New task",
@@ -536,12 +535,15 @@
     "joined": "{name} is a member now (role {role}).",
     "commentsSummary": "No comments | 1 comment | {count} comments"
   },
+  "agents": {
+    "avatarLabel": "{name}, agent"
+  },
   "agent": {
     "badge": "Agent",
     "hint": "Agent account: no access to the interface, only through a token for the connector"
   },
   "comments": {
-    "title": "Comments ({count})",
+    "title": "Comments",
     "none": "No comments yet.",
     "deletedAuthor": "Deleted person",
     "edited": "edited",
@@ -671,7 +673,7 @@
       "activityHint": "Display only, no rights.",
       "noFunction": "None",
       "pending": {
-        "title": "Waiting for approval ({count})",
+        "title": "Waiting for approval",
         "verified": "Email confirmed",
         "unverified": "Email not confirmed",
         "approve": "Approve",
@@ -2299,10 +2301,10 @@
   },
   "zen": {
     "menu": "Menu",
-    "enter": "Calm view",
-    "leave": "Leave zen",
+    "enter": "Zen view",
+    "leave": "Leave zen view",
     "leaveFocus": "Back",
-    "announceOn": "Calm view on.",
+    "announceOn": "Zen view on.",
     "announceOff": "Normal view.",
     "showIdeas": "Show ideas",
     "hideIdeas": "Hide ideas",
@@ -2480,8 +2482,8 @@
     "none": "No chapters yet.",
     "notFound": "This chapter does not exist.",
     "showImages": "Show pictures",
-    "needsRight": "This needs the right «{right}».",
-    "needsProjectRight": "This needs the right «{right}» in the project; it depends on your role there.",
+    "needsRight": "This needs the right «{right}». {next}",
+    "needsProjectRight": "In the project this needs the right «{right}», depending on your role there.",
     "copied": "Prompt copied.",
     "copyFailed": "Copying did not work. Select the text and copy it by hand.",
     "copy": "Copy",
@@ -2506,10 +2508,20 @@
       "templates": "Templates and labels",
       "trash": "Trash and archive",
       "statistics": "Statistics",
-      "calm": "Calm view and command palette",
+      "calm": "Zen view and command palette",
       "planer-file": "Planer file",
       "agents": "Working with agents",
-      "admin": "Administration"
+      "admin": "Administration",
+      "appendix": "About this manual"
+    },
+    "askUsers": "Ask a person who can manage users.",
+    "askAdmin": "Ask an admin.",
+    "nav": {
+      "label": "Chapters of the help",
+      "previous": "Previous chapter",
+      "next": "Next chapter",
+      "toc": "Contents",
+      "tocTitle": "Contents of the help"
     }
   },
   "billing": {

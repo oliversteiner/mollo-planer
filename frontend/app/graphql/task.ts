@@ -15,7 +15,7 @@ export const kanbanQuery = graphql(`
         userStory { role goal benefit }
         commentCount
         labels { id name color position }
-        assignee { id name avatarUrl }
+        assignee { id name avatarUrl isAgent }
         todo { id title }
         viewerCanUpdate
         viewerCanDelete
@@ -60,7 +60,7 @@ export const taskQuery = graphql(`
       dueDate
       commit
       userStory { role goal benefit }
-      assignee { id name avatarUrl }
+      assignee { id name avatarUrl isAgent }
       labels { id name color position }
       viewerCanUpdate
       viewerCanAssign
@@ -108,7 +108,7 @@ export const moveTaskMutation = graphql(`
 
 export const assignTaskMutation = graphql(`
   mutation AssignTask($id: ID!, $assigneeId: ID) {
-    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl } }
+    assignTask(id: $id, assigneeId: $assigneeId) { id assignee { id name avatarUrl isAgent } }
   }
 `)
 

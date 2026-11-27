@@ -59,7 +59,7 @@ Welche Werkzeuge, welche Felder, was über MCP nicht geht.
 | `id` | Name des Kapitels, gleich wie der Dateiname, gleich in beiden Sprachen |
 | `title` | Titel in der Sprache der Datei |
 | `area` | Bereich: `first-steps`, `projects`, `plan`, `kanban`, `my-tasks`, `comments`, `documents`, `ideas`, `assistant`, `templates`, `trash`, `statistics`, `calm`, `planer-file`, `agents`, `admin` |
-| `scope` | `core` (Basis: Konten, Rechte, Verwaltung) oder `app` (Planung) |
+| `scope` | `core` (Basis: Konten, Rechte, Administration) oder `app` (Planung) |
 | `right` | Schlüssel des nötigen Rechts (`task.create`, `users.manage` …) oder leer |
 | `pages` | Seiten der App, mit Komma getrennt, wie ihre Route (`/admin/users`, `/projects/[id]/kanban`) |
 | `tools` | Werkzeuge des MCP-Servers, mit Komma getrennt |
@@ -96,9 +96,17 @@ Wähle **{{ui:admin.users.newAgent.title}}**.
 
 Der Build setzt den Text der jeweiligen Sprache ein. Wird die Taste in der App umbenannt, steht nach dem nächsten Build der neue Name im Kapitel. Nur Schlüssel mit reinem Text (ohne `{…}` und ohne Mehrzahlformen) gehen; ein Test prüft, dass jeder Schlüssel in beiden Sprachen existiert.
 
+## Anhang
+
+Ein Anhang ist ein Kapitel mit `type: appendix` im Kopf (Beispiel: `anhang-schreibregeln.md`). Er hat keine festen Abschnitte, keine Pflicht zu `area`, `scope`, `since`, `right`, `pages` und `tools`; die Überschriften (Ebene 2 und 3) wählt die Autorin oder der Autor. Beide Sprachen brauchen eine Datei mit derselben `id`; Inhalt und Abschnitte dürfen abweichen (die englischen Schreibregeln beschreiben englische Regeln und sind keine Übersetzung). Die Hilfe zeigt Anhänge in einem eigenen Bereich «Über dieses Handbuch», in `/manual/` und `llms.txt` stehen sie zuletzt.
+
+## Sprache und Stil
+
+Bis das Kapitel «Schreibregeln» im Anhang geschrieben ist (Auftrag 68, `handbuch/de/anhang-schreibregeln.md`), stehen die Regeln hier; dann wandern sie dorthin.
+
 ## Bedienung beschreiben
 
-Geräteneutral, ein Verb je Absicht (Regel aus `~/www/agents/AGENTS.md`, Abschnitt «Sprache»):
+Geräteneutral, ein Verb je Absicht:
 
 | Absicht | deutsch | englisch |
 |---|---|---|
@@ -119,7 +127,7 @@ Geräteneutral, ein Verb je Absicht (Regel aus `~/www/agents/AGENTS.md`, Abschni
 - Ein Handgriff je Schritt, in der Reihenfolge, in der man ihn macht. Jeder Schritt reicht bis zum sichtbaren Ergebnis (Dialog öffnet sich, Eintrag erscheint).
 - **Keine Namen, Personen und Abläufe der eigenen Installation:** das Handbuch ist öffentlich. Beschreibe, was die Software kann, nicht wie ein bestimmtes Team sie einsetzt.
 - **Wörterliste:** Milestone, ToDo, Task, Zugang (Token), Taste (nicht Knopf). Gleiche Sache, gleiches Wort.
-- Zuerst wo, dann was: «Öffne **Verwaltung → Benutzer**. Wähle …».
+- Zuerst wo, dann was: «Öffne **Administration → Benutzer**. Wähle …».
 - Keine Abkürzungen ohne Erklärung. Fachwörter sparsam; ein Glossar folgt später.
 - Schweizer Schreibweise (ss statt ß), «» als Anführungszeichen.
 - «Gut zu wissen» nennt, was schiefgehen kann, und was man dann tut.

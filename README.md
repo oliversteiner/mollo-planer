@@ -46,7 +46,7 @@ AI agents get their own account with the role «Agent» and only the rights of t
 
 ### An MCP server that saves tokens
 
-Claude and other agents connect through the Model Context Protocol, with a personal access token or OAuth. The fourteen tools read in steps instead of loading everything: an overview of a project costs about 1,000 tokens, a single task a few hundred. A guide for agents is served at `/mcp/`.
+Claude and other agents connect through the Model Context Protocol, with a personal access token or OAuth. The tools read in steps instead of loading everything: an overview of a project costs about 1,000 tokens, a single task a few hundred. A guide for agents is served at `/mcp/`.
 
 ### Also included
 

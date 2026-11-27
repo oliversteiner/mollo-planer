@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Core\Pdf\PdfFrame;
 use App\Core\Pdf\PdfFrameSettings;
+use App\Core\Pdf\PdfOptions;
 use App\Models\Document;
 use App\Models\Project;
 use Illuminate\Support\Facades\View;
@@ -17,7 +18,7 @@ use League\CommonMark\MarkdownConverter;
 
 /**
  * A document as PDF (docs/dokumentenverwaltung.md §7.2): Markdown to HTML (HTML in the text is escaped, unsafe
- * links are off), a Blade print template in the language of the project, then mPDF in the frame of the starter kit
+ * links are off), a Blade print template in the language of the project, then the PDF frame of the starter kit
  * (App\Core\Pdf\PdfFrame). Synchronous, nothing is loaded from outside while rendering.
  */
 final class DocumentPdf
@@ -37,39 +38,32 @@ final class DocumentPdf
         $locale = $this->localeOf($project);
         $texts = fn (string $key, array $replace = []): string => (string) __('documents.pdf.'.$key, $replace, $locale);
 
-        $mpdf = $letterhead !== null ? $this->frame->make(PdfFrame::marginsOf($frame->layout), $frame->font, $letterhead) : $this->frame->make();
-        $mpdf->SetTitle($document->title);
-
-        if ($letterhead !== null) {
-            $mpdf->WriteHTML(PdfFrame::firstPageCss($frame->layout));
-            $mpdf->WriteHTML(View::make('documents.pdf', [
-                'locale' => $locale,
-                'title' => $document->title,
-                'meta' => $this->meta($document, $project, $texts),
-                'body' => $this->html($document->content),
-                'font' => $frame->font,
-            ])->render());
-
-            return $mpdf->OutputBinaryData();
-        }
-
-        $mpdf->SetHTMLHeader(View::make('documents.pdf-header', ['project' => $project->name, 'title' => $document->title])->render());
-        $mpdf->SetHTMLFooter(View::make('documents.pdf-footer', [
-            'line' => $texts('footer', [
-                'revision' => $document->revision,
-                'date' => $document->updated_at?->format('d.m.Y H:i') ?? '',
-            ]),
-            'page' => $texts('page', ['current' => '{PAGENO}', 'total' => '{nbpg}']),
-        ])->render());
-
-        $mpdf->WriteHTML(View::make('documents.pdf', [
+        $html = View::make('documents.pdf', [
             'locale' => $locale,
             'title' => $document->title,
             'meta' => $this->meta($document, $project, $texts),
             'body' => $this->html($document->content),
-        ])->render());
+        ])->render();
 
-        return $mpdf->OutputBinaryData();
+        if ($letterhead !== null) {
+            return $this->frame->render($html, new PdfOptions(
+                title: $document->title,
+                margins: PdfFrame::marginsOf($frame->layout),
+                firstPageTop: $frame->layout->topFirst,
+                font: $frame->font,
+                letterhead: $letterhead,
+            ));
+        }
+
+        return $this->frame->render($html, new PdfOptions(
+            title: $document->title,
+            header: $project->name.' · '.$document->title,
+            footer: $texts('footer', [
+                'revision' => $document->revision,
+                'date' => $document->updated_at?->format('d.m.Y H:i') ?? '',
+            ]),
+            pageLabel: $texts('page', ['current' => '{current}', 'total' => '{total}']),
+        ));
     }
 
     /** The language of the project (en or de). */

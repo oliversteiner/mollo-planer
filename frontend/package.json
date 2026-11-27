@@ -20,6 +20,7 @@
     "icons:update": "node scripts/icons-update.mjs",
     "icons:fetch": "node scripts/icons-fetch.mjs",
     "icons:check": "node scripts/check-no-pro-assets.mjs",
+    "pro:check": "node scripts/check-no-new-pro.mjs",
     "terms:check": "node scripts/check-no-private-terms.mjs",
     "knip": "knip",
     "test": "vitest run",

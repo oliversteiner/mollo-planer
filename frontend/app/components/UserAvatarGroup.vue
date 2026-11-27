@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** Row of overlapping avatars; more than `max` people end in a "+n". */
 const props = withDefaults(defineProps<{
-  people: ReadonlyArray<{ id: string, name: string, avatarUrl?: string | null }>
+  people: ReadonlyArray<{ id: string, name: string, avatarUrl?: string | null, isAgent?: boolean | null }>
   max?: number
   size?: '2xs' | 'xs' | 'sm'
 }>(), {
@@ -20,6 +20,7 @@ const rest = computed(() => Math.max(0, props.people.length - props.max))
       :key="person.id"
       :name="person.name"
       :src="person.avatarUrl"
+      :is-agent="person.isAgent"
       :size="size"
     />
     <span

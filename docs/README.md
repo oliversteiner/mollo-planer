@@ -31,7 +31,7 @@ Bei Widerspruch gilt das weiter oben genannte Dokument. Widersprüche nicht stil
 - `deployment.md`: automatisches Deployment mit zwei Umgebungen (TEST, PROD), Fehlersuche, Zurückrollen
 - `betrieb.md`: auf dem laufenden Server: Nutzer, E-Mail, Rolle, Freigabe, zweiter Faktor
 - `deploy-template.md`: Deployment beim Webhoster
-- `abrechnung.md`: Abrechnung (Auftrag 39), warum zwei PDF-Bibliotheken (mPDF, FPDF für den Zahlteil)
+- `abrechnung.md`: Abrechnung (Auftrag 39), PDF mit dompdf und FPDI, FPDF für den Zahlteil
 - `ux-projektseite.md`: UX-Review und Spezifikation der Projektseite: Milestones auf- und zuklappen, Preise am Milestone (Auftrag 61, entschieden 25.11.)
 - `lokale-konten.md`: lokale Konten bleiben bei jedem Neuaufbau der Datenbank, Dump von TEST lokal einspielen
 - `tests-lokal.md`: Tests schnell laufen lassen (parallel, Gruppe `mariadb`), Recht und Einstellungen der lokalen MariaDB nur für Tests

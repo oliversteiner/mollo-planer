@@ -1,10 +1,8 @@
-{{-- Letter pages of an invoice (Auftrag 39 C). Everything printed is escaped; no HTML of users. --}}
+{{-- Letter pages of an invoice (Auftrag 39 C, 81 B). Everything printed is escaped; no HTML of users. Page margins and
+     the font come from the PDF frame; the address box is placed from the corner of the text area of page 1. --}}
 <style>
-    @page { margin-top: {{ $layout->topFollowing }}mm; }
-    @page :first { margin-top: {{ $layout->topFirst }}mm; }
-    body { font-family: {{ $font }}; }
     body { font-size: 10pt; line-height: 1.4; color: #1a1a1a; }
-    .address { position: absolute; left: {{ $layout->addressLeft }}mm; top: {{ $layout->addressTop }}mm; width: {{ $layout->addressWidth }}mm; height: {{ $layout->addressHeight }}mm; overflow: hidden; font-size: 10pt; line-height: 1.3; }
+    .address { position: absolute; left: {{ $layout->addressLeft - $layout->left }}mm; top: {{ $layout->addressTop - $layout->topFirst }}mm; width: {{ $layout->addressWidth }}mm; height: {{ $layout->addressHeight }}mm; overflow: hidden; font-size: 10pt; line-height: 1.3; }
     .sender-line { font-size: 7pt; color: #555; border-bottom: 0.3pt solid #999; padding-bottom: 1pt; margin-bottom: 2mm; }
     h1 { font-size: 16pt; margin: 0 0 3mm; }
     .facts { width: 100%; border-collapse: collapse; margin-bottom: 6mm; font-size: 9.5pt; }
@@ -14,6 +12,8 @@
     .items th { text-align: left; font-size: 9pt; color: #555; border-bottom: 0.5pt solid #999; padding: 1.5mm 0; }
     .items th.amount, .items td.amount { text-align: right; width: 32mm; white-space: nowrap; }
     .items td { padding: 1.8mm 0; vertical-align: top; border-bottom: 0.3pt solid #ddd; }
+    {{-- Tables as tight as with mPDF before (81 B; with the font height ratio 1.0 of the PDF frame). --}}
+    .facts td, .items th, .items td, div.item-title, div.item-description { line-height: 1.2; }
     .items tr.project td { font-weight: bold; padding-top: 4mm; border-bottom: 0.5pt solid #999; }
     div.item-title { font-weight: bold; }
     div.item-description { color: #444; font-size: 8pt; font-style: italic; margin-top: 0.8mm; }

@@ -46,7 +46,7 @@ KI-Agenten bekommen ein eigenes Konto mit der Rolle «Agent» und nur die Rechte
 
 ### Ein MCP-Server, der Tokens spart
 
-Claude und andere Agenten verbinden sich über das Model Context Protocol, mit einem persönlichen Zugang oder per OAuth. Die vierzehn Werkzeuge lesen in Stufen statt alles auf einmal: Der Überblick über ein Projekt kostet rund 1000 Tokens, eine einzelne Task wenige hundert. Eine Anleitung für Agenten liegt unter `/mcp/`.
+Claude und andere Agenten verbinden sich über das Model Context Protocol, mit einem persönlichen Zugang oder per OAuth. Die Werkzeuge lesen in Stufen statt alles auf einmal: Der Überblick über ein Projekt kostet rund 1000 Tokens, eine einzelne Task wenige hundert. Eine Anleitung für Agenten liegt unter `/mcp/`.
 
 ### Ausserdem
 

@@ -4,13 +4,13 @@ namespace App\Services\Billing;
 
 use App\Core\Pdf\PdfFrame;
 use App\Core\Pdf\PdfFrameSettings;
+use App\Core\Pdf\PdfOptions;
 use App\GraphQL\Errors\BillingRefusal;
 use App\Models\Invoice;
 use App\Support\Billing\CreditorReference;
 use App\Support\Billing\Iban;
 use Illuminate\Support\Facades\View;
 use RuntimeException;
-use setasign\Fpdi\PdfParser\StreamReader;
 use Sprain\SwissQrBill\DataGroup\Element\AdditionalInformation;
 use Sprain\SwissQrBill\DataGroup\Element\CreditorInformation;
 use Sprain\SwissQrBill\DataGroup\Element\PaymentAmountInformation;
@@ -24,7 +24,7 @@ use Sprain\SwissQrBill\QrBill;
  * The PDF of an invoice (Auftrag 39 C): letter pages in the frame of the starter kit (PdfFrame, PageLayout), items
  * grouped by project, then the payment part of the Swiss QR bill on a page of its own at the end (bottom 105 mm,
  * receipt 62 mm, payment part 148 mm), without header, footer or letterhead. The payment part comes from
- * sprain/swiss-qr-bill (FPDF output, placed as a page with FPDI), with the creditor reference (SCOR). Texts in the
+ * sprain/swiss-qr-bill (FPDF output), the frame appends it unchanged, with the creditor reference (SCOR). Texts in the
  * language of the invoice.
  */
 final class InvoicePdf implements InvoicePdfRenderer
@@ -46,39 +46,29 @@ final class InvoicePdf implements InvoicePdfRenderer
         $locale = in_array($sheet->locale, ['de', 'en'], true) ? $sheet->locale : 'de';
         $texts = fn (string $key, array $replace = []): string => (string) __('billing.pdf.'.$key, $replace, $locale);
 
-        $mpdf = $this->frame->make(PdfFrame::marginsOf($layout), $frame->font, $frame->usableLetterhead());
-        $mpdf->SetTitle($sheet->number !== null ? $texts('title_number', ['number' => $sheet->number]) : $texts('title'));
-
-        if ($sheet->draft) {
-            $mpdf->SetWatermarkText($texts('draft'), 0.08);
-            $mpdf->showWatermarkText = true;
-        }
-
-        $mpdf->SetHTMLFooter(View::make('invoices.pdf-footer', ['page' => $texts('page', ['current' => '{PAGENO}', 'total' => '{nbpg}'])])->render());
-
-        $mpdf->WriteHTML(View::make('invoices.pdf', [
+        $html = View::make('invoices.pdf', [
             'sheet' => $sheet,
             'layout' => $layout,
-            'font' => $frame->font,
             'locale' => $locale,
             'texts' => $texts,
             'money' => fn (int $cents): string => self::money($cents, $locale),
             'date' => fn (\DateTimeInterface $date): string => self::date($date, $locale),
             'iban' => Iban::format((string) ($sheet->sender['iban'] ?? '')),
             'reference' => $sheet->reference !== null ? CreditorReference::format($sheet->reference) : null,
-        ])->render());
+        ])->render();
 
-        // The payment part: a page of its own, without header, footer, margins or letterhead; the page made by the
-        // library is placed on it unchanged.
-        PdfFrame::withoutLetterhead($mpdf);
-        $mpdf->AddPageByArray([
-            'margin-left' => 0, 'margin-right' => 0, 'margin-top' => 0, 'margin-bottom' => 0, 'margin-header' => 0, 'margin-footer' => 0,
-            'odd-header-value' => -1, 'even-header-value' => -1, 'odd-footer-value' => -1, 'even-footer-value' => -1,
-        ]);
-        $mpdf->SetSourceFile(StreamReader::createByString($this->paymentPage($sheet, $locale)));
-        $mpdf->useTemplate($mpdf->importPage(1), 0, 0, 210, 297);
-
-        return $mpdf->OutputBinaryData();
+        // The payment part follows as a page of its own, without letterhead, footer or margins; a draft carries the
+        // watermark there too (a draft must not be paid; decision Oliver 27.11.).
+        return $this->frame->render($html, new PdfOptions(
+            title: $sheet->number !== null ? $texts('title_number', ['number' => $sheet->number]) : $texts('title'),
+            margins: PdfFrame::marginsOf($layout),
+            firstPageTop: $layout->topFirst,
+            font: $frame->font,
+            letterhead: $frame->usableLetterhead(),
+            pageLabel: $texts('page', ['current' => '{current}', 'total' => '{total}']),
+            watermark: $sheet->draft ? $texts('draft') : null,
+            appendPages: [$this->paymentPage($sheet, $locale)],
+        ));
     }
 
     /** A file name for the download. */

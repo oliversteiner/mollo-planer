@@ -18,7 +18,7 @@ Die Basis des Mollo Planers wird ein wiederverwendbares **Starter-Kit** für neu
 
 | Teil | Laravel | Nuxt | Inhalt |
 |---|---|---|---|
-| Grundpaket | `core` (Composer) | Layer `core` | Schale (Layout, Haupt- und Benutzermenü), Profil, Einstellungen, Rechte und Rollen, SSO-Client, Agent-Konten und Tokens, MCP-Grundgerüst mit Werkzeug-Schicht, Mails, Sprachen, Fehlercodes, PDF-Rahmen (mPDF, Briefpapier, Satzspiegel; Auftrag 39 F) |
+| Grundpaket | `core` (Composer) | Layer `core` | Schale (Layout, Haupt- und Benutzermenü), Profil, Einstellungen, Rechte und Rollen, SSO-Client, Agent-Konten und Tokens, MCP-Grundgerüst mit Werkzeug-Schicht, Mails, Sprachen, Fehlercodes, PDF-Rahmen (dompdf und FPDI, Briefpapier, Satzspiegel, Wasserzeichen; Auftrag 39 F, 81 B) |
 | Modul Identität | `identity` | Layer `identity` | Registrierung, Onboarding, Passwort, 2FA, Passkeys, Freigabe, Authorization Server und OpenID Provider (OAuth 2.1, OIDC), Verwaltung der Clients |
 | Starter-Repo | bindet die Pakete ein | bindet die Layer ein | Deploy-Skript, CI, Vorlagen für `CLAUDE.md`/`AGENTS.md`, `docs/` (Aufträge in `next-work/` bleiben lokal, nicht im Git) |
 

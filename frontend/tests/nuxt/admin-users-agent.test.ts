@@ -81,8 +81,8 @@ describe('admin users: sections and access indicator', () => {
     const sections = page.findAll('.users-section')
 
     expect(sections).toHaveLength(2)
-    expect(sections[0]!.find('h2').text()).toBe('Benutzer (1)')
-    expect(sections[1]!.find('h2').text()).toBe('Agenten (2)')
+    expect(sections[0]!.find('h2').text()).toBe('Benutzer, 1')
+    expect(sections[1]!.find('h2').text()).toBe('Agenten, 2')
     expect(sections[0]!.findComponent(AgentBadge).exists()).toBe(false)
     expect(sections[1]!.findAllComponents(AgentBadge)).toHaveLength(2)
     expect(sections[0]!.text()).not.toContain('Claude')

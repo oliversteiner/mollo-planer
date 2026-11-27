@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error plain JavaScript module of the scripts folder
@@ -80,6 +80,12 @@ describe('both languages', () => {
       expect(english.file, id).toBe(german.file)
       expect(german.file, id).toBe(`${id}.md`)
 
+      // An appendix only needs the same id in both languages; its text and headings may differ (Auftrag 66 B).
+      if (german.fields.type === 'appendix') {
+        expect(english.fields.type, `${id}: type`).toBe('appendix')
+        continue
+      }
+
       for (const field of ['area', 'scope', 'right', 'pages', 'tools', 'commands', 'since']) {
         expect(english.fields[field], `${id}: ${field}`).toEqual(german.fields[field])
       }
@@ -101,12 +107,63 @@ describe('both languages', () => {
 
   it('has only the sections of the guide, in their order', () => {
     for (const lang of LANGUAGES) {
-      for (const chapter of built.chapters[lang]!) {
+      for (const chapter of built.chapters[lang]!.filter(candidate => candidate.fields.type !== 'appendix')) {
         const order = SECTIONS.map((section: { key: string }) => section.key)
         const keys = Object.keys(chapter.sections)
         expect(keys, chapter.file).toEqual(order.filter((key: string) => keys.includes(key)))
       }
     }
+  })
+})
+
+describe('appendix (Auftrag 66 B)', () => {
+  const appendix = (lang: string, text: string) => {
+    const dir = join(ROOT, 'handbuch', lang)
+    const file = 'zz-pruefung.md'
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, file), text)
+
+    try {
+      return readChapter(lang, file, JSON.parse(readFileSync(join(ROOT, `frontend/i18n/locales/${lang}.json`), 'utf8'))) as Chapter & { errors: string[] }
+    } finally {
+      rmSync(join(dir, file))
+    }
+  }
+
+  it('is valid with any headings and no fixed sections, fields or area', () => {
+    const chapter = appendix('de', '---\nid: zz-pruefung\ntitle: Prüfung\ntype: appendix\n---\n\n## Irgendein Titel\n\nText.\n\n### Noch einer\n\n- Punkt\n')
+
+    expect(chapter.errors).toEqual([])
+    expect(Object.keys(chapter.sections)).toEqual(['body'])
+    expect(chapter.fields.area).toBe('appendix')
+  })
+
+  it('keeps a normal chapter strict: an unknown section is an error', () => {
+    const chapter = appendix('de', '---\nid: zz-pruefung\ntitle: Prüfung\narea: plan\nscope: app\nsince: 1.6\n---\n\n## Irgendein Titel\n\nText.\n')
+
+    expect(chapter.errors.join(' ')).toContain('unknown section')
+  })
+
+  it('refuses an unknown type and an area chosen for an appendix', () => {
+    expect(appendix('de', '---\nid: zz-pruefung\ntitle: P\ntype: anhang\n---\n\nText.\n').errors.join(' ')).toContain('type must be')
+    expect(appendix('de', '---\nid: zz-pruefung\ntitle: P\ntype: appendix\narea: plan\n---\n\nText.\n').errors.join(' ')).toContain('no area of its own')
+  })
+
+  it('is an error without a counterpart in the other language', () => {
+    const dir = join(ROOT, 'handbuch/de')
+    writeFileSync(join(dir, 'zz-allein.md'), '---\nid: zz-allein\ntitle: Allein\ntype: appendix\n---\n\nText.\n')
+
+    try {
+      expect((buildManual() as { errors: string[] }).errors.join(' ')).toContain('de/zz-allein.md has no counterpart in en')
+    } finally {
+      rmSync(join(dir, 'zz-allein.md'))
+    }
+  })
+
+  it('comes last in the output for agents and in the list of areas', () => {
+    const llms = built.files.get('frontend/public/manual/llms.txt')!.split('\n').filter(line => line.startsWith('- ['))
+
+    expect(llms.at(-1)).toContain('anhang-schreibregeln')
   })
 })
 

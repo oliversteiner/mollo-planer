@@ -92,6 +92,7 @@ watch(model, (value, previous) => {
           slot="start"
           :name="person.name"
           :src="person.avatarUrl"
+          :is-agent="person.isAgent"
           size="xs"
         />
         {{ person.name }}

@@ -308,7 +308,10 @@ async function copyIdentifier(value: string): Promise<void> {
         class="users-section"
       >
         <h2 class="wa-heading-m">
-          {{ group.title }} ({{ group.list.length }})
+          <TabLabel
+            :label="group.title"
+            :count="group.list.length"
+          />
         </h2>
         <div
           v-if="!group.list.length"
@@ -342,6 +345,7 @@ async function copyIdentifier(value: string): Promise<void> {
             <UserAvatar
               :name="user.name"
               :src="user.avatarUrl"
+              :is-agent="user.isAgent"
               size="md"
             />
             <span class="users-text">

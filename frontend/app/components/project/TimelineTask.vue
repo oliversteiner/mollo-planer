@@ -96,6 +96,7 @@ const { t } = useI18n()
         v-if="task.assignee"
         :name="task.assignee.name"
         :src="task.assignee.avatarUrl"
+        :is-agent="task.assignee.isAgent"
         size="xs"
       />
       <span
