@@ -1,4 +1,4 @@
-# Zen-Modus (umschaltbare Darstellung)
+# Zen-Ansicht (umschaltbare Darstellung)
 
 Stand: 2026-11-18, Fassung 2 (Fassung 1 vom 2026-11-17 an den Stand nach M6 angepasst). Rolle: Plan der Planung (Stuart), Umsetzung Bob. Auftrag in `next-work/11-zen-modus.md`.
 

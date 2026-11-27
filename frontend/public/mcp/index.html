@@ -111,8 +111,9 @@
             <section id="tools" class="guide-section">
               <p class="section-index">03 <span>CAPABILITIES</span></p>
               <h2>Choose the right tool.</h2>
-              <p>When connected, the server provides its instructions and fourteen tools. Start with <code>list_projects</code> to check project IDs, roles, and revisions; add <code>include_rights: true</code> or <code>include_members: true</code> when needed. Read only the information needed for the task.</p>
+              <p>When connected, the server provides its instructions and fifteen tools. Start with <code>list_projects</code> to check project IDs, roles, and revisions; add <code>include_rights: true</code> or <code>include_members: true</code> when needed. Read only the information needed for the task.</p>
               <div class="tool-list">
+                <div><code>whoami</code><span>The account you act as (check it first)</span></div>
                 <div><code>list_projects</code><span>Projects you can see and their permissions</span></div>
                 <div><code>list_templates</code><span>Available project templates</span></div>
                 <div><code>list_users</code><span>People, subject to your permissions</span></div>
@@ -130,10 +131,10 @@
               <h3>Work cheaply</h3>
               <p>A whole export of a big project costs about 20,000 tokens, and most of its tasks are usually done. Read in stages:</p>
               <ol class="workflow">
-                <li><span>1</span><p><strong>Overview.</strong> <code>list_projects</code> (IDs, revision), then <code>get_project_statistics</code> or <code>export_plan</code> with <code>view: "outline"</code> (about 1,000 tokens).</p></li>
-                <li><span>2</span><p><strong>Find work.</strong> <code>list_tasks</code> with <code>assignee: "me"</code> and <code>status: ["open", "in_progress"]</code>. One task with everything: <code>list_tasks</code> with <code>ids</code> and <code>include: ["description", "comments"]</code>.</p></li>
-                <li><span>3</span><p><strong>Report progress.</strong> <code>update_tasks</code> directly: no export, no dry run first. <code>base_revision</code> is optional.</p></li>
-                <li><span>4</span><p><strong>Change structure.</strong> <code>export_plan</code> for one milestone, edit it, <code>import_plan</code> with <code>mode: "partial"</code>. The whole export only to rebuild the whole plan.</p></li>
+                <li><span>1</span><p><strong>Overview.</strong> <code>whoami</code> (which account), <code>list_projects</code> (IDs, revision), then <code>get_project_statistics</code> or <code>export_plan</code> with <code>view: "outline"</code> (about 1,000 tokens).</p></li>
+                <li><span>2</span><p><strong>Find work.</strong> <code>list_tasks</code> with <code>assignee: "me"</code> and <code>status: ["open", "in_progress"]</code>; narrow it with <code>todo_ids</code> or <code>labels</code>. One task with everything: <code>list_tasks</code> with <code>ids</code> and <code>include: ["description", "comments"]</code>.</p></li>
+                <li><span>3</span><p><strong>Report progress.</strong> <code>update_tasks</code> directly (status, commit, assignee, title, labels): no export, no dry run first. <code>base_revision</code> is optional.</p></li>
+                <li><span>4</span><p><strong>Add a task or todo.</strong> <code>import_plan</code> with <code>mode: "partial"</code> and <code>append_only: true</code>: only the IDs of the milestone and todo plus the new items, no export, <code>dry_run</code> first. <strong>Change structure.</strong> <code>export_plan</code> for one milestone, edit it, <code>import_plan</code> with <code>mode: "partial"</code>. The whole export only to rebuild the whole plan.</p></li>
                 <li><span>5</span><p><strong>Order.</strong> <code>partial</code> does not reorder across the project. <code>reorder</code> orders siblings (all IDs of one parent: milestones, the todos of a milestone, the tasks of a todo); <code>reorder</code> with <code>by: "version"</code> orders the milestones by version (use <code>dry_run: true</code> first). Moving an item to another todo or milestone stays with <code>import_plan</code>.</p></li>
               </ol>
               <p>The same recipes in plain Markdown: <a href="/mcp/llms.txt">/mcp/llms.txt</a>.</p>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MANUAL_AREAS, manualChapters } from '~/utils/manual'
+import { manualGroups } from '~/utils/manual'
 
 /**
  * Help (Auftrag 54): the chapters of the manual by area, in the language of the app. Built from handbuch/ (scripts/manual.mjs).
@@ -9,13 +9,7 @@ const { t, locale } = useI18n()
 
 useHead({ title: () => t('help.title') })
 
-const groups = computed(() => {
-  const chapters = manualChapters(locale.value)
-
-  return MANUAL_AREAS
-    .map(area => ({ area, chapters: chapters.filter(chapter => chapter.area === area).sort((a, b) => a.title.localeCompare(b.title)) }))
-    .filter(group => group.chapters.length > 0)
-})
+const groups = computed(() => manualGroups(locale.value))
 </script>
 
 <template>

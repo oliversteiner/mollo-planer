@@ -5,7 +5,7 @@ Zwei Umgebungen, TEST und PROD; Frontend und API laufen als getrennte Subdomains
 
 Allgemeine Regeln für alle Projekte: `~/www/agents/AGENTS.md`. Zuerst lesen, falls sie nicht schon geladen ist.
 
-**Planung:** im Mollo Planer auf TEST, Projekt **2 · Mollo Planer**. Agent dieses Repos ist **Bob** (eigenes Konto, Token `MOLLOPLANER_BOB_TOKEN`, eingetragen in `.mcp.json`; die Adresse des Servers kommt aus `MOLLOPLANER_MCP_URL`). Aufträge liegen lokal in `next-work/` (nicht im Git), die Reihenfolge in `next-work/README.md`; jede Auftragsdatei nennt ihr ToDo, der Stand steht im Planer. Ablauf: Abschnitt «Zusammenarbeit: next-work und Planer» in `~/www/agents/AGENTS.md`. TEST enthält echte Daten: kein Dump, kein `migrate:fresh`, keine Seeder auf TEST.
+**Planung:** im Mollo Planer auf TEST, Projekt **2 · Mollo Planer**. Agent dieses Repos ist **Bob** (eigenes Konto). Die `.mcp.json` nutzt `MOLLOPLANER_TOKEN`; der Befehl `agent bob` setzt diese Variable beim Start auf das Token von Bob. Andere Agenten in diesem Repo (Clara, Laura) arbeiten so mit ihrem eigenen Konto. Die Adresse des Servers kommt aus `MOLLOPLANER_MCP_URL`. Aufträge liegen lokal in `next-work/` (nicht im Git), die Reihenfolge in `next-work/README.md`; jede Auftragsdatei nennt ihr ToDo, der Stand steht im Planer. Ablauf: Abschnitt «Zusammenarbeit: next-work und Planer» in `~/www/agents/AGENTS.md`. TEST enthält echte Daten: kein Dump, kein `migrate:fresh`, keine Seeder auf TEST.
 
 ## Bevor du etwas baust, lies
 - `docs/README.md`: Einstieg, **Vorrang der Dokumente** und welche historisch sind. Zuerst lesen.

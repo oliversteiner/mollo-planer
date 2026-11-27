@@ -27,7 +27,7 @@ class ToolLayerTest extends McpTestCase
 
         $this->assertSame(array_values(array_unique($names)), $names, 'a name twice in the registry');
         $this->assertSame(array_values(array_unique(ToolRegistry::TOOLS)), ToolRegistry::TOOLS, 'a class twice in the registry');
-        $this->assertCount(14, $names);
+        $this->assertCount(15, $names);
 
         // Everything under App\Tools that is a tool is in the registry: a tool written but not entered would be offered nowhere.
         $classes = collect(glob(app_path('Tools/*.php')))

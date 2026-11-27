@@ -28,11 +28,17 @@ export const SECTIONS = [
   { key: 'prompts', de: 'Beispielprompts', en: 'Example prompts', human: true, agent: true }
 ]
 
-export const FIELDS = ['id', 'title', 'area', 'scope', 'right', 'pages', 'tools', 'commands', 'since']
+export const FIELDS = ['id', 'title', 'type', 'area', 'scope', 'right', 'pages', 'tools', 'commands', 'since']
+
+/** The kinds of chapter: «chapter» has the fixed sections, «appendix» (Auftrag 66 B) has free headings and its own area. */
+export const TYPES = ['chapter', 'appendix']
 const LIST_FIELDS = ['pages', 'tools', 'commands']
 
 /** Areas of the manual, in the order of the overview (next-work/54-handbuch-konzept.md, «Kapitel»). */
 export const AREAS = ['first-steps', 'projects', 'plan', 'kanban', 'my-tasks', 'comments', 'documents', 'ideas', 'assistant', 'templates', 'trash', 'statistics', 'calm', 'planer-file', 'agents', 'admin']
+
+/** The area of every appendix, last in every list. */
+export const APPENDIX_AREA = 'appendix'
 
 const UI = /\{\{ui:([a-zA-Z0-9_.-]+)\}\}/g
 const PICTURE = /^( *)\{\{bild:([a-z0-9-]+)\|([^}]+)\}\}\s*$/
@@ -117,31 +123,44 @@ export function readChapter(lang, file, messages = translations(lang)) {
   })
 
   const sections = {}
-  const parts = lines.join('\n').split(/^## (.+)$/m)
-  const headings = []
+  const type = fields.type ?? 'chapter'
 
-  for (let i = 1; i < parts.length; i += 2) {
-    const heading = parts[i].trim()
-    const section = SECTIONS.find(candidate => candidate[lang] === heading)
+  if (!TYPES.includes(type)) {
+    errors.push(`${lang}/${file}: type must be ${TYPES.join(' or ')}`)
+  }
 
-    if (!section) {
-      errors.push(`${lang}/${file}: unknown section «${heading}»`)
-      continue
+  if (type === 'appendix') {
+    // An appendix has no fixed sections: the whole text, with headings of level 2 and 3 as the author likes.
+    const { doc, errors: parseErrors } = parseDescription(lines.join('\n').trim())
+    parseErrors.forEach(error => errors.push(`${lang}/${file}: ${error}`))
+    sections.body = doc
+  } else {
+    const parts = lines.join('\n').split(/^## (.+)$/m)
+    const headings = []
+
+    for (let i = 1; i < parts.length; i += 2) {
+      const heading = parts[i].trim()
+      const section = SECTIONS.find(candidate => candidate[lang] === heading)
+
+      if (!section) {
+        errors.push(`${lang}/${file}: unknown section «${heading}»`)
+        continue
+      }
+
+      headings.push(section.key)
+      const { doc, errors: parseErrors } = parseDescription(parts[i + 1].trim())
+      parseErrors.forEach(error => errors.push(`${lang}/${file} (${heading}): ${error}`))
+      sections[section.key] = doc
     }
 
-    headings.push(section.key)
-    const { doc, errors: parseErrors } = parseDescription(parts[i + 1].trim())
-    parseErrors.forEach(error => errors.push(`${lang}/${file} (${heading}): ${error}`))
-    sections[section.key] = doc
+    const order = SECTIONS.map(section => section.key).filter(key => headings.includes(key))
+
+    if (order.join() !== headings.join()) {
+      errors.push(`${lang}/${file}: sections out of order (${headings.join(', ')})`)
+    }
   }
 
-  const order = SECTIONS.map(section => section.key).filter(key => headings.includes(key))
-
-  if (order.join() !== headings.join()) {
-    errors.push(`${lang}/${file}: sections out of order (${headings.join(', ')})`)
-  }
-
-  for (const field of ['id', 'title', 'area', 'scope', 'since']) {
+  for (const field of type === 'appendix' ? ['id', 'title'] : ['id', 'title', 'area', 'scope', 'since']) {
     if (!fields[field]) {
       errors.push(`${lang}/${file}: field ${field} is missing`)
     }
@@ -151,7 +170,11 @@ export function readChapter(lang, file, messages = translations(lang)) {
     errors.push(`${lang}/${file}: scope must be core or app`)
   }
 
-  if (fields.area && !AREAS.includes(fields.area)) {
+  if (type === 'appendix' && fields.area && fields.area !== APPENDIX_AREA) {
+    errors.push(`${lang}/${file}: an appendix has no area of its own to choose (leave area out)`)
+  }
+
+  if (type !== 'appendix' && fields.area && !AREAS.includes(fields.area)) {
     errors.push(`${lang}/${file}: unknown area ${fields.area}`)
   }
 
@@ -169,7 +192,9 @@ export function readChapter(lang, file, messages = translations(lang)) {
     }
   })
 
-  return { file, lang, fields: { right: '', pages: [], tools: [], commands: [], ...fields }, sections, pictures, uiKeys, errors }
+  const defaults = type === 'appendix' ? { scope: 'core', since: '', area: APPENDIX_AREA } : {}
+
+  return { file, lang, fields: { right: '', pages: [], tools: [], commands: [], ...defaults, ...fields, type }, sections, pictures, uiKeys, errors }
 }
 
 /** Calls fn for every node of the trees. */
@@ -320,9 +345,14 @@ function blocksHtml(nodes, headingOffset = 2) {
 }
 
 const TEXTS = {
-  en: { title: 'Mollo Planer manual for agents', intro: 'What each function does, its limits, the tools of the MCP server and prompts to hand it over. Without the steps for people (those are in the help of the app).', right: 'Right', tools: 'Tools', pages: 'Pages of the app', all: 'All chapters on one page', none: '–', markdown: 'Markdown', humanOnly: 'This task is done by people in the app. The steps are in the help of the app (Help).' },
-  de: { title: 'Mollo Planer: Handbuch für Agenten', intro: 'Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Schritte für Menschen (die stehen in der Hilfe der App).', right: 'Recht', tools: 'Werkzeuge', pages: 'Seiten der App', all: 'Alle Kapitel auf einer Seite', none: '–', markdown: 'Markdown', humanOnly: 'Diese Aufgabe erledigen Menschen in der App. Die Schritte stehen in der Hilfe der App (Hilfe).' }
+  en: { title: 'Mollo Planer manual for agents', intro: 'What each function does, its limits, the tools of the MCP server and prompts to hand it over. Without the steps for people (those are in the help of the app).', right: 'Right', tools: 'Tools', pages: 'Pages of the app', all: 'All chapters on one page', none: '–', markdown: 'Markdown', humanOnly: 'This task is done by people in the app. The steps are in the help of the app (Help).', previous: 'Previous chapter', next: 'Next chapter', overview: 'All chapters' },
+  de: { title: 'Mollo Planer: Handbuch für Agenten', intro: 'Was jede Funktion bringt, ihre Grenzen, die Werkzeuge des MCP-Servers und Prompts, um sie zu übergeben. Ohne die Schritte für Menschen (die stehen in der Hilfe der App).', right: 'Recht', tools: 'Werkzeuge', pages: 'Seiten der App', all: 'Alle Kapitel auf einer Seite', none: '–', markdown: 'Markdown', humanOnly: 'Diese Aufgabe erledigen Menschen in der App. Die Schritte stehen in der Hilfe der App (Hilfe).', previous: 'Vorheriges Kapitel', next: 'Nächstes Kapitel', overview: 'Alle Kapitel' }
 }
+
+const isAppendix = chapter => chapter.fields.type === 'appendix'
+
+/** Position of an area in the lists: the areas in order, the appendix last. */
+const areaIndex = area => (area === APPENDIX_AREA ? AREAS.length : AREAS.indexOf(area))
 
 function agentSections(chapter) {
   return SECTIONS.filter(section => section.agent && chapter.sections[section.key])
@@ -330,6 +360,11 @@ function agentSections(chapter) {
 
 function chapterHtmlBody(chapter, level) {
   const t = TEXTS[chapter.lang]
+
+  if (isAppendix(chapter)) {
+    return `<h${level} id="${escapeHtml(chapter.fields.id)}">${escapeHtml(chapter.fields.title)}</h${level}>\n${blocksHtml(chapter.sections.body.content, level + 1)}`
+  }
+
   const facts = [
     `<li>${t.right}: ${chapter.fields.right ? `<code>${escapeHtml(chapter.fields.right)}</code>` : t.none}</li>`,
     `<li>${t.tools}: ${chapter.fields.tools.length ? chapter.fields.tools.map(tool => `<code>${escapeHtml(tool)}</code>`).join(', ') : t.none}</li>`,
@@ -349,6 +384,11 @@ function page(lang, title, body) {
 
 function chapterMarkdown(chapter) {
   const t = TEXTS[chapter.lang]
+
+  if (isAppendix(chapter)) {
+    return `# ${chapter.fields.title}\n\n${canonicalMarkdown(chapter.sections.body)}\n`
+  }
+
   const lines = [`# ${chapter.fields.title}`, '', `- ${t.right}: ${chapter.fields.right || t.none}`, `- ${t.tools}: ${chapter.fields.tools.join(', ') || t.none}`, `- ${t.pages}: ${chapter.fields.pages.join(', ') || t.none}`]
 
   if (!chapter.sections.agents) {
@@ -383,6 +423,7 @@ export function buildManual() {
 
     const data = read.map(chapter => ({
       ...chapter.fields,
+      body: isAppendix(chapter) ? chapter.sections.body : null,
       purpose: chapter.sections.purpose ?? null,
       steps: stepsOf(chapter.sections.steps, lang, chapter.fields.id, chapter.pictures, images),
       notes: chapter.sections.notes ? withoutPictures(chapter.sections.notes) : null,
@@ -392,16 +433,29 @@ export function buildManual() {
 
     const base = lang === 'en' ? 'frontend/public/manual' : 'frontend/public/manual/de'
     const t = TEXTS[lang]
-    const sorted = [...read].sort((a, b) => AREAS.indexOf(a.fields.area) - AREAS.indexOf(b.fields.area) || a.fields.title.localeCompare(b.fields.title))
+    const sorted = [...read].sort((a, b) => areaIndex(a.fields.area) - areaIndex(b.fields.area) || a.fields.title.localeCompare(b.fields.title))
 
-    for (const chapter of sorted) {
-      files.set(`${base}/${chapter.fields.id}.html`, page(lang, chapter.fields.title, chapterHtmlBody(chapter, 1)))
+    for (const [index, chapter] of sorted.entries()) {
+      // At the end of a page: the chapter before and after, and the overview (plain links, no script, no fixed bar).
+      const around = [sorted[index - 1] && `<a href="${escapeHtml(sorted[index - 1].fields.id)}.html" rel="prev">${t.previous}: ${escapeHtml(sorted[index - 1].fields.title)}</a>`, `<a href="index.html">${t.overview}</a>`, sorted[index + 1] && `<a href="${escapeHtml(sorted[index + 1].fields.id)}.html" rel="next">${t.next}: ${escapeHtml(sorted[index + 1].fields.title)}</a>`].filter(Boolean)
+      files.set(`${base}/${chapter.fields.id}.html`, page(lang, chapter.fields.title, `${chapterHtmlBody(chapter, 1)}\n<p>${around.join(' · ')}</p>`))
       files.set(`${base}/${chapter.fields.id}.md`, chapterMarkdown(chapter))
     }
 
     const toc = `<ul>${sorted.map(chapter => `<li><a href="${escapeHtml(chapter.fields.id)}.html">${escapeHtml(chapter.fields.title)}</a> (<a href="${escapeHtml(chapter.fields.id)}.md">${t.markdown}</a>)</li>`).join('')}</ul>`
     files.set(`${base}/index.html`, page(lang, t.title, `<h1>${escapeHtml(t.title)}</h1>\n<p>${escapeHtml(t.intro)}</p>\n${toc}\n${sorted.map(chapter => chapterHtmlBody(chapter, 2)).join('\n')}`))
     files.set(`${base}/llms.txt`, [`# ${t.title}`, '', t.intro, '', `- ${t.all}: index.html`, ...sorted.map(chapter => `- [${chapter.fields.title}](${chapter.fields.id}.md): ${chapter.fields.id}.html`), ''].join('\n'))
+  }
+
+  // Every chapter and every appendix exists in both languages with the same id.
+  const ids = lang => new Set(chapters[lang].map(chapter => chapter.fields.id))
+
+  for (const [from, to] of [['de', 'en'], ['en', 'de']]) {
+    for (const id of ids(from)) {
+      if (!ids(to).has(id)) {
+        errors.push(`${from}/${id}.md has no counterpart in ${to}`)
+      }
+    }
   }
 
   return { files, images, chapters, errors }
