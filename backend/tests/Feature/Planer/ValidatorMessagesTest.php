@@ -37,8 +37,8 @@ class ValidatorMessagesTest extends TestCase
 
         $messages = $this->messages($d);
 
-        $this->assertSame('Höchstens 5000 Zeichen (gefunden: 5001).', $messages['project.description']);
-        $this->assertSame('Mindestens 2 Zeichen (gefunden: 1).', $messages['project.name']);
+        $this->assertSame('Höchstens 5000 Zeichen, hier 5001.', $messages['project.description']);
+        $this->assertSame('Mindestens 2 Zeichen, hier 1.', $messages['project.name']);
         $this->assertSame('Mindestens 0.', $messages['revision']);
         $this->assertSame('Ungültiger Wert.', $messages['project.locale']);
         $this->assertSame('Keine gültige E-Mail-Adresse.', $messages['project.members[0].email']);

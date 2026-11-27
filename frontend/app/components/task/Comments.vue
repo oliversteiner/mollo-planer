@@ -68,7 +68,10 @@ async function saveEdit(): Promise<void> {
 <template>
   <section class="wa-stack wa-gap-m">
     <h3 class="wa-heading-s">
-      {{ t('comments.title', { count: comments.length }) }}
+      <TabLabel
+        :label="t('comments.title')"
+        :count="comments.length"
+      />
     </h3>
 
     <p

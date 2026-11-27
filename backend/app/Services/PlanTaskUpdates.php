@@ -6,14 +6,14 @@ use App\Models\User;
 use App\Tools\Support\GraphQLRunner;
 
 /**
- * Sets status, commit and assignee of several tasks at once, as a person (task 34): the most common work of an agent,
+ * Sets status, commit, assignee, title and labels of several tasks at once, as a person (task 34): the most common work of an agent,
  * and the same work the assistant does later. It adds no rules of its own. The change goes through the export and
  * the import (mode partial) of the plan, so the rights, the commit duty, the release rule and the membership of an
  * assignee are those of the app, and all of it is one transaction.
  */
 class PlanTaskUpdates
 {
-    private const FIELDS = ['status', 'commit', 'assigneeEmail'];
+    private const FIELDS = ['status', 'commit', 'assigneeEmail', 'title', 'labels'];
 
     private const EXPORT = 'query ($id: ID!) { exportPlan(projectId: $id) }';
 
@@ -130,8 +130,10 @@ class PlanTaskUpdates
         foreach ($after as $id => $values) {
             $fields = [];
 
-            foreach (array_diff_assoc($values, $before[$id]) + array_diff_assoc($before[$id], $values) as $field => $unused) {
-                $fields[$field] = [$before[$id][$field], $values[$field]];
+            foreach ($values as $field => $new) {
+                if ($new !== $before[$id][$field]) {
+                    $fields[$field] = [$before[$id][$field], $new];
+                }
             }
 
             if ($fields !== []) {
@@ -205,11 +207,11 @@ class PlanTaskUpdates
 
     /**
      * @param  array<string, mixed>  $task
-     * @return array{status: mixed, commit: mixed, assigneeEmail: mixed}
+     * @return array{status: mixed, commit: mixed, assigneeEmail: mixed, title: mixed, labels: list<string>}
      */
     private function fieldsOf(array $task): array
     {
-        return ['status' => $task['status'] ?? null, 'commit' => $task['commit'] ?? null, 'assigneeEmail' => $task['assigneeEmail'] ?? null];
+        return ['status' => $task['status'] ?? null, 'commit' => $task['commit'] ?? null, 'assigneeEmail' => $task['assigneeEmail'] ?? null, 'title' => $task['title'] ?? null, 'labels' => array_values($task['labels'] ?? [])];
     }
 
     private function taskId(mixed $id): string

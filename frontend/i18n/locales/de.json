@@ -10,7 +10,7 @@
     "main": "Hauptnavigation",
     "projects": "Projekte",
     "myTasks": "Meine Tasks",
-    "admin": "Verwaltung",
+    "admin": "Administration",
     "users": "Benutzer",
     "appSettings": "App-Einstellungen",
     "skipToContent": "Zum Inhalt springen",
@@ -249,7 +249,7 @@
       "localeHint": "Benachrichtigungen zu diesem Projekt kommen in dieser Sprache."
     },
     "archive": {
-      "title": "Archiv ({count})"
+      "title": "Archiv"
     },
     "counts": "{milestones} Milestones · {todos} ToDo · {tasks} Tasks"
   },
@@ -481,8 +481,7 @@
     "moveUp": "Nach oben",
     "moveDown": "Nach unten",
     "moveTo": "Verschieben nach «{column}»",
-    "comments": "Kommentare",
-    "doubleClickToEdit": "Doppelklick zum Bearbeiten"
+    "comments": "Kommentare"
   },
   "task": {
     "create": "Task anlegen",
@@ -544,7 +543,7 @@
     "hint": "Agent-Konto: kein Zugang zur Oberfläche, nur über ein Token des Connectors"
   },
   "comments": {
-    "title": "Kommentare ({count})",
+    "title": "Kommentare",
     "none": "Noch keine Kommentare.",
     "deletedAuthor": "Gelöschte Person",
     "edited": "bearbeitet",
@@ -674,7 +673,7 @@
       "activityHint": "Nur zur Anzeige, ohne Rechte.",
       "noFunction": "Keine",
       "pending": {
-        "title": "Wartet auf Freigabe ({count})",
+        "title": "Wartet auf Freigabe",
         "verified": "E-Mail bestätigt",
         "unverified": "E-Mail unbestätigt",
         "approve": "Freigeben",
@@ -1079,7 +1078,7 @@
     "tables": {
       "users": {
         "title": "Benutzer",
-        "description": "Personen mit Zugang zur App. Anlegen nur durch Benutzerverwaltung."
+        "description": "Personen mit Zugang zur App. Anlegen nur durch Personen, die Benutzer verwalten."
       },
       "projects": {
         "title": "Projekte",
@@ -2302,10 +2301,10 @@
   },
   "zen": {
     "menu": "Menü",
-    "enter": "Ruhige Ansicht",
-    "leave": "Zen verlassen",
+    "enter": "Zen-Ansicht",
+    "leave": "Zen-Ansicht verlassen",
     "leaveFocus": "Zurück",
-    "announceOn": "Ruhige Ansicht ein.",
+    "announceOn": "Zen-Ansicht ein.",
     "announceOff": "Normale Ansicht.",
     "showIdeas": "Ideen anzeigen",
     "hideIdeas": "Ideen ausblenden",
@@ -2425,7 +2424,7 @@
       "membersOnly": "Nur Mitglieder des Projekts"
     },
     "transferTitle": "Owner übergeben",
-    "transferText": "Der neue Owner verwaltet das Dokument. Du verlierst die Verwaltung, wenn du sie nicht aus anderem Grund hast.",
+    "transferText": "Der neue Owner verwaltet das Dokument. Du kannst es dann nicht mehr verwalten, ausser du hast das Recht aus anderem Grund.",
     "transferOwner": "Neuer Owner",
     "transferConfirm": "Übergeben",
     "transferred": "Owner übergeben.",
@@ -2483,8 +2482,8 @@
     "none": "Noch keine Kapitel.",
     "notFound": "Dieses Kapitel gibt es nicht.",
     "showImages": "Bilder anzeigen",
-    "needsRight": "Dafür brauchst du das Recht «{right}».",
-    "needsProjectRight": "Dafür brauchst du im Projekt das Recht «{right}»; es hängt von deiner Rolle dort ab.",
+    "needsRight": "Dafür brauchst du das Recht «{right}». {next}",
+    "needsProjectRight": "Im Projekt brauchst du dafür das Recht «{right}», je nach deiner Rolle dort.",
     "copied": "Prompt kopiert.",
     "copyFailed": "Kopieren hat nicht geklappt. Markiere den Text und kopiere ihn von Hand.",
     "copy": "Kopieren",
@@ -2499,7 +2498,7 @@
     "areas": {
       "first-steps": "Erste Schritte",
       "projects": "Projekte",
-      "plan": "Meilensteine, ToDos und Tasks",
+      "plan": "Milestones, ToDos und Tasks",
       "kanban": "Kanban",
       "my-tasks": "Meine Tasks",
       "comments": "Kommentare",
@@ -2509,10 +2508,20 @@
       "templates": "Vorlagen und Labels",
       "trash": "Papierkorb und Archiv",
       "statistics": "Statistik",
-      "calm": "Ruhige Ansicht und Befehlspalette",
+      "calm": "Zen-Ansicht und Befehlspalette",
       "planer-file": "Planer-Datei",
       "agents": "Mit Agenten arbeiten",
-      "admin": "Verwaltung"
+      "admin": "Administration",
+      "appendix": "Über dieses Handbuch"
+    },
+    "askUsers": "Frag eine Person, die Benutzer verwalten darf.",
+    "askAdmin": "Frag eine Admin-Person.",
+    "nav": {
+      "label": "Kapitel der Hilfe",
+      "previous": "Vorheriges Kapitel",
+      "next": "Nächstes Kapitel",
+      "toc": "Inhalt",
+      "tocTitle": "Inhalt der Hilfe"
     }
   },
   "billing": {

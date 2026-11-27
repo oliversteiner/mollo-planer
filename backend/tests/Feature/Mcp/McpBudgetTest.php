@@ -22,8 +22,10 @@ class McpBudgetTest extends McpTestCase
      * tools/list and instructions together. 11000 until Auftrag 49: D (account line, fields, title limit, links) and A
      * (rule of the excerpt, base_revision of import_plan) add about 170 tokens; 250 at most.
      * 12500 with Auftrag 47: the tool reorder (about 180 tokens) and one line in the instructions.
+     * 13400 with Auftrag 65: whoami, the filters todo_ids and labels, title and labels in update_tasks, `document` in
+     * import_plan, and two more lines in the instructions (about 200 tokens).
      */
-    private const FIXED_CEILING = 12500;
+    private const FIXED_CEILING = 13400;
 
     private const OUTLINE_CEILING = 6000;
 

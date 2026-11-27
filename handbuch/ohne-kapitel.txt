@@ -141,3 +141,4 @@ tool list_ideas
 tool list_templates
 tool list_users
 tool reorder
+tool whoami

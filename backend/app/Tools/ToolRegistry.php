@@ -12,6 +12,7 @@ final class ToolRegistry
 {
     /** @var list<class-string<Tool>> */
     public const TOOLS = [
+        WhoAmI::class,
         ListProjects::class,
         ListTemplates::class,
         ListUsers::class,

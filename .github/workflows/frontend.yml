@@ -55,6 +55,9 @@ jobs:
       - name: No Font Awesome Pro files in git
         run: npm run icons:check
 
+      - name: No new Web Awesome Pro or Font Awesome Pro (Auftrag 81 E)
+        run: npm run pro:check
+
       - name: No private terms in git (Auftrag 56; the list is the variable PRIVATE_TERMS, not in the repository)
         run: npm run terms:check
         env:

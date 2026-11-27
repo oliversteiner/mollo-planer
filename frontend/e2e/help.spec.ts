@@ -21,7 +21,7 @@ test('help: overview, chapter, copy a prompt, switch the pictures', async ({ pag
   await page.getByRole('menuitem', { name: 'Hilfe' }).click()
   await expect(page).toHaveURL(/\/help$/)
   await expect(page.getByRole('heading', { name: 'Hilfe', level: 1 })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Meilensteine, ToDos und Tasks' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Milestones, ToDos und Tasks' })).toBeVisible()
 
   // A chapter: steps with pictures in German.
   await page.getByRole('link', { name: 'Task anlegen und bearbeiten' }).click()

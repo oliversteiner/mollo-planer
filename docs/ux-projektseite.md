@@ -4,7 +4,7 @@ Auftrag 61 · ToDo `t-523` (Tasks `k-2003` Review, `k-2004` Spezifikation) · La
 
 Seite: `/projects/:id` (`frontend/app/pages/projects/[id]/index.vue`), Zeitachse `components/project/Timeline.vue` mit `StepTimeline.vue` und `TimelineTask.vue`. `components/planer/Tree.vue`, das der Auftrag nennt, ist **nicht** diese Seite: Es zeigt die Vorschau eines Imports und des Assistenten und bleibt unverändert.
 
-Begriffe: In der Oberfläche heisst es überall «Milestone» (Reiter, Knöpfe, `lang`). Diese Spezifikation bleibt dabei; «Meilenstein» nur im Fliesstext für Menschen.
+Begriffe: In der Oberfläche heisst es überall «Milestone» (Reiter, Tasten, `lang`). Diese Spezifikation bleibt dabei; «Meilenstein» nur im Fliesstext für Menschen.
 
 ---
 
@@ -21,7 +21,7 @@ Begriffe: In der Oberfläche heisst es überall «Milestone» (Reiter, Knöpfe, 
 
 **B1 · Der Preis eines Milestones fehlt.** Die Abfrage `ProjectTimeline` lädt `priceCents` schon, die Zeitachse zeigt es nirgends. Wer abrechnet, muss den Milestone bearbeiten oder auf «Verrechenbar» wechseln, um den Preis zu sehen. *H1 Sichtbarkeit, H6 Wiedererkennen statt Erinnern.*
 
-**B2 · Einzelnes Zuklappen gibt es, man findet es aber nicht.** Der Knopf «Zuklappen» steht **mittig unter dem Fortschrittsbalken**, weit weg vom Titel, ohne Objekt im Text («Zuklappen» was?). Die ToDos darunter klappen dagegen mit einem Pfeil **links vom Titel** auf: zwei Muster für dasselbe auf einer Seite. Darum hat Oliver das Zuklappen nicht gefunden. *H4 Konsistenz, Fitts (kleines Ziel, weit vom Blickpunkt), HIG Disclosure (Pfeil vor dem Titel).*
+**B2 · Einzelnes Zuklappen gibt es, man findet es aber nicht.** Die Taste «Zuklappen» steht **mittig unter dem Fortschrittsbalken**, weit weg vom Titel, ohne Objekt im Text («Zuklappen» was?). Die ToDos darunter klappen dagegen mit einem Pfeil **links vom Titel** auf: zwei Muster für dasselbe auf einer Seite. Darum hat Oliver das Zuklappen nicht gefunden. *H4 Konsistenz, Fitts (kleines Ziel, weit vom Blickpunkt), HIG Disclosure (Pfeil vor dem Titel).*
 
 **B3 · «Nur Milestones anzeigen» ist eine Sackgasse.** Der Schalter blendet Beschreibung, ToDos, «Zuklappen» und «Alle ToDos zeigen» aus. Einen einzelnen Milestone kann man dann nicht mehr öffnen, nur alles zurückschalten. Der Zustand steht in der URL (`?milestones=only`), der Rest nicht: zwei Arten Zustand. *H3 Kontrolle und Freiheit, H7 Flexibilität.*
 
@@ -43,7 +43,7 @@ Begriffe: In der Oberfläche heisst es überall «Milestone» (Reiter, Knöpfe, 
 
 ### Gering
 
-**B11 · Schmales Fenster (390 px).** Die beiden Knöpfe der Werkzeugleiste stehen untereinander, die Kopfzeile eines Milestones bricht in vier Zeilen um (Titel, Version, Abzeichen, Datum), «9 von 9 Tasks erledigt» wird abgeschnitten.
+**B11 · Schmales Fenster (390 px).** Die beiden Tasten der Werkzeugleiste stehen untereinander, die Kopfzeile eines Milestones bricht in vier Zeilen um (Titel, Version, Abzeichen, Datum), «9 von 9 Tasks erledigt» wird abgeschnitten.
 
 **B12 · «Backlog: 0 von 0 Tasks erledigt»**, obwohl drei Ideen darin liegen. Ideen zählen im Fortschritt nicht mit; die Zeile sagt dann nichts. Besser: «3 Ideen» statt Fortschritt, wenn nur Ideen da sind.
 
@@ -63,7 +63,7 @@ Drei Stufen, ein Muster:
 2. Milestone offen: Beschreibung, ToDo-Zeilen (zu), «ToDo anlegen».
 3. ToDo offen: Tasks, «Task anlegen» (wie heute).
 
-Warum nicht `wa-tree` oder `wa-details`: `wa-tree` verlangt die Tastaturführung eines Baums (eine Fokusstelle, Pfeile wandern) und verträgt keine Menüs, Links und Anfasser in den Zeilen; es bleibt der Import-Vorschau. Die Zusammenfassung von `wa-details` darf keine Bedienelemente enthalten (Menü, Link zur Rechnung). Die Seite hat das passende Muster schon: der Knopf `todo-toggle` mit Pfeil, daneben das `ActionMenu`. Dasselbe für Milestones (Disclosure-Muster nach WAI-ARIA).
+Warum nicht `wa-tree` oder `wa-details`: `wa-tree` verlangt die Tastaturführung eines Baums (eine Fokusstelle, Pfeile wandern) und verträgt keine Menüs, Links und Anfasser in den Zeilen; es bleibt der Import-Vorschau. Die Zusammenfassung von `wa-details` darf keine Bedienelemente enthalten (Menü, Link zur Rechnung). Die Seite hat das passende Muster schon: die Taste `todo-toggle` mit Pfeil, daneben das `ActionMenu`. Dasselbe für Milestones (Disclosure-Muster nach WAI-ARIA).
 
 ---
 
@@ -94,11 +94,11 @@ Zeile 1, ein `<button type="button" class="milestone-toggle">` über die ganze B
 | 6 | Preis (4.4) | `wa-badge` | `priceCents != null` (nur mit `billing.manage` gesetzt) |
 | 7 | Fälligkeit; bei veröffentlichtem Release das Release-Datum statt der Fälligkeit (nie beide, B8) | `DueDate` | mit Datum, sonst «Ohne Datum» leise |
 
-Ausserhalb des Knopfs, rechts: `ActionMenu` (wie heute, ohne Pfeil, B6). Die Fälligkeit wandert aus dem Slot `date` von `StepTimeline` in die Kopfzeile, damit sie in einer Spalte steht.
+Ausserhalb des Taste, rechts: `ActionMenu` (wie heute, ohne Pfeil, B6). Die Fälligkeit wandert aus dem Slot `date` von `StepTimeline` in die Kopfzeile, damit sie in einer Spalte steht.
 
 Zeile 2 (zu **und** offen): Fortschritt wie heute (`wa-progress-bar` + «3 von 9 Tasks erledigt · 6 offen»), Spur mit `--wa-color-neutral-fill-normal` statt `-quiet` (B10). Nur Ideen: «3 Ideen» statt Balken (B12).
 
-Offen zusätzlich: Beschreibung (`RichTextView`), ToDo-Liste, «ToDo anlegen». Der heutige Knopf «Zuklappen» unter dem Balken **fällt weg**.
+Offen zusätzlich: Beschreibung (`RichTextView`), ToDo-Liste, «ToDo anlegen». Der heutige Taste «Zuklappen» unter dem Balken **fällt weg**.
 
 ### 4.3 Auf- und Zuklappen
 
@@ -122,16 +122,16 @@ Offen zusätzlich: Beschreibung (`RichTextView`), ToDo-Liste, «ToDo anlegen». 
 * «Alle aufklappen» (`chevrons-down`): öffnet alle Milestones, ToDos bleiben, wie sie sind. Deaktiviert, wenn alle offen sind.
 * «Alle zuklappen» (`chevrons-up`): schliesst alle Milestones **und** alle ToDos. Deaktiviert, wenn alle zu sind.
 * **Wahltaste**-Klick (Alt) auf den Pfeil eines Milestones öffnet oder schliesst ihn mit allen seinen ToDos (Finder-Muster, für Kenner; steht im Tooltip und im Handbuch). Ersetzt das heutige «Alle ToDos zeigen».
-* Beide Knöpfe auch in der Befehlspalette (`useCommands`), anstelle von `milestones-only`.
+* Beide Tasten auch in der Befehlspalette (`useCommands`), anstelle von `milestones-only`.
 
 **«Nur Milestones anzeigen»: streichen.** Begründung: «alle zugeklappt» zeigt dieselbe Übersicht, lässt aber einzelne Milestones öffnen (B3), und es gibt einen Zustand statt zwei. Alte Links mit `?milestones=only` klappen beim Öffnen alle zu und entfernen den Parameter (`router.replace`).
 
 **Tastatur und Fokus** (Disclosure-Muster):
 
-* Tab: Pfeil-Knopf des Milestones → sein Menü → (wenn offen) Inhalt → nächster Milestone. Eine Fokusstelle je Kopf, kein Roving.
+* Tab: Pfeil-Taste des Milestones → sein Menü → (wenn offen) Inhalt → nächster Milestone. Eine Fokusstelle je Kopf, kein Roving.
 * Enter oder Leertaste: auf- oder zuklappen. Pfeil rechts: aufklappen, Pfeil links: zuklappen (nur wenn der Kopf den Fokus hat; nichts anderes, kein Springen zwischen Zeilen).
-* `aria-expanded` am Knopf, `aria-controls` auf den Inhalt (`id="milestone-<id>-content"`), sichtbarer Name: «Milestone «{title}» auf- oder zuklappen» (wie `toggleTodo`).
-* Nach «Alle zuklappen» bleibt der Fokus auf dem Knopf. Wird ein Milestone mit Fokus im Inhalt zugeklappt (per «Alle zuklappen»), geht der Fokus auf dessen Pfeil.
+* `aria-expanded` am Taste, `aria-controls` auf den Inhalt (`id="milestone-<id>-content"`), sichtbarer Name: «Milestone «{title}» auf- oder zuklappen» (wie `toggleTodo`).
+* Nach «Alle zuklappen» bleibt der Fokus auf dem Taste. Wird ein Milestone mit Fokus im Inhalt zugeklappt (per «Alle zuklappen»), geht der Fokus auf dessen Pfeil.
 * Fokusring: `--wa-focus-ring` wie `todo-toggle`.
 
 **Bewegung.** Aufklappen ohne Animation der Höhe (wie die ToDos heute). Pfeil dreht 90° in 150 ms, aus bei `prefers-reduced-motion`.
@@ -166,7 +166,7 @@ Nur wer `billing.manage` hat; die API liefert `priceCents` und `billing` sonst `
 |---|---|
 | Lädt (erstes Mal) | Drei Platzhalter in Zeilenhöhe eines zugeklappten Milestones (`wa-skeleton effect="sheen"`, je Kreis + zwei Balken) statt eines Blocks; Werkzeugleiste verborgen |
 | Lädt (Polling, Neuladen) | nichts, Inhalt bleibt stehen |
-| Fehler | `wa-callout variant="danger"` mit Symbol `triangle-exclamation`: «Die Milestones konnten nicht geladen werden.» + Knopf «Erneut versuchen» (`refetch`). Kein leerer Zustand, keine Werkzeugleiste (B4). Neues Muster; danach auch für andere Listen nutzbar |
+| Fehler | `wa-callout variant="danger"` mit Symbol `triangle-exclamation`: «Die Milestones konnten nicht geladen werden.» + Taste «Erneut versuchen» (`refetch`). Kein leerer Zustand, keine Werkzeugleiste (B4). Neues Muster; danach auch für andere Listen nutzbar |
 | Leer | wie heute (`EmptyState`, `flag-checkered`, Hinweis nur mit `MILESTONE_CREATE`) |
 | Milestone ohne ToDos (offen) | wie heute «Noch keine ToDos» + «ToDo anlegen» |
 | Archiviertes Projekt | Auf- und Zuklappen geht, Bearbeiten nicht (die Rechte regeln es schon) |
@@ -174,7 +174,7 @@ Nur wer `billing.manage` hat; die API liefert `priceCents` und `billing` sonst `
 ### 4.7 Schmales Fenster (unter 40em)
 
 * Kopf in zwei Zeilen: Pfeil, Nummer, Titel (kürzt), Menü / darunter Status, Version, Preis, Datum (umbrechen erlaubt).
-* Werkzeugleiste: Knöpfe nur mit Symbol, `aria-label` und `wa-tooltip` mit dem Text; Summe in eine eigene Zeile darüber.
+* Werkzeugleiste: Tasten nur mit Symbol, `aria-label` und `wa-tooltip` mit dem Text; Summe in eine eigene Zeile darüber.
 * Fortschritt: Balken volle Breite, Text darunter.
 * Trefferfläche des Pfeils mindestens 44 × 44 px (HIG), am Desktop mindestens 24 × 24 px.
 
@@ -216,7 +216,7 @@ Kein neuer Dialog; nichts davon öffnet einen Dialog (R11).
 * Die Vorschau von 47 zeigt die Milestones als **zugeklappte Köpfe** (4.2, ohne Menü und Pfeil, verschobene markiert). Darum zuerst `TimelineMilestone` bauen.
 * Version im Kopf (4.2, Spalte 5) macht sichtbar, warum ein Milestone verschoben würde.
 * «Nach oben / Nach unten» im Menü bleibt; der Zustand hängt an der ID (4.3).
-* **Empfehlung:** ein Auftrag, zwei PRs in dieser Reihenfolge: (1) diese Spezifikation (Frontend, kein Backend nötig), (2) 47 (Backend, MCP, Knopf und Vorschau mit der neuen Komponente). Die Teile A, B, D von 47 (Backend und MCP) können parallel laufen.
+* **Empfehlung:** ein Auftrag, zwei PRs in dieser Reihenfolge: (1) diese Spezifikation (Frontend, kein Backend nötig), (2) 47 (Backend, MCP, Taste und Vorschau mit der neuen Komponente). Die Teile A, B, D von 47 (Backend und MCP) können parallel laufen.
 
 ## 6. Entscheide (Oliver, 25.11.2026)
 
