@@ -134,8 +134,11 @@ final class PdfFrame
         // About 180 mm along the diagonal, at most 110 pt.
         $size = min(110.0, 180 * self::PT_PER_MM / max(1.0, $metrics->getTextWidth($text, $font, 1)));
         $half = $metrics->getTextWidth($text, $font, $size) / 2 * M_SQRT1_2;
+        // The anchor is not the middle of the text: shifted by parts of its height (measured), its middle lies on the
+        // centre of the page.
+        $lift = $metrics->getFontHeight($font, $size) / 2 * M_SQRT1_2;
         $canvas->set_opacity(0.08);
-        $canvas->text(105 * self::PT_PER_MM - $half, 148.5 * self::PT_PER_MM + $half, $text, $font, $size, [0, 0, 0], 0.0, 0.0, -45.0);
+        $canvas->text(105 * self::PT_PER_MM - $half + 0.7 * $lift, 148.5 * self::PT_PER_MM + $half - 2 * $lift, $text, $font, $size, [0, 0, 0], 0.0, 0.0, -45.0);
 
         return (string) $dompdf->output();
     }
