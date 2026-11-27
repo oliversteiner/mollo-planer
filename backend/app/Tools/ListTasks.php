@@ -27,7 +27,7 @@ class ListTasks extends Tool
 
     public function description(): string
     {
-        return 'Lists tasks flat and short, with the plan revision. Filter by status, assignee, milestone, title or ids; include adds detail (use with ids).';
+        return 'Lists tasks flat and short, with the plan revision. Filter by status, assignee, milestone, todo, label, title or ids; include adds detail (use with ids).';
     }
 
     public function readOnly(): bool
@@ -42,6 +42,8 @@ class ListTasks extends Tool
             'status' => Schema::list(Schema::string(null, ['idea', 'planned', 'open', 'in_progress', 'review', 'done']), 'Only these statuses.'),
             'assignee' => Schema::string('"me" or an email.'),
             'milestone_ids' => Schema::list(Schema::string(), 'm-<id> or number.'),
+            'todo_ids' => Schema::list(Schema::string(), 't-<id> or number.'),
+            'labels' => Schema::list(Schema::string(), 'Label keys; tasks with at least one of them.'),
             'query' => Schema::string('Words in the title.'),
             'ids' => Schema::list(Schema::string(), 'k-<id> or number.'),
             'include' => Schema::list(Schema::string(null, ['description', 'comments', 'labels', 'user_story']), 'More per task, use with ids.'),
@@ -53,13 +55,16 @@ class ListTasks extends Tool
     public function handle(User $actor, array $arguments): ToolResult
     {
         $validated = $this->validate(
-            $arguments,
+            ToolArguments::singleToList($arguments, ['status', 'labels']),
             [
                 'project_id' => ['required'],
                 'status' => ['sometimes', 'array'],
                 'status.*' => ['in:idea,planned,open,in_progress,review,done'],
                 'assignee' => ['sometimes', 'nullable', 'string', 'max:255'],
                 'milestone_ids' => ['sometimes', 'array', 'max:200'],
+                'todo_ids' => ['sometimes', 'array', 'max:200'],
+                'labels' => ['sometimes', 'array', 'max:30'],
+                'labels.*' => ['string'],
                 'query' => ['sometimes', 'nullable', 'string', 'max:200'],
                 'ids' => ['sometimes', 'array', 'max:100'],
                 'include' => ['sometimes', 'array'],
@@ -90,6 +95,8 @@ class ListTasks extends Tool
             ->when($assignee === 'me', fn (Builder $query) => $query->where('tasks.assigned_user_id', $actor->getKey()))
             ->when($assignee !== null && $assignee !== 'me', fn (Builder $query) => $query->whereHas('assignee', fn (Builder $users) => $users->where('email', $assignee)))
             ->when(($validated['milestone_ids'] ?? []) !== [], fn (Builder $query) => $query->whereHas('todo', fn (Builder $todos) => $todos->whereIn('milestone_id', ToolArguments::ids($validated['milestone_ids'], 'm', 'milestone_ids'))))
+            ->when(($validated['todo_ids'] ?? []) !== [], fn (Builder $query) => $query->whereIn('tasks.todo_id', ToolArguments::ids($validated['todo_ids'], 't', 'todo_ids')))
+            ->when(($validated['labels'] ?? []) !== [], fn (Builder $query) => $query->whereHas('labels', fn (Builder $labels) => $labels->whereIn('labels.key', $validated['labels'])))
             ->when(($validated['ids'] ?? []) !== [], fn (Builder $query) => $query->whereIn('tasks.id', ToolArguments::ids($validated['ids'], 'k', 'ids')))
             ->when(isset($validated['query']) && $validated['query'] !== '', fn (Builder $query) => $query->where('tasks.title', 'like', '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string) $validated['query']).'%'))
             ->when($cursor !== null, fn (Builder $query) => $query->where('tasks.id', '>', (int) $cursor['id']))
