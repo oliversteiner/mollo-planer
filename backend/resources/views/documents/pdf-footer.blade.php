@@ -1,1 +1,0 @@
-<table style="width: 100%; border: 0; font-family: dejavusans, sans-serif; font-size: 8pt; color: #777;"><tr><td style="border: 0; padding: 0; text-align: left;">{{ $line }}</td><td style="border: 0; padding: 0; text-align: right;">{{ $page }}</td></tr></table>
